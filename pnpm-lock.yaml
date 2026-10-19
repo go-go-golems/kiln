@@ -231,6 +231,22 @@ importers:
         specifier: 8.19.0
         version: 8.19.0
 
+  packages/lab:
+    dependencies:
+      '@kiln/evidence':
+        specifier: workspace:*
+        version: link:../evidence
+    devDependencies:
+      '@types/node':
+        specifier: ^26.6.5
+        version: 26.6.5
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^5.0.5
+        version: 5.0.5(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5))
+
 packages:
 
   '@esbuild/aix-ppc64@0.24.2':

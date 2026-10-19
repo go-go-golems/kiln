@@ -1,0 +1,26 @@
+{
+  "name": "@kiln/lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Perf Lab's lab.js language, headless: builders, the six build passes, queries, derives, estimators and hypothesis verdicts on @kiln/evidence, with a synthetic data layer and an injected one for real runs.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node/index.ts",
+    "./presets/*": "./presets/*"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p .",
+    "check:pl": "node scripts/check-pl.ts",
+    "fixtures": "node scripts/extract-fixtures.ts"
+  },
+  "dependencies": {
+    "@kiln/evidence": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
