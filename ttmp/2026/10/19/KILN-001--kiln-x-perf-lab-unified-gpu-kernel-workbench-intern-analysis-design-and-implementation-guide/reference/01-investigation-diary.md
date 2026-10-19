@@ -306,3 +306,119 @@ with prose, bullets, pseudocode, diagrams, API tables and file references, in Ki
 ### Technical details
 
 - Unified server port chosen as 5280 to avoid Perf Lab's 5198/5199.
+
+## Step 4: Phase 0 — workspace and move
+
+Phase 0 of the guide (§35) moves Kiln out of `imports/` into a pnpm workspace without changing behaviour: the
+compiler becomes `@kiln/kiln` (`packages/kiln`), the page becomes `@kiln/workbench` (`apps/workbench`), and React,
+ReactDOM and KaTeX are bundled from npm so the built page needs no network. The built page renders the same default
+layout as the reference capture, and every Kiln test that ran before still passes.
+
+I also wrote two scripts the later phases depend on: `scripts/run-node-tests.mjs`, which runs Kiln's script-style
+tests and fails on a non-zero exit, and `scripts/shoot.mjs`, which drives headless Chrome over the DevTools protocol
+(throwaway profile, ready condition, in-page steps, screenshot) and replaces the hand-run Chrome commands and iframe
+harness the UI reader used in sources/04 Step 6.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (the "Once upload, then implement it…" request).
+
+**Assistant interpretation:** Start implementing the guide's phases in order, committing at milestones, with a
+detailed diary and screenshots.
+
+**Inferred user intent:** A working unified workbench, built in verifiable steps that someone can review.
+
+**Commit (code):** see the commit after this step ("KILN-001 Phase 0: pnpm workspace; …").
+
+### What I did
+
+- Workspace root: `package.json` (scripts `build`, `test`, `shoot`; `packageManager: pnpm@12.4.1`),
+  `pnpm-workspace.yaml` (`packages/*`, `apps/*`, `allowBuilds: {esbuild: true}`), `tsconfig.base.json` (strict,
+  `erasableSyntaxOnly`, `verbatimModuleSyntax`, `noEmit`; first used in Phase 2).
+- `packages/kiln/`: `cp -R` of `K/app/src/core` and `K/app/src/std`; tests `core`, `progs`, `stack1-3`, `tune`
+  (their `../src/...` imports still resolve, so they are byte-identical to the originals). `package.json` exports
+  `./core/*` and `./std/*`; the only dependency is `acorn@8.19.0` (used by `core/script.js`; `acorn-walk` from
+  Kiln's manifest is never imported, so it was dropped).
+- `apps/workbench/`: `src/ui`, `src/agent`, `src/main.jsx`, `build.mjs`, `presets/`, `reference.txt`,
+  `agent-guidelines.txt`, tests `export-cuda`, `notes`, `param-sweep`, `presets`, `ui` and `cuda_check.py`.
+  Every `../core/` and `../std/` import in `src/ui` and `src/agent` (and `./core/`, `./std/` in `main.jsx`, and
+  `../src/core|std/` in the moved tests) became `@kiln/kiln/core/…` / `@kiln/kiln/std/…`, by `sed`.
+- `build.mjs`: paths now relative to `apps/workbench/` (presets, docs) and `../../runner/kiln_runner.py`; removed the
+  `umd-globals` esbuild plugin and the three cdnjs `<script>` tags. `main.jsx` imports `katex` and sets
+  `window.katex`, which `ui/doc.js` already reads; `doc.js`'s header comment updated. `test/ui.mjs` lost its
+  `ctx.route("https://cdnjs…")` block, which served the UMD files from `node_modules` and is now dead.
+- `runner/kiln_runner.py`: copied unchanged.
+- `.gitignore`: `dist/`, `apps/workbench/src/*.gen.js`, `.data/`.
+- `scripts/run-node-tests.mjs <dir> [--skip f]... [--verbose]`, and `scripts/shoot.mjs <url|file> <out.png>
+  [--size WxH] [--dark] [--until EXPR] [--do JS]... [--settle MS] [--webgpu] [--print EXPR]`, also usable as a
+  module (`withPage(opts, fn)`).
+- README: layout and run commands.
+- Screenshot: `various/screens/p0-default-light-1600.png`.
+
+### Why
+
+- `@kiln/kiln` uses package `exports` with `./core/*` and `./std/*` subpaths rather than a single barrel, so the
+  UI's imports change by prefix only and `diff -r` against `imports/` stays readable.
+- KaTeX goes through `window.katex` rather than an import inside `doc.js`, so the Node tests keep rendering TeX as
+  source exactly as before (Phase 0 changes no behaviour).
+- `param-sweep.mjs` takes 54 s; it moved to `pnpm --filter @kiln/workbench test:sweep` so `pnpm test` stays under
+  15 s. `export-cuda.mjs` is an export tool (it writes `/tmp/kiln-kernels.json` for `cuda_check.py`), and `ui.mjs`
+  needs Playwright, which is not installed here; both are skipped by `pnpm test`.
+- A CDP script instead of Playwright: Chrome is installed, Node 26 has a global `WebSocket`, and the later WebGPU
+  protocol needs the same driver. No new dependency.
+
+### What worked
+
+- `pnpm build` → `dist/index.html 1137 KB (bundle 1057 KB, 25 presets, 25 with notes)`; `grep -c cdnjs` on the
+  standalone page returns 0.
+- `pnpm test`: `core 62 ms, progs 327 ms, stack1 100 ms, stack2 692 ms, stack3 237 ms, tune 1167 ms` (all 6 passed);
+  `notes 2711 ms, presets 7608 ms` and, before it moved, `param-sweep 54251 ms`. Run directly, `notes.mjs` prints
+  `all notes pass (169 lab links)` and `presets.mjs` prints `all presets pass`, as in sources/03.
+- `diff -r` against `imports/`: `core`, `std`, `presets` and `kiln_runner.py` are identical; the UI and agent
+  files differ only in the import prefixes, plus the `doc.js` comment.
+- `shoot.mjs` on the standalone page printed `{ready: true, preset: "W-18", katex: true, react: "undefined",
+  math: 43}`: React is no longer a global, KaTeX rendered 43 MathML elements, and `pgrep -f kiln-shoot-` found no
+  leftover Chrome. The capture matches `sources/screens/kiln-default-light-1600.png` except the compile time
+  (18 ms vs 17 ms).
+
+### What didn't work
+
+- `pnpm install` with `onlyBuiltDependencies: [esbuild]` (the setting `lab-workbench/` uses) failed under pnpm
+  12.4.1: `Error: ERR_PNPM_IGNORED_BUILDS … Ignored build scripts: esbuild@0.24.2 … Run "pnpm approve-builds"`.
+  pnpm then rewrote `pnpm-workspace.yaml` itself, dropping `onlyBuiltDependencies` and appending
+  `allowBuilds:\n  esbuild: set this to true or false`. My edit added a second `allowBuilds` key, and the next
+  install failed with `duplicate mapping key: allowBuilds`. Writing the file once with `allowBuilds: {esbuild:
+  true}` fixed it; esbuild's postinstall ran.
+
+### What I learned
+
+- pnpm 12 replaced `onlyBuiltDependencies` with an `allowBuilds` map and edits `pnpm-workspace.yaml` in place when
+  it finds a blocked build.
+- The page is 1.1 MB once React and KaTeX are inside; the original page was smaller but needed three CDN fetches.
+
+### What was tricky to build
+
+- `shoot.mjs` must not leak Chrome processes or touch the real profile. It starts Chrome with
+  `--remote-debugging-port=0` and a `mkdtemp` profile, reads the port from `<profile>/DevToolsActivePort`, connects
+  to the page target from `/json/list`, and in `finally` sends SIGTERM, waits for `exit` and removes the profile. A
+  hard `SIGKILL` timer bounds the whole run.
+
+### What warrants a second pair of eyes
+
+- `allowBuilds` is pnpm-12-specific; with an older pnpm the workspace file would be read differently.
+
+### What should be done in the future
+
+- Port `test/ui.mjs` from Playwright to `scripts/shoot.mjs` so the browser checks run on this machine.
+
+### Code review instructions
+
+- `diff -r imports/kiln-workbench-src/kiln-workbench/app/src/ui apps/workbench/src/ui` shows the whole UI change.
+- `pnpm install && pnpm build && pnpm test`; then `node scripts/shoot.mjs apps/workbench/dist/kiln-workbench.html
+  /tmp/p0.png`.
+
+### Technical details
+
+- Test ownership: `packages/kiln/test` holds tests that import only `core`/`std`; tests that import `ui/wb.js`
+  (`notes`, `presets`, `param-sweep`, `export-cuda`) or the built page (`ui`) live in `apps/workbench/test` and need
+  `node build.mjs --gen-only` first, which the `test` script runs.
