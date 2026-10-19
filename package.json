@@ -7,6 +7,8 @@
   "engines": { "node": ">=26" },
   "scripts": {
     "build": "pnpm --filter @kiln/workbench build",
+    "dev": "pnpm --filter @kiln/workbench build && pnpm --filter @kiln/server start",
+    "serve": "pnpm --filter @kiln/server start",
     "test": "pnpm -r --workspace-concurrency=1 test",
     "shoot": "node scripts/shoot.mjs"
   }

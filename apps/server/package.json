@@ -1,0 +1,23 @@
+{
+  "name": "@kiln/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Kiln server: records, devices and CUDA jobs over HTTP, SQLite storage, and the workbench page with a session token.",
+  "scripts": {
+    "start": "node src/index.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.5",
+    "@kiln/evidence": "workspace:*",
+    "hono": "^4.13.13"
+  },
+  "devDependencies": {
+    "@kiln/kiln": "workspace:*",
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

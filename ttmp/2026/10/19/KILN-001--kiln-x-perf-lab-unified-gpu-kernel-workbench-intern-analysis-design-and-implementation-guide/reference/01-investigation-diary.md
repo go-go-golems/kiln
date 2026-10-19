@@ -1206,3 +1206,102 @@ intervals on real hardware.
 
 - Screenshots from the subagents: `various/screens/p3-*.png` (Evidence light/dark/phone/WebGPU, Perf sim/WebGPU,
   Knobs, Devices, default, phone dark, graph) and `p3-webgpu-W-05-perf-1600.png`, `p3-webgpu-W-10-perf-1600.png`.
+
+## Step 11: Phase 5, part 1 — review and commit the server core; one copy of the protocol rules
+
+The Phase 5 worker built `apps/server` (Hono, `node:sqlite`, server-sent events, CUDA executors), the runner's
+stdin/stdout mode and a page-side client, and kept its own diary (`reference/05-phase5-server-diary.md`). I
+reviewed it against guide §30 and committed it. The page does not use the server yet: wiring `wb.js`, the Jobs view
+and a CUDA device per executor are the second part.
+
+Before committing I removed the one structural defect the review found. Two protocol rules existed twice:
+`repetitionOrder` (in Kiln's `devices.js` and the server's `protocol.ts`, held equal by a test) and the output check
+(Kiln's `checkValues` and the server's `checkOutputs`, same tolerances and NaN handling, also held equal by a test).
+Both now live once in `@kiln/evidence` (`src/protocol.ts`), and the browser and the server import them.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (the "Once upload, then implement it…" request).
+
+**Assistant interpretation:** Review the Phase 5 worker's server before committing it, remove duplicated rules, and
+record the review.
+
+**Inferred user intent:** A server whose records and checks agree with the page's by construction, not by a test
+that compares two copies.
+
+**Commit (code):** recorded in the changelog entry for this step.
+
+### What I did
+
+- Read `S/src/security.ts`, `app.ts`, `jobs.ts`, `records.ts`, `devices.ts`, `executors/cuda-runner.ts`, the runner
+  diff and the server diary's deviations list.
+- Added `packages/evidence/src/protocol.ts` with `repetitionOrder(n, seed, rep)` and
+  `checkSamples(got, want, {rtol, atol})` (exported with the `SampleCheck` type).
+- `checkSamples` treats a `null` reference (the JSON spelling the server receives) exactly like `NaN` (what the page
+  computes), and reports the index of the first failure in the caller's indexing.
+- Kiln: deleted `checkValues` from `program.js`; `program.js` and `devices.js` call `checkSamples`. `devices.js`
+  imports `repetitionOrder` and re-exports it, because `apps/workbench/test/webgpu.mjs` and
+  `packages/kiln/test/protocol.mjs` import it from there.
+- Server: deleted `S/src/protocol.ts`; `jobs.ts` imports both rules from `@kiln/evidence`. Removed the two
+  "equal to the page" tests from `S/test/jobs.test.ts`: with one implementation there is nothing to compare.
+- Added `packages/evidence/test/protocol.test.ts` (5 tests): permutation and determinism, golden orders for seed 1,
+  float32 tolerance, `null` ≡ `NaN` skipping, a NaN output and a size mismatch failing.
+
+### Why
+
+- Two copies held equal by a test is one rule with two chances to drift, and the test only covers the inputs it
+  lists. The order decides every record's `position` and the check decides `valid`, so a drift would make CUDA and
+  WebGPU records of the same protocol disagree silently.
+- `@kiln/evidence` is the package both sides already depend on for the record format, so the rules sit next to the
+  records they produce.
+- The golden orders (`02341 23401 03412 43102` for `n=5, seed=1`) pin the function: records already carry positions
+  computed by it, so changing it requires a protocol bump, not an edited test.
+
+### What worked
+
+- `pnpm test`: evidence 119 (114 + 5), Kiln 9, server 49 (51 − the 2 comparison tests), workbench 2.
+- `pnpm --filter @kiln/evidence typecheck`, `pnpm --filter @kiln/server typecheck`: clean.
+- `pnpm build`: `dist/index.html 1195 KB (bundle 1136 KB, 25 presets, 25 with notes)`.
+
+### What didn't work
+
+- Nothing failed. The first version of the golden-order test used `toMatchSnapshot`, which hides the values in a
+  separate file; I replaced it with literal values in the test.
+
+### What I learned
+
+- The old Kiln `checkValues` reported the first failure's index into the compacted array (NaN references removed),
+  the server's into the original. `checkSamples` uses the original indexing, which is the one a reader can look up.
+
+### What was tricky to build
+
+- Keeping `repetitionOrder` importable from `@kiln/kiln/std/devices.js`: the workbench package does not depend on
+  `@kiln/evidence`, so its WebGPU test reaches the function through Kiln.
+
+### What warrants a second pair of eyes
+
+- Security (guide §30.2) is in `S/src/security.ts`: Host allow-list (`bad_host`), Origin check with `null` refused
+  (`bad_origin`), `X-Kiln-Token` compared with `timingSafeEqual` on every non-GET (`bad_token`), JSON content type
+  (415). These hold against a DNS-rebinding page and a cross-origin form post.
+- `X-Kiln-Proposer` is self-declared, and `POST /jobs/:id/approve` does not look at it: any holder of the session
+  token can approve. Today the agent runs inside the page, so "agents cannot approve" is a property of the page's
+  agent tools, not of the server. It becomes enforceable when the agent gets its own credential (Phase 7 sandbox).
+- The agent budget (600 executor seconds per rolling 24 h) is summed from `jobs.executor_ms`, a column beyond §30.7.
+
+### What should be done in the future
+
+- Page integration (part 2): `connectServer` in `wb.js`, `records.list`/`add`/`forget`, SSE refresh, a Jobs view, a
+  CUDA device per server executor, `X-Kiln-Token` on the live `CudaDevice`, and one host convention for device ids
+  (server: SSH destination or host name; page: runner URL or `"import"`).
+
+### Code review instructions
+
+- Start at `packages/evidence/src/protocol.ts` and its test, then `S/src/jobs.ts` (search `checkSamples`,
+  `repetitionOrder`), then `S/src/security.ts`.
+- `pnpm test && pnpm --filter @kiln/server typecheck`.
+
+### Technical details
+
+- Server diary: `reference/05-phase5-server-diary.md` (Steps 1–6, deviations from the guide, what the page
+  integration needs). Its mentions of `protocol.ts` and `checkOutputs` describe the code before this step.
+- Screenshot: `various/screens/p5-served-by-server-1600.png`.

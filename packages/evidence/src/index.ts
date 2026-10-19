@@ -7,6 +7,7 @@ export {
   seal, isSealed, ProvenanceError,
 } from './values.ts';
 export { type Summary, type SummarizeOpts, type Pair, type PairedSummary, median, quantile, rng, summarize, pairedRatio, separated } from './stats.ts';
+export { type SampleCheck, repetitionOrder, checkSamples } from './protocol.ts';
 export { sha256Hex, isSha256Hex } from './sha256.ts';
 export { canonicalJSON, CanonicalJSONError } from './canonical.ts';
 export { type Lang, type DeviceClass, type Fingerprint, type Launch, type ContentIdInput, canonicalSource, contentId, deviceId, slug, isFingerprint } from './identity.ts';

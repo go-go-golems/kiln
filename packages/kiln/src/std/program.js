@@ -2,7 +2,8 @@
 // to launch them, and the buffers they read and write. Plus seeded inputs and sampled checks that
 // every device shares, so a CUDA box and the browser compare against the same reference values.
 import { k, P } from "../core/kiln.js";
-import { numel, hash, rng, compare } from "../core/util.js";
+import { numel, hash, rng } from "../core/util.js";
+import { checkSamples } from "@kiln/evidence";
 import { toCuda, toWgsl, toSim, SimMetrics } from "./emit.js";
 import { printKernelBody } from "./kernel.js";
 import { schedule, compilePoint, workOf } from "./loop.js";
@@ -64,18 +65,6 @@ export function sampleIndices(n, count = 384, seed = 3) {
   while (out.size < count) out.add(Math.floor(r() * n));
   return [...out].sort((a, b) => a - b);
 }
-// Per-kernel inputs are uniform in [−1, 1), which can be outside an op's domain (pow of a negative, log): where
-// the reference itself is NaN the output is undefined, so those samples are skipped rather than compared.
-export function checkValues(got, want, { rtol = 2e-3, atol = 2e-4 } = {}) {
-  const keep = [];
-  for (let i = 0; i < want.length; i++) if (!Number.isNaN(want[i])) keep.push(i);
-  const skipped = want.length - keep.length;
-  if (!keep.length) return { ok: true, maxAbs: 0, bad: 0, skipped, message: `the reference is undefined (NaN) at all ${skipped} sampled outputs on these inputs; nothing to compare` };
-  const g = Float32Array.from(keep, (i) => (Number.isNaN(got[i]) ? 1e30 : got[i])), w = Float32Array.from(keep, (i) => want[i]);
-  const r = compare(g, w, { rtol, atol });
-  if (skipped) { r.skipped = skipped; r.message = `${r.message} (${skipped} samples skipped: the reference is NaN there)`; }
-  return r;
-}
 
 // ----------------------------------------------------------------------------- the simulator
 const SIMS = new WeakMap();
@@ -114,7 +103,7 @@ export function simulateKernel(kern, target, { seed = 1, blocks = null } = {}) {
   const pick = covered.length > 512 ? sampleIndices(covered.length, 512).map((j) => covered[j]) : covered;
   const want = referenceAt(kern, ins, pick);
   const got = Float32Array.from(pick, (i) => out[i]);
-  const check = pick.length ? checkValues(got, want) : { ok: false, message: "the sampled blocks wrote nothing" };
+  const check = pick.length ? checkSamples(got, want) : { ok: false, message: "the sampled blocks wrote nothing" };
   check.n = pick.length;
   if (M.oobs.length) check.ok = false, check.message = `out-of-bounds ${M.oobs[0].what} (address ${M.oobs[0].a}); ` + check.message;
   if (M.badSyncs.length) check.ok = false, check.message = "a barrier runs in divergent code; " + check.message;

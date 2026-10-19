@@ -53,3 +53,13 @@ Phase 3b/3c: views on records (Perf, Knobs, Kernels, Devices, new Evidence view,
 
 - /Volumes/SSD/code/kiln/apps/workbench/src/ui/marks.jsx — value cells and marks
 - /Volumes/SSD/code/kiln/packages/kiln/src/std/devices.js — runProtocol and WebGpuDevice.measureKernels
+
+## 2026-10-19
+
+Phase 5a: apps/server (Hono + node:sqlite; Host/Origin/token/JSON checks; records, devices, jobs with proposed→approved→running, agent budget; SSE; local/SSH CUDA runner executor), runner stdin/stdout mode, page-side client (not yet wired); repetitionOrder and the output check moved into @kiln/evidence (protocol.ts) so page and server share one copy
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/apps/server/src/jobs.ts — job validation, state machine and repetition protocol
+- /Volumes/SSD/code/kiln/apps/server/src/security.ts — Host, Origin, token and content-type checks
+- /Volumes/SSD/code/kiln/packages/evidence/src/protocol.ts — repetitionOrder and checkSamples, shared by page and server

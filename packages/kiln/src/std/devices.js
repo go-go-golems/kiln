@@ -5,9 +5,9 @@
 //   cuda       a CUDA box running runner/kiln_runner.py (live when the page is served by the
 //              runner; otherwise export a bundle, run it there, import the results)
 import { SPECS, WEBGPU_DEFAULT, target } from "./targets.js";
-import { simulateKernel, kernelInputs, referenceAt, sampleIndices, checkValues, seedOf } from "./program.js";
+import { simulateKernel, kernelInputs, referenceAt, sampleIndices, seedOf } from "./program.js";
 import { numel, median } from "../core/util.js";
-import { deviceId, rng } from "@kiln/evidence";
+import { checkSamples, deviceId, repetitionOrder } from "@kiln/evidence";
 import { INPUT_SEED, specHash } from "./records.js";
 
 // Every device has two ids: `id`, the stable key the UI and presets select it by ("sim:rtx5090", "webgpu", "cuda"),
@@ -35,13 +35,8 @@ export class SimDevice {
 // launches, are what the statistics resample (§25): launches inside one context share its allocations, its compiled
 // pipeline and whatever the driver cached for them, so they are not independent observations.
 
-/** The order of `n` kernels in repetition `rep`: a Fisher–Yates shuffle seeded by `${seed}:${rep}`. */
-export function repetitionOrder(n, seed, rep) {
-  const r = rng(`${seed}:${rep}`);
-  const order = Array.from({ length: n }, (_, i) => i);
-  for (let i = n - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-  return order;
-}
+// the seeded order of kernels within a repetition, shared with the server's CUDA jobs
+export { repetitionOrder };
 
 /**
  * The protocol's bookkeeping around `runOne(kern, { rep, position, check })`, which runs one kernel once in a fresh
@@ -172,7 +167,7 @@ async function runOnce(dev, pipe, kern, { warmup, launches, timestamps, check, i
       await stage.mapAsync(GPUMapMode.READ);
       const all = new Float32Array(stage.getMappedRange().slice(0));
       stage.unmap();
-      ck = checkValues(Float32Array.from(idx, (i) => all[i]), referenceAt(kern, ins, idx));
+      ck = checkSamples(Float32Array.from(idx, (i) => all[i]), referenceAt(kern, ins, idx));
       ck.n = idx.length;
     }
     const verr = await dev.popErrorScope(), merr = await dev.popErrorScope();
@@ -345,7 +340,7 @@ export function ingest(res, kernels, { seed = 1 } = {}) {
     if (r.error) return { error: r.error };
     const ins = kernelInputs(kn, seed);
     const idx = sampleIndices(numel(kn.shape), 384);
-    const check = checkValues(Float32Array.from(r.samples || []), referenceAt(kn, ins, idx));
+    const check = checkSamples(Float32Array.from(r.samples || []), referenceAt(kn, ins, idx));
     check.n = idx.length;
     const us = r.us_median;
     // one process is one repetition: its sample is the median of the timed launches

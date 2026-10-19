@@ -8,6 +8,7 @@ outputs at sampled indices so the workbench can check them against its reference
 
   python kiln_runner.py device                         what GPU this is (JSON)
   python kiln_runner.py run bundle.json -o out.json    run an exported bundle; import out.json
+  python kiln_runner.py run - --out -                  bundle on stdin, results on stdout (the Kiln server)
   python kiln_runner.py serve kiln-workbench.html      serve the workbench with a live CUDA device
        [--port 8765] [--host 127.0.0.1] [--arch sm_89] [--ncu]
 
@@ -16,22 +17,28 @@ No Python packages are needed: inputs are generated on the host by the same mulb
 the workbench uses, inside the compiled harness.
 
 Security: serve compiles and runs CUDA code that is POSTed to it. It binds to 127.0.0.1 by
-default and refuses cross-origin requests; do not expose it to a network you do not trust.
+default, answers only requests whose Host is this loopback address and port, refuses cross-origin
+requests, and runs code only for requests carrying the session token it writes into the page it
+serves (X-Kiln-Token); do not expose it to a network you do not trust.
 """
 import argparse
 import hashlib
 import json
 import os
 import re
+import secrets
 import shutil
+import signal
 import statistics
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+RUNNER_VERSION = "kiln_runner/2"
 CACHE = Path(os.environ.get("KILN_CACHE", Path(tempfile.gettempdir()) / "kiln-runner-cache"))
 NCU_METRICS = {
     "ncu_sm_throughput_pct": "sm__throughput.avg.pct_of_peak_sustained_elapsed",
@@ -134,15 +141,17 @@ int main() {
     if (cudaGetDevice(&d) != cudaSuccess || cudaGetDeviceProperties(&p, d) != cudaSuccess) { printf("{\"error\": \"no CUDA device\"}\n"); return 1; }
     int rt = 0, drv = 0; cudaRuntimeGetVersion(&rt); cudaDriverGetVersion(&drv);
     int clk = 0, mclk = 0, bus = 0;
+    char pci[32] = "";
+    cudaDeviceGetPCIBusId(pci, sizeof(pci), d);
     cudaDeviceGetAttribute(&clk, cudaDevAttrClockRate, d);
     cudaDeviceGetAttribute(&mclk, cudaDevAttrMemoryClockRate, d);
     cudaDeviceGetAttribute(&bus, cudaDevAttrGlobalMemoryBusWidth, d);
     printf("{\"name\": \"%s\", \"cc\": \"%d.%d\", \"sms\": %d, \"smemPerBlock\": %zu, \"smemPerSM\": %zu, \"regsPerSM\": %d, "
            "\"maxThreadsPerBlock\": %d, \"maxThreadsPerSM\": %d, \"clockMHz\": %d, \"memClockMHz\": %d, \"busBits\": %d, "
-           "\"memGB\": %.1f, \"l2MB\": %.1f, \"runtime\": %d, \"driver\": %d}\n",
+           "\"memGB\": %.1f, \"l2MB\": %.1f, \"runtime\": %d, \"driver\": %d, \"pciBusId\": \"%s\"}\n",
            p.name, p.major, p.minor, p.multiProcessorCount, p.sharedMemPerBlock, p.sharedMemPerMultiprocessor, p.regsPerMultiprocessor,
            p.maxThreadsPerBlock, p.maxThreadsPerMultiProcessor, clk / 1000, mclk / 1000, bus,
-           p.totalGlobalMem / 1073741824.0, p.l2CacheSize / 1048576.0, rt, drv);
+           p.totalGlobalMem / 1073741824.0, p.l2CacheSize / 1048576.0, rt, drv, pci);
     return 0;
 }
 """
@@ -179,7 +188,35 @@ def device_info(arch, nvcc):
         _device = json.loads(r.stdout.strip() or '{"error": "device query printed nothing"}')
         if "error" in _device:
             raise RuntimeError(_device["error"])
+        _device.update(nvidia_smi(_device.get("pciBusId")))
     return _device
+
+
+# Stable facts only: every field enters the device fingerprint, so a field that changes between two
+# probes (a current clock, a temperature) would make the same GPU look like a new device.
+SMI_FIELDS = {"driver_version": "driverVersion", "persistence_mode": "persistenceMode", "clocks.max.sm": "maxSmClockMHz",
+              "clocks.max.memory": "maxMemClockMHz", "uuid": "gpuUuid"}
+
+
+def nvidia_smi(pci):
+    """Driver version, persistence mode, maximum clocks and UUID of the GPU at `pci`, when nvidia-smi is present."""
+    tool = shutil.which("nvidia-smi")
+    if not tool or not pci:
+        return {}
+    cmd = [tool, "--query-gpu=" + ",".join(SMI_FIELDS), "--format=csv,noheader,nounits", "-i", pci]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        return {}
+    vals = [v.strip() for v in (r.stdout.strip().splitlines() or [""])[0].split(",")]
+    if r.returncode != 0 or len(vals) != len(SMI_FIELDS):
+        return {}
+    out = {}
+    for (field, key), v in zip(SMI_FIELDS.items(), vals):
+        if not v or v.startswith("[N/A") or v.startswith("[Not"):
+            continue
+        out[key] = int(v) if v.isdigit() else v
+    return out
 
 
 def kernel_name(src):
@@ -256,7 +293,37 @@ def run_bundle(bundle, arch, nvcc, ncu=False):
             res = {"name": k["name"], "identity": k.get("identity"), "error": str(e)[-2000:]}
             log(f"  {k['name']:<36} ERROR {str(e).splitlines()[0][:100]}")
         results.append(res)
-    return {"format": "kiln-results/1", "device": dev, "kernels": results, "created": time.strftime("%Y-%m-%dT%H:%M:%S")}
+    return {"format": "kiln-results/1", "device": dev, "kernels": results, "runner": RUNNER_VERSION, "created": time.strftime("%Y-%m-%dT%H:%M:%S")}
+
+
+def read_stdin_bundle():
+    """The first JSON document on stdin: one line (the server writes one) or a pretty-printed file piped in."""
+    buf = ""
+    while True:
+        line = sys.stdin.readline()
+        if not line:
+            break
+        buf += line
+        if line.rstrip().endswith("}"):
+            try:
+                return json.loads(buf)
+            except ValueError:
+                pass
+    return json.loads(buf)
+
+
+def exit_on_eof():
+    """Stop this process group when stdin closes: the caller (the Kiln server, or its SSH connection) went away."""
+    def watch():
+        try:
+            sys.stdin.read()
+        finally:
+            log("stdin closed: the caller went away; stopping")
+            try:
+                os.killpg(os.getpgrp(), signal.SIGTERM)
+            finally:
+                os._exit(143)
+    threading.Thread(target=watch, daemon=True).start()
 
 
 def default_arch():
@@ -264,8 +331,17 @@ def default_arch():
 
 
 # ------------------------------------------------------------------ serve
+def with_token(page, token):
+    """The page with the session token in a meta tag, which the page sends back as X-Kiln-Token."""
+    meta = f'<meta name="kiln-token" content="{token}">'.encode()
+    m = re.search(rb"<head[^>]*>", page, re.I)
+    return page[:m.end()] + b"\n" + meta + page[m.end():] if m else meta + b"\n" + page
+
+
 def serve(html, host, port, arch, nvcc, ncu):
-    page = Path(html).read_bytes() if html else None
+    token = secrets.token_hex(32)
+    page = with_token(Path(html).read_bytes(), token) if html else None
+    hosts = {f"127.0.0.1:{port}", f"localhost:{port}", f"[::1]:{port}"} if host in ("127.0.0.1", "localhost", "::1") else None
 
     class H(BaseHTTPRequestHandler):
         def _send(self, code, body, ctype="application/json"):
@@ -281,7 +357,19 @@ def serve(html, host, port, arch, nvcc, ncu):
             origin = self.headers.get("Origin")
             return origin is None or origin == f"http://{self.headers.get('Host')}"
 
+        def _host_ok(self):
+            # a DNS-rebinding page reaches 127.0.0.1 under its own host name: refuse it, page included
+            if hosts is None or (self.headers.get("Host") or "").lower() in hosts:
+                return True
+            self._send(403, {"error": "bad_host"})
+            return False
+
+        def _token_ok(self):
+            return secrets.compare_digest(self.headers.get("X-Kiln-Token") or "", token)
+
         def do_GET(self):
+            if not self._host_ok():
+                return
             if self.path in ("/", "/index.html", "/kiln-workbench.html"):
                 if not page:
                     return self._send(404, b"start the runner with the workbench page: kiln_runner.py serve kiln-workbench.html", "text/plain")
@@ -296,10 +384,14 @@ def serve(html, host, port, arch, nvcc, ncu):
             self._send(404, {"error": "not found"})
 
         def do_POST(self):
+            if not self._host_ok():
+                return
             if self.path != "/api/run":
                 return self._send(404, {"error": "not found"})
             if not self._same_origin() or not (self.headers.get("content-type") or "").startswith("application/json"):
                 return self._send(403, {"error": "refused: same-origin application/json only"})
+            if not self._token_ok():
+                return self._send(403, {"error": "bad_token: X-Kiln-Token must be the token in the served page"})
             n = int(self.headers.get("content-length") or 0)
             if n > 64 * 1024 * 1024:
                 return self._send(413, {"error": "bundle too large"})
@@ -332,9 +424,10 @@ def main():
         p = sub.add_parser(name)
         p.add_argument("--arch", default=default_arch(), help="nvcc -arch (default: native, or $KILN_ARCH)")
         if name == "run":
-            p.add_argument("bundle")
-            p.add_argument("-o", "--out", default="results.json")
+            p.add_argument("bundle", help="bundle file, or - for stdin")
+            p.add_argument("-o", "--out", default="results.json", help="results file, or - for stdout")
             p.add_argument("--ncu", action="store_true", help="also profile each kernel with Nsight Compute")
+            p.add_argument("--exit-on-eof", action="store_true", help="with run -: stop when stdin closes (the caller went away)")
         if name == "serve":
             p.add_argument("html", nargs="?", default="kiln-workbench.html")
             p.add_argument("--host", default="127.0.0.1")
@@ -345,11 +438,17 @@ def main():
     if a.cmd == "device":
         print(json.dumps(device_info(a.arch, nvcc), indent=1))
     elif a.cmd == "run":
-        bundle = json.loads(Path(a.bundle).read_text())
+        bundle = read_stdin_bundle() if a.bundle == "-" else json.loads(Path(a.bundle).read_text())
+        if a.exit_on_eof and a.bundle == "-":
+            exit_on_eof()
         log(f"{len(bundle['kernels'])} kernels")
         res = run_bundle(bundle, a.arch, nvcc, a.ncu)
-        Path(a.out).write_text(json.dumps(res))
-        log(f"wrote {a.out}: import it in the workbench (Devices → Import results)")
+        if a.out == "-":
+            sys.stdout.write(json.dumps(res))
+            sys.stdout.flush()
+        else:
+            Path(a.out).write_text(json.dumps(res))
+            log(f"wrote {a.out}: import it in the workbench (Devices → Import results)")
     else:
         html = a.html if Path(a.html).exists() else None
         if not html:
