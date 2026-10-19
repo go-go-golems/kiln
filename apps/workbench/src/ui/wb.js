@@ -29,6 +29,8 @@ class Workbench {
     this.project = null; this.graph = null; this.run = null; this.prog = null; this.compileMs = 0; this.e2e = null; this.outputs = null;
     this.params = new ParamSet([]); this.kernelPins = {};
     this.devices = makeDevices();
+    // the measurement protocol a device runs (reps, warm-up, launches, seed), as last set in Devices
+    for (const d of this.devices) { const p = d.protocol && lsGet("protocol:" + d.kind, null); if (p) Object.assign(d.protocol, p); }
     this.deviceId = lsGet("device", "sim:rtx5090");
     this.store = new EvidenceStore();
     // kiln-evidence/2 records; a kiln-evidence/1 store from before becomes legacy records once
@@ -37,11 +39,17 @@ class Workbench {
     this.measures = {}; this.history = []; this.measuring = false;
     this.tuning = null;
     this.events = [];
-    this.sel = { ir: null, node: null, step: null, kernel: null, decision: null, src: "cuda" };
+    this.sel = { ir: null, node: null, step: null, kernel: null, decision: null, record: null, src: "cuda" };
     this.ui = { theme: lsGet("theme", "auto") };
     this.layout = (() => { try { const l = lsGet("layout", null); return l ? Dock.normalize(l) : Dock.defaultLayout(); } catch { return Dock.defaultLayout(); } })();
     // layouts saved before the Notes view existed: put Notes beside Code
     if (!Dock.openViews(this.layout).includes("notes")) { const t = Dock.tileOf(this.layout, "code") || Dock.tiles(this.layout)[0]; if (t) this.layout = Dock.normalize(Dock.moveToTab(this.layout, "notes", t.id, 0)); }
+    // layouts saved before the Evidence view existed: put Evidence beside Tune, once (closing it later sticks)
+    if (!lsGet("evidenceView", false)) {
+      lsSet("evidenceView", true);
+      const t = !Dock.openViews(this.layout).includes("evidence") && (Dock.tileOf(this.layout, "tune") || Dock.tileOf(this.layout, "perf"));
+      if (t) this.layout = Dock.normalize(Dock.moveToTab(this.layout, "evidence", t.id, t.views.indexOf("tune") + 1 || null));
+    }
     this.maxTile = null; this.focusTile = null; this.phoneView = "ir"; this.drag = null;
     this.toasts = []; this.sample = null; this.platformReady = false; this.ready = false; this.error = null;
   }
@@ -198,6 +206,8 @@ class Workbench {
   // ---------- devices ----------
   /** The id the current device's records carry (fingerprinted; the selection key until a real device is probed). */
   get evidenceId() { return this.device.evidenceId ?? this.device.id; }
+  /** Change the measurement protocol of a device (the Devices view); it applies to the next Measure or Tune. */
+  setProtocol(device, patch) { Object.assign(device.protocol, patch); lsSet("protocol:" + device.kind, device.protocol); this.bump("device"); }
   async setDevice(id, { quiet = false } = {}) {
     const d = this.devices.find((x) => x.id === id);
     if (!d) return;
@@ -219,7 +229,11 @@ class Workbench {
     const t0 = performance.now();
     let res;
     try {
-      res = await measureProgram(this.prog, device, { store: this.store, run: this.run, kernelPins: this.kernelPins, onKernel: () => { this.measuring.done++; this.bump("measure"); } });
+      // a device with a protocol reports repetitions × kernels steps as it goes; others report each kernel once
+      const progress = device.measureKernels
+        ? { onStep: (done, total) => { Object.assign(this.measuring, { done, total }); this.bump("measure"); } }
+        : { onKernel: () => { this.measuring.done++; this.bump("measure"); } };
+      res = await measureProgram(this.prog, device, { store: this.store, run: this.run, kernelPins: this.kernelPins, ...progress });
     } catch (e) { this.measuring = false; this.toast("Measure failed: " + e.message, "bad"); this.bump("measure"); return null; }
     const rec = { t: Date.now(), device: device.id, evidenceId: device.evidenceId, deviceName: device.label, total: res.total, kernels: res.kernels.map((r) => ({ name: r.kern.name, identity: r.kern.identity, row: r.kern.row, us: r.us, metrics: r.metrics, check: r.check, error: r.error, record: r.record?.id ?? null })), ms: performance.now() - t0, preset: this.preset?.id };
     this.measures[device.id] = rec;
@@ -264,8 +278,8 @@ class Workbench {
     const device = this.devices.find((d) => d.kind === "cuda");
     device.adopt(res.device || { name: "unknown" }, "import");
     device.label = device.name + " · imported";
-    const rec = { t: Date.now(), device: device.id, deviceName: device.label, total: out.reduce((a, r) => a + (r.us || 0), 0), kernels: out.map((r, i) => ({ name: this.prog.kernels[i].name, identity: this.prog.kernels[i].identity, row: this.prog.kernels[i].row, ...r })), imported: true };
-    this.prog.kernels.forEach((kn, i) => this.store.record({ device, kern: kn, result: out[i], by: "import", activation: activationOf(kn, { run: this.run, kernelPins: this.kernelPins }) }));
+    const ids = this.prog.kernels.map((kn, i) => this.store.record({ device, kern: kn, result: out[i], by: "import", activation: activationOf(kn, { run: this.run, kernelPins: this.kernelPins }) }).id);
+    const rec = { t: Date.now(), device: device.id, evidenceId: device.evidenceId, deviceName: device.label, total: out.reduce((a, r) => a + (r.us || 0), 0), kernels: out.map((r, i) => ({ name: this.prog.kernels[i].name, identity: this.prog.kernels[i].identity, row: this.prog.kernels[i].row, ...r, record: ids[i] })), imported: true };
     this.measures[device.id] = rec;
     this.log("measure", `imported CUDA results: ${fmtUs(rec.total)}`);
     this.bump("measure", "store", "device");

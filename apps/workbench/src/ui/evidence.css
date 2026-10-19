@@ -45,3 +45,31 @@
 .ser .ln { fill: none; stroke: var(--ink); stroke-width: 1; }
 .ser .wk { stroke: var(--ink); stroke-width: 1; }
 .ser .on .mk, .ser .mk.on { fill: var(--accent); stroke: var(--accent); }
+
+/* a status that needs no stamp: valid records read "✓ valid" in ink */
+.okword { white-space: nowrap; }
+.mono { font-family: var(--code); font-size: var(--fs-xs); }
+/* zero-sized holder of shared SVG defs (url(#half)); display:none would stop the pattern painting */
+.svgdefs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* a wide table scrolls inside its own box, never the page */
+.xscroll { overflow-x: auto; padding: 0 14px; }
+.scroll > .titleblock { margin-top: 14px; }
+
+/* the Evidence view: records grouped by kernel × row × device */
+.evt td { font-size: var(--fs-s); white-space: nowrap; }
+.evt tr.grp td { white-space: normal; border-bottom-color: var(--hair); padding-top: 10px; }
+.evt tr.grp .rowtxt { font-size: var(--fs-xs); }
+.evt tr:not(.grp) td:first-child { padding-left: 12px; }
+.evt td.at { color: var(--ink-2); font-size: var(--fs-xs); }
+@container stage (max-width: 480px) { .evt .by { display: none; } }
+.recline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-size: var(--fs-xs); }
+.reasons { margin: 0; padding-left: 16px; font-size: var(--fs-xs); display: flex; flex-direction: column; gap: 2px; }
+
+/* the sample strip plot: one dot per repetition, the median line, the option's CI band */
+.strip { display: block; overflow: visible; font-family: var(--sans); }
+.strip .axis { stroke: var(--hair); stroke-width: 1; }
+.strip .ciband { fill: var(--fill-2); }
+.strip .medl { stroke: var(--ink); stroke-width: 1.5; }
+.strip .ax { fill: var(--ink-2); font-size: var(--fs-2xs); }
+.strip .out path { fill: var(--ink); }

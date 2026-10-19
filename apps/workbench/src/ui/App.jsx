@@ -4,6 +4,7 @@ import { useLab, Btn, Pill, Menu, cls } from "./common.jsx";
 import { Dock } from "./Dock.jsx";
 import { LAYOUTS } from "./dock.js";
 import { fmtUs } from "@kiln/kiln/core/util.js";
+import { SvgDefs } from "./marks.jsx";
 
 export function App() {
   useLab("ready", "ui");
@@ -27,6 +28,7 @@ export function App() {
       <Header />
       <div id="work"><Dock /></div>
       <Toasts />
+      <SvgDefs />
     </div>
   );
 }
@@ -94,7 +96,7 @@ function Header() {
       </button>
       <span className="sp" />
       {wb.run ? <Pill big={wb.prog ? s.kernels : wb.run.graph.size} small={wb.prog ? `kernel${s.kernels === 1 ? "" : "s"} · ${wb.compileMs.toFixed(0)} ms compile` : `nodes · ${wb.compileMs.toFixed(0)} ms`} onClick={() => wb.showView("kernels")} title="Kernels" /> : null}
-      {s.total != null ? <Pill big={fmtUs(s.total)} small={s.stale ? "last measure (stale)" : "measured"} onClick={() => wb.showView("perf")} title="Performance" /> : null}
+      {s.total != null ? <Pill big={fmtUs(s.total)} small={`${wb.device.kind === "sim" ? "simulated" : "measured"}${s.stale ? " · stale" : ""}`} onClick={() => wb.showView("perf")} title="Performance" /> : null}
       {wb.tuning?.running ? <Pill big={wb.tuning.history.length + "/" + wb.tuning.budget} small="tuning" busy onClick={() => wb.showView("tune")} /> : null}
       {s.errors ? <Pill big={s.errors} small="errors" bad onClick={() => wb.showView("code")} /> : null}
       {s.failing ? <Pill big={s.failing} small="checks failing" bad onClick={() => wb.showView(wb.e2e?.ok === false ? "code" : "perf")} /> : null}

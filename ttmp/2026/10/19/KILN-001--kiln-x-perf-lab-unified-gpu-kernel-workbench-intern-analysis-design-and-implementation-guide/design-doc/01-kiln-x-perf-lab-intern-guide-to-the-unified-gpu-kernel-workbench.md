@@ -1436,6 +1436,23 @@ measureWebGpu(kernels, {reps = 7, warmup = 3, launches = 20, seed}):
   return one record per kernel: samples, order, check, activation, validity (partial if wall clock)
 ```
 
+As built (`WebGpuDevice.measureKernels`, `runProtocol` in `std/devices.js`):
+
+- An adapter creates one device, so each fresh context requests a new adapter and refuses one whose facts differ
+  from the probed fingerprint (its numbers would carry the wrong device id).
+- Inputs are generated once per call; they do not depend on the context, and generating them dominated the cost
+  (38 ms for 17 MB, against about 1 ms for a device and 0.5 ms for a pipeline).
+- Records store each kernel's `position` in every repetition rather than the protocol's `order`; the order is
+  recomputable from the seed (`repetitionOrder(n, seed, rep)`, shared with the server's job protocol).
+- A kernel-repetition that does not finish within 60 s fails that repetition (`repErrors`), which makes the record
+  invalid instead of hanging the measurement.
+- Chrome started without `--enable-unsafe-webgpu` quantises timestamps (65.536 µs in Chrome 155 on macOS). The
+  protocol detects a timer grid of 1 µs or more over the run's launch times and marks its records partial
+  ("timestamps quantized to …"), so they are shown and never decide; Devices explains why.
+- On an M1 Pro the GPU runs at discrete clock levels up to about 3× apart, and the first repetition after idle is
+  often the slow one. Intervals therefore come out wide and decisions stay "within noise"; separately run,
+  unpaired measurements are not comparable on such a machine. The paired protocol (below, Phase 6) is the remedy.
+
 **CUDA (`cuda:<fp>`).** A server job (§30.4). The page proposes a job containing each kernel's CUDA source, launch
 and input seeds; the server's executor runs `kiln_runner.py run -` once per repetition with the kernels in seeded
 order; each kernel is a fresh process of its harness; the per-repetition sample is the median of its timed

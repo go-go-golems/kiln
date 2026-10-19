@@ -44,3 +44,12 @@ Phase 4b: hypotheses in W-05, W-19, W-25 (headless verdicts open → supported/r
 
 - /Volumes/SSD/code/kiln/apps/workbench/presets/W-25-model-vs-measurement.js — hypotheses and fixed check
 - /Volumes/SSD/code/kiln/packages/evidence/src/identity.ts — canonicalSource
+
+## 2026-10-19
+
+Phase 3b/3c: views on records (Perf, Knobs, Kernels, Devices, new Evidence view, shared marks) and the WebGPU repetition protocol (7×20, seeded order, fresh device per kernel-repetition, coarse timers partial); review fixes incl. WGSL tanh clamp (NaN on Metal) and kiln-codegen/2
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/apps/workbench/src/ui/marks.jsx — value cells and marks
+- /Volumes/SSD/code/kiln/packages/kiln/src/std/devices.js — runProtocol and WebGpuDevice.measureKernels

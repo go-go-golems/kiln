@@ -1092,3 +1092,117 @@ with tests, and the guide's §22 now states the rule.
 - W-25's row function: `opts = ev.options(kernel)`; model favourite = lowest model time with the compile's
   tie-break (`k.knobs.canonical`); `rho` heuristic (it involves the model); `regret` takes the class of the times
   (`combine`), heuristic on the simulator, derived on hardware.
+
+## Step 10: Phase 3, parts 2 and 3 — review and commit the views and the WebGPU protocol
+
+Both Phase 3 subagents finished; their diaries are [03-phase3-views-diary.md](03-phase3-views-diary.md) (Steps 1–4)
+and [04-phase3-webgpu-diary.md](04-phase3-webgpu-diary.md) (Steps 1–6). This step is my review of both, the fixes I
+made in review, and the commit.
+
+- **Views:** Perf, Knobs, Kernels and Devices read records and show the model, simulated and measured columns with
+  provenance marks. A new Evidence view lists records with their validity, activation and check.
+- **WebGPU protocol:** 7 repetitions × 20 launches, 3 warm-up, seeded order, one fresh GPUDevice per kernel per
+  repetition. It runs on this Mac's Apple M1 Pro in headless Chrome.
+
+Review produced six small changes, among them the follow-ups the WebGPU subagent left in files it did not own. One
+of them, a NaN on Metal, is a code-generator change and bumps `CODEGEN_VERSION` to `kiln-codegen/2`.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1.
+
+**Assistant interpretation:** Review the subagents' work, fix what is wrong, commit Phase 3.
+
+**Inferred user intent:** Measurements the views can be trusted to present, from a protocol that gives real
+intervals on real hardware.
+
+**Commit (code):** see the commit after this step ("KILN-001 Phase 3b/3c: …").
+
+### What I did
+
+- Read the views diff (`marks.jsx`, `Evidence.jsx`, `Perf.jsx`, `Knobs.jsx`, `Kernels.jsx`, `wb.js`, `dock.js`,
+  `App.jsx`, `agent.js`) and the protocol diff (`devices.js`, `tune.js`, three lines of `records.js`), and looked at
+  the screenshots.
+- Fixes in review:
+  1. `Perf.jsx`: the total's stamp is solid when it is a hardware total. Dashed means "not hardware evidence"
+     (§32.4), and "measured on WebGPU apple metal-3" was drawn dashed.
+  2. `marks.jsx`: dropped its private `median` for `@kiln/kiln/core/util.js`'s, which `agent.js` already uses.
+  3. `records.js`: a simulator record's `counts` (labelled derived) no longer contain the time model's outputs
+     `us`, `min`, `gflops`, `gbs`. The simulated time is heuristic and already is the record's sample (§24).
+  4. `wb.js`: a device with a protocol reports progress per step (`onStep(done, total)`, repetitions × kernels).
+     Previously `onKernel` fired only after the whole batch, so the counter jumped from 0 to N.
+  5. `devices.js`: `timerNote` is set when the run's timestamps sit on a grid of 1 µs or more, and `describe()`
+     shows it in Devices, with the Chrome flag that removes it.
+  6. `scripts/shoot.mjs`: on websocket close, pending DevTools calls reject ("the browser closed the DevTools
+     connection") instead of never settling. A Chrome killed by the timeout used to end in
+     `unsettled top-level await`.
+- W-24 NaN on Metal: `fns.js` WGSL `tanh(clamp(x, -15.0, 15.0))`; `CODEGEN_VERSION = "kiln-codegen/2"`.
+- Guide §28: an "as built" list (fresh adapter per context, inputs once per call, `position`, 60 s deadline,
+  quantised timestamps marked partial, the M1 Pro clock levels).
+
+### Why
+
+- **The tanh clamp.** Metal evaluates WGSL `tanh` through exponentials, which overflow to `inf/inf` = NaN for
+  |x| ≳ 44. W-24's GELU feeds it about 440. Since `tanh(15)` rounds to 1 in f32, clamping at ±15 changes no
+  result anywhere. The CUDA path (`tanhf`) was unaffected.
+- **The codegen bump.** The content id of every kernel that uses `tanh` changes by itself, but rows not compiled
+  since would keep deciding from records of the NaN-producing code (§22, "the current content id of an option").
+  Bumping `CODEGEN_VERSION` makes every older record stale at once.
+
+### What worked
+
+- `pnpm test`: evidence 114, Kiln 9 (with `protocol.mjs`, 38 checks), server 51, workbench 2. `pnpm build`:
+  1194 KB. `node scripts/contrast.mjs`: all pairs pass.
+- `pnpm --filter @kiln/workbench test:webgpu`: `all webgpu checks pass in 2.5 s`. W-10's three kernels are
+  measured 7 times each, each repetition gives every kernel a distinct position, and the next compile decides all
+  three forks `by evidence (confirms the model)`.
+- W-24 on WebGPU (`webgpu:webgpu-apple-metal-3-2167faf0`), headless:
+
+  ```text
+  k_rms_norm_reduce      29.7 µs   check ok, max abs diff 1.19e-7   fresh
+  k_linear_gelu_reduce 1020.2 µs   check ok, max abs diff 1.72e-5   fresh   (was NaN at 59 of 384 samples)
+  k_linear_ew_reduce   1337.0 µs   check ok, max abs diff 6.48e-5   fresh
+  ```
+
+- `shoot.mjs` after its change: a normal run still writes its PNG.
+
+### What didn't work
+
+- Nothing failed in review. The WebGPU run showed the clock-level noise the subagent described:
+  `k_matmul_reduce_2` samples `289 95.8 95.8 290 122 156 122`, interval [95.8, 289]. That is the GPU's behaviour,
+  not a protocol defect.
+
+### What I learned
+
+- The M1 Pro's discrete clock levels make separately run measurements of one kernel differ by up to 3×. Unpaired
+  comparisons on such a device need either the paired protocol or a reference kernel in every repetition.
+
+### What was tricky to build
+
+- Ordering the commits: the views use the protocol's `device.protocol`, and the server's tests compare its
+  repetition order with the WebGPU code. So Phase 3 (views and protocol) is committed before the server, and the
+  server, which touches neither, follows.
+
+### What warrants a second pair of eyes
+
+- `kiln-codegen/2` makes every stored record stale, including simulator records whose code did not change.
+  Re-measuring is cheap on the simulator.
+- `withoutTime` drops `us`, `min`, `gflops`, `gbs` from simulator counts, but `dram` stays. Its L2-hit fraction
+  (0.12 or 0.6) is a heuristic inside an otherwise counted quantity, which the Roofline uses for intensity.
+
+### What should be done in the future
+
+- Phase 4 UI (Hypotheses view, notes cards, `lab:hypothesis`), then the page integration of the server.
+- Tune's search chart has no intervals: `tune()` returns one total per program.
+- Forget a single kernel or group from the Evidence view (the store supports it).
+
+### Code review instructions
+
+- Views: `apps/workbench/src/ui/marks.jsx` first (every value cell is built there), then `Evidence.jsx`, `Perf.jsx`.
+- Protocol: `runProtocol`, `timerQuantum`, `WebGpuDevice.measureKernels` in `packages/kiln/src/std/devices.js`;
+  `node packages/kiln/test/protocol.mjs`; `pnpm --filter @kiln/workbench test:webgpu` (needs Chrome and a GPU).
+
+### Technical details
+
+- Screenshots from the subagents: `various/screens/p3-*.png` (Evidence light/dark/phone/WebGPU, Perf sim/WebGPU,
+  Knobs, Devices, default, phone dark, graph) and `p3-webgpu-W-05-perf-1600.png`, `p3-webgpu-W-10-perf-1600.png`.

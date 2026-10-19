@@ -7,6 +7,7 @@ import { KnobsView } from "./Knobs.jsx";
 import { KernelsView } from "./Kernels.jsx";
 import { PerfView, TuneView, DevicesView } from "./Perf.jsx";
 import { EventsView } from "./Events.jsx";
+import { EvidenceView } from "./Evidence.jsx";
 import { NotesView } from "./Notes.jsx";
 import { agent } from "../agent/agent.js";
 
@@ -23,7 +24,8 @@ export const VIEWS = {
   kernels: { title: "Kernels", about: "generated CUDA and WGSL, kernel IR, launch configs", col: true, el: () => <KernelsView />, badge: () => (wb.prog ? [wb.prog.kernels.length, false] : null) },
   perf: { title: "Perf", about: "measure on a device: time, metrics, roofline, checks", el: () => <PerfView />, badge: () => { const m = wb.measures[wb.deviceId]; const bad = m ? m.kernels.filter((x) => x.error || x.check?.ok === false).length : 0; return bad ? [bad, true] : null; } },
   knobs: { title: "Knobs", about: "forks, options with model and measured times, pins, sliders", el: () => <KnobsView />, badge: () => (wb.run?.decisions.length ? [wb.run.decisions.length, false] : null) },
-  tune: { title: "Tune", about: "autotuning: SP-MCTS or sweep, and the evidence store", el: () => <TuneView />, badge: () => (wb.tuning?.running ? [wb.tuning.history.length, false] : null) },
+  tune: { title: "Tune", about: "autotuning: SP-MCTS or sweep over the program's forks", el: () => <TuneView />, badge: () => (wb.tuning?.running ? [wb.tuning.history.length, false] : null) },
+  evidence: { title: "Evidence", about: "measurement records: status, samples, validity; import, export, forget", el: () => <EvidenceView />, badge: () => { const n = wb.store.list({ device: wb.evidenceId, status: "invalid" }).length; return n ? [n, true] : null; } },
   devices: { title: "Devices", about: "simulated GPUs, WebGPU, and a CUDA runner", el: () => <DevicesView /> },
   events: { title: "Events", about: "the workbench log and the last compile's events", el: () => <EventsView /> },
 };

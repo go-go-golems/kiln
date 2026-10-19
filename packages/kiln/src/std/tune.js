@@ -22,15 +22,28 @@ function replay(path, rollout, sink) {
   } };
 }
 
-// Measure every kernel of a program once (one repetition each, in program order) and store one record per kernel.
-// `run` and `kernelPins` say what the compile asked for, so each record carries its activation check (guide §27).
-export async function measureProgram(prog, device, { store = null, memo = new Map(), seed = 1, by = "measure", onKernel, run = null, kernelPins = null } = {}) {
+// Measure every kernel of a program and store one record per kernel. A device with a protocol (measureKernels:
+// repetitions, seeded order, guide §28) measures the kernels not yet in `memo` in one run, so a repetition contains
+// every kernel; other devices run each kernel once (runKernel). `run` and `kernelPins` say what the compile asked
+// for, so each record carries its activation check (§27). `onStep(done, total)` reports protocol progress.
+export async function measureProgram(prog, device, { store = null, memo = new Map(), seed = 1, by = "measure", onKernel, onStep, run = null, kernelPins = null } = {}) {
+  const keyOf = (kn) => kn.identity + "|" + kn.row;
+  const now = new Map();
+  if (device.measureKernels) {
+    const todo = [...new Map(prog.kernels.filter((kn) => !memo.has(keyOf(kn))).map((kn) => [keyOf(kn), kn])).values()];
+    if (todo.length) {
+      let results;
+      try { results = await device.measureKernels(todo, {}, { onStep }); } catch (e) { results = todo.map(() => ({ error: e.message || String(e), us: Infinity })); }
+      todo.forEach((kn, i) => now.set(keyOf(kn), results[i]));
+    }
+  }
   const out = [];
   for (const kn of prog.kernels) {
-    const key = kn.identity + "|" + kn.row;
+    const key = keyOf(kn);
     let res = memo.get(key), record = null;
     if (!res) {
-      try { res = await device.runKernel(kn, { seed }); } catch (e) { res = { error: e.message || String(e), us: Infinity }; }
+      res = now.get(key);
+      if (!res) { try { res = await device.runKernel(kn, { seed }); } catch (e) { res = { error: e.message || String(e), us: Infinity }; } }
       memo.set(key, res);
       if (store) record = store.record({ device, kern: kn, result: res, by, activation: activationOf(kn, { run, kernelPins }) });
     }

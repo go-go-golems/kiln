@@ -162,9 +162,13 @@ webgpu     your GPU through WebGPU: real time (timestamp queries when allowed), 
 cuda       kiln_runner.py on an NVIDIA box: nvcc, CUDA events (median of 50), optional Nsight Compute metrics; live when
            the page is served by the runner, otherwise export a bundle (Devices) and import the results
 Inputs are seeded uniform values in [−1, 1) (mulberry32), identical on every device.
-Every measurement records evidence (device, kernel identity, schedule row → µs). The next compile prefers the
-fastest measured row. Tune: SP-MCTS over the program's whole fork tree (max-Q backup, UCB normalized by the best
-time, patience), a sweep of the model's top 6 options per kernel ("sweep"), or every option ("sweep-all").
+Every measurement stores a kiln-measure/1 record per kernel: device id (fingerprinted), kernel identity, schedule
+row, content id of the code that ran, one sample per repetition, the output check, activation and protocol. Fresh,
+valid, complete records decide: the next compile keeps the model's choice unless a measured option's interval is
+separated from it (on a simulator, the fastest measured row). The Evidence view lists the records with their
+status (fresh, stale, partial, invalid) and imports, exports and forgets them. Tune: SP-MCTS over the program's
+whole fork tree (max-Q backup, UCB normalized by the best time, patience), a sweep of the model's top 6 options per
+kernel ("sweep"), or every option ("sweep-all").
 
 ## 10 Notes (tutorials) and lab: links
 Each project can have notes: Markdown shown in the Notes view, saved with the project (presets ship them as

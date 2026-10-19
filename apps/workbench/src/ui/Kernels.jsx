@@ -4,6 +4,8 @@ import { useLab, Btn, Tabs, Kv, Empty, cls } from "./common.jsx";
 import { fmtUs, fmtBytes, numel } from "@kiln/kiln/core/util.js";
 import { IrText } from "./Compiler.jsx";
 import { highlightC } from "./highlight.js";
+import { contentOf, activationOf } from "@kiln/kiln/std/records.js";
+import { Val, StatusStamp, modelVal, evidenceVal, decisionOf, shortId } from "./marks.jsx";
 
 export async function saveText(filename, text) {
   const dl = await window.claude?.use?.("downloads").catch(() => null);
@@ -28,8 +30,7 @@ export function KernelsView() {
   const kern = ks.find((x) => x.name === wb.sel.kernel) || ks[0];
   const m = wb.measures[wb.deviceId];
   const mk = (kn) => m?.kernels.find((x) => x.identity === kn.identity && x.row === kn.row);
-  const dec = (kn) => wb.run.decisions.find((d) => d.key === kn.identity && d.knobs);
-  const model = (kn) => { const d = dec(kn); return d?.by === "model" ? d.score : null; };
+  const word = wb.device.kind === "sim" ? "simulated" : "measured";
   const src = tab === "cuda" ? kern.cuda : tab === "wgsl" ? kern.wgsl : null;
   const level = { kir: "kernel", tile: "tile", loop: "loop" }[tab];
   const g = level ? wb.run.at(level) : null;
@@ -38,20 +39,23 @@ export function KernelsView() {
     <div className="page col kernels">
       <div className="tablewrap ktable">
         <table className="rt">
-          <thead><tr><th>kernel</th><th>schedule</th><th className="num">grid × block</th><th className="num">smem</th><th className="num">model</th><th className="num">{m ? m.deviceName.split(" · ")[0] : "measured"}</th><th>check</th></tr></thead>
+          <thead><tr><th>kernel</th><th>schedule</th><th className="num">grid × block</th><th className="num">smem</th><th className="num" title="the cost model's estimate">model</th><th className="num" title={`the pooled decisive records on ${wb.evidenceId}`}>{word}</th><th>validity</th></tr></thead>
           <tbody>
             {ks.map((kn) => {
-              const x = mk(kn), bad = x && (x.error || x.check?.ok === false);
+              const x = mk(kn), rec = wb.store.records.get(x?.record), bad = x && (x.error || x.check?.ok === false);
               return (
                 <tr key={kn.id} className={cls("clickable", kn === kern && "sel", bad && "badrow")} onClick={() => wb.select({ kernel: kn.name, node: kn.id })}>
                   <td className="nm">{kn.name}</td><td>{kn.row}</td><td className="num">{kn.K.grid} × {kn.K.block}</td><td className="num">{kn.K.smemBytes ? fmtBytes(kn.K.smemBytes) : "—"}</td>
-                  <td className="num">{model(kn) != null ? fmtUs(model(kn)) : "—"}</td><td className="num">{x ? (x.error ? "error" : fmtUs(x.us)) : "—"}</td><td>{x ? (bad ? "✕" : "✓") : ""}</td>
+                  <td className="num"><Val v={modelVal(decisionOf(kn.identity), kn.map)} /></td>
+                  <td className="num"><Val v={evidenceVal(wb.evidenceId, kn.identity, kn.map, { src: word, name: wb.device.label })} /></td>
+                  <td>{x?.error ? <span className="stamp bad" title={x.error}>error</span> : <StatusStamp rec={rec} />}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+      <KernelIds kern={kern} />
       <Tabs value={tab} onChange={setTab} items={[["cuda", "CUDA"], ["wgsl", "WGSL"], ["kir", "Kernel IR"], ["tile", "Tile"], ["loop", "Loop IR"], ["launch", "Launch"]]}
         right={<span className="tabbtns">{src ? <><Btn sm onClick={() => copyText(src, tab === "cuda" ? "the CUDA" : "the WGSL")}>Copy</Btn><Btn sm onClick={() => saveText(`${kern.name}.${tab === "cuda" ? "cu" : "wgsl"}`, src)}>Download</Btn></> : null}</span>} />
       <div className="scroll">
@@ -69,6 +73,25 @@ export function KernelsView() {
             </div>
           ) : <Empty>Not available at this level.</Empty>}
       </div>
+    </div>
+  );
+}
+
+// The selected kernel's content id in each language it can run as (guide §22: what executed, so a record of other
+// code is stale), and its activation (§27): the schedule the compile asked for and the one that materialised.
+const LANGS = [["cuda", { id: "cuda", kind: "cuda" }], ["wgsl", { id: "webgpu", kind: "webgpu" }]];
+function KernelIds({ kern }) {
+  const sim = wb.device.kind === "sim" ? wb.device : wb.devices.find((d) => d.kind === "sim");
+  const ids = [...LANGS, ["sim", sim]].map(([lang, dev]) => { try { return [lang, contentOf(kern, dev), dev]; } catch { return null; } }).filter(Boolean);
+  const act = activationOf(kern, { run: wb.run, kernelPins: wb.kernelPins });
+  return (
+    <div className="kids">
+      <span className="lbl">content id</span>
+      {ids.map(([lang, c, dev]) => <span key={lang} className="kid" title={`${lang}${lang === "sim" ? ` on ${dev.name}` : ""}: ${c.contentId}\nsource sha256 ${c.sourceSha256}`}><b>{lang}</b> <span className="mono">{shortId(c.contentId)}</span></span>)}
+      <span className="lbl">activation</span>
+      <span className={cls("kid", !act.ok && "bad")} title={act.notes.join("; ")}>
+        {!act.ok ? <>requested {act.requested} → materialised {act.materialized} ✕</> : act.requested === act.materialized ? <>✓ as requested <span className="dim">({act.notes[0]})</span></> : <>✓ <span className="dim">{act.notes[0]}</span></>}
+      </span>
     </div>
   );
 }

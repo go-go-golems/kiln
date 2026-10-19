@@ -117,7 +117,7 @@ const AGENT_SCOPE = [
   ["evidence.list({ device, all }) · evidence.best(name) · evidence.clear({ device })", "measurement records (median of repetitions, n, status fresh / stale / partial / invalid); only fresh valid ones decide schedules"],
   ["checks.e2e() · checks.outputs()", "the end-to-end check (last evaluable IR vs the frontend) and the output values"],
   ["presets.list() · presets.get(id) · await presets.load(id) · presets.save({ asNew })", "presets; saving keeps them in this browser as U-NN"],
-  ["chat.table(rows, title) · chat.propose(script, title) · chat.code(text, title, lang) · chat.show(view, sel) · chat.place(view, { beside | with, side })", "evidence in the chat; bring a view forward (views: code agent reference ir graph trace kernels perf knobs tune devices events) and select {ir, node, step, kernel, decision}"],
+  ["chat.table(rows, title) · chat.propose(script, title) · chat.code(text, title, lang) · chat.show(view, sel) · chat.place(view, { beside | with, side })", "evidence in the chat; bring a view forward (views: notes code agent reference ir graph trace kernels perf knobs tune evidence devices events) and select {ir, node, step, kernel, decision, record}"],
   ["ref.section(name) · ref.all()", "the API reference"],
   ["k, P, std, N, T, nn, tensor, Tensor, ix, E, KB, kx, project, param", "the same names as project scripts: build dialects, rules, passes, pipelines and programs here to experiment"],
   ["log(...) · console.log(...)", "captured and returned with the result"],

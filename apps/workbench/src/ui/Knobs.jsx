@@ -2,8 +2,8 @@ import React, { useMemo, useState } from "react";
 import { wb } from "./wb.js";
 import { useLab, Btn, Seg, Tog, Kv, Empty, cls } from "./common.jsx";
 import { knobs as KN } from "@kiln/kiln/core/kiln.js";
-import { fmtUs } from "@kiln/kiln/core/util.js";
-import { canonRow, analyze, estimate } from "@kiln/kiln/std/tile.js";
+import { canonRow } from "@kiln/kiln/std/tile.js";
+import { Val, StatusStamp, Row, modelUs, modelVal, evidenceVal, optionEvidence } from "./marks.jsx";
 
 // one parameter: a slider, a choice, a switch or a text box, depending on its type
 export function ParamControl({ p, knob = false }) {
@@ -56,20 +56,6 @@ export function paramGroups() {
   return { program, pipeline, knobs: knobList.filter((x) => !STD_KNOBS.has(x.name)), schedule: knobList.filter((x) => STD_KNOBS.has(x.name)) };
 }
 
-const modelCache = new WeakMap();
-function modelUs(d, knobs) {
-  const g = wb.run?.at("loop");
-  const n = g?.nodes.get(d.node);
-  if (!n || n.name !== "loop.kernel") return null;
-  let m = modelCache.get(n);
-  if (!m) { m = new Map(); modelCache.set(n, m); }
-  const key = KN.canonical(knobs) + "|" + wb.device.id;
-  if (!m.has(key)) {
-    try { const an = analyze(n.attrs.expr, n.attrs.shape, n.args.map((a) => g.nodes.get(a).type.shape)); m.set(key, estimate(an, knobs, wb.device.target).us); } catch { m.set(key, null); }
-  }
-  return m.get(key);
-}
-const measuredFor = (d) => { const m = new Map(); for (const r of wb.store.list({ device: wb.device.id, identity: d.key })) m.set(KN.canonical(r.knobs), r); return m; };
 const rowOf = (knobs) => (knobs && "MAP" in knobs ? canonRow(knobs) : KN.canonical(knobs || {}) || "(original)");
 
 export function KnobsView() {
@@ -84,6 +70,7 @@ export function KnobsView() {
   const G = paramGroups();
   const progParams = G.program, pipeParams = G.pipeline, knobParams = G.schedule, ownKnobs = G.knobs;
   const kp = Object.entries(wb.kernelPins);
+  const src = wb.device.kind === "sim" ? "simulated" : "measured";
   return (
     <div className="page">
       <div className="stagewrap">
@@ -95,18 +82,18 @@ export function KnobsView() {
         <div className="scroll">
           {ds.length ? (
             <table className="rt knobt">
-              <thead><tr><th>fork</th><th className="num">options</th><th>picked</th><th>by</th><th className="num">model</th><th className="num">measured</th></tr></thead>
+              <thead><tr><th>fork</th><th className="num">options</th><th>picked</th><th>by</th><th className="num" title="the cost model's estimate">model</th><th className="num" title={`the pooled decisive records on ${wb.evidenceId}`}>{src}</th></tr></thead>
               <tbody>
                 {ds.map((x, i) => {
-                  const kn = kernOf(x), meas = measuredFor(x), mine = meas.get(KN.canonical(x.knobs || {}));
+                  const kn = kernOf(x);
                   return (
                     <tr key={i} className={cls("clickable", i === di && "sel", x.failed && "badrow")} onClick={() => wb.select({ decision: i })}>
                       <td><b>{kn?.name || x.rule}</b> <span className="dim">{kn ? x.rule + " " : ""}@{x.node}</span></td>
                       <td className="num">{x.size}</td>
-                      <td>{x.failed ? "no legal option" : rowOf(x.knobs)}{wb.kernelPins[x.key] ? " ⚑" : ""}</td>
-                      <td><span className={cls("tag", x.by === "evidence" || x.by === "pinned" ? "" : "dim")}>{x.by}</span></td>
-                      <td className="num">{x.knobs ? fmtUs(modelUs(x, x.knobs)) : "—"}</td>
-                      <td className="num">{mine ? fmtUs(mine.us) : meas.size ? `${meas.size} rows` : "—"}</td>
+                      <td className="rowtxt">{x.failed ? "no legal option" : <Row row={rowOf(x.knobs)} />}{wb.kernelPins[x.key] ? " ⚑" : ""}</td>
+                      <td className="bycol"><span className={cls("tag", x.by === "evidence" || x.by === "pinned" || x.by === "kernel-pin" ? "" : "dim")}>{x.by}</span>{x.note ? <span className="bynote">{x.note}</span> : null}</td>
+                      <td className="num">{x.knobs ? <Val v={modelVal(x, x.knobs)} /> : "—"}</td>
+                      <td className="num">{x.knobs ? <Val v={evidenceVal(wb.evidenceId, x.key, x.knobs, { src, name: wb.device.label })} /> : "—"}</td>
                     </tr>
                   );
                 })}
@@ -147,9 +134,10 @@ export function KnobsView() {
 }
 
 function ForkDetail({ d, sort, setSort, kern }) {
-  const meas = measuredFor(d);
-  const opts = d.options.map((o, j) => ({ ...o, j, model: modelUs(d, o.knobs), meas: meas.get(KN.canonical(o.knobs)) }));
-  const sorted = [...opts].sort((a, b) => (sort === "model" ? (a.model ?? Infinity) - (b.model ?? Infinity) : sort === "measured" ? (a.meas?.us ?? Infinity) - (b.meas?.us ?? Infinity) : a.j - b.j));
+  const dev = wb.evidenceId, src = wb.device.kind === "sim" ? "simulated" : "measured";
+  const opts = d.options.map((o, j) => ({ ...o, j, model: modelUs(d, o.knobs), ev: optionEvidence(dev, d.key, o.knobs) }));
+  const evUs = (o) => o.ev?.stats?.median ?? Infinity;
+  const sorted = [...opts].sort((a, b) => (sort === "model" ? (a.model ?? Infinity) - (b.model ?? Infinity) : sort === "measured" ? evUs(a) - evUs(b) : a.j - b.j));
   const chosen = KN.canonical(d.knobs || {});
   const pinned = wb.kernelPins[d.key];
   const bestModel = Math.min(...opts.map((o) => o.model ?? Infinity));
@@ -158,31 +146,33 @@ function ForkDetail({ d, sort, setSort, kern }) {
     <div className="forkd">
       <div className="detail-h">
         <h2>{kern?.name || d.rule}</h2>
-        <span className="sub">{d.rule} at {d.node} · {d.size} options · picked by {d.by}{pinned ? " · pinned" : ""}</span>
+        <span className="sub">{d.rule} at {d.node} · {d.size} options · picked by <b>{d.by}</b>{d.note ? ` (${d.note})` : ""}{pinned ? " · pinned" : ""}</span>
         <span className="sp" />
-        <Seg sm label="Sort" value={sort} onChange={setSort} items={[["model", "Model"], ["measured", "Measured"], ["order", "Order"]]} />
+        <Seg sm label="Sort" value={sort} onChange={setSort} items={[["model", "Model"], ["measured", src === "simulated" ? "Simulated" : "Measured"], ["order", "Order"]]} />
         {pinned ? <Btn sm onClick={() => wb.pinKernel(d.key, null)}>Unpin</Btn> : null}
       </div>
       {d.tried?.length ? <p className="note padded">Tried first and rejected: {d.tried.slice(0, 4).map((t) => `${rowOf(t.knobs)} (${t.reason})`).join("; ")}</p> : null}
-      <table className="rt opts">
-        <thead><tr><th>option</th><th className="num">model</th><th className="mcol" /><th className="num">{wb.device.kind === "sim" ? "simulated" : "measured"}</th><th>check</th><th /></tr></thead>
-        <tbody>
-          {sorted.slice(0, 80).map((o) => {
-            const isChosen = KN.canonical(o.knobs) === chosen;
-            const f = o.model != null && isFinite(o.model) ? bestModel / o.model : 0;
-            return (
-              <tr key={o.j} className={cls(isChosen && "sel", o.model === Infinity && "dimrow")}>
-                <td>{isChosen ? "▸ " : ""}{rowOf(o.knobs)}{o.original ? " (keep original)" : ""}</td>
-                <td className="num">{o.model == null ? "—" : isFinite(o.model) ? fmtUs(o.model) : "infeasible"}</td>
-                <td className="mcol"><div className="meter"><i style={{ width: f * 100 + "%" }} /></div></td>
-                <td className="num">{o.meas ? fmtUs(o.meas.us) : ""}</td>
-                <td>{o.meas ? (o.meas.ok === false ? <span className="bad">✕</span> : "✓") : ""}</td>
-                <td><span className="rowacts">{!isChosen ? <button type="button" className="tabact" onClick={() => wb.pinKernel(d.key, KN.canonical(o.knobs))}>pin</button> : null}{wb.prog ? <button type="button" className="tabact" onClick={() => tryIt(o)}>pin + measure</button> : null}</span></td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="xscroll">
+        <table className="rt opts">
+          <thead><tr><th>option</th><th className="num" title="the cost model's estimate">model</th><th className="mcol" /><th className="num" title={`the pooled decisive records of each option on ${dev}: median, CI, n`}>{src}</th><th title={`the newest record of each option on ${dev}`}>validity</th><th /></tr></thead>
+          <tbody>
+            {sorted.slice(0, 80).map((o) => {
+              const isChosen = KN.canonical(o.knobs) === chosen;
+              const f = o.model != null && isFinite(o.model) ? bestModel / o.model : 0;
+              return (
+                <tr key={o.j} className={cls(isChosen && "sel", o.model === Infinity && "dimrow")}>
+                  <td className="rowtxt">{isChosen ? "▸ " : ""}<Row row={rowOf(o.knobs)} />{o.original ? " (keep original)" : ""}</td>
+                  <td className="num"><Val v={modelVal(d, o.knobs)} /></td>
+                  <td className="mcol"><div className="meter"><i style={{ width: f * 100 + "%" }} /></div></td>
+                  <td className="num">{o.ev ? <Val v={evidenceVal(dev, d.key, o.knobs, { src, name: wb.device.label })} /> : null}</td>
+                  <td>{o.ev ? <StatusStamp rec={o.ev.rec} /> : null}</td>
+                  <td><span className="rowacts">{!isChosen ? <button type="button" className="tabact" onClick={() => wb.pinKernel(d.key, KN.canonical(o.knobs))}>pin</button> : null}{wb.prog ? <button type="button" className="tabact" onClick={() => tryIt(o)} title="pin this option and measure the program">pin + measure</button> : null}</span></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
       {sorted.length > 80 ? <p className="note padded">and {sorted.length - 80} more options</p> : null}
     </div>
   );

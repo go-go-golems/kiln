@@ -24,7 +24,8 @@ export const FNS = {
   log: { n: 1, js: Math.log, c: "logf({0})", w: "log({0})", flops: 8 },
   sqrt: { n: 1, js: Math.sqrt, c: "sqrtf({0})", w: "sqrt({0})", flops: 4 },
   rsqrt: { n: 1, js: (a) => 1 / Math.sqrt(a), c: "rsqrtf({0})", w: "inverseSqrt({0})", flops: 4 },
-  tanh: { n: 1, js: Math.tanh, c: "tanhf({0})", w: "tanh({0})", flops: 8 },
+  // WGSL: Metal's tanh overflows to NaN for |x| above ~44 (W-24's GELU reaches 440); tanh(±15) is ±1 in f32 already
+  tanh: { n: 1, js: Math.tanh, c: "tanhf({0})", w: "tanh(clamp({0}, -15.0, 15.0))", flops: 8 },
   sigmoid: { n: 1, js: (a) => 1 / (1 + Math.exp(-a)), c: "(1.0f / (1.0f + expf(-({0}))))", w: "(1.0 / (1.0 + exp(-({0}))))", flops: 10 },
   relu: { n: 1, js: (a) => (a > 0 ? a : 0), c: "fmaxf({0}, 0.0f)", w: "max({0}, 0.0)", flops: 1 },
   abs: { n: 1, js: Math.abs, c: "fabsf({0})", w: "abs({0})", flops: 1 },

@@ -60,7 +60,7 @@ The H100 is built for **tensor cores**: about 989 TFLOP/s dense BF16, against 67
 ## The system
 
 - Switching device recompiles: the target's `maxThreadsPerBlock`, shared memory per block and SM count change which schedules are legal and how the cost model ranks them. Compare the [Tile IR](lab:ir?name=tile) between devices.
-- Every measurement is recorded as evidence keyed by (device, kernel identity, schedule), so tuning results never leak from one GPU to another. See [Tune](lab:view?name=tune).
+- Every measurement is recorded as evidence keyed by (device, kernel identity, schedule), so tuning results never leak from one GPU to another. See [Evidence](lab:view?name=evidence).
 - *Across devices* in Perf shows each device's latest measurement of this project.
 
 ## Takeaways

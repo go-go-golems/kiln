@@ -41,8 +41,15 @@ class Page {
       else if (msg.method === "Runtime.exceptionThrown") this.errors.push(msg.params.exceptionDetails?.exception?.description || msg.params.exceptionDetails?.text);
       else if (msg.method === "Runtime.consoleAPICalled" && msg.params.type === "error") this.errors.push(msg.params.args.map((a) => a.value ?? a.description).join(" "));
     });
+    // Chrome gone (killed by the timeout, crashed): every call still waiting fails instead of never settling
+    ws.addEventListener("close", () => {
+      this.closed = true;
+      for (const p of this.pending.values()) p.reject(new Error("the browser closed the DevTools connection"));
+      this.pending.clear();
+    });
   }
   send(method, params = {}) {
+    if (this.closed) return Promise.reject(new Error("the browser closed the DevTools connection"));
     const id = ++this.seq;
     return new Promise((resolve, reject) => { this.pending.set(id, { resolve, reject }); this.ws.send(JSON.stringify({ id, method, params })); });
   }

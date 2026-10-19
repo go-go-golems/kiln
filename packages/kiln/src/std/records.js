@@ -8,7 +8,7 @@ import { seedOf } from "./program.js";
 import { canonRow } from "./tile.js";
 
 /** Bumped whenever emit.js or kernel.js change the code they generate for the same kernel. */
-export const CODEGEN_VERSION = "kiln-codegen/1";
+export const CODEGEN_VERSION = "kiln-codegen/2"; // 2: WGSL tanh clamps its argument (NaN on Metal)
 export const APP = "kiln-workbench/0.1";
 /** The seed every measurement generates kernel inputs from (kernelInputs(kern, INPUT_SEED)). */
 export const INPUT_SEED = 1;
@@ -66,6 +66,8 @@ export const launchOf = (kern) => ({ grid: kern.K.grid, block: kern.K.block, sme
 
 /** Knob values as a record stores them: strings and finite numbers (booleans become "true"/"false"). */
 const flatKnobs = (m) => Object.fromEntries(Object.entries(m || {}).filter(([, v]) => v !== undefined && v !== null).map(([k, v]) => [k, typeof v === "number" && Number.isFinite(v) ? v : String(v)]));
+const TIME_MODEL_KEYS = new Set(["us", "min", "gflops", "gbs"]);
+const withoutTime = (m) => Object.fromEntries(Object.entries(m).filter(([k]) => !TIME_MODEL_KEYS.has(k)));
 const finiteOnly = (m) => Object.fromEntries(Object.entries(m || {}).filter(([, v]) => typeof v === "number" && Number.isFinite(v)));
 
 /**
@@ -102,9 +104,10 @@ const PARTIAL = { "wall-clock": "wall clock: includes submit and readback overhe
 
 /**
  * One kiln-measure/1 record for `kern` measured on `device`. `result` is what the device returned:
- * `{ samples, kind, reps, raw?, launches?, warmup?, order?, position?, metrics?, check?, error? }`, where `samples`
- * holds one value per completed repetition. An error, a failed check, a failed activation or missing repetitions
- * make the record invalid with the reason; it is still a record, stored and shown, never decisive.
+ * `{ samples, kind, reps, raw?, launches?, warmup?, seed?, order?, position?, metrics?, check?, error?, repErrors?,
+ * partial? }`, where `samples` holds one value per completed repetition. An error, a failed repetition, a failed
+ * check, a failed activation or missing repetitions make the record invalid with the reason; `partial` adds
+ * caveats (a coarse timer) that keep a valid record from deciding. Either way it is stored and shown.
  */
 export function makeRecord({ device, kern, result = {}, by = "measure", activation = null, seed = INPUT_SEED, at = new Date().toISOString(), pairId = null }) {
   const cls = device.kind;
@@ -125,14 +128,15 @@ export function makeRecord({ device, kern, result = {}, by = "measure", activati
   else if (c.ok === false) reasons.push(`output check: ${c.message || "sampled outputs differ from the reference"}`);
   if (!act.ok) reasons.push(`activation: requested ${act.requested}, materialised ${act.materialized}`);
   if (!err && samples.length !== reps) reasons.push(`small n: ${samples.length} of ${reps} repetitions completed`);
-  const partial = PARTIAL[kind] ? [PARTIAL[kind]] : [];
+  for (const e of result.repErrors || []) reasons.push(`repetition error: ${e}`);
+  const partial = [...(PARTIAL[kind] ? [PARTIAL[kind]] : []), ...(result.partial || []).map(String)];
 
   const timing = { kind, unit: "us", samples };
   if (Number.isInteger(result.launches)) timing.launches = result.launches;
   if (Number.isInteger(result.warmup)) timing.warmup = result.warmup;
   if (Array.isArray(result.raw) && result.raw.length === samples.length) timing.raw = result.raw.map((r) => r.filter((x) => Number.isFinite(x) && x >= 0));
 
-  const protocol = { reps, seed };
+  const protocol = { reps, seed: Number.isFinite(result.seed) ? result.seed : seed };
   if (Array.isArray(result.order)) protocol.order = result.order;
   if (Array.isArray(result.position) && result.position.length === samples.length) protocol.position = result.position;
   if (pairId) protocol.pairId = pairId;
@@ -152,7 +156,9 @@ export function makeRecord({ device, kern, result = {}, by = "measure", activati
     protocol,
     manifest,
   };
-  const counts = cls === "sim" ? finiteOnly(result.metrics) : cls === "cuda" && result.ncu ? finiteOnly(result.ncu) : null;
+  // a simulator's counts are derived from the simulated execution; its time and the rates computed from it come from
+  // the timing model (heuristic, guide §24) and are already the record's samples, so they are not counts
+  const counts = cls === "sim" ? withoutTime(finiteOnly(result.metrics)) : cls === "cuda" && result.ncu ? finiteOnly(result.ncu) : null;
   if (counts && Object.keys(counts).length) { rec.counts = counts; rec.countsProv = cls === "sim" ? "derived" : "observed"; }
   rec.id = recordId(rec);
   return rec;

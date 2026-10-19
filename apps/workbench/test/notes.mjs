@@ -2,7 +2,7 @@
 // IR level, kernel, view, device or preset of that project.   node build.mjs --gen-only && node test/notes.mjs
 import { wb } from "../src/ui/wb.js";
 import { renderDoc } from "../src/ui/doc.js";
-const VIEWS = ["notes", "code", "agent", "reference", "ir", "graph", "trace", "kernels", "perf", "knobs", "tune", "devices", "events"];
+import { ALL_VIEWS as VIEWS } from "../src/ui/dock.js";
 let bad = 0, total = 0;
 for (const p of wb.presets) {
   await wb.load(p.id);
