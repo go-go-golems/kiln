@@ -1265,6 +1265,15 @@ contentId(kernel, lang, device):
   device class and language. Stale records stay in the store, are shown with a dashed frame and the word "stale",
   and are never used by the decide chain or by hypothesis support.
 
+**The current content id of an option.** A fork's unchosen options are never compiled, so their content id is not
+known when the fork is decided. The store therefore compares an option's records with the content id from the last
+compile that produced that row (`EvidenceStore.observe`, called after every compile), or, if this session never
+compiled the row, with the content id in the option's newest record. A record from another code generator
+(`manifest.codegen ≠ CODEGEN_VERSION`) is stale either way. In practice an edit to `emit.js` that changes the
+generated code makes the old records stale for every row the next compile produces. Rows not compiled since keep
+deciding until they are measured again or the code-generator version is bumped. Bumping `CODEGEN_VERSION` after
+any change to emitted code closes that gap.
+
 Compared with Perf Lab: the same idea (identity is a hash of the lowered specification, recomputed by the server),
 with SHA-256 instead of cyrb53 (fixes P-5), and with the generated code inside the identity (fixes K-3).
 

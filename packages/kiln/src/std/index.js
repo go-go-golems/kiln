@@ -11,7 +11,8 @@ import { toCuda, toWgsl, toSim } from "./emit.js";
 import { pipeline, defaultDecide, IRS, passes, dialects } from "./emmy.js";
 import { SPECS, target } from "./targets.js";
 import { tune, measureProgram } from "./tune.js";
-import { Store } from "./store.js";
+import { Store, EvidenceStore } from "./store.js";
+import { Hypothesis, evidenceContext, evaluateHypotheses } from "./evidence-context.js";
 import { FNS, REDUCERS } from "./fns.js";
 
 export const std = {
@@ -22,13 +23,14 @@ export const std = {
   tile: { dialect: tile, pass: tilePass, rule: scheduleRule, costPrior, analyze, estimate, timeModel, launch, KNOBS, MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, canonRow, forkTree, legalMaps },
   kernel: { dialect: kern, pass: kernelPass, materialize, rule: materializeRule, dropRedundantSyncs, KB, kx, print: printKernelBody },
   gpu: { dialect: gpu, pass: emitPass, rule: emitRule, programOf, simulateKernel, kernelInputs, referenceAt, toCuda, toWgsl, toSim },
-  targets: SPECS, target, tune, measureProgram, Store, FNS, REDUCERS, ix: IX,
+  targets: SPECS, target, tune, measureProgram, Store, EvidenceStore, FNS, REDUCERS, ix: IX,
+  evidence: { evidenceContext, evaluateHypotheses },
 };
 
 // ----------------------------------------------------------------------------- projects
 // A preset script builds one project: what to compile, with which pipeline, checked how.
 export class Project {
-  constructor(name) { this.name = name; this._pipe = null; this._prog = null; this._spec = null; this._data = null; this._checks = []; this._params = []; this._pins = {}; this._device = null; this._about = ""; this._notes = []; }
+  constructor(name) { this.name = name; this._pipe = null; this._prog = null; this._spec = null; this._data = null; this._checks = []; this._params = []; this._pins = {}; this._device = null; this._about = ""; this._notes = []; this._hypotheses = []; }
   pipeline(p) { this._pipe = p && typeof p.build === "function" && !p.run ? p.build() : p; return this; }
   program(fn, inputs = {}) { this._prog = fn; this._spec = inputs; return this; }
   data(obj) { this._data = obj; return this; }
@@ -38,6 +40,15 @@ export class Project {
   device(id) { this._device = id; return this; }
   about(t) { this._about = t; return this; }
   note(t) { this._notes.push(t); return this; }
+  // a claim about this program's performance, judged against the evidence store (guide §29)
+  hypothesis(id, fn) {
+    if (typeof id !== "string" || !/^[a-z0-9][a-z0-9-]*$/i.test(id)) throw new k.KilnError("ProjectError", `hypothesis id must be letters, digits and hyphens (got ${JSON.stringify(id)})`);
+    if (this._hypotheses.some((h) => h.id === id)) throw new k.KilnError("ProjectError", `hypothesis "${id}" is declared twice`);
+    const h = new Hypothesis(id);
+    fn?.(h);
+    this._hypotheses.push(h);
+    return this;
+  }
   get usesGpu() { return !this._pipe || this._pipe.irNames().includes("gpu"); }
   // trace the program with the current param values (sliders can change sizes)
   graph(paramGet = (p) => p.def) {

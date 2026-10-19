@@ -56,7 +56,7 @@ describe('verdict: the truth table of guide §29.3', () => {
     expect(verdict({ rows, predicate: (r) => !(n(r.hi) > 0.5) }).verdict).toBe('open');
     expect(verdict({ rows, predicate: (r) => n(r.hi) > 0.5 }).verdict).toBe('open');
     expect(verdict({ rows, predicate: (r) => !(n(r.hi) > 0.5) }).checks[0]!.missing).toEqual(['hi']);
-    expect(verdict({ rows, predicate: (r) => !(n(r.hi) > 0.5) }).reasons).toEqual(['row 0: missing hi']);
+    expect(verdict({ rows, predicate: (r) => !(n(r.hi) > 0.5) }).reasons).toEqual(['row 0: missing hi (no measurement)']);
   });
 
   it('a missing field the predicate does not read does not block its row', () => {
@@ -71,7 +71,7 @@ describe('verdict: the truth table of guide §29.3', () => {
     expect(verdict({ rows, predicate: (r) => !(n(r.k.t) > 1) }).checks[0]).toMatchObject({ pass: null, missing: ['k.t'] });
     expect(verdict({ rows, predicate: (r) => n(r.k.model) < 100 }).verdict).toBe('supported');
     expect(verdict({ rows, predicate: (r) => n(r.reps[0]) > 1 }).verdict).toBe('supported');
-    expect(verdict({ rows, predicate: (r) => r.reps.every((x) => !(n(x) > 100)) }).reasons).toEqual(['row 0: missing reps.1']);
+    expect(verdict({ rows, predicate: (r) => r.reps.every((x) => !(n(x) > 100)) }).reasons).toEqual(['row 0: missing reps.1 (rep 2 lost)']);
     expect(verdict({ rows, predicate: (r) => { (r.k as { t: unknown }).t = observed(0); return true; } }).checks[0]!.error).toMatch(/cannot change its row/);
     const frozen = Object.freeze({ inner: Object.freeze({ x: missing('none') }) });
     expect(verdict({ rows: [{ f: frozen }], predicate: (r) => !(n(r.f.inner.x) > 1) }).checks[0]).toMatchObject({ pass: null, missing: ['f.inner.x'] });

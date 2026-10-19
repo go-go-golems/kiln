@@ -854,3 +854,105 @@ it is still the current code.
 - Policy order: `[pinned, evidence, model (costPrior), first]`, with the workbench's kernel-pin policy in front.
   The evidence policy's `next()` is the model. An option is usable when it is deterministic or has
   `n ≥ minReps = 3`.
+
+## Step 8: Phase 4, part 1 — hypotheses and the evidence context in Kiln
+
+The two Phase 3 subagents were working on the views and the WebGPU protocol, so I took the part of Phase 4 that
+touches none of their files: `Project.hypothesis`, the evidence context `ev` (guide §29.2), and
+`evaluateHypotheses`. The workbench integration (hypothesis cards in Notes and the Hypotheses view) needs `wb.js`
+and the views and waits for part 2.
+
+The worked example is the guide's own: on W-05's RMSNorm (1024 × 4096), "one row per block is at least twice as
+fast as one element per thread". It is `open` before measuring, still `open` with one side measured, and
+`supported` once both schedules are measured on the simulator. The ratio is 0.007: `MAP=row,TPB=1024,STAGE=all`
+over `TPB=128`, a thread-per-row mapping that runs only 1024 threads. It is `unqualified` once a fresh invalid
+record of a read option exists.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1.
+
+**Assistant interpretation:** Continue with the next phase where it does not collide with the running subagents.
+
+**Inferred user intent:** Steady progress through the guide's phases.
+
+**Commit (code):** see the commit after this step ("KILN-001 Phase 4a: …").
+
+### What I did
+
+- `std/evidence-context.js` (new):
+  - `evidenceContext({store, prog, device, target})` → `{ev, support}` with `ev.kernels`, `ev.options(kernel)`,
+    `ev.ratio(kernel, {a, b})`, `ev.total`, `ev.records(filter)`;
+  - `evaluateHypotheses(project, ctx)`;
+  - the `Hypothesis` builder (`claim`, `predicts(rows, predicate)`, `alternatives`, `scope`).
+- `std/index.js`: `Project.hypothesis(id, fn)`, which refuses ids other than letters, digits and hyphens, and
+  duplicates; `std.EvidenceStore`; `std.evidence = {evidenceContext, evaluateHypotheses}`.
+- `@kiln/evidence` `verdict`: an open row's reason now carries the missing Value's reason:
+  `row 0: missing hi (no measurement of MAP=thread for k_rms_norm_reduce on sim:rtx5090)`. Two assertions in
+  `verdict.test.ts` were updated to the new text; that is the intended behaviour change, not a test bent to the
+  code.
+- `packages/kiln/test/hypotheses.mjs`, 15 checks:
+  - duplicate ids; open before measuring; a throwing predicate; rows that throw (an unknown kernel); one side
+    measured; `ev.total`;
+  - both sides measured → supported, heuristic, unpaired;
+  - support recorded; provenance of `ev.kernels`; `ev.options` with `chosen`; `ev.records` read-only;
+  - an invalid supporting record → unqualified.
+
+### Why
+
+- **Provenance follows §24.** The model's time is heuristic. A simulator's time is heuristic, because it comes from
+  a timing model over simulated counts. A hardware median is derived. `combine` gives a ratio or a total the
+  weakest class of its parts.
+- **Support includes fresh invalid records.** The statistics use only decisive records. Without this rule, a
+  hypothesis would keep reading `supported` from older valid records after the latest measurement of the same code
+  failed its check. Stale records are left out of support: they describe other code.
+- **`ratio` sides are knob filters.** `"MAP=thread"` matches every thread-mapped option. The fastest measured match
+  is used, because the claim is about mappings, not one exact row. `canonRow` drops knobs at their off value, so
+  the thread row prints as `TPB=128`.
+
+### What worked
+
+- `node test/hypotheses.mjs` → `all hypothesis checks pass` (15).
+- `pnpm --filter @kiln/kiln test` → 8 passed; `pnpm --filter @kiln/evidence test` → 111 passed; typecheck clean.
+
+### What didn't work
+
+- The first run failed two checks with `FAIL before measuring: open (row 0: missing hi)`. The reason did not say
+  which measurement was missing. This led to the `withReason` change in `verdict`. A second failure was my test
+  expecting `MAP=row` to be named first; `ev.ratio` reports the first missing side, which is `a` (`MAP=thread`).
+
+### What I learned
+
+- A ratio of 0.007 on the simulator: the thread mapping of a 4096-wide row reduction runs one thread per row, so
+  1024 threads cover the whole problem. The model and the simulator agree to within 0.1 µs on the chosen row
+  (24.3 µs).
+
+### What was tricky to build
+
+- Pairing in `ev.ratio`. Records pair only through a shared `protocol.pairId` (Phase 6). The pooled samples of the
+  two sides are then zipped per repetition with unique `rep` indices, so `pairedRatio` sees each repetition once.
+  Nothing produces paired records yet, so this path is untested until Phase 6.
+
+### What warrants a second pair of eyes
+
+- The unpaired interval `[b.lo / a.hi, b.hi / a.lo]` is conservative: wider than a bootstrap of the ratio would
+  give. It never claims separation that is not there, but it can leave a true claim open for longer.
+
+### What should be done in the future
+
+- Workbench integration once part 2 lands:
+  - `wb.hypotheses` recomputed on compile, store and device changes;
+  - the Hypotheses view;
+  - ```` ```hypothesis id ```` cards in notes;
+  - `lab:hypothesis?id=`;
+  - hypotheses in W-05, W-19 and W-25.
+
+### Code review instructions
+
+- `packages/kiln/src/std/evidence-context.js`, then `node packages/kiln/test/hypotheses.mjs`.
+
+### Technical details
+
+- `evaluateHypotheses` result:
+  `{id, claim, alternatives, scope, verdict, reasons, checks, rows, support: [record ids], basis: simulated |
+  measured | mixed | none, error}`.

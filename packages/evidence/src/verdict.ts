@@ -83,7 +83,7 @@ export function verdict<Row extends object>({ rows, predicate, support = [] }: V
       verdict: 'open',
       checks,
       reasons: open.map(([c, i]) =>
-        c.error ? `row ${i}: the predicate threw: ${c.error}` : c.missing.length ? `row ${i}: missing ${c.missing.join(', ')}` : `row ${i}: the predicate returned a missing value`),
+        c.error ? `row ${i}: the predicate threw: ${c.error}` : c.missing.length ? `row ${i}: missing ${c.missing.map((p) => withReason(c.row, p)).join(', ')}` : `row ${i}: the predicate returned a missing value`),
     };
   }
   return { verdict: 'supported', checks, reasons: [] };
@@ -127,6 +127,12 @@ function track<T extends object>(target: T, path: readonly string[], read: Map<s
     setPrototypeOf: readOnly,
     preventExtensions: readOnly,
   });
+}
+
+/** "hi (no measurement of MAP=thread on sim:rtx5090)": a missing Value's own reason, when it has one. */
+function withReason(row: object, path: string): string {
+  const v = path.split('.').reduce<unknown>((o, k) => (o !== null && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined), row);
+  return isValue(v) && v.reason ? `${path} (${v.reason})` : path;
 }
 
 function missingOf(row: object, read: ReadonlyMap<string, readonly string[]>): string[] {
