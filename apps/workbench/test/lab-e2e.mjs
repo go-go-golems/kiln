@@ -91,6 +91,9 @@ try {
         await shot(p, `p8-board-${id}-${b}-light-1600`);
         boards.push(...(await p.eval(BOARDS)));
       }
+      // a partial collection would pass every per-board assertion below, so the count is asserted first
+      const read = new Set(boards.map((b) => b.tile)).size;
+      check(read === o.boards.length, `${id}: read ${read} of ${o.boards.length} boards`);
       for (const b of boards) check(!b.errors.length && b.panels > 0 && /measured/.test(b.data ?? ""), `${b.tile}: ${b.panels} panels, data "${b.data}"${b.errors.length ? ` — ${b.errors.join("; ")}` : ""}`);
       if (id === "local-sampler") {
         // the stat shows two significant figures and its interval three
