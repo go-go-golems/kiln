@@ -1,0 +1,34 @@
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--ink);
+}
+.seg button {
+  border: 0;
+  border-right: 1px solid var(--hair);
+  background: var(--sheet);
+  color: var(--muted);
+  font: 600 10px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.seg--md button {
+  height: 26px;
+  padding: 0 9px;
+}
+.seg--sm button {
+  height: 21px;
+  padding: 0 7px;
+  font-size: 9px;
+}
+.seg button:last-child {
+  border-right: 0;
+}
+.seg button.is-on {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.seg button:not(.is-on):hover {
+  color: var(--ink);
+  background: var(--sig-w);
+}

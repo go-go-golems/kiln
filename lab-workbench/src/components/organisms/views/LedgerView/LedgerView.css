@@ -1,0 +1,66 @@
+.ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ledger__row {
+  display: grid;
+  grid-template-columns: minmax(120px, 30%) 1fr 76px;
+  align-items: center;
+  gap: 8px;
+}
+.ledger__label {
+  font-size: 10.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ledger__bar {
+  display: flex;
+  height: 18px;
+  min-width: 4px;
+  border: 1px solid var(--ink);
+}
+.ledger__seg {
+  flex-basis: 0;
+  min-width: 2px;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--sheet);
+  background: var(--hair);
+}
+.ledger__seg.is-alt {
+  background: var(--faint);
+}
+.ledger__seg.is-retained {
+  background: var(--d1);
+}
+.ledger__seg.is-retained.is-alt {
+  background: radial-gradient(var(--d1) 0.75px, transparent 0.95px) 0 0 / 3.2px 3.2px, color-mix(in oklab, var(--d1) var(--stipple-tint), var(--sheet));
+}
+.ledger__seg:hover,
+.ledger__seg:focus-visible {
+  outline: 2px solid var(--sig);
+  outline-offset: -2px;
+}
+.ledger__total {
+  font-size: 11px;
+  text-align: right;
+}
+.ledger__legend {
+  display: flex;
+  gap: 14px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.ledger__legend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  background: var(--hair);
+  vertical-align: -1px;
+}
+.ledger__legend i.is-retained {
+  background: var(--d1);
+}

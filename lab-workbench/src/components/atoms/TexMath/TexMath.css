@@ -1,0 +1,36 @@
+.tex--inline {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 0;
+}
+.tex--inline svg {
+  vertical-align: middle;
+}
+.tex--display {
+  display: block;
+  margin: 6px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: center;
+  line-height: 0;
+}
+.tex svg {
+  color: inherit;
+  max-width: 100%;
+}
+.tex--display svg {
+  max-width: none;
+}
+.tex__src {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.tex.is-failed .tex__src {
+  color: var(--bad);
+}
+/* every formula is an mjx-container; only MathJax's error node is drawn in the error colour */
+.tex [data-mml-node='merror'],
+.tex [data-mjx-error] {
+  color: var(--bad);
+}

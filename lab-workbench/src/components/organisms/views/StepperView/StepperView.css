@@ -1,0 +1,94 @@
+.stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.stepper:focus-visible {
+  outline: 2px solid var(--sig);
+  outline-offset: 4px;
+}
+.stepper__head h4 {
+  margin: 0 0 4px;
+  font: 700 15px/1.2 var(--display);
+}
+.stepper__formula {
+  color: var(--ink);
+}
+.stepper__formula .tex--display {
+  text-align: left;
+}
+.stepper__groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+}
+.stepper__group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.stepper__grid {
+  display: grid;
+  gap: 3px;
+}
+.stepper__cell {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  border: 1px dashed var(--hair);
+  background: var(--sheet);
+}
+.stepper__cell.is-lit {
+  border: 1.5px solid var(--accent);
+  background: color-mix(in oklab, var(--accent) var(--stipple-tint), var(--sheet));
+}
+.stepper__clabel {
+  font: 500 9px/1.2 var(--mono);
+  color: var(--muted);
+}
+.stepper__cval {
+  font-size: 13px;
+  font-weight: 600;
+}
+.stepper__csub {
+  font: 400 9px/1.2 var(--mono);
+  color: var(--faint);
+}
+.stepper__ctl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.stepper__counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin: 0;
+}
+.stepper__counters dt {
+  font: 600 9px/1.2 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stepper__counters dd {
+  margin: 0;
+}
+.stepper__notes {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.stepper__caveat {
+  padding: 6px 8px;
+  border-left: 2px solid var(--warn);
+  background: var(--warn-w);
+  font-size: 12px;
+}
+.stepper__impl {
+  overflow-wrap: anywhere;
+}

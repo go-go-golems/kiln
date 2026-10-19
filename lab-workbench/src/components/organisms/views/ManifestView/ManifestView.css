@@ -1,0 +1,46 @@
+.runbadges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.mdiff {
+  overflow-x: auto;
+}
+.mdiff table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 11px/1.4 var(--mono);
+}
+.mdiff th,
+.mdiff td {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--hair-soft);
+  text-align: left;
+  vertical-align: top;
+}
+.mdiff thead th {
+  font-weight: 600;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.mdiff tbody th {
+  font: 600 9.5px/1.4 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.mdiff tr.is-bad td {
+  background: var(--bad-w);
+}
+.mdiff tr.is-diff td:nth-child(2),
+.mdiff tr.is-diff td:nth-child(3) {
+  font-weight: 600;
+}
+.mdiff__badges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}

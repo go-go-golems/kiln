@@ -1,0 +1,148 @@
+.agent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.agent__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--hair-soft);
+}
+.agent__scope {
+  flex: 1;
+  font-size: 10px;
+}
+.agent__log {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.turn {
+  font-size: 12.5px;
+}
+.turn p {
+  margin: 2px 0 6px;
+}
+.turn--user {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 6px 9px;
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.turn--agent {
+  padding-left: 8px;
+  border-left: 2px solid var(--hair);
+}
+
+
+.turn__running {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.turn__result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left: 2px solid var(--ok);
+  padding-left: 6px;
+}
+.turn__code {
+  margin: 4px 0;
+}
+.turn__result.is-error {
+  border-left-color: var(--bad);
+}
+.turn__status {
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: var(--ok);
+}
+.turn__result.is-error .turn__status {
+  color: var(--bad);
+}
+
+.agent__foot {
+  border-top: 1px solid var(--ink);
+  background: var(--sheet);
+}
+.agent__sugs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 10px 0;
+}
+.agent__sug {
+  padding: 4px 7px;
+  border: 1px solid var(--ink);
+  background: var(--sheet);
+  font: 500 10.5px/1.2 var(--mono);
+  text-align: left;
+}
+.agent__sug:hover:not(:disabled) {
+  background: var(--sig-w);
+}
+.agent__form {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px 10px;
+}
+.agent__form input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--sheet);
+}
+
+.turn__board {
+  opacity: 0.7;
+  font: 500 10px/1 var(--mono);
+}
+.agent__model {
+  flex: 1;
+  min-width: 0;
+  font-size: 10px;
+}
+.turn__usage {
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.turn__caret {
+  color: var(--accent);
+}
+.turn__error {
+  color: var(--bad);
+}
+.turn__text {
+  white-space: pre-wrap;
+}
+.agent__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+.agent__controls .selectbox {
+  min-width: 0;
+  max-width: 100%;
+}
+.agent__actions {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+}

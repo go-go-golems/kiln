@@ -1,0 +1,49 @@
+.range {
+  position: relative;
+  width: 100%;
+  min-width: 110px;
+  height: 18px;
+}
+.range__track {
+  position: absolute;
+  inset: 8px 0 auto 0;
+  height: 2px;
+  background: linear-gradient(to right, var(--hair) var(--lo), var(--ink) var(--lo), var(--ink) var(--hi), var(--hair) var(--hi));
+}
+.range input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+.range input::-webkit-slider-runnable-track {
+  height: 18px;
+  background: transparent;
+}
+.range input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 11px;
+  height: 11px;
+  margin-top: 3.5px;
+  border: 1.5px solid var(--ink);
+  background: var(--sheet);
+}
+.range input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--sheet);
+}
+.range input:focus-visible {
+  outline: none;
+}
+.range input:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--sig);
+}

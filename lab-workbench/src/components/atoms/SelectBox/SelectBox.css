@@ -1,0 +1,30 @@
+.selectbox {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+}
+.selectbox select {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 26px;
+  max-width: 100%;
+  padding: 0 22px 0 8px;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--sheet);
+  font: 500 11px/1 var(--mono);
+  text-overflow: ellipsis;
+}
+.selectbox::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid var(--ink);
+  border-bottom: 1.5px solid var(--ink);
+  transform: rotate(45deg);
+  pointer-events: none;
+}

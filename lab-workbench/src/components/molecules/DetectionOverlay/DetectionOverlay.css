@@ -1,0 +1,82 @@
+.dov {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--grid);
+}
+.dov__img,
+.dov__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.dov__img {
+  object-fit: fill;
+}
+.dov__missing {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  background: var(--hatch);
+  color: var(--muted);
+  font: 500 10px var(--mono);
+  text-align: center;
+}
+.dov--compact .dov__missing {
+  font-size: 9px;
+}
+.dov__halo {
+  fill: none;
+  stroke: rgba(17, 20, 23, 0.55);
+}
+.dov__focus rect {
+  stroke: var(--sig);
+}
+.dov__focus text {
+  fill: var(--on-ink);
+  stroke: var(--ink);
+  stroke-width: 0.25em;
+  paint-order: stroke;
+  font-family: var(--mono);
+  font-weight: 600;
+}
+.dov__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.dov__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--ink);
+  font: 500 10px var(--mono);
+  cursor: pointer;
+}
+.dov__key[aria-pressed='false'] {
+  color: var(--faint);
+  text-decoration: line-through;
+}
+.dov__key:focus-visible {
+  outline: 2px solid var(--sig);
+  outline-offset: 1px;
+}
+.dov__key:disabled {
+  cursor: default;
+}
+.dov__frame {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  overflow: hidden;
+  background: var(--grid);
+}

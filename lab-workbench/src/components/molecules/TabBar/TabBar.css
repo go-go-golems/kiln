@@ -1,0 +1,35 @@
+.tabbar {
+  display: flex;
+  border-bottom: 1px solid var(--ink);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabbar button {
+  position: relative;
+  flex: none;
+  height: 32px;
+  padding: 0 11px;
+  border: 0;
+  border-right: 1px solid var(--hair-soft);
+  background: transparent;
+  color: var(--muted);
+  font: 600 10px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tabbar button.is-on {
+  color: var(--ink);
+  background: var(--sheet);
+}
+.tabbar button.is-on::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--ink);
+}
+.tabbar__badge {
+  margin-left: 5px;
+}

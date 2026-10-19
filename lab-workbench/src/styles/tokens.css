@@ -1,0 +1,133 @@
+/* Design tokens, adapted from Lattice Deck (see design/03-workbench-ui-design.md §2.1).
+   Colour is a signal: chrome stays neutral; sig/warn/bad/ok carry meaning and always pair with a word or glyph. */
+:root {
+  --paper: #fafaf8;
+  --sheet: #ffffff;
+  --ink: #111417;
+  --on-ink: #ffffff;
+  --muted: #5d646a;
+  --faint: #a9aeb2;
+  --hair: #b7bcc0;
+  --hair-soft: #e3e6e8;
+  --grid: #eef0f1;
+  --gridmaj: #e1e4e6;
+  --sig: #1f4fd1;
+  --sig-l: #c7d3f4;
+  --sig-w: #eef2fc;
+  --warn: #b87100;
+  --warn-w: #fbf3e4;
+  --bad: #d23b1e;
+  --bad-w: #fcedea;
+  --ok: #2e7d57;
+  --ok-w: #e8f3ec;
+  --shadow: rgba(17, 20, 23, 0.12);
+  /* accent: stencil labels, numbering, formula rules and stippling; ≥ 6:1 on the sheet */
+  --accent: #2e57c4;
+  /* data: subtle hues, each ≥ 3:1 against the sheet (WCAG graphics); candidate takes the accent family */
+  --d1: #3d6bc0;
+  --d2: #b07a2e;
+  --d3: #2f8a6e;
+  --d4: #8462b0;
+  --d5: #b4574a;
+  --d6: #3f8399;
+  --d-candidate: var(--d1);
+  --d-baseline: #9a8a70;
+  /* how much of a series colour tints the ground under its stipple */
+  --stipple-tint: 16%;
+  --hl-c: #7a8086;
+  --hl-s: #2e6b4f;
+  --hl-n: #8a5a00;
+  --hl-f: #14365f;
+  --hl-k: #5b2a86;
+  --body: Arial, 'Helvetica Neue', Helvetica, 'Liberation Sans', sans-serif;
+  --display: 'Archivo Variable', 'Archivo', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --dither: radial-gradient(var(--ink) 0.55px, transparent 0.75px) 0 0 / 3px 3px;
+  --dither-l: radial-gradient(var(--muted) 0.5px, transparent 0.7px) 0 0 / 4px 4px;
+  --hatch: repeating-linear-gradient(45deg, var(--faint) 0 0.8px, transparent 0.8px 3.2px);
+  --hatch-warn: repeating-linear-gradient(45deg, var(--warn) 0 0.9px, transparent 0.9px 3px);
+  --hatch-bad: repeating-linear-gradient(45deg, var(--bad) 0 0.9px, transparent 0.9px 3px);
+  --ide-w: 360px;
+  --insp-w: 392px;
+  --top-h: 44px;
+  --strip-h: 92px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #121518;
+    --sheet: #181c20;
+    --ink: #e3e6e9;
+    --on-ink: #121518;
+    --muted: #98a0a7;
+    --faint: #69727a;
+    --hair: #4a5157;
+    --hair-soft: #2a3035;
+    --grid: #1d2226;
+    --gridmaj: #252b30;
+    --sig: #86a2f7;
+    --sig-l: #2d3f78;
+    --sig-w: #1b2440;
+    --warn: #e0a23a;
+    --warn-w: #2e2414;
+    --bad: #f07158;
+    --bad-w: #34191a;
+    --ok: #5dbb8b;
+    --ok-w: #17291f;
+    --shadow: rgba(0, 0, 0, 0.4);
+    --accent: #8fa9f5;
+    --d1: #82a4ec;
+    --d2: #e1af62;
+    --d3: #6dc2a5;
+    --d4: #b9a0e6;
+    --d5: #e58f80;
+    --d6: #82c0d4;
+    --d-baseline: #bcae95;
+    --stipple-tint: 22%;
+    --hl-c: #7f878e;
+    --hl-s: #7fc79f;
+    --hl-n: #e0b067;
+    --hl-f: #a9c2ff;
+    --hl-k: #d1a8ff;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #121518;
+  --sheet: #181c20;
+  --ink: #e3e6e9;
+  --on-ink: #121518;
+  --muted: #98a0a7;
+  --faint: #69727a;
+  --hair: #4a5157;
+  --hair-soft: #2a3035;
+  --grid: #1d2226;
+  --gridmaj: #252b30;
+  --sig: #86a2f7;
+  --sig-l: #2d3f78;
+  --sig-w: #1b2440;
+  --warn: #e0a23a;
+  --warn-w: #2e2414;
+  --bad: #f07158;
+  --bad-w: #34191a;
+  --ok: #5dbb8b;
+  --ok-w: #17291f;
+  --shadow: rgba(0, 0, 0, 0.4);
+  --accent: #8fa9f5;
+  --d1: #82a4ec;
+  --d2: #e1af62;
+  --d3: #6dc2a5;
+  --d4: #b9a0e6;
+  --d5: #e58f80;
+  --d6: #82c0d4;
+  --d-baseline: #bcae95;
+  --stipple-tint: 22%;
+  --hl-c: #7f878e;
+  --hl-s: #7fc79f;
+  --hl-n: #e0b067;
+  --hl-f: #a9c2ff;
+  --hl-k: #d1a8ff;
+  color-scheme: dark;
+}

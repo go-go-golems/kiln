@@ -1,0 +1,46 @@
+// Scalar functions shared by every level: reference evaluation, the loop evaluator, and the
+// CUDA / WGSL / JS emitters. One table, so a new function is one entry here.
+const f = Math.fround;
+export const FNS = {
+  add: { n: 2, js: (a, b) => a + b, c: "({0} + {1})", w: "({0} + {1})", flops: 1 },
+  sub: { n: 2, js: (a, b) => a - b, c: "({0} - {1})", w: "({0} - {1})", flops: 1 },
+  subtract: { n: 2, js: (a, b) => a - b, c: "({0} - {1})", w: "({0} - {1})", flops: 1 },
+  mul: { n: 2, js: (a, b) => a * b, c: "({0} * {1})", w: "({0} * {1})", flops: 1 },
+  multiply: { n: 2, js: (a, b) => a * b, c: "({0} * {1})", w: "({0} * {1})", flops: 1 },
+  div: { n: 2, js: (a, b) => a / b, c: "({0} / {1})", w: "({0} / {1})", flops: 4 },
+  divide: { n: 2, js: (a, b) => a / b, c: "({0} / {1})", w: "({0} / {1})", flops: 4 },
+  max: { n: 2, js: (a, b) => (a > b ? a : b), c: "fmaxf({0}, {1})", w: "max({0}, {1})", flops: 1 },
+  maximum: { n: 2, js: (a, b) => (a > b ? a : b), c: "fmaxf({0}, {1})", w: "max({0}, {1})", flops: 1 },
+  min: { n: 2, js: (a, b) => (a < b ? a : b), c: "fminf({0}, {1})", w: "min({0}, {1})", flops: 1 },
+  minimum: { n: 2, js: (a, b) => (a < b ? a : b), c: "fminf({0}, {1})", w: "min({0}, {1})", flops: 1 },
+  pow: { n: 2, js: (a, b) => Math.pow(a, b), c: "powf({0}, {1})", w: "pow({0}, {1})", flops: 8 },
+  gt: { n: 2, js: (a, b) => (a > b ? 1 : 0), c: "(({0}) > ({1}) ? 1.0f : 0.0f)", w: "select(0.0, 1.0, ({0}) > ({1}))", flops: 1 },
+  lt: { n: 2, js: (a, b) => (a < b ? 1 : 0), c: "(({0}) < ({1}) ? 1.0f : 0.0f)", w: "select(0.0, 1.0, ({0}) < ({1}))", flops: 1 },
+  fma: { n: 3, js: (a, b, c) => a * b + c, c: "fmaf({0}, {1}, {2})", w: "fma({0}, {1}, {2})", flops: 2 },
+  select: { n: 3, js: (c, a, b) => (c > 0 ? a : b), c: "(({0}) > 0.0f ? ({1}) : ({2}))", w: "select({2}, {1}, ({0}) > 0.0)", flops: 1 },
+  neg: { n: 1, js: (a) => -a, c: "(-{0})", w: "(-{0})", flops: 1 },
+  negative: { n: 1, js: (a) => -a, c: "(-{0})", w: "(-{0})", flops: 1 },
+  exp: { n: 1, js: Math.exp, c: "expf({0})", w: "exp({0})", flops: 8 },
+  log: { n: 1, js: Math.log, c: "logf({0})", w: "log({0})", flops: 8 },
+  sqrt: { n: 1, js: Math.sqrt, c: "sqrtf({0})", w: "sqrt({0})", flops: 4 },
+  rsqrt: { n: 1, js: (a) => 1 / Math.sqrt(a), c: "rsqrtf({0})", w: "inverseSqrt({0})", flops: 4 },
+  tanh: { n: 1, js: Math.tanh, c: "tanhf({0})", w: "tanh({0})", flops: 8 },
+  sigmoid: { n: 1, js: (a) => 1 / (1 + Math.exp(-a)), c: "(1.0f / (1.0f + expf(-({0}))))", w: "(1.0 / (1.0 + exp(-({0}))))", flops: 10 },
+  relu: { n: 1, js: (a) => (a > 0 ? a : 0), c: "fmaxf({0}, 0.0f)", w: "max({0}, 0.0)", flops: 1 },
+  abs: { n: 1, js: Math.abs, c: "fabsf({0})", w: "abs({0})", flops: 1 },
+  sin: { n: 1, js: Math.sin, c: "sinf({0})", w: "sin({0})", flops: 8 },
+  cos: { n: 1, js: Math.cos, c: "cosf({0})", w: "cos({0})", flops: 8 },
+  recip: { n: 1, js: (a) => 1 / a, c: "(1.0f / {0})", w: "(1.0 / {0})", flops: 4 },
+  square: { n: 1, js: (a) => a * a, c: "({0} * {0})", w: "({0} * {0})", flops: 1 },
+  copy: { n: 1, js: (a) => a, c: "{0}", w: "{0}", flops: 0 },
+};
+export const REDUCERS = {
+  add: { init: 0, js: (a, b) => a + b, op: "add", c: "0.0f", w: "0.0" },
+  max: { init: -3.4028234663852886e38, js: (a, b) => (a > b ? a : b), op: "max", c: "-3.402823466e38f", w: "-3.402823466e38" },
+  min: { init: 3.4028234663852886e38, js: (a, b) => (a < b ? a : b), op: "min", c: "3.402823466e38f", w: "3.402823466e38" },
+  mul: { init: 1, js: (a, b) => a * b, op: "mul", c: "1.0f", w: "1.0" },
+};
+export function fn(name) { const x = FNS[name]; if (!x) throw new Error(`unknown function "${name}" (known: ${Object.keys(FNS).join(", ")})`); return x; }
+export function reducer(name) { const x = REDUCERS[name]; if (!x) throw new Error(`unknown reduction "${name}" (add, max, min, mul)`); return x; }
+export const fill = (tpl, args) => tpl.replace(/\{(\d)\}/g, (_, i) => args[+i]);
+export const fr = f;

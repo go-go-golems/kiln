@@ -1,0 +1,39 @@
+.runlist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 300px;
+  overflow: auto;
+}
+.runlist li + li {
+  border-top: 1px solid var(--hair-soft);
+}
+.runlist button {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.3fr) minmax(120px, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px;
+  border: 0;
+  background: none;
+  text-align: left;
+}
+.runlist button:hover {
+  background: var(--sig-w);
+}
+.runlist__ref {
+  font-size: 11px;
+}
+.runlist__act {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.runlist .runbadges {
+  margin: 0;
+}
+@media (max-width: 700px) {
+  .runlist button {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,1 @@
+export { BindingBadge } from './BindingBadge';

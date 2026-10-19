@@ -1,0 +1,1 @@
+export { ProvenanceGlyph } from './ProvenanceGlyph';

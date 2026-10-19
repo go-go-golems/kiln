@@ -1,0 +1,1 @@
+export { DetectionsView } from './DetectionsView';

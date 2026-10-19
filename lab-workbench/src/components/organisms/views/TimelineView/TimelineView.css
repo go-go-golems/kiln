@@ -1,0 +1,87 @@
+.tl {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.tl:active {
+  cursor: grabbing;
+}
+.tl:focus-visible {
+  outline: 2px solid var(--sig);
+  outline-offset: -2px;
+}
+.tl svg {
+  display: block;
+}
+.tl__lane {
+  font: 500 9.5px var(--mono);
+  fill: var(--muted);
+}
+.tl__laneRule {
+  stroke: var(--hair-soft);
+}
+.tl__tick {
+  stroke: var(--hair-soft);
+}
+.tl__tickText {
+  font: 400 9px var(--mono);
+  fill: var(--muted);
+}
+.tl__item {
+  cursor: pointer;
+}
+.tl__item rect {
+  stroke: var(--ink);
+  stroke-width: 0.6;
+}
+.tl__item:hover rect {
+  stroke: var(--sig);
+  stroke-width: 1.4;
+}
+.tl__item.is-sel rect,
+.tl__item.is-focus rect {
+  stroke: var(--sig);
+  stroke-width: 2;
+}
+.tl__label {
+  font: 500 9px var(--mono);
+  fill: var(--ink);
+  pointer-events: none;
+}
+.tl__bucket {
+  fill: var(--muted);
+  cursor: pointer;
+}
+.tl__lost {
+  stroke: var(--faint);
+  stroke-dasharray: 3 2;
+}
+.tl__lostText {
+  font: 600 9px var(--mono);
+  letter-spacing: 0.08em;
+  fill: var(--muted);
+}
+.tl__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 6px 10px;
+  list-style: none;
+  border-top: 1px solid var(--hair-soft);
+  font: 500 9.5px var(--mono);
+  color: var(--muted);
+}
+.tl__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.tl__swatch {
+  width: 9px;
+  height: 9px;
+  border: 0.6px solid var(--ink);
+}

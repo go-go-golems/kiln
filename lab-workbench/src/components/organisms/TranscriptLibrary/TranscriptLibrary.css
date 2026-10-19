@@ -1,0 +1,128 @@
+.tlib {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.tlib__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--hair-soft);
+}
+.tlib__tools {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.tlib__search {
+  padding: 8px 10px 4px;
+}
+.tlib__search .textfield {
+  width: 100%;
+}
+.tlib__error {
+  margin: 4px 10px;
+  font-size: 11px;
+  color: var(--bad);
+}
+.tlib__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 10px 12px;
+}
+.tlib__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tlib__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-left: 2px solid var(--hair);
+  cursor: pointer;
+}
+.tlib__row:hover {
+  background: var(--sig-w);
+}
+.tlib__row.is-cursor {
+  border-left-color: var(--accent);
+}
+.tlib__row:focus-visible {
+  outline: 2px solid var(--sig);
+  outline-offset: -2px;
+}
+.tlib__rowTitle {
+  grid-column: 1;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.tlib__rowTitle mark {
+  background: var(--sig-l);
+  color: inherit;
+}
+.tlib__chips {
+  display: inline-flex;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-items: start;
+  gap: 4px;
+}
+.tlib__meta {
+  margin: 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+.tlib__detailHead {
+  padding: 8px 10px 0;
+}
+.tlib__title {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.tlib__transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tlib__msg--user {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 6px 9px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: 12px;
+}
+.tlib__msg--assistant {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 8px;
+  border-left: 2px solid var(--hair);
+}
+.tlib__text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}

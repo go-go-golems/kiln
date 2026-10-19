@@ -1,0 +1,182 @@
+A project script is plain JavaScript run with these names in scope: k, P, std, N, T, nn, tensor, Tensor, ix,
+E, KB, kx, project, param. It ends by defining a project. Builder lambdas run when the script runs; rule and
+pass lambdas run while the pipeline compiles. Everything is ordinary JS: loops, helpers, closures.
+
+Script header (presets):  /** U-01 Title            (W-NN for built-ins, U-NN for yours)
+                           *  group  Mine           Basics | ML compiler | Write programs | Extend the compiler | Other compilers | Mine
+                           *  about  one line
+                           *  try    a suggestion for the agent | another
+                           */
+
+## 1 Projects
+project(name)                     the thing the workbench compiles, checks and measures
+  .program(fn, inputs)            fn({ x, y }, { param }) → a value or { name: value }; inputs { x: k.tensor([4, 8]) }
+                                  or ({ param }) => ({ … }) when shapes come from sliders
+  .pipeline(p)                    default: std.emmy.pipeline() (torch → tensor → loop → tile → kernel → gpu)
+  .params(...params)              program sliders (shown in Code and Knobs; changing one re-traces)
+  .data({ x: Tensor | number | any })   inputs for the end-to-end check (default: seeded uniform tensors)
+  .check(name, ctx => true | "why not" | { ok, message })   ctx: outputs, reference (frontend), inputs, run, graph,
+                                  compare. { ok: true, message } is an info check: it reports a finding (shown in Code)
+  .pins({ KNOB: value })          initial pins   .device("sim:h100")   .about(text)   .note(text)
+The end-to-end check evaluates the frontend graph and the last IR level that can evaluate (the Loop IR in
+the ML pipeline) on the same inputs and compares every output (rtol 1e-3, atol 1e-4). Programs larger than
+~6e7 scalar ops skip it; structural checks (ones that only read run/graph) still run, and every kernel is
+checked against the Loop IR reference at sampled outputs whenever it is measured.
+
+## 2 Dialects, ops, types
+k.dialect(name).describe(text)
+  .op(short, { args: ["a", "b"] | { variadic: "xs" }, attrs: { fn: "add", eps: 1e-6 }, traits: ["pure", "commutative", "const", "effect", "any-ir"],
+               infer: ({ a, b, ...attrs }) => type, eval: ({ a, b, ...attrs, args, type, node }) => value,
+               print: "{a} + {b}" | ctx => string, body: ctx => multiline string, validate: ctx => true | "why",
+               identity: ctx => key })   identity keys measured evidence (std: the loop kernel's α-normalized hash)
+  .lifts(v => D.const({ value: v }))       bare numbers in traced code become this dialect's constants
+  .methods({ add: (a, b) => D.add(a, b) })   value methods: x.add(y)
+D.opName(a, b, { attrs })  builds a node (inside k.graph / k.trace / a rewrite). D.opName({ attrs }) with no
+args is a template for node.lower(…). Types: k.tensor([2, 3], "f32"), k.scalar(), or any { kind: "…" } object.
+"pure" ops can be folded (v.fold()) and CSE'd; "const" marks constants (v.isConst(1)); "any-ir" ops pass
+strict checkpoints anywhere (weights). An op without eval can be compiled but not interpreted.
+
+## 3 Graphs and values
+k.trace(name, ({ x, y }) => result, { x: type, y: type })   trace a lambda: dialect calls become nodes
+k.graph(name, b => { const x = b.input("x", type); b.output("y", f(x)); })
+Graph: nodes (Map id → Node), inputs [{name, id}], outputs [{name, id}], size, topo(), users(id), value(id),
+  find(op | pred), findAll(op | pred), findBefore(id, pred), print({ body, types, only }), printNode(id),
+  eval(inputs) → { outputName: value }, key(), nodeKey(id), summary() → { op: count }, clone(), dce()
+Node (frozen): id, def, name ("dialect.op"), args [ids], attrs, type, knobs
+Value (what rules and traced code see): id, node, name, opName, type, shape, attrs, knobs, args, users,
+  arg(i | "name"), is(op | value), has(trait), isConst(v?), value, isInput(), otherArg(v), graph, print(), key(),
+  fold(), with({ args, attrs, def }), lower(Op({ attrs }) | Op, attrs?)
+Node ids look like n12; inputs print by name.
+
+## 4 Patterns
+P.op("arith.mul" | D.mul, …)  P.oneOf(…)  P.trait("pure")  P.const(v?)  P.any()  P.var(name)
+  .as(name) capture · .where(ctx => bool) · .args(p1, p2) · .attrs({ fn: "div" }) · .oneUse()
+P.chain(pInner, pOuter)   producer → consumer (the inner has one use); the root is the outer node
+Rules by example: k.rule(name).from(({ x }) => x.mul(2)).to(({ x }) => x.add(x))
+
+## 5 Rules
+k.rule(name)
+  .match(pattern)
+  .rewrite(ctx => result)     ctx: the captures, node, graph, param(p), ctx (target, deviceId, store…), run, skip,
+                              edit (graph surgery: edit.node(Op, args, attrs), edit.replace(a, b), edit.remove(v))
+     result: a value (replace the root), node.with({…}) or node.lower(…) (rewrite in place),
+             k.fork([...]) or an array of options (a choice), undefined (no change)
+  .mutate(({ tx, ...ctx }) => …)   imperative: tx.set(v, { attrs, args, def }), tx.replace(a, b), tx.remove(v)
+  .when(ctx => bool)          a cheap precondition (declines silently)
+  .guard(({ before, after, root, node, ctx, run }) => true | "why")   veto after the rewrite; the Trace shows why
+  .requires(ruleName)         only after that rule has fired somewhere   .describe(text)
+skip("reason") inside rewrite declines visibly: Trace → Declined lists it with the reason.
+A rewrite runs inside a fresh scope: build new nodes with dialect calls; they are added to the graph.
+rule.applyTo(graph) → { changed, graph, run }   rule.explain(graph) → where it matches
+
+## 6 Passes and pipelines
+k.pass(name).short("x").rules(...rules)
+  .mode("fixpoint" | "once" | "ordered-once")   .order("topo" | "reverse")   .limit(maxSteps)
+  .knobs(...params)   the knobs its forks use (shown in Knobs; pinnable for every kernel)
+  .whole(({ graph, edit, param, ctx, run, skip }) => …)   a whole-graph pass: mutate with edit, or return a new Graph
+     edit.node(Op, [args], attrs) · edit.replace(old, new) · edit.replaceAll(v) · edit.setOutputs({ name: v }) · edit.remove(v)
+  .check((graph, run) => true | "why")   a post-condition; failing it stops the compile (PassCheckError)
+  .helpers(name, obj) · .describe(text)
+k.pipeline(name)
+  .ir(name, { dialects: [D1, D2], strict: true })   a checkpoint: strict fails the compile (LoweringError, naming
+                                                     the nodes and the last rule that declined each) if any op is
+                                                     outside the dialects
+  .pass(p) · .params(...p) · .decide(policy) · .target(t) · .use(strategy) · .describe(text) · .build()
+Pipeline: passes, irNames(), pass(name), allParams(), describe(), run(graph, { params, decide, target, ctx, upTo, passes }),
+  with({ decide, target, name, use }), insertAfter(passName, pass), insertBefore(passName, pass), replace(passName, passes),
+  without(passName), withIr(name, opts), insertRule(passName, rule, { before, after }), replaceRule(passName, ruleName, rule),
+  removeRule(passName, ruleName). Passes are named by full name or short letter.
+Run: ok, error {kind, message}, graph (final), at(irName) → Graph, irOrder, steps [{ i, kind "rewrite"|"skip", pass,
+  short, rule, node, added, removed, changed, before, after, decision, reason }], decisions [{ pass, rule, node, key,
+  options [{ knobs, label, score }], size, by, knobs, chosen, tried }], passStats { pass: { applied, skipped, forks, ms } },
+  warnings, events, params (ParamSet), ms, diff(i), stepGraph(i)
+
+## 7 Parameters, knobs, forks, decisions
+param.int(name, { min, max, step, default, scale: "log", help })   param.float(…)   param.enum(name, [values], { default, off })
+param.bool(name, { default, off })   param.text(name, { default })   .phase("build" | "run") .group(g) .help(text)
+Read them: in programs via ({ param }) => param(p); in rules and passes via ctx.param(p) (recorded as reads);
+anywhere via run.params.get(p). A pinned param fixes a fork knob everywhere it is offered.
+Forks (a rule returns several options; the decide policy picks one per node):
+  k.fork([optionFn | { knobs, label, build }]).keepOriginal(param)
+  k.fork.over(PARAM, [values]?, v => result)          one option per value
+  k.fork.toggle(PARAM, () => result)                  apply or keep the original (PARAM.off)
+  k.fork.tree().level(P1, (knobsSoFar, rctx) => values).level(P2, …).leaf(knobs => result)
+Decide policies rank options: { order, by, scores } or null to pass:
+  k.decide.pinned()  k.decide.evidence(store?, { always })  k.decide.cost(({ knobs, node, fork, ctx, run }) => number | Infinity, { name }).for("ruleName")
+  k.decide.first()  k.decide.random(seed)  k.decide.exactly(fp => index | knobs)  k.decide.strict()  k.decide.chain(...)
+An option that throws skip(…), fails validate, or fails a guard is tried no further; the next ranked one is.
+In a chain, evidence (fastest measured option) decides only once the next policy's favourite has been measured
+too, so measuring one pinned schedule never locks it in after unpinning ({ always: true }: the plain rule).
+k.knobs.canonical({ … }) → "A=1,B=2"   k.knobs.parse(str)
+Strategies listen to compile events: k.strategy(name).state(() => s).on("rewrite" | "skip" | "fork" | "decided" | "ir" |
+  "passStart" | "passEnd" | "*", (ev, s, run) => …).expose(s => …); pipeline.use(strategy); run.strategy(name)
+
+## 8 The ML stack (std)
+N — the frontend (dialect nn, PyTorch-like, every op with reference semantics, broadcasting):
+  N.add sub mul div max min pow · exp log sqrt rsqrt tanh sigmoid relu abs neg square sin cos · gt lt select(c, a, b)
+  N.sum(x, axis = -1, keepdim = true) · N.amax · N.mean · N.matmul(a, b) (batched) · N.linear(x, W[out, in], b?)
+  N.rms_norm(x, w, { eps }) · N.layer_norm(x, g, b, { eps }) · N.softmax(x, dim) · N.gelu · N.silu
+  N.transpose(x, d0 = -2, d1 = -1) · N.reshape(x, shape) · N.slice(x, axis, start, end) · N.ew(fnName, ...xs)
+  std.weight(name, shape, { seed, scale, init: "normal" | "ones" | "zeros" }) — a constant tensor (deterministic)
+  values have methods: x.add(y), x.matmul(w), x.softmax(), x.sum(-1), x.t(), x.reshape([…]) …
+T — Tensor IR builders (dialect tensor: const, ew, reduce, view; broadcasting by explicit views):
+  T.ew(fnName, ...xs) · T.add … (same names as N) · T.recip · T.reduce(x, fn, axis) · T.sum(x, axis) · T.max(x, axis)
+  T.view(x, shape, coords => [inputCoords]) · T.bc(x, shape) · T.reshape(x, shape) · T.squeeze(x, axis)
+  Elementwise functions (std.FNS: js, c, wgsl, flops): add sub mul div max min pow gt lt select neg exp log sqrt rsqrt
+  tanh sigmoid relu abs sin cos recip square fma (fma(a, b, c) = a·b + c; the optimizer contracts single-use
+  mul+add into it, so issue-bound kernels count FFMA as on real GPUs). Add one: std.FNS.myfn = { n, js, c: "…{0}…", w: "…", flops }.
+  Reducers: add max min mul (std.REDUCERS).
+ix — affine index expressions for maps: ix.C(3), ix.V("a0"), e.add/sub/mul/div/mod/min/max, ix.map(n, a => [...]),
+  ix.print(e). Coordinates are a0, a1, …
+std.decompose(opName, ({ ...args, ...attrs, out, T }) => tensorValue) → a rule for the decomposition pass
+
+std.emmy.pipeline({ target, store }) — the standard pipeline:
+  torch [nn, tensor] ─d frontend/decomposition→ tensor [tensor, strict]
+  ─o frontend/optimization (compose views, fold splats) ─l loop/lowering (lift ew/reduce/view to loop kernels)
+  ─f loop/fusion (inline producers into consumers, consumers first; guard: no work blowup) ─s loop/stamp (names)
+  → loop [loop.kernel: a scheduled expression; LICM places each value at the deepest loop it depends on]
+  ─t tile/schedule (fork over MAP=thread|row|tiled × TPB COARSEN STAGE BM BN BK TM TN) → tile
+  ─k kernel/materialize (threads, shared-memory staging, tree reductions, register tiles, syncs) → kernel
+  ─c gpu/emit → gpu [gpu.kernel with CUDA and WGSL]
+  std.emmy.passes, std.emmy.dialects ({ nn, tensor, loop, tile, kernel, gpu }), std.emmy.defaultDecide(store)
+  default decide: kernel pins (Knobs) → global pins → evidence on this device → std.tile.costPrior (model) → first
+Schedules (knobs): MAP thread (one output per thread; TPB, COARSEN) · row (a block per row with cooperative
+  reductions; TPB, STAGE none|reused|all stages inputs in shared memory) · tiled (contractions: BM×BN outputs per
+  block, BK slices of K in shared memory, TM×TN outputs per thread). Legality depends on the target (threads per
+  block, shared memory per block = 48 KiB static).
+std.loop: E (expressions: E.num, E.load(i, idx), E.op(fn, …), E.red(fn, r, n, body)), schedule(expr, shape),
+  printNest, workOf, inlineInto, mergeLoopOps, lift, fuse, stamp
+std.tile: analyze(expr, shape, inShapes) → { rows, contraction, … }, estimate(analysis, knobs, target) → { us, bound,
+  occupancy, parts }, timeModel, costPrior, legalMaps, forkTree, canonRow(knobs), KNOBS
+std.kernel: materialize(node), KB (kernel builder: let, int, load, store, shared, sload, sstore, sync, for, if), kx
+std.gpu: toCuda(K), toWgsl(K), toSim(K), programOf(graph) → { kernels: [{ name, K, cuda, wgsl, grid, … }] },
+  simulateKernel(kernel, target) → { metrics, check }
+std.targets: rtx5090 rtx4090 h100 a100 orin · std.target(spec) · std.Store · std.tune · std.measureProgram
+
+## 9 Devices, measurement, tuning
+sim:<gpu>  a lockstep SIMT simulator runs sampled blocks; metrics: time (roofline + occupancy model: dram, l2,
+           compute, smem, issue bounds, launch, waves), occupancy and its limiter, load sectors per request (4 = fully
+           coalesced fp32), shared-memory bank conflicts, branch divergence, barriers, out-of-bounds and divergent-barrier
+           detection, and a check of every sampled output against the Loop IR reference
+webgpu     your GPU through WebGPU: real time (timestamp queries when allowed), real outputs checked
+cuda       kiln_runner.py on an NVIDIA box: nvcc, CUDA events (median of 50), optional Nsight Compute metrics; live when
+           the page is served by the runner, otherwise export a bundle (Devices) and import the results
+Inputs are seeded uniform values in [−1, 1) (mulberry32), identical on every device.
+Every measurement records evidence (device, kernel identity, schedule row → µs). The next compile prefers the
+fastest measured row. Tune: SP-MCTS over the program's whole fork tree (max-Q backup, UCB normalized by the best
+time, patience), a sweep of the model's top 6 options per kernel ("sweep"), or every option ("sweep-all").
+
+## 10 Notes (tutorials) and lab: links
+Each project can have notes: Markdown shown in the Notes view, saved with the project (presets ship them as
+presets/W-NN-name.md next to the script). Supported: # headings (## build the table of contents), paragraphs,
+**bold**, *italic*, `code`, lists, GFM tables (escape | inside a cell as \|), --- rules, ```js / ```cuda / ```text
+fences, $inline TeX$ and $$display TeX$$ (KaTeX), and call-outs: a blockquote starting with **Try**, **Note**,
+**Why**, **Exercise**, **Check**, **Watch**, **Math**, **System**, **Caveat** or **Takeaway** gets that style.
+Links: https://… open a tab; #slug jumps to a heading; lab: links drive the workbench when clicked:
+  lab:param?name=n&value=v[&measure]   set a parameter        lab:pin?TPB=128&STAGE=all[&measure]   pin knobs
+  lab:unpin[?name=TPB,STAGE]           unpin                  lab:measure[?all=sim]   measure (on every simulated GPU)
+  lab:tune?strategy=spmcts|sweep|sweep-all&budget=32          lab:device?id=sim:h100[&measure]       lab:compile
+  lab:view?name=perf|knobs|trace|kernels|code|notes|…         lab:ir?name=loop · lab:node?id=n12&ir=loop
+  lab:step?i=14 · lab:kernel?name=k_x · lab:fork?i=0 · lab:line?n=12 · lab:preset?id=W-21
+Values are URL-encoded (spaces as %20, | as %7C). A good tutorial: the concept, the maths, what to try (as lab:
+links), what the user should see (measured numbers), why, exercises, further reading.

@@ -1,0 +1,83 @@
+.picker {
+  position: relative;
+}
+.picker__button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: 'eyebrow chev' 'name chev';
+  align-items: center;
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--ink);
+  background: var(--sheet);
+  text-align: left;
+}
+.picker__button .eyebrow {
+  grid-area: eyebrow;
+}
+.picker__name {
+  grid-area: name;
+  font: 700 15px/1.25 var(--display);
+}
+.picker__button .icon {
+  grid-area: chev;
+}
+.picker__list {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: min(70vh, 560px);
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--ink);
+  background: var(--sheet);
+  box-shadow: 5px 5px 0 var(--shadow);
+  list-style: none;
+}
+.picker__list:focus-visible {
+  outline: 2px solid var(--sig);
+  outline-offset: 2px;
+}
+.picker__group {
+  padding: 8px 10px 4px;
+  border-top: 1px solid var(--hair-soft);
+  font: 600 9px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.picker__opt {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+.picker__opt.is-cursor {
+  background: var(--sig-w);
+}
+.picker__opt.is-current .picker__optname::after {
+  content: ' · open';
+  font: 600 9px var(--mono);
+  color: var(--sig);
+}
+.picker__num {
+  font-size: 10.5px;
+  color: var(--accent);
+}
+.picker__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.picker__optname {
+  font-weight: 700;
+  font-size: 12.5px;
+}
+.picker__desc {
+  font-size: 11.5px;
+  color: var(--muted);
+}

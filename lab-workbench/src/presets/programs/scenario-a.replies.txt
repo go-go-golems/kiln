@@ -1,0 +1,45 @@
+=== sampler
+> Did fusion run in every candidate process?
+Checking activation and validity of every candidate timing process.
+```js
+const rows = lab.runs.find('dino-sampler/candidate/timing').map(r => ({
+  run: r.ref, replay: r.activation.replay, fusion: r.activation.fusion, valid: r.validity.ok, why: r.validity.reasons.join('; '),
+}));
+const misses = rows.filter(r => r.fusion !== 'active');
+log(`${rows.length} candidate processes, ${misses.length} without active fusion`);
+return { processes: rows.length, misses };
+```
+
+=== sampler
+> Show the slowest request
+Finding the slowest candidate trace request and moving the mirror to it.
+```js
+const reqs = lab.run('dino-sampler/candidate/trace#0').requests;
+const slowest = reqs.top(1, 'latency').first();
+const index = reqs.findIndex(r => r.id === slowest.id);
+self.params.request = index;          // a VIEW parameter: applies immediately
+self.state.sel = slowest;
+return { request: slowest.id, index, latency: `${slowest.latency.toFixed(1)} ms` };
+```
+
+=== sampler
+> Record the cache-control alternative
+Adding an alternative to the hypothesis, with the evidence that would test it.
+```js
+const k = lab.run('dino-sampler/candidate/kernels#0').kernel({ role: 'encoder.sampling', selected: true });
+const h = lab.hypothesis('sampler-traffic');
+h.alternatives.add('ncu cache control flushes L2 between replays; in ordinary execution part of the reread may hit L2', {
+  evidence: [k.ref],
+  test: 'repeat the kernels capture with cacheControl("none") and compare dram__bytes_read.sum',
+});
+return h.describe();
+```
+
+=== sampler
+> Try to zero a DRAM counter
+Observed values are import-only, so this should fail and roll back.
+```js
+const k = lab.run('dino-sampler/candidate/kernels#0').kernel({ role: 'encoder.sampling', selected: true });
+k.metrics['dram__bytes_read.sum'] = 0;
+return 'unreachable';
+```

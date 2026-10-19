@@ -1,0 +1,1 @@
+export { EntityChip } from './EntityChip';

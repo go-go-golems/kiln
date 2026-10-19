@@ -1,0 +1,47 @@
+=== gaps
+> What can we still conclude from trace #2?
+Reading the run's coverage and splitting conclusions by what the evidence supports.
+```js
+const run = lab.run('emb-churn/candidate/trace#2');
+const cov = run.coverage;
+const affected = run.requests.where(r => cov.trace.lost.some(gap => r.overlaps(gap)));
+return {
+  conclusive: ['latency and outcome distribution (the timing capture is complete)', 'graph transitions outside the lost interval'],
+  inconclusive: [`${affected.length} requests overlap the lost interval ${cov.trace.lost.map(g => `${g.from}–${g.to} s (${g.reason})`).join(', ')}`],
+  unknown: [
+    ...cov.source.missing.map(m => `source for ${m.code}: ${m.reason}`),
+    'barrier stalls: PC sampling is not part of a trace capture',
+  ],
+};
+```
+
+=== gaps
+> Plan a re-trace and run it if approved
+Forking the experiment for attribution only, with a larger trace buffer, then proposing the job.
+```js
+const cp = lab.checkpoint('before emb-churn-retrace');
+const exp = lab.experiment('emb-churn').fork('emb-churn-retrace', e => e
+  .purpose('attribution only: re-trace with a larger CUPTI buffer')
+  .capture('trace', c => c.buffer('2GiB')));
+const plan = exp.plan();
+if (plan.blocked.length) { cp.restore(); return plan.blocked; }
+const job = lab.start(exp.id, { reason: 'resolve the CUPTI loss in emb-churn/candidate/trace#2', modes: ['trace'] });
+log(`job ${job.id} is ${job.status}: ${job.captures.length} captures on ${job.host}, ≈ ${job.budget} gpu-min — approve it in PLAN`);
+await job.approved;
+for await (const ev of job.events) log(ev.kind, ev.detail ?? '');
+await job.done;
+self.params.run = 'emb-churn-retrace/candidate/trace#2';
+return lab.run('emb-churn-retrace/candidate/trace#2').coverage.trace;
+```
+
+=== gaps
+> Compare coverage of the two traces
+Comparing lost intervals and missing source between the original and the re-trace.
+```js
+const refs = ['emb-churn/candidate/trace#2', 'emb-churn-retrace/candidate/trace#2'];
+return refs.map(ref => {
+  const r = lab.runs.find(ref)[0];
+  if (!r) return { ref, status: 'not imported yet' };
+  return { ref, lost: r.coverage.trace.lost.length, missingSource: r.coverage.source.missing.length, complete: r.coverage.complete };
+});
+```

@@ -1,0 +1,53 @@
+.splitter {
+  position: absolute;
+  z-index: 20;
+  touch-action: none;
+}
+.splitter--vertical {
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  cursor: col-resize;
+}
+.splitter--horizontal {
+  left: 0;
+  right: 0;
+  height: 9px;
+  cursor: row-resize;
+}
+.splitter::after {
+  content: '';
+  position: absolute;
+  background: transparent;
+  transition: background 120ms;
+}
+.splitter--vertical::after {
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+}
+.splitter--horizontal::after {
+  left: 0;
+  right: 0;
+  top: 4px;
+  height: 1px;
+}
+.splitter:hover::after,
+.splitter:focus-visible::after {
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.splitter:focus-visible {
+  outline: none;
+}
+body.is-resizing-x,
+body.is-resizing-x * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+body.is-resizing-y,
+body.is-resizing-y * {
+  cursor: row-resize !important;
+  user-select: none;
+}

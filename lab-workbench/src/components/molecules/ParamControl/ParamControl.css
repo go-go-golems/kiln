@@ -1,0 +1,63 @@
+.param {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 150px;
+  max-width: 320px;
+  flex: 1 1 170px;
+}
+.param--text,
+.param--pickRun,
+.param--range {
+  flex-basis: 220px;
+}
+.param__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+}
+.param__label {
+  font: 600 9.5px/1.2 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.param__unit {
+  color: var(--muted);
+}
+.param__control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+}
+.param__readout {
+  flex: none;
+  min-width: 46px;
+  font-size: 11px;
+  text-align: right;
+}
+.param__radio,
+.param__multi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12px;
+}
+.param__radio label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.param__radio input {
+  margin: 0;
+  accent-color: var(--ink);
+}
+.param.is-pending .param__control {
+  outline: 1px dashed var(--warn);
+  outline-offset: 3px;
+}

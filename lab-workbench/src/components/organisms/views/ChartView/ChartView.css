@@ -1,0 +1,85 @@
+.chart {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+.chart svg {
+  display: block;
+  overflow: visible;
+}
+.chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 4px;
+  font: 500 10px/1.4 var(--mono);
+  color: var(--muted);
+}
+.chart__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.chart__legend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+}
+.chart__grid {
+  stroke: var(--hair-soft);
+}
+.chart__axis {
+  stroke: var(--ink);
+}
+.chart__tick {
+  font: 400 9.5px var(--mono);
+  fill: var(--muted);
+}
+.chart__axislabel {
+  font: 600 9px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--muted);
+}
+.chart__na {
+  font: 600 10px var(--mono);
+  fill: var(--faint);
+}
+.chart rect,
+.chart__pt {
+  cursor: pointer;
+}
+.chart rect.is-hover,
+.chart__pt.is-hover {
+  outline: 1px solid var(--sig);
+  filter: drop-shadow(0 0 0 var(--sig));
+}
+.chart__tip {
+  position: absolute;
+  top: 26px;
+  right: 8px;
+  max-width: 280px;
+  padding: 6px 8px;
+  border: 1px solid var(--ink);
+  background: var(--sheet);
+  box-shadow: 3px 3px 0 var(--shadow);
+  font: 400 10.5px/1.45 var(--mono);
+  pointer-events: none;
+}
+.chart__data {
+  margin-top: 6px;
+  font: 400 10.5px/1.4 var(--mono);
+}
+.chart__data summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+.chart__data table {
+  border-collapse: collapse;
+  margin-top: 4px;
+}
+.chart__data th,
+.chart__data td {
+  padding: 1px 8px 1px 0;
+  text-align: left;
+}

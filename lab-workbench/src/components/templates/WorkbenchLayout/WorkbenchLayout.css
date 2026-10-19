@@ -1,0 +1,157 @@
+.wb {
+  --rail-w: 26px;
+  /* each pane's track; collapsed panes and narrow viewports swap in the rail width */
+  --ide-col: var(--ide-w);
+  --insp-col: var(--insp-w);
+  --insp-row: var(--insp-h);
+  display: grid;
+  grid-template-columns: var(--ide-col) minmax(0, 1fr) var(--insp-col);
+  grid-template-rows: var(--top-h) minmax(0, 1fr) var(--strip-h);
+  grid-template-areas:
+    'top top top'
+    'ide center insp'
+    'ide strip insp';
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+.wb.no-ide {
+  --ide-col: var(--rail-w);
+}
+.wb.no-insp {
+  --insp-col: var(--rail-w);
+  --insp-row: var(--rail-w);
+}
+/* the inspector as a bottom bar, under the board strip and beside the editor */
+.wb.dock-bottom {
+  grid-template-columns: var(--ide-col) minmax(0, 1fr);
+  grid-template-rows: var(--top-h) minmax(0, 1fr) var(--strip-h) var(--insp-row);
+  grid-template-areas:
+    'top top'
+    'ide center'
+    'ide strip'
+    'ide insp';
+}
+.wb__top {
+  grid-area: top;
+  min-width: 0;
+}
+.wb__ide {
+  position: relative;
+  grid-area: ide;
+  min-height: 0;
+  min-width: 0;
+}
+.wb__center {
+  grid-area: center;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--gridmaj) 1px, transparent 1px), linear-gradient(90deg, var(--gridmaj) 1px, transparent 1px),
+    linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:
+    96px 96px,
+    96px 96px,
+    24px 24px,
+    24px 24px;
+}
+.wb__insp {
+  position: relative;
+  grid-area: insp;
+  min-height: 0;
+  min-width: 0;
+}
+.wb__strip {
+  grid-area: strip;
+  min-width: 0;
+}
+.wb__split--ide {
+  right: -5px;
+}
+.wb__split--insp {
+  left: -5px;
+}
+.wb__split--inspb {
+  top: -5px;
+}
+.wb__rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-height: 0;
+  padding: 10px 0;
+  border: 0;
+  background: var(--sheet);
+  color: var(--muted);
+  font: 600 9.5px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.wb__rail--left {
+  grid-area: ide;
+  border-right: 1px solid var(--ink);
+}
+.wb__rail--right {
+  grid-area: insp;
+  border-left: 1px solid var(--ink);
+}
+.wb__rail--bottom {
+  grid-area: insp;
+  flex-direction: row;
+  justify-content: center;
+  padding: 0 10px;
+  border-top: 1px solid var(--ink);
+}
+.wb__rail--bottom .wb__railLabel {
+  writing-mode: horizontal-tb;
+  transform: none;
+}
+.wb__rail:hover {
+  color: var(--accent);
+  background: var(--sig-w);
+}
+.wb__railLabel {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+.wb__rail--right .wb__railLabel {
+  transform: none;
+}
+@media (max-width: 1279px) {
+  .wb {
+    --ide-col: var(--rail-w);
+  }
+  .wb__ide {
+    position: fixed;
+    z-index: 40;
+    top: var(--top-h);
+    bottom: 0;
+    left: 0;
+    width: min(var(--ide-w), 92vw);
+    box-shadow: 6px 0 0 var(--shadow);
+  }
+}
+@media (max-width: 899px) {
+  .wb {
+    --insp-col: var(--rail-w);
+    --insp-row: var(--rail-w);
+  }
+  .wb__insp {
+    position: fixed;
+    z-index: 41;
+    top: var(--top-h);
+    bottom: 0;
+    right: 0;
+    width: min(var(--insp-w), 92vw);
+    box-shadow: -6px 0 0 var(--shadow);
+  }
+  .wb.dock-bottom .wb__insp {
+    top: auto;
+    left: 0;
+    width: auto;
+    height: min(var(--insp-h), 70vh);
+    box-shadow: 0 -6px 0 var(--shadow);
+  }
+}

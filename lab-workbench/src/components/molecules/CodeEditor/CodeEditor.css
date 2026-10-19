@@ -1,0 +1,59 @@
+.code {
+  display: flex;
+  min-height: 0;
+  height: 100%;
+  background: var(--sheet);
+  font: 400 11.5px/1.6 var(--mono);
+}
+.code__gutter {
+  flex: none;
+  width: 34px;
+  padding: 8px 6px 8px 0;
+  overflow: hidden;
+  border-right: 1px solid var(--hair-soft);
+  color: var(--faint);
+  text-align: right;
+  user-select: none;
+}
+.code__gutter .is-error {
+  color: var(--on-ink);
+  background: var(--bad);
+}
+.code__body {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.code__mirror,
+.code__body textarea {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 8px 10px;
+  border: 0;
+  font: inherit;
+  line-height: inherit;
+  white-space: pre;
+  tab-size: 2;
+  overflow: auto;
+}
+.code__mirror {
+  color: var(--ink);
+  pointer-events: none;
+}
+.code__body textarea {
+  resize: none;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--ink);
+}
+/* the textarea's text is transparent and sits above the highlighted mirror: an opaque selection colour
+   would paint over the code, so the selection is a translucent tint the mirror shows through */
+.code__body textarea::selection {
+  background: color-mix(in oklab, var(--sig) 24%, transparent);
+  color: transparent;
+}
+.code__body textarea:focus-visible {
+  outline: 2px solid var(--sig);
+  outline-offset: -2px;
+}

@@ -1,0 +1,145 @@
+.gtab {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px;
+}
+.gtab section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.gtab__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gtab__ver {
+  margin-left: auto;
+  font-size: 10px;
+}
+.gtab__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--ink);
+}
+.gtab__stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-right: 1px solid var(--hair-soft);
+  border-bottom: 1px solid var(--hair-soft);
+}
+.gtab__stats .num {
+  font: 600 17px/1 var(--mono);
+}
+.gtab__flow,
+.gtab__lint,
+.gtab__edges,
+.irtree {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gtab__flow li {
+  display: grid;
+  grid-template-columns: minmax(80px, auto) auto 1fr;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--hair-soft);
+}
+.gtab__param {
+  font-size: 11px;
+  padding: 1px 6px;
+  border: 1px solid var(--ink);
+  border-radius: 9px;
+  justify-self: start;
+}
+.gtab__readers {
+  font-size: 10px;
+  color: var(--muted);
+  word-break: break-word;
+}
+.gtab__empty {
+  margin: 0;
+  font-size: 12px;
+}
+.gtab__passes {
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.gtab__passes td,
+.gtab__passes th {
+  padding: 3px 4px;
+  border-bottom: 1px solid var(--hair-soft);
+  text-align: left;
+  vertical-align: top;
+}
+.gtab__passes th {
+  font: 600 11px/1.3 var(--mono);
+  white-space: nowrap;
+}
+.gtab__n {
+  color: var(--sig);
+}
+.gtab__lint li {
+  padding: 3px 6px;
+  border-left: 2px solid var(--hair);
+  font-size: 11px;
+}
+.gtab__lint--error {
+  border-left-color: var(--bad) !important;
+}
+.gtab__lint--warning {
+  border-left-color: var(--warn) !important;
+}
+.gtab__treehead {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 6px;
+}
+.gtab__treehead .textfield {
+  min-width: 60px;
+}
+.irtree__node {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 2px 4px;
+  border: 0;
+  border-left: 1px solid var(--hair);
+  background: none;
+  text-align: left;
+  font: 400 11px/1.4 var(--mono);
+}
+.irtree__node:hover {
+  background: var(--sig-w);
+}
+.irtree__node.is-on {
+  background: var(--sig-w);
+  border-left: 2px solid var(--sig);
+}
+.irtree__kind {
+  font: 600 8.5px/1 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.irtree__label {
+  font-weight: 600;
+}
+.irtree__detail {
+  color: var(--muted);
+  font-size: 10px;
+}
+.gtab__edges li {
+  font-size: 10.5px;
+}
+.gtab__json {
+  margin-top: 8px;
+}

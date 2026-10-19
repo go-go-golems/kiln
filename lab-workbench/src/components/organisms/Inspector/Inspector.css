@@ -1,0 +1,35 @@
+.insp-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  border-left: 1px solid var(--ink);
+  background: var(--sheet);
+}
+.insp-shell__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.insp-shell__body.is-agent {
+  overflow: hidden;
+}
+.insp-shell--bottom {
+  border-left: 0;
+  border-top: 1px solid var(--ink);
+}
+.insp-shell__bar {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  border-bottom: 1px solid var(--ink);
+}
+.insp-shell__bar > :first-child {
+  flex: 1;
+  min-width: 0;
+  border-bottom: 0;
+}
+.insp-shell__dock {
+  align-self: center;
+  margin: 0 6px;
+}

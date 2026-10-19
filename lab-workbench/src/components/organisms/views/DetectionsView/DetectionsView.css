@@ -1,0 +1,69 @@
+/* the panel, not the viewport, decides: a board column can be narrow on a wide screen */
+.detv-wrap {
+  container-type: inline-size;
+}
+.detv {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+@container (min-width: 900px) {
+  .detv {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+.detv__figure {
+  margin: 0;
+  min-width: 0;
+}
+.detv__table {
+  min-width: 0;
+  max-height: 440px;
+  overflow: auto;
+}
+.detv__table table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 11px var(--mono);
+}
+.detv__table th {
+  position: sticky;
+  top: 0;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--ink);
+  background: var(--sheet);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.detv__table td {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--hair-soft);
+  white-space: nowrap;
+}
+.detv__table .is-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.detv__table tbody tr {
+  cursor: pointer;
+}
+.detv__table tbody tr:hover,
+.detv__table tbody tr:focus {
+  background: var(--sig-w);
+}
+.detv__table tbody tr:focus-visible {
+  outline: 2px solid var(--sig);
+  outline-offset: -2px;
+}
+.detv__table tr.is-selected {
+  box-shadow: inset 2px 0 0 var(--sig);
+}
+.detv__foot a {
+  color: inherit;
+}
