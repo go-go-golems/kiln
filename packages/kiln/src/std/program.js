@@ -42,7 +42,9 @@ export function programOf(g) {
 }
 
 // seeded uniform inputs: the same numbers on every device (no transcendental functions involved)
-export function seedOf(kern, seed, j) { return (hash(kern.name).split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7) + seed * 7919 + j * 104729) >>> 0; }
+// Input data is seeded by the kernel identity (what is computed, on which shapes), not its name: two kernels of one
+// program that compute the same thing get the same inputs, so they are the same executable (records.js contentOf).
+export function seedOf(kern, seed, j) { return (hash(kern.identity || kern.name).split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7) + seed * 7919 + j * 104729) >>> 0; }
 export function kernelInputs(kern, seed = 1) {
   return kern.inShapes.map((s, j) => {
     const r = rng(seedOf(kern, seed, j));

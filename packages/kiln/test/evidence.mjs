@@ -130,5 +130,21 @@ const kernelFor = (device, knobs) => {
   check(!kp.ok && kp.requested === "MAP=row", "a kernel pin the kernel does not match fails activation");
 }
 
+// ---------------------------------------------------------------- the same computation twice in one program
+{
+  // two identical elementwise ops on the same shapes lower to two kernels with one identity and different names;
+  // the name is not part of what executed, so they share a content id, are measured once, and both find the record
+  const g2 = k.trace("twice", ({ x, y }) => ({ a: N.gelu(x), b: N.gelu(y) }), { x: k.tensor([256, 256]), y: k.tensor([256, 256]) });
+  const store = new EvidenceStore();
+  const run = pipeline({ target: sim.target, store }).run(g2, { ctx: { deviceId: sim.evidenceId, store } });
+  const prog = programOf(run.graph);
+  const [ka, kb] = prog.kernels;
+  check(prog.kernels.length === 2 && ka.identity === kb.identity && ka.name !== kb.name, `two kernels, one identity: ${ka.name}, ${kb.name}`);
+  check(contentOf(ka, sim).contentId === contentOf(kb, sim).contentId, "they share a content id");
+  store.observe(prog, sim);
+  await measureProgram(prog, sim, { store, run });
+  check(store.size === 1 && store.list().every((r) => store.isDecisive(r)) && prog.kernels.every((x) => store.statsFor(sim.evidenceId, x.identity, x.map)), "one record, decisive for both kernels");
+}
+
 console.log(fails ? `${fails} FAILED` : "all evidence checks pass");
 process.exitCode = fails ? 1 : 0;

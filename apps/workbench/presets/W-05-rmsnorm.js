@@ -14,4 +14,9 @@ project("rmsnorm")
   .params(rows, dim)
   .program(({ x }, { param }) => ({ y: N.rms_norm(x, std.weight("w", [param(dim)]), { eps: 1e-6 }) }),
            ({ param }) => ({ x: k.tensor([param(rows), param(dim)]) }))
-  .about("y = x · rsqrt(mean(x²) + ε) · w");
+  .about("y = x · rsqrt(mean(x²) + ε) · w")
+  .hypothesis("row-beats-thread", (h) => h
+    .claim("For rows of 4096, one row per block is at least twice as fast as one element per thread.")
+    .predicts((ev) => ev.ratio("k_rms_norm_reduce", { a: "MAP=thread", b: "MAP=row" }), (r) => r.hi < 0.5)
+    .alternatives("A block per row leaves SMs idle when there are fewer rows than SM slots")
+    .scope("the current device; fp32; the current sizes"));

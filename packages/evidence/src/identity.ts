@@ -18,7 +18,7 @@ export interface ContentIdInput {
   /** Bumped when code generation semantics change (CODEGEN_VERSION) */
   codegen: string;
   lang: Lang;
-  /** sha256Hex of the source text in `lang` (CUDA, WGSL, or the Kernel IR text for the simulator) */
+  /** sha256Hex of canonicalSource(source text in `lang`, entry symbol): CUDA, WGSL, or the Kernel IR text for the simulator */
   sourceSha256: string;
   launch: Launch;
   /** One entry per kernel input: its shape and the seed its data is generated from */
@@ -32,6 +32,18 @@ export interface ContentIdInput {
 const LANGS: readonly string[] = ['cuda', 'wgsl', 'sim'];
 const isCount = (x: unknown): boolean => typeof x === 'number' && Number.isInteger(x) && x >= 0;
 const isShape = (x: unknown): boolean => Array.isArray(x) && x.every(isCount);
+
+/**
+ * The source text a content id hashes: the generated source with the kernel's own entry symbol replaced by
+ * `kernel`. The symbol is a name, not behaviour: two kernels of one program that compute the same thing on the
+ * same shapes (W-19's unfused GELU has two) execute the same code and get the same content id, so measuring one
+ * measures both. Only whole-word occurrences are replaced, so `k_ew` leaves `k_ew_2` alone.
+ */
+export function canonicalSource(text: string, symbol: string): string {
+  if (typeof text !== 'string') throw new TypeError('canonicalSource: text must be a string');
+  if (typeof symbol !== 'string' || !/^\w+$/.test(symbol)) throw new TypeError(`canonicalSource: symbol must be an identifier (got ${JSON.stringify(symbol)})`);
+  return text.replace(new RegExp(`\\b${symbol}\\b`, 'g'), 'kernel');
+}
 
 /** sha256 of the canonical description of an executable kernel (guide §22). Throws TypeError on a malformed input. */
 export function contentId(k: ContentIdInput): string {

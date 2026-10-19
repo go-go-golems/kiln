@@ -35,3 +35,12 @@ Phase 2: @kiln/evidence (values, stats, sha256, canonical JSON, identity, kiln-m
 - /Volumes/SSD/code/kiln/packages/evidence/src/record.ts — kiln-measure/1 record and validation
 - /Volumes/SSD/code/kiln/packages/evidence/src/verdict.ts — the one verdict implementation
 - /Volumes/SSD/code/kiln/ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/02-phase2-evidence-diary.md — subagent diary
+
+## 2026-10-19
+
+Phase 4b: hypotheses in W-05, W-19, W-25 (headless verdicts open → supported/refuted); content ids no longer depend on kernel names (canonicalSource, seedOf by identity), fixing duplicate kernels reading stale; W-25 check moved to records, Spearman with average ranks
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/apps/workbench/presets/W-25-model-vs-measurement.js — hypotheses and fixed check
+- /Volumes/SSD/code/kiln/packages/evidence/src/identity.ts — canonicalSource

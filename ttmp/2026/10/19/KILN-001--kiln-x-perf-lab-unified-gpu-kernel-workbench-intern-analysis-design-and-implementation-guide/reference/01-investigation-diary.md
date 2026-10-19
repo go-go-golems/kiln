@@ -956,3 +956,139 @@ record of a read option exists.
 - `evaluateHypotheses` result:
   `{id, claim, alternatives, scope, verdict, reasons, checks, rows, support: [record ids], basis: simulated |
   measured | mixed | none, error}`.
+
+## Step 9: Phase 4, part 2 — preset hypotheses, and two defects they exposed
+
+With the three subagents still running (views, WebGPU protocol, server), I wrote the hypotheses for the three
+presets the guide names (W-05, W-19, W-25), using only preset files and `packages/kiln` code no subagent owns. To
+check them before any view can show them, I drove each preset headlessly: run the script, compile on
+`sim:rtx5090`, measure, evaluate. That exposed a Phase 3a regression in W-25, and a defect in content identity that
+made two of W-19's eleven unfused kernels permanently read "no measurement" after being measured.
+
+The fix for the second is a rule change: a kernel's name is no longer part of its content id. Both are fixed,
+with tests, and the guide's §22 now states the rule.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1.
+
+**Assistant interpretation:** Continue Phase 4 where it does not collide with the running subagents.
+
+**Inferred user intent:** Steady progress through the phases, with defects found and fixed as they appear.
+
+**Commit (code):** see the commit after this step ("KILN-001 Phase 4b: …").
+
+### What I did
+
+- Presets:
+  - **W-05** `row-beats-thread`: the guide's worked example, `ev.ratio("k_rms_norm_reduce", {a: "MAP=thread", b: "MAP=row"})`, `r.hi < 0.5`.
+  - **W-19** `model-tracks-elementwise`: every kernel's measured time within 25 % of the model's
+    (`Math.abs(r.time / r.model - 1) <= 0.25` over `ev.kernels()`), fused or not.
+  - **W-25** `model-ranks-schedules` (Spearman ρ ≥ 0.9) and `model-pick-near-best` (regret ≤ 1.1). Both read one row
+    computed from `ev.options("k_softmax_reduce")`. With fewer than three options measured, the row's fields are
+    missing Values with the reason `1 schedule measured on this device: sweep them all`.
+- `std.evidence` now also exports `missing`, `derived`, `heuristic`, `observed`, `combine`, `isMissing`, so a
+  script can compute its own rows with provenance and reasons.
+- W-25's check rewritten on records (`store.statsFor` per fork option), and its `spearman` replaced (see below).
+- Content identity (see What didn't work):
+  - `@kiln/evidence` `canonicalSource(text, symbol)` replaces the kernel's entry symbol, whole words only, with
+    `kernel`; `ContentIdInput.sourceSha256` is the hash of that text.
+  - `records.js`: `symbolOf(kern)` (as `emit.js`'s `cname` prints it); `contentOf` hashes the canonical source.
+  - `program.js`: `seedOf` hashes `kern.identity` instead of `kern.name`.
+  - Guide §22: pseudocode and a paragraph on the rule.
+  - Told the server subagent (it recomputes content ids from job sources) to apply `canonicalSource`.
+- Tests:
+  - `identity.test.ts`: whole-word replacement, two names hash alike, a non-identifier symbol is refused
+    (114 tests now).
+  - `packages/kiln/test/evidence.mjs`: a program with `gelu(x)` and `gelu(y)` on equal shapes gives two kernels
+    with one identity and one content id, one record, decisive for both.
+- Probe script (scratchpad `presets-probe.mjs <preset> [--params JSON] [--measure-params JSON] [--sweep]`).
+
+### Why
+
+- **Hypotheses in presets are the done-condition of Phase 4**, and the presets test only compiles them. A headless
+  evaluation is the only check of their predicates until the Hypotheses view exists.
+- **The kernel name is not behaviour.** The CUDA emitter prints the name as the `__global__` symbol, and `seedOf`
+  derived the input data from the name. So two kernels that compute the same thing on the same shapes were two
+  "different executables". The store keys its current content id by (device, identity, row), which assumes one
+  content id per key. Making the content id name-independent restores that assumption rather than complicating the
+  store with sets of current ids.
+
+### What worked
+
+- Headless verdicts on `sim:rtx5090` after the fixes:
+
+  ```text
+  W-05  before measuring            open       row 0: missing hi (no measurement of MAP=thread for k_rms_norm_reduce on sim:rtx5090)
+  W-05  MAP=thread also measured    supported  ratio 0.0075 (MAP=row,TPB=1024,STAGE=all / TPB=128), heuristic
+  W-19  fused (1 kernel)            supported  model 30.92 µs, simulated 30.92 µs
+  W-19  unfused (11 kernels)        supported
+  W-25  one option measured         open       row 0: missing rho (1 schedule measured on this device: sweep them all)
+  W-25  all 27 swept                ρ supported (0.9888), regret refuted (1.194)
+  W-25 check after the sweep        27 of 27 … ρ = 0.989 … regret 1.19×
+  ```
+
+- W-25's refuted regret is the notes' own finding: the model's favourite `MAP=row,TPB=1024` simulates at 99.5 µs,
+  the best `MAP=row,TPB=1024,STAGE=reused` at 83.3 µs. The notes argue that the model is probably closer to a real
+  GPU here, so the same hypothesis on WebGPU is the natural next test.
+- `pnpm test`: Kiln 9 passed (with the subagent's `protocol.mjs`), evidence 114, workbench `notes`, `presets`.
+
+### What didn't work
+
+- **W-25's check threw after a sweep:** `check threw Cannot read properties of undefined (reading 'MAP')`. It read
+  the old evidence rows (`r.knobs`, `r.us`, `r.ok`) from `store.list`, which returns records since Phase 3a. The
+  presets test missed it because with one option measured the check returns early. This was my regression in Step 7.
+- **W-19 unfused: two kernels "unmeasured" after measuring.** `k_gelu_3` and `k_gelu_8` have the same identity
+  (`28dyoaxxwi5`) and the same sim source hash (`ee2fb693b3fb`), but different content ids (`0b86204f9482`,
+  `09f4be5c765c`), because the input seeds came from the names. `measureProgram` measures each (identity, row) once,
+  so one record was stored, under `k_gelu_3`'s content id. Then `observe` set the current content id to
+  `k_gelu_8`'s, the last one compiled, and the record read `stale`. Both rows showed
+  `missing time (no measurement of k_gelu_3 TPB=128 on sim:rtx5090)`.
+- **W-25's ρ differed between the check and the hypothesis** (0.984 vs 0.993) on the same 27 measurements. The old
+  `rank` gave tied values consecutive ranks in input order, and the two callers list options in different orders;
+  the thread-per-element schedules tie in the model. Replaced with Pearson's correlation of average ranks, which is
+  Spearman's ρ with ties and does not depend on order: both now give 0.989.
+- My first Python edit of W-25 cut the old `spearman` at the wrong `};` and left its tail behind (`Unexpected token`
+  at line 31); an `Edit` was refused with `File has not been read yet`; removed the tail with a second exact
+  replacement.
+
+### What I learned
+
+- One "current content id per key" is only sound if the key determines the executable. Anything in the content id
+  that the key does not determine (here, the name through the symbol and the seeds) breaks staleness for programs
+  that repeat a computation.
+- Spearman's shortcut formula `1 − 6Σd²/(n(n²−1))` is exact only without ties.
+
+### What was tricky to build
+
+- Committing around the subagents: `records.js` also holds the WebGPU subagent's uncommitted edits (`repErrors`,
+  `result.seed`, `result.partial`). I staged only my four hunks: `git diff` → filter the hunks in Python →
+  `git apply --cached --recount`.
+
+### What warrants a second pair of eyes
+
+- `seedOf` changed for every kernel, so every content id changed: all records in a browser's `evidence2` store
+  become stale after this commit (shown, not used). Acceptable before any release; after one, a change like this
+  should bump `CODEGEN_VERSION` as well, so the reason is visible.
+- `canonicalSource` replaces whole-word occurrences of the symbol anywhere in the text, comments included. Emitted
+  code uses the name only as the entry symbol.
+
+### What should be done in the future
+
+- Phase 4 UI, after the views subagent: `wb.hypotheses`, the Hypotheses view, ```` ```hypothesis id ```` cards in
+  W-05/W-19/W-25 notes, `lab:hypothesis?id=`, and a "pin `MAP=thread` and measure" link in W-05's notes.
+- Exclude time-like fields (`us`) from a simulator record's `counts`, which are labelled derived; the simulator's
+  time is heuristic (guide §24). Left until the WebGPU subagent has finished with `records.js`.
+
+### Code review instructions
+
+- `packages/evidence/src/identity.ts` (`canonicalSource`), `packages/kiln/src/std/records.js` (`symbolOf`,
+  `contentOf`), `program.js` (`seedOf`), then the three presets.
+- `cd packages/kiln && node test/evidence.mjs`; the probe: `node <scratchpad>/presets-probe.mjs
+  ../../apps/workbench/presets/W-25-model-vs-measurement.js --sweep`.
+
+### Technical details
+
+- W-25's row function: `opts = ev.options(kernel)`; model favourite = lowest model time with the compile's
+  tie-break (`k.knobs.canonical`); `rho` heuristic (it involves the model); `regret` takes the class of the times
+  (`combine`), heuristic on the simulator, derived on hardware.

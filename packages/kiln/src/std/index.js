@@ -13,6 +13,7 @@ import { SPECS, target } from "./targets.js";
 import { tune, measureProgram } from "./tune.js";
 import { Store, EvidenceStore } from "./store.js";
 import { Hypothesis, evidenceContext, evaluateHypotheses } from "./evidence-context.js";
+import { combine, derived, heuristic, isMissing, missing, observed } from "@kiln/evidence";
 import { FNS, REDUCERS } from "./fns.js";
 
 export const std = {
@@ -24,7 +25,8 @@ export const std = {
   kernel: { dialect: kern, pass: kernelPass, materialize, rule: materializeRule, dropRedundantSyncs, KB, kx, print: printKernelBody },
   gpu: { dialect: gpu, pass: emitPass, rule: emitRule, programOf, simulateKernel, kernelInputs, referenceAt, toCuda, toWgsl, toSim },
   targets: SPECS, target, tune, measureProgram, Store, EvidenceStore, FNS, REDUCERS, ix: IX,
-  evidence: { evidenceContext, evaluateHypotheses },
+  // the Value constructors, for hypothesis rows a script computes itself (a missing Value keeps its row open with the reason)
+  evidence: { evidenceContext, evaluateHypotheses, missing, derived, heuristic, observed, combine, isMissing },
 };
 
 // ----------------------------------------------------------------------------- projects

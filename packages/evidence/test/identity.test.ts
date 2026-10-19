@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canonicalJSON } from '../src/canonical.ts';
-import { contentId, deviceId, slug, type ContentIdInput } from '../src/identity.ts';
+import { canonicalSource, contentId, deviceId, slug, type ContentIdInput } from '../src/identity.ts';
 import { sha256Hex } from '../src/sha256.ts';
 
 const spec = { id: 'rtx5090', sms: 170, l2: 96 << 20 };
@@ -57,6 +57,21 @@ describe('contentId', () => {
     ['cuda with target', { lang: 'cuda' as const }],
   ])('refuses %s', (_name, patch) => {
     expect(() => contentId({ ...base(), ...patch } as ContentIdInput)).toThrow(TypeError);
+  });
+});
+
+describe('canonicalSource', () => {
+  it('replaces the entry symbol, whole words only', () => {
+    const a = 'extern "C" __global__ void k_ew(const float* src0, float* dst) { /* k_ew */ k_ew_2(); }';
+    expect(canonicalSource(a, 'k_ew')).toBe('extern "C" __global__ void kernel(const float* src0, float* dst) { /* kernel */ k_ew_2(); }');
+  });
+  it('makes two kernels that differ only in name hash alike', () => {
+    const src = (name: string) => `__global__ void ${name}(float* dst) { dst[0] = 1.0f; }`;
+    expect(sha256Hex(canonicalSource(src('k_gelu_3'), 'k_gelu_3'))).toBe(sha256Hex(canonicalSource(src('k_gelu_8'), 'k_gelu_8')));
+  });
+  it('refuses a symbol that is not an identifier', () => {
+    expect(() => canonicalSource('x', 'a.b')).toThrow(TypeError);
+    expect(() => canonicalSource('x', '')).toThrow(TypeError);
   });
 });
 

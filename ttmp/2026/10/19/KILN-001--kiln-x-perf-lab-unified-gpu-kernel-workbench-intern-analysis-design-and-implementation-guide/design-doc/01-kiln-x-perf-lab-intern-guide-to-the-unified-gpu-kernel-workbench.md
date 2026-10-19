@@ -1246,7 +1246,7 @@ contentId(kernel, lang, device):
   material = canonicalJSON({
     codegen:  CODEGEN_VERSION,                    # bumped when emit.js / kernel.js semantics change
     lang:     lang,                               # 'cuda' | 'wgsl' | 'sim'
-    source:   sha256(sourceText(kernel, lang)),   # CUDA text, WGSL text, or Kernel IR text for the simulator
+    source:   sha256(canonicalSource(sourceText(kernel, lang), symbol)),   # CUDA, WGSL or Kernel IR text, entry symbol → "kernel"
     launch:   { grid, block, smem },
     inputs:   kernel.inShapes.map((shape, j) => ({ shape, seed: seedOf(kernel, INPUT_SEED, j) })),
     output:   kernel.shape,
@@ -1255,6 +1255,13 @@ contentId(kernel, lang, device):
   return sha256(material)
 ```
 
+- **The kernel's name is not part of its content.** `canonicalSource` replaces the kernel's own entry symbol (the
+  CUDA `__global__` name) with `kernel`, and input seeds are derived from the kernel identity, not the name
+  (`seedOf` in `std/program.js`). Two kernels of one program that compute the same thing on the same shapes — W-19's
+  unfused GELU has two — are then one executable with one content id: measuring one measures both. Before this rule,
+  the store kept one current content id per (device, identity, row), so the second kernel's compile made the first
+  kernel's record stale and both read "no measurement". The server applies the same `canonicalSource` when it
+  recomputes a job's content ids.
 - **canonicalJSON** sorts object keys, rejects `undefined`, functions, `NaN` and infinities, and writes numbers with
   `JSON.stringify`. It is the single serialisation used for every hash in the system.
 - **sha256** is a small synchronous pure-TypeScript implementation in `packages/evidence/src/sha256.ts`, tested

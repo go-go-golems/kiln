@@ -1,7 +1,7 @@
 // Measurement records (kiln-measure/1, guide §21): what executed (content id, §22), where (device id, §23), how
 // often (one sample per repetition, §25), and whether the record may decide anything (validity, activation, §27).
 // Every producer — measure, tune, import — builds its record here, so the rules live in one place.
-import { canonicalJSON, contentId, recordId, sha256Hex } from "@kiln/evidence";
+import { canonicalJSON, canonicalSource, contentId, recordId, sha256Hex } from "@kiln/evidence";
 import { knobs as KN } from "../core/kiln.js";
 import { printKernelBody } from "./kernel.js";
 import { seedOf } from "./program.js";
@@ -35,8 +35,9 @@ export function specHash(spec) {
 // per kernel object: lang|target → { contentId, sourceSha256 }
 const IDS = new WeakMap();
 /**
- * The content id of `kern` as it would execute on `device` (guide §22), with the sha256 of its source. Memoised per
- * kernel object; a recompile makes new kernel objects.
+ * The content id of `kern` as it would execute on `device` (guide §22), with the sha256 of its canonical source (the
+ * entry symbol replaced by `kernel`, so a kernel's name is not part of what executed). Memoised per kernel object; a
+ * recompile makes new kernel objects.
  */
 export function contentOf(kern, device) {
   const lang = langOf(device.kind);
@@ -47,7 +48,7 @@ export function contentOf(kern, device) {
   const key = `${lang}|${target ?? ""}`;
   let hit = memo.get(key);
   if (!hit) {
-    const sourceSha256 = sha256Hex(sourceOf(kern, lang));
+    const sourceSha256 = sha256Hex(canonicalSource(sourceOf(kern, lang), symbolOf(kern)));
     const id = contentId({
       codegen: CODEGEN_VERSION, lang, sourceSha256, launch: launchOf(kern),
       inputs: kern.inShapes.map((shape, j) => ({ shape: [...shape], seed: seedOf(kern, INPUT_SEED, j) })),
@@ -57,6 +58,9 @@ export function contentOf(kern, device) {
   }
   return hit;
 }
+
+/** The kernel's entry symbol as the emitters print it (emit.js `cname`); content ids hash the source without it. */
+export const symbolOf = (kern) => String(kern.K?.name || kern.name || "kernel").replace(/[^\w]/g, "_");
 
 export const launchOf = (kern) => ({ grid: kern.K.grid, block: kern.K.block, smem: kern.K.smemBytes || 0 });
 

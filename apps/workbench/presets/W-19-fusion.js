@@ -28,4 +28,9 @@ project("fusion")
   .check("kernels", ({ run }) => {
     const ks = run.graph.findAll("gpu.kernel").length;
     return { ok: run.params.get(FUSE) ? ks === 1 : ks > 1, message: `${ks} kernel${ks === 1 ? "" : "s"} with fusion ${run.params.get(FUSE) ? "on" : "off"}` };
-  });
+  })
+  .hypothesis("model-tracks-elementwise", (h) => h
+    .claim("The cost model predicts the time of every kernel in this program to within 25 %, fused or not.")
+    .predicts((ev) => ev.kernels(), (r) => Math.abs(r.time / r.model - 1) <= 0.25)
+    .alternatives("Small unfused kernels are dominated by launch overhead, which the model counts as a constant")
+    .scope("every kernel of the current program; the current device"));
