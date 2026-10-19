@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { Hono, type Context } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { streamSSE } from 'hono/streaming';
+import { agentRoutes } from './agent.ts';
 import { VERSION, type ServerConfig } from './config.ts';
 import { get, now, type Db } from './db.ts';
 import type { Devices } from './devices.ts';
@@ -115,6 +116,9 @@ export function createApp(ctx: AppContext): Hono {
       clearInterval(ping);
     }),
   );
+
+  // ── the model gateway (Phase 7): POST /agent/sample, GET /agent/usage ─────────────────────────────────────────
+  api.route('/agent', agentRoutes(config, db));
 
   api.notFound((c) => c.json(err('not_found', `no route ${c.req.method} ${c.req.path}`), 404));
   app.route('/api', api);

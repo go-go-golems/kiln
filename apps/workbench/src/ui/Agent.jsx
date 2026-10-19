@@ -73,9 +73,11 @@ function Chat({ conv }) {
         </div>
         <span className="ctl-l">Run</span>
         <Seg sm label="Run mode" items={[["auto", "Auto", "Steps run at once; you can revert any of them"], ["ask", "Ask", "Every step waits for you"], ["readonly", "Read-only", "The agent can look, compile in isolation and measure without recording, but change nothing"]]} value={s.mode} onChange={(v) => setSetting("mode", v)} />
+        <span className="ctl-l">Scripts</span>
+        <Seg sm label="Scripts the agent writes" items={[["hold", "Hold", "A script the agent writes waits in the editor until you press Run: this page runs scripts with your authority"], ["run", "Run", "Scripts the agent writes run in this page at once, with your authority: they could approve jobs or call the server"]]} value={s.scripts} onChange={(v) => setSetting("scripts", v)} />
       </div>
       {wb.platformReady && !sample ? (
-        <div className="agent-off"><b>Claude is not connected here.</b> The agent calls Claude from this page, which works when the workbench is open in Claude. The editor, compiler, simulator, devices and tuner all work without it.</div>
+        <div className="agent-off"><b>Claude is not connected here.</b> The agent calls Claude through the host when the workbench is open in Claude, or through the Kiln server when it runs with KILN_MODEL and ANTHROPIC_API_KEY set. The editor, compiler, simulator, devices and tuner all work without it.</div>
       ) : null}
       <div className="agent-log" ref={logRef} onClick={onLink}>
         {conv.messages.length ? conv.messages.map((m, i) => (m.role === "user" ? <UserMsg key={i} m={m} /> : <AssistantMsg key={i} m={m} i={i} />)) : (
@@ -232,8 +234,8 @@ function Part({ p }) {
           {p.errors?.length ? <div className="res bad">{p.errors.join("\n")}</div> : null}
           <pre className="src hl snip" dangerouslySetInnerHTML={{ __html: highlight(clip(p.code, 4000)) }} />
           <div className="row">
-            <Btn sm onClick={() => { wb.setScript(p.code); wb.showView("code"); }}>Open in editor</Btn>
-            <Btn sm primary onClick={async () => { wb.script = p.code; wb.bump("code"); if (wb.compile()) await wb.measure(); }}>Open and measure</Btn>
+            <Btn sm onClick={() => { wb.runScript(p.code); wb.showView("code"); }}>Open in editor</Btn>
+            <Btn sm primary onClick={async () => { if (wb.runScript(p.code)) await wb.measure(); }}>Open and measure</Btn>
             <Btn sm onClick={() => copyText(p.code, "the script")}>Copy</Btn>
           </div>
         </div>

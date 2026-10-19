@@ -3,7 +3,7 @@
 // inlined with the CSS.
 //   node build.mjs           → dist/index.html (the artifact page, no doctype: the host wraps it)
 //                              dist/kiln-workbench.html (standalone, for kiln_runner.py serve)
-//   node build.mjs --gen-only → only src/presets.gen.js and src/docs.gen.js (the Node tests need them)
+//   node build.mjs --gen-only → only src/presets.gen.js, src/docs.gen.js and src/frame.gen.js (the Node tests need them)
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from "node:fs";
 import * as esbuild from "esbuild";
 
@@ -28,6 +28,9 @@ const presets = files.map((f) => {
 });
 writeFileSync(here("src/presets.gen.js"), "export const PRESETS = " + JSON.stringify(presets) + ";\n");
 writeFileSync(here("src/docs.gen.js"), `export const REFERENCE = ${JSON.stringify(read("reference.txt"))};\nexport const GUIDELINES = ${JSON.stringify(read("agent-guidelines.txt"))};\nexport const RUNNER = ${JSON.stringify(read("../../runner/kiln_runner.py"))};\n`);
+// the agent's eval worker (src/agent/worker-main.js) is its own bundle, embedded as text in the page (guide §31)
+const frame = await esbuild.build({ entryPoints: [here("src/agent/worker-main.js").pathname], bundle: true, format: "iife", write: false, minify: !dev, keepNames: true, target: "es2022", legalComments: "none", logLevel: "warning" });
+writeFileSync(here("src/frame.gen.js"), `export const WORKER_JS = ${JSON.stringify(frame.outputFiles[0].text)};\n`);
 if (process.argv.includes("--gen-only")) process.exit(0);
 
 // ---------- bundle ----------

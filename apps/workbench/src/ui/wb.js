@@ -7,10 +7,10 @@ import { programOf } from "@kiln/kiln/std/program.js";
 import { makeDevices, bundle as makeBundle, ingest } from "@kiln/kiln/std/devices.js";
 import { EvidenceStore } from "@kiln/kiln/std/store.js";
 import { activationOf } from "@kiln/kiln/std/records.js";
-import { tune as runTune, measureProgram, measurePaired, kernelPinPolicy } from "@kiln/kiln/std/tune.js";
-import { schedule } from "@kiln/kiln/std/loop.js";
+import { tune as runTune, measureProgram, measurePaired } from "@kiln/kiln/std/tune.js";
 import { canonRow } from "@kiln/kiln/std/tile.js";
-import { Tensor, compare, fmtUs, clip } from "@kiln/kiln/core/util.js";
+import { Tensor, fmtUs, clip } from "@kiln/kiln/core/util.js";
+import { pipelineFor, endToEnd, hasKernels } from "../compile.js";
 import { PRESETS } from "../presets.gen.js";
 import { REFERENCE, GUIDELINES, RUNNER } from "../docs.gen.js";
 import * as Dock from "./dock.js";
@@ -28,7 +28,8 @@ class Workbench {
     this.ver = {}; this.subs = new Map();
     this.builtins = PRESETS.map((p) => ({ ...p, builtin: true }));
     this.mine = lsGet("mine", []);
-    this.preset = null; this.script = ""; this.savedScript = ""; this.diags = []; this.notes = ""; this.savedNotes = "";
+    // pending: the editor holds a script the agent wrote that the user has not run (holdScript)
+    this.preset = null; this.script = ""; this.savedScript = ""; this.pending = false; this.diags = []; this.notes = ""; this.savedNotes = "";
     this.project = null; this.graph = null; this.run = null; this.prog = null; this.compileMs = 0; this.e2e = null; this.outputs = null;
     this.params = new ParamSet([]); this.kernelPins = {};
     this.devices = makeDevices();
@@ -100,15 +101,15 @@ class Workbench {
     const last = lsGet("last", null), draft = lsGet("draft", null), dnotes = lsGet("draftNotes", null);
     const id = last && this.presets.some((p) => p.id === last) ? last : "W-18";
     this.startServer();
-    await this.load(id, { draft: draft && draft.id === id ? draft.script : null, draftNotes: dnotes && dnotes.id === id ? dnotes.notes : null });
+    await this.load(id, { draft: draft && draft.id === id ? draft.script : null, held: !!(draft && draft.id === id && draft.pending), draftNotes: dnotes && dnotes.id === id ? dnotes.notes : null });
     this.ready = true;
     this.bump("ready");
     if (this.device.kind !== "sim") this.setDevice(this.device.id, { quiet: true });
   }
-  async load(id, { draft = null, draftNotes = null } = {}) {
+  async load(id, { draft = null, held = false, draftNotes = null } = {}) {
     const p = this.presets.find((x) => x.id === id);
     if (!p) return this.toast(`No preset ${id}`, "bad");
-    this.preset = p; this.script = draft ?? p.text; this.savedScript = p.text;
+    this.preset = p; this.script = draft ?? p.text; this.savedScript = p.text; this.pending = draft != null ? held : !!p.pending;
     this.notes = draftNotes ?? p.notes ?? ""; this.savedNotes = p.notes ?? "";
     this.params = new ParamSet([]); this.kernelPins = {}; this.measures = {}; this.sel = { ...this.sel, node: null, step: null, kernel: null, decision: null, ir: null };
     lsSet("last", id);
@@ -122,34 +123,36 @@ class Workbench {
   }
   setScript(text) {
     this.script = text;
-    lsSet("draft", { id: this.preset?.id, script: text });
+    this.saveDraft();
     clearTimeout(this._ct);
     this._ct = setTimeout(() => this.compile(), 350);
     this.bump("code");
   }
+  saveDraft() { lsSet("draft", { id: this.preset?.id, script: this.script, pending: this.pending }); }
+
+  // ---------- scripts the agent wrote (guide §31) ----------
+  // A project script runs in this page with the user's authority: it could click Approve, read the session token or
+  // call the server. So a script the agent writes is held: the editor shows it, the page keeps its last compile and
+  // refuses to measure, until the user runs it (the Code view). The agent compiles it in its sandbox frame instead.
+  holdScript(text) {
+    clearTimeout(this._ct);
+    this.script = text; this.pending = true;
+    this.saveDraft();
+    this.log("agent", "the agent changed the script; it waits for Run in the Code view");
+    this.bump("code", "diags", "compile");
+  }
+  runScript(text = this.script) {
+    clearTimeout(this._ct);
+    this.script = text; this.pending = false;
+    this.saveDraft();
+    this.bump("code");
+    return this.compile();
+  }
 
   // ---------- compile ----------
-  pipelineFor(project, device = this.device) {
-    const base = project?._pipe || std.emmy.pipeline();
-    return base.with({ target: device.target, decide: k.decide.chain(kernelPinPolicy(this.kernelPins), base._decide) });
-  }
-  // compile a script without touching the editor, the run or the views (the agent's editor.check)
-  tryCompile(text = this.script, { device = this.device, pins = null } = {}) {
-    const res = runScript(text);
-    if (!res.ok) return { ok: false, diags: res.diags };
-    const project = res.project, pipe = this.pipelineFor(project, device);
-    const ps = this.params.clone();
-    for (const p of [...project._params, ...pipe.allParams()]) ps.declare(p);
-    if (pins) ps.pin(pins);
-    let g;
-    try { g = project.graph((p) => ps.get(p)); }
-    catch (e) { return { ok: false, diags: [...res.diags, { level: "error", line: lineOf(e), message: "tracing the program: " + e.message }] }; }
-    const run = pipe.run(g, { params: ps, target: device.target, ctx: { deviceId: device.evidenceId ?? device.id, store: this.store } });
-    const prog = run.ok && [...run.graph.nodes.values()].some((n) => n.name === "gpu.kernel") ? programOf(run.graph) : null;
-    const diags = [...res.diags, ...(run.ok ? [] : [{ level: "error", line: lineOf(run.error.cause || run.error), message: `${run.error.kind}: ${run.error.message}` }]), ...run.warnings.map((w) => ({ level: "warn", message: w }))];
-    return { ok: run.ok, diags, project, graph: g, run, prog, pipe };
-  }
+  pipelineFor(project, device = this.device) { return pipelineFor(project, device.target, this.kernelPins); }
   compile({ fresh = false } = {}) {
+    if (this.pending) return false;
     const t0 = performance.now();
     const res = runScript(this.script);
     this.diags = res.diags;
@@ -169,7 +172,7 @@ class Workbench {
     const run = pipe.run(g, { params: this.params, target: this.device.target, ctx: { deviceId: this.device.evidenceId ?? this.device.id, store: this.store } });
     this.run = run; this.pipe = pipe;
     this.compileMs = performance.now() - t0;
-    this.prog = run.ok && run.graph.nodes.size && [...run.graph.nodes.values()].some((n) => n.name === "gpu.kernel") ? programOf(run.graph) : null;
+    this.prog = hasKernels(run) ? programOf(run.graph) : null;
     // this program's content ids are now the current ones: records of other code for the same rows are stale
     if (this.prog) this.store.observe(this.prog, this.device);
     if (!run.ok) this.diags = [...this.diags, { level: "error", line: lineOf(run.error.cause || run.error), message: `${run.error.kind}: ${run.error.message}` }];
@@ -192,26 +195,8 @@ class Workbench {
     this._e2eKey = key; this._e2eProject = project;
     try { this.checkEndToEndNow(); } finally { this._e2eVal = { e2e: this.e2e, outputs: this.outputs }; }
   }
-  checkEndToEndNow() {
-    const run = this.run, g = this.graph, project = this.project;
-    try {
-      const est = estimateWork(run);
-      if (est > 6e7) {
-        // too big to evaluate here; structural checks still run (a check that needs outputs is skipped)
-        const custom = project._checks.map((c) => { try { return checkResult(c, c.fn({ outputs: null, reference: null, inputs: null, run, graph: g, compare })); } catch (e) { return { name: c.name, ok: true, skipped: true, message: "needs the outputs; skipped at this size" }; } });
-        this.e2e = { skipped: `the reference would take ~${(est / 1e6).toFixed(0)}M operations; per-kernel checks still run on every measurement`, custom, ok: custom.every((c) => c.ok) };
-        return;
-      }
-      const inputs = project.inputsFor(g);
-      const want = g.eval(inputs);
-      const level = ["loop", "gpu", ...[...run.irOrder].reverse()].find((n) => run.at(n) && canEval(run.at(n)));
-      const got = level ? run.at(level).eval(inputs) : run.graph.eval(inputs);
-      const checks = Object.keys(want).map((name) => ({ name, ...compare(got[name], want[name], { rtol: 1e-3, atol: 1e-4 }) }));
-      this.outputs = { inputs, got, want, level };
-      const custom = project._checks.map((c) => { try { return checkResult(c, c.fn({ outputs: got, reference: want, inputs, run, graph: g, compare })); } catch (e) { return { name: c.name, ok: false, message: e.message }; } });
-      this.e2e = { level, checks, custom, ok: checks.every((c) => c.ok) && custom.every((c) => c.ok) };
-    } catch (e) { this.e2e = { error: e.message }; }
-  }
+  checkEndToEndNow() { Object.assign(this, endToEnd(this.run, this.graph, this.project)); }
+
 
   // ---------- params, pins ----------
   pin(obj) { this.params.pin(obj); this.log("pin", Object.entries(obj).map(([a, b]) => `${a}=${b}`).join(", ")); this.compile(); }
@@ -247,6 +232,7 @@ class Workbench {
 
   // ---------- measure ----------
   async measure({ device = this.device, quiet = false } = {}) {
+    if (this.pending) { if (!quiet) this.toast("Run or revert the agent's script first: the page has not compiled it", "bad"); return null; }
     if (!this.prog) { if (!quiet) this.toast(this.run?.ok ? "This pipeline does not end in GPU kernels; use Run in the Code view" : "Fix the compile errors first", "bad"); return null; }
     // a server executor measures as a job: its records arrive when it is done (the server section)
     if (device.server) { await this.proposeJob(device, { quiet }); return null; }
@@ -303,6 +289,7 @@ class Workbench {
 
   // ---------- tune ----------
   async tune({ strategy = "spmcts", budget = 24 } = {}) {
+    if (this.pending) return this.toast("Run or revert the agent's script first: the page has not compiled it", "bad");
     if (!this.prog) return this.toast("Nothing to tune: the program has no GPU kernels", "bad");
     if (this.tuning?.running) return;
     const device = this.device;
@@ -479,7 +466,7 @@ class Workbench {
     let text = this.script;
     if (!/^\s*\/\*\*/.test(text)) text = `/** ${id} ${meta.title === "Untitled" ? "My project" : meta.title}\n *  group  Mine\n *  about  \n */\n` + text;
     else text = text.replace(/\/\*\*\s*([A-Z]-\d+)?/, `/** ${id}`);
-    const entry = { id, ...headerOf(text), group: "Mine", text, notes: this.notes };
+    const entry = { id, ...headerOf(text), group: "Mine", text, notes: this.notes, ...(this.pending ? { pending: true } : {}) };
     this.mine = this.mine.filter((p) => p.id !== id).concat(entry);
     lsSet("mine", this.mine);
     this.preset = { ...entry, mine: true }; this.script = text; this.savedScript = text; this.savedNotes = this.notes;
@@ -508,22 +495,5 @@ class Workbench {
   }
 }
 // a check returns true (pass), a string (why it fails), or { ok, message } (a result with something to say)
-function checkResult(c, r) {
-  if (r === true || r == null) return { name: c.name, ok: true, message: "ok" };
-  if (typeof r === "object" && "ok" in r) return { name: c.name, ok: !!r.ok, message: String(r.message ?? (r.ok ? "ok" : "failed")), info: !!r.ok && r.message != null };
-  return { name: c.name, ok: false, message: String(r) };
-}
-function canEval(g) { return [...g.nodes.values()].every((n) => n.def.spec.eval || n.def.name === "kiln.input"); }
-// how many scalar operations evaluating the program takes (loop statements × trip counts), to keep the
-// end-to-end check interactive
-function estimateWork(run) {
-  const g = run.at("loop");
-  if (!g) return run.graph.size * 1000;
-  let w = 0;
-  const walk = (ss, trips) => { for (const s of ss) { if (s.s === "for") walk(s.body, trips * s.n); else w += trips; } };
-  for (const n of g.nodes.values()) if (n.name === "loop.kernel") walk(schedule(n.attrs.expr, n.attrs.shape).stmts, 1);
-  return w;
-}
-
 export const wb = new Workbench();
 export { REFERENCE, GUIDELINES, RUNNER };

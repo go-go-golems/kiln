@@ -15,6 +15,13 @@ export function CodePane() {
   const params = [...G.program, ...G.pipeline];
   return (
     <div className="srcpane">
+      {wb.pending ? (
+        <div className="held" role="status">
+          <span className="stamp">not run</span>
+          <span>The agent wrote this script. This page runs scripts with your authority, so it waits for you; the other views show the previous compile.</span>
+          <Btn sm primary onClick={() => wb.runScript()}>Run it</Btn>
+        </div>
+      ) : null}
       <Editor />
       {wb.diags.length ? (
         <div className="diags">

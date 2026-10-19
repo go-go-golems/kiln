@@ -138,6 +138,17 @@ export class EvidenceStore {
   toJSON() { return { format: EVIDENCE_FORMAT, records: [...this.records.values()] }; }
 
   /**
+   * One device's records and current content ids as plain data, and back: a store rebuilt from the slice decides
+   * that device's forks as this one does (the agent's sandbox frame compiles with it).
+   */
+  slice(device) { return { records: this.list({ device }), current: [...this.current].filter(([key]) => key.startsWith(device + "|")) }; }
+  static fromSlice({ records = [], current = [] }) {
+    const s = new EvidenceStore(records);
+    for (const [key, v] of current) s.current.set(key, v);
+    return s;
+  }
+
+  /**
    * Import a kiln-evidence/2 export (each record validated, its id recomputed rather than trusted) or a
    * kiln-evidence/1 export (rows become legacy records). Returns `{ added, skipped, errors }`.
    */

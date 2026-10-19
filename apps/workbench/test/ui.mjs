@@ -129,12 +129,12 @@ if (mode === "all" || mode === "agent") {
     window.__fakeScript.push({
       evals: [
         "return wb.context()",
-        "return { levels: ir.levels(), passes: trace.passes(), forks: forks.list() }",
-        "const f = forks.get(0); return f.options.slice(0, 3)",
+        "return { levels: ir.levels(), passes: trace.passes(), forks: await forks.list() }",
+        "const f = await forks.get(0); return f.options.slice(0, 3)",
+        "const m = await measure(); await chat.table(m.kernels, 'Kernels on the simulated GPU'); return m.total",
+        "await chat.code(await kernels.source(null, 'cuda'), 'The CUDA'); return 'ok'",
         "return editor.edit('default: 1024', 'default: 512')",
-        "const m = await measure(); chat.table(m.kernels, 'Kernels on the simulated GPU'); return m.total",
-        "chat.code(kernels.source(null, 'cuda'), 'The CUDA'); return 'ok'",
-        "return editor.check(editor.get().replace('rms_norm', 'nope')).errors",
+        "return (await editor.check((await editor.get()).replace('rms_norm', 'nope'))).errors",
       ],
       text: "Done. See [the kernel](lab:kernel?name=k_rms_norm_reduce) and [the loop IR](lab:ir?name=loop).",
     });

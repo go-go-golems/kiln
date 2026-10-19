@@ -115,3 +115,16 @@ Phase 5b: page–server integration (records sync, server CUDA devices, Measure 
 
 - /Volumes/SSD/code/kiln/apps/workbench/src/server-sync.js — records sync and server devices
 - /Volumes/SSD/code/kiln/apps/workbench/src/ui/Jobs.jsx — Jobs view
+
+## 2026-10-19
+
+Phase 7: agent eval code runs in a worker inside a sandboxed opaque-origin frame (CSP refuses every connection; no document to navigate) and reaches the page through one MessagePort; agent-written scripts are held until the user runs them; the server model gateway writes one llm_calls row per call. agent-e2e.mjs proves the done-condition in Chrome. Gateway worker diary 08; main diary Step 18.
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/apps/server/src/agent.ts — model gateway and llm_calls
+- /Volumes/SSD/code/kiln/apps/workbench/src/agent/agent.js — answer loop, pageCall, held scripts
+- /Volumes/SSD/code/kiln/apps/workbench/src/agent/frame.js — the eval's runtime in the worker
+- /Volumes/SSD/code/kiln/apps/workbench/src/agent/sandbox.js — frame document, CSP, port server
+- /Volumes/SSD/code/kiln/apps/workbench/src/compile.js — the compile path shared by page and worker
+- /Volumes/SSD/code/kiln/apps/workbench/test/agent-e2e.mjs — browser done-condition test

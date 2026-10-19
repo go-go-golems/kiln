@@ -20,8 +20,12 @@ export interface ServerConfig {
   executorsFile: string;
   /** The runner the local executor runs and the SSH executor copies */
   runner: string;
-  /** Model for the agent gateway (Phase 7) */
+  /** Model for the agent gateway (Phase 7); null turns the gateway off (503 no_model) */
   model: string | null;
+  /** The Anthropic Messages endpoint the gateway streams from (tests point it at a fake) */
+  modelUrl: string;
+  /** ANTHROPIC_API_KEY. Sent upstream only: never logged, returned in a response, or written to the database */
+  apiKey: string | null;
   /** Per-repetition timeout of a job (§30.4) */
   repTimeoutMs: number;
   /** Executor seconds agent-proposed jobs may spend per rolling 24 hours (§30.4) */
@@ -43,6 +47,8 @@ export function loadConfig(overrides: Partial<ServerConfig> = {}, env: NodeJS.Pr
     executorsFile: resolve(env.KILN_EXECUTORS ?? resolve(dataDir, 'executors.json')),
     runner: resolve(REPO, 'runner/kiln_runner.py'),
     model: env.KILN_MODEL || null,
+    modelUrl: env.KILN_MODEL_URL || 'https://api.anthropic.com/v1/messages',
+    apiKey: env.ANTHROPIC_API_KEY || null,
     repTimeoutMs: 120_000,
     agentBudgetSec: 600,
     pingMs: 15_000,
