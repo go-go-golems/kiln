@@ -1929,3 +1929,241 @@ The second project report, covering Phases 4c, 5b, 6 and 7, is
 with seven screenshots added to `_assets/kiln-unified-workbench/`; vault commit `43572ed`, pushed to `origin/main`.
 Writing it corrected two numbers here: the worker bundle is 310 KB (the 1.5 MB figure is the whole page), and the page
 answers 44 API paths.
+
+## Step 19: Phase 8 — the plan, and two workers on the language and the server
+
+Phase 8 brings Perf Lab's lab programs into the workbench (guide §33). Its done-condition is that
+`local-sampler.lab.js` and `dino-pr1005.lab.js` open as boards in the dock, with verdicts computed by
+`@kiln/evidence`, against data imported from `PL/.data`. The guide lists four sub-phases: headless language, board
+views, server routes and the entity graph. The first three are needed for the done-condition, and the entity graph
+is not. I split the work so that two workers can run in parallel on disjoint files, and kept the board views for
+myself, because they depend on both.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (the "Once upload, then implement it…" request).
+
+**Assistant interpretation:** Start the last phase of the guide's plan; delegate the parts that do not share files.
+
+**Inferred user intent:** The two workbenches become one: Perf Lab's experiments open next to Kiln's compiler, judged by
+the same evidence code.
+
+**Commit (code):** none yet.
+
+### What I did
+
+- Surveyed Perf Lab as received (`lab-workbench/`):
+  - the language `src/lang/` is 4.3k lines; its data layer is `src/data/` (`createSource`, the synthetic generator,
+    `appEnv`, which fills a catalog and bundle cache from the server);
+  - the server `server/` is 3.4k lines in 20 routes;
+  - the views are 22 kinds in `components/organisms/views/` (2.1k lines).
+- Inspected `PL/.data/perf-lab.sqlite`, read-only: 70 artifacts, 80 runs with 80 bundles (about 300 KB of entity
+  data), 1 evidence archive (the DGX run of PR 1005), 1 dataset of 128 images with 799 annotations, 128 media
+  files, 12 jobs, and 30 `llm_calls` from Perf Lab's own assistant.
+- Found two things the port must move:
+  - Perf Lab computes hypothesis verdicts inside a React view (`HypothesisView.tsx`), so they move into the headless
+    package, onto `@kiln/evidence`'s `verdict`.
+  - `ViewB`'s constructor uses TypeScript parameter properties, which Node's type stripping refuses, so the language
+    needs small rewrites to run as erasable TypeScript.
+- Dispatched two workers, each with its own diary:
+  - **8a** builds `packages/lab` (`@kiln/lab`): the language headless; values and statistics from `@kiln/evidence`;
+    verdicts as a pure function; the data layer with injected access; a `check:pl` script over the real data.
+    Diary `reference/09-phase8a-lab-language-diary.md`.
+  - **8c** adds `/api/lab/...` routes to `apps/server` with Perf Lab's response shapes, plus an idempotent importer
+    from `PL/.data`, without lab job execution. Diary `reference/10-phase8c-lab-server-diary.md`.
+- Read what 8b (mine) needs:
+  - The board context (`app/board-context.tsx`) gives each view `resolve`, which is `materialize(reg, x, state)`,
+    plus `resolveLazy`, `setRef` and `fire`.
+  - `ViewRenderer.tsx` maps kind to component.
+  - The two programs use `manifestDiff`, `row`, `stat`, `runList`, `chart` (bar and point), `table`, `math`,
+    `hypothesisCard`, `timeline` and `source`.
+  - The dock accepts only ids in `ALL_VIEWS` (`dock.js` `normalize`), so boards need a dynamic id (`board:<id>`)
+    that the dock and `views.jsx` both accept.
+
+### Why
+
+- Guide §36 forbids tests that read `PL/.data`, so both workers test on fixtures they build. The real data is checked
+  by a script (8a) and by an import into a temporary data directory (8c).
+- Lab job execution runs Python workloads on hosts, and the done-condition needs only imported data, so it is left
+  out of 8c and recorded as a later phase.
+
+### What worked
+
+- **8c** returned first. I reviewed it, fixed one defect (below), and committed it as `aa2dcc2` ("Phase 8c: Perf
+  Lab's data routes at /api/lab and the Perf Lab importer"): 88 server tests, typecheck clean. A real import of
+  `PL/.data` into a scratch `KILN_DATA_DIR` added 1 dataset, 1 archive, 128 media, 70 artifacts, 80 runs and
+  12 jobs, and refused nothing.
+- **8a** returned with `@kiln/lab`: 98 tests in 8 files, typecheck clean, and a `check:pl` script that rebuilds the
+  11 presets and both measured programs with Perf Lab's own code and with the port. Every capture hash, lint
+  finding, derive number (bootstrap intervals included) and verdict is identical. The 37 differences are added
+  fields (`caveat`, `n`, `seed`, `reasons`), six per-row checks that unqualified hypotheses no longer report, and
+  one provenance relabel (`derived` → `illustrative` for an aggregate of generated counters). I reran the tests,
+  the typecheck and `check:pl` myself, with SHA-256 and mtime snapshots of Perf Lab's three store files before and
+  after (unchanged, no temporary directory left behind), and committed it as `b020aa6`.
+- 8a's three open decisions:
+  - `below`/`above` exposed to lab programs: kept. Guide §29.1 already defines them as the evidence helpers for
+    Kiln's hypotheses, so the two languages now judge rows with the same three-valued functions.
+  - Media URL `/api/lab/media/<sha>`: matches 8c's route.
+  - The fixture's `localReport` holds this machine's CPU name: harmless, regenerated by `extract-fixtures`.
+
+### What didn't work
+
+- **A read-only SQLite open is not a read-only file operation.** 8c's importer opened `PL/.data/perf-lab.sqlite`
+  with `{ readOnly: true }`. Perf Lab keeps the store in WAL mode, and with no writer attached SQLite rebuilds the
+  `-shm` index next to the database, which changes that file's bytes and mtime. I reproduced it on a scratch copy:
+  with a writer open, nothing changes; with none, `-shm` is rewritten. The fix opens a temporary copy of the
+  database and its `-wal` (never the `-shm`) and removes the copy in `finally`. A new test switches a fixture to WAL,
+  leaves `-wal` and `-shm` as Perf Lab does, and compares SHA-256 and mtime of all three files across an import; it
+  fails with the in-place open and passes with the copy.
+- The same open had already happened before the fix: 8c's earlier runs, and 8a's scratch scripts (store inspection,
+  `baseline.mts`, `port.mts`, `extract-fixtures`, the last at 17:11). `perf-lab.sqlite-shm`'s mtime is now
+  Oct 19 17:11:34 and its earlier hash was never recorded. `perf-lab.sqlite` and `-wal` have the SHA-256 they had
+  at 8a's Step 1. The `-shm` is SQLite's derived index, rebuilt from the WAL on every open, so no data was changed;
+  I messaged 8a, which moved `readPerfLabStore` onto the same copy-then-open shape.
+
+### What I learned
+
+- `readOnly` describes what SQL may do, not what happens to the files. Any tool that must leave a WAL database
+  byte-identical has to read a copy.
+
+## Step 20: Phase 8b — boards in the dock, and the done-condition in a browser
+
+The board views were written while the two workers ran; they could not run until `@kiln/lab` existed. This step
+connected them to it (`ui/lab/api.js`), built the page, and checked Phase 8's done-condition the only way it can be
+checked: Perf Lab's real data imported into a fresh server, and a real browser on the page it serves. The check
+passes. `local-sampler` and `dino-pr1005` open as dock boards with their measured runs, all seven verdicts match
+`check:pl`, all 27 boards of the 11 programs render without a panel error, and Perf Lab's store is unchanged.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1. Two questions came in while this step ran: "I really like these detailed
+breakdowns from the perf lab [Image #1], are those in the new version too?" (Image #1 is Perf Lab's Compare runs
+board: paired-ratio stat, formula, mirror, per-operation chart, kernels table, title block), and "so this is really
+some of the final steps? how many phases are there after 8?"
+
+**Assistant interpretation:** Port every panel kind the presets use, not only the ones the done-condition's two
+programs use, and show the Compare runs board rendered next to Perf Lab's.
+
+**Inferred user intent:** The new workbench must not lose any of Perf Lab's analysis views.
+
+**Commit (code):** `1d31e9d` — "Phase 8b: lab programs as dock views, on data from the Kiln server".
+
+### What I did
+
+- `apps/workbench/src/ui/lab/`:
+  - `state.js` — `labs`: the open program, its build, parameter values (applied and pending), board signals,
+    selection, and the server data. A program opens by loading the server's catalog, archives and datasets, building,
+    then fetching the bundles of the measured captures that build needs and building again.
+  - `api.js` — the one module that imports `@kiln/lab`: the runtime re-exported, `labClient(server)` filling
+    `createMemoryLabData` from `/api/lab/*` (bundles in batches of 64), and `serverEnv`, a `labEnv` whose catalog
+    also lists the synthetic seeds.
+  - `board.jsx` — the board context, `Panel`, the renderer (21 panel kinds; row, stack, grid, split and component
+    layouts; an error boundary per panel) and `BoardView` with its title block.
+  - `panels.jsx`, `charts.jsx`, `media.jsx`, `inspect.jsx` — the panels, in Kiln's vocabulary: `.rt` tables, `.val`
+    cells with provenance marks, stamps instead of coloured chips, series told apart by fill, shape and dash (D13).
+  - `params.jsx` — the parameter bar: PLAN/DATA/VIEW stamps, a pending-plan banner with Revert.
+  - `LabView.jsx` — program picker, boards table, hypotheses with verdicts.
+- Dock: `board:<id>` view ids (`dock.js` `isBoardView`), titles from the open program (`views.jsx` `viewDef`).
+  Opening another program closes the previous one's board views, because a board belongs to its program.
+- Server: `apps/server/src/lab/probe.ts` (below), `KILN_LAB_WORKLOADS` in `config.ts`, one new test.
+- `apps/workbench/test/lab-e2e.mjs`: the done-condition check (below). It is not part of `pnpm test`, since it needs
+  Chrome, a built page and Perf Lab's data (§36); it imports into a temporary directory and snapshots Perf Lab's
+  store before and after.
+
+### Why
+
+- Every Perf Lab preset should open, not only the two in the done-condition. The Compare runs board alone uses the
+  mirror, and PR 1005's image boards use the gallery and detections views.
+- `@kiln/lab`'s data interface is synchronous, so the client must load data before a build reads it. That is why
+  `open` builds twice: the first build says which measured captures it needs, and the second reads their runs.
+
+### What worked
+
+```text
+$ node test/lab-e2e.mjs --shots …/various/screens
+ok   lab:import exit 0
+ok   local-sampler: 8 of 8 captures measured on the server, 8 loaded (server online)
+ok   local-sampler: compile-removes-intermediate refuted (check:pl: refuted)
+ok   Local · Is this a valid comparison?: 4 panels, data "measured on local"
+     … 3 more local-sampler boards, each "measured on local"
+ok   local-sampler: speedup stat "2.5 ×…" (check:pl: 2.4964 ×)
+ok   dino-pr1005: 18 of 18 captures measured on the server, 18 loaded (server online)
+ok   dino-pr1005: outputs-exact supported · latency-halved refuted · memory-within-20 refuted ·
+     prompt-reuse supported · cpu-parts-preserve supported · fusion-active supported (each = check:pl)
+     … 7 dino-pr1005 boards, each "measured on playback@dgx" (the local board: "playback@dgx, local")
+ok   dino-pr1005: 18 of 18 dataset images loaded from /api/lab/media/<sha>
+ok   11 programs, 27 boards shown, no panel errors
+ok   Perf Lab's store unchanged (…/lab-workbench/.data)
+all passed
+```
+
+- The speedup stat shows `2.5 ×` with `95 % CI 2.37 × – 2.72 ×` over 4 paired processes; `check:pl` gives 2.4964
+  [2.3744, 2.7211], n = 4.
+- Root `pnpm test`: evidence 125, lab 98, server 89, workbench 6 scripts, Kiln 10 scripts; exit 0.
+
+### What didn't work
+
+- `pnpm --filter @kiln/workbench build`: `src/ui/lab/state.js:7:29: ERROR: Could not resolve "../labs.gen.js"`.
+  The generated file is `src/labs.gen.js`, two levels up from `ui/lab/`. Fixed the path.
+- First run of the check: `FAIL local-sampler: 0 of 8 captures measured on the server, 0 loaded`. A local capture's
+  identity includes `ctx.capabilities.tools.workloads` (local-sampler names each arm `rev(...workloads)`), and the
+  Kiln server answered `/hosts/local/capabilities` with `503 no_probe`, so the browser computed different hashes.
+  Perf Lab's server got the value from a Python probe (`workloads/perf_lab_local/probe.py` `workloads_revision`):
+  SHA-256 over each `*.py` file's name and bytes in name order, first 12 hex digits. That needs no Python, so
+  `probe.ts` computes it the same way (on this tree: `1fc6b670a8a6`, the revision the measured artifacts record) and
+  serves a report with this machine's CPU and memory, `devices: ['cpu']`, no counters. The new test's expected hash
+  (`ddf321d31bc9`) was computed with Python's `hashlib` over the same two files, not with the code under test.
+- Same run: `scenario-a: This workbench has no panel for "component" yet` and `scenario-b: … "batchView"`. Perf Lab
+  treats `component` and `kind:*` as layouts (children under a line naming the component); `batchView` draws a
+  batch's logical order against its physical positions. Both ported.
+- Two bugs in my own check. It read the boards once, after the last one, but a tile renders only its active view, so
+  only the last board was asserted; it now reads each board while it is on screen (the per-board lines went from 1
+  to 11). And its speedup regex expected `2.49`/`2.50` where the stat prints two significant figures (`2.5`); it now
+  compares the number within 0.05.
+
+### What I learned
+
+- Of Perf Lab's local probe report, only `tools.workloads` reaches capture identity. Reading it from the sources
+  makes the imported measurements' validity checkable: if the workload sources change, the local captures stop
+  matching and the board says "no runs imported" instead of showing runs of other code.
+
+### What was tricky to build
+
+- The timing of data and builds. `labs.open` awaits the catalog and evidence, builds, then fetches only the bundles
+  that build references (`origin === 'measured'` and not loaded) and rebuilds. A plan-bound parameter change builds
+  without applying, and applies only if every capture of the new plan is cached; otherwise it becomes a pending plan,
+  because this workbench executes no lab captures.
+
+### What warrants a second pair of eyes
+
+- `probe.ts` reports host `local` as the server's machine while the imported local measurements came from whichever
+  machine ran Perf Lab. Identity depends only on the workload hash, exactly as in Perf Lab, so local runs measured
+  elsewhere with the same sources would match as `local`. The title block names the host but not the machine.
+- `labs` does not subscribe to `catalog.changed`: a `lab:import` while the page is open shows up only after the
+  program is reopened.
+
+### What should be done in the future
+
+- At 390 px the mirror's one-line run caption ("… 134.9 ms on its own clock") is clipped at the panel edge; the lanes
+  fit.
+- Phase 8d, the entity graph (`corresponds_to` edges between Perf Lab and Kiln entities), is not needed for the
+  done-condition and has not been started.
+- Fold the 8a and 8c "As built" notes into guide §33.
+
+### Code review instructions
+
+- Start at `apps/workbench/src/ui/lab/api.js` and `state.js`, then `board.jsx`. `apps/server/src/lab/probe.ts` is the
+  only server change.
+- Run: `pnpm test`; then `pnpm --filter @kiln/workbench build && node apps/workbench/test/lab-e2e.mjs` (Chrome and
+  `lab-workbench/.data` required).
+
+### Technical details
+
+- Screenshots, all produced by `lab-e2e.mjs --shots` in `various/screens/`:
+  - `p8-lab-{local-sampler,dino-pr1005}-light-1600.png` — the Lab view with verdicts.
+  - `p8-board-local-sampler-*-light-1600.png` (4 boards), `p8-board-dino-pr1005-*-light-1600.png` (7).
+  - `p8-board-compare-diff-{light,dark}-{1600,390}.png`, plus `-mirror-*`, `-chart-light-1600`, `-table-light-1600`:
+    the Compare runs board the user compared with Perf Lab's.
+  - `p8-board-dino-pr1005-detections-{light,dark}-{1600,390}.png` — the image gallery with boxes.
+  - `p8-board-{request-to-kernel,learn,scenario-a,scenario-b}-*-light-1600.png` — route, timeline, stepper,
+    ledger, batch.
