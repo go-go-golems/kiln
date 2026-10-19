@@ -1,5 +1,5 @@
 // Every preset's notes: they render, and every lab: link names a real parameter (with a legal value), knob,
-// IR level, kernel, view, device or preset of that project.   node build.mjs --gen-only && node test/notes.mjs
+// IR level, kernel, view, device, preset or hypothesis of that project, as does every ```hypothesis card.   node build.mjs --gen-only && node test/notes.mjs
 import { wb } from "../src/ui/wb.js";
 import { renderDoc } from "../src/ui/doc.js";
 import { ALL_VIEWS as VIEWS } from "../src/ui/dock.js";
@@ -27,11 +27,13 @@ for (const p of wb.presets) {
       case "view": case "tab": if (!VIEWS.includes(q.name)) e("no such view"); break;
       case "device": if (!wb.devices.some((d) => d.id === q.id)) e("no such device"); break;
       case "preset": if (!wb.presets.some((x) => x.id === q.id)) e("no such preset"); break;
+      case "hypothesis": if (!wb.project?._hypotheses.some((h) => h.id === q.id)) e("no such hypothesis"); break;
       case "tune": if (q.strategy && !["spmcts", "sweep", "sweep-all"].includes(q.strategy)) e("no such strategy"); break;
       case "measure": case "compile": case "step": case "fork": case "node": case "line": break;
       default: e("unknown action");
     }
   }
+  for (const [, id] of html.matchAll(/class="hyp-slot" data-hyp="([^"]*)"/g)) { total++; if (!wb.project?._hypotheses.some((h) => h.id === id)) errs.push(`\`\`\`hypothesis ${id}: no such hypothesis`); }
   if (errs.length) { bad++; console.log(`FAIL ${p.id}: ${errs.join("; ")}`); }
   else console.log(`ok   ${p.id}: ${toc.length} sections, ${links.length} lab links`);
 }

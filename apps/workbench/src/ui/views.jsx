@@ -8,6 +8,7 @@ import { KernelsView } from "./Kernels.jsx";
 import { PerfView, TuneView, DevicesView } from "./Perf.jsx";
 import { EventsView } from "./Events.jsx";
 import { EvidenceView } from "./Evidence.jsx";
+import { HypothesesView } from "./Hypotheses.jsx";
 import { NotesView } from "./Notes.jsx";
 import { agent } from "../agent/agent.js";
 
@@ -26,6 +27,7 @@ export const VIEWS = {
   knobs: { title: "Knobs", about: "forks, options with model and measured times, pins, sliders", el: () => <KnobsView />, badge: () => (wb.run?.decisions.length ? [wb.run.decisions.length, false] : null) },
   tune: { title: "Tune", about: "autotuning: SP-MCTS or sweep over the program's forks", el: () => <TuneView />, badge: () => (wb.tuning?.running ? [wb.tuning.history.length, false] : null) },
   evidence: { title: "Evidence", about: "measurement records: status, samples, validity; import, export, forget", el: () => <EvidenceView />, badge: () => { const n = wb.store.list({ device: wb.evidenceId, status: "invalid" }).length; return n ? [n, true] : null; } },
+  hypotheses: { title: "Hypotheses", about: "the project's claims, judged against the evidence: supported, refuted or open", col: true, el: () => <HypothesesView />, badge: () => { const hs = wb.hypotheses, bad = hs.filter((h) => h.verdict === "refuted" || h.verdict === "unqualified").length; return bad ? [bad, true] : hs.length ? [hs.length, false] : null; } },
   devices: { title: "Devices", about: "simulated GPUs, WebGPU, and a CUDA runner", el: () => <DevicesView /> },
   events: { title: "Events", about: "the workbench log and the last compile's events", el: () => <EventsView /> },
 };

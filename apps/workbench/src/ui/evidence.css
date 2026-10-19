@@ -73,3 +73,29 @@
 .strip .medl { stroke: var(--ink); stroke-width: 1.5; }
 .strip .ax { fill: var(--ink-2); font-size: var(--fs-2xs); }
 .strip .out path { fill: var(--ink); }
+
+/* hypotheses (guide §29, §32.6): a card per claim with its verdict stamp, the rows the predicate judged and the
+   reasons; the Hypotheses view rules the cards apart, the notes frame each one */
+.hyp { padding: 12px 16px 14px; border-bottom: 1px solid var(--hair); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.hyp.sel { box-shadow: inset 2px 0 0 var(--accent); }
+.hyp p, .hyp ul, .hyp dl { margin: 0; }
+.hyp-h { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.hyp-h .mono { overflow-wrap: anywhere; }
+.hyp .hyp-claim { font: 700 var(--fs-m)/1.35 var(--sans); max-width: 76ch; text-wrap: pretty; }
+.hyp .hyp-pred { font-size: var(--fs-xs); overflow-wrap: anywhere; }
+.hyp .hyp-pred code { font: 400 var(--fs-xs)/1.4 var(--code); background: var(--fill); padding: 0 3px; color: var(--ink); }
+.hyp .hyp-src { margin: 3px 0 0; font: 400 var(--fs-xs)/1.45 var(--code); background: var(--fill); color: var(--ink); padding: 4px 6px; white-space: pre; overflow-x: auto; }
+.hyp-rows { overflow-x: auto; }
+.hyp-rows .rt { width: auto; min-width: min(100%, 520px); }
+.hyp-rows th, .hyp-rows td { padding-right: 14px; }
+.hyp-rows td { font-size: var(--fs-s); white-space: nowrap; }
+.hyp-rows th.mono { font-family: var(--code); }
+.hyp-label { display: inline-flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; white-space: normal; }
+.hyp-label .rowtxt { font-size: var(--fs-xs); color: var(--ink-2); }
+.hyp .reasons { padding-left: 16px; }
+.hyp-meta { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 12px; font-size: var(--fs-xs); }
+.hyp-meta dt { color: var(--ink-2); }
+.hyp-meta dd { margin: 0; min-width: 0; }
+.hyp-meta ul { padding-left: 16px; }
+.doc .hyp { border: 1px solid var(--hair); margin: 10px 0 14px; font: 400 var(--fs-s)/1.45 var(--sans); }
+.doc .hyp li { margin: 0; }

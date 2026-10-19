@@ -1507,3 +1507,66 @@ W-05's hypothesis: open before, supported after · all paired webgpu checks pass
 ### What should be done in the future
 
 - The Compare panel (Perf), which calls the same `measurePaired` from the UI.
+
+## Step 15: Phase 4, part 3 — review and commit the Hypotheses view and the notes cards
+
+The Phase 4 UI worker finished, with its own diary (`reference/06-phase4-ui-diary.md`, Steps 1–3). It added:
+
+- `wb.hypotheses`;
+- the Hypotheses view;
+- live cards from ```` ```hypothesis <id> ```` fences in the notes;
+- `lab:hypothesis?id=`;
+- W-05's "Pin MAP=thread and measure" link.
+
+I reviewed the screenshots and the diff and made one fix from its open-issues list. With this, Phase 4 is complete.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1.
+
+**Assistant interpretation:** Review the worker's Phase 4 UI, fix what its receipt flagged where the fix is small,
+commit.
+
+**Inferred user intent:** A claim about performance visible next to the prose that motivates it, with its verdict
+changing as evidence arrives.
+
+**Commit (code):** recorded in the changelog entry for this step.
+
+### What I did
+
+- Read the screenshots `p4-W-05-supported-light-1600.png`, `p4-W-25-swept-light-1600.png` and
+  `p4-notes-card-phone-dark-390.png`. The card shows:
+  - the claim;
+  - the predicate's source;
+  - the rows as value cells;
+  - a per-row "holds / fails / undecided" judgement;
+  - the alternatives, the scope, and the support count, which links to the Evidence view.
+- Read the diff:
+  - `wb.hypotheses` is a getter cached on the compile version, the store version and the evidence id;
+  - `links.js` gains one case;
+  - there is a one-time layout migration modelled on the Evidence view's.
+- Fix: `ev.ratio` labelled the thread side `TPB=128`, because `canonRow` drops the default `MAP=thread`. The
+  sides' labels now prepend the filter's knobs that the row leaves out (`sideRow` in `evidence-context.js`), so the
+  card reads `a = MAP=thread,TPB=128`.
+
+### What worked
+
+- `pnpm test`: evidence 125, Kiln 10 files, server 49, workbench 2.
+- `pnpm build`.
+- `node scripts/contrast.mjs`: all pairs pass.
+- The worker's `notes.mjs` now fails on a `lab:hypothesis` link or card naming an id the project does not declare;
+  all 178 lab links pass.
+
+### What warrants a second pair of eyes
+
+- The receipt lists three open items:
+  - `dist/index.html` has no viewport meta, so phone screenshots use `dist/kiln-workbench.html`;
+  - `verdict` does not return the fields a predicate read, so a card cannot highlight them;
+  - the agent has no tool for verdicts (Phase 7).
+- The worker reported "Permission denied" on `/Volumes/SSD/code/kiln` in its shell and worked through the
+  `~/code/tulip/experiments/kiln` symlink. The files are the same.
+
+### Code review instructions
+
+- `apps/workbench/src/ui/Hypotheses.jsx` (145 lines), then the `hypotheses` getter in `wb.js` and `Notes.jsx`
+  (portals into the rendered notes).

@@ -1,6 +1,7 @@
 // Markdown for project notes (tutorials): headings with anchors, paragraphs, nested lists, tables,
 // call-outs, code fences, and TeX math ($…$ inline, $$…$$ display) rendered to MathML by KaTeX when the
 // page provides window.katex (main.jsx bundles it), else shown as TeX. Links go to https: or to lab: actions in the workbench.
+// A ```hypothesis <id> fence becomes a slot for that hypothesis's card.
 import { highlight, highlightC } from "./highlight.js";
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -50,14 +51,16 @@ export function renderDoc(text) {
   }
   while (i < lines.length) {
     const l = lines[i];
-    const fence = l.match(/^\s*```\s*([\w+-]*)/);
+    const fence = l.match(/^\s*```\s*([\w+-]*)\s*(\S*)/);
     if (fence) {
       const lang = fence[1].toLowerCase(), body = [];
       i++;
       while (i < lines.length && !/^\s*```/.test(lines[i])) body.push(lines[i++]);
       i++;
       const src = body.join("\n");
-      if (lang === "math" || lang === "tex") out.push(`<div class="mathblock">${tex(src, true)}</div>`);
+      // a hypothesis card: an empty slot the Notes view fills with the live card (Hypotheses.jsx)
+      if (lang === "hypothesis") out.push(`<div class="hyp-slot" data-hyp="${esc(fence[2] || src.trim())}"></div>`);
+      else if (lang === "math" || lang === "tex") out.push(`<div class="mathblock">${tex(src, true)}</div>`);
       else if (/^(cuda|c|cpp|wgsl|cu)$/.test(lang)) out.push(`<pre class="src hl">${highlightC(src)}</pre>`);
       else if (/^(text|txt|ir|plain)$/.test(lang)) out.push(`<pre class="src plain">${esc(src)}</pre>`);
       else out.push(`<pre class="src hl">${highlight(src)}</pre>`);

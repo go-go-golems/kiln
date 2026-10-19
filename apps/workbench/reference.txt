@@ -18,6 +18,14 @@ project(name)                     the thing the workbench compiles, checks and m
   .check(name, ctx => true | "why not" | { ok, message })   ctx: outputs, reference (frontend), inputs, run, graph,
                                   compare. { ok: true, message } is an info check: it reports a finding (shown in Code)
   .pins({ KNOB: value })          initial pins   .device("sim:h100")   .about(text)   .note(text)
+  .hypothesis(id, h => h.claim(text).predicts(ev => rows, row => bool).alternatives(text).scope(text))
+                                  a claim judged against the evidence store: ev.kernels(), ev.options(kernel),
+                                  ev.ratio(kernel, { a: "MAP=thread", b: "MAP=row" }), ev.total(), ev.records(filter)
+                                  return rows of Values; the verdict is supported, refuted, open (a row's input
+                                  is missing, the predicate threw or returned null) or unqualified (an invalid
+                                  record was read). std.evidence.below(r, x) / above(r, x) test a row's [lo, hi]:
+                                  null while the interval straddles x, so a wide interval keeps the claim open.
+                                  The Hypotheses view and ```hypothesis <id> blocks in the notes show it live.
 The end-to-end check evaluates the frontend graph and the last IR level that can evaluate (the Loop IR in
 the ML pipeline) on the same inputs and compares every output (rtol 1e-3, atol 1e-4). Programs larger than
 ~6e7 scalar ops skip it; structural checks (ones that only read run/graph) still run, and every kernel is
@@ -182,5 +190,7 @@ Links: https://… open a tab; #slug jumps to a heading; lab: links drive the wo
   lab:tune?strategy=spmcts|sweep|sweep-all&budget=32          lab:device?id=sim:h100[&measure]       lab:compile
   lab:view?name=perf|knobs|trace|kernels|code|notes|…         lab:ir?name=loop · lab:node?id=n12&ir=loop
   lab:step?i=14 · lab:kernel?name=k_x · lab:fork?i=0 · lab:line?n=12 · lab:preset?id=W-21
+  lab:hypothesis?id=row-beats-thread   open that hypothesis's card in the Hypotheses view
+A ```hypothesis <id> fence (empty body) renders the project's hypothesis <id> as a card with its live verdict.
 Values are URL-encoded (spaces as %20, | as %7C). A good tutorial: the concept, the maths, what to try (as lab:
 links), what the user should see (measured numbers), why, exercises, further reading.

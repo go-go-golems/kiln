@@ -43,6 +43,14 @@ Simulated RTX 5090, softmax over 2048 × 8192:
 - **Regret 1.19×.** The model's favourite, `MAP=row,TPB=1024` without staging, measures 99.5 µs. The best measured, `MAP=row,TPB=1024,STAGE=reused`, takes 83.3 µs.
 - Restrict attention to the 12 row schedules ([pin them one by one](lab:view?name=knobs), or sweep on a fresh device) and **ρ drops to about 0.92**.
 
+The two scores are also stated as claims, judged live against this device's records. Before the sweep both are open. After it, on the simulated RTX 5090, the first is supported and the second refuted.
+
+```hypothesis model-ranks-schedules
+```
+
+```hypothesis model-pick-near-best
+```
+
 ### Why they disagree
 
 The softmax reads each row three times. Without staging, the second and third reads go to memory. Do they hit L2 or DRAM? The two sides use different heuristics:

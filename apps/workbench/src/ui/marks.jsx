@@ -145,6 +145,22 @@ export function recordVal(r) {
 }
 export { median };
 
+/**
+ * A Value from the evidence context (a hypothesis row's field) as a value cell: its class, its number, and its
+ * interval and n where it carries them. Pass `ci: false` when the row shows the interval's bounds as fields of
+ * their own. A simulator's time has no n: its repetitions are identical.
+ */
+export function valueVal(v, { ci = true } = {}) {
+  if (v.value === null) return missingVal(v.reason || "missing");
+  const fmt = (x) => (v.unit === "us" ? fmtUs(x) : String(+Number(x).toPrecision(3)));
+  const num = typeof v.value === "number", stat = v.prov === "observed" || v.prov === "derived";
+  const band = num && v.ci ? { median: v.value, lo: v.ci[0], hi: v.ci[1] } : null;
+  return {
+    prov: v.prov, text: num ? fmt(v.value) : String(v.value), ci: ci && band ? pm(band) : null, n: stat && v.n != null ? v.n : null,
+    title: [v.method ? `${v.prov}: ${v.method}` : v.prov, band && band.hi > band.lo ? `95 % CI [${fmt(band.lo)}, ${fmt(band.hi)}]` : null, v.source ? `on ${v.source}` : null].filter(Boolean).join("\n"),
+  };
+}
+
 /** A value cell: mark, number, the CI as a small suffix, n. The title carries the method. */
 export function Val({ v }) {
   if (!v) return null;

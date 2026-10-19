@@ -50,6 +50,12 @@ class Workbench {
       const t = !Dock.openViews(this.layout).includes("evidence") && (Dock.tileOf(this.layout, "tune") || Dock.tileOf(this.layout, "perf"));
       if (t) this.layout = Dock.normalize(Dock.moveToTab(this.layout, "evidence", t.id, t.views.indexOf("tune") + 1 || null));
     }
+    // layouts saved before the Hypotheses view existed: put Hypotheses beside Evidence, once
+    if (!lsGet("hypothesesView", false)) {
+      lsSet("hypothesesView", true);
+      const t = !Dock.openViews(this.layout).includes("hypotheses") && Dock.tileOf(this.layout, "evidence");
+      if (t) this.layout = Dock.normalize(Dock.moveToTab(this.layout, "hypotheses", t.id, t.views.indexOf("evidence") + 1));
+    }
     this.maxTile = null; this.focusTile = null; this.phoneView = "ir"; this.drag = null;
     this.toasts = []; this.sample = null; this.platformReady = false; this.ready = false; this.error = null;
   }
@@ -216,6 +222,17 @@ class Workbench {
     if (d.kind !== "sim") { const ok = await d.probe(); if (!ok && !quiet) this.toast(d.status, "bad"); }
     this.bump("device");
     this.compile();
+  }
+
+  // ---------- hypotheses (guide §29) ----------
+  /** The project's hypotheses judged against the store, recomputed when the program compiles, the store changes or the device does. */
+  get hypotheses() {
+    const key = `${this.version("compile")}|${this.version("store")}|${this.evidenceId}`;
+    if (this._hypKey !== key) {
+      this._hypKey = key;
+      this._hyp = this.project ? std.evidence.evaluateHypotheses(this.project, { store: this.store, prog: this.prog, device: this.evidenceId, target: this.device.target }) : [];
+    }
+    return this._hyp;
   }
 
   // ---------- measure ----------

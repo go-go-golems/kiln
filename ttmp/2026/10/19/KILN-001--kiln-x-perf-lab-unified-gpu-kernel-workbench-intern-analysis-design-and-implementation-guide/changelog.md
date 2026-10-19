@@ -88,3 +88,12 @@ Phase 6 done-condition met on the M1 Pro: paired WebGPU comparison of W-05's thr
 ### Related Files
 
 - /Volumes/SSD/code/kiln/apps/workbench/test/paired-webgpu.mjs — the Phase 6 done-condition on the local GPU
+
+## 2026-10-19
+
+Phase 4 complete: Hypotheses view, notes cards (hypothesis fences), lab:hypothesis, W-05 pin-and-measure link (worker diary reference/06); ev.ratio labels keep the filtered knobs (MAP=thread,TPB=128)
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/apps/workbench/src/ui/Hypotheses.jsx — the Hypotheses view and the notes card
+- /Volumes/SSD/code/kiln/ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/06-phase4-ui-diary.md — Phase 4 UI worker diary

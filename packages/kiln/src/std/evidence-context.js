@@ -17,6 +17,11 @@ const METHOD = {
 /** A row filter: "MAP=row,TPB=128" or { MAP: "row" }; a knob set matches when it has every listed value. */
 const filterOf = (spec) => (typeof spec === "string" ? KN.parse(spec) : { ...(spec || {}) });
 const matches = (knobs, f) => Object.entries(f).every(([k, v]) => String(knobs?.[k]) === String(v));
+// a side's row with the filter's knobs that the short row leaves out (canonRow drops defaults: MAP=thread → "TPB=128")
+const sideRow = (row, f) => {
+  const shown = KN.parse(row);
+  return [...Object.entries(f).filter(([k]) => !(k in shown)).map(([k, v]) => `${k}=${v}`), row].filter(Boolean).join(",");
+};
 
 /**
  * The evidence context for one compiled program on one device.
@@ -89,7 +94,7 @@ export function evidenceContext({ store, prog, device, target }) {
       const label = (f) => canonRow(f) || KN.canonical(f);
       if (!A || !B) {
         const why = `no measurement of ${!A ? label(fa) : label(fb)} for ${kern.name} on ${dev}`;
-        return { ratio: missing(why), lo: missing(why), hi: missing(why), n: 0, paired: false, a: A?.row ?? label(fa), b: B?.row ?? label(fb) };
+        return { ratio: missing(why), lo: missing(why), hi: missing(why), n: 0, paired: false, a: A ? sideRow(A.row, fa) : label(fa), b: B ? sideRow(B.row, fb) : label(fb) };
       }
       const prov = combine(PROV(A.deterministic), PROV(B.deterministic));
       const mk = prov === "heuristic" ? heuristic : derived;
@@ -100,12 +105,12 @@ export function evidenceContext({ store, prog, device, target }) {
         const s = pairedRatio(pairs);
         if (s.median !== null) {
           const opts = { method: s.method, ci: s.ci, n: s.n };
-          return { ratio: mk(s.median, opts), lo: mk(s.ci[0], opts), hi: mk(s.ci[1], opts), n: s.n, paired: true, a: A.row, b: B.row };
+          return { ratio: mk(s.median, opts), lo: mk(s.ci[0], opts), hi: mk(s.ci[1], opts), n: s.n, paired: true, a: sideRow(A.row, fa), b: sideRow(B.row, fb) };
         }
       }
       const method = "ratio of medians, unpaired; interval from the two medians' intervals (conservative)";
       const lo = B.lo / A.hi, hi = B.hi / A.lo;
-      return { ratio: mk(B.median / A.median, { method, ci: [lo, hi], n: Math.min(A.n, B.n) }), lo: mk(lo, { method }), hi: mk(hi, { method }), n: Math.min(A.n, B.n), paired: false, a: A.row, b: B.row };
+      return { ratio: mk(B.median / A.median, { method, ci: [lo, hi], n: Math.min(A.n, B.n) }), lo: mk(lo, { method }), hi: mk(hi, { method }), n: Math.min(A.n, B.n), paired: false, a: sideRow(A.row, fa), b: sideRow(B.row, fb) };
     },
     /** The program's time: the sum of kernel medians (provenance: the weakest part; interval: the sum of bounds). */
     total({ device: dev = device } = {}) {

@@ -5,6 +5,7 @@
 //   lab:device?id=sim:h100             switch device                       lab:preset?id=W-21
 //   lab:view?name=perf                 bring a view forward                lab:ir?name=loop · lab:node?id=n12&ir=loop
 //   lab:step?i=4 · lab:kernel?name=k_x · lab:fork?i=0 · lab:line?n=12
+//   lab:hypothesis?id=row-beats-thread open the Hypotheses view at that hypothesis's card
 import { wb } from "./wb.js";
 
 export async function followLabLink(href) {
@@ -18,6 +19,7 @@ export async function followLabLink(href) {
     case "step": wb.select({ step: +q.i }); wb.showView("trace"); break;
     case "kernel": wb.select({ kernel: q.name }); wb.showView(q.view || "kernels"); break;
     case "fork": wb.select({ decision: +q.i }); wb.showView("knobs"); break;
+    case "hypothesis": wb.select({ hypothesis: q.id }); wb.showView("hypotheses"); break;
     case "view": case "tab": wb.showView(q.name || "ir"); break;
     case "preset": wb.load(q.id); break;
     case "line": wb.showView("code"); wb.gotoLine = +q.n; wb.bump("gotoLine"); break;

@@ -43,6 +43,11 @@ Simulated, RTX 5090 ($\beta$ = 1792 GB/s, $t_\text{launch}$ = 2.5 µs):
 
 That is a **8.9× speedup from moving fewer bytes**, with the same arithmetic. The unfused version even pays 16 MiB to materialize the bias broadcast: `k_ew` writes a full `tokens × hidden` copy of $b$, because without fusion a broadcast view becomes a real tensor.
 
+The cost model makes the same prediction for each kernel. The claim below holds it to within 25 % of the simulator for every kernel of the program: [measure](lab:measure?view=none) to judge it on the fused kernel, then [turn fusion off and measure](lab:param?name=fuse&value=false&measure) to judge it on eleven.
+
+```hypothesis model-tracks-elementwise
+```
+
 Look at the unfused [loop IR](lab:ir?name=loop): eleven `loop.kernel` nodes, each a one-line loop nest. Fused, there is one kernel whose body is the whole expression; the [Graph](lab:graph?name=loop) shows the difference at a glance.
 
 ## The system: how this compiler fuses

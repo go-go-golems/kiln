@@ -37,6 +37,17 @@ Three ideas carry most of the weight.
 - [Pin no staging](lab:pin?STAGE=none&measure): $x$ is read twice from memory instead of once.
 - [Unpin](lab:unpin).
 
+## A claim to test
+
+The tile pass maps one row to a block (`MAP=row`). The claim below says why that matters at these sizes: with one output element per thread (`MAP=thread`), every thread reads its whole row to compute its own copy of the row sum. The card is judged against the evidence store, so it stays open until both schedules have been measured on the current device.
+
+```hypothesis row-beats-thread
+```
+
+1. [Measure the compiler's choice](lab:measure?view=none), `MAP=row`.
+2. [Pin MAP=thread and measure](lab:pin?MAP=thread&measure): the card now has both times. It is supported or refuted when the ratio's interval lies wholly on one side of 0.5, and stays open while the interval straddles it.
+3. [Unpin](lab:unpin?name=MAP): the next compile decides from the two measurements.
+
 ## Exercises
 
 1. Count the rewrites per pass in [Trace](lab:view?name=trace). Which pass does the most work, and why?
