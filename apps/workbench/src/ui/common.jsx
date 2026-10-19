@@ -1,10 +1,13 @@
-import React, { useEffect, useReducer, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { wb as lab } from "./wb.js";
 import { highlight } from "./highlight.js";
 
+// Re-render when any of the named channels is bumped. useSyncExternalStore re-reads the channel versions
+// after subscribing, so a bump between this component's render and its subscription is not lost.
 export function useLab(...chs) {
-  const [, force] = useReducer((x) => x + 1, 0);
-  useEffect(() => { const offs = chs.map((c) => lab.on(c, force)); return () => offs.forEach((f) => f()); }, [chs.join(",")]);
+  const key = chs.join(",");
+  const subscribe = useCallback((cb) => { const offs = chs.map((c) => lab.on(c, cb)); return () => offs.forEach((f) => f()); }, [key]);
+  useSyncExternalStore(subscribe, () => chs.map((c) => lab.version(c)).join(","));
   return lab;
 }
 

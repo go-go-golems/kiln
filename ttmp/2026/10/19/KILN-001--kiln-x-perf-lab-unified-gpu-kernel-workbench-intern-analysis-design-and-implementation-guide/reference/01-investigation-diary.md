@@ -422,3 +422,179 @@ detailed diary and screenshots.
 - Test ownership: `packages/kiln/test` holds tests that import only `core`/`std`; tests that import `ui/wb.js`
   (`notes`, `presets`, `param-sweep`, `export-cuda`) or the built page (`ui`) live in `apps/workbench/test` and need
   `node build.mjs --gen-only` first, which the `test` script runs.
+
+## Step 5: Phase 1 — the visual language
+
+Phase 1 (§32, §35) replaces the three inherited stylesheets (`forge-base.css` 283 lines, `lab.css` 527, `kiln.css`
+234) with six files, split by concern and loaded in a fixed order: `tokens.css` (44), `base.css` (166),
+`chrome.css` (126), `views.css` (364), `evidence.css` (47) and `utilities.css` (6) — 753 lines in all. The page
+looks the same, apart from three deliberate changes. The editor gutter is no longer grey. Secondary text is slightly
+darker. The new evidence marks (provenance, value cells, stamps, the title block, chart series) exist as styles and
+appear on a specimen page; Phase 3 puts them into the views.
+
+Two problems came out of the rewrite and were fixed here rather than deferred. The guide's token values fail WCAG
+in eight places; the values were adjusted until `scripts/contrast.mjs` passes, and the guide's table is now wrong
+where noted below. The Perf view also had a real subscription race in `useLab`, which the new build made
+deterministic.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (the "Once upload, then implement it…" request).
+
+**Assistant interpretation:** Phase 1 of the guide: unified tokens, the hazards listed in §32.1, and the evidence
+marks of §32.3–32.5, with screenshots.
+
+**Inferred user intent:** A single visual system the later evidence features can draw into, without a visible
+regression in what works today.
+
+**Commit (code):** see the commit after this step ("KILN-001 Phase 1: …").
+
+### What I did
+
+- `tokens.css`: every token from §32.1, with the dark values written twice — once under
+  `@media (prefers-color-scheme: dark) :root:not([data-theme="light"])` and once under `:root[data-theme="dark"]` —
+  so the system preference and the explicit toggle both work. It also holds `@keyframes bl` and the
+  `prefers-reduced-motion` block, which sets `--blink: none` and turns off the drop-hint transition.
+- `base.css` (reset, controls, menus, the view frame, tables, code, toasts), `chrome.css` (header, dock, phone
+  strip, container and media queries), `views.css` (one section per view), `evidence.css` (new marks),
+  `utilities.css` (`.bad`, `.ok`, `.dim`, `.padded`).
+- `build.mjs` concatenates the files in that order:
+  `["tokens", "base", "chrome", "views", "evidence", "utilities"]`.
+- Hazards from §32.1:
+  - The `.gutter` collision is fixed by renaming to `.dock-gutter` (`Dock.jsx:93`) and `.ed-gutter` /
+    `.ed-gutter-in` / `.ed-code` (`Ide.jsx`).
+  - The duplicate `.dtabs` and `.prow` rules are merged into one each.
+  - Rules whose classes no file uses are deleted; `--mono`, which held Arial, is renamed `--sans`.
+  - Every animation reads `var(--blink)`.
+- Three scripts:
+  - `scripts/css-usage.mjs [--write] <css...> -- <sources...>` lists selectors whose classes or ids appear in no
+    source file.
+  - `scripts/contrast.mjs [tokens.css]` checks every text/ground pair at 4.5:1 and input borders at 3:1, in light
+    and dark, compositing `--sel` over `--bg` first.
+  - `scripts/shoot-views.mjs <page> <out-dir> [prefix] [--only names]` captures eight fixed scenes: default
+    light/dark, Perf after a measure, Trace, Knobs, Graph after a 16-program tune, and phone light/dark at 390 px.
+- `scripts/specimen.mjs [out.html]` writes `dist/specimen.html`: the tokens, every provenance mark, value cells,
+  stamps, a title block, the three chart series and a stale block, styled by the real stylesheets.
+- `common.jsx`: `useLab` rewritten on `useSyncExternalStore` (see What didn't work).
+- Screenshots in `various/screens/`:
+  - `p1-before-perf-light-1600.png` (Phase 0 build, grey gutter)
+  - `p1-perf-light-1600.png`, `p1-default-light-1600.png`, `p1-default-dark-1600.png`, `p1-phone-390.png`
+  - `p1-specimen-light.png`, `p1-specimen-dark.png`
+
+### Why
+
+- Splitting by concern rather than by origin (Forge, Octavo, Kiln) means a later phase edits one file: the evidence
+  views in Phase 3 touch `evidence.css` and `views.css`, and never the dock.
+- `utilities.css` loads last because a utility must beat the component rule it is combined with. `.empty.padded`
+  lost its padding when `.padded` was emitted before `.empty`; specificity is equal, so only order decides.
+- The evidence marks are styled before any view uses them so Phase 3 changes only markup. The specimen page is how
+  they get reviewed before then.
+
+### What worked
+
+- `node scripts/contrast.mjs` → `all pairs pass`; tightest pairs: light `accent on sel 4.53:1`,
+  `ink-2 on sel 4.67:1`, `hair-strong on code-bg 3.13:1`; dark `accent on sel 4.55:1`,
+  `on-accent on accent 4.95:1`.
+- `pnpm test`: `@kiln/evidence` 8 files / 110 tests; `core 54 ms, progs 317, stack1 107, stack2 682, stack3 243,
+  tune 1174` (6 passed); `notes 2755 ms, presets 7312 ms` (2 passed).
+- `pnpm build` → `dist/index.html 1113 KB (bundle 1057 KB, 25 presets, 25 with notes)` — 24 KB less CSS than
+  Phase 0's 1137 KB.
+- `css-usage` reports 25 unused selectors, all in `evidence.css` (`.prov.*`, `.val.*`, `.stamp.*`, `.titleblock`,
+  `.ser .*`), which no view uses until Phase 3. The other five files have none.
+- All eight `shoot-views` captures are `ok`. Compared with the Phase 0 captures:
+  - Knobs, Trace and Graph are pixel-equivalent except for timestamps.
+  - Perf and the default layout differ only in the white editor gutter and the slightly darker secondary text.
+  - Phone at 390 px shows the strip, toolbar and IR without horizontal clipping.
+
+### What didn't work
+
+- **Guide token values fail contrast.** `contrast.mjs` on the §32.1 values (`--ink-2 #737373`, `--hair-strong
+  #949494`, `--sel` alpha .10 light / .16 dark, white text on the accent) reported:
+
+  ```text
+  light  FAIL ink-2 on fill 4.39:1   FAIL tok-com on fill 4.39:1   FAIL tok-punc on fill 4.39:1
+         FAIL accent on sel 4.14:1   FAIL ink-2 on sel 3.97:1      FAIL hair-strong on code-bg 2.93:1
+  dark   FAIL accent on sel 4.18:1   FAIL on-accent on accent 3.51:1
+  ```
+
+  Changes:
+  - `--ink-2` (and `--tok-com`, `--tok-punc`) `#6e6e6e`.
+  - `--hair-strong #8f8f8f`.
+  - `--sel` alpha 0.05 light / 0.09 dark; the wash is fainter and still visible on selected rows and call-outs.
+  - New `--on-accent` token (`#ffffff` light, `#1a1a1a` dark) for text on a red fill (`.toast.bad`), because white
+    on `#ff3b4a` is 3.51:1.
+- **Perf showed "Measure to run…" after a completed measure.** With the new CSS build, `shoot-views` perf
+  reproducibly showed the empty state although `window.__kiln.wb.measures` held the result. The cause was
+  `useLab`:
+  - It subscribed in `useEffect`, after render.
+  - A `bump("measure")` that fired between the render and the effect was lost, so the view stayed on its first
+    render.
+  - The old build happened to schedule the effect sooner, so the race was rare.
+
+  `useSyncExternalStore(subscribe, () => versions.join(","))` re-reads the channel versions after subscribing,
+  so no bump is lost. After the fix the perf capture shows `76.7 µs` and no `.empty` element.
+- **One visible change from deleting Octavo rules.** The standalone `.ask` rule (`lab.css:268`: accent border,
+  `padding: 8px 10px`, `display: flex`, column, 8 px gap) belonged to Octavo's approval box. It also matched the
+  agent's waiting step, `<details class="tool ask">`, because the step's status is used as a class. With the rule
+  gone, a waiting step keeps its own `details.tool.ask` rules (red border, blinking red dot, red "waiting for you")
+  and loses the extra padding and the flex layout on `<details>`. It is now the same size as every other step. I
+  kept that change rather than restoring the rule.
+- In the specimen, `#half` defined as an 8 px `userSpaceOnUse` pattern filled each simulator marker differently
+  depending on its x position. An `objectBoundingBox` pattern (`patternContentUnits="objectBoundingBox"`, a 0.5-wide
+  ink rect over a bg rect) half-fills every marker. Phase 3's charts must define it that way.
+
+### What I learned
+
+- In this page, CSS order is the only tiebreaker between a component class and a utility class: neither uses ids or
+  `!important`. That is why the order is written in `build.mjs` with a comment.
+- A dead-selector check needs to know the casing conventions of generated markup: `doc.js` lowercases callout kinds
+  from the Markdown, so `.caveat` and `.exercise` look dead to a case-sensitive search.
+
+### What was tricky to build
+
+- `css-usage.mjs` balances false positives against false negatives:
+  - A class counts as used if its name appears as a word anywhere in the sources, case-insensitively, hyphen parts
+    included, because class names are often built from strings (`cls("dock-gutter", node.dir)`).
+  - Ids count only as `id=`, `getElementById` or `"#x"`, because short id words appear in prose.
+  - `:not(...)` arguments are ignored.
+
+### What warrants a second pair of eyes
+
+- The `--sel` alpha halved in light mode. Selected rows are still distinguishable in the captures, but on a
+  low-quality panel the wash may be too faint; the selection also carries a 2 px red left bar, which does not depend
+  on the wash.
+- `useLab` now re-renders on any bump of any listed channel, as before, but through React's external-store path. A
+  component that passes a different channel list on each render would re-subscribe each time; all current callers
+  pass constants.
+
+### What should be done in the future
+
+- Update the guide's §32.1 table with the shipped values (`#6e6e6e`, `#8f8f8f`, alphas 0.05/0.09, `--on-accent`).
+- Phone at 320 px is untested.
+- The Knobs option table cuts its last column (`pin +`) at 1600 px in a three-column layout — present in Phase 0
+  as well.
+- Roofline point labels overlap when two kernels sit close together (Perf, W-09). Both of these belong to Phase 3,
+  which rebuilds those views.
+
+### Code review instructions
+
+- `git show --stat HEAD` for the file list. Start with `tokens.css` and `evidence.css`; `base.css`, `chrome.css`
+  and `views.css` are a reorganisation of the deleted files.
+- Checks: `node scripts/contrast.mjs`; `cd apps/workbench && node ../../scripts/css-usage.mjs src/ui/*.css -- src
+  ../../packages/kiln/src presets build.mjs`; `pnpm build && node scripts/shoot-views.mjs
+  apps/workbench/dist/kiln-workbench.html /tmp/p1`; `node scripts/specimen.mjs`.
+
+### Technical details
+
+- Contrast compositing: `over(fg, bg) = fg·α + bg·(1−α)` per channel, then WCAG relative luminance and
+  `(L1 + 0.05) / (L2 + 0.05)`.
+- `useLab`:
+
+  ```js
+  export function useLab(...chs) {
+    const key = chs.join(",");
+    const subscribe = useCallback((cb) => { const offs = chs.map((c) => lab.on(c, cb)); return () => offs.forEach((f) => f()); }, [key]);
+    useSyncExternalStore(subscribe, () => chs.map((c) => lab.version(c)).join(","));
+    return lab;
+  }
+  ```

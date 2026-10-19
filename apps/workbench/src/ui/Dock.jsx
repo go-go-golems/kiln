@@ -90,7 +90,7 @@ function Gutter({ node, i, box }) {
     const a = Math.max(0.05, node.sizes[i - 1] + step), b = Math.max(0.05, node.sizes[i] - step);
     lab.setLayout(D.resize(lab.layout, node.id, node.sizes.map((s, j) => (j === i - 1 ? a : j === i ? b : s))));
   };
-  return <div className={cls("gutter", node.dir)} onPointerDown={down} onDoubleClick={even} onKeyDown={key} tabIndex={0}
+  return <div className={cls("dock-gutter", node.dir)} onPointerDown={down} onDoubleClick={even} onKeyDown={key} tabIndex={0}
     role="separator" aria-orientation={row ? "vertical" : "horizontal"} aria-label="Resize tiles" title="Drag to resize · double-click to make even" />;
 }
 

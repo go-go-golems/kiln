@@ -79,8 +79,8 @@ function Editor() {
   useEffect(sync);
   return (
     <div className="ed">
-      <div className="gutter"><div className="gutter-in" ref={gut}>{hl.map((_, i) => <div key={i} className={errLines.has(i + 1) ? "err" : warnLines.has(i + 1) ? "warn" : ""}>{i + 1}</div>)}</div></div>
-      <div className="code">
+      <div className="ed-gutter"><div className="ed-gutter-in" ref={gut}>{hl.map((_, i) => <div key={i} className={errLines.has(i + 1) ? "err" : warnLines.has(i + 1) ? "warn" : ""}>{i + 1}</div>)}</div></div>
+      <div className="ed-code">
         <pre ref={pre} aria-hidden="true">{hl.map((h, i) => <div key={i} className={errLines.has(i + 1) ? "ln-err" : ""} dangerouslySetInnerHTML={{ __html: h || " " }} />)}</pre>
         <textarea ref={ta} value={wb.script} spellCheck={false} autoCapitalize="off" autoCorrect="off" aria-label="Project script" onChange={(e) => wb.setScript(e.target.value)} onScroll={sync} onKeyDown={onKey} />
       </div>

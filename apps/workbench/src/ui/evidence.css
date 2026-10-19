@@ -1,0 +1,47 @@
+/* Evidence marks. Where a number came from is drawn with shape and fill, never hue:
+     ● observed (a hardware sample)   ◐ derived (a statistic of observed values)   ◌ heuristic (model, simulator)
+     ◇ illustrative (made-up data)    ▨ unknown (missing)                          red ring: invalid
+   Every mark sits next to a word (a column head, a .sub line, a stamp) and carries a title with the method. */
+.prov { display: inline-block; width: 8px; height: 8px; border: 1px solid var(--ink); border-radius: 50%; flex: none; vertical-align: 0; }
+.prov.observed { background: var(--ink); }
+.prov.derived { background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); }
+.prov.heuristic { background: var(--bg); }
+.prov.illustrative { border-radius: 0; width: 7px; height: 7px; transform: rotate(45deg); border-color: var(--ink-2); }
+.prov.unknown { border-radius: 0; border-color: var(--ink-3); background: var(--hatch); }
+.prov.bad { border-color: var(--accent); background: var(--sel); }
+
+/* a value cell: mark, number, unit, then the interval as a small suffix ("◐ 24.3 µs ±0.4") */
+.val { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.val .ci, .val .n { color: var(--ink-2); font-size: var(--fs-xs); font-weight: 400; }
+.val.missing { color: var(--ink-2); }
+.val.stale { text-decoration: line-through; text-decoration-color: var(--ink-2); color: var(--ink-2); }
+
+/* stamps: lowercase words in a dashed box; refuted, unqualified and invalid are red */
+.stamp { display: inline-block; font: 700 var(--fs-2xs)/1 var(--sans); padding: 2px 5px; border: 1px dashed var(--ink-2); color: var(--ink-2); white-space: nowrap; vertical-align: 1px; }
+.stamp.solid { border-style: solid; border-color: var(--ink); color: var(--ink); }
+.stamp.bad { border-color: var(--accent); color: var(--accent); }
+
+/* stale evidence: a dashed frame inside the block, so the content stays readable */
+.block.stale, .stale-frame { outline: 1px dashed var(--ink-2); outline-offset: -4px; }
+
+/* the title block that closes Perf, Evidence and Hypotheses: a row of hairline cells */
+.titleblock { display: flex; flex-wrap: wrap; border-top: 1px solid var(--ink); font-variant-numeric: tabular-nums; flex: none; }
+.titleblock > div { padding: 4px 10px 5px; border-right: 1px solid var(--hair); display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.titleblock > div:last-child { border-right: 0; }
+.titleblock label { font-size: var(--fs-2xs); color: var(--ink-2); }
+.titleblock b { font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* missing data in an area: hatching */
+.hatched { background: var(--hatch); }
+
+/* chart series, told apart by marker fill and line dash: model hollow + dashed, simulator half + dotted,
+   hardware filled + solid with an interval whisker; the selected or best mark is red */
+.ser .mk { stroke: var(--ink); stroke-width: 1.2; }
+.ser.model .mk { fill: var(--bg); }
+.ser.model .ln { stroke-dasharray: var(--dash-2); }
+.ser.sim .mk { fill: url(#half); }
+.ser.sim .ln { stroke-dasharray: var(--dash-3); }
+.ser.hw .mk { fill: var(--ink); }
+.ser .ln { fill: none; stroke: var(--ink); stroke-width: 1; }
+.ser .wk { stroke: var(--ink); stroke-width: 1; }
+.ser .on .mk, .ser .mk.on { fill: var(--accent); stroke: var(--accent); }

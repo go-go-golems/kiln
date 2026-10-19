@@ -1,0 +1,44 @@
+/* Kiln tokens. Swiss style: white ground, #1a1a1a ink, Arial in two weights, 1 px rules, no tinted panels.
+   Red is the only hue and means failure, selection or a live action; provenance, staleness and series are
+   told apart by shape, fill and line style. Text pairs meet 4.5:1 and input borders 3:1
+   (scripts/contrast.mjs checks them). */
+:root {
+  --bg: #ffffff; --fill: #f6f6f6; --fill-2: #e6e6e6;
+  --ink: #1a1a1a; --ink-2: #6e6e6e; --ink-3: #a3a3a3;
+  --hair: #d6d6d6; --hair-strong: #8f8f8f; --rule: #ededed; --code-bg: #fbfbfb;
+  --accent: #e2001a; --on-accent: #ffffff; --sel: rgba(226, 0, 26, 0.05);
+  --tok-key: #1a1a1a; --tok-str: #6b6b6b; --tok-num: #1a1a1a; --tok-expr: #e2001a; --tok-com: #6e6e6e; --tok-punc: #6e6e6e;
+  color-scheme: light;
+
+  --sans: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  --code: ui-monospace, Menlo, Consolas, "Courier New", monospace;
+  --fs-2xs: 9.5px; --fs-xs: 10.5px; --fs-s: 12px; --fs-m: 13px; --fs-l: 18px; --fs-xl: 30px;
+
+  --sp-1: 2px; --sp-2: 4px; --sp-3: 6px; --sp-4: 8px; --sp-5: 10px; --sp-6: 12px; --sp-7: 14px; --sp-8: 16px;
+  --h-ctl: 30px; --h-header: 52px; --h-strip: 40px; --w-side: 288px;
+
+  --hatch: repeating-linear-gradient(45deg, var(--ink-3) 0 1px, transparent 1px 4px);
+  --dash-2: 4 3; --dash-3: 1 3;
+  --blink: bl 0.8s steps(2) infinite;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1a1a1a; --fill: #222222; --fill-2: #3a3a3a;
+  --ink: #f2f2f2; --ink-2: #9a9a9a; --ink-3: #6e6e6e;
+  --hair: #3d3d3d; --hair-strong: #707070; --rule: #2a2a2a; --code-bg: #1d1d1d;
+  --accent: #ff3b4a; --on-accent: #1a1a1a; --sel: rgba(255, 59, 74, 0.09);
+  --tok-key: #f2f2f2; --tok-str: #a6a6a6; --tok-num: #f2f2f2; --tok-expr: #ff3b4a; --tok-com: #8c8c8c; --tok-punc: #8c8c8c;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #1a1a1a; --fill: #222222; --fill-2: #3a3a3a;
+  --ink: #f2f2f2; --ink-2: #9a9a9a; --ink-3: #6e6e6e;
+  --hair: #3d3d3d; --hair-strong: #707070; --rule: #2a2a2a; --code-bg: #1d1d1d;
+  --accent: #ff3b4a; --on-accent: #1a1a1a; --sel: rgba(255, 59, 74, 0.09);
+  --tok-key: #f2f2f2; --tok-str: #a6a6a6; --tok-num: #f2f2f2; --tok-expr: #ff3b4a; --tok-com: #8c8c8c; --tok-punc: #8c8c8c;
+  color-scheme: dark;
+}
+@keyframes bl { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  :root { --blink: none; }
+  .drop-hint { transition: none; }
+}
