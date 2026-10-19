@@ -1,6 +1,6 @@
 // The page-side client (apps/workbench/src/server-client.js) against the real application.
 import { describe, expect, it } from 'vitest';
-import { connectServer, serverToken, subscribe, ServerError } from '../../workbench/src/server-client.js';
+import { connectServer, sessionToken, subscribe, ServerError } from '../../workbench/src/server-client.js';
 import { HOST, jobBody, jobKernel, makeServer } from './support/server.ts';
 
 const clientFor = (s: ReturnType<typeof makeServer>, token = s.token) =>
@@ -9,8 +9,8 @@ const clientFor = (s: ReturnType<typeof makeServer>, token = s.token) =>
 describe('server-client.js', () => {
   it('finds the token in the served page, and is null without one', () => {
     const doc = (content: string | null) => ({ querySelector: (sel: string) => (sel === 'meta[name="kiln-token"]' && content ? { getAttribute: () => content } : null) });
-    expect(serverToken(doc('abc'))).toBe('abc');
-    expect(serverToken(doc(null))).toBeNull();
+    expect(sessionToken(doc('abc'))).toBe('abc');
+    expect(sessionToken(doc(null))).toBeNull();
     expect(connectServer({ token: null })).toBeNull();
   });
 

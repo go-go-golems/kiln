@@ -3,13 +3,14 @@
 // Every request other than GET sends the token and a JSON body, as the server requires (§30.2). Server-sent events
 // are notifications only: on `hello` (a new or re-established connection) the page re-reads what it shows.
 import { numel } from "@kiln/kiln/core/util.js";
+import { sessionToken } from "@kiln/kiln/std/devices.js";
 import { kernelInputs, referenceAt, sampleIndices, seedOf } from "@kiln/kiln/std/program.js";
 import { CODEGEN_VERSION, INPUT_SEED, contentOf, launchOf, symbolOf } from "@kiln/kiln/std/records.js";
 
 export const EVENT_TYPES = ["hello", "ping", "job.updated", "job.event", "records.added", "device.updated"];
 
-/** The session token of the served page, or null when the page was not served by the Kiln server. */
-export const serverToken = (doc = globalThis.document) => doc?.querySelector?.('meta[name="kiln-token"]')?.getAttribute("content") || null;
+// the session token of the served page (null when no server served it), read as the CUDA device reads it
+export { sessionToken };
 
 /** A refusal or failure from the server: `status` is the HTTP status, `code` the server's error word (bad_token, …). */
 export class ServerError extends Error {
@@ -32,7 +33,7 @@ const query = (o) => {
  * The client, or null when there is no token (no server). Options: `base` (default: this origin), `token`,
  * `fetch` and `EventSource` (injected by tests).
  */
-export function connectServer({ base = "", token = serverToken(), fetch: doFetch = globalThis.fetch?.bind(globalThis), EventSource: ES = globalThis.EventSource } = {}) {
+export function connectServer({ base = "", token = sessionToken(), fetch: doFetch = globalThis.fetch?.bind(globalThis), EventSource: ES = globalThis.EventSource } = {}) {
   if (!token) return null;
   const call = async (method, path, body, headers = {}) => {
     const init = { method, headers: { accept: "application/json", ...headers } };

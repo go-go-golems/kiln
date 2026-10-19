@@ -63,3 +63,11 @@ Phase 5a: apps/server (Hono + node:sqlite; Host/Origin/token/JSON checks; record
 - /Volumes/SSD/code/kiln/apps/server/src/jobs.ts — job validation, state machine and repetition protocol
 - /Volumes/SSD/code/kiln/apps/server/src/security.ts — Host, Origin, token and content-type checks
 - /Volumes/SSD/code/kiln/packages/evidence/src/protocol.ts — repetitionOrder and checkSamples, shared by page and server
+
+## 2026-10-19
+
+Vault report (phases 0–5a) pushed as playback-vault 534ff7f. CUDA device ids no longer depend on the route: the runner reports hostname, cudaDevice() in @kiln/evidence builds the identity for page and server; live CudaDevice runs send X-Kiln-Token
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/packages/evidence/src/identity.ts — cudaDevice, the one CUDA identity rule

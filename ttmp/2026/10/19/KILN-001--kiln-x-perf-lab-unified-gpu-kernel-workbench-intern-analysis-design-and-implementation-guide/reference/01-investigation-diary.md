@@ -1305,3 +1305,64 @@ that compares two copies.
 - Server diary: `reference/05-phase5-server-diary.md` (Steps 1–6, deviations from the guide, what the page
   integration needs). Its mentions of `protocol.ts` and `checkOutputs` describe the code before this step.
 - Screenshot: `various/screens/p5-served-by-server-1600.png`.
+
+## Step 12: The vault report, and one device id per CUDA GPU whatever the route
+
+I wrote and pushed the first project report to the vault, covering Phases 0–5a. While the Phase 4 UI worker ran, I
+settled the device-id question that the server review left open (Step 11, "What should be done in the future").
+The page fingerprinted a CUDA GPU with the runner's URL (or `"import"`) as its host. The server used the SSH
+destination or its own host name. The same GPU therefore got a different device id by each route, so its records
+could never pool.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (the vault report instruction is part of the second request).
+
+**Assistant interpretation:** Publish a report at this milestone; make a GPU's evidence id independent of how it
+was reached before Phase 5b connects page and server.
+
+**Inferred user intent:** Records from one GPU pool, whether a measurement came from the page, a server job or an
+imported results file.
+
+**Commit (code):** recorded in the changelog entry for this step.
+
+### What I did
+
+- Vault: `Projects/2026/10/19/PROJECT REPORT - Kiln - Measurements That Say What Ran - …md` with six screenshots in
+  `_assets/kiln-unified-workbench/`; commit `534ff7f` "Report: Kiln — measurements that say what ran (KILN-001
+  phases 0–5a)", pushed to `origin/main`.
+- Runner: `device_info` adds `hostname` (`socket.gethostname()`), the machine's own name.
+- `@kiln/evidence`: `cudaDevice(report, fallbackHost)` → `{id, name, fingerprint}`. The fingerprint is the report's
+  scalar fields; `host` is added only when the report has no `hostname` (runners older than this step).
+- Server `cudaIdentity` and the page's `CudaDevice.adopt` both call `cudaDevice`; their two copies of the
+  fingerprint rule are gone.
+- `CudaDevice.runKernels` sends `X-Kiln-Token` in live mode: the runner's serve mode refuses `POST /api/run`
+  without it since Phase 5a, so live CUDA runs from the served page were broken until now.
+- `sessionToken(doc)` lives in Kiln's `devices.js`; `server-client.js` imports and re-exports it instead of keeping
+  its own `serverToken`.
+
+### Why
+
+- The route is not a property of the GPU. The machine's host name and, with nvidia-smi, the GPU's UUID are, and the
+  runner already reports the UUID. Two GPUs of one model on one host still differ by UUID.
+
+### What worked
+
+- `pnpm test`: evidence 122 (3 new `cudaDevice` tests: three routes give one id; the fallback host; two UUIDs on one
+  host), Kiln 9, server 49, workbench 2. Server typecheck clean. `python3 -I -m py_compile runner/kiln_runner.py`.
+
+### What didn't work
+
+- The first test name, `'falls back to the caller's host …'`, closed its string at the apostrophe; renamed.
+
+### What warrants a second pair of eyes
+
+- Every CUDA device id changes once: old records carry `host: <route>`, new ones `hostname: <machine>`. No CUDA
+  records exist yet outside tests, so nothing is orphaned today.
+- The live-mode token fix is untested against a real runner; the server-side token check it satisfies is tested in
+  the runner diff of Phase 5a.
+
+### Code review instructions
+
+- `cudaDevice` at the end of `packages/evidence/src/identity.ts` and its tests; `cudaIdentity` in
+  `apps/server/src/devices.ts`; `adopt` and `runKernels` in `packages/kiln/src/std/devices.js`.

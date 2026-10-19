@@ -90,3 +90,18 @@ export function isFingerprint(x: unknown): x is Fingerprint {
   if (proto !== Object.prototype && proto !== null) return false;
   return Object.values(x).every((v) => typeof v === 'string' || typeof v === 'boolean' || (typeof v === 'number' && Number.isFinite(v)));
 }
+
+/**
+ * The identity of a CUDA GPU from the runner's device report (guide §23), for the page and the server alike. Every
+ * scalar field of the report enters the fingerprint; the runner reports only stable facts, including the machine's
+ * own `hostname` and, with nvidia-smi, the GPU's UUID. The same GPU therefore gets the same id whether it was reached
+ * through the runner's page, an SSH executor or an imported results file. `fallbackHost` is used only for reports
+ * from runners that predate the `hostname` field.
+ */
+export function cudaDevice(report: Record<string, unknown>, fallbackHost: string): { id: string; name: string; fingerprint: Fingerprint } {
+  const fingerprint: Fingerprint = {};
+  for (const [k, v] of Object.entries(report ?? {})) if (typeof v === 'string' || typeof v === 'boolean' || (typeof v === 'number' && Number.isFinite(v))) fingerprint[k] = v;
+  if (typeof fingerprint.hostname !== 'string' || !fingerprint.hostname) fingerprint.host = String(fallbackHost);
+  const model = typeof report?.name === 'string' && report.name.trim() ? report.name.trim() : '';
+  return { id: deviceId('cuda', model || 'cuda', fingerprint), name: `CUDA ${model}`.trim(), fingerprint };
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canonicalJSON } from '../src/canonical.ts';
-import { canonicalSource, contentId, deviceId, slug, type ContentIdInput } from '../src/identity.ts';
+import { canonicalSource, contentId, cudaDevice, deviceId, slug, type ContentIdInput } from '../src/identity.ts';
 import { sha256Hex } from '../src/sha256.ts';
 
 const spec = { id: 'rtx5090', sms: 170, l2: 96 << 20 };
@@ -108,5 +108,29 @@ describe('deviceId', () => {
     expect(slug('  Café  Ünïcode__x ')).toBe('cafe-unicode-x');
     expect(slug('***')).toBe('device');
     expect(slug('a'.repeat(100)).length).toBe(48);
+  });
+});
+
+describe('cudaDevice', () => {
+  const report = { name: 'NVIDIA RTX PRO 6000', cc: '12.0', sms: 188, pciBusId: '0000:01:00.0', gpuUuid: 'GPU-1234', nested: { x: 1 }, hostname: 'playback-rtx-dev' };
+
+  it('does not depend on the route that reached the GPU', () => {
+    const viaSsh = cudaDevice(report, 'playback@playback-rtx-dev'), viaPage = cudaDevice(report, 'http://localhost:8765'), viaFile = cudaDevice(report, 'import');
+    expect(viaPage.id).toBe(viaSsh.id);
+    expect(viaFile.id).toBe(viaSsh.id);
+    expect(viaSsh.id).toMatch(/^cuda:nvidia-rtx-pro-6000-[0-9a-f]{8}$/);
+    expect(viaSsh).toMatchObject({ name: 'CUDA NVIDIA RTX PRO 6000' });
+    expect(viaSsh.fingerprint).not.toHaveProperty('nested');
+    expect(viaSsh.fingerprint).not.toHaveProperty('host');
+  });
+
+  it('falls back to the given host for runners that predate hostname', () => {
+    const { hostname: _, ...old } = report;
+    expect(cudaDevice(old, 'a').fingerprint.host).toBe('a');
+    expect(cudaDevice(old, 'a').id).not.toBe(cudaDevice(old, 'b').id);
+  });
+
+  it('separates two GPUs of one model on one host by their UUID', () => {
+    expect(cudaDevice({ ...report, gpuUuid: 'GPU-5678' }, 'x').id).not.toBe(cudaDevice(report, 'x').id);
   });
 });

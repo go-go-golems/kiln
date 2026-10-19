@@ -2,7 +2,7 @@
 // its last probe or job reported. A CUDA device's identity is built from the runner's device report exactly as the
 // page's CudaDevice.adopt builds it (K/src/std/devices.js), so a job's records and an imported results file of the
 // same report carry the same device id when the host string agrees.
-import { deviceId, type Fingerprint } from '@kiln/evidence';
+import { cudaDevice, type Fingerprint } from '@kiln/evidence';
 import { all, now, type Db } from './db.ts';
 import type { EventBus } from './events.ts';
 import type { DeviceReport, Executor } from './executors/types.ts';
@@ -15,12 +15,9 @@ export interface CudaIdentity {
   fingerprint: Fingerprint;
 }
 
-/** name "CUDA <report name>", fingerprint = the report's flat fields + host, id deviceId('cuda', report name, fp). */
+/** The device's identity from a runner report: `cudaDevice` in @kiln/evidence, the rule the page uses too. */
 export function cudaIdentity(report: DeviceReport, host: string): CudaIdentity {
-  const flat = Object.fromEntries(Object.entries(report).filter(([, v]) => typeof v === 'string' || typeof v === 'boolean' || (typeof v === 'number' && Number.isFinite(v)))) as Fingerprint;
-  const fingerprint: Fingerprint = { ...flat, host: String(host) };
-  const name = typeof report.name === 'string' ? report.name : '';
-  return { id: deviceId('cuda', name || 'cuda', fingerprint), class: 'cuda', name: `CUDA ${name}`.trim(), fingerprint };
+  return { class: 'cuda', ...cudaDevice(report, host) };
 }
 
 export interface DeviceView {

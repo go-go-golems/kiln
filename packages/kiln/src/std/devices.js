@@ -7,7 +7,7 @@
 import { SPECS, WEBGPU_DEFAULT, target } from "./targets.js";
 import { simulateKernel, kernelInputs, referenceAt, sampleIndices, seedOf } from "./program.js";
 import { numel, median } from "../core/util.js";
-import { checkSamples, deviceId, repetitionOrder } from "@kiln/evidence";
+import { checkSamples, cudaDevice, deviceId, repetitionOrder } from "@kiln/evidence";
 import { INPUT_SEED, specHash } from "./records.js";
 
 // Every device has two ids: `id`, the stable key the UI and presets select it by ("sim:rtx5090", "webgpu", "cuda"),
@@ -285,6 +285,10 @@ export class WebGpuDevice {
   }
 }
 
+// The session token a serving process (the runner's serve mode, the Kiln server) writes into the page it serves;
+// both run code only for requests that carry it back as X-Kiln-Token.
+export const sessionToken = (doc = globalThis.document) => doc?.querySelector?.('meta[name="kiln-token"]')?.getAttribute("content") || null;
+
 // a CUDA box running runner/kiln_runner.py; live only when this page is served by that runner
 export class CudaDevice {
   constructor(base = null) { this.id = "cuda"; this.kind = "cuda"; this.name = "CUDA runner"; this.label = "CUDA · runner"; this.base = base; this.status = "not connected"; this.target = target(SPECS.rtx5090); this.info = null; this.fingerprint = null; this.evidenceId = null; }
@@ -307,16 +311,15 @@ export class CudaDevice {
     this.info = info || {};
     this.name = `CUDA ${this.info.name || ""}`.trim();
     this.label = this.name;
-    const flat = Object.fromEntries(Object.entries(this.info).filter(([, v]) => typeof v === "string" || typeof v === "boolean" || (typeof v === "number" && Number.isFinite(v))));
-    this.fingerprint = { ...flat, host: String(host) };
-    this.evidenceId = deviceId("cuda", this.info.name || "cuda", this.fingerprint);
+    ({ id: this.evidenceId, fingerprint: this.fingerprint } = cudaDevice(this.info, host));
     this.runnerVersion = this.info.version ?? null;
   }
   describe() { return { kind: "CUDA through kiln_runner.py", ...(this.info || {}), status: this.status, note: "nvcc compiles each kernel; CUDA events time it; optional Nsight Compute metrics" }; }
   async runKernels(kernels, opts = {}) {
     if (!(await this.probe())) throw new Error(this.status);
     const body = bundle(kernels, opts);
-    const r = await fetch(this.base + "/api/run", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const token = sessionToken();
+    const r = await fetch(this.base + "/api/run", { method: "POST", headers: { "content-type": "application/json", ...(token ? { "x-kiln-token": token } : {}) }, body: JSON.stringify(body) });
     if (!r.ok) throw new Error(`runner: HTTP ${r.status} ${await r.text()}`);
     return ingest(await r.json(), kernels, opts);
   }

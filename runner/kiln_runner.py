@@ -29,6 +29,7 @@ import re
 import secrets
 import shutil
 import signal
+import socket
 import statistics
 import subprocess
 import sys
@@ -189,6 +190,8 @@ def device_info(arch, nvcc):
         if "error" in _device:
             raise RuntimeError(_device["error"])
         _device.update(nvidia_smi(_device.get("pciBusId")))
+        # the machine's own name: the device id must not depend on the route (SSH destination, URL) that reached it
+        _device["hostname"] = socket.gethostname()
     return _device
 
 
