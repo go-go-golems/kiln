@@ -1789,7 +1789,7 @@ the as-built design, and commit my work together with the gateway worker's.
 **Inferred user intent:** An agent that can work on the user's compiler and propose GPU jobs without being able to act
 with the user's authority, and with its model use counted.
 
-**Commit (code):** recorded in the next checkpoint.
+**Commit (code):** `55e6b2e` "Agent: eval in a worker inside a sandboxed frame, held scripts, model gateway with token rows (Phase 7)".
 
 ### What I did
 
@@ -1887,7 +1887,7 @@ with the user's authority, and with its model use counted.
   after measuring.
 - Some calls are made while a script is held, and their results would describe a compile that the editor no longer
   shows. Each such call refuses with `HeldScriptError` rather than answering about the stale compile.
-- Embedding a 1.5 MB bundle in `srcdoc`: a `<script>` element ends at `</script` and changes parsing state at `<!--`.
+- Embedding the worker's 310 KB bundle in `srcdoc`: a `<script>` element ends at `</script` and changes parsing state at `<!--`.
   Encoding the bundle as a JSON string literal with every `<` written as `<` keeps every byte of it out of the
   HTML parser's way and preserves the code exactly.
 
@@ -1921,3 +1921,11 @@ with the user's authority, and with its model use counted.
   `{t:"done", ok, out, lang, logs}`.
 - `agent-e2e.mjs` env for the development server: `KILN_MODEL=fake-model`,
   `KILN_MODEL_URL=http://127.0.0.1:<fake>/v1/messages`, `ANTHROPIC_API_KEY=<random test value>`.
+
+### Vault report
+
+The second project report, covering Phases 4c, 5b, 6 and 7, is
+`Projects/2026/10/19/PROJECT REPORT - Kiln - The Agent Proposes and the User Decides - …md` in the playback vault,
+with seven screenshots added to `_assets/kiln-unified-workbench/`; vault commit `43572ed`, pushed to `origin/main`.
+Writing it corrected two numbers here: the worker bundle is 310 KB (the 1.5 MB figure is the whole page), and the page
+answers 44 API paths.

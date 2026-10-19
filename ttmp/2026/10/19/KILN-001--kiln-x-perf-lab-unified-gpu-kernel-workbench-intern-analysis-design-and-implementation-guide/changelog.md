@@ -128,3 +128,7 @@ Phase 7: agent eval code runs in a worker inside a sandboxed opaque-origin frame
 - /Volumes/SSD/code/kiln/apps/workbench/src/agent/sandbox.js — frame document, CSP, port server
 - /Volumes/SSD/code/kiln/apps/workbench/src/compile.js — the compile path shared by page and worker
 - /Volumes/SSD/code/kiln/apps/workbench/test/agent-e2e.mjs — browser done-condition test
+
+## 2026-10-19
+
+Vault report 2 (phases 4c, 5b, 6, 7) pushed: playback-vault 43572ed. Phase 7 code commit 55e6b2e recorded in diary Step 18.
