@@ -1463,6 +1463,14 @@ kernels, so each repetition yields one sample of each in a random order. Records
 position in each repetition; `ev.ratio` (§29) uses `pairedRatio` when two records share a `pairId`, and an unpaired
 ratio of medians (with its own note) otherwise.
 
+As built (Phase 6): `measurePaired({pipeline, graph, params, device, store, identity, rows})` in
+`K/src/std/tune.js` compiles the program once per row with the kernel `identity` pinned to it (the
+`kernelPinPolicy` the Knobs view's pins use, chained in front of the caller's policies), refuses a row the compile
+cannot honour and two sides that are one schedule, then passes the sides' kernels to one `measureKernels` call. A
+device without a protocol (the simulator) runs each side once; its paired ratio has zero width. Pairing in
+`ev.ratio` is by repetition index, which is sound because a record with a failed repetition is invalid and never
+decisive (§27).
+
 **Export and import.** The `kiln-bundle/1` export remains for machines the server cannot reach; the runner's output
 is imported as records with `by: "import"`.
 
@@ -1479,10 +1487,17 @@ project("rmsnorm")
   .program(/* … as in W-05 … */)
   .hypothesis("row-beats-thread", h => h
     .claim("For rows of 4096, one row per block is at least twice as fast as one element per thread.")
-    .predicts(ev => ev.ratio("rms_norm", { a: "MAP=thread", b: "MAP=row" }), r => r.hi < 0.5)
+    .predicts(ev => ev.ratio("rms_norm", { a: "MAP=thread", b: "MAP=row" }), r => std.evidence.below(r, 0.5))
     .alternatives("A block per row leaves SMs idle when there are fewer rows than SM slots")
     .scope("the current device; fp32; default sliders"));
 ```
+
+A claim about an interval needs a three-valued predicate. `r.hi < 0.5` returns `false` whenever the interval reaches
+0.5, and `false` is a counterexample, so a wide interval would *refute* a claim it merely cannot confirm. The
+helpers `below(r, bound)` and `above(r, bound)` (`@kiln/evidence`, also `std.evidence`) return `true` when the
+whole interval `[r.lo, r.hi]` is on the claimed side, `false` when it is wholly on the other side, and `null` when
+it straddles the bound; `null` leaves the row undecided and the hypothesis `open` (§29.3). The case is not
+hypothetical: an unpaired ratio on a GPU with clock states has an interval like `[0.13, 1.2]` around a median of 0.4.
 
 In the notes, a fenced block renders the hypothesis as a card with its live verdict:
 
@@ -1518,7 +1533,7 @@ verdict({rows, predicate, support}):
     try   out = predicate(view)
     catch e: check = {pass: null, error: e.message}                          # an error is never a refutation (fixes P-8)
     missing = the read paths whose value is missing (a missing Value, null, undefined or NaN)
-    pass = out is Value ? (out missing ? null : Boolean(out.value)) : (out is NaN ? null : Boolean(out))
+    pass = out is Value ? (out missing ? null : Boolean(out.value)) : (out is null, undefined or NaN ? null : Boolean(out))
     if missing is not empty: pass = null                                     # a row with missing inputs can neither support nor refute
   if some check.pass == false:                  return refuted   (one clean counterexample)
   if some check.pass == null:                   return open      (with the missing fields and errors)

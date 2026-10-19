@@ -39,7 +39,8 @@ export interface VerdictResult<Row> {
  * Judge `predicate` over `rows`:
  * 1. any invalid record in `support` → unqualified (its validity reasons);
  * 2. no rows → open ("no rows: nothing measured yet");
- * 3. per row: a throw is undecided (null, error kept); a result that is NaN or a missing Value is undecided;
+ * 3. per row: a throw is undecided (null, error kept); a result that is null, undefined, NaN or a missing Value is
+ *    undecided;
  *    a decided result whose predicate read a missing field becomes undecided — it neither supports nor refutes;
  * 4. any clean false → refuted; else any undecided → open; else supported.
  * "Read" is tracked at every depth (`r.k.t` records `k.t`): a missing field the predicate never looked at does not
@@ -69,7 +70,7 @@ export function verdict<Row extends object>({ rows, predicate, support = [] }: V
     const missing = missingOf(row, read);
     let pass: boolean | null;
     if (isValue(out)) pass = out.value === null ? null : Boolean(out.value);
-    else if (typeof out === 'number' && Number.isNaN(out)) pass = null;
+    else if (out === null || out === undefined || (typeof out === 'number' && Number.isNaN(out))) pass = null;
     else pass = Boolean(out);
     if (missing.length) pass = null;
     return { row, pass, missing };
@@ -139,3 +140,12 @@ function missingOf(row: object, read: ReadonlyMap<string, readonly string[]>): s
   const at = (keys: readonly string[]): unknown => keys.reduce<unknown>((o, k) => (o !== null && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined), row);
   return [...read].filter(([, keys]) => isMissing(at(keys))).map(([name]) => name);
 }
+
+/**
+ * Three-valued interval tests for predicates over rows with `lo` and `hi` (ev.ratio, ev.kernels, ev.total): true when
+ * the whole interval lies on the claimed side of `bound`, false when the whole interval lies on the other side, and
+ * null (undecided, so the hypothesis stays open) when it straddles the bound. A two-valued `r.hi < bound` would read
+ * a wide interval as a counterexample.
+ */
+export const below = (r: { lo: unknown; hi: unknown }, bound: number): boolean | null => (Number(r.hi) < bound ? true : Number(r.lo) >= bound ? false : null);
+export const above = (r: { lo: unknown; hi: unknown }, bound: number): boolean | null => (Number(r.lo) > bound ? true : Number(r.hi) <= bound ? false : null);

@@ -10,10 +10,10 @@ import { gpu, emitPass, emitRule, programOf, simulateKernel, kernelInputs, refer
 import { toCuda, toWgsl, toSim } from "./emit.js";
 import { pipeline, defaultDecide, IRS, passes, dialects } from "./emmy.js";
 import { SPECS, target } from "./targets.js";
-import { tune, measureProgram } from "./tune.js";
+import { tune, measureProgram, measurePaired, kernelPinPolicy } from "./tune.js";
 import { Store, EvidenceStore } from "./store.js";
 import { Hypothesis, evidenceContext, evaluateHypotheses } from "./evidence-context.js";
-import { combine, derived, heuristic, isMissing, missing, observed } from "@kiln/evidence";
+import { above, below, combine, derived, heuristic, isMissing, missing, observed } from "@kiln/evidence";
 import { FNS, REDUCERS } from "./fns.js";
 
 export const std = {
@@ -24,9 +24,10 @@ export const std = {
   tile: { dialect: tile, pass: tilePass, rule: scheduleRule, costPrior, analyze, estimate, timeModel, launch, KNOBS, MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, canonRow, forkTree, legalMaps },
   kernel: { dialect: kern, pass: kernelPass, materialize, rule: materializeRule, dropRedundantSyncs, KB, kx, print: printKernelBody },
   gpu: { dialect: gpu, pass: emitPass, rule: emitRule, programOf, simulateKernel, kernelInputs, referenceAt, toCuda, toWgsl, toSim },
-  targets: SPECS, target, tune, measureProgram, Store, EvidenceStore, FNS, REDUCERS, ix: IX,
-  // the Value constructors, for hypothesis rows a script computes itself (a missing Value keeps its row open with the reason)
-  evidence: { evidenceContext, evaluateHypotheses, missing, derived, heuristic, observed, combine, isMissing },
+  targets: SPECS, target, tune, measureProgram, measurePaired, kernelPinPolicy, Store, EvidenceStore, FNS, REDUCERS, ix: IX,
+  // the Value constructors, for hypothesis rows a script computes itself (a missing Value keeps its row open with the reason);
+  // below/above: three-valued interval tests, so an interval that straddles a bound leaves the hypothesis open
+  evidence: { evidenceContext, evaluateHypotheses, missing, derived, heuristic, observed, combine, isMissing, below, above },
 };
 
 // ----------------------------------------------------------------------------- projects

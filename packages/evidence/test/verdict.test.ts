@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { derived, heuristic, missing, observed, ProvenanceError, seal, type Value } from '../src/values.ts';
-import { verdict } from '../src/verdict.ts';
+import { above, below, verdict } from '../src/verdict.ts';
 import { makeRecord } from './fixtures.ts';
 
 type Ratio = { ratio: Value; lo: Value; hi: Value; n: number };
@@ -105,5 +105,25 @@ describe('verdict: the truth table of guide §29.3', () => {
     const s = seal({ x: observed(2) });
     expect(verdict({ rows: [s], predicate: (r) => n(r.x) > 1 }).verdict).toBe('supported');
     expect(() => { throw new ProvenanceError('x'); }).toThrow(ProvenanceError);
+  });
+});
+
+describe('three-valued predicates', () => {
+  const row = (lo: number, hi: number) => ({ lo: derived(lo), hi: derived(hi) });
+
+  it('a predicate returning null or undefined leaves the row undecided, not refuted', () => {
+    expect(verdict({ rows: [{ x: 1 }], predicate: () => null }).verdict).toBe('open');
+    expect(verdict({ rows: [{ x: 1 }], predicate: () => undefined }).verdict).toBe('open');
+  });
+
+  it('below and above decide only when the whole interval is on one side', () => {
+    expect([below(row(0.3, 0.4), 0.5), below(row(0.5, 0.9), 0.5), below(row(0.13, 1.2), 0.5)]).toEqual([true, false, null]);
+    expect([above(row(1.1, 1.3), 1), above(row(0.8, 1), 1), above(row(0.9, 1.2), 1)]).toEqual([true, false, null]);
+    expect(verdict({ rows: [row(0.13, 1.2)], predicate: (r) => below(r, 0.5) }).verdict).toBe('open');
+    expect(verdict({ rows: [row(0.6, 1.2)], predicate: (r) => below(r, 0.5) }).verdict).toBe('refuted');
+  });
+
+  it('an interval bound that is missing keeps the row open', () => {
+    expect(verdict({ rows: [{ lo: missing('no data'), hi: missing('no data') }], predicate: (r) => below(r, 0.5) }).verdict).toBe('open');
   });
 });

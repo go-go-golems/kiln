@@ -17,6 +17,6 @@ project("rmsnorm")
   .about("y = x · rsqrt(mean(x²) + ε) · w")
   .hypothesis("row-beats-thread", (h) => h
     .claim("For rows of 4096, one row per block is at least twice as fast as one element per thread.")
-    .predicts((ev) => ev.ratio("k_rms_norm_reduce", { a: "MAP=thread", b: "MAP=row" }), (r) => r.hi < 0.5)
+    .predicts((ev) => ev.ratio("k_rms_norm_reduce", { a: "MAP=thread", b: "MAP=row" }), (r) => std.evidence.below(r, 0.5))  // open while the interval straddles 0.5
     .alternatives("A block per row leaves SMs idle when there are fewer rows than SM slots")
     .scope("the current device; fp32; the current sizes"));

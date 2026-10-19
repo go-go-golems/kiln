@@ -5,7 +5,7 @@
 //   sweep   per kernel: measure the cost model's top N options
 import { k, knobs as KN } from "../core/kiln.js";
 import { programOf } from "./program.js";
-import { costPrior } from "./tile.js";
+import { canonRow, costPrior } from "./tile.js";
 import { activationOf } from "./records.js";
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -52,6 +52,61 @@ export async function measureProgram(prog, device, { store = null, memo = new Ma
   }
   const total = out.reduce((a, r) => a + (r.error || r.check?.ok === false ? Infinity : r.us), 0);
   return { kernels: out, total };
+}
+
+// The policy behind the Knobs view's per-kernel pins: `pins` maps a kernel identity (a fork's key) to a schedule row,
+// in short (canonRow) or canonical form. A fork it cannot honour falls through to the next policy, and the record's
+// activation check then reports the mismatch.
+export function kernelPinPolicy(pins) {
+  return { name: "kernel pin", rank: (fp) => {
+    const want = pins[fp.key];
+    if (!want) return null;
+    const i = fp.options.findIndex((o) => canonRow(o.knobs) === want || KN.canonical(o.knobs) === want);
+    return i < 0 ? null : { order: [i, ...fp.options.map((_, j) => j).filter((j) => j !== i)], by: "kernel-pin" };
+  } };
+}
+
+const newPairId = () => globalThis.crypto?.randomUUID?.() ?? `pair-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
+/**
+ * A paired comparison (guide §28) of one kernel under two or more schedules. Each side compiles the program with
+ * the kernel `identity` pinned to its row; the sides' kernels then run in ONE protocol run, so every repetition has
+ * a sample of each, in a seeded order, under the same GPU state. Their records share a `pairId`, and ev.ratio uses
+ * the paired estimator for them. `pipeline` is the caller's (its own pins and policies stay behind this side's).
+ * Throws before measuring when a side's compile cannot honour its row or two sides are one schedule.
+ * → { pairId, sides: [{ row, kern, result, record }] }
+ */
+export async function measurePaired({ pipeline, graph, params, device, store = null, identity, rows, onStep }) {
+  if (!Array.isArray(rows) || rows.length < 2) throw new Error("measurePaired: give at least two schedule rows");
+  const ctx = { deviceId: device.evidenceId ?? device.id, store };
+  const sides = rows.map((row) => {
+    const pins = { [identity]: row };
+    const run = pipeline.with({ target: device.target, decide: k.decide.chain(kernelPinPolicy(pins), pipeline._decide) }).run(graph, { params, ctx });
+    if (!run.ok) throw new Error(`compiling with ${row}: ${run.error.message}`);
+    const kern = programOf(run.graph).kernels.find((kn) => kn.identity === identity);
+    if (!kern) throw new Error(`no kernel with identity ${identity} in the program`);
+    const act = activationOf(kern, { run, kernelPins: pins });
+    if (!act.ok) throw new Error(`${kern.name}: the compile could not honour ${row} (materialised ${act.materialized})`);
+    return { row: kern.row, kern, activation: act };
+  });
+  const seen = new Set();
+  for (const s of sides) { if (seen.has(s.row)) throw new Error(`two sides are the same schedule: ${s.row}`); seen.add(s.row); }
+  let results;
+  if (device.measureKernels) {
+    try { results = await device.measureKernels(sides.map((s) => s.kern), {}, { onStep }); }
+    catch (e) { results = sides.map(() => ({ error: e.message || String(e), us: Infinity })); }
+  } else {
+    results = [];
+    for (const [i, s] of sides.entries()) {
+      try { results.push(await device.runKernel(s.kern, { seed: 1 })); } catch (e) { results.push({ error: e.message || String(e), us: Infinity }); }
+      onStep?.(i + 1, sides.length);
+    }
+  }
+  const pairId = newPairId();
+  return {
+    pairId,
+    sides: sides.map((s, i) => ({ row: s.row, kern: s.kern, result: results[i], record: store ? store.record({ device, kern: s.kern, result: results[i], by: "measure", activation: s.activation, pairId }) : null })),
+  };
 }
 
 export async function tune({ pipeline, graph, params, device, store, strategy = "spmcts", budget = 32, patience = 24, c = Math.SQRT2, perKernel = 6, rollout = null, prior = costPrior, onProgress = () => {}, signal = null }) {

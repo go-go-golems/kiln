@@ -71,3 +71,12 @@ Vault report (phases 0–5a) pushed as playback-vault 534ff7f. CUDA device ids n
 ### Related Files
 
 - /Volumes/SSD/code/kiln/packages/evidence/src/identity.ts — cudaDevice, the one CUDA identity rule
+
+## 2026-10-19
+
+Phase 6a: measurePaired (one kernel under two schedules in one protocol run, shared pairId) and kernelPinPolicy in Kiln; verdict treats null predicates as undecided, with below/above three-valued interval helpers; W-05 and W-19 predicates three-valued
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/packages/kiln/src/std/tune.js — measurePaired and kernelPinPolicy
+- /Volumes/SSD/code/kiln/packages/kiln/test/paired.mjs — paired vs unpaired under a clocked fake GPU

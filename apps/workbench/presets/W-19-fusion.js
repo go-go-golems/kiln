@@ -31,6 +31,11 @@ project("fusion")
   })
   .hypothesis("model-tracks-elementwise", (h) => h
     .claim("The cost model predicts the time of every kernel in this program to within 25 %, fused or not.")
-    .predicts((ev) => ev.kernels(), (r) => Math.abs(r.time / r.model - 1) <= 0.25)
+    .predicts((ev) => ev.kernels(), (r) => {
+      // time / model as an interval: inside [0.75, 1.25] supports, wholly outside refutes, straddling stays open
+      const q = { lo: r.lo / r.model, hi: r.hi / r.model };
+      const above = std.evidence.above(q, 0.75), below = std.evidence.below(q, 1.25);
+      return above === false || below === false ? false : above && below ? true : null;
+    })
     .alternatives("Small unfused kernels are dominated by launch overhead, which the model counts as a constant")
     .scope("every kernel of the current program; the current device"));

@@ -12,4 +12,4 @@ export { sha256Hex, isSha256Hex } from './sha256.ts';
 export { canonicalJSON, CanonicalJSONError } from './canonical.ts';
 export { type Lang, type DeviceClass, type Fingerprint, type Launch, type ContentIdInput, canonicalSource, contentId, cudaDevice, deviceId, slug, isFingerprint } from './identity.ts';
 export { type MeasurementRecord, type TimingKind, type Validation, RECORD_FORMAT, recordId, validateRecord, isDecisive } from './record.ts';
-export { type Verdict, type Check, type SupportRecord, type VerdictInput, type VerdictResult, verdict } from './verdict.ts';
+export { type Verdict, type Check, type SupportRecord, type VerdictInput, type VerdictResult, verdict, below, above } from './verdict.ts';

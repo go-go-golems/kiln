@@ -1366,3 +1366,95 @@ imported results file.
 
 - `cudaDevice` at the end of `packages/evidence/src/identity.ts` and its tests; `cudaIdentity` in
   `apps/server/src/devices.ts`; `adopt` and `runKernels` in `packages/kiln/src/std/devices.js`.
+
+## Step 13: Phase 6, part 1 — paired runs in Kiln, and predicates that can say "not yet"
+
+While the Phase 4 UI worker had the workbench's files, I built the Kiln side of Phase 6: `measurePaired`, which
+compiles one kernel under two schedules and measures both in one protocol run so their records share a `pairId`.
+`ev.ratio` already had a paired path; nothing had produced pairs until now.
+
+Writing its test exposed a defect in how hypotheses read intervals. On the same samples stored without a pair id,
+W-05's claim (`r.hi < 0.5`) came out **refuted**, from an interval of `[0.133, 1.2]` around a median of 0.4. That
+interval does not contradict the claim; it is too wide to confirm it. `verdict` turned a predicate's `null` into
+`false`, so a predicate had no way to say "undecided". Now `null` and `undefined` are undecided, and two helpers
+make interval claims three-valued.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1.
+
+**Assistant interpretation:** Continue the plan (guide §35, Phase 6) on files the Phase 4 worker is not editing.
+
+**Inferred user intent:** A comparison that holds on a GPU whose clock changes between repetitions.
+
+**Commit (code):** recorded in the changelog entry for this step.
+
+### What I did
+
+- `K/src/std/tune.js`:
+  - `kernelPinPolicy(pins)`: the Knobs view's per-kernel pin policy, now in Kiln. `wb.js` still has its own inline
+    copy, to be replaced once the worker is done with `wb.js`.
+  - `measurePaired({pipeline, graph, params, device, store, identity, rows})`:
+    - compiles once per row with that kernel pinned;
+    - refuses a row the compile cannot honour, and two sides that are one schedule;
+    - runs all sides in one `measureKernels` call (or `runKernel` each on the simulator);
+    - stores records with one shared `pairId`.
+- `@kiln/evidence` `verdict`: a predicate returning `null` or `undefined` leaves its row undecided. New helpers:
+  - `below(r, bound)` / `above(r, bound)` return `true` when `[r.lo, r.hi]` is wholly on the claimed side, `false`
+    when it is wholly on the other side, and `null` when it straddles the bound.
+- Both helpers and `measurePaired` are exported in `std`.
+- Presets:
+  - W-05 predicts `std.evidence.below(r, 0.5)`.
+  - W-19 checks `time / model` as an interval within [0.75, 1.25], three-valued.
+- `K/test/paired.mjs` (15 checks). A fake GPU scales every sample of a repetition by a clock factor
+  (1, 3, 1, 1, 3, 1, 3):
+  - the paired ratio is exactly 0.4 with a zero-width interval, and the hypothesis is supported;
+  - the same samples unpaired give a ratio of medians with an interval of [0.133, 1.200], and the hypothesis stays
+    open;
+  - the three refusals above;
+  - on the simulator the paired ratio has zero width and is heuristic.
+- Guide §28 "as built" paragraph for paired runs; guide §29.1 explains three-valued predicates; §29.3 pseudocode
+  updated.
+
+### Why
+
+- One protocol run is the only way both sides see the same clock state; section 7.3 of the vault report measured
+  3× swings between separately run measurements on the M1 Pro.
+- Pairing in `ev.ratio` is by repetition index. That is sound only because a record with a failed repetition is
+  invalid and never decisive (`makeRecord`: "small n: k of r repetitions completed").
+- "Refuted" must mean a clean counterexample (§29.3). A two-valued test on an interval bound cannot distinguish
+  "wholly on the wrong side" from "too wide to tell".
+
+### What worked
+
+- `pnpm test`: evidence 125 (3 new verdict tests), Kiln 10 files (paired.mjs added), server 49, workbench 2.
+- The probe: W-05 is open before measuring the thread schedule and supported after; W-19 is supported fused and
+  unfused on the simulator.
+
+### What didn't work
+
+- The first test run: `TypeError: ev.ratio is not a function`, because `evidenceContext` returns `{ev, support}`.
+
+### What I learned
+
+- `canonRow` drops default knobs, so the fork's thread option reads `TPB=64`, not `MAP=thread,TPB=64`. The pins
+  match either form.
+
+### What warrants a second pair of eyes
+
+- W-25's predicates (`rho >= 0.9`, `regret <= 1.1`) are still two-valued, over point values without intervals.
+  That is correct while ρ and regret carry no interval.
+- `measurePaired` compiles each side with the caller's pipeline, so the caller's own kernel pins sit behind the
+  side's pin. A user pin on a *different* kernel still applies to both sides, which is what a comparison of one
+  kernel needs.
+
+### What should be done in the future
+
+- The Compare panel in Perf (two rows of a fork → `measurePaired` → the ratio with its interval), and `wb.js`
+  using `kernelPinPolicy`.
+- The Phase 6 done-condition on this Mac's GPU: a paired WebGPU comparison of two RMSNorm schedules judging W-05.
+
+### Code review instructions
+
+- `measurePaired` and `kernelPinPolicy` in `packages/kiln/src/std/tune.js`; `below`/`above` and the `null` branch
+  in `packages/evidence/src/verdict.ts`; `node packages/kiln/test/paired.mjs`.
