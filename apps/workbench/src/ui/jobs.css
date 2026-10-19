@@ -1,0 +1,17 @@
+/* the Jobs view (guide §30.4): a job per row, its times stacked; the side panel's event lines and records */
+.jobt td { vertical-align: top; }
+.jobt td small { display: block; color: var(--ink-2); font-size: var(--fs-2xs); }
+.jobt td.jwhat { white-space: normal; min-width: 200px; max-width: 420px; }
+.jobt td.acts { white-space: nowrap; }
+.jobt td.acts .btn + .btn { margin-left: 6px; }
+.jobt tr.clickable:focus-visible td { background: var(--fill); outline: none; box-shadow: inset 0 -1px 0 var(--ink); }
+.jev { display: flex; flex-direction: column; gap: 1px; max-height: 340px; overflow-y: auto; font: 400 var(--fs-2xs)/1.45 var(--code); }
+.jev > div { display: grid; grid-template-columns: 58px 72px minmax(0, 1fr); gap: 6px; }
+.jev .t, .jev .kd { color: var(--ink-2); }
+.jev .s { overflow-wrap: anywhere; white-space: pre-wrap; }
+.jev .bad .kd, .jev .bad .s { color: var(--accent); }
+.jrecs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-xs); }
+.jrecs li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.srvline b { font-size: var(--fs-s); }
+.srvline code { background: var(--fill); padding: 0 3px; }
+@container stage (max-width: 560px) { .jobt .at { display: none; } }

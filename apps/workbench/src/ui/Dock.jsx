@@ -110,7 +110,7 @@ function Tile({ node }) {
 }
 
 function Strip({ node }) {
-  useLab("compile", "measure", "tune", "store", "agent", "device");
+  useLab("compile", "measure", "tune", "store", "agent", "device", "jobs");
   const [menu, setMenu] = useState(null);
   const maxed = lab.maxTile === node.id;
   const elsewhere = D.ALL_VIEWS.filter((v) => !node.views.includes(v));
@@ -296,7 +296,7 @@ function DragLayer() {
 
 // ---------- narrow screens: one strip with every view ----------
 function PhoneDock() {
-  useLab("layout", "compile", "measure", "tune", "agent");
+  useLab("layout", "compile", "measure", "tune", "agent", "jobs");
   const views = D.flatViews(lab.layout);
   const v = views.includes(lab.phoneView) ? lab.phoneView : "ir";
   return (

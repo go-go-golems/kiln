@@ -289,6 +289,13 @@ export class WebGpuDevice {
 // both run code only for requests that carry it back as X-Kiln-Token.
 export const sessionToken = (doc = globalThis.document) => doc?.querySelector?.('meta[name="kiln-token"]')?.getAttribute("content") || null;
 
+// The target the compiler sees for a CUDA device, from its runner's device report: the known GPU of that compute
+// capability (an RTX 5090 when none matches), with the report's SM count and shared memory per block.
+export function cudaTarget(info, name) {
+  const spec = Object.values(SPECS).find((s) => info?.cc && String(s.sm) === String(info.cc).replace(".", "")) || SPECS.rtx5090;
+  return target({ ...spec, name, sms: info?.sms || spec.sms, smemPerBlock: info?.smemPerBlock || spec.smemPerBlock });
+}
+
 // a CUDA box running runner/kiln_runner.py; live only when this page is served by that runner
 export class CudaDevice {
   constructor(base = null) { this.id = "cuda"; this.kind = "cuda"; this.name = "CUDA runner"; this.label = "CUDA · runner"; this.base = base; this.status = "not connected"; this.target = target(SPECS.rtx5090); this.info = null; this.fingerprint = null; this.evidenceId = null; }
@@ -300,8 +307,7 @@ export class CudaDevice {
       if (!r.ok) throw new Error("HTTP " + r.status);
       this.adopt(await r.json(), base);
       this.base = base;
-      const spec = Object.values(SPECS).find((s) => this.info.cc && String(s.sm) === String(this.info.cc).replace(".", "")) || SPECS.rtx5090;
-      this.target = target({ ...spec, name: this.name, sms: this.info.sms || spec.sms, smemPerBlock: this.info.smemPerBlock || spec.smemPerBlock });
+      this.target = cudaTarget(this.info, this.name);
       this.status = "ready";
       return true;
     } catch (e) { this.status = "not connected: " + (e.message || e); return false; }

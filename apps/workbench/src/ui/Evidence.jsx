@@ -52,9 +52,11 @@ export function EvidenceView() {
   };
   const forget = (filter) => {
     const n = filter ? wb.store.list(filter).length : wb.store.size;
+    const devices = filter ? [filter.device] : [...new Set(wb.store.list().map((r) => r.device.id))];
     wb.store.forget(filter || {});
+    wb.forgetOnServer(devices);
     setArmed(false);
-    wb.toast(`Forgot ${plural(n, "record")}`);
+    wb.toast(`Forgot ${plural(n, "record")}${wb.server ? " here and on the server" : ""}`);
     wb.compile();
   };
 

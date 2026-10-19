@@ -14,6 +14,9 @@ import { Tensor, compare, fmtUs, clip } from "@kiln/kiln/core/util.js";
 import { PRESETS } from "../presets.gen.js";
 import { REFERENCE, GUIDELINES, RUNNER } from "../docs.gen.js";
 import * as Dock from "./dock.js";
+import { median } from "@kiln/kiln/core/util.js";
+import { connectServer, jobSpec } from "../server-client.js";
+import { recordSync, serverDevices, upsertJob, addJobEvent } from "../server-sync.js";
 
 const LS = "kiln-wb:";
 export const lsGet = (key, d) => { try { const v = localStorage.getItem(LS + key); return v == null ? d : JSON.parse(v); } catch { return d; } };
@@ -36,6 +39,8 @@ class Workbench {
     // kiln-evidence/2 records; a kiln-evidence/1 store from before becomes legacy records once
     try { const saved = lsGet("evidence2", null); if (saved) this.store.import(saved); else { const old = lsGet("evidence", null); if (old?.rows?.length) this.store.import(old); } } catch {}
     this.store.on(() => { clearTimeout(this._st); this._st = setTimeout(() => lsSet("evidence2", this.store.toJSON()), 400); this.bump("store"); });
+    // the Kiln server that served this page, if one did (guide §30); see the server section
+    this.server = connectServer(); this.serverInfo = { state: this.server ? "connecting" : "none" }; this.jobs = []; this.awaiting = new Map(); this.proposed = new Set();
     this.measures = {}; this.history = []; this.measuring = false;
     this.tuning = null;
     this.events = [];
@@ -51,6 +56,12 @@ class Workbench {
       if (t) this.layout = Dock.normalize(Dock.moveToTab(this.layout, "evidence", t.id, t.views.indexOf("tune") + 1 || null));
     }
     // layouts saved before the Hypotheses view existed: put Hypotheses beside Evidence, once
+    // layouts saved before the Jobs view existed: put Jobs beside Devices, once
+    if (!lsGet("jobsView", false)) {
+      lsSet("jobsView", true);
+      const t = !Dock.openViews(this.layout).includes("jobs") && Dock.tileOf(this.layout, "devices");
+      if (t) this.layout = Dock.normalize(Dock.moveToTab(this.layout, "jobs", t.id, t.views.indexOf("devices") + 1));
+    }
     if (!lsGet("hypothesesView", false)) {
       lsSet("hypothesesView", true);
       const t = !Dock.openViews(this.layout).includes("hypotheses") && Dock.tileOf(this.layout, "evidence");
@@ -88,6 +99,7 @@ class Workbench {
   async start() {
     const last = lsGet("last", null), draft = lsGet("draft", null), dnotes = lsGet("draftNotes", null);
     const id = last && this.presets.some((p) => p.id === last) ? last : "W-18";
+    this.startServer();
     await this.load(id, { draft: draft && draft.id === id ? draft.script : null, draftNotes: dnotes && dnotes.id === id ? dnotes.notes : null });
     this.ready = true;
     this.bump("ready");
@@ -236,6 +248,8 @@ class Workbench {
   // ---------- measure ----------
   async measure({ device = this.device, quiet = false } = {}) {
     if (!this.prog) { if (!quiet) this.toast(this.run?.ok ? "This pipeline does not end in GPU kernels; use Run in the Code view" : "Fix the compile errors first", "bad"); return null; }
+    // a server executor measures as a job: its records arrive when it is done (the server section)
+    if (device.server) { await this.proposeJob(device, { quiet }); return null; }
     if (this.measuring) return null;
     if (device.kind === "cuda" && !(await device.probe())) { this.toast("The CUDA runner is not connected. Export a bundle from Devices instead.", "bad"); this.showView("devices"); return null; }
     if (device.kind === "webgpu" && !(await device.probe())) { this.toast(device.status, "bad"); return null; }
@@ -315,7 +329,8 @@ class Workbench {
     if (!this.prog) throw new Error("compile a GPU program first");
     const res = typeof json === "string" ? JSON.parse(json) : json;
     const out = ingest(res, this.prog.kernels);
-    const device = this.devices.find((d) => d.kind === "cuda");
+    const device = this.devices.find((d) => d.kind === "cuda" && !d.server);
+    if (!device) throw new Error("this page is served by the Kiln server: measure on a server executor, or import records in Evidence");
     device.adopt(res.device || { name: "unknown" }, "import");
     device.label = device.name + " · imported";
     const ids = this.prog.kernels.map((kn, i) => this.store.record({ device, kern: kn, result: out[i], by: "import", activation: activationOf(kn, { run: this.run, kernelPins: this.kernelPins }) }).id);
@@ -324,6 +339,136 @@ class Workbench {
     this.log("measure", `imported CUDA results: ${fmtUs(rec.total)}`);
     this.bump("measure", "store", "device");
     return rec;
+  }
+
+  // ---------- server (guide §30) ----------
+  // Served by the Kiln server, the page keeps its records there (server-sync.js: the server's records are loaded,
+  // the page's own are posted), offers one CUDA device per server executor, and measures on one by proposing an
+  // approved job; the job's records arrive by records.added and the program recompiles with them. Server-sent events
+  // only notify: hello (a new connection) re-reads records, devices and jobs. A page that holds a token but whose
+  // origin is not the Kiln server (the runner's serve mode) keeps its runner device and has no server.
+  async startServer() {
+    const s = this.server;
+    if (!s) return;
+    try {
+      const h = await s.health();
+      if (!h?.features?.includes("jobs")) throw new Error("not the Kiln server");
+      Object.assign(this.serverInfo, { state: "connected", version: h.version, executors: h.executors });
+    } catch { this.server = null; this.serverInfo = { state: "none" }; this.bump("server"); return; }
+    // the runner-served CUDA device would probe this origin, which is the Kiln server's
+    this.devices = this.devices.filter((d) => d.kind !== "cuda" || d.server);
+    this.sync = recordSync({
+      client: s, store: this.store,
+      onRejected: (rs) => { this.toast(`The server rejected ${rs.length} record${rs.length === 1 ? "" : "s"}: ${rs[0].reason}`, "bad"); this.log("server", `rejected ${rs.length} records: ${rs[0].reason}`, { bad: true }); },
+      onError: (e) => this.log("server", `posting records failed (retried at the next change): ${e.message}`, { bad: true }),
+    });
+    const on = (fn) => (data) => { fn(data); this.bump("jobs"); };
+    try {
+      this.unsubscribe = s.subscribe({
+        hello: () => this.serverReread(),
+        "records.added": (d) => this.serverRecordsAdded(d),
+        "device.updated": () => this.serverDevices().catch((e) => this.log("server", `reading devices failed: ${e.message}`, { bad: true })),
+        "job.updated": on((v) => { this.jobs = upsertJob(this.jobs, v); this.jobSettled(v); }),
+        "job.event": on((e) => { this.jobs = addJobEvent(this.jobs, e); }),
+        open: () => { this.serverInfo.state = "connected"; this.bump("server"); },
+        error: () => { this.serverInfo.state = "reconnecting"; this.bump("server"); },
+      });
+    } catch (e) { this.log("server", `no event stream (${e.message}): the page reads the server once`, { bad: true }); this.serverReread(); }
+    this.bump("server", "device");
+  }
+  async serverReread() {
+    try {
+      const [r] = await Promise.all([this.sync.load(), this.serverDevices(), this.serverJobs()]);
+      if (r.added) { this.log("server", `loaded ${r.added} record${r.added === 1 ? "" : "s"} from the server`); if (this.ready) this.compile(); }
+      this.sync.flush(); // what this page holds that the server lacks
+    } catch (e) { this.log("server", `reading the server failed: ${e.message}`, { bad: true }); }
+  }
+  async serverDevices() {
+    const views = await this.server.devices.list();
+    const was = this.evidenceId;
+    const devs = serverDevices(views, this.devices.filter((d) => d.server), this.server, lsGet("protocol:cuda", null));
+    this.devices = [...this.devices.filter((d) => !d.server), ...devs];
+    this.serverInfo.executors = devs.length;
+    this.bump("device", "server");
+    // a server device saved as the selection exists only now
+    if (this.ready && this.device.server && !this._serverPicked) { this._serverPicked = true; return this.setDevice(this.deviceId, { quiet: true }); }
+    if (this.ready && this.evidenceId !== was) this.compile();
+  }
+  async serverJobs() {
+    const list = await this.server.jobs.list();
+    // a job.updated view carries no events: keep those already read
+    this.jobs = list.reduce((acc, v) => upsertJob(acc, v), this.jobs.filter((j) => list.some((v) => v.id === j.id)));
+    this.bump("jobs");
+  }
+  async serverRecordsAdded(d) {
+    if (!d) return;
+    let r;
+    try { r = await this.sync.added(d); } catch (e) { this.log("server", `fetching new records failed: ${e.message}`, { bad: true }); return; }
+    const mine = d.job ? this.awaiting.get(d.job) : null;
+    if (mine) { this.awaiting.delete(d.job); this.jobMeasured(d.job, mine, d.ids || []); }
+    if (r.added) this.log("server", `${r.added} new record${r.added === 1 ? "" : "s"}${d.job ? ` from job ${d.job.slice(4, 12)}` : ""}`);
+    if ((r.added || mine) && this.ready) this.compile();
+  }
+  /** A job this page proposed has records: they become this device's last measurement, as Measure's would. */
+  jobMeasured(job, { device: id, preset }, ids) {
+    const device = this.devices.find((x) => x.id === id), recs = ids.map((x) => this.store.records.get(x)).filter(Boolean);
+    if (!device || !recs.length) return;
+    const kernels = recs.map((r) => {
+      const us = r.timing.samples.length ? median(r.timing.samples) : NaN, l = r.kernel.launch, raw = (r.timing.raw || []).flat();
+      return { name: r.kernel.name, identity: r.kernel.identity, row: r.kernel.row, us, record: r.id, error: r.timing.samples.length ? undefined : r.check.detail,
+        check: { ok: r.check.ok, n: r.check.sampled, message: r.check.detail }, metrics: { us, kind: "CUDA events (server job)", min: raw.length ? Math.min(...raw) : undefined, threads: l?.block, blocks: l?.grid, smem: l?.smem } };
+    });
+    const rec = { t: Date.now(), device: device.id, evidenceId: recs[0].device.id, deviceName: device.label, total: kernels.reduce((a, x) => a + x.us, 0), kernels, job, preset };
+    this.measures[device.id] = rec;
+    this.history.push({ t: rec.t, device: device.id, total: rec.total, rows: kernels.map((x) => x.row).join(" | "), preset });
+    this.log("measure", `${device.label}: ${fmtUs(rec.total)} over ${kernels.length} kernel${kernels.length === 1 ? "" : "s"} (job ${job.slice(4, 12)})`);
+    this.bump("measure");
+  }
+  /** A job this page proposed ended: say so once. */
+  jobSettled(v) {
+    if (!v || !["done", "failed", "cancelled"].includes(v.status) || !this.proposed.has(v.id)) return;
+    this.proposed.delete(v.id);
+    this.toast(v.status === "done" ? `Job done on ${v.executor}: ${v.records.length} record${v.records.length === 1 ? "" : "s"}; the compile now uses them` : `Job ${v.status} on ${v.executor}${v.error ? `: ${v.error}` : ""}`, v.status === "failed" ? "bad" : "");
+  }
+  /**
+   * Measure on a server executor: propose this program's kernels as one job and show Jobs. The user's job is approved
+   * on creation; an agent's ({ proposer: "agent" }) waits in Jobs for the user to approve it. → the job, or null.
+   */
+  async proposeJob(device, { quiet = false, proposer = "user", reason = null } = {}) {
+    const kernels = this.prog.kernels, run = this.run, pins = { ...this.kernelPins }, n = kernels.length, user = proposer === "user";
+    const what = this.preset ? `${this.preset.id} ${this.preset.title}` : this.project?.name ?? "the program";
+    const spec = jobSpec(kernels, { executor: device.executor, protocol: device.protocol, approve: user, reason: reason ?? `Measure ${what}: ${n} kernel${n === 1 ? "" : "s"} on ${device.label}`, activationOf: (kern) => activationOf(kern, { run, kernelPins: pins }) });
+    let job;
+    try { job = await this.server.jobs.create(spec, { proposer }); }
+    catch (e) { this.toast(`The server did not take the job: ${e.message}`, "bad"); this.log("measure", `job refused: ${e.message}`, { bad: true }); return null; }
+    this.jobs = upsertJob(this.jobs, job);
+    this.awaiting.set(job.id, { device: device.id, preset: this.preset?.id });
+    this.proposed.add(job.id);
+    const size = `${n} kernel${n === 1 ? "" : "s"} × ${spec.protocol.reps} repetitions`;
+    this.log("measure", `${device.label}: job ${job.id.slice(4, 12)} ${user ? "approved" : `proposed by the ${proposer}`}, ${size}`);
+    if (!quiet) this.toast(user ? `Job approved on ${device.executor}: ${size}. Its records arrive when it is done.` : `The ${proposer} proposed a job on ${device.executor}: ${size}. Approve it in Jobs.`);
+    this.select({ job: job.id });
+    this.bump("jobs");
+    this.showView("jobs");
+    return job;
+  }
+  /** Read a job with its events (the Jobs view's side panel). */
+  async openJob(id) {
+    this.select({ job: id });
+    if (!this.server) return;
+    try { this.jobs = upsertJob(this.jobs, await this.server.jobs.get(id)); this.bump("jobs"); }
+    catch (e) { this.toast(`Could not read the job: ${e.message}`, "bad"); }
+  }
+  /** Approve or cancel a job (the Jobs view). */
+  async jobAction(id, action) {
+    try { this.jobs = upsertJob(this.jobs, await this.server.jobs[action](id)); this.bump("jobs"); }
+    catch (e) { this.toast(`Could not ${action} the job: ${e.message}`, "bad"); }
+  }
+  /** Evidence's Forget: the same devices' records on the server too. */
+  async forgetOnServer(devices) {
+    if (!this.sync || !devices.length) return;
+    try { const n = await this.sync.forget(devices); this.log("server", `forgot ${n} record${n === 1 ? "" : "s"} on the server`); }
+    catch (e) { this.toast(`The server kept its records: ${e.message}`, "bad"); }
   }
 
   // ---------- presets you keep ----------

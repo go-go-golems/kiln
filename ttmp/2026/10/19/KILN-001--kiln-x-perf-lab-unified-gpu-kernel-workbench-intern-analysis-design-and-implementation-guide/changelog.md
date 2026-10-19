@@ -106,3 +106,12 @@ Phase 6b: Compare panel in the Perf view (wb.compare → measurePaired → ev.ra
 
 - /Volumes/SSD/code/kiln/apps/workbench/src/ui/Perf.jsx — ComparePanel
 - /Volumes/SSD/code/kiln/apps/workbench/src/ui/wb.js — compare and the shared pin policy
+
+## 2026-10-19
+
+Phase 5b: page–server integration (records sync, server CUDA devices, Measure as a job, Jobs view, server line in Devices); DevicesView hides the runner block for server devices. Worker diary 07; main diary Step 17.
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/apps/workbench/src/server-sync.js — records sync and server devices
+- /Volumes/SSD/code/kiln/apps/workbench/src/ui/Jobs.jsx — Jobs view

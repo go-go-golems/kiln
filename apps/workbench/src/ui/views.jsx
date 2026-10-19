@@ -9,6 +9,7 @@ import { PerfView, TuneView, DevicesView } from "./Perf.jsx";
 import { EventsView } from "./Events.jsx";
 import { EvidenceView } from "./Evidence.jsx";
 import { HypothesesView } from "./Hypotheses.jsx";
+import { JobsView, ServerLine } from "./Jobs.jsx";
 import { NotesView } from "./Notes.jsx";
 import { agent } from "../agent/agent.js";
 
@@ -28,6 +29,7 @@ export const VIEWS = {
   tune: { title: "Tune", about: "autotuning: SP-MCTS or sweep over the program's forks", el: () => <TuneView />, badge: () => (wb.tuning?.running ? [wb.tuning.history.length, false] : null) },
   evidence: { title: "Evidence", about: "measurement records: status, samples, validity; import, export, forget", el: () => <EvidenceView />, badge: () => { const n = wb.store.list({ device: wb.evidenceId, status: "invalid" }).length; return n ? [n, true] : null; } },
   hypotheses: { title: "Hypotheses", about: "the project's claims, judged against the evidence: supported, refuted or open", col: true, el: () => <HypothesesView />, badge: () => { const hs = wb.hypotheses, bad = hs.filter((h) => h.verdict === "refuted" || h.verdict === "unqualified").length; return bad ? [bad, true] : hs.length ? [hs.length, false] : null; } },
-  devices: { title: "Devices", about: "simulated GPUs, WebGPU, and a CUDA runner", el: () => <DevicesView /> },
+  devices: { title: "Devices", about: "simulated GPUs, WebGPU, a CUDA runner, and the Kiln server's executors", col: true, el: () => <><ServerLine /><DevicesView /></> },
+  jobs: { title: "Jobs", about: "CUDA jobs on the Kiln server: proposed, approved, running, done; their events and records", el: () => <JobsView />, badge: () => { const n = wb.jobs.filter((j) => j.status === "proposed").length; return n ? [n, false] : wb.jobs.some((j) => j.status === "running" || j.status === "approved") ? ["…", false] : null; } },
   events: { title: "Events", about: "the workbench log and the last compile's events", el: () => <EventsView /> },
 };

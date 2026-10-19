@@ -426,7 +426,7 @@ export function DevicesView() {
   const [ncu, setNcu] = useState(false);
   const fileRef = useRef(null);
   const d = wb.device;
-  const cuda = wb.devices.find((x) => x.kind === "cuda");
+  const cuda = wb.devices.find((x) => x.kind === "cuda" && !x.server);
   const doImport = (text) => {
     try { const rec = wb.importResults(text); wb.setDevice(cuda.id, { quiet: true }); wb.toast(`Imported ${rec.kernels.length} kernel results: ${fmtUs(rec.total)}`); setPaste(""); wb.showView("perf"); }
     catch (e) { wb.toast("Could not import: " + e.message, "bad"); }

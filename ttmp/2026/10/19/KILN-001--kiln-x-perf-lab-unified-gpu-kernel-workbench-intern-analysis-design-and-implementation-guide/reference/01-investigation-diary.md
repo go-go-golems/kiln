@@ -1672,3 +1672,90 @@ moving between runs.
 - `node scripts/contrast.mjs`: all pairs pass.
 - Run in the screenshot: a `26.59 ms +56/−30 n=7`, b `218 µs +7.6/−16 n=14` (b also has the earlier Measure run's
   records), `b / a = 0.0082 ±0.0006 n=7`.
+
+## Step 17: Phase 5, part 2 — review and commit the page–server integration
+
+The Phase 5b worker finished, with its own diary (`reference/07-phase5b-integration-diary.md`, Steps 1–7). Served by
+the Kiln server, the page now does four things:
+
+- it keeps its records on the server, loading the server's and posting its own (`server-sync.js`);
+- it offers one CUDA device per server executor;
+- it measures on such a device by proposing a job;
+- it shows the jobs in a new Jobs view, with a server line above Devices.
+
+The done-condition holds on the development server's fake runner:
+
+- a proposed job went proposed → approved → running → done;
+- its record is valid with 7 samples;
+- the next W-05 compile decides "by evidence (confirms the model)" where it said "by model" before.
+
+I reviewed the screenshots and the diff, fixed the one issue the receipt assigned to me, and committed only the
+worker's changes. The working tree already held my Phase 7 work in the same files.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1.
+
+**Assistant interpretation:** Review the worker's Phase 5b, fix what is small, commit it separately from Phase 7.
+
+**Inferred user intent:** Measurements from a real CUDA box arrive in the page as records with provenance, through a
+server that keeps agent-proposed work waiting for the user.
+
+**Commit (code):** recorded in the changelog entry for this step.
+
+### What I did
+
+- Read the screenshots:
+  - `p5b-jobs-light-1600.png` shows three jobs:
+    - a done user job;
+    - a done agent job;
+    - a cancelled agent job ("by the agent");
+    - the detail panel lists protocol, times, the event log and the record.
+  - `p5b-devices-dark-390.png` shows the server line and the server device in the device list.
+- The phone shot showed the runner block "A real CUDA GPU · ready" under a server device, as the receipt warned.
+  `DevicesView` in `Perf.jsx` now picks `kind === "cuda" && !server` for that block.
+- Separated the commit:
+  - `wb.js` had 24 hunks, 7 of them the worker's:
+    - the imports;
+    - the constructor's server fields;
+    - the Jobs layout migration;
+    - `startServer()` in `start`;
+    - the server branch of `measure`;
+    - the guard in `importResults`;
+    - the server section.
+  - I built the worker-only file by undoing my Phase 7 edits on a copy (`scratchpad/wb-theirs.js`). Its diff from
+    HEAD contains only those hunks. I staged it with `git hash-object -w` and `git update-index --cacheinfo`, which
+    leaves the working file untouched.
+  - The same for `build.mjs`: the worker's `jobs` stylesheet line, not my frame bundle.
+
+### Why
+
+- One commit per phase keeps `git log` readable as the build order of the guide. Staging a blob leaves the working
+  file, with both changes, as it is.
+
+### What worked
+
+- The worker's validation:
+  - `server-e2e.mjs`: 15 checks;
+  - `server-sync.mjs`: 26 checks;
+  - `pnpm test`: evidence 125, Kiln 10/10, server 60, workbench 3/3.
+- I re-ran the tests on the commit itself in a temporary worktree (Technical details).
+
+### What warrants a second pair of eyes
+
+- Tune and Compare refuse server devices ("runs jobs only"). A paired comparison could be one job with both
+  schedules.
+- A local executor's fingerprint uses the machine name as the host, and imported results use "import". So one GPU
+  can still have two device ids when results arrive by both routes.
+- Every reconnect re-reads all records; a `since` cursor would bound that.
+
+### Code review instructions
+
+- The `// ---------- server (guide §30) ----------` section of `apps/workbench/src/ui/wb.js`, then
+  `apps/workbench/src/server-sync.js` and `apps/workbench/src/ui/Jobs.jsx`.
+- `pnpm --filter @kiln/workbench test:server` runs the end-to-end check against `apps/server/test/support/serve-dev.ts`.
+
+### Technical details
+
+- Hunk inventory: `git diff -U0 apps/workbench/src/ui/wb.js`. The worker's hunks were 3, 5, 6, 19, 21 and 22, plus
+  the `startServer()` line inside hunk 7.

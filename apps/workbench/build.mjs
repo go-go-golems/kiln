@@ -39,7 +39,7 @@ const js = out.outputFiles[0].text;
 
 // ---------- page ----------
 // tokens first; each later sheet only uses them; utilities last so they override
-const css = ["tokens", "base", "chrome", "views", "evidence", "utilities"].map((f) => read(`src/ui/${f}.css`)).join("\n");
+const css = ["tokens", "base", "chrome", "views", "evidence", "jobs", "utilities"].map((f) => read(`src/ui/${f}.css`)).join("\n");
 const esc = (s) => s.replace(/<\/script/gi, "<\\/script").replace(/<!--/g, "<\\!--");
 const body = `<title>Kiln Workbench</title>
 <meta name="description" content="A compiler workbench: write programs, passes and IRs in JavaScript, watch every rewrite, generate CUDA and WGSL, and measure kernels on simulated GPUs, WebGPU or a CUDA box, with a coding agent.">

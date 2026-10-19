@@ -4,7 +4,7 @@
 // Every operation here is pure: it takes a tree and returns a new one.
 
 export const IDE_VIEWS = ["notes", "code", "agent", "reference"];
-export const SYS_VIEWS = ["ir", "graph", "trace", "kernels", "perf", "knobs", "tune", "evidence", "hypotheses", "devices", "events"];
+export const SYS_VIEWS = ["ir", "graph", "trace", "kernels", "perf", "knobs", "tune", "evidence", "hypotheses", "devices", "jobs", "events"];
 export const ALL_VIEWS = [...IDE_VIEWS, ...SYS_VIEWS];
 
 const nid = (p) => p + Math.random().toString(36).slice(2, 8);
@@ -12,9 +12,9 @@ export const tile = (views = [], active) => ({ t: "tile", id: nid("t"), views: [
 export const split = (dir, kids, sizes) => ({ t: "split", id: nid("s"), dir, kids, sizes: sizes || kids.map(() => 1 / kids.length) });
 
 export const LAYOUTS = [
-  { id: "default", label: "Code beside the compiler", make: () => split("row", [tile(IDE_VIEWS), split("col", [tile(["ir", "graph", "trace", "kernels"]), tile(["perf", "knobs", "tune", "evidence", "hypotheses", "devices", "events"])], [0.56, 0.44])], [0.4, 0.6]) },
-  { id: "compiler", label: "IRs, passes and knobs", make: () => split("row", [tile(IDE_VIEWS), tile(["ir", "graph", "kernels"]), split("col", [tile(["trace", "events"]), tile(["knobs", "perf", "tune", "evidence", "hypotheses", "devices"])], [0.5, 0.5])], [0.32, 0.38, 0.3]) },
-  { id: "perf", label: "Measure and tune", make: () => split("row", [tile(IDE_VIEWS), split("col", [tile(["perf", "evidence", "hypotheses", "tune", "knobs"]), tile(["kernels", "devices", "ir", "graph", "trace", "events"])], [0.55, 0.45])], [0.36, 0.64]) },
+  { id: "default", label: "Code beside the compiler", make: () => split("row", [tile(IDE_VIEWS), split("col", [tile(["ir", "graph", "trace", "kernels"]), tile(["perf", "knobs", "tune", "evidence", "hypotheses", "devices", "jobs", "events"])], [0.56, 0.44])], [0.4, 0.6]) },
+  { id: "compiler", label: "IRs, passes and knobs", make: () => split("row", [tile(IDE_VIEWS), tile(["ir", "graph", "kernels"]), split("col", [tile(["trace", "events"]), tile(["knobs", "perf", "tune", "evidence", "hypotheses", "devices", "jobs"])], [0.5, 0.5])], [0.32, 0.38, 0.3]) },
+  { id: "perf", label: "Measure and tune", make: () => split("row", [tile(IDE_VIEWS), split("col", [tile(["perf", "evidence", "hypotheses", "tune", "knobs"]), tile(["kernels", "devices", "jobs", "ir", "graph", "trace", "events"])], [0.55, 0.45])], [0.36, 0.64]) },
   { id: "one", label: "Everything in one tile", make: () => tile([...SYS_VIEWS, ...IDE_VIEWS], "ir") },
 ];
 export const defaultLayout = () => LAYOUTS[0].make();
