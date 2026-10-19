@@ -147,3 +147,7 @@ Phase 8a–8c: Perf Lab's lab programs run in the workbench. `@kiln/lab` (b020aa
 - /Volumes/SSD/code/kiln/apps/workbench/src/ui/lab/state.js — the open program, its build and data
 - /Volumes/SSD/code/kiln/apps/workbench/src/ui/lab/board.jsx — board dock views and the panel renderer
 - /Volumes/SSD/code/kiln/apps/workbench/test/lab-e2e.mjs — Phase 8 done-condition in Chrome
+
+## 2026-10-19
+
+Vault report 3 (Phase 8) pushed: playback-vault 4fc3320. lab-e2e now asserts how many boards it read (f077674).

@@ -2167,3 +2167,11 @@ all passed
   - `p8-board-dino-pr1005-detections-{light,dark}-{1600,390}.png` — the image gallery with boxes.
   - `p8-board-{request-to-kernel,learn,scenario-a,scenario-b}-*-light-1600.png` — route, timeline, stepper,
     ledger, batch.
+
+### Vault report
+
+Report 3, on Phase 8, pushed as playback-vault `4fc3320`: `Projects/2026/10/19/PROJECT REPORT - Kiln - The Same
+Verdicts From Both Codebases - Perf Lab's Lab Programs as Dock Boards on Imported Data.md`, with eight p8 figures in
+`_assets/kiln-unified-workbench/`. Checking its claims against the sources caught one gap in the browser check: the
+report said the check asserts how many boards it read, and it did not. `f077674` adds that assertion (4 of 4, 7 of
+7); the check passes.
