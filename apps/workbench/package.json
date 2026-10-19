@@ -8,10 +8,11 @@
     "build": "node build.mjs",
     "dev": "node build.mjs --dev",
     "gen": "node build.mjs --gen-only",
-    "test": "node build.mjs --gen-only && node ../../scripts/run-node-tests.mjs test --skip ui.mjs --skip export-cuda.mjs --skip param-sweep.mjs --skip webgpu.mjs",
+    "test": "node build.mjs --gen-only && node ../../scripts/run-node-tests.mjs test --skip ui.mjs --skip export-cuda.mjs --skip param-sweep.mjs --skip webgpu.mjs --skip paired-webgpu.mjs",
     "test:ui": "node build.mjs && node test/ui.mjs",
     "test:sweep": "node build.mjs --gen-only && node test/param-sweep.mjs",
-    "test:webgpu": "node build.mjs && node test/webgpu.mjs"
+    "test:webgpu": "node build.mjs && node test/webgpu.mjs",
+    "test:paired": "node build.mjs && node test/paired-webgpu.mjs"
   },
   "dependencies": {
     "@kiln/kiln": "workspace:*",

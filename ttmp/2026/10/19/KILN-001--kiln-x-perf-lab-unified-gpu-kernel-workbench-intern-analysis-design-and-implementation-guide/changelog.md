@@ -80,3 +80,11 @@ Phase 6a: measurePaired (one kernel under two schedules in one protocol run, sha
 
 - /Volumes/SSD/code/kiln/packages/kiln/src/std/tune.js — measurePaired and kernelPinPolicy
 - /Volumes/SSD/code/kiln/packages/kiln/test/paired.mjs — paired vs unpaired under a clocked fake GPU
+
+## 2026-10-19
+
+Phase 6 done-condition met on the M1 Pro: paired WebGPU comparison of W-05's thread and row schedules, ratio 0.0079 [0.0072, 0.0083] n=7, W-05 open → supported (test:paired)
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/apps/workbench/test/paired-webgpu.mjs — the Phase 6 done-condition on the local GPU

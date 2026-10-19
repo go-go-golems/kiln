@@ -1458,3 +1458,52 @@ make interval claims three-valued.
 
 - `measurePaired` and `kernelPinPolicy` in `packages/kiln/src/std/tune.js`; `below`/`above` and the `null` branch
   in `packages/evidence/src/verdict.ts`; `node packages/kiln/test/paired.mjs`.
+
+## Step 14: Phase 6's done-condition on this Mac's GPU
+
+The guide's Phase 6 done-condition is a paired comparison of two RMSNorm schedules on this Mac's GPU that reports
+a ratio with an interval, and W-05's hypothesis judged from it. `apps/workbench/test/paired-webgpu.mjs`
+(`pnpm --filter @kiln/workbench test:paired`) does that in headless Chrome. It passes, so the Kiln side of Phase 6
+is done; the Compare panel remains.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1.
+
+**Assistant interpretation:** Check the Phase 6 done-condition on real hardware with a script that does not depend
+on the UI the Phase 4 worker is still editing.
+
+**Inferred user intent:** Evidence from the GPU, not only from the fake device of `paired.mjs`.
+
+**Commit (code):** recorded in the changelog entry for this step.
+
+### What I did
+
+- Wrote `W/test/paired-webgpu.mjs`, and added `test:paired` to `W/package.json`; the default `test` skips it, like
+  `webgpu.mjs`. The script:
+  - loads W-05 on the `webgpu` device;
+  - takes the thread option with the lowest model score and the compiled row schedule;
+  - calls `std.measurePaired`;
+  - reads `ev.ratio` and evaluates the hypotheses before and after.
+
+### What worked
+
+```text
+device webgpu:webgpu-apple-metal-3-2167faf0 · pair ce14c8a9…
+  TPB=64                          samples 26502 26534 26573 26562 26491 26671 26475 µs · positions 1110010
+  MAP=row,TPB=1024,STAGE=reused   samples 474 217 210 192 185 223 190 µs · positions 0001101
+  ratio MAP=row,TPB=1024,STAGE=reused / TPB=64 = 0.0079 [0.0072, 0.0083] n=7 · paired ratio b/a over 7 repetitions;
+  95 % bootstrap CI over repetitions · derived
+W-05's hypothesis: open before, supported after · all paired webgpu checks pass in 6.2 s
+```
+
+### What I learned
+
+- The thread schedule of a 4096-wide row reduction takes 26.5 ms on the M1 Pro: 1024 threads each walk a row
+  serially. The row schedule's first repetition (474 µs) shows the clock-state effect of Step 10, and the paired
+  ratio absorbs it because the thread side of that repetition ran in the same state.
+- The positions (`1110010` and `0001101`) are complementary in every repetition, as the seeded order requires.
+
+### What should be done in the future
+
+- The Compare panel (Perf), which calls the same `measurePaired` from the UI.
