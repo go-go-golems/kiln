@@ -25,3 +25,13 @@ Phase 1: six stylesheets by concern (tokens/base/chrome/views/evidence/utilities
 - /Volumes/SSD/code/kiln/apps/workbench/src/ui/evidence.css — provenance marks, stamps, title block, series
 - /Volumes/SSD/code/kiln/apps/workbench/src/ui/tokens.css — unified tokens
 - /Volumes/SSD/code/kiln/scripts/contrast.mjs — WCAG check of token pairs
+
+## 2026-10-19
+
+Phase 2: @kiln/evidence (values, stats, sha256, canonical JSON, identity, kiln-measure/1 records, verdict), 111 tests; review fixed nested/frozen read tracking in verdict; guide §29.3, §32.1 and Appendices B and C updated to the shipped code
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/packages/evidence/src/record.ts — kiln-measure/1 record and validation
+- /Volumes/SSD/code/kiln/packages/evidence/src/verdict.ts — the one verdict implementation
+- /Volumes/SSD/code/kiln/ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/02-phase2-evidence-diary.md — subagent diary

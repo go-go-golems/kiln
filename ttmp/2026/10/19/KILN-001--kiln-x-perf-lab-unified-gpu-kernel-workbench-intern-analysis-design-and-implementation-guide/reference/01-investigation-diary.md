@@ -598,3 +598,106 @@ regression in what works today.
     return lab;
   }
   ```
+
+## Step 6: Phase 2 — review and commit `@kiln/evidence`
+
+A forked agent wrote `packages/evidence` while I worked on Phase 1; its own diary is `reference/02-phase2-evidence-diary.md`
+(Steps 1–4). This step is my review before committing it. I read all seven modules
+(values, stats, sha256, canonical, identity, record, verdict; 843 lines). The design matches the guide, and the
+fork listed its deviations in its Step 4. I found one defect in `verdict`, fixed it, and updated the guide wherever
+Phases 1 and 2 departed from it.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (the "Once upload, then implement it…" request; "tell subagents to write
+their own [diaries]").
+
+**Assistant interpretation:** Review the subagent's package, fix what is wrong, record it in both diaries, commit.
+
+**Inferred user intent:** The evidence rules — the base of every later phase — should be correct before Phase 3
+builds on them.
+
+**Commit (code):** see the commit after this step ("KILN-001 Phase 2: …").
+
+### What I did
+
+- Ran `pnpm --filter @kiln/evidence typecheck` (clean) and `test` (8 files, 110 tests).
+- Probed the negative-predicate rule one level down:
+
+  ```text
+  verdict({rows: [{k: {t: missing('x')}}], predicate: (r) => !(r.k.t > 1), support: [valid]})
+  → supported [[true, []]]
+  ```
+
+  The proxy recorded only own top-level reads (`k`). `isMissing(row.k)` is false for an object, so the missing
+  `k.t` was invisible, and `!(NaN > 1)` made the row pass.
+- Replaced the single proxy with `track(target, path, read)`:
+  - It records dotted paths and wraps every plain object or array it returns. Values and class instances are
+    returned as they are.
+  - `missingOf` resolves each recorded path against the row.
+  - The first version proxied the row itself. It failed the new frozen-row case (`pass: true, missing: []`): the
+    proxy invariant forces `get` to return a frozen property's own value, so the nested object could not be
+    wrapped.
+  - The final version proxies an empty shell (`[]` or `Object.create(proto)`) and forwards `get`, `has`, `ownKeys`
+    and `getOwnPropertyDescriptor` to the row. Every property is reported as configurable, except an array's
+    `length`, which the shell owns.
+- New test "reads are tracked through nested objects and arrays":
+  - nested missing → `missing: ['k.t']`;
+  - an array element → `row 0: missing reps.1`;
+  - writes to a nested object throw;
+  - a frozen nested missing → `missing: ['f.inner.x']`.
+- Guide updates:
+  - §29.3 pseudocode and the paragraph after it (read tracking at any depth, the shell);
+  - Appendix B (the shipped signatures and additions);
+  - Appendix C (styles location);
+  - §32.1 token table (`#6e6e6e`, `#8f8f8f`, `--sel` .05/.09, `--on-accent`), plus a sentence pointing at
+    `contrast.mjs` and `specimen.mjs`.
+- The fork's diary got a Step 5 recording the fix.
+
+### Why
+
+- The verdict decides whether a claim is supported. A hole that turns missing data into support is the failure the
+  whole evidence design exists to prevent (P-8 in the guide). Rows built by `ev` in Phase 4 will be nested
+  (`r.k.time`), so the top-level-only tracking would have been reachable as soon as hypotheses ship.
+
+### What worked
+
+- After the fix: `pnpm --filter @kiln/evidence test` → `Tests 111 passed (111)`; `typecheck` clean. The probe now
+  gives `open [ 'row 0: missing k.t' ]`.
+- A frozen row with a frozen array, read through `JSON.stringify(r)`, `[...r.xs]` and `{...r}`, gives `supported`
+  without an error: the shell's forwarding satisfies spread, iteration and serialisation.
+
+### What didn't work
+
+- The first `track` (proxy over the row, returning raw values for frozen properties) left frozen nested rows
+  untracked; the test failed with `- "missing": ["f.inner.x"], "pass": null` / `+ "missing": [], "pass": true`.
+
+### What I learned
+
+- A Proxy's `get` invariant applies to the proxy's own target. With an empty shell as the target, nothing in the
+  row's descriptors constrains what `get` returns. The cost is that `getOwnPropertyDescriptor` must report
+  descriptors the shell can accept (configurable, except an array's `length`).
+
+### What was tricky to build
+
+- Getting spread right. `{...r}` calls `ownKeys`, then `[[GetOwnProperty]]` for enumerability, then `[[Get]]`. All
+  three must be forwarded, or the spread silently drops keys and the read is never recorded.
+
+### What warrants a second pair of eyes
+
+- `track` still does not see reads made through a class instance's methods (a `Map` in a row, say). Rows are plain
+  data by contract (§29.2), and `ev` will build them that way.
+
+### What should be done in the future
+
+- Phase 3 adds `"@kiln/evidence": "workspace:*"` to `packages/kiln` (fork diary Step 4 has the import notes).
+
+### Code review instructions
+
+- `packages/evidence/src/verdict.ts` (`track`, `missingOf`) and the new test in `test/verdict.test.ts`.
+- `pnpm --filter @kiln/evidence test && pnpm --filter @kiln/evidence typecheck`.
+
+### Technical details
+
+- The descriptor rule in `track`:
+  `isArr && prop === 'length' ? {...d, writable: true, configurable: false} : {...d, configurable: true}`.

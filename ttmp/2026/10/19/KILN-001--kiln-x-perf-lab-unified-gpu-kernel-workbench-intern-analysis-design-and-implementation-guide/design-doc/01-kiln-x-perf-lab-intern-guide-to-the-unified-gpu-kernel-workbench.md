@@ -1481,19 +1481,22 @@ verdict({rows, predicate, support}):
   if any record in support is invalid:          return unqualified (reasons = its validity reasons)
   if rows is empty:                             return open ("no rows: nothing measured yet")
   for each row:
-    missing = names of fields that are missing Values
-    try   out = predicate(row)
+    view = a read-only proxy of row that records the path of every field read, at any depth (r.k.t → "k.t")
+    try   out = predicate(view)
     catch e: check = {pass: null, error: e.message}                          # an error is never a refutation (fixes P-8)
+    missing = the read paths whose value is missing (a missing Value, null, undefined or NaN)
     pass = out is Value ? (out missing ? null : Boolean(out.value)) : (out is NaN ? null : Boolean(out))
-    if pass and missing is not empty: pass = null                            # a row with missing inputs cannot support
-    if pass == false and missing is not empty: pass = null                   # nor refute
+    if missing is not empty: pass = null                                     # a row with missing inputs can neither support nor refute
   if some check.pass == false:                  return refuted   (one clean counterexample)
   if some check.pass == null:                   return open      (with the missing fields and errors)
   return supported
 ```
 
-The two "missing inputs" rules close the negative-predicate hole: `!(r.x > 1)` passes on `NaN`, but a row whose `x`
-is missing can neither support nor refute.
+The "missing inputs" rule closes the negative-predicate hole: `!(r.x > 1)` passes on `NaN`, but a row whose `x` is
+missing can neither support nor refute. Only fields the predicate reads count, so a missing column the claim does not
+mention does not hold a row open. Reads are tracked through nested objects and arrays (`r.k.t`, `r.reps[1]`), and
+the proxy's target is an empty shell that forwards to the row, so frozen rows are tracked too. A predicate that
+writes to its row throws, and its row is undecided.
 
 ### 30. The server
 
@@ -1650,15 +1653,16 @@ The unified stylesheet keeps Kiln's tokens and fixes their defects. New or chang
 | `--fill` | `#f6f6f6` | `#222222` | Hover rows, inline code, call-outs |
 | `--fill-2` | `#e6e6e6` | `#3a3a3a` | Areas, the empty half of a derived mark |
 | `--ink` | `#1a1a1a` | `#f2f2f2` | Text, marks, primary controls |
-| `--ink-2` | `#737373` | `#9a9a9a` | Secondary text |
+| `--ink-2` | `#6e6e6e` | `#9a9a9a` | Secondary text (`#737373` fails 4.5:1 on `--fill`) |
 | ★ `--ink-3` | `#a3a3a3` | `#6e6e6e` | Non-text grey only (decorative marks, hatching); fails text contrast |
 | `--hair` | `#d6d6d6` | `#3d3d3d` | Dividers |
-| ★ `--hair-strong` | `#949494` | `#707070` | Input borders (≥ 3:1) |
+| ★ `--hair-strong` | `#8f8f8f` | `#707070` | Input borders (≥ 3:1, also on `--code-bg`) |
 | `--rule` | `#ededed` | `#2a2a2a` | Table row rules |
 | `--code-bg` | `#fbfbfb` | `#1d1d1d` | Code |
 | `--accent` | `#e2001a` | `#ff3b4a` | Failure, selection, live links: the only hue |
-| `--sel` | `rgba(226,0,26,.10)` | `rgba(255,59,74,.16)` | Red wash |
-| ★ `--tok-com` | `#737373` | `#8c8c8c` | Code comments, darkened to pass 4.5:1 |
+| `--sel` | `rgba(226,0,26,.05)` | `rgba(255,59,74,.09)` | Red wash (lighter, so red and grey text on it pass 4.5:1) |
+| ★ `--on-accent` | `#ffffff` | `#1a1a1a` | Text on a red fill (white on `#ff3b4a` is 3.51:1) |
+| ★ `--tok-com`, `--tok-punc` | `#6e6e6e` | `#8c8c8c` | Code comments and punctuation, darkened to pass 4.5:1 |
 | ★ `--sans` | `Arial, "Helvetica Neue", Helvetica, sans-serif` | | Replaces the misnamed `--mono` |
 | `--code` | `ui-monospace, Menlo, Consolas, "Courier New", monospace` | | Monospace |
 | ★ `--fs-2xs` | `9.5px` | | Tags, stamps, axis text |
@@ -1668,6 +1672,9 @@ The unified stylesheet keeps Kiln's tokens and fixes their defects. New or chang
 | ★ `--hatch` | `repeating-linear-gradient(45deg, var(--ink-3) 0 1px, transparent 1px 4px)` | | Missing values |
 | ★ `--dash-2`, `--dash-3` | `4 3`, `1 3` | | Series and stale lines |
 | ★ `--blink` | `bl 0.8s steps(2) infinite` | | `none` under `prefers-reduced-motion` |
+
+The values above are the shipped ones; `node scripts/contrast.mjs` checks every text pair at 4.5:1 and input borders
+at 3:1 in both themes, and `scripts/specimen.mjs` renders every mark for review.
 
 Fixed hazards: the `.gutter` class collision between the dock and the editor (renamed `.dock-gutter` and
 `.ed-gutter`), the duplicate `.dtabs` rule, about 120 dead classes inherited from the Octavo simulator, missing
@@ -1948,20 +1955,21 @@ pnpm --filter @kiln/server start      # http://127.0.0.1:5280 (after Phase 5)
 
 | Export | Signature |
 | --- | --- |
-| `observed`, `derived`, `heuristic`, `illustrative` | `(value, {unit?, method?, source?, scope?, ci?, n?}) → Value` |
-| `missing` | `(reason, {unit?, method?}) → Value` with `value: null`, `prov: 'unknown'` |
-| `isValue`, `num`, `isMissing`, `provOf`, `combine` | helpers; `combine(...provs)` is the weakest-class rule |
-| `seal(obj)` | deep, throws `ProvenanceError` on set, delete and defineProperty |
-| `median`, `quantile`, `rng(seed)` | basic statistics; `rng` is mulberry32 seeded from a string or number |
-| `summarize(samples, {level, draws, seed})` | `{median, ci, n, note}` |
-| `pairedRatio(pairs, {level, seed})` | `{median, ci, n, note}` of `b/a` per repetition |
+| `observed`, `derived`, `heuristic`, `illustrative` | `(value, {unit?, method?, source?, scope?, denominator?, metric?, ci?, n?}) → Value`; a null or non-finite number gives `missing(...)` |
+| `missing` | `(reason, {unit?, method?, source?, scope?, metric?}) → Value` with `value: null`, `prov: 'unknown'` |
+| `isValue`, `raw`, `num`, `isMissing`, `provOf`, `combine` | helpers; `provOf` of a plain number is `unknown`; `combine()` of nothing is `unknown` |
+| `seal(obj)`, `isSealed(x)` | a deep read-only snapshot (a copy); throws `ProvenanceError` on set, delete, define, `setPrototypeOf`, `preventExtensions`; refuses Map, Set, Date, RegExp and binary data |
+| `median`, `quantile`, `rng(seed)` | type-7 quantiles; `rng` is mulberry32, a string seed is hashed |
+| `summarize(samples, {level, draws, seed})` | `{median, ci, n, level, method, note}`; default seed 1 |
+| `pairedRatio(pairs, {level, draws, seed})` | pairs are `{rep, a, b}`; `summarize` of `b/a` plus `excluded: [{rep, reason}]` |
 | `separated(x, y)` | `true` when the intervals do not overlap |
-| `sha256Hex(stringOrBytes)` | synchronous SHA-256 |
-| `canonicalJSON(x)` | sorted keys; refuses `undefined`, functions, non-finite numbers |
+| `sha256Hex(stringOrBytes)`, `isSha256Hex(x)` | synchronous SHA-256 |
+| `canonicalJSON(x)`, `CanonicalJSONError` | sorted keys; refuses `undefined`, holes, functions, symbols, bigints, non-finite numbers, cycles and non-plain objects; `-0` is written `0` |
 | `contentId({codegen, lang, sourceSha256, launch, inputs, output, target})` | §22 |
-| `deviceId(cls, name, fingerprint)` | §23 |
-| `recordId(record)`, `validateRecord(record)` | §21 |
-| `verdict({rows, predicate, support})` | `{verdict, checks, reasons}` (§29.3) |
+| `deviceId(cls, name, fingerprint)`, `slug`, `isFingerprint` | §23; a simulator's id is `sim:<slug>` |
+| `RECORD_FORMAT`, `recordId(record)`, `validateRecord(record)` | §21; `validateRecord` returns `{ok, record, errors}` |
+| `isDecisive(record, currentContentId)` | valid, no partial caveats, not legacy, and the content id matches (§26–27) |
+| `verdict({rows, predicate, support})` | `{verdict, checks: [{row, pass, missing, error?}], reasons}` (§29.3) |
 
 ## Appendix C. File index
 
@@ -1972,7 +1980,7 @@ pnpm --filter @kiln/server start      # http://127.0.0.1:5280 (after Phase 5)
 | Devices and evidence | `K/app/src/std/{devices,store,tune,targets}.js` | `packages/kiln/src/std/` |
 | UI state | `K/app/src/ui/wb.js` | `apps/workbench/src/ui/wb.js` |
 | Views | `K/app/src/ui/*.jsx` | `apps/workbench/src/ui/` |
-| Styles | `K/app/src/ui/{forge-base,lab,kiln}.css` | `apps/workbench/src/ui/styles/` |
+| Styles | `K/app/src/ui/{forge-base,lab,kiln}.css` | `apps/workbench/src/ui/{tokens,base,chrome,views,evidence,utilities}.css` |
 | Agent | `K/app/src/agent/agent.js` | `apps/workbench/src/agent/` |
 | Presets | `K/presets/W-*.{js,md}` | `apps/workbench/presets/` |
 | Runner | `K/runner/kiln_runner.py` | `runner/kiln_runner.py` |
