@@ -132,3 +132,18 @@ Phase 7: agent eval code runs in a worker inside a sandboxed opaque-origin frame
 ## 2026-10-19
 
 Vault report 2 (phases 4c, 5b, 6, 7) pushed: playback-vault 43572ed. Phase 7 code commit 55e6b2e recorded in diary Step 18.
+
+## 2026-10-19
+
+Phase 8a–8c: Perf Lab's lab programs run in the workbench. `@kiln/lab` (b020aa6) ports the language with injected data and verdicts on `@kiln/evidence`; `check:pl` shows identical results to Perf Lab's code. `/api/lab` routes and `lab:import` (aa2dcc2) serve Perf Lab's imported data, reading a copy of its SQLite store. Boards open as dock views (1d31e9d); host `local`'s report hashes the workload sources as Perf Lab's probe does. `lab-e2e.mjs` proves the done-condition in Chrome. Guide §33.1 As built; main diary Steps 19–20; worker diaries 09 and 10. Entity graph (8d) not started.
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/packages/lab/src/index.ts — @kiln/lab public API
+- /Volumes/SSD/code/kiln/packages/lab/scripts/check-pl.ts — port fidelity against Perf Lab's code
+- /Volumes/SSD/code/kiln/apps/server/src/lab/routes.ts — /api/lab route group
+- /Volumes/SSD/code/kiln/apps/server/src/lab/importer.ts — Perf Lab importer (reads a temporary copy)
+- /Volumes/SSD/code/kiln/apps/server/src/lab/probe.ts — host local's report without a probe
+- /Volumes/SSD/code/kiln/apps/workbench/src/ui/lab/state.js — the open program, its build and data
+- /Volumes/SSD/code/kiln/apps/workbench/src/ui/lab/board.jsx — board dock views and the panel renderer
+- /Volumes/SSD/code/kiln/apps/workbench/test/lab-e2e.mjs — Phase 8 done-condition in Chrome

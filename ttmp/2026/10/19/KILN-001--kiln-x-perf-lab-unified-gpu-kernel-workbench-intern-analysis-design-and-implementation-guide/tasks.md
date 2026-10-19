@@ -18,5 +18,7 @@
 - [x] Phase 5: server (Hono+sqlite, security, records, devices, jobs, executors, runner hardening, Jobs view) <!-- t:b92r -->
 - [x] Phase 6: paired comparisons on real hardware (WebGPU paired protocol, ev.ratio, Compare panel) <!-- t:rcsi -->
 - [x] Phase 7: agent sandbox iframe, bridge, model gateway, token accounting <!-- t:eyd1 -->
-- [ ] Phase 8: lab programs (Perf Lab language headless, boards as dock views, server routes) <!-- t:m84d -->
+- [x] Phase 8: lab programs (Perf Lab language headless, boards as dock views, server routes) <!-- t:m84d -->
 - [ ] Vault report after major milestones (playback-vault, textbook style) <!-- t:ma78 -->
+- [ ] Phase 8d: entity graph (corresponds_to edges between Perf Lab and Kiln kernels) <!-- t:1df7 -->
+- [ ] Lab follow-ups: catalog.changed refresh in labs, mirror caption at 390 px <!-- t:siao -->

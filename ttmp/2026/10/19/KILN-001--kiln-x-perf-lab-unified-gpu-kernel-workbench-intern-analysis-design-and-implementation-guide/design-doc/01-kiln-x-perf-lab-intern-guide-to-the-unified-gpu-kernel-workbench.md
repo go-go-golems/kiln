@@ -1904,6 +1904,54 @@ The last phase brings Perf Lab's language and boards into the unified workbench:
    linked with `corresponds_to` edges carrying an evidence class, so a route can run from a slow request in a
    service down to the rewrite that produced its kernel.
 
+#### 33.1 As built (Phase 8a–8c, 2026-10-19)
+
+Three of the four parts exist; the entity graph does not. A lab program opens in the dock with the runs imported from
+Perf Lab, and its verdicts match those of Perf Lab's own code (`check:pl`, below).
+
+```text
+lab-workbench/.data ──lab:import (reads a temporary copy)──▶ KILN_DATA_DIR/kiln.sqlite (lab_* tables) + lab/
+                                                                         │
+                                       apps/server  /api/lab/{catalog, bundles, evidence, datasets, media, hosts…}
+                                                                         │ JSON
+apps/workbench  ui/lab/api.js  labClient ──fills──▶ @kiln/lab createMemoryLabData ──▶ labEnv(data)
+                ui/lab/state.js  labs.open(id): catalog + evidence → build → bundles the build needs → build
+                ui/lab/board.jsx  board:<id> dock views ── panels read  materialize(reg, x, state)
+```
+
+**`@kiln/lab` (`packages/lab`).** Perf Lab's language ported to a browser-safe package (it imports only its own
+modules and `@kiln/evidence`, which a test enforces). Values, statistics and verdicts come from `@kiln/evidence`;
+`evaluateHypothesis(registry, state, id)` returns `{verdict, checks, reasons, support}` and is no longer computed
+inside a view. Data access is injected: `labEnv(data: LabData)` takes an object whose methods are all synchronous
+(`catalog`, `bundlesLoaded`, `bundleRun`, `archive`, `datasets`, `evidenceBlocked`, `localReport`, `mediaUrl`), so
+the client loads before it builds. `@kiln/lab/node` reads Perf Lab's store from a temporary copy. Capture hashes
+are still Perf Lab's `cyrb53` (P-5), because the store and routes are keyed by them.
+
+**Server (`apps/server/src/lab/`).** Perf Lab's routes and response shapes under `/api/lab`, behind Kiln's
+Host/Origin/token checks; migration 2 adds the `lab_*` tables; `pnpm --filter @kiln/server lab:import [dir]` copies a
+Perf Lab data directory in, verifying every hash, idempotently. Lab jobs are history only: creating, approving or
+cancelling one answers `501`. Host `local`'s report is read, not probed (`probe.ts`): the server hashes the workload
+sources in `KILN_LAB_WORKLOADS` exactly as `PL/workloads/perf_lab_local/probe.py` does. A local capture's identity
+depends on that hash alone, so imported local runs match only while the sources are the ones they measured.
+
+**Workbench (`apps/workbench/src/ui/lab/`).** The Lab view lists programs, boards and verdicts; each board is a dock
+view `board:<id>` with its parameter bar (PLAN/DATA/VIEW bindings; a plan change whose captures are not all cached
+becomes a pending plan, since nothing executes) and a title block saying whether its runs are measured (and where) or
+synthetic. All 21 panel kinds the presets use are ported, with five layouts. Opening another program closes the
+previous program's boards.
+
+**Checks.**
+
+| Check | Command | Proves |
+| --- | --- | --- |
+| Port fidelity | `pnpm --filter @kiln/lab check:pl` | 11 presets and both measured programs build to identical hashes, lints, derives and verdicts with Perf Lab's code and with the port |
+| Unit tests | `pnpm test` | lab 98, server 89 (fixtures only; nothing reads `PL/.data`) |
+| Done-condition | `node apps/workbench/test/lab-e2e.mjs [--shots DIR]` | import into a temporary directory; local-sampler 8/8 and dino-pr1005 18/18 measured captures load; 7 verdicts = `check:pl`; 27 boards of 11 programs without a panel error; 18/18 images; Perf Lab's store byte- and mtime-identical |
+
+**Not built.** The entity graph (part 4); lab job execution and dataset materialization; the board's live refresh
+on `catalog.changed` (a program must be reopened after an import). Worker diaries: `reference/09-…` (8a) and
+`reference/10-…` (8c); main diary Steps 19–20.
+
 ### 34. Decision records
 
 Each record states the decision, the alternatives and the reason. They are numbered so code comments can cite them.
