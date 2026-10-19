@@ -6,6 +6,7 @@ import { Hono, type Context } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { streamSSE } from 'hono/streaming';
 import { agentRoutes } from './agent.ts';
+import { labRoutes } from './lab/routes.ts';
 import { VERSION, type ServerConfig } from './config.ts';
 import { get, now, type Db } from './db.ts';
 import type { Devices } from './devices.ts';
@@ -24,7 +25,7 @@ export interface AppContext {
   startedAt: string;
 }
 
-export const FEATURES = ['records', 'devices', 'jobs', 'events'];
+export const FEATURES = ['records', 'devices', 'jobs', 'events', 'lab'];
 const PAGE = 'kiln-workbench.html';
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
 
@@ -47,7 +48,8 @@ export function createApp(ctx: AppContext): Hono {
   const api = new Hono();
   api.use('*', async (c, next) => {
     await next();
-    c.res.headers.set('cache-control', 'no-store');
+    // except content-addressed bytes that a route declares immutable (lab media)
+    if (!/\bimmutable\b/.test(c.res.headers.get('cache-control') ?? '')) c.res.headers.set('cache-control', 'no-store');
   });
   api.get('/health', (c) =>
     c.json({
@@ -119,6 +121,9 @@ export function createApp(ctx: AppContext): Hono {
 
   // ── the model gateway (Phase 7): POST /agent/sample, GET /agent/usage ─────────────────────────────────────────
   api.route('/agent', agentRoutes(config, db));
+
+  // ── Perf Lab's data routes (Phase 8c): /api/lab/… with Perf Lab's response shapes ───────────────────────────────
+  api.route('/lab', labRoutes({ config, db, bus }));
 
   api.notFound((c) => c.json(err('not_found', `no route ${c.req.method} ${c.req.path}`), 404));
   app.route('/api', api);

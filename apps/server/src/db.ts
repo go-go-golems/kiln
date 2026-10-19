@@ -82,6 +82,169 @@ const MIGRATIONS: string[] = [
     created_at        text not null
   );
   `,
+  // 2: Perf Lab's data (guide §33.3; src/lab/), with its schema after Perf Lab's migration 5 (PL/server/db.ts) and a
+  // lab_ prefix, because Kiln already has jobs, job_events and llm_calls. Perf Lab's transcripts (conversations,
+  // messages, llm_calls) are not lab data and have no table here. Content addresses are checked to be lowercase
+  // SHA-256 hex in the schema, so a file path built from one cannot leave its directory, whoever wrote the row.
+  `
+  create table lab_programs (
+    lab_id      text primary key,
+    source      text not null,
+    preset_hash text,
+    updated_at  text not null
+  );
+
+  create table lab_artifacts (
+    hash        text primary key,
+    lab_id      text not null,
+    experiment  text not null,
+    arm         text not null,
+    mode        text not null,
+    host        text not null,
+    reps        integer not null,
+    spec_json   text not null,
+    origin      text not null check (origin in ('synthetic', 'measured')),
+    status      text not null check (status in ('running', 'available', 'failed')),
+    created_at  text not null,
+    imported_at text,
+    source      text
+  );
+  create index lab_artifacts_lab on lab_artifacts (lab_id);
+
+  create table lab_runs (
+    hash        text not null references lab_artifacts (hash) on delete cascade,
+    rep         integer not null,
+    ref         text not null,
+    experiment  text not null,
+    arm         text not null,
+    mode        text not null,
+    host        text not null,
+    started_at  text,
+    duration_s  real,
+    run_json    text not null,
+    primary key (hash, rep)
+  );
+  create index lab_runs_ref on lab_runs (ref);
+
+  create table lab_run_bundles (
+    hash        text not null,
+    rep         integer not null,
+    entities    blob not null,
+    links       blob not null,
+    n_entities  integer not null,
+    n_links     integer not null,
+    primary key (hash, rep),
+    foreign key (hash, rep) references lab_runs (hash, rep) on delete cascade
+  );
+
+  create table lab_jobs (
+    id              text primary key,
+    lab_id          text not null,
+    status          text not null check (status in ('proposed', 'approved', 'running', 'importing', 'done', 'failed', 'cancelled')),
+    proposed_by     text not null check (proposed_by in ('user', 'assistant')),
+    reason          text not null,
+    hosts           text not null,
+    budget_gpu_min  real not null,
+    progress        real not null default 0,
+    created_at      text not null,
+    approved_at     text,
+    finished_at     text,
+    error           text
+  );
+
+  create table lab_job_captures (
+    job_id      text not null references lab_jobs (id) on delete cascade,
+    hash        text not null,
+    ref         text not null,
+    experiment  text not null,
+    arm         text not null,
+    mode        text not null,
+    host        text not null,
+    reps        integer not null,
+    spec_json   text not null,
+    status      text not null default 'pending',
+    error       text,
+    primary key (job_id, hash)
+  );
+
+  create table lab_job_events (
+    id      integer primary key autoincrement,
+    job_id  text not null references lab_jobs (id) on delete cascade,
+    at      text not null,
+    kind    text not null,
+    detail  text
+  );
+  create index lab_job_events_job on lab_job_events (job_id, id);
+
+  create table lab_annotations (
+    id          integer primary key autoincrement,
+    lab_id      text not null,
+    target      text not null,
+    kind        text not null,
+    body_json   text not null,
+    author      text not null check (author in ('user', 'assistant')),
+    created_at  text not null
+  );
+  create index lab_annotations_lab on lab_annotations (lab_id);
+
+  create table lab_evidence_archives (
+    sha256      text primary key check (length(sha256) = 64 and sha256 not glob '*[^0-9a-f]*'),
+    name        text not null,
+    bytes       integer not null,
+    files_json  text not null,
+    added_at    text not null
+  );
+
+  create table lab_datasets (
+    id                text primary key check (length(id) = 64 and id not glob '*[^0-9a-f]*'),
+    name              text not null,
+    format            text not null check (format in ('coco')),
+    privacy           text not null check (privacy in ('public')),
+    source            text not null,
+    provenance_json   text not null,
+    categories_json   text not null,
+    image_count       integer not null,
+    annotation_count  integer not null,
+    added_at          text not null
+  );
+
+  create table lab_dataset_images (
+    dataset_id    text not null references lab_datasets (id) on delete cascade,
+    image_id      integer not null,
+    file_name     text not null,
+    sha256        text not null check (length(sha256) = 64 and sha256 not glob '*[^0-9a-f]*'),
+    width         integer not null,
+    height        integer not null,
+    license_name  text,
+    license_url   text,
+    source_url    text not null,
+    page_url      text,
+    strata_json   text not null,
+    primary key (dataset_id, image_id)
+  );
+  create index lab_dataset_images_sha on lab_dataset_images (sha256);
+
+  create table lab_dataset_annotations (
+    dataset_id  text not null references lab_datasets (id) on delete cascade,
+    id          integer not null,
+    image_id    integer not null,
+    category    text not null,
+    bbox_json   text not null,
+    area        real not null,
+    iscrowd     integer not null,
+    primary key (dataset_id, id)
+  );
+  create index lab_dataset_annotations_image on lab_dataset_annotations (dataset_id, image_id);
+
+  create table lab_media (
+    sha256      text primary key check (length(sha256) = 64 and sha256 not glob '*[^0-9a-f]*'),
+    bytes       integer not null,
+    mime        text not null check (mime in ('image/jpeg', 'image/png')),
+    privacy     text not null check (privacy in ('public')),
+    source_url  text,
+    added_at    text not null
+  );
+  `,
 ];
 
 export function openDb(file: string): Db {

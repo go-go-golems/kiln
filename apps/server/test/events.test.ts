@@ -34,7 +34,7 @@ describe('server-sent events (GET /api/events)', () => {
     expect(s.bus.size).toBe(1);
     const id = (await s.json('POST', '/api/jobs', { proposer: 'user', body: jobBody([jobKernel()], { approve: true }) })).body.id;
     const events = await reading;
-    expect(events[0]).toEqual({ event: 'hello', data: { version: 'kiln-server/0.1', startedAt: expect.any(String), features: ['records', 'devices', 'jobs', 'events'] } });
+    expect(events[0]).toEqual({ event: 'hello', data: { version: 'kiln-server/0.1', startedAt: expect.any(String), features: ['records', 'devices', 'jobs', 'events', 'lab'] } });
     const kinds = new Set(events.map((e) => e.event));
     for (const k of ['hello', 'ping', 'job.updated', 'job.event', 'records.added']) expect(kinds.has(k), k).toBe(true);
     expect(events.find((e) => e.event === 'records.added')!.data).toMatchObject({ job: id, ids: [expect.stringMatching(/^[0-9a-f]{64}$/)] });

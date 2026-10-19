@@ -63,7 +63,7 @@ describe('the four checks before any route (guide §30.2)', () => {
 
   it('reports health', async () => {
     const r = await s.json('GET', '/api/health');
-    expect(r.body).toMatchObject({ status: 'ok', version: 'kiln-server/0.1', db: { migrations: 1 }, executors: 1, features: ['records', 'devices', 'jobs', 'events'] });
+    expect(r.body).toMatchObject({ status: 'ok', version: 'kiln-server/0.1', db: { migrations: 2 }, executors: 1, features: ['records', 'devices', 'jobs', 'events', 'lab'] });
   });
 });
 
