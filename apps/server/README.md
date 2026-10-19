@@ -17,6 +17,7 @@ pnpm --filter @kiln/server lab:import     # copy Perf Lab's data (lab-workbench/
 | `KILN_DATA_DIR`  | `apps/server/.data`         | `kiln.sqlite`, executor profiles, `lab/`  |
 | `KILN_DIST`      | `apps/workbench/dist`       | The page (`kiln-workbench.html`)          |
 | `KILN_EXECUTORS` | `$KILN_DATA_DIR/executors.json` | CUDA executor profiles; none if missing |
+| `KILN_LAB_WORKLOADS` | `lab-workbench/workloads/perf_lab_local` | Perf Lab's workload sources; their hash identifies local captures |
 | `KILN_MODEL`     | unset                       | Model id for the agent gateway; unset turns it off |
 | `KILN_MODEL_URL` | `https://api.anthropic.com/v1/messages` | The Messages endpoint the gateway calls |
 | `ANTHROPIC_API_KEY` | unset                    | Sent upstream as `x-api-key`; never logged, stored or returned |
@@ -69,7 +70,7 @@ history imported from Perf Lab and answer 501 to create, approve or cancel. Erro
 | `GET /media/:sha` | | the image (`image/jpeg` or `image/png`), `cache-control: immutable`; 400 unless 64 lowercase hex digits |
 | `GET /jobs?lab=`, `GET /jobs/:id` | | Perf Lab's job view: the row, `captures` (without specs), `events` |
 | `POST /jobs`, `/jobs/:id/approve`, `/jobs/:id/cancel`, `/datasets/:id/materialize` | | `501 not_implemented` |
-| `GET /hosts`, `GET /hosts/:host/capabilities` | | hosts with `available: false` for `local`; capabilities `503 no_probe` |
+| `GET /hosts`, `GET /hosts/:host/capabilities` | | hosts with `available: false` for `local`; `local`'s report is read, not probed: CPU, memory and `tools.workloads`, the hash of `$KILN_LAB_WORKLOADS` as Perf Lab's probe computes it (`503 no_probe` without the sources) |
 
 An evidence archive is a `.tar.gz` of regular files and directories with relative paths, at most 64 MiB; it is
 identified by its SHA-256, extracted after every entry is validated, and a COCO selection inside it

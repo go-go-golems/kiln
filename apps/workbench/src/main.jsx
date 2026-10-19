@@ -8,10 +8,11 @@ import { std } from "@kiln/kiln/std/index.js";
 import * as Agent from "./agent/agent.js";
 import { gatewaySample } from "./agent/gateway.js";
 import { sessionToken } from "./server-client.js";
+import { labs } from "./ui/lab/state.js";
 
 // doc.js renders TeX through window.katex when it is present; in Node it is absent and TeX stays source
 window.katex = katex;
-window.__kiln = { wb, k, P, std, agent: Agent };
+window.__kiln = { wb, k, P, std, agent: Agent, labs };
 
 async function connectClaude() {
   // a host bridge's capabilities light up later, or resolve null when this view cannot run them
@@ -32,5 +33,6 @@ async function main() {
   connectClaude();
   try { await wb.start(); }
   catch (e) { console.error(e); wb.error = e.message || String(e); wb.ready = false; wb.bump("ready"); }
+  labs.restore();
 }
 main();

@@ -5,18 +5,20 @@
 // a local path, rather than sent as a raw .tar.gz body.
 //
 // Not ported: lab job execution (the job routes are read-only; creating, approving or cancelling answers 501),
-// dataset materialization (no outbound fetch; media come from the importer), the host probe, and the assistant.
+// dataset materialization (no outbound fetch; media come from the importer), and the assistant. Host `local`'s report
+// is read, not probed (probe.ts).
 import { Hono, type Context } from 'hono';
 import type { ServerConfig } from '../config.ts';
 import type { Db } from '../db.ts';
 import type { EventBus } from '../events.ts';
 import { validateCaptures } from './captures.ts';
+import { localReport } from './probe.ts';
 import { getDataset, listDatasets, readMedia } from './datasets.ts';
 import { getArchive, listArchives, MAX_ARCHIVE_BYTES, readArchivePath, registerArchive } from './evidence.ts';
 import { addAnnotation, bundlesFor, catalog, deleteProgram, getJob, getProgram, listAnnotations, listJobs, MAX_BUNDLE_HASHES, MAX_PROGRAM_CHARS, putProgram, seedSynthetic } from './store.ts';
 
 export interface LabContext {
-  config: Pick<ServerConfig, 'dataDir'>;
+  config: Pick<ServerConfig, 'dataDir' | 'labWorkloads'>;
   db: Db;
   bus: EventBus;
 }
@@ -35,7 +37,7 @@ export function labRoutes({ config, db, bus }: LabContext): Hono {
   const lab = new Hono();
   const notExecuted = (c: Context) => c.json(err('not_implemented', NO_EXECUTION), 501);
 
-  // ── hosts: nothing executes here, so no host is available for lab jobs and there is no probe ────────────────────
+  // ── hosts: nothing executes here, so no host is available for lab jobs; local's report is read, not probed ────────────────────
   lab.get('/hosts', (c) =>
     c.json([
       { host: 'local', executor: 'none', synthetic: false, available: false, error: NO_EXECUTION },
@@ -45,7 +47,8 @@ export function labRoutes({ config, db, bus }: LabContext): Hono {
   lab.get('/hosts/:host/capabilities', (c) => {
     const host = c.req.param('host');
     if (host !== 'local') return c.json(err('not_found', `the server has no probe for ${host}; its report is synthetic and lives in the client`), 404);
-    return c.json(err('no_probe', `the Kiln server does not probe this machine for lab workloads: ${NO_EXECUTION}`), 503);
+    const r = localReport(config.labWorkloads);
+    return 'error' in r ? c.json(err('no_probe', r.error), 503) : c.json(r);
   });
 
   // ── programs: edited lab.js sources ──────────────────────────────────────────────────────────────────────────────

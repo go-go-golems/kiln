@@ -73,6 +73,8 @@ export function connectServer({ base = "", token = sessionToken(), fetch: doFetc
       approve: (id) => call("POST", `/jobs/${enc(id)}/approve`),
       cancel: (id) => call("POST", `/jobs/${enc(id)}/cancel`),
     },
+    /** The lab route group (guide §33): Perf Lab's catalog, bundles, evidence archives and datasets, read-only here. */
+    lab: { get: (path) => call("GET", `/lab${path}`) },
     /** Server-sent events; see subscribe(). Returns the function that unsubscribes. */
     subscribe: (handlers, opts = {}) => subscribe(`${base}/api/events`, handlers, { EventSource: ES, ...opts }),
   };

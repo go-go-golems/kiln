@@ -11,6 +11,10 @@ import { EvidenceView } from "./Evidence.jsx";
 import { HypothesesView } from "./Hypotheses.jsx";
 import { JobsView, ServerLine } from "./Jobs.jsx";
 import { NotesView } from "./Notes.jsx";
+import { LabView } from "./lab/LabView.jsx";
+import { BoardView } from "./lab/board.jsx";
+import { labs } from "./lab/state.js";
+import { isBoardView } from "./dock.js";
 import { agent } from "../agent/agent.js";
 
 // Every view the layout can place. `col` views stack their parts vertically; the others lay out a main
@@ -32,4 +36,16 @@ export const VIEWS = {
   devices: { title: "Devices", about: "simulated GPUs, WebGPU, a CUDA runner, and the Kiln server's executors", col: true, el: () => <><ServerLine /><DevicesView /></> },
   jobs: { title: "Jobs", about: "CUDA jobs on the Kiln server: proposed, approved, running, done; their events and records", el: () => <JobsView />, badge: () => { const n = wb.jobs.filter((j) => j.status === "proposed").length; return n ? [n, false] : wb.jobs.some((j) => j.status === "running" || j.status === "approved") ? ["…", false] : null; } },
   events: { title: "Events", about: "the workbench log and the last compile's events", el: () => <EventsView /> },
+  lab: { title: "Lab", about: "lab programs: Perf Lab's experiments, boards and hypotheses over imported runs", col: true, el: () => <LabView />, badge: () => labs.badge() },
 };
+
+/** A view's definition: a fixed view, or a board of the open lab program ("board:<id>"). */
+export function viewDef(id) {
+  if (VIEWS[id]) return VIEWS[id];
+  const b = isBoardView(id) ? id.slice(6) : null;
+  const sum = labs.current?.ir?.boards.find((x) => x.id === b);
+  return { title: sum ? `${labs.current.short} · ${sum.title || b}` : `Board ${b}`, about: sum ? `board ${sum.index + 1} of ${labs.current.title}` : "a board of a lab program that is not open", col: true, el: () => <BoardView id={b} /> };
+}
+
+/** The views a + menu offers: the fixed ones, then the open lab program's boards. */
+export const addableViews = () => [...Object.keys(VIEWS), ...(labs.current?.ir?.boards ?? []).map((b) => `board:${b.id}`)];

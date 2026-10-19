@@ -14,6 +14,8 @@ export interface ServerConfig {
   dataDir: string;
   /** ':memory:' in tests */
   dbFile: string;
+  /** Perf Lab's workload sources; their content hash is host `local`'s workload revision (lab/probe.ts) */
+  labWorkloads: string;
   /** The built workbench (apps/workbench/dist); the server serves kiln-workbench.html from it */
   dist: string;
   /** CUDA executor profiles (§30.5); a missing file means no executors */
@@ -44,6 +46,7 @@ export function loadConfig(overrides: Partial<ServerConfig> = {}, env: NodeJS.Pr
     dataDir,
     dbFile: resolve(dataDir, 'kiln.sqlite'),
     dist: resolve(env.KILN_DIST ?? resolve(REPO, 'apps/workbench/dist')),
+    labWorkloads: resolve(env.KILN_LAB_WORKLOADS ?? resolve(REPO, 'lab-workbench/workloads/perf_lab_local')),
     executorsFile: resolve(env.KILN_EXECUTORS ?? resolve(dataDir, 'executors.json')),
     runner: resolve(REPO, 'runner/kiln_runner.py'),
     model: env.KILN_MODEL || null,

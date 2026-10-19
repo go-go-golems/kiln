@@ -34,7 +34,7 @@ export interface CallOpts {
 
 export function makeServer({ executors = [fakeExecutor()], config: overrides = {}, dbFile = ':memory:' }: { executors?: Executor[]; config?: Partial<ServerConfig>; dbFile?: string } = {}) {
   const dataDir = tempDir();
-  const config = loadConfig({ dataDir, dbFile, dist: join(dataDir, 'dist'), executorsFile: join(dataDir, 'executors.json'), repTimeoutMs: 10_000, pingMs: 60_000, ...overrides }, {});
+  const config = loadConfig({ dataDir, dbFile, dist: join(dataDir, 'dist'), labWorkloads: join(dataDir, 'workloads'), executorsFile: join(dataDir, 'executors.json'), repTimeoutMs: 10_000, pingMs: 60_000, ...overrides }, {});
   const db = openDb(config.dbFile);
   const bus = new EventBus();
   const devices = new Devices(db, bus, new Map(executors.map((e) => [e.id, e])));

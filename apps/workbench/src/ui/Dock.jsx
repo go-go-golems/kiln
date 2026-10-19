@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { wb as lab } from "./wb.js";
 import { useLab, Btn, Tabs, cls } from "./common.jsx";
-import { VIEWS } from "./views.jsx";
+import { viewDef, addableViews } from "./views.jsx";
 import * as D from "./dock.js";
 
 // The tiled workspace. Drag a tab onto another tile's tabs to group it there, or onto a tile's edge to
@@ -95,25 +95,25 @@ function Gutter({ node, i, box }) {
 }
 
 // a view's body only re-renders when the view itself asks to, not when the layout around it changes
-const ViewBody = React.memo(function ViewBody({ id }) { return VIEWS[id].el(); });
+const ViewBody = React.memo(function ViewBody({ id }) { return viewDef(id).el(); });
 
 function Tile({ node }) {
   const v = node.active;
   return (
-    <section className="tile" data-tile={node.id} onPointerDownCapture={() => { lab.focusTile = node.id; }} aria-label={v ? VIEWS[v].title : "Empty tile"}>
+    <section className="tile" data-tile={node.id} onPointerDownCapture={() => { lab.focusTile = node.id; }} aria-label={v ? viewDef(v).title : "Empty tile"}>
       <Strip node={node} />
       <div className="tilebody" data-body={node.id}>
-        {v ? <div className={cls("tabbody", VIEWS[v].col && "col")} key={v}><ViewBody id={v} /></div> : <Picker node={node} />}
+        {v ? <div className={cls("tabbody", viewDef(v).col && "col")} key={v}><ViewBody id={v} /></div> : <Picker node={node} />}
       </div>
     </section>
   );
 }
 
 function Strip({ node }) {
-  useLab("compile", "measure", "tune", "store", "agent", "device", "jobs");
+  useLab("compile", "measure", "tune", "store", "agent", "device", "jobs", "lab");
   const [menu, setMenu] = useState(null);
   const maxed = lab.maxTile === node.id;
-  const elsewhere = D.ALL_VIEWS.filter((v) => !node.views.includes(v));
+  const elsewhere = addableViews().filter((v) => !node.views.includes(v));
   const open = D.openViews(lab.layout);
   return (
     <div className="dstrip" data-strip={node.id} onDoubleClick={(e) => { if (e.target === e.currentTarget || e.target.classList.contains("dtabs")) lab.toggleMax(node.id); }}>
@@ -129,7 +129,7 @@ function Strip({ node }) {
           <div className="grp">Show here</div>
           {elsewhere.map((v) => (
             <button key={v} type="button" onClick={() => { setMenu(null); lab.dropView(v, { kind: "tab", tile: node.id }); }}>
-              <span className="t">{VIEWS[v].title}</span><small>{VIEWS[v].about}{open.includes(v) ? " · moves it here" : ""}</small>
+              <span className="t">{viewDef(v).title}</span><small>{viewDef(v).about}{open.includes(v) ? " · moves it here" : ""}</small>
             </button>
           ))}
           {!elsewhere.length ? <p className="note padded">Every view is already in this tile.</p> : null}
@@ -149,7 +149,7 @@ function Strip({ node }) {
 }
 
 function DTab({ node, v }) {
-  const V = VIEWS[v];
+  const V = viewDef(v);
   const b = V.badge?.();
   const on = node.active === v;
   return (
@@ -169,9 +169,9 @@ function Picker({ node }) {
     <div className="picker">
       <p className="lead">An empty tile. Pick a view for it, or drag a tab here.</p>
       <div className="pgrid">
-        {D.ALL_VIEWS.map((v) => (
+        {addableViews().map((v) => (
           <button key={v} type="button" onClick={() => lab.dropView(v, { kind: "tab", tile: node.id })}>
-            <b>{VIEWS[v].title}</b><small>{VIEWS[v].about}</small>{open.includes(v) ? <em>moves it here</em> : null}
+            <b>{viewDef(v).title}</b><small>{viewDef(v).about}</small>{open.includes(v) ? <em>moves it here</em> : null}
           </button>
         ))}
       </div>
@@ -288,7 +288,7 @@ function DragLayer() {
   return createPortal(
     <>
       {t ? <div className={cls("drop-hint", t.marker && "marker")} style={{ left: t.rect.left, top: t.rect.top, width: t.rect.width, height: t.rect.height }}>{t.marker ? null : <span>{label}</span>}</div> : null}
-      <div className="drag-ghost" style={{ left: g.x + 12, top: g.y + 10 }}>{VIEWS[g.view].title}{t?.marker ? <small> as a tab here</small> : null}</div>
+      <div className="drag-ghost" style={{ left: g.x + 12, top: g.y + 10 }}>{viewDef(g.view).title}{t?.marker ? <small> as a tab here</small> : null}</div>
     </>,
     document.body,
   );
@@ -296,14 +296,14 @@ function DragLayer() {
 
 // ---------- narrow screens: one strip with every view ----------
 function PhoneDock() {
-  useLab("layout", "compile", "measure", "tune", "agent", "jobs");
+  useLab("layout", "compile", "measure", "tune", "agent", "jobs", "lab");
   const views = D.flatViews(lab.layout);
   const v = views.includes(lab.phoneView) ? lab.phoneView : "ir";
   return (
     <div className="pane dock-phone">
       <Tabs value={v} onChange={(x) => { lab.noteActive(x); lab.bump("layout"); }}
-        items={views.map((id) => { const b = VIEWS[id].badge?.(); return [id, VIEWS[id].title, b?.[0] ?? null, b?.[1]]; })} />
-      <div className={cls("tabbody", VIEWS[v].col && "col")} key={v}><ViewBody id={v} /></div>
+        items={views.map((id) => { const b = viewDef(id).badge?.(); return [id, viewDef(id).title, b?.[0] ?? null, b?.[1]]; })} />
+      <div className={cls("tabbody", viewDef(v).col && "col")} key={v}><ViewBody id={v} /></div>
     </div>
   );
 }

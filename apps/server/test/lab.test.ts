@@ -128,7 +128,7 @@ describe('/api/lab: programs, annotations, jobs and hosts', () => {
     expect((await s.json('GET', '/api/lab/jobs/job-a')).body.status).toBe('done');
   });
 
-  it('reports no host that executes lab jobs, and no local probe', async () => {
+  it('reports no host that executes lab jobs, and no local report without workload sources', async () => {
     const s = labServer();
     const hosts = (await s.json('GET', '/api/lab/hosts')).body;
     expect(hosts.map((h: any) => [h.host, h.executor, h.synthetic, h.available])).toEqual([
@@ -138,6 +138,19 @@ describe('/api/lab: programs, annotations, jobs and hosts', () => {
     ]);
     expect(await s.json('GET', '/api/lab/hosts/local/capabilities')).toMatchObject({ status: 503, body: { error: 'no_probe' } });
     expect(await s.json('GET', '/api/lab/hosts/playback@dgx/capabilities')).toMatchObject({ status: 404, body: { error: 'not_found' } });
+  });
+
+  it("reports host local's workload revision as Perf Lab's probe computes it, from the sources' names and bytes", async () => {
+    const dir = tempDir();
+    writeFileSync(join(dir, 'sampler.py'), 'import torch\n');
+    writeFileSync(join(dir, 'bench.py'), 'def run():\n    return 1\n');
+    writeFileSync(join(dir, 'notes.txt'), 'not python\n');
+    const s = makeServer({ executors: [], config: { labWorkloads: dir } });
+    const r = await s.json('GET', '/api/lab/hosts/local/capabilities');
+    // computed with PL/workloads/perf_lab_local/probe.py's workloads_revision (Python hashlib) over the same files
+    expect(r).toMatchObject({ status: 200, body: { host: 'local', synthetic: false, devices: ['cpu'], tools: { workloads: 'ddf321d31bc9' } } });
+    writeFileSync(join(dir, 'bench.py'), 'def run():\n    return 2\n');
+    expect((await s.json('GET', '/api/lab/hosts/local/capabilities')).body.tools.workloads).not.toBe('ddf321d31bc9');
   });
 });
 

@@ -4,8 +4,11 @@
 // Every operation here is pure: it takes a tree and returns a new one.
 
 export const IDE_VIEWS = ["notes", "code", "agent", "reference"];
-export const SYS_VIEWS = ["ir", "graph", "trace", "kernels", "perf", "knobs", "tune", "evidence", "hypotheses", "devices", "jobs", "events"];
+export const SYS_VIEWS = ["ir", "graph", "trace", "kernels", "perf", "knobs", "tune", "evidence", "hypotheses", "devices", "jobs", "events", "lab"];
 export const ALL_VIEWS = [...IDE_VIEWS, ...SYS_VIEWS];
+// a lab program's board is a view of its own, named after the board (guide §33)
+export const isBoardView = (v) => typeof v === "string" && /^board:[A-Za-z0-9_.-]{1,80}$/.test(v);
+const known = (v) => ALL_VIEWS.includes(v) || isBoardView(v);
 
 const nid = (p) => p + Math.random().toString(36).slice(2, 8);
 export const tile = (views = [], active) => ({ t: "tile", id: nid("t"), views: [...views], active: active ?? views[0] ?? null });
@@ -41,7 +44,7 @@ export function normalize(root) {
     if (n.t === "tile") {
       if (n.dead) return null;
       const views = [];
-      for (const v of Array.isArray(n.views) ? n.views : []) if (ALL_VIEWS.includes(v) && !seen.has(v)) { seen.add(v); views.push(v); }
+      for (const v of Array.isArray(n.views) ? n.views : []) if (known(v) && !seen.has(v)) { seen.add(v); views.push(v); }
       return { t: "tile", id: n.id || nid("t"), views, active: views.includes(n.active) ? n.active : views[0] ?? null };
     }
     if (n.t === "split") {

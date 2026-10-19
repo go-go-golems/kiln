@@ -83,7 +83,7 @@ class Workbench {
   // ---------- layout (dock.js) ----------
   setLayout(root, { save = true } = {}) { this.layout = Dock.normalize(root); if (this.maxTile && !Dock.findNode(this.layout, this.maxTile)) this.maxTile = null; if (save) lsSet("layout", this.layout); this.bump("layout"); }
   noteActive(v) { this.phoneView = v; }
-  showView(v) { if (!Dock.ALL_VIEWS.includes(v)) return; const next = Dock.reveal(this.layout, v, this.focusTile); const t = Dock.tileOf(next, v); if (this.maxTile && t && t.id !== this.maxTile) this.maxTile = null; this.noteActive(v); if (next !== this.layout) this.setLayout(next); else this.bump("layout"); }
+  showView(v) { if (!Dock.ALL_VIEWS.includes(v) && !Dock.isBoardView(v)) return; const next = Dock.reveal(this.layout, v, this.focusTile); const t = Dock.tileOf(next, v); if (this.maxTile && t && t.id !== this.maxTile) this.maxTile = null; this.noteActive(v); if (next !== this.layout) this.setLayout(next); else this.bump("layout"); }
   activateTab(tileId, v) { this.focusTile = tileId; this.noteActive(v); this.setLayout(Dock.activate(this.layout, tileId, v)); }
   dropView(v, target) { const next = target.kind === "side" ? Dock.moveToSide(this.layout, v, target.tile, target.side) : Dock.moveToTab(this.layout, v, target.tile, target.index ?? null); if (next === this.layout) return; this.noteActive(v); this.setLayout(next); this.focusTile = Dock.tileOf(this.layout, v)?.id || null; }
   closeView(v) { this.setLayout(Dock.closeView(this.layout, v)); }
