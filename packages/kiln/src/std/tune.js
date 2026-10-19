@@ -6,6 +6,7 @@
 import { k, knobs as KN } from "../core/kiln.js";
 import { programOf } from "./program.js";
 import { costPrior } from "./tile.js";
+import { activationOf } from "./records.js";
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
@@ -21,17 +22,19 @@ function replay(path, rollout, sink) {
   } };
 }
 
-export async function measureProgram(prog, device, { store = null, memo = new Map(), seed = 1, by = "measure", onKernel } = {}) {
+// Measure every kernel of a program once (one repetition each, in program order) and store one record per kernel.
+// `run` and `kernelPins` say what the compile asked for, so each record carries its activation check (guide §27).
+export async function measureProgram(prog, device, { store = null, memo = new Map(), seed = 1, by = "measure", onKernel, run = null, kernelPins = null } = {}) {
   const out = [];
   for (const kn of prog.kernels) {
     const key = kn.identity + "|" + kn.row;
-    let res = memo.get(key);
+    let res = memo.get(key), record = null;
     if (!res) {
       try { res = await device.runKernel(kn, { seed }); } catch (e) { res = { error: e.message || String(e), us: Infinity }; }
       memo.set(key, res);
-      store?.record({ device: device.id, kern: kn, result: res, by });
+      if (store) record = store.record({ device, kern: kn, result: res, by, activation: activationOf(kn, { run, kernelPins }) });
     }
-    out.push({ kern: kn, ...res });
+    out.push({ kern: kn, ...res, record });
     onKernel?.(kn, res);
   }
   const total = out.reduce((a, r) => a + (r.error || r.check?.ok === false ? Infinity : r.us), 0);
@@ -42,12 +45,12 @@ export async function tune({ pipeline, graph, params, device, store, strategy = 
   const memo = new Map();
   const history = [];
   let best = null;
-  const ctx = { deviceId: device.id };
+  const ctx = { deviceId: device.evidenceId ?? device.id };
   rollout ||= pipeline._decide;
   const compile = (decide) => pipeline.with({ target: device.target }).run(graph, { params, decide, ctx });
   const evaluate = async (run, label) => {
     const prog = programOf(run.graph);
-    const m = await measureProgram(prog, device, { store, memo, by: "tune" });
+    const m = await measureProgram(prog, device, { store, memo, by: "tune", run });
     const entry = { i: history.length, us: m.total, rows: prog.kernels.map((kn) => `${kn.name}: ${kn.row}`), label, t: Date.now() };
     history.push(entry);
     if (!best || m.total < best.us) best = { ...entry, decisions: run.decisions.map((d) => ({ rule: d.rule, node: d.node, knobs: d.knobs })) };

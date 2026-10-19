@@ -5,7 +5,8 @@ import { runScript, headerOf, lineOf } from "@kiln/kiln/core/script.js";
 import { std } from "@kiln/kiln/std/index.js";
 import { programOf } from "@kiln/kiln/std/program.js";
 import { makeDevices, bundle as makeBundle, ingest } from "@kiln/kiln/std/devices.js";
-import { Store } from "@kiln/kiln/std/store.js";
+import { EvidenceStore } from "@kiln/kiln/std/store.js";
+import { activationOf } from "@kiln/kiln/std/records.js";
 import { tune as runTune, measureProgram } from "@kiln/kiln/std/tune.js";
 import { schedule } from "@kiln/kiln/std/loop.js";
 import { canonRow } from "@kiln/kiln/std/tile.js";
@@ -29,8 +30,10 @@ class Workbench {
     this.params = new ParamSet([]); this.kernelPins = {};
     this.devices = makeDevices();
     this.deviceId = lsGet("device", "sim:rtx5090");
-    this.store = new Store(lsGet("evidence", { rows: [] }).rows);
-    this.store.on(() => { clearTimeout(this._st); this._st = setTimeout(() => lsSet("evidence", this.store.toJSON()), 400); this.bump("store"); });
+    this.store = new EvidenceStore();
+    // kiln-evidence/2 records; a kiln-evidence/1 store from before becomes legacy records once
+    try { const saved = lsGet("evidence2", null); if (saved) this.store.import(saved); else { const old = lsGet("evidence", null); if (old?.rows?.length) this.store.import(old); } } catch {}
+    this.store.on(() => { clearTimeout(this._st); this._st = setTimeout(() => lsSet("evidence2", this.store.toJSON()), 400); this.bump("store"); });
     this.measures = {}; this.history = []; this.measuring = false;
     this.tuning = null;
     this.events = [];
@@ -103,7 +106,7 @@ class Workbench {
   pipelineFor(project, device = this.device) {
     const base = project?._pipe || std.emmy.pipeline();
     const kp = this.kernelPins;
-    const kernelPolicy = { name: "kernel pin", rank: (fp) => { const want = kp[fp.key]; if (!want) return null; const i = fp.options.findIndex((o) => canonRow(o.knobs) === want || k.knobs.canonical(o.knobs) === want); return i < 0 ? null : { order: [i, ...fp.options.map((_, j) => j).filter((j) => j !== i)], by: "pinned" }; } };
+    const kernelPolicy = { name: "kernel pin", rank: (fp) => { const want = kp[fp.key]; if (!want) return null; const i = fp.options.findIndex((o) => canonRow(o.knobs) === want || k.knobs.canonical(o.knobs) === want); return i < 0 ? null : { order: [i, ...fp.options.map((_, j) => j).filter((j) => j !== i)], by: "kernel-pin" }; } };
     return base.with({ target: device.target, decide: k.decide.chain(kernelPolicy, base._decide) });
   }
   // compile a script without touching the editor, the run or the views (the agent's editor.check)
@@ -117,7 +120,7 @@ class Workbench {
     let g;
     try { g = project.graph((p) => ps.get(p)); }
     catch (e) { return { ok: false, diags: [...res.diags, { level: "error", line: lineOf(e), message: "tracing the program: " + e.message }] }; }
-    const run = pipe.run(g, { params: ps, target: device.target, ctx: { deviceId: device.id, store: this.store } });
+    const run = pipe.run(g, { params: ps, target: device.target, ctx: { deviceId: device.evidenceId ?? device.id, store: this.store } });
     const prog = run.ok && [...run.graph.nodes.values()].some((n) => n.name === "gpu.kernel") ? programOf(run.graph) : null;
     const diags = [...res.diags, ...(run.ok ? [] : [{ level: "error", line: lineOf(run.error.cause || run.error), message: `${run.error.kind}: ${run.error.message}` }]), ...run.warnings.map((w) => ({ level: "warn", message: w }))];
     return { ok: run.ok, diags, project, graph: g, run, prog, pipe };
@@ -139,10 +142,12 @@ class Workbench {
     catch (e) { this.diags = [...this.diags, { level: "error", line: lineOf(e), message: "tracing the program: " + e.message }]; this.bump("diags", "compile"); return false; }
     this.graph = g;
     const pipe = this.pipelineFor(project);
-    const run = pipe.run(g, { params: this.params, target: this.device.target, ctx: { deviceId: this.device.id, store: this.store } });
+    const run = pipe.run(g, { params: this.params, target: this.device.target, ctx: { deviceId: this.device.evidenceId ?? this.device.id, store: this.store } });
     this.run = run; this.pipe = pipe;
     this.compileMs = performance.now() - t0;
     this.prog = run.ok && run.graph.nodes.size && [...run.graph.nodes.values()].some((n) => n.name === "gpu.kernel") ? programOf(run.graph) : null;
+    // this program's content ids are now the current ones: records of other code for the same rows are stale
+    if (this.prog) this.store.observe(this.prog, this.device);
     if (!run.ok) this.diags = [...this.diags, { level: "error", line: lineOf(run.error.cause || run.error), message: `${run.error.kind}: ${run.error.message}` }];
     for (const w of run.warnings) this.diags.push({ level: "warn", message: w });
     if (!this.sel.ir || !run.checkpoints.has(this.sel.ir)) this.sel.ir = run.irOrder.includes("loop") ? "loop" : run.irOrder[run.irOrder.length - 1] || "input";
@@ -191,6 +196,8 @@ class Workbench {
   pinKernel(identity, row) { if (row) this.kernelPins[identity] = row; else delete this.kernelPins[identity]; this.log("pin", row ? `kernel ${clip(identity, 10)} → ${row}` : "kernel pin removed"); this.compile(); }
 
   // ---------- devices ----------
+  /** The id the current device's records carry (fingerprinted; the selection key until a real device is probed). */
+  get evidenceId() { return this.device.evidenceId ?? this.device.id; }
   async setDevice(id, { quiet = false } = {}) {
     const d = this.devices.find((x) => x.id === id);
     if (!d) return;
@@ -212,9 +219,9 @@ class Workbench {
     const t0 = performance.now();
     let res;
     try {
-      res = await measureProgram(this.prog, device, { store: this.store, onKernel: () => { this.measuring.done++; this.bump("measure"); } });
+      res = await measureProgram(this.prog, device, { store: this.store, run: this.run, kernelPins: this.kernelPins, onKernel: () => { this.measuring.done++; this.bump("measure"); } });
     } catch (e) { this.measuring = false; this.toast("Measure failed: " + e.message, "bad"); this.bump("measure"); return null; }
-    const rec = { t: Date.now(), device: device.id, deviceName: device.label, total: res.total, kernels: res.kernels.map((r) => ({ name: r.kern.name, identity: r.kern.identity, row: r.kern.row, us: r.us, metrics: r.metrics, check: r.check, error: r.error })), ms: performance.now() - t0, preset: this.preset?.id };
+    const rec = { t: Date.now(), device: device.id, evidenceId: device.evidenceId, deviceName: device.label, total: res.total, kernels: res.kernels.map((r) => ({ name: r.kern.name, identity: r.kern.identity, row: r.kern.row, us: r.us, metrics: r.metrics, check: r.check, error: r.error, record: r.record?.id ?? null })), ms: performance.now() - t0, preset: this.preset?.id };
     this.measures[device.id] = rec;
     this.history.push({ t: rec.t, device: device.id, total: rec.total, rows: rec.kernels.map((x) => x.row).join(" | "), preset: rec.preset });
     if (this.history.length > 300) this.history.shift();
@@ -255,9 +262,10 @@ class Workbench {
     const res = typeof json === "string" ? JSON.parse(json) : json;
     const out = ingest(res, this.prog.kernels);
     const device = this.devices.find((d) => d.kind === "cuda");
-    if (res.device) { device.info = res.device; device.name = `CUDA ${res.device.name || ""}`.trim(); device.label = device.name + " · imported"; }
+    device.adopt(res.device || { name: "unknown" }, "import");
+    device.label = device.name + " · imported";
     const rec = { t: Date.now(), device: device.id, deviceName: device.label, total: out.reduce((a, r) => a + (r.us || 0), 0), kernels: out.map((r, i) => ({ name: this.prog.kernels[i].name, identity: this.prog.kernels[i].identity, row: this.prog.kernels[i].row, ...r })), imported: true };
-    this.prog.kernels.forEach((kn, i) => this.store.record({ device: device.id, kern: kn, result: out[i], by: "import" }));
+    this.prog.kernels.forEach((kn, i) => this.store.record({ device, kern: kn, result: out[i], by: "import", activation: activationOf(kn, { run: this.run, kernelPins: this.kernelPins }) }));
     this.measures[device.id] = rec;
     this.log("measure", `imported CUDA results: ${fmtUs(rec.total)}`);
     this.bump("measure", "store", "device");

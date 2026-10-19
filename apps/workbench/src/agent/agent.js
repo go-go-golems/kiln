@@ -6,7 +6,7 @@ import * as Dock from "../ui/dock.js";
 import { wb, lsGet, lsSet, REFERENCE, GUIDELINES } from "../ui/wb.js";
 import { makeScriptScope, Project } from "@kiln/kiln/std/index.js";
 import { k, knobs as KN, typeStr, unifiedDiff, identityOf, Value, Run } from "@kiln/kiln/core/kiln.js";
-import { clip, summarize, fmtUs, compare } from "@kiln/kiln/core/util.js";
+import { clip, summarize, fmtUs, compare, median } from "@kiln/kiln/core/util.js";
 import { canonRow, analyze, estimate } from "@kiln/kiln/std/tile.js";
 import { simulateKernel } from "@kiln/kiln/std/program.js";
 import { measureProgram } from "@kiln/kiln/std/tune.js";
@@ -114,7 +114,7 @@ const AGENT_SCOPE = [
   ["kernels.list() · kernels.get(name) · kernels.source(name, 'cuda' | 'wgsl' | 'kernel' | 'tile' | 'loop') · kernels.simulate(name, { device })", "the compiled kernels; simulate runs one on a simulated GPU without recording"],
   ["devices.list() · devices.current() · await devices.use(id)", "sim:rtx5090 sim:rtx4090 sim:h100 sim:a100 sim:orin webgpu cuda"],
   ["await measure({ device }) · await tune({ strategy: 'spmcts' | 'sweep', budget })", "run every kernel (time, metrics, sampled check vs the reference; records evidence) · search schedules"],
-  ["evidence.list({ device, all }) · evidence.best(name) · evidence.clear({ device })", "the measured rows the compiler decides by"],
+  ["evidence.list({ device, all }) · evidence.best(name) · evidence.clear({ device })", "measurement records (median of repetitions, n, status fresh / stale / partial / invalid); only fresh valid ones decide schedules"],
   ["checks.e2e() · checks.outputs()", "the end-to-end check (last evaluable IR vs the frontend) and the output values"],
   ["presets.list() · presets.get(id) · await presets.load(id) · presets.save({ asNew })", "presets; saving keeps them in this browser as U-NN"],
   ["chat.table(rows, title) · chat.propose(script, title) · chat.code(text, title, lang) · chat.show(view, sel) · chat.place(view, { beside | with, side })", "evidence in the chat; bring a view forward (views: code agent reference ir graph trace kernels perf knobs tune devices events) and select {ir, node, step, kernel, decision}"],
@@ -297,7 +297,7 @@ function restore(snap) {
   wb.script = snap.script; wb.savedScript = snap.savedScript; wb.notes = snap.notes ?? wb.notes; wb.savedNotes = snap.savedNotes ?? wb.savedNotes;
   wb.params = snap.params.clone(); wb.kernelPins = { ...snap.kernelPins };
   wb.deviceId = snap.deviceId; lsSet("device", wb.deviceId);
-  wb.store.clear(); wb.store.import(JSON.parse(snap.evidence));
+  wb.store.forget(); wb.store.import(JSON.parse(snap.evidence));
   wb.bump("code", "preset", "device", "params", "notes");
   wb.compile();
 }
@@ -408,13 +408,15 @@ export function makeAgentScope({ mode = "auto", onPart = () => {}, log = () => {
   };
   const decisionAt = (i) => { const d = needRun().decisions[i]; if (!d) throw new Error(`no fork ${i}; there are ${wb.run.decisions.length}`); return d; };
   let forks = {
-    list: () => needRun().decisions.map((d, i) => ({ i, rule: d.rule, node: d.node, kernel: wb.prog?.kernels.find((x) => x.identity === d.key)?.name, options: d.size, picked: d.failed ? "none legal" : rowOf(d.knobs), by: d.by, pinned: !!wb.kernelPins[d.key] })),
+    list: () => needRun().decisions.map((d, i) => ({ i, rule: d.rule, node: d.node, kernel: wb.prog?.kernels.find((x) => x.identity === d.key)?.name, options: d.size, picked: d.failed ? "none legal" : rowOf(d.knobs), by: d.by, note: d.note || undefined, pinned: !!wb.kernelPins[d.key] })),
     get(i) {
       const d = decisionAt(i), run = wb.run;
-      const meas = new Map(wb.store.list({ device: wb.deviceId, identity: d.key }).map((r) => [KN.canonical(r.knobs), r]));
-      const opts = d.options.map((o, j) => ({ j, row: rowOf(o.knobs), model: r3(modelUs(run, d, o.knobs, wb.device.target)), measured: r3(meas.get(KN.canonical(o.knobs))?.us), chosen: KN.canonical(o.knobs) === KN.canonical(d.knobs || {}) }));
+      const opts = d.options.map((o, j) => {
+        const s = wb.store.statsFor(wb.evidenceId, d.key, o.knobs);
+        return { j, row: rowOf(o.knobs), model: r3(modelUs(run, d, o.knobs, wb.device.target)), measured: s ? r3(s.median) : null, ci: s ? [r3(s.lo), r3(s.hi)] : undefined, n: s?.n, chosen: KN.canonical(o.knobs) === KN.canonical(d.knobs || {}) };
+      });
       opts.sort((a, b) => (a.model ?? Infinity) - (b.model ?? Infinity));
-      return { rule: d.rule, node: d.node, key: String(d.key), by: d.by, picked: rowOf(d.knobs), tried: d.tried?.map((t) => `${rowOf(t.knobs)}: ${t.reason}`), options: opts.slice(0, 40), more: Math.max(0, opts.length - 40) };
+      return { rule: d.rule, node: d.node, key: String(d.key), by: d.by, note: d.note || undefined, picked: rowOf(d.knobs), tried: d.tried?.map((t) => `${rowOf(t.knobs)}: ${t.reason}`), options: opts.slice(0, 40), more: Math.max(0, opts.length - 40) };
     },
     pin(i, opt) {
       const d = decisionAt(i);
@@ -470,9 +472,12 @@ export function makeAgentScope({ mode = "auto", onPart = () => {}, log = () => {
     return { best: r3(T.best.us), rows: T.best.rows, programs: T.history.length, firstUs: r3(T.history[0]?.us), compileNow: runSummary(wb.run, wb.prog) };
   };
   let evidence = {
-    list: ({ device = wb.deviceId, all = false } = {}) => { const ids = new Set(wb.prog?.kernels.map((x) => x.identity) || []); return wb.store.list({ device }).filter((r) => all || ids.has(r.identity)).map((r) => ({ name: r.name, row: r.row, us: r3(r.us), by: r.by, ok: r.ok !== false })); },
-    best: (name) => { const x = kern(name); const b = wb.store.best(wb.deviceId, x.identity); return b ? { row: b.row, us: r3(b.us), by: b.by } : null; },
-    clear({ device = wb.deviceId } = {}) { wb.store.clear({ device }); wb.compile(); return wb.store.size; },
+    list: ({ device = wb.evidenceId, all = false } = {}) => {
+      const ids = new Set(wb.prog?.kernels.map((x) => x.identity) || []);
+      return wb.store.list({ device }).filter((r) => all || ids.has(r.kernel.identity)).map((r) => ({ id: r.id.slice(0, 12), name: r.kernel.name, row: r.kernel.row, us: r3(median(r.timing.samples)), n: r.timing.samples.length, kind: r.timing.kind, status: wb.store.status(r), reasons: r.validity.reasons.length ? r.validity.reasons : undefined, by: r.by }));
+    },
+    best: (name) => { const x = kern(name); const b = wb.store.best(wb.evidenceId, x.identity); return b ? { row: b.row, us: r3(b.median), ci: [r3(b.lo), r3(b.hi)], n: b.n } : null; },
+    clear({ device = wb.evidenceId } = {}) { wb.store.forget({ device }); wb.compile(); return wb.store.size; },
   };
   const checks = {
     e2e: () => wb.e2e && (wb.e2e.error ? { error: wb.e2e.error } : wb.e2e.skipped ? { skipped: wb.e2e.skipped } : { ok: wb.e2e.ok, level: wb.e2e.level, outputs: wb.e2e.checks.map((c) => `${c.name}: ${c.ok ? "ok" : c.message}`), custom: wb.e2e.custom.map((c) => `${c.name}: ${c.ok ? "ok" : c.message}`) }),

@@ -701,3 +701,156 @@ builds on them.
 
 - The descriptor rule in `track`:
   `isArr && prop === 'length' ? {...d, writable: true, configurable: false} : {...d, configurable: true}`.
+
+## Step 7: Phase 3, part 1 — records, the store and the v2 policy inside Kiln
+
+Phase 3 is split in three. This step covers the core, which I wrote myself because every other part depends on
+its contracts:
+- content ids;
+- device evidence ids;
+- the `kiln-measure/1` record builder;
+- the record store;
+- `decide.evidence` v2 and `pinned-partial`;
+- the activation check;
+- the wiring in `wb.js` and the agent.
+
+Part 2 (the views: Perf, Knobs, Kernels, Devices and the new Evidence view) and part 3 (the multi-repetition
+WebGPU protocol) go to two subagents, which start from this commit.
+
+Measuring every preset on `sim:rtx5090` stores 29 records, all valid. On the following compile, 28 schedule forks
+read `by evidence (confirms the model)`; W-21 keeps its own `ladder` policy. This is the core of the Phase 3
+done-condition for W-05.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1.
+
+**Assistant interpretation:** Implement guide §21–§28 inside Kiln: records instead of keep-best rows, decisions on
+intervals, activation and staleness.
+
+**Inferred user intent:** Kiln's decisions must rest on evidence that says what ran, where, how often, and whether
+it is still the current code.
+
+**Commit (code):** see the commit after this step ("KILN-001 Phase 3a: …").
+
+### What I did
+
+- `packages/kiln/package.json`: dependency `"@kiln/evidence": "workspace:*"`. Kiln's `.js` files import the `.ts`
+  package directly; Node 26 strips the types, and esbuild bundles them (+24 KB).
+- `std/records.js` (new):
+  - `CODEGEN_VERSION = "kiln-codegen/1"`, `INPUT_SEED = 1`.
+  - `sourceOf(kern, lang)`: CUDA, WGSL, or `printKernelBody(K)` for the simulator.
+  - `specHash(spec)`.
+  - `contentOf(kern, device)`, memoised per kernel object: the §22 material via `contentId`.
+  - `activationOf(kern, {run, kernelPins})`. Requested is, in order: the kernel pin, else the knob pins that apply
+    to the kernel's schedule fork, else that fork's decided row. The check compares knob values with
+    `kern.map`.
+  - `makeRecord(...)`, which turns a device result into a `kiln-measure/1` record:
+    - errors, failed checks, failed activation and missing repetitions become validity reasons;
+    - wall clock becomes a partial caveat;
+    - simulator counts are recorded as derived.
+  - `legacyRecord(row)` for `kiln-evidence/1`.
+- `std/store.js` rewritten as `EvidenceStore` (`Store` is kept as an alias for scripts):
+  - `add` validates and dedupes by id;
+  - `record`, `observe(prog, device)`, `isStale`, `isDecisive`, `status`;
+  - `statsFor(device, identity, knobs)` pools the samples of decisive records and summarises them;
+  - `optionStats(fp, run)`, `list`, `best`, `forget`;
+  - `toJSON` gives `kiln-evidence/2`; `import` accepts `/2` and `/1`;
+  - `rowOf` names rows as `canonRow` does.
+- `core/kiln.js`:
+  - `decide.evidence(store, {minReps = 3, always})` per §26, with notes (`confirms the model`,
+    `separated from the model's choice …`, `evidence within noise: best … overlaps …`).
+  - `decide.pinned` returns `pinned-partial` with a note when some knobs are pinned and calls the next policy for
+    the rest.
+  - `fp.pinned` lists the pins that were honoured. `allPinned` now counts only honoured pins: a pin the fork had
+    to ignore no longer makes the decision read "pinned".
+  - Decisions carry `note`.
+- `std/devices.js`:
+  - every device has `evidenceId` and `fingerprint` (simulator `sim:<key>`; WebGPU and CUDA from their info after
+    a probe);
+  - `runKernel` returns one repetition: `samples: [median of launches]`, `raw: [launch times]`, `kind`, `reps: 1`;
+  - `CudaDevice.adopt(info, host)` sets the identity, for a live probe or an imported results file.
+- `std/tune.js`: `measureProgram(..., {run, kernelPins})` stores one record per kernel with its activation;
+  `tune` decides under `device.evidenceId`.
+- `apps/workbench/src/ui/wb.js`:
+  - the store persists as `evidence2`, and a `kiln-evidence/1` `evidence` key is imported once as legacy;
+  - the compile context uses `device.evidenceId`, and every compile calls `store.observe(prog, device)`;
+  - the kernel-pin policy reports `by: "kernel-pin"`;
+  - `measure` passes the run and the kernel pins; bundle import adopts the CUDA identity;
+  - new getter `wb.evidenceId`.
+- `agent.js`: `forks.get` reports per option `measured` (median), `ci` and `n`; `evidence.list` returns records
+  (median, n, kind, status, reasons); `evidence.best` returns median and CI.
+- `packages/kiln/test/evidence.mjs` (25 checks):
+  - records validate; dedupe;
+  - staleness both ways (newest record versus an observed compile) and the older codegen;
+  - a forged id is refused;
+  - `/2` round trip and `/1` legacy import;
+  - the policy: defers, confirms, simulator override, `n < minReps`, separated switch, within-noise keeps the
+    model, wall clock never decides;
+  - `pinned-partial`; activation for a pin, a broken pin and a kernel pin.
+
+### Why
+
+- **Two ids per device.** `id` stays the UI and preset selection key (`.device("sim:h100")`, localStorage); records
+  carry `evidenceId`. A WebGPU adapter's fingerprint is known only after a probe, and the selection must work
+  before it.
+- **Current content id.** A fork's unchosen options have not been compiled, so their content id cannot be known
+  when the fork is decided. The store takes the content id from the last compile that produced that row
+  (`observe`), else from the newest record of the row. A record from another code generator is stale either way.
+  The guide's §22 assumed the content id is always known; this is the practical form.
+- **Pooling.** Two decisive records of one option are independent runs, so their per-repetition samples are
+  pooled before summarising. Repetitions remain the unit.
+
+### What worked
+
+- `node test/evidence.mjs` → `all evidence checks pass` (25).
+- `pnpm test` → evidence 111 tests; Kiln `core, evidence, progs, stack1-3, tune` (7 passed); `notes`, `presets`
+  (2 passed).
+- `pnpm build` → `dist/index.html 1137 KB (bundle 1081 KB, …)`.
+- The all-presets script (scratchpad `activation-all.mjs`) → `29 records, 0 invalid`;
+  `{ 'evidence (confirms the model)': 28, ladder: 1 }`.
+- `test/tune.mjs`: after tuning, `greedy with evidence: [ 'n23: by evidence', 'n28: by evidence' ] store rows 31`.
+
+### What didn't work
+
+- The first version of `activationOf` named the requested row with `knobs.canonical`
+  (`BK=8,BM=32,BN=16,COARSEN=1,MAP=tiled,STAGE=none,TM=1,TN=1,TPB=0`) and the materialised one with `canonRow`
+  (`MAP=tiled,BM=32,BN=16,BK=8`). The two looked different even when they matched. Both now use `canonRow`, and the
+  policy's notes go through `store.rowOf`. Core cannot import `canonRow`, which belongs to the standard library.
+- My first simulator-override test searched for an option that actually beats the model and found none for a
+  256×256 linear layer, so the check was vacuous. It now inserts a synthetic simulated record at half the time.
+
+### What I learned
+
+- Fork options carry the full knob set (643 options for the 256×256 linear layer). A materialised kernel's `map`
+  holds the same names, so the activation check compares values knob by knob, not row strings.
+
+### What was tricky to build
+
+- `decide.pinned` with partial pins must call `next()`, the rest of the chain, rather than return null. Otherwise
+  the evidence and model policies would still decide, but the attribution would lose the fact that a pin narrowed
+  the options (K-7).
+
+### What warrants a second pair of eyes
+
+- `allPinned` now requires the pins to be honoured. A preset whose pins are not offered at some fork used to read
+  "pinned" there and now reads `model`/`evidence`, with the existing warning. No preset test changed.
+- `EvidenceStore.observe` emits on a new content id, which bumps the `store` channel after compiles. Views
+  subscribed to `store` re-render once more per compile.
+
+### What should be done in the future
+
+- Part 2 (views) and part 3 (WebGPU protocol), by subagents.
+- The guide's §22 should state the "current content id" rule.
+
+### Code review instructions
+
+- Start with `packages/kiln/src/std/records.js` and `store.js`, then the `evidence` and `pinned` policies in
+  `core/kiln.js` (`decide`).
+- `cd packages/kiln && node test/evidence.mjs`.
+
+### Technical details
+
+- Policy order: `[pinned, evidence, model (costPrior), first]`, with the workbench's kernel-pin policy in front.
+  The evidence policy's `next()` is the model. An option is usable when it is deterministic or has
+  `n ≥ minReps = 3`.

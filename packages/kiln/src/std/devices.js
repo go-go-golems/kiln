@@ -7,19 +7,30 @@
 import { SPECS, WEBGPU_DEFAULT, target } from "./targets.js";
 import { simulateKernel, kernelInputs, referenceAt, sampleIndices, checkValues, seedOf } from "./program.js";
 import { numel, median } from "../core/util.js";
+import { deviceId } from "@kiln/evidence";
+import { specHash } from "./records.js";
+
+// Every device has two ids: `id`, the stable key the UI and presets select it by ("sim:rtx5090", "webgpu", "cuda"),
+// and `evidenceId`, the fingerprinted id its records carry (guide §23), known once the device is probed.
+// runKernel returns one repetition: { us, samples: [one per repetition], raw?, kind, reps, launches?, warmup?,
+// metrics, check }.
 
 export class SimDevice {
-  constructor(spec) { this.spec = spec; this.id = "sim:" + spec.id; this.kind = "sim"; this.name = spec.name; this.label = `${spec.name} · simulated`; this.target = target(spec); this.status = "ready"; }
+  constructor(spec) {
+    this.spec = spec; this.id = "sim:" + spec.id; this.kind = "sim"; this.name = spec.name; this.label = `${spec.name} · simulated`; this.target = target(spec); this.status = "ready";
+    this.fingerprint = { spec: specHash(spec), name: spec.name };
+    this.evidenceId = deviceId("sim", spec.id, this.fingerprint);
+  }
   async probe() { return true; }
   describe() { const s = this.spec; return { kind: "simulated GPU", arch: s.arch, SMs: s.sms, clock: s.clockGHz + " GHz", "FP32 peak": s.peakTflops + " TFLOP/s", bandwidth: s.bwGBs + " GB/s", L2: s.l2MB + " MB", "smem/block": (s.smemPerBlock / 1024).toFixed(0) + " KiB", "threads/block": s.maxThreadsPerBlock, note: "kernels execute in a lockstep SIMT simulator on sampled blocks; time comes from a roofline + occupancy model with these specs" }; }
   async runKernel(kern, opts = {}) {
     const r = simulateKernel(kern, this.target, opts);
-    return { us: r.metrics.us, samples: [r.metrics.us], metrics: r.metrics, check: r.check, wallMs: r.simMs };
+    return { us: r.metrics.us, samples: [r.metrics.us], kind: "simulated", reps: 1, metrics: r.metrics, check: r.check, wallMs: r.simMs };
   }
 }
 
 export class WebGpuDevice {
-  constructor() { this.id = "webgpu"; this.kind = "webgpu"; this.name = "WebGPU"; this.label = "WebGPU · this browser"; this.status = "not probed"; this.target = target(WEBGPU_DEFAULT); this.cache = new Map(); }
+  constructor() { this.id = "webgpu"; this.kind = "webgpu"; this.name = "WebGPU"; this.label = "WebGPU · this browser"; this.status = "not probed"; this.target = target(WEBGPU_DEFAULT); this.cache = new Map(); this.fingerprint = null; this.evidenceId = null; }
   async probe() {
     if (this.device) return true;
     if (typeof navigator === "undefined" || !navigator.gpu) { this.status = "unavailable: this browser has no WebGPU"; return false; }
@@ -38,8 +49,10 @@ export class WebGpuDevice {
       });
       const info = adapter.info || (await adapter.requestAdapterInfo?.()) || {};
       this.info = { vendor: info.vendor || "?", architecture: info.architecture || "?", description: info.description || "", timestamps: this.timestamps };
+      this.fingerprint = { vendor: info.vendor || "", architecture: info.architecture || "", device: info.device || "", description: info.description || "", timestamps: !!this.timestamps, userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "" };
       this.name = `WebGPU ${[info.vendor, info.architecture].filter(Boolean).join(" ")}`.trim();
       this.label = this.name;
+      this.evidenceId = deviceId("webgpu", this.name, this.fingerprint);
       this.target = target({ ...WEBGPU_DEFAULT, name: this.name, maxThreadsPerBlock: Math.min(1024, L.maxComputeInvocationsPerWorkgroup, L.maxComputeWorkgroupSizeX), smemPerBlock: L.maxComputeWorkgroupStorageSize, smemPerSM: L.maxComputeWorkgroupStorageSize * 2 });
       this.status = "ready";
       this.device.lost.then((e) => { this.status = "lost: " + (e?.message || ""); this.device = null; });
@@ -110,30 +123,39 @@ export class WebGpuDevice {
     check.n = idx.length;
     for (const b of [...bufs, out, stage, resolve, read]) b?.destroy();
     qs?.destroy();
+    // one repetition: its sample is the median of the timed launches
     const us = median(samples);
     const bytes = kern.bytes;
-    return { us, samples, metrics: { us, kind: qs ? "timestamp" : "wall clock", gbs: bytes / us / 1e3, min: Math.min(...samples), threads: K.block, blocks: K.grid, smem: K.smemBytes }, check };
+    return { us, samples: [us], raw: [samples], kind: qs ? "gpu-timestamp" : "wall-clock", reps: 1, launches: reps, warmup, metrics: { us, kind: qs ? "timestamp" : "wall clock", gbs: bytes / us / 1e3, min: Math.min(...samples), threads: K.block, blocks: K.grid, smem: K.smemBytes }, check };
   }
 }
 
 // a CUDA box running runner/kiln_runner.py; live only when this page is served by that runner
 export class CudaDevice {
-  constructor(base = null) { this.id = "cuda"; this.kind = "cuda"; this.name = "CUDA runner"; this.label = "CUDA · runner"; this.base = base; this.status = "not connected"; this.target = target(SPECS.rtx5090); this.info = null; }
+  constructor(base = null) { this.id = "cuda"; this.kind = "cuda"; this.name = "CUDA runner"; this.label = "CUDA · runner"; this.base = base; this.status = "not connected"; this.target = target(SPECS.rtx5090); this.info = null; this.fingerprint = null; this.evidenceId = null; }
   async probe() {
     const base = this.base ?? (typeof location !== "undefined" && /^https?:/.test(location.protocol) ? location.origin : null);
     if (!base) { this.status = "not connected: open the workbench from the runner (python kiln_runner.py serve) or use bundles"; return false; }
     try {
       const r = await fetch(base + "/api/device", { cache: "no-store" });
       if (!r.ok) throw new Error("HTTP " + r.status);
-      this.info = await r.json();
+      this.adopt(await r.json(), base);
       this.base = base;
-      this.name = `CUDA ${this.info.name || ""}`.trim();
-      this.label = this.name;
       const spec = Object.values(SPECS).find((s) => this.info.cc && String(s.sm) === String(this.info.cc).replace(".", "")) || SPECS.rtx5090;
       this.target = target({ ...spec, name: this.name, sms: this.info.sms || spec.sms, smemPerBlock: this.info.smemPerBlock || spec.smemPerBlock });
       this.status = "ready";
       return true;
     } catch (e) { this.status = "not connected: " + (e.message || e); return false; }
+  }
+  // identity from the runner's device report: a live probe, or the results file of an offline bundle
+  adopt(info, host) {
+    this.info = info || {};
+    this.name = `CUDA ${this.info.name || ""}`.trim();
+    this.label = this.name;
+    const flat = Object.fromEntries(Object.entries(this.info).filter(([, v]) => typeof v === "string" || typeof v === "boolean" || (typeof v === "number" && Number.isFinite(v))));
+    this.fingerprint = { ...flat, host: String(host) };
+    this.evidenceId = deviceId("cuda", this.info.name || "cuda", this.fingerprint);
+    this.runnerVersion = this.info.version ?? null;
   }
   describe() { return { kind: "CUDA through kiln_runner.py", ...(this.info || {}), status: this.status, note: "nvcc compiles each kernel; CUDA events time it; optional Nsight Compute metrics" }; }
   async runKernels(kernels, opts = {}) {
@@ -166,7 +188,8 @@ export function ingest(res, kernels, { seed = 1 } = {}) {
     const check = checkValues(Float32Array.from(r.samples || []), referenceAt(kn, ins, idx));
     check.n = idx.length;
     const us = r.us_median;
-    return { us, samples: r.us_all || [us], check, metrics: { us, kind: "CUDA events", min: r.us_min, gbs: kn.bytes / us / 1e3, ...(r.ncu || {}), threads: kn.K.block, blocks: kn.K.grid, smem: kn.K.smemBytes, regs: r.regs ?? null }, device: res.device };
+    // one process is one repetition: its sample is the median of the timed launches
+    return { us, samples: [us], raw: r.us_all ? [r.us_all] : undefined, kind: "cuda-events", reps: 1, launches: r.us_all?.length, ncu: r.ncu || null, check, metrics: { us, kind: "CUDA events", min: r.us_min, gbs: kn.bytes / us / 1e3, ...(r.ncu || {}), threads: kn.K.block, blocks: kn.K.grid, smem: kn.K.smemBytes, regs: r.regs ?? null }, device: res.device };
   });
 }
 

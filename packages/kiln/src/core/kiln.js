@@ -562,7 +562,14 @@ const firstOrder = (fp) => fp.options.map((_, i) => i);
 const tieBreak = (fp, scores) => fp.options.map((_, i) => i).sort((a, b) => (scores[a] - scores[b]) || (canon(fp.options[a].knobs) < canon(fp.options[b].knobs) ? -1 : 1));
 export const decide = {
   first: () => policy("first", (fp) => ({ order: firstOrder(fp), by: "first" })),
-  pinned: () => policy("pinned", (fp) => (fp.allPinned ? { order: firstOrder(fp), by: "pinned" } : null)),
+  // every knob pinned: emission order among what is left; some pinned: the rest is ordered by the next policy
+  pinned: () => policy("pinned", (fp, run, next) => {
+    if (fp.allPinned) return { order: firstOrder(fp), by: "pinned" };
+    if (!fp.pinned?.length) return null;
+    const r = next?.();
+    const pins = fp.pinned.join(",");
+    return r ? { ...r, by: "pinned-partial", note: `${pins} pinned; the rest by ${r.by}${r.note ? ": " + r.note : ""}` } : { order: firstOrder(fp), by: "pinned-partial", note: `${pins} pinned; the rest in emission order` };
+  }),
   random: (seed = 1) => { let s = seed; return policy("random", (fp) => { const o = firstOrder(fp); for (let i = o.length - 1; i > 0; i--) { s = (s * 1103515245 + 12345) % 2147483648; const j = s % (i + 1); [o[i], o[j]] = [o[j], o[i]]; } return { order: o, by: "random" }; }); },
   cost(fn, { name = "cost" } = {}) {
     let only = null;
@@ -581,19 +588,31 @@ export const decide = {
     return policy("chain", (fp, run) => from(0, fp, run), { parts: ps });
   },
   exactly: (choose) => policy("exactly", (fp, run) => { const r = choose(fp, run); if (r == null) return null; const i = typeof r === "number" ? r : fp.options.findIndex((o) => canon(o.knobs) === canon(r)); return i < 0 ? null : { order: [i, ...firstOrder(fp).filter((j) => j !== i)], by: "replay" }; }),
-  // Measured evidence outranks the policies after it, but only once their favourite has been measured too:
-  // one measurement of a pinned (say, naive) schedule must not lock that schedule in after unpinning.
-  // { always: true } restores the plain rule (the fastest measured option wins).
-  evidence: (store, { always = false } = {}) => policy("evidence", (fp, run, next) => {
+  // Measured evidence (guide §26). The store answers optionStats(fp, run): per option null or
+  // { median, lo, hi, n, deterministic } over the records that may decide. Evidence defers until the next policy's
+  // favourite is measured (one measurement of a pinned, say naive, schedule must not lock it in after unpinning),
+  // and overrides that favourite only with a separated interval; a deterministic device (the simulator) has
+  // zero-width intervals, so there the fastest measured option wins as before. { always: true } ignores the model.
+  evidence: (store, { minReps = 3, always = false } = {}) => policy("evidence", (fp, run, next) => {
     const st = store || run?.ctx?.store;
-    const rows = st?.lookup?.(fp, run);
-    if (!rows || !rows.length) return null;
-    const best = new Map();
-    for (const r of rows) { const c = canon(r.knobs); if (!best.has(c) || r.us < best.get(c)) best.set(c, r.us); }
-    const scores = fp.options.map((o) => best.get(canon(o.knobs)) ?? Infinity);
-    if (scores.every((s) => s === Infinity)) return null;
-    if (!always && next) { const r = next(); if (r && r.order.length && scores[r.order[0]] === Infinity) return null; }
-    return { order: tieBreak(fp, scores), by: "evidence", scores };
+    const stats = st?.optionStats?.(fp, run);
+    if (!stats) return null;
+    const usable = (s) => s && (s.deterministic || s.n >= minReps);
+    const measured = stats.map((s, i) => (usable(s) ? i : -1)).filter((i) => i >= 0);
+    if (!measured.length) return null;
+    const scores = stats.map((s) => (usable(s) ? s.median : Infinity));
+    const byMedian = () => tieBreak(fp, scores);
+    if (always || !next) return { order: byMedian(), by: "evidence", scores, note: "fastest measured option" };
+    const model = next();
+    if (!model || !model.order.length) return { order: byMedian(), by: "evidence", scores, note: "fastest measured option" };
+    const fav = model.order[0];
+    if (!usable(stats[fav])) return null;
+    const best = measured.reduce((a, b) => (scores[b] < scores[a] || (scores[b] === scores[a] && b === fav) ? b : a));
+    const rowOf = (i) => st.rowOf?.(fp.options[i].knobs) ?? canon(fp.options[i].knobs);
+    if (best === fav) return { order: [fav, ...model.order.filter((i) => i !== fav)], by: "evidence", scores, note: "confirms the model" };
+    const a = stats[best], b = stats[fav];
+    if (a.hi < b.lo || b.hi < a.lo) return { order: [best, ...byMedian().filter((i) => i !== best)], by: "evidence", scores, note: `separated from the model's choice ${rowOf(fav)}` };
+    return { ...model, by: model.by, note: `evidence within noise: best ${rowOf(best)} overlaps ${rowOf(fav)}` };
   }),
   strict: () => policy("strict", (fp) => { throw new KilnError("EvidenceError", `no measured evidence decides ${fp.rule} at ${fp.nodeId} (${fp.options.length} options); measure it or pin a row`); }),
 };
@@ -981,12 +1000,13 @@ export class Run {
     const knobNames = [...new Set(all.flatMap((o) => Object.keys(o.knobs)))];
     const pinnedHere = knobNames.filter((k) => k in pinned);
     let options = all.filter((o) => pinnedHere.every((k) => !(k in o.knobs) || String(o.knobs[k]) === String(pinned[k])));
-    if (!options.length) { this.warnings.push(`pins ${pinnedHere.map((k) => k + "=" + pinned[k]).join(",")} are not offered by ${r.name} at ${rootId}; ignoring them there`); options = all; }
+    let honoured = pinnedHere;
+    if (!options.length) { this.warnings.push(`pins ${pinnedHere.map((k) => k + "=" + pinned[k]).join(",")} are not offered by ${r.name} at ${rootId}; ignoring them there`); options = all; honoured = []; }
     const blockedSet = this.blocked.get(`${r.name}@${rootId}`);
     if (blockedSet) options = options.filter((o) => !blockedSet.has(canon(o.knobs))) || options;
     const fp = {
       pass: p.name, rule: r.name, ruleId: `${p.name}/${r.name}`, nodeId: rootId, node: this.graph.value(rootId),
-      options, all, size: options.length, allPinned: knobNames.length > 0 && knobNames.every((k) => k in pinned), knobs: knobNames,
+      options, all, size: options.length, allPinned: knobNames.length > 0 && knobNames.every((k) => honoured.includes(k)), knobs: knobNames, pinned: honoured,
       key: identityOf(this.graph, rootId), ctx: this.ctx,
     };
     this.emit("fork", { pass: p.name, rule: r.name, node: rootId, options: options.length });
@@ -1003,7 +1023,7 @@ export class Run {
       catch (e) { if (e instanceof Skip) { tried.push({ knobs: o.knobs, reason: e.reason }); continue; } throw new KilnError("RuleError", `${p.name}/${r.name} option ${canon(o.knobs)} at ${rootId}: ${e.message}`, { cause: e }); }
       if (Array.isArray(res) || res instanceof Fork) throw new KilnError("RuleError", "a fork option cannot return another fork; use k.fork.tree() for several knobs");
       const out = this.applyResult(res, rootId, sc);
-      const decision = { pass: p.name, rule: r.name, node: rootId, key: fp.key, options: options.map((x, j) => ({ knobs: x.knobs, label: x.label, score: ranking.scores?.[options.indexOf(x)] ?? null, original: !!x.original, j })), size: options.length, by: ranking.by, knobs: o.knobs, label: o.label, score: ranking.scores?.[i] ?? null, chosen: i, tried, original: !!o.original, t: this.now() };
+      const decision = { pass: p.name, rule: r.name, node: rootId, key: fp.key, options: options.map((x, j) => ({ knobs: x.knobs, label: x.label, score: ranking.scores?.[options.indexOf(x)] ?? null, original: !!x.original, j })), size: options.length, by: ranking.by, note: ranking.note ?? null, knobs: o.knobs, label: o.label, score: ranking.scores?.[i] ?? null, chosen: i, tried, original: !!o.original, t: this.now() };
       if (out === "nochange") {
         this.graph = before;
         this.decline(r, node);
