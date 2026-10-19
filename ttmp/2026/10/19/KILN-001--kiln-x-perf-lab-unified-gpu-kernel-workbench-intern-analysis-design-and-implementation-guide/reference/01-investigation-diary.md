@@ -1570,3 +1570,105 @@ changing as evidence arrives.
 
 - `apps/workbench/src/ui/Hypotheses.jsx` (145 lines), then the `hypotheses` getter in `wb.js` and `Notes.jsx`
   (portals into the rendered notes).
+
+## Step 16: Phase 6, part 2 — the Compare panel
+
+Phase 6's library half (Step 13) gave Kiln `measurePaired`: one protocol run that measures two schedules of one
+kernel in every repetition, then `ev.ratio` with an interval over the repetitions. Nothing in the workbench called
+it. This step adds `wb.compare(identity, a, b)` and a Compare block in the Perf view's side panel. The block offers
+two selects over the kernel's schedules, a "Measure paired on <device>" button, the two sides' medians, `b / a` with
+its interval, the estimator, and a one-line reading. On this Mac's GPU, thread `TPB=64` against the compiled
+`MAP=row,TPB=1024,STAGE=reused` reads `b / a = 0.0082 ±0.0006, n=7, paired over 7 repetitions` ("b is faster: the
+whole interval is below 1").
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1.
+
+**Assistant interpretation:** Finish Phase 6 in the UI: a paired comparison a person can start from the kernel they
+are looking at.
+
+**Inferred user intent:** Answer "is schedule b faster than a on this GPU?" with an interval that survives the clock
+moving between runs.
+
+**Commit (code):** recorded in the changelog entry for this step.
+
+### What I did
+
+- `wb.js`:
+  - `compare(identity, a, b, { device })`:
+    - probes a real device first;
+    - sets `measuring.compare` so the button shows progress;
+    - calls `measurePaired` with `rows: [canonRow(a), canonRow(b)]`;
+    - stores `wb.comparison = { identity, name, device: evidenceId, a, b, pairId, t }`;
+    - logs to Events and recompiles.
+  - `pipelineFor` uses the shared `kernelPinPolicy(this.kernelPins)` from `std/tune.js` instead of its own inline
+    copy, so a pin in the workbench and a side of a paired run are matched by one rule.
+- `Perf.jsx`, `ComparePanel({ x })`:
+  - shown only when the selected kernel has a decision with at least two schedules;
+  - options are ordered by the cost model (`modelOf(d, knobs).us`);
+  - the selects start on the last comparison of this kernel, else on the best other schedule against the compiled
+    one;
+  - the result is `evidenceContext(...).ev.ratio(identity, { a, b })` for the comparison's device;
+  - on a simulator a note says the interval has no width because both sides are deterministic.
+- `views.css`: `.compare .lbl` lays out the label and its select on one line; the select shrinks (`min-width: 0`).
+- Screenshots `various/screens/p6-compare-webgpu-{light,dark}-1600.png`, taken with the Perf tile maximized and the
+  block scrolled into view.
+
+### Why
+
+- Two schedules of one kernel measured in separate runs on an M1 Pro can land on different clock states up to 3×
+  apart (Step 9). An unpaired ratio of medians then has an interval wide enough to contain 1 even when one side is
+  100× faster (W-05: [0.133, 1.2], Step 13). The paired run removes that: both sides see the same state in each
+  repetition.
+
+### What didn't work
+
+- First version ordered options by `o.score`. The shot script threw `TypeError: Cannot read properties of undefined
+  (reading 'knobs')`. After an evidence decision, a fork's `score` holds evidence medians, Infinity for every
+  unmeasured option, so the filter on finite scores emptied the list. The panel now orders by `modelOf(d, knobs).us`.
+- First screenshots: the block was below the fold. `wb.toggleMax()` without an id maximized the Notes tile, not
+  Perf. The shot script now finds the tile whose `views` include `perf` in `wb.layout` and maximizes that one.
+- The selects reset to the model's order on every mount, so after a comparison they named a different pair than the
+  result under them. They now start on the last comparison's rows when it is for this kernel.
+- I tried labelling the sides with `r.a` / `r.b` from `ev.ratio`. Those are the records' full rows (every knob,
+  e.g. `MAP=thread,COARSEN=1,STAGE=none,BM=0,…,TPB=64`) and wrap to four lines in the side panel. Reverted to
+  `canonRow`, which matches the select's text.
+
+### What I learned
+
+- A decision's `options[i].score` changes meaning with the policy that decided it: model microseconds under the
+  cost model, evidence medians under the evidence policy. Anything that wants a stable order reads the model
+  estimate directly.
+
+### What was tricky to build
+
+- `wb.js` is shared with the Phase 5b worker, which is adding its server section at the same time. I re-read the
+  file before each edit and kept my changes to three hunks: the import, `pipelineFor`, and the new `compare`
+  section. The worker's `cudaTarget` in `devices.js` is not part of this commit.
+
+### What warrants a second pair of eyes
+
+- The thread side's select text is `TPB=64`: the option's knobs omit the default `MAP=thread`, as everywhere else in
+  the workbench. The Hypotheses card spells it out with `sideRow`; the Compare panel does not.
+- `wb.comparison` is per page, not persisted. The records are in the store, so `ev.ratio` can rebuild the result for
+  any pair after a reload; only the panel's memory of which pair was last compared is lost.
+
+### What should be done in the future
+
+- An agent tool for `wb.compare` (Phase 7).
+- A CUDA run of the same comparison needs a real executor and the user's permission to use the remote host.
+
+### Code review instructions
+
+- `ComparePanel` in `apps/workbench/src/ui/Perf.jsx`, then `compare` in `apps/workbench/src/ui/wb.js`.
+- Validate: `pnpm test`, `pnpm build`, `node scripts/contrast.mjs`; then open `dist/kiln-workbench.html` in Chrome,
+  load W-05, pick WebGPU, Measure, and use Compare in the Perf side panel.
+
+### Technical details
+
+- `pnpm test`: evidence, Kiln (10 files: all passed), server (49 tests), workbench (`notes.mjs`, `presets.mjs`).
+- `pnpm build`: `dist/index.html 1216 KB (bundle 1156 KB, 25 presets, 25 with notes)`.
+- `node scripts/contrast.mjs`: all pairs pass.
+- Run in the screenshot: a `26.59 ms +56/−30 n=7`, b `218 µs +7.6/−16 n=14` (b also has the earlier Measure run's
+  records), `b / a = 0.0082 ±0.0006 n=7`.

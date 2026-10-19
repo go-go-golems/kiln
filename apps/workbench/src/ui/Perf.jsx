@@ -5,7 +5,9 @@ import { fmtUs, fmtBytes, fmtNum } from "@kiln/kiln/core/util.js";
 import { knobs as KN } from "@kiln/kiln/core/kiln.js";
 import { saveText, copyText } from "./Kernels.jsx";
 import { CODEGEN_VERSION } from "@kiln/kiln/std/records.js";
-import { METHOD, Val, StatusStamp, modelOf, modelVal, evidenceVal, missingVal, optionEvidence, decisionOf, simRef, hwRef, shortId } from "./marks.jsx";
+import { std } from "@kiln/kiln/std/index.js";
+import { canonRow } from "@kiln/kiln/std/tile.js";
+import { METHOD, Val, Row, StatusStamp, modelOf, modelVal, evidenceVal, missingVal, valueVal, optionEvidence, decisionOf, simRef, hwRef, shortId } from "./marks.jsx";
 
 const pct = (x) => (x == null ? "—" : (x * 100).toFixed(0) + "%");
 const num = (x, d = 1) => (x == null || !isFinite(x) ? "—" : x >= 100 ? x.toFixed(0) : x.toFixed(d));
@@ -125,6 +127,7 @@ export function PerfView() {
       </div>
       <aside className="side">
         {m && sel ? <KernelMetrics x={sel.x} rec={sel.rec} /> : <div className="block"><p className="note">Simulated devices report Nsight-style metrics from a lockstep SIMT simulation of sampled blocks; WebGPU and CUDA report real time, and CUDA adds Nsight Compute metrics when the runner has ncu.</p></div>}
+        {sel && decisionOf(sel.x.identity) ? <ComparePanel key={sel.x.identity} x={sel.x} /> : null}
       </aside>
     </div>
   );
@@ -193,6 +196,50 @@ function KernelMetrics({ x, rec }) {
         </div>
       ) : null}
     </>
+  );
+}
+
+// Two schedules of the selected kernel in one protocol run (paired, guide §28): every repetition has a sample of
+// each under the same GPU state, so b / a has an interval over repetitions even when the clock moves between them.
+function ComparePanel({ x }) {
+  useLab("compare", "store", "device", "measure");
+  const d = decisionOf(x.identity);
+  // ordered by the cost model: a fork decided by evidence carries evidence medians in `score` (Infinity when unmeasured)
+  const opts = d.options.filter((o) => o.knobs).map((o) => ({ knobs: o.knobs, row: canonRow(o.knobs), us: modelOf(d, o.knobs)?.us })).filter((o) => Number.isFinite(o.us)).sort((p, q) => p.us - q.us);
+  const cur = Math.max(0, opts.findIndex((o) => o.row === x.row));
+  // the selects start on the last comparison of this kernel, else on the best other schedule against the compiled one
+  const last = wb.comparison?.identity === x.identity ? [canonRow(wb.comparison.a), canonRow(wb.comparison.b)].map((row) => opts.findIndex((o) => o.row === row)) : [-1, -1];
+  const [ai, setA] = useState(last[0] >= 0 ? last[0] : cur === 0 ? Math.min(1, opts.length - 1) : 0), [bi, setB] = useState(last[1] >= 0 ? last[1] : cur);
+  if (opts.length < 2) return null;
+  const device = wb.device, busy = wb.measuring?.compare === x.identity;
+  const c = wb.comparison?.identity === x.identity && wb.comparison.device === (device.evidenceId ?? device.id) ? wb.comparison : null;
+  let r = null;
+  if (c && wb.prog) { try { r = std.evidence.evidenceContext({ store: wb.store, prog: wb.prog, device: c.device, target: device.target }).ev.ratio(x.identity, { a: c.a, b: c.b }); } catch { r = null; } }
+  const side = (knobs) => evidenceVal(c.device, x.identity, knobs, { src: device.kind === "sim" ? "simulated" : "measured", name: device.label });
+  const pick = (set) => (e) => set(+e.target.value);
+  const read = !r || r.ratio.value === null ? null : r.hi.value < 1 ? "b is faster: the whole interval is below 1" : r.lo.value > 1 ? "a is faster: the whole interval is above 1" : "within noise: the interval contains 1";
+  return (
+    <div className="block compare">
+      <header><h2>Compare</h2><span className="sub">two schedules of {x.name}, paired</span></header>
+      <label className="lbl">a <select value={ai} onChange={pick(setA)} aria-label="Schedule a">{opts.map((o, i) => <option key={o.row} value={i}>{o.row}{i === cur ? " (compiled)" : ""} · model {fmtUs(o.us)}</option>)}</select></label>
+      <label className="lbl">b <select value={bi} onChange={pick(setB)} aria-label="Schedule b">{opts.map((o, i) => <option key={o.row} value={i}>{o.row}{i === cur ? " (compiled)" : ""} · model {fmtUs(o.us)}</option>)}</select></label>
+      <div className="actions">
+        <Btn sm onClick={() => wb.compare(x.identity, opts[ai].knobs, opts[bi].knobs)} disabled={ai === bi || !!wb.measuring}>{busy ? `Measuring ${wb.measuring.done}/${wb.measuring.total}…` : `Measure paired on ${device.label}`}</Btn>
+      </div>
+      {ai === bi ? <p className="note">Pick two different schedules.</p> : null}
+      {c && r ? (
+        <>
+          <Kv rows={[
+            ["a", <><Row row={canonRow(c.a)} /> <Val v={side(c.a)} /></>],
+            ["b", <><Row row={canonRow(c.b)} /> <Val v={side(c.b)} /></>],
+            ["b / a", <Val v={valueVal(r.ratio)} />],
+            ["estimator", r.paired ? `paired over ${r.n} repetitions` : "unpaired: a ratio of medians"],
+          ]} />
+          {read ? <p className="note">{read}.</p> : null}
+          {device.kind === "sim" ? <p className="note">On a simulator both sides are deterministic, so the interval has no width: this compares the model's formula on two sets of counts, not hardware.</p> : null}
+        </>
+      ) : <p className="note">Runs both schedules in one protocol run: each repetition measures a and b in a seeded order, and the ratio's interval is taken over the repetitions.</p>}
+    </div>
   );
 }
 

@@ -97,3 +97,12 @@ Phase 4 complete: Hypotheses view, notes cards (hypothesis fences), lab:hypothes
 
 - /Volumes/SSD/code/kiln/apps/workbench/src/ui/Hypotheses.jsx — the Hypotheses view and the notes card
 - /Volumes/SSD/code/kiln/ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/06-phase4-ui-diary.md — Phase 4 UI worker diary
+
+## 2026-10-19
+
+Phase 6b: Compare panel in the Perf view (wb.compare → measurePaired → ev.ratio); pipelineFor uses the shared kernelPinPolicy. Diary Step 16.
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/apps/workbench/src/ui/Perf.jsx — ComparePanel
+- /Volumes/SSD/code/kiln/apps/workbench/src/ui/wb.js — compare and the shared pin policy

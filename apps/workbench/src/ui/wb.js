@@ -7,7 +7,7 @@ import { programOf } from "@kiln/kiln/std/program.js";
 import { makeDevices, bundle as makeBundle, ingest } from "@kiln/kiln/std/devices.js";
 import { EvidenceStore } from "@kiln/kiln/std/store.js";
 import { activationOf } from "@kiln/kiln/std/records.js";
-import { tune as runTune, measureProgram } from "@kiln/kiln/std/tune.js";
+import { tune as runTune, measureProgram, measurePaired, kernelPinPolicy } from "@kiln/kiln/std/tune.js";
 import { schedule } from "@kiln/kiln/std/loop.js";
 import { canonRow } from "@kiln/kiln/std/tile.js";
 import { Tensor, compare, fmtUs, clip } from "@kiln/kiln/core/util.js";
@@ -119,9 +119,7 @@ class Workbench {
   // ---------- compile ----------
   pipelineFor(project, device = this.device) {
     const base = project?._pipe || std.emmy.pipeline();
-    const kp = this.kernelPins;
-    const kernelPolicy = { name: "kernel pin", rank: (fp) => { const want = kp[fp.key]; if (!want) return null; const i = fp.options.findIndex((o) => canonRow(o.knobs) === want || k.knobs.canonical(o.knobs) === want); return i < 0 ? null : { order: [i, ...fp.options.map((_, j) => j).filter((j) => j !== i)], by: "kernel-pin" }; } };
-    return base.with({ target: device.target, decide: k.decide.chain(kernelPolicy, base._decide) });
+    return base.with({ target: device.target, decide: k.decide.chain(kernelPinPolicy(this.kernelPins), base._decide) });
   }
   // compile a script without touching the editor, the run or the views (the agent's editor.check)
   tryCompile(text = this.script, { device = this.device, pins = null } = {}) {
@@ -264,6 +262,31 @@ class Workbench {
     this.compile();
     return rec;
   }
+  // ---------- compare (guide §28: paired) ----------
+  /**
+   * Measure one kernel under two schedules (full knob objects, a and b) in one protocol run, so both see the same GPU
+   * state and their records share a pairId; the Compare panel reads ev.ratio over them. → the measurePaired result.
+   */
+  async compare(identity, a, b, { device = this.device } = {}) {
+    if (!this.prog || this.measuring) return null;
+    if (device.kind !== "sim" && device.probe && !(await device.probe())) { this.toast(device.status, "bad"); return null; }
+    const name = this.prog.kernels.find((kn) => kn.identity === identity)?.name ?? identity;
+    this.measuring = { device: device.id, done: 0, total: 2, compare: identity };
+    this.bump("measure");
+    let res;
+    try {
+      res = await measurePaired({ pipeline: this.pipe, graph: this.graph, params: this.params, device, store: this.store, identity, rows: [canonRow(a), canonRow(b)],
+        onStep: (done, total) => { Object.assign(this.measuring, { done, total }); this.bump("measure"); } });
+    } catch (e) { this.measuring = false; this.bump("measure"); this.toast(`Compare failed: ${e.message}`, "bad"); return null; }
+    this.measuring = false;
+    this.comparison = { identity, name, device: device.evidenceId ?? device.id, a, b, pairId: res.pairId, t: Date.now() };
+    const bad = res.sides.filter((s) => !s.record?.validity.ok);
+    this.log("measure", `compare ${name} on ${device.label}: ${res.sides.map((s) => s.row).join(" vs ")}${bad.length ? ` · ${bad.length} invalid` : ""}`, { bad: bad.length > 0 });
+    this.bump("measure", "store", "compare");
+    this.compile();
+    return res;
+  }
+
   // ---------- tune ----------
   async tune({ strategy = "spmcts", budget = 24 } = {}) {
     if (!this.prog) return this.toast("Nothing to tune: the program has no GPU kernels", "bad");
