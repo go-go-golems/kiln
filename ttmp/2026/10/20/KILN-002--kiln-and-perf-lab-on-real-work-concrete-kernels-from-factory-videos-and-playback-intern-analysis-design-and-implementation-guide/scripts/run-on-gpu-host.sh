@@ -13,7 +13,7 @@ Runs KILN-002's GPU work on a CUDA host and collects its text and JSON evidence 
     `pnpm install` done (Node >= 26), and the Playback clone is used as it is.
 
 Kiln stages (the default; the host needs Docker with the NVIDIA runtime, and SSH):
-  kiln-unit      Kiln's own test suites (pnpm test), on the machine running this script
+  kiln-unit      Kiln's own test suites (pnpm build, pnpm test), on the machine running this script
   kiln-image     build the kiln-perf image on the host (runner/docker/build.sh --host)
   kiln-selftest  the launcher fixtures against the GPU (the image's default command)
   kiln-probe     the GPU's FMA rate, read bandwidth and launch latency, as a Kiln target spec (kiln-probe)
@@ -199,7 +199,8 @@ require_clone_at_rev() {
 
 # ---- Kiln stages -----------------------------------------------------------------------------------------------
 stage_kiln_unit() {
-  (cd "$kiln" && pnpm test)
+  # apps/workbench/test/lab-e2e.mjs needs dist/kiln-workbench.html, which the package's test script does not build
+  (cd "$kiln" && pnpm build && pnpm test)
   note "pnpm test in $kiln on $(hostname) (host-independent: the packages' own suites)"
 }
 
