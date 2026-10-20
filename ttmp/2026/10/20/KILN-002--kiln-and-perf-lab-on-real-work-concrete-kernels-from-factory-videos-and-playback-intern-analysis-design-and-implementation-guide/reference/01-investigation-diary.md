@@ -916,3 +916,41 @@ before the self-check.
   writes fp32 (n, H, W)) and `k_ew_2__<id>` (vertical pass and the cut). Tiling chosen per program by the exporter for
   the `rtx5090` target (TPB 64–1024, COARSEN 1–4).
 - Program buffers for 768x416, bucket 1: masks u8 409,600 B; intermediate f32 1,277,952 B; out f32 1,277,952 B.
+
+## Step 7: Vault reports for Examples A, B and C
+
+Each of the three examples has a project report in the vault, written as a standalone explanation. Each report covers
+what the code does, what was measured, the verdicts, and what remains open. The reports reuse the ticket's figures,
+which show no camera content and only redacted output or silhouettes.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 2 ("When done, write a detailed report about each one, the results you got, the
+work done, in much much detail. Take screenshots appropriately as well").
+
+**Assistant interpretation:** One detailed vault report per example, with the figures, after the implementation steps.
+
+**Inferred user intent:** A record a reader can follow without the ticket open.
+
+### Evidence and commits
+
+- Vault `594f801` (pushed to `main`), in `Projects/2026/10/20/`:
+  - `PROJECT REPORT - Kiln - Real Work Example A - The Window Similarity Matrix on the GPU in Factory Videos.md`
+  - `PROJECT REPORT - Kiln - Real Work Example B - Zone Motion Grey Conversion Is Not Worth a Kernel.md`
+  - `PROJECT REPORT - Kiln - Real Work Example C - Redaction Mask Post-Processing on the GPU, Bit-Exact.md`
+  - six figures under `_assets/kiln-real-work/`.
+
+### Noteworthy decisions or failures
+
+- Checking the reports against the evidence files turned up two errors in Report B, both corrected before the commit:
+  - A draft said every row from 270 down differs in frame 0. `videoconvert-threads-diff.txt` says 809 rows differ.
+  - A draft called "mean |Δ| 0.013" the size of the motion signal. It is the parity budget from the experiment that
+    chose the grey conversion (Step 1).
+- Report C's draft called a kernel identity a content hash; I had not verified that. It now shows the literal names
+  instead.
+
+### Remaining requirements and next action
+
+- C4, PN and PN.1 need SSH permission to the GPU hosts.
+- PE is blocked by the constraint on `lab-workbench`.
+- The Playback `docker-compose.yml` line needs a commit decision (Step 6).
