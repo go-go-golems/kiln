@@ -1,0 +1,26 @@
+# Tasks
+
+## TODO
+- [x] Guide: research notes, intern guide, upload to reMarkable <!-- t:rn6b -->
+- [ ] P0.1 floor function in the Kiln function table (JS, CUDA, WGSL) with tests <!-- t:75h3 -->
+- [ ] P0.2 8-bit (u8) tensor inputs: CUDA and WGSL loads, reference unchanged, tests <!-- t:c9ml -->
+- [ ] P0.3 kiln-program/1 export (kernels in launch order, buffers, dispatch, identities) and CLI <!-- t:lhbi -->
+- [ ] P0.4 TypeScript WebGPU launcher for kiln-program/1 <!-- t:odvs -->
+- [ ] P0.5 Python launcher kiln_launch.py with wgpu and cuda (ctypes NVRTC + driver) backends <!-- t:e0iq -->
+- [ ] P0.6 identity suffix on emitted kernel names <!-- t:dc6h -->
+- [ ] A1 browser baseline of similarityMatrix at n 400/691/1385/2297, d 256/768 <!-- t:4cf6 -->
+- [ ] A2 W-26 window-similarity preset and bucket exports <!-- t:qyni -->
+- [ ] A3 factory-videos branch: GPU launcher, async hook, incremental row, ImageData painter, cap <!-- t:5ihi -->
+- [ ] A4 paired measurement, quality gate, kiln-paired/1 record, screenshots <!-- t:xmpi -->
+- [ ] B1 motion stage split on the Mac (status.service_ms) and to_gray microbenchmark; verdict gray-is-worth-a-kernel <!-- t:x723 -->
+- [ ] B2 W-27 motion-grey program with Pillow weight tables; exports for 1080p and 4K <!-- t:vvou -->
+- [ ] B3 agreement on golden clips through the wgpu launcher <!-- t:qd9y -->
+- [ ] B4 backend parameter and kiln.motion_gray registration; motion tests on both backends <!-- t:bufi -->
+- [ ] B5 paired whole-run comparison on the Mac <!-- t:1no6 -->
+- [ ] C1 redaction mask-post program (buckets x geometries) <!-- t:xore -->
+- [ ] C2 reference agreement on the Mac against Playback's own functions <!-- t:zp1a -->
+- [ ] C3 Playback branch: REDACTION_MASK_POST, CUDA launcher, collect-path change, unit test <!-- t:g3cs -->
+- [ ] C4 GPU host validation (needs permission): judge, ground truth, validate_on_host.sh <!-- t:dyb3 -->
+- [ ] PN NVIDIA session (needs permission): runner smoke test, target specs, B on Spark <!-- t:tpbv -->
+- [ ] PE kiln-paired/1 importer, lab programs per example, corresponds_to edges <!-- t:mo71 -->
+- [ ] PR vault report per example with measurements, verdicts and screenshots <!-- t:jram -->
