@@ -1,0 +1,177 @@
+{
+ "format": "kiln-probe/1",
+ "name": "NVIDIA GB10",
+ "cc": "12.1",
+ "sms": 48,
+ "clockMHz": 2418,
+ "memClockMHz": 8533,
+ "busBits": 256,
+ "l2MB": 24.0,
+ "memGB": 121.6,
+ "smemPerSM": 102400,
+ "smemPerBlock": 49152,
+ "maxThreadsPerBlock": 1024,
+ "maxThreadsPerSM": 1536,
+ "maxBlocksPerSM": 24,
+ "regsPerSM": 65536,
+ "runtime": 13000,
+ "driver": 13000,
+ "reps": 20,
+ "bufferMiB": 1024,
+ "copyGBs": {
+  "median": 207.1,
+  "best": 237.7
+ },
+ "readGBs": {
+  "median": 209.1,
+  "best": 236.9
+ },
+ "writeGBs": {
+  "median": 177.4,
+  "best": 191.8
+ },
+ "fmaTflops": {
+  "median": 28.77,
+  "best": 30
+ },
+ "h2dGBs": {
+  "median": 56.23,
+  "best": 60.74
+ },
+ "d2hGBs": {
+  "median": 59.94,
+  "best": 60.57
+ },
+ "launch": {
+  "eventUs": {
+   "median": 2.336,
+   "best": 2.016
+  },
+  "hostUsBackToBack": {
+   "median": 1.759,
+   "best": 1.741
+  },
+  "gpuUsBackToBack": {
+   "median": 2.05,
+   "best": 2.007
+  },
+  "roundTripUs": {
+   "median": 4.848,
+   "best": 4.752
+  }
+ },
+ "hostname": "gx10-b2d2",
+ "nvcc": "13.0.88",
+ "before": {
+  "gpu": {
+   "utilization.gpu": "26",
+   "clocks.sm": "2457",
+   "clocks.max.sm": "3003",
+   "clocks.mem": "[N/A]",
+   "temperature.gpu": "59",
+   "power.draw": "26.78"
+  },
+  "computeApps": [
+   {
+    "pid": "2248175",
+    "name": "/usr/bin/python3",
+    "usedMiB": "336"
+   },
+   {
+    "pid": "2251468",
+    "name": "/usr/bin/python3",
+    "usedMiB": "307"
+   },
+   {
+    "pid": "2248176",
+    "name": "/usr/bin/python3",
+    "usedMiB": "468"
+   },
+   {
+    "pid": "2248177",
+    "name": "/usr/bin/python3",
+    "usedMiB": "1814"
+   },
+   {
+    "pid": "2248178",
+    "name": "/usr/bin/python3",
+    "usedMiB": "4993"
+   },
+   {
+    "pid": "2251626",
+    "name": "/usr/bin/python3",
+    "usedMiB": "307"
+   },
+   {
+    "pid": "2247932",
+    "name": "python3",
+    "usedMiB": "174"
+   }
+  ]
+ },
+ "after": {
+  "gpu": {
+   "utilization.gpu": "45",
+   "clocks.sm": "2502",
+   "clocks.max.sm": "3003",
+   "clocks.mem": "[N/A]",
+   "temperature.gpu": "59",
+   "power.draw": "45.26"
+  },
+  "computeApps": [
+   {
+    "pid": "2248175",
+    "name": "/usr/bin/python3",
+    "usedMiB": "336"
+   },
+   {
+    "pid": "2251468",
+    "name": "/usr/bin/python3",
+    "usedMiB": "307"
+   },
+   {
+    "pid": "2248176",
+    "name": "/usr/bin/python3",
+    "usedMiB": "468"
+   },
+   {
+    "pid": "2248177",
+    "name": "/usr/bin/python3",
+    "usedMiB": "1814"
+   },
+   {
+    "pid": "2248178",
+    "name": "/usr/bin/python3",
+    "usedMiB": "4993"
+   },
+   {
+    "pid": "2251626",
+    "name": "/usr/bin/python3",
+    "usedMiB": "307"
+   },
+   {
+    "pid": "2247932",
+    "name": "python3",
+    "usedMiB": "174"
+   }
+  ]
+ },
+ "spec": {
+  "id": "gb10",
+  "name": "DGX Spark (GB10)",
+  "arch": "sm_121",
+  "sm": 121,
+  "sms": 48,
+  "clockGHz": 2.418,
+  "peakTflops": 30,
+  "bwGBs": 237,
+  "l2MB": 24.0,
+  "smemPerSM": 102400,
+  "smemPerBlock": 49152,
+  "maxThreadsPerBlock": 1024,
+  "maxThreadsPerSM": 1536,
+  "maxBlocksPerSM": 24,
+  "regsPerSM": 65536,
+  "launchUs": 2.3
+ }
+}

@@ -59,3 +59,13 @@ Step 8–9: W-28 kernels pass Playback's test file inside the redaction image on
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/make-bench-recordings.sh — recorder-shaped bench tree from factory footage
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/mask-post-cuda-time.py — timing script run inside the redaction image
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/c4/mask-post-cuda-time-dgx.json — GB10 timing of REDACTION_MASK_POST=kiln vs the CPU loop
+
+## 2026-10-20 - kiln-perf image; gb10 target; runner u8; PN smoke test
+
+Steps 10–11: kiln-perf image (runner/docker, Kiln 3c71c0d) self-tests 5/5 on two GB10 hosts; kiln-probe measures 259 GB/s read, 28.9 TFLOP/s FMA, 2.4 us launch on an idle DGX Spark; gb10 SPECS entry (was falling back to the RTX 5090's 1792 GB/s); runner gains u8 inputs; PN smoke test 18/18 on bling natively and through the image; gb10's W-28 schedules 4674 us vs fallback 9816 us; Kiln's model over-predicts W-28 6.6–115x (gather charged as uncoalesced)
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/runner/docker/README.md — kiln-perf image
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/gb10-spec-check.mjs — spec comparison script
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/pn/gb10-spec-check.md — gb10 vs fallback schedules, model vs measured

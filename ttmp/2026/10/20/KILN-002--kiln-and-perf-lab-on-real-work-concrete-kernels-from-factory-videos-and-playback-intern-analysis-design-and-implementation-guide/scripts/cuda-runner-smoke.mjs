@@ -10,6 +10,7 @@
 //
 //   node cuda-runner-smoke.mjs --kiln /path/to/kiln --host user@host [--target gb10] [--python python3]
 //        [--reps 20] [--out results.json] [--device-only]
+//   --target is a key of SPECS, or fallback (see below)
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -41,8 +42,10 @@ if (argv.includes("--device-only")) {
   process.exit(0);
 }
 
-const spec = SPECS[opt("target", "rtx5090")];
-if (!spec) { process.stderr.write(`unknown target; one of ${Object.keys(SPECS).join(" ")}\n`); process.exit(2); }
+// "fallback" is what cudaTarget gave a GPU whose compute capability no spec names (a GB10 before the gb10 spec): the
+// RTX 5090's spec with the device report's SM count and shared memory per block
+const spec = opt("target") === "fallback" ? { ...SPECS.rtx5090, id: "fallback", sms: device.sms, smemPerBlock: device.smemPerBlock } : SPECS[opt("target", "rtx5090")];
+if (!spec) { process.stderr.write(`unknown target; one of fallback ${Object.keys(SPECS).join(" ")}\n`); process.exit(2); }
 const target = mkTarget(spec);
 const PRESETS = join(KILN, "apps/workbench/presets");
 const preset = (id) => readFileSync(join(PRESETS, readdirSync(PRESETS).find((n) => n.startsWith(id + "-") && n.endsWith(".js"))), "utf8");

@@ -286,13 +286,13 @@ files individually instead (all passed). The workspace run has not been repeated
   all exit 0, no `FAIL`/`MISMATCH` lines; then export.mjs, 24/24.
 - WebGPU round trip, headless Chrome on the M1 Pro (`node runtime/test/webgpu-roundtrip.mjs --fixtures …`):
 
-  | Case          | Kernels | Values compared | max abs error | First run | Second run |
-  | ------------- | ------: | --------------: | ------------: | --------: | ---------: |
-  | attention     | 3       | 1,024           | 8.94e-8       | 6.8 ms    | 1.4 ms     |
-  | blur-2d-grid  | 1       | 4,096 sampled   | 0             | 87.7 ms   | 44.9 ms    |
-  | blur-small    | 1       | 6,144           | 0             | 1.8 ms    | 0.6 ms     |
-  | grey-u8       | 1       | 3,072           | 0             | 0.6 ms    | 0.3 ms     |
-  | mlp           | 2       | 1,024           | 2.38e-7       | 2.0 ms    | 0.6 ms     |
+| Case         | Kernels | Values compared | max abs error | First run | Second run |
+| ------------ | ------: | --------------: | ------------: | --------: | ---------: |
+| attention    | 3       | 1,024           | 8.94e-8       | 6.8 ms    | 1.4 ms     |
+| blur-2d-grid | 1       | 4,096 sampled   | 0             | 87.7 ms   | 44.9 ms    |
+| blur-small   | 1       | 6,144           | 0             | 1.8 ms    | 0.6 ms     |
+| grey-u8      | 1       | 3,072           | 0             | 0.6 ms    | 0.3 ms     |
+| mlp          | 2       | 1,024           | 2.38e-7       | 2.0 ms    | 0.6 ms     |
 
   Plus: an export with a 1,048,576-thread workgroup is refused with "threads per workgroup exceeds the device's 256".
 - Python `wgpu` backend on Metal (`kiln_launch.py check … --backend wgpu`): the same five cases, same error maxima;
@@ -455,16 +455,16 @@ A1, `various/a1/baseline-m1pro.json` (headless Chrome 155 on the M1 Pro; medians
 
 A4, `various/a4/paired-m1pro-v2.json` (final painter), Cosmos vectors:
 
-| n     | d   | CPU      | GPU      | GPU/CPU [95 % CI]          | ImageData paint | GPU + paint |
-| ----: | --: | -------: | -------: | -------------------------- | --------------: | ----------: |
-| 400   | 256 | 20.1 ms  | 2.6 ms   | 0.124 [0.027, 0.131]       | 2.2 ms          | 4.3 ms      |
-| 691   | 256 | 59.7 ms  | 6.0 ms   | 0.101 [0.091, 0.110]       | 3.7 ms          | 9.2 ms      |
-| 1,385 | 256 | 245.5 ms | 13.3 ms  | 0.054 [0.047, 0.055]       | 13.1 ms         | 26.3 ms     |
-| 2,297 | 256 | 678.7 ms | 32.2 ms  | 0.047 [0.046, 0.048]       | 34.3 ms         | 66.9 ms     |
-| 400   | 768 | 60.6 ms  | 3.8 ms   | 0.063 [0.060, 0.073]       | 1.5 ms          | 5.9 ms      |
-| 691   | 768 | 181.7 ms | 10.0 ms  | 0.055 [0.049, 0.059]       | 3.9 ms          | 14.0 ms     |
-| 1,385 | 768 | 734.0 ms | 20.7 ms  | 0.029 [0.024, 0.031]       | 12.9 ms         | 35.6 ms     |
-| 2,297 | 768 | 2,025 ms | 42.9 ms  | 0.021 [0.017, 0.022]       | 34.8 ms         | 75.9 ms     |
+| n     | d   | CPU      | GPU     | GPU/CPU [95 % CI]    | ImageData paint | GPU + paint |
+| ----: | --: | -------: | ------: | -------------------- | --------------: | ----------: |
+| 400   | 256 | 20.1 ms  | 2.6 ms  | 0.124 [0.027, 0.131] | 2.2 ms          | 4.3 ms      |
+| 691   | 256 | 59.7 ms  | 6.0 ms  | 0.101 [0.091, 0.110] | 3.7 ms          | 9.2 ms      |
+| 1,385 | 256 | 245.5 ms | 13.3 ms | 0.054 [0.047, 0.055] | 13.1 ms         | 26.3 ms     |
+| 2,297 | 256 | 678.7 ms | 32.2 ms | 0.047 [0.046, 0.048] | 34.3 ms         | 66.9 ms     |
+| 400   | 768 | 60.6 ms  | 3.8 ms  | 0.063 [0.060, 0.073] | 1.5 ms          | 5.9 ms      |
+| 691   | 768 | 181.7 ms | 10.0 ms | 0.055 [0.049, 0.059] | 3.9 ms          | 14.0 ms     |
+| 1,385 | 768 | 734.0 ms | 20.7 ms | 0.029 [0.024, 0.031] | 12.9 ms         | 35.6 ms     |
+| 2,297 | 768 | 2,025 ms | 42.9 ms | 0.021 [0.017, 0.022] | 34.8 ms         | 75.9 ms     |
 
 SigLIP2 at 768: 0.065, 0.057, 0.024 [0.023, 0.028], 0.022 for the four sizes; GPU + paint 79.4 ms at 2,297.
 
@@ -602,12 +602,12 @@ to factory-videos, not to Kiln, and it alters 1.2 % of grey pixels by one level,
 
 The source without Python (`various/b1/gst-split-m1pro.jsonl`, 2,250 frames, median of 3):
 
-| Pipeline after `h264parse`                    | Seconds | ms per frame |
-| --------------------------------------------- | ------: | -----------: |
-| `vtdec ! fakesink`                            | 1.11    | 0.49         |
-| `vtdec ! videoconvert ! RGB`                  | 11.11   | 4.94         |
-| `vtdec ! videoconvert n-threads=4 ! RGB`      | 3.29    | 1.46         |
-| `vtdec ! videoconvert ! GRAY8`                | 24.88   | 11.06        |
+| Pipeline after `h264parse`               | Seconds | ms per frame |
+| ---------------------------------------- | ------: | -----------: |
+| `vtdec ! fakesink`                       | 1.11    | 0.49         |
+| `vtdec ! videoconvert ! RGB`             | 11.11   | 4.94         |
+| `vtdec ! videoconvert n-threads=4 ! RGB` | 3.29    | 1.46         |
+| `vtdec ! videoconvert ! GRAY8`           | 24.88   | 11.06        |
 
 `vtdec` outputs NV12. The factory's source through Python (`decode-m1pro.json`): 11.2 s full size (200 fps), 14.4 s
 with `maxWidth` 480 (156 fps) — on the Mac `videoscale` runs on the CPU after a full-size `videoconvert`, so asking
@@ -1041,13 +1041,13 @@ trail detailed enough to audit every host-side action.
   - The new launcher passes all five, each via a cubin for sm_121 compiled by NVRTC 13.0 from the host toolkit.
     `various/pn1/bling-gb10-fixture-check.txt` has the output.
 
-| Fixture      | values | max \|Δ\| | build    | first run | second run |
-| ------------ | -----: | --------: | -------: | --------: | ---------: |
-| attention    | 1024   | 8.94e-08  | 259.9 ms | 0.1 ms    | 0.0 ms     |
-| blur-2d-grid | 4096   | 0         | 181.0 ms | 46.5 ms   | 47.0 ms    |
-| blur-small   | 6144   | 0         | 170.3 ms | 0.3 ms    | 0.0 ms     |
-| grey-u8      | 3072   | 0         | 184.4 ms | 0.1 ms    | 0.0 ms     |
-| mlp          | 1024   | 2.12e-07  | 219.6 ms | 0.1 ms    | 0.0 ms     |
+| Fixture      | values | max \    | Δ\       |         | build   | first run | second run |
+| ------------ | -----: | -------: | -------: | ------: | ------: | --------- | ---------- |
+| attention    | 1024   | 8.94e-08 | 259.9 ms | 0.1 ms  | 0.0 ms  |           |            |
+| blur-2d-grid | 4096   | 0        | 181.0 ms | 46.5 ms | 47.0 ms |           |            |
+| blur-small   | 6144   | 0        | 170.3 ms | 0.3 ms  | 0.0 ms  |           |            |
+| grey-u8      | 3072   | 0        | 184.4 ms | 0.1 ms  | 0.0 ms  |           |            |
+| mlp          | 1024   | 2.12e-07 | 219.6 ms | 0.1 ms  | 0.0 ms  |           |            |
 
 ### Why
 
@@ -1155,17 +1155,17 @@ the whole-service comparison.
   - Fixed costs: `cuda_init_s` 0.257, `compile_s` 1.621 (24 programs, NVRTC 13.2.78, no self-check), `load_s` 1.687
     (compile plus the self-check against the CPU loop).
 
-| 768x416, masks       |     1 |     2 |     4 |     8 |    16 |    32 |     64 |    100 |
+| 768x416, masks       | 1     | 2     | 4     | 8     | 16    | 32    | 64     | 100    |
 | -------------------- | ----: | ----: | ----: | ----: | ----: | ----: | -----: | -----: |
-| gpu: run + copy (ms) | 0.052 | 0.075 | 0.128 | 0.257 | 0.633 | 1.179 |  2.381 |  3.340 |
-| kernels only (ms)    | 0.035 | 0.051 | 0.088 | 0.164 | 0.398 | 0.833 |  1.812 |  2.516 |
+| gpu: run + copy (ms) | 0.052 | 0.075 | 0.128 | 0.257 | 0.633 | 1.179 | 2.381  | 3.340  |
+| kernels only (ms)    | 0.035 | 0.051 | 0.088 | 0.164 | 0.398 | 0.833 | 1.812  | 2.516  |
 | CPU loop (ms)        | 0.224 | 0.429 | 0.840 | 1.750 | 3.725 | 6.731 | 14.261 | 22.626 |
 
 | 100 masks | gpu (ms) | kernels (ms) | CPU (ms) | CPU / gpu |
 | --------- | -------: | -----------: | -------: | --------: |
-| 768x416   |    3.340 |        2.516 |   22.626 |      6.8x |
-| 640x480   |    3.914 |        3.120 |   18.581 |      4.7x |
-| 768x576   |    4.585 |        3.812 |   28.889 |      6.3x |
+| 768x416   | 3.340    | 2.516        | 22.626   | 6.8x      |
+| 640x480   | 3.914    | 3.120        | 18.581   | 4.7x      |
+| 768x576   | 4.585    | 3.812        | 28.889   | 6.3x      |
 
 - **Probed `bling` through Kiln's executor.** Command:
   `node scripts/cuda-runner-smoke.mjs --kiln /Volumes/SSD/code/kiln --host manuel@bling.local --device-only --out …/pn/bling-device.json`.
@@ -1240,3 +1240,340 @@ the whole-service comparison.
   bracketed by `{ date -Is; $Q; $G; } > ~/kiln-002/out/dgx-time-{before,after}.txt` with the two queries below.
 - Co-tenant snapshot: `nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader` and
   `nvidia-smi --query-gpu=utilization.gpu,clocks.sm,clocks.max.sm,temperature.gpu,power.draw --format=csv,noheader`.
+
+## Step 10: The kiln-perf image — the CUDA runner, launcher, a device probe and the fixtures in one container
+
+The user asked for a Kiln/perf-only image. I built `kiln-perf` in Kiln `runner/docker/`. It contains what Kiln's CUDA
+side needs on a GPU host and nothing else:
+
+- `nvcc`, NVRTC and the CUDA runtime from NVIDIA's apt repository;
+- Python with NumPy;
+- the runner and the launcher;
+- the launcher's five round-trip fixtures;
+- a new device probe, `kiln-probe`, which measures the figures a Kiln target spec states.
+
+The image is 1.05 GB unpacked and 356 MB compressed. Its default command runs the five fixtures and then the runner's
+device report. On both GB10 hosts that passes 5 of 5, in 3.0 s on `bling`. A wrapper script lets an executor profile
+use the image as its interpreter. Kernel times through the image equal the host's to within 1.7 %, and the device
+report, host name included, is identical. Three things went wrong on the way, and each is recorded below.
+
+### Prompt Context
+
+**User prompt (verbatim):** "yeah, having a kiln/perf only image would be interesting, if possible"
+
+**Assistant interpretation:** A small, reproducible container image for Kiln's GPU work. A fresh GPU host should then
+need only a driver and Docker, which `bling` did not have when Step 8 started.
+
+**Inferred user intent:** Make GPU hosts interchangeable for Kiln. The toolchain should travel with Kiln instead of
+being installed by hand on each machine.
+
+### What I did
+
+- **Files** (`runner/docker/`, Kiln `3c71c0d`):
+  - `Dockerfile`: `ubuntu:24.04`, NVIDIA's `cuda-keyring` for `sbsa` (arm64) or `x86_64` (amd64), then
+    `cuda-nvcc-13-0 cuda-cudart-dev-13-0 cuda-nvrtc-dev-13-0 g++ python3 python3-numpy`. Optionally
+    `cuda-nsight-compute-13-0` (`--ncu`). `/usr/local/cuda` is a symlink to the versioned toolkit. Labels record the
+    Kiln revision and the runner's and launcher's SHA-256.
+  - `build.sh`: stages a context (the runner, the launcher, the probe, the scripts, and fixtures generated fresh by
+    `runtime/test/fixtures.mjs`) and builds it, locally or on a GPU host over SSH (`--host`). The default tag is
+    `kiln-perf:<revision>[-dirty]-cuda<version>`, plus `kiln-perf:latest`.
+  - `kiln-probe.cu` and the `kiln-probe` wrapper (below), `kiln-selftest` (the default command), `kiln-docker-python`
+    (the executor wrapper), and `README.md`.
+- **The probe.** `kiln-probe.cu` measures over 1 GiB buffers, so DRAM rather than L2 is measured. Every figure is a
+  median and a best of 20 runs after one warm-up:
+  - device-to-device `cudaMemcpy`, counted as read plus written bytes;
+  - a 16-byte-load read kernel and a 16-byte-store write kernel;
+  - an FP32 FMA kernel with 8 independent chains per thread;
+  - pinned host-to-device and device-to-host copies;
+  - empty-kernel launches in three forms: one launch between two CUDA events (`eventUs`, which is how
+    `kiln_runner.py` times a kernel and therefore what a target's `launchUs` should predict), 1000 launches back to
+    back, and launch plus synchronise.
+
+  The `kiln-probe` wrapper compiles the probe with `-arch=native` into the runner's cache. It adds the toolkit version
+  and `nvidia-smi` snapshots before and after, and emits `spec`, a `SPECS`-shaped object holding the measured figures.
+- **Checked the probe natively on `bling`** before packaging it (`nvcc -O3 -arch=native`, `--quick`): read 255 GB/s,
+  FMA 28.9 TFLOP/s, 1.9 µs per launch back to back.
+- **Built on both hosts** with `runner/docker/build.sh --host manuel@bling.local` (76 s cold) and
+  `--host playback@dgx` (37 s). The final images are `kiln-perf:3c71c0d-cuda13.0` on both. `nvcc` reports
+  `release 13.0, V13.0.88`; NumPy is 1.26.4.
+- **Self-test** (`docker run --rm --gpus all kiln-perf:latest`) passes on both hosts:
+
+| Fixture      | max \    | Δ\       |          | `bling` build | `dgx` build | `dgx` first run |
+| ------------ | -------: | -------: | -------: | ------------: | ----------- | --------------- |
+| attention    | 8.94e-08 | 406.9 ms | 346.9 ms | 0.2 ms        |             |                 |
+| blur-2d-grid | 0        | 184.4 ms | 228.2 ms | 93.1 ms       |             |                 |
+| blur-small   | 0        | 177.3 ms | 214.5 ms | 1.0 ms        |             |                 |
+| grey-u8      | 0        | 184.3 ms | 215.5 ms | 2.4 ms        |             |                 |
+| mlp          | 2.12e-07 | 213.8 ms | 323.5 ms | 0.1 ms        |             |                 |
+
+  `blur-2d-grid` runs in 48.9 ms on `bling` and 93.1 ms on `dgx`. It is a 4096 x 4096 bandwidth-bound blur, and the
+  difference is the co-tenant load on `dgx`.
+- **Probed both hosts**, three runs each, with
+  `docker run --rm --gpus all --pid host --hostname "$(hostname)" kiln-perf:latest kiln-probe --id gb10 --name "DGX Spark (GB10)"`.
+  Evidence: `various/perf-image/probe-{bling,dgx}-{1,2,3}.json`.
+
+| Figure (range of 3 medians)   | `bling`, idle      | `dgx`, 7 co-tenants (8399 MiB, 17–26 %) |
+| ----------------------------- | -----------------: | --------------------------------------: |
+| read, median (GB/s)           | 258.0–258.2        | 205.6–209.4                             |
+| read, best (GB/s)             | 258.6–259.2        | 235.8–237.4                             |
+| device-to-device copy (GB/s)  | 240.9–243.1        | 187.5–207.1                             |
+| write (GB/s)                  | 195.8              | 173.1–177.4                             |
+| FMA, median (TFLOP/s)         | 28.92              | 27.83–28.77                             |
+| FMA, best (TFLOP/s)           | 28.92–28.93        | 30.00–30.17                             |
+| host to device, back (GB/s)   | 59.0, 58.9         | 56.2–59.1, 56.5–59.9                    |
+| empty kernel, events (µs)     | 2.37–2.40          | 2.30–2.37                               |
+| 1000 back to back, per launch | 2.0 µs (host 1.77) | 2.05 µs (host 1.76–1.80)                |
+| launch + synchronise (µs)     | 4.91–4.93          | 4.82–4.85                               |
+| SM clock after the run (MHz)  | 2411               | 2431–2515                               |
+
+- **Used the image as the runner's interpreter.** I installed `kiln-docker-python` as
+  `/home/manuel/.local/bin/kiln-docker-python` on `bling`, ran the runner's `device` subcommand through it, and then
+  ran the whole smoke test of Step 11 through it (`--python /home/manuel/.local/bin/kiln-docker-python`).
+  - All 18 kernels agree with the reference.
+  - Kernel medians match the native run within 1.7 % (largest: W-28 direct, 8 masks, 2704.9 vs 2658.3 µs).
+  - Register counts are identical; the host has the same `nvcc` 13.0.88.
+  - The device report is identical, `hostname` included.
+  - Each invocation costs 0.1–0.5 s more wall time, for `docker run` start-up.
+
+### Why
+
+- **Ubuntu plus four NVIDIA packages, not `nvidia/cuda:*-devel`.** The devel images carry the whole toolkit
+  (several GB). The runner needs `nvcc` and the runtime, and the launcher needs NVRTC. 1.05 GB is mostly `nvcc`'s
+  back end.
+- **Generate the fixtures at build time, outside Docker.** They come from Kiln's compiler and need the pnpm
+  workspace. Staging them in `build.sh` keeps the Dockerfile to copies and lets the context build on a host that has
+  no Node.
+- **`eventUs` is the launch figure for `launchUs`.** The cost model adds `launchUs` to each kernel's time and is
+  compared with what the runner measures, which is one launch between two events. Back-to-back figures measure
+  something else: how fast the host can submit.
+- **The wrapper keeps the executor's runner, not the image's.** The executor content-addresses the runner it copies,
+  so a server and its runner stay paired. The image supplies only the toolchain.
+
+### What worked
+
+- One Dockerfile for both architectures: BuildKit's `TARGETARCH` picks NVIDIA's `sbsa` or `x86_64` repository. Only
+  arm64 was built today.
+- The probe's figures repeat to within 0.1 % on an idle GB10 (FMA 28.92 three times; read 258.0–258.2).
+
+### What didn't work
+
+- **AppleDouble files in the context.** The first self-test failed with
+  `UnicodeDecodeError: 'utf-8' codec can't decode byte 0xa3 in position 45: invalid start byte`, raised from
+  `check_fixtures` reading `/opt/kiln/fixtures/._attention.expect.json`. macOS `tar` adds a `._<name>` file for every
+  file with extended attributes, and the launcher's `glob("*.program.json")` matches dot files.
+- **The fix exposed a second macOS tar behaviour.** With `COPYFILE_DISABLE=1`, tar writes the extended attributes as a
+  pax header in front of the first entry, and the build failed with
+  `ERROR: failed to build: failed to solve: dockerfile line greater than max allowed size of 65535`.
+  `docker build -` had read the stream as a Dockerfile instead of a tar context. The stream's first bytes showed
+  `PaxHeader/curren…` with `COPYFILE_DISABLE=1` alone, `._.` without it, and `./` with `--no-xattrs` as well.
+  - Final form: `COPYFILE_DISABLE=1 tar --no-xattrs`, unpacked into a `mktemp -d` directory on the host. `docker
+    build` then runs on that directory, so nothing depends on how Docker sniffs stdin.
+  - Files in the image were also owned by uid 502, from the tar; `COPY --chown=0:0` fixes that.
+- **Co-tenants are invisible in a container.** On `dgx` the probe reported `computeApps: []` while seven processes
+  held 8.4 GB. `nvidia-smi` in a container lists only its own PID namespace, so an empty list claimed an idle GPU.
+  With `--pid host` it lists all seven. The probe now reports `null` (unknown) when PID 1 is not the machine's init,
+  and the README says to pass `--pid host`.
+- **The image size differs between the two hosts.** `docker images` reports 1.41 GB on `bling` and 1.05 GB on `dgx`
+  for the same image. `bling` runs Docker 29.6 with the containerd image store, which counts the compressed blobs
+  (356 MB, from `docker image inspect --format {{.Size}}`) as well as the unpacked layers. `dgx` runs Docker 29.2
+  with `overlay2`, which counts the unpacked layers only.
+
+### What I learned
+
+- On a shared GPU, read bandwidth is the figure that moves. Medians fall 19 %, while the FMA rate and launch costs
+  barely change. `dgx`'s best FMA rate is 4 % higher than `bling`'s because its SM clock ran higher (2.43–2.52 GHz
+  against 2.41 GHz). The two machines are different products: `/sys/class/dmi/id` names `bling` an NVIDIA
+  `NVIDIA_DGX_Spark` and `dgx` an ASUSTeK `GX10`, and both report the same 3003 MHz maximum SM clock.
+- A container's host name is part of the runner's device identity. Without `--hostname`, the device report from
+  `docker run` carried `1c1f810cc051`.
+
+### What was tricky to build
+
+- The executor shell-quotes `python` (`shq`), so `~/.local/bin/kiln-docker-python` would never expand. The profile
+  needs an absolute path, and the wrapper's comment and the README both say so.
+
+### What warrants a second pair of eyes
+
+- `kiln-docker-python` mounts `~/.cache/kiln-runner` read-write into a container that runs code sent by the Kiln
+  server. That code already runs on the host without the image; the container adds `--network none` and the caller's
+  uid, so it is strictly narrower, but it is not a sandbox.
+- Only the arm64 image was built. The amd64 path is the same Dockerfile with NVIDIA's `x86_64` repository and is
+  untested.
+
+### What should be done in the future
+
+- Build and self-test on the RTX PRO 6000 host (amd64) once access is given.
+- Publish the image somewhere both hosts can pull, so that `build.sh` is not run per host.
+
+### Code review instructions
+
+- `runner/docker/build.sh`: the remote branch (tar flags, temporary directory, exit code).
+- `runner/docker/kiln-probe`: `host_pid_namespace()`, and that `computeApps` stays `null` rather than `[]`.
+- `runner/docker/kiln-probe.cu`: the read kernel's guard store, which keeps the loads from being removed.
+- Reproduce: `runner/docker/build.sh --host <gpu host>`, then `docker run --rm --gpus all kiln-perf:latest`.
+
+### Technical details
+
+- Images: `kiln-perf:3c71c0d-cuda13.0` (`bling` and `dgx`), labels `kiln.runner.sha256 94e24ca5…`,
+  `kiln.launcher.sha256 94a0f717…`.
+- Logs: `/Volumes/SSD/tmp/kiln-002/perf-image/build-*.log`; evidence in `various/perf-image/`.
+
+## Step 11: PN steps 1–2 — a measured gb10 target, u8 inputs in the runner, and the runner's first smoke test on a GB10
+
+This step ran guide §24's PN steps 1 and 2 on `bling`. Step 2 first: Kiln had no spec for a GB10. `cudaTarget()`, which
+turns a runner's device report into the target the compiler optimises for, therefore gave a GB10 the RTX 5090's
+spec, at 1792 GB/s, seven times the measured bandwidth. I added `gb10` to `SPECS` from Step 10's probe, with a test
+that pins the lookup. Then step 1, the smoke test. W-26 passed at all 12 sizes. W-28's first kernel was refused by the
+runner itself: its harness generated only float inputs, and that kernel takes the u8 mask. I added u8 inputs to the
+runner, after which all 18 kernels agree with the reference, and the four u8 kernels bit for bit. Running the same
+programs compiled for the old fallback shows what the spec changes: four W-28 kernels get different schedules, and
+`gb10`'s run in 4674 µs against the fallback's 9816 µs. The comparison also shows a gap in Kiln's model. For W-28 it
+predicts times 7–115 times too long, because it charges a resampling gather as uncoalesced DRAM traffic.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 8; this is PN from the guide's §24 plan, which the user asked to implement.
+
+**Assistant interpretation:** Run Kiln's CUDA executor end to end against a GB10, and give Kiln a target for it, with
+evidence that the target improves the compiler's choices.
+
+**Inferred user intent:** Know whether Kiln's predictions and schedules can be trusted on the hardware Playback ships
+on.
+
+### What I did
+
+- **The `gb10` spec** (`packages/kiln/src/std/targets.js`, Kiln `3c71c0d`):
+  `sm: 121, sms: 48, clockGHz: 2.418, peakTflops: 28.9, bwGBs: 259, l2MB: 24, smemPerSM: 100 KiB, smemPerBlock:
+  48 KiB, maxThreadsPerBlock: 1024, maxThreadsPerSM: 1536, maxBlocksPerSM: 24, regsPerSM: 65536, launchUs: 2.4`.
+  A comment marks the entry as measured rather than public, and names the probe and the date.
+  - `packages/kiln/test/targets.mjs` (new) checks four things: a cc 12.1 report gets `gb10`; cc 12.0 gets `rtx5090`;
+    an unknown capability falls back with the report's SM count; and no two specs share a capability (`cudaTarget`
+    takes the first match). Before the change, its first check fails on `SPECS.gb10` being undefined.
+  - The agent's device list now names `sim:gb10`, because `devices.js` makes one simulated device per spec.
+  - Tests: `pnpm --filter @kiln/kiln test`, all 13 passed; `pnpm --filter @kiln/workbench test`, all 6 passed (7
+    skipped by the package's own script).
+- **Smoke test, first run** (native Python and `nvcc` on `bling`):
+  `node scripts/cuda-runner-smoke.mjs --kiln /Volumes/SSD/code/kiln --host manuel@bling.local --target gb10 --out …/smoke-bling-native.json`.
+  Result: `18 kernels, 14 agree with the reference`. Every W-26 kernel passed. Each W-28 `k_ew` failed with
+  `ERROR 8-bit (u8) inputs are not supported by this runner yet`, which `run_kernel` raises before compiling.
+- **u8 inputs in the runner** (`runner/kiln_runner.py`, Kiln `3c71c0d`).
+  - The workbench's reference (`kernelInputs`) draws a u8 input as `Math.floor(r() * 256)`, where `r()` is the
+    mulberry32 value divided by 2^32. That is exactly the value's top byte.
+  - The harness's generator now takes a per-input `u8` flag and stores `(uint8_t)(r >> 24)`. It keeps the inputs as
+    `void*` and casts each at the launch to the kernel's parameter type (`const unsigned char*` or `float*`).
+  - Dtypes other than `f32` and `u8` are refused by name.
+  - The runner's content hash changed (`kiln_runner-94e24ca53607da15.py`), so the executor installed the new file on
+    the next run without being told to.
+- **Smoke test, second run:** `18 kernels, 18 agree with the reference`. The W-28 `k_ew` kernels report
+  `max |d| 0.00e+0, 0/384 bad`. The probe took 973 ms. The run used no other GPU processes: the before and after
+  snapshots list none, with utilisation 0 %.
+- **The same smoke test through the image** (`--python /home/manuel/.local/bin/kiln-docker-python`): 18 of 18, with
+  the medians within 1.7 % of the native run (Step 10).
+- **Compared with the old fallback.**
+  - I added `--target fallback` to the smoke script: `{ ...SPECS.rtx5090, sms: device.sms, smemPerBlock:
+    device.smemPerBlock }`, which is exactly what `cudaTarget` returned for a GB10 before `gb10` existed.
+  - I ran the smoke test with it (18 of 18 agree) and wrote `scripts/gb10-spec-check.mjs`. The script recompiles every
+    case under both specs, checks that the results' schedules are the ones the specs choose, and puts each spec's model
+    estimate (`tile.js` `estimate`) beside the runner's median.
+  - Output: `various/pn/gb10-spec-check.md` and `.json`. Per-kernel times (µs) below are runner medians of 20
+    repetitions.
+
+| Case                         | Kernel          | gb10 schedule            | gb10 model | measured | fallback schedule   | fallback model | measured |
+| ---------------------------- | --------------- | ------------------------ | ---------: | -------: | ------------------- | -------------: | -------: |
+| W-26 256 × 256               | k_matmul_reduce | tiled 32×16, TN=2        | 11.9       | 16.5     | same                | 11.1           | 16.6     |
+| W-26 1024 × 768              | k_matmul_reduce | tiled 128×64, TM=8 TN=4  | 204        | 265      | same                | 205            | 265      |
+| W-26 2304 × 768              | k_matmul_reduce | tiled 128×128, TM=8 TN=2 | 936        | 930      | same                | 939            | 931      |
+| W-28 768x416, 8, separable   | k_ew            | TPB=1024                 | 1384       | 60.4     | same                | 202            | 59.6     |
+| W-28 768x416, 8, separable   | k_ew_2          | TPB=128                  | 1292       | 62.5     | TPB=1024            | 189            | 77.8     |
+| W-28 768x416, 100, separable | k_ew            | TPB=128, COARSEN=2       | 31088      | 696      | TPB=1024, COARSEN=2 | 4495           | 862      |
+| W-28 768x416, 100, separable | k_ew_2          | TPB=1024                 | 29015      | 1210     | TPB=1024, COARSEN=2 | 4196           | 1047     |
+| W-28 768x416, 8, direct      | k_ew            | TPB=1024, COARSEN=2      | 17805      | 2705     | TPB=1024            | 2576           | 7828     |
+| W-28 768x416, 100, direct    | k_ew            | TPB=64                   | 400559     | 3482     | same                | 57895          | 3479     |
+
+  (`various/pn/gb10-spec-check.md` has all 18 rows. The 12 W-26 kernels get the same schedule under both specs.)
+
+- **Results of the comparison:**
+  - **Schedules.** 4 of 18 kernels, all W-28, get different schedules. Measured over those four, `gb10`'s take
+    4674 µs and the fallback's 9816 µs. `gb10`'s is faster in three; the fallback's is faster in one (100 masks,
+    `k_ew_2`, 1047 vs 1210 µs). The largest difference is W-28 direct at 8 masks: 2705 against 7828 µs.
+  - **Ranking.** For each of the four, I asked whether a spec's model ranks the two schedules the way the GPU does.
+    `gb10`'s model agrees in 3 of 4; the fallback's model agrees in 1 of 4.
+  - **Absolute accuracy, W-26.** Measured/modelled ranges from 0.98 to 1.43 under both specs (geometric mean 1.20).
+    The model is within 30 % of the GPU and pessimistic nowhere.
+  - **Absolute accuracy, W-28.** Under `gb10` the model predicts 6.6–115 times the measured time; under the fallback,
+    0.3–16.6 times.
+- **Why the model is wrong about W-28.** I printed `estimate()`'s parts for W-28 separable at 8 masks under `gb10`:
+  - `k_ew`: `{"dram":497.4,"l2":1381.6,"compute":2.2,"issue":4.5}`, bound by L2.
+  - `497.4 µs` of DRAM time at 259 GB/s is 129 MB of traffic. The kernel's essential traffic is the 3.28 MB u8 input
+    (8 × 640 × 640) plus the 10.2 MB f32 output (8 × 416 × 768 × 4): 13.5 MB, or 52 µs at 259 GB/s. The GPU takes
+    60.4 µs, close to that bound.
+  - `estimate()` charges each input access by `sectorsFor(stride)` of the flattened index with respect to the last
+    loop variable. The resampling index goes through an integer division (`(e / 768) % 416` and the scale), so its
+    stride is not a constant, and every tap is charged as one 32-byte sector per thread. Neighbouring threads in fact
+    read neighbouring input pixels, and the 3.28 MB input stays in the 24 MB L2.
+
+### Why
+
+- **Measure the fallback rather than argue about it.** "Seven times the bandwidth" says the model's numbers are
+  wrong. It does not say whether the chosen schedules are worse, which is the only part that reaches the GPU. Running
+  both sets of schedules answers that.
+- **Fix u8 in the runner, not in the smoke script.** W-28 is a u8 program, and Playback's mask post-processing is the
+  reason Kiln has u8 inputs at all. The launcher already handled them (`grey-u8`), so the runner was the one component
+  that could not measure the program the ticket is about.
+
+### What worked
+
+- The executor's content-addressed install: a changed runner reached the host without any manual step.
+- The u8 generator matched the reference exactly at the first attempt. The proof is W-28's zero difference, since that
+  kernel's output is a pure function of the u8 input.
+
+### What didn't work
+
+- The first smoke run (W-28 u8 refused); quoted above.
+- Kiln's model on W-28 (above). It is not fixed in this ticket: `sectorsFor` and the stride analysis are shared by
+  every kernel, and a change there needs its own evidence across the presets.
+
+### What I learned
+
+- Two specs with the same SM count and shared memory choose the same tiled matmul schedules. For W-26 the bandwidth
+  term never changes the decision, so a wrong spec costs nothing there.
+- For elementwise and gather kernels the bandwidth term decides the block size. That is where the spec matters, and
+  also where the model's gather accounting is weakest.
+- `launchUs` dominates the model at small sizes: W-26 256 × 256 is modelled at 11.9 µs, of which 2.4 µs is launch,
+  and measures 16.5 µs.
+
+### What was tricky to build
+
+- Making sure the comparison compared what was measured. `gb10-spec-check.mjs` recompiles every case and refuses to
+  continue if a schedule differs from the one recorded in the smoke result (`the results were compiled differently`).
+  Without that check, a change to the compiler between the measurement and the analysis would silently pair the wrong
+  numbers.
+
+### What warrants a second pair of eyes
+
+- `bwGBs: 259` is the best read rate, not a public figure. The theoretical 273 GB/s would be the convention of the
+  other entries. I chose the measured value because Kiln compares its model with measurements, and the comment says
+  so.
+- The fallback ranking result rests on four kernels from one program. It is evidence that the spec matters, not a
+  general accuracy figure.
+
+### What should be done in the future
+
+- Model a gather whose index is a monotone function of the thread index as coalesced, and count the reuse of an input
+  that fits in L2. Validate it on W-28 and on the presets without gathers.
+- Run the same smoke test on the RTX PRO 6000 host with an `rtxpro6000` spec, measured with `kiln-probe`.
+
+### Code review instructions
+
+- `runner/kiln_runner.py`: `gen()` (the `r >> 24` byte) and the `args` cast list.
+- `packages/kiln/src/std/targets.js` `gb10`, and `packages/kiln/test/targets.mjs`.
+- `scripts/gb10-spec-check.mjs`: the schedule-identity check before any number is used.
+- Reproduce: `node scripts/cuda-runner-smoke.mjs --kiln … --host <gb10 host> --target gb10 --out a.json`, the same
+  with `--target fallback --out b.json`, then `node scripts/gb10-spec-check.mjs --kiln … a.json b.json`.
+
+### Technical details
+
+- Evidence: `various/pn/smoke-bling-{native,docker,fallback}.{json,log}`, `various/pn/smoke-bling-native-{before,after}.txt`,
+  `various/pn/gb10-spec-check.{md,json}`.
+- Runner on `bling`: `~/.cache/kiln-runner/kiln_runner-94e24ca53607da15.py`; build cache for the image runs in
+  `~/.cache/kiln-runner/build`.

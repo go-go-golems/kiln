@@ -1,0 +1,43 @@
+kiln-perf:26b52dc-dirty-cuda13.0 1.41GB 7fa6daba4a30
+kiln-perf:latest 1.41GB 7fa6daba4a30
+total 492
+drwxr-xr-x 2 root root   4096 Oct 20 18:40 .
+drwxr-xr-x 1 root root   4096 Oct 20 18:40 ..
+-rw-r--r-- 1 root root  25173 Oct 20 18:40 attention.expect.json
+Cuda compilation tools, release 13.0, V13.0.88
+Build cuda_13.0.r13.0/compiler.36424714_0
+1.26.4
+== selftest
+ok   attention.out: 1024 values, max |Δ| 8.94e-08, 0 outside rtol 1e-3 / atol 1e-4; build 406.9 ms, first run 0.1 ms, second 0.2 ms (cuda, NVIDIA GB10 sm_121 via {'cubin'})
+ok   blur-2d-grid.out: 4096 values, max |Δ| 0.00e+00, 0 outside rtol 1e-3 / atol 1e-4; build 184.4 ms, first run 48.9 ms, second 49.4 ms (cuda, NVIDIA GB10 sm_121 via {'cubin'})
+ok   blur-small.out: 6144 values, max |Δ| 0.00e+00, 0 outside rtol 1e-3 / atol 1e-4; build 177.3 ms, first run 0.3 ms, second 0.1 ms (cuda, NVIDIA GB10 sm_121 via {'cubin'})
+ok   grey-u8.grey: 3072 values, max |Δ| 0.00e+00, 0 outside rtol 1e-3 / atol 1e-4; build 184.3 ms, first run 0.1 ms, second 0.0 ms (cuda, NVIDIA GB10 sm_121 via {'cubin'})
+ok   mlp.y: 1024 values, max |Δ| 2.12e-07, 0 outside rtol 1e-3 / atol 1e-4; build 213.8 ms, first run 0.1 ms, second 0.0 ms (cuda, NVIDIA GB10 sm_121 via {'cubin'})
+{
+ "name": "NVIDIA GB10",
+ "cc": "12.1",
+ "sms": 48,
+ "smemPerBlock": 49152,
+ "smemPerSM": 102400,
+ "regsPerSM": 65536,
+ "maxThreadsPerBlock": 1024,
+ "maxThreadsPerSM": 1536,
+ "clockMHz": 2418,
+ "memClockMHz": 8533,
+ "busBits": 256,
+ "memGB": 121.7,
+ "l2MB": 24.0,
+ "runtime": 13000,
+ "driver": 13000,
+ "pciBusId": "000F:01:00.0",
+ "driverVersion": "580.178.04",
+ "persistenceMode": "Enabled",
+ "maxSmClockMHz": 3003,
+ "gpuUuid": "GPU-c6e7f17e-f161-a1d7-8c0b-56bbabb15c41",
+ "hostname": "1c1f810cc051"
+}
+
+real	0m2.997s
+user	0m0.005s
+sys	0m0.013s
+rc=0
