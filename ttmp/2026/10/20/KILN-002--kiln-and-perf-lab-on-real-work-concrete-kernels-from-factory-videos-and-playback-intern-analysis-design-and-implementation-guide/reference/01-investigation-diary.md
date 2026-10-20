@@ -2176,3 +2176,100 @@ Table 13.7: the final run on `bling` (`local-final-20261020T205126Z/summary.md`,
 - The flaky-test count: `git -C ~/code/playback-kiln-002 archive <rev> | docker run --rm -i --gpus all -v playback_ds-engine-cache:/engine-cache:ro -e NVIDIA_TF32_OVERRIDE=0 --entrypoint sh playback-redaction:kiln-002-ac835daa -c "… ln -sf /engine-cache/rtmdet-ins_m.engine /opt/models/ … for i in 1 … 10; do python3 -m pytest -q tests/test_trt_engine_raw.py | grep -oE 'disagree on [0-9]+ px|1 passed'; done | sort | uniq -c"`.
 - Reproduce everything: `scripts/run-on-gpu-host.sh --host manuel@bling.local --playback --ab --diag` from the
   Mac, or on `bling`: `cd ~/code/kiln/ttmp/2026/10/20/KILN-002--*/scripts && ./run-on-gpu-host.sh --local --playback --ab --diag`.
+
+## Step 14: The Kiln server on `bling`, reached from the Mac through a tunnel; a guided first kernel
+
+This step sets up Kiln the way a person uses it, rather than the way the scripts of Step 13 use it. The Kiln server
+runs on `bling` with one executor, `spark`, which runs the runner through `kiln-docker-python` on the GB10. The
+workbench page is served by that server and opened in a browser on the Mac through an SSH tunnel. A headless run
+of the page measured W-18 as a job on `spark`: 122.8 µs median, the reference check passing on 384 sampled outputs.
+The rest of the step is a guided walkthrough for the user, in which they write a small kernel and measure it.
+
+One setup defect appeared: the first server start could not reach Docker. The fix was to start the server under a
+tmux server of its own, which is recorded below because the same problem waits for anyone who starts a long-lived
+process on `bling` from the existing tmux server.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok can we start thingso n bling.local and you teach me how to use the system here, step
+by step? Like how to write and measure something simple?"
+
+**Assistant interpretation:** Start the Kiln server and workbench on `bling`, check one measurement end to end, then
+teach the workbench interactively: the pieces, the views, writing a program, compiling it, measuring it on the GB10
+and reading the result.
+
+**Inferred user intent:** To be able to use Kiln on the Spark without the agent.
+
+### What I did
+
+- Built the page on `bling`: `cd ~/code/kiln && pnpm build` → `apps/workbench/dist/kiln-workbench.html` (1826 KB,
+  27 presets).
+- Wrote `~/kiln-002/server-data/executors.json` with one local executor:
+  `{ "id": "spark", "target": "local", "python": "/home/manuel/.local/bin/kiln-docker-python", "env": { "KILN_ARCH": "native" } }`.
+- Started the server in its own tmux server (socket `kiln`, session `kiln`), with the data directory outside the
+  clone: `tmux -L kiln new-session -d -s kiln -c ~/code/kiln "export PATH=$HOME/.local/bin:$PATH KILN_DATA_DIR=$HOME/kiln-002/server-data; pnpm serve 2>&1 | tee $HOME/kiln-002/logs/server.log; exec bash"`.
+  It prints `kiln server on http://127.0.0.1:5280/ · db /home/manuel/kiln-002/server-data/kiln.sqlite · 1 executor`.
+- Tunnel from the Mac: `ssh -N -o ExitOnForwardFailure=yes -L 5280:127.0.0.1:5280 manuel@bling.local`. The server
+  binds only to 127.0.0.1 and refuses any `Host` header other than `127.0.0.1:5280`, `localhost:5280` or
+  `[::1]:5280`, so the local port of the tunnel must also be 5280.
+- `GET /api/devices` through the tunnel reported `cuda:nvidia-gb10-e220ce35`: NVIDIA GB10, cc 12.1, 48 SMs,
+  2418 MHz, 121.7 GB, driver 580.178.04, runtime 13000.
+- Headless check (`scripts/shoot.mjs`'s `withPage`, scratchpad driver): load W-18, `setDevice('server:spark')`,
+  `measure()`. The page proposed and approved a job, the server ran 7 repetitions × 20 launches (3 warm-up, seed 1)
+  in 7.8 s of executor time, and one record came back: `k_ew` `TPB=128`, median 122.8 µs, fastest 113.5 µs,
+  128 threads × 32768 blocks, check `max abs diff 2.38e-7`. Model estimate on the Perf view: 132 µs.
+- Compiled, without measuring, the program the walkthrough uses (`out = 2·x + y` on 16,777,216 elements): no
+  diagnostics, one kernel `k_ew`, row `TPB=64,COARSEN=2`.
+
+### Why
+
+- A server executor rather than a browser-local CUDA runner, because the page then needs nothing on the Mac but a
+  browser, the records persist in the server's SQLite file, and the job protocol (fresh runner process per
+  repetition, seeded shuffled order) is the one the guide recommends.
+- The data directory is `~/kiln-002/server-data`, not the default `apps/server/.data`, so a later `git pull` or a
+  fresh clone of Kiln on `bling` leaves the records alone.
+
+### What worked
+
+- The page found the server, listed `CUDA NVIDIA GB10 · spark · server` as a device, and measured on it with no
+  configuration in the page itself.
+
+### What didn't work
+
+- The first start, in a new session of the existing tmux server, probed the executor and got
+  `"/home/manuel/.local/bin/kiln-docker-python exited with 1: permission denied while trying to connect to the docker API at unix:///var/run/docker.sock"`.
+  `id -nG` over a fresh SSH login lists `docker`. The tmux server was started at 14:15 local time, before `manuel`
+  was added to the `docker` group, and every session it creates inherits its supplementary groups. A new tmux server
+  (`tmux -L kiln`) started from a fresh SSH login has the group, and the probe then succeeded.
+
+### What I learned
+
+- A process's supplementary groups are fixed when it starts. Adding a user to a group reaches new logins only, so
+  any long-lived server process (tmux, a shell) started earlier must be replaced, not reused.
+
+### What was tricky to build
+
+- Nothing in this step needed code. The two constraints that shape the setup are the loopback-only bind with its
+  `Host` allow-list, which forces port 5280 on both ends of the tunnel, and the group inheritance above.
+
+### What warrants a second pair of eyes
+
+- The headless check left one W-18 record in the server's database. It is a valid record of the GB10 and is kept.
+
+### What should be done in the future
+
+- The walkthrough continues below as the user works through it.
+
+### Code review instructions
+
+- No code changed in this step. To reproduce: the three commands under What I did, then open
+  `http://localhost:5280/` on the Mac.
+
+### Technical details
+
+- Server: `tmux -L kiln attach -t kiln` on `bling` shows its output; `~/kiln-002/logs/server.log` keeps a copy.
+  Stop it with Ctrl-C in that session.
+- Health: `curl -s http://localhost:5280/api/health` →
+  `{"status":"ok","version":"kiln-server/0.1",…,"executors":1,"features":["records","devices","jobs","events","lab"]}`.
+- The W-18 job: `job-26f0cd2f-df64-4704-95e4-66e4fbed88b6`; record
+  `7935e997d5f27086c016aa64f283b6ea581d6d5196976e9964d76e8fb251d800`.
