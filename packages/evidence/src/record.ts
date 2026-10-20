@@ -55,6 +55,48 @@ export interface MeasurementRecord {
   validity: { ok: boolean; reasons: string[]; partial: string[] };
   protocol: { reps: number; seed: number; order?: number[]; pairId?: string; position?: number[] };
   manifest: { codegen: string; app: string; runner?: string; userAgent?: string; host?: string; [k: string]: unknown };
+  /** Where the kernel came from, for people: the content id already names what ran, this says which settings made it */
+  context?: RecordContext;
+}
+
+/**
+ * The program a kernel was compiled from. `params` holds the project's parameters at the values the compile used
+ * (W-18's `elements` and `degree`); they reach the kernel only through its identity and content id, which are hashes.
+ * Schedule knobs are not repeated here: they are `kernel.knobs`.
+ */
+export interface RecordContext {
+  /** The workbench preset, e.g. "W-18" */
+  preset?: string;
+  /** The project's name */
+  project?: string;
+  params?: Record<string, string | number | boolean>;
+  /** sha256 of the project script's text */
+  script?: string;
+}
+
+const CONTEXT_KEYS = new Set(['preset', 'project', 'params', 'script']);
+const CONTEXT_LIMITS = { name: 200, params: 64, key: 100, text: 500 };
+
+/** The problems with a record or job context, as `<path>: <message>` with paths under `at`; empty when it is well-formed. */
+export function validateContext(x: unknown, at = 'context'): string[] {
+  if (!isObj(x)) return [`${at}: expected an object`];
+  const errors: string[] = [];
+  for (const key of Object.keys(x)) if (!CONTEXT_KEYS.has(key)) errors.push(`${at}.${key}: unknown field`);
+  for (const f of ['preset', 'project'] as const) {
+    const v = x[f];
+    if (v !== undefined && !(isStr(v) && v.length > 0 && v.length <= CONTEXT_LIMITS.name)) errors.push(`${at}.${f}: expected a string of 1..${CONTEXT_LIMITS.name} characters`);
+  }
+  if (x.script !== undefined && !isSha256Hex(x.script)) errors.push(`${at}.script: expected a sha256 hex digest`);
+  const p = x.params;
+  if (p !== undefined) {
+    const entries = isFingerprint(p) ? Object.entries(p) : null;
+    if (!entries) errors.push(`${at}.params: expected a flat object of strings, finite numbers and booleans`);
+    else if (entries.length > CONTEXT_LIMITS.params) errors.push(`${at}.params: at most ${CONTEXT_LIMITS.params} parameters`);
+    else if (entries.some(([k, v]) => !k || k.length > CONTEXT_LIMITS.key || (typeof v === 'string' && v.length > CONTEXT_LIMITS.text))) {
+      errors.push(`${at}.params: names of 1..${CONTEXT_LIMITS.key} characters, string values of at most ${CONTEXT_LIMITS.text}`);
+    }
+  }
+  return errors;
 }
 
 /** The record's id: sha256 of the canonical JSON of everything except `id`. Throws on non-canonical content. */
@@ -172,7 +214,9 @@ export function validateRecord(x: unknown): Validation {
   if (!isObj(m) || !isStr(m.codegen) || !isStr(m.app)) err('manifest', 'expected {codegen: string, app: string}');
   else for (const f of ['runner', 'userAgent', 'host'] as const) if (m[f] !== undefined && !isStr(m[f])) err(`manifest.${f}`, 'expected a string');
 
-  const known = new Set(['format', 'id', 'at', 'by', 'device', 'kernel', 'timing', 'counts', 'countsProv', 'check', 'activation', 'validity', 'protocol', 'manifest']);
+  if (r.context !== undefined) errors.push(...validateContext(r.context));
+
+  const known = new Set(['format', 'id', 'at', 'by', 'device', 'kernel', 'timing', 'counts', 'countsProv', 'check', 'activation', 'validity', 'protocol', 'manifest', 'context']);
   for (const key of Object.keys(r)) if (!known.has(key)) err(key, 'unknown field');
 
   // the rules that tie the parts together, checked only once the parts are well-formed

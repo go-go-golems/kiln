@@ -103,13 +103,30 @@ const DEFAULT_KIND = { sim: () => "simulated", webgpu: (d) => (d.timestamps ? "g
 const PARTIAL = { "wall-clock": "wall clock: includes submit and readback overhead" };
 
 /**
+ * The context a record carries (kiln-measure/1 `context`): the preset, the project's name, its parameters at the values
+ * this compile used, and the sha256 of the script. A parameter changes the kernel only through hashes (its identity and
+ * content id); this is where a person reads it back. Values a record cannot hold (undefined, NaN) are left out.
+ */
+export function recordContext({ preset = null, project = null, params = null, script = null } = {}) {
+  const ctx = {};
+  if (preset) ctx.preset = String(preset);
+  if (project?.name) ctx.project = String(project.name);
+  const ok = (v) => typeof v === "string" || typeof v === "boolean" || (typeof v === "number" && Number.isFinite(v));
+  const vals = Object.fromEntries((project?._params || []).map((p) => [p.name, params?.get(p)]).filter(([, v]) => ok(v)));
+  if (Object.keys(vals).length) ctx.params = vals;
+  if (typeof script === "string") ctx.script = sha256Hex(script);
+  return ctx;
+}
+
+/**
  * One kiln-measure/1 record for `kern` measured on `device`. `result` is what the device returned:
  * `{ samples, kind, reps, raw?, launches?, warmup?, seed?, order?, position?, metrics?, check?, error?, repErrors?,
  * partial? }`, where `samples` holds one value per completed repetition. An error, a failed repetition, a failed
  * check, a failed activation or missing repetitions make the record invalid with the reason; `partial` adds
- * caveats (a coarse timer) that keep a valid record from deciding. Either way it is stored and shown.
+ * caveats (a coarse timer) that keep a valid record from deciding. Either way it is stored and shown. `context` (the
+ * preset, project, parameter values and script hash the page compiled from) is copied in as it is.
  */
-export function makeRecord({ device, kern, result = {}, by = "measure", activation = null, seed = INPUT_SEED, at = new Date().toISOString(), pairId = null }) {
+export function makeRecord({ device, kern, result = {}, by = "measure", activation = null, seed = INPUT_SEED, at = new Date().toISOString(), pairId = null, context = null }) {
   const cls = device.kind;
   const { contentId: cid, sourceSha256, lang } = contentOf(kern, device);
   const err = result.error ? String(result.error) : null;
@@ -160,6 +177,7 @@ export function makeRecord({ device, kern, result = {}, by = "measure", activati
   // the timing model (heuristic, guide §24) and are already the record's samples, so they are not counts
   const counts = cls === "sim" ? withoutTime(finiteOnly(result.metrics)) : cls === "cuda" && result.ncu ? finiteOnly(result.ncu) : null;
   if (counts && Object.keys(counts).length) { rec.counts = counts; rec.countsProv = cls === "sim" ? "derived" : "observed"; }
+  if (context) rec.context = context;
   rec.id = recordId(rec);
   return rec;
 }

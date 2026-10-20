@@ -59,7 +59,8 @@ try {
     const after = await p.eval(`(() => {
       const wb = window.__kiln.wb, j = wb.jobs[0], recs = j.records.map((id) => wb.store.records.get(id)), m = wb.measures[wb.deviceId];
       return { seen: window.__seen, job: { id: j.id, status: j.status, proposedBy: j.proposedBy, executor: j.executor, executorSeconds: j.executorSeconds, events: (j.events || []).map((e) => e.kind) },
-        records: recs.map((r) => ({ id: r.id, device: r.device.id, by: r.by, valid: r.validity.ok, reasons: r.validity.reasons, check: r.check.ok, activation: r.activation.ok, n: r.timing.samples.length, status: wb.store.status(r) })),
+        records: recs.map((r) => ({ id: r.id, device: r.device.id, by: r.by, valid: r.validity.ok, reasons: r.validity.reasons, check: r.check.ok, activation: r.activation.ok, n: r.timing.samples.length, status: wb.store.status(r), context: r.context ?? null })),
+        jobParams: j.kernels.map((k) => k.context?.params ?? null),
         decisions: wb.run.decisions.map((x) => ({ rule: x.rule, by: x.by, note: x.note ?? null })), measured: m ? { total: m.total, job: m.job, kernels: m.kernels.length } : null, view: wb.phoneView };
     })()`);
     // an agent's job waits for Approve; another is cancelled from the Jobs view
@@ -108,6 +109,7 @@ try {
   check(b.decisions.every((d) => d.by !== "evidence") && b.records === 0, `before: ${b.decisions.map((d) => `${d.rule} by ${d.by}`).join(", ")}, ${b.records} records on the device`);
   check(a.job.status === "done" && a.job.proposedBy === "user" && ["proposed", "approved", "running", "done"].every((k) => a.job.events.includes(k)), `job ${a.job.id}: events ${a.job.events.filter((k) => k !== "runner").join(" → ")}; statuses seen ${a.seen.join(" → ")}; ${a.job.executorSeconds} executor s`);
   check(a.records.length > 0 && a.records.every((r) => r.valid && r.check && r.activation && r.by === "job" && r.n === 7 && r.status === "fresh" && r.device === b.device.evidenceId), `${a.records.length} records: valid, checked, activated, 7 samples each, fresh, on ${b.device.evidenceId}`);
+  check(a.records.every((r) => r.context?.preset === "W-05" && r.context.params?.rows === 1024 && r.context.params?.dim === 4096 && /^[0-9a-f]{64}$/.test(r.context.script)) && a.jobParams.every((x) => x?.rows === 1024), `every record and job kernel names its program: ${JSON.stringify(a.records[0]?.context?.params)} from ${a.records[0]?.context?.preset}`);
   check(a.decisions.some((d) => d.by === "evidence"), `after: ${a.decisions.map((d) => `${d.rule} by ${d.by}${d.note ? ` (${d.note})` : ""}`).join(", ")}`);
   check(a.measured?.job === a.job.id && Number.isFinite(a.measured.total), `Perf's measurement comes from the job: ${a.measured?.total?.toFixed(2)} µs`);
   check(out.proposed.status === "proposed" && out.proposed.proposedBy === "agent" && out.approved, "an agent's job waits as proposed and the Approve button runs it");

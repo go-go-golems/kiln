@@ -116,6 +116,29 @@ describe('the job lifecycle with the fake runner', () => {
     expect(s.jobs.view(r.body.id)!.status).toBe('done');
   });
 
+  it('keeps each kernel\'s context: in the job view and in its record, kernel by kernel', async () => {
+    const s = makeServer();
+    const at = (degree: number) => ({ preset: 'W-18', project: 'roofline', params: { elements: 4096, degree }, script: 'a'.repeat(64) });
+    const body = jobBody([{ ...jobKernel({ name: 'k_d8' }), context: at(8) }, { ...jobKernel({ name: 'k_d16', extra: ' // 16' }), context: at(16) }, jobKernel({ name: 'k_none', extra: ' // none' })], { approve: true });
+    const id = (await s.json('POST', '/api/jobs', { proposer: 'user', body })).body.id;
+    await s.jobs.idle();
+    const view = (await s.json('GET', `/api/jobs/${id}`)).body;
+    expect(view.kernels.map((k: { context?: unknown }) => k.context ?? null)).toEqual([at(8), at(16), null]);
+    const records = (await s.json('GET', `/api/records?job=${id}`)).body.records as MeasurementRecord[];
+    const byName = Object.fromEntries(records.map((r) => [r.kernel.name, r]));
+    expect(byName.k_d8!.context).toEqual(at(8));
+    expect(byName.k_d16!.context).toEqual(at(16));
+    expect('context' in byName.k_none!).toBe(false);
+    for (const r of records) expect(validateRecord(r).errors).toEqual([]);
+  });
+
+  it('refuses a malformed context', async () => {
+    const s = makeServer();
+    const k = jobKernel();
+    expect((await s.json('POST', '/api/jobs', { proposer: 'user', body: jobBody([{ ...k, context: { params: { shape: [1, 2] } } as never }]) })).body.message).toMatch(/kernels\[0\]\.context\.params: expected a flat object/);
+    expect((await s.json('POST', '/api/jobs', { proposer: 'user', body: jobBody([{ ...k, context: { knobs: {} } as never }]) })).body.message).toMatch(/kernels\[0\]\.context\.knobs: unknown field/);
+  });
+
   it('runs one job at a time, in approval order', async () => {
     const s = makeServer({ executors: [fakeExecutor({ KILN_FAKE_DELAY_MS: '60' })] });
     const events = listen(s);

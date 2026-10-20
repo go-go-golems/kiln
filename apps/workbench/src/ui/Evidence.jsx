@@ -5,7 +5,7 @@ import { fmtUs } from "@kiln/kiln/core/util.js";
 import { CODEGEN_VERSION } from "@kiln/kiln/std/records.js";
 import { EVIDENCE_FORMAT } from "@kiln/kiln/std/store.js";
 import { saveText } from "./Kernels.jsx";
-import { Val, StatusStamp, evidenceVal, recordVal, statusWhy, methodOf, median, shortId, Row } from "./marks.jsx";
+import { Val, StatusStamp, evidenceVal, recordVal, statusWhy, methodOf, median, shortId, Row, paramsText } from "./marks.jsx";
 
 const when = (iso) => { const d = new Date(iso); return isNaN(d) ? "—" : d.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }); };
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
@@ -81,10 +81,12 @@ export function EvidenceView() {
                 <thead><tr><th>measured</th><th className="by">by</th><th>timing</th><th className="num">time</th><th>status</th></tr></thead>
                 {gs.map((g) => {
                   const pooled = evidenceVal(g.device.id, g.identity, g.knobs, { src: g.device.class === "sim" ? "simulated" : "measured", name: g.device.name });
+                  // one group is one kernel identity, which the parameters are hashed into: any record's context speaks for all
+                  const params = paramsText(g.recs.find((r) => r.context?.params)?.context);
                   return (
                     <tbody key={g.key}>
                       <tr className="grp clickable" onClick={() => wb.select({ record: g.recs[0].id, kernel: g.name })}>
-                        <td colSpan={3}><b>{g.name}</b> <span className="rowtxt"><Row row={g.row} /></span> <span className="dim">· {g.device.name}</span>{inUse(g) ? <span className="tag">in use</span> : null}</td>
+                        <td colSpan={3}><b>{g.name}</b> <span className="rowtxt"><Row row={g.row} /></span>{params ? <span className="rowtxt dim"> · {params}</span> : null} <span className="dim">· {g.device.name}</span>{inUse(g) ? <span className="tag">in use</span> : null}</td>
                         <td className="num" title="what the compiler decides with: the pooled decisive records of this option">{pooled.state === "missing" ? <span className="dim" title={pooled.title}>not decisive</span> : <Val v={pooled} />}</td>
                         <td className="dim">{plural(g.recs.length, "record")}</td>
                       </tr>
@@ -128,6 +130,16 @@ function RecordDetail({ r }) {
         <header><h2>{k.name}</h2><span className="sub">{k.row}</span></header>
         <p className="recline"><StatusStamp rec={r} /> <span className="dim">{r.device.name} · {when(r.at)} · by {r.by}</span></p>
         <Strip r={r} band={pooled} />
+      </div>
+      <div className="block">
+        <header><h2>Program</h2><span className="sub">the settings it was compiled from</span></header>
+        {r.context ? (
+          <Kv rows={[
+            r.context.preset ? ["preset", r.context.preset] : null, r.context.project ? ["project", r.context.project] : null,
+            ...Object.entries(r.context.params || {}).map(([key, v]) => [key, String(v)]),
+            r.context.script ? ["script sha256", <Id id={r.context.script} />] : null,
+          ]} />
+        ) : <p className="note">Not recorded: this record predates record contexts, or its producer did not send one. The kernel identity and content id still name exactly what ran.</p>}
       </div>
       <div className="block">
         <header><h2>Validity</h2></header>

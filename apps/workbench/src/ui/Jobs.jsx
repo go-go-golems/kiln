@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { wb } from "./wb.js";
 import { useLab, Btn, Kv, Empty, cls } from "./common.jsx";
-import { Val, StatusStamp, recordVal, shortId } from "./marks.jsx";
+import { Val, StatusStamp, recordVal, shortId, paramsText } from "./marks.jsx";
 
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 const when = (iso) => { const d = iso ? new Date(iso) : null; return !d || isNaN(d) ? "—" : d.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }); };
@@ -95,6 +95,14 @@ export function JobsView() {
   );
 }
 
+/** The job's program parameters: one row when its kernels share them (a Measure), one per kernel when they differ. */
+function paramRows(j) {
+  const ps = j.kernels.map((k) => paramsText(k.context));
+  if (!ps.some(Boolean)) return [];
+  if (ps.every((x) => x === ps[0])) return [["parameters", ps[0]]];
+  return j.kernels.map((k, i) => [`parameters · ${k.name}`, ps[i] || "—"]);
+}
+
 function JobDetail({ j }) {
   const p = j.protocol, recs = (j.records || []).map((id) => wb.store.records.get(id) || { id, missing: true });
   const first = recs.find((r) => !r.missing);
@@ -107,7 +115,7 @@ function JobDetail({ j }) {
         <Kv rows={[
           ["proposed by", `the ${j.proposedBy}`], ["executor", j.executor],
           ["protocol", `${p.reps} repetitions × ${p.launches} timed launches, ${p.warmup} warm-up, seed ${p.seed}`],
-          ["kernels", j.kernels.map((k) => k.name).join(", ")], ["code generator", j.codegen],
+          ["kernels", j.kernels.map((k) => k.name).join(", ")], ...paramRows(j), ["code generator", j.codegen],
           ["created", when(j.createdAt)], ["approved", when(j.approvedAt)], ["started", when(j.startedAt)], ["finished", when(j.finishedAt)],
           ["executor time", secs(j.executorSeconds)], j.error ? ["error", j.error, true] : null,
         ]} />

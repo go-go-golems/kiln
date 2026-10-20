@@ -23,6 +23,9 @@ export const METHOD = {
 /** "MAP=tiled,BM=32" with a break opportunity after each comma, for narrow table cells. */
 export const Row = ({ row }) => String(row).split(",").map((p, i, a) => <React.Fragment key={i}>{p}{i < a.length - 1 ? <>,<wbr /></> : null}</React.Fragment>);
 
+/** A record context's parameters, "elements=4194304, degree=8": the program's settings (kernel.knobs is the schedule). */
+export const paramsText = (ctx) => Object.entries(ctx?.params || {}).map(([k, v]) => `${k}=${v}`).join(", ");
+
 export const shortId = (id, n = 12) => (id ? String(id).replace(/^sha256:/, "").slice(0, n) : "—");
 
 // ----------------------------------------------------------------------------- the model's number

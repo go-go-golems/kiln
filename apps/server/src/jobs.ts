@@ -9,7 +9,7 @@
 // the code that ran. Agent-proposed jobs are never created approved: only the page, holding the session token,
 // approves. The queue runs one job at a time; each repetition is one runner invocation with the kernels in a seeded
 // shuffled order; every kernel becomes one kiln-measure/1 record with one sample per completed repetition.
-import { canonicalJSON, canonicalSource, checkSamples, contentId, median, RECORD_FORMAT, recordId, repetitionOrder, sha256Hex, type MeasurementRecord, type SampleCheck } from '@kiln/evidence';
+import { canonicalJSON, canonicalSource, checkSamples, contentId, median, RECORD_FORMAT, recordId, repetitionOrder, sha256Hex, validateContext, type MeasurementRecord, type RecordContext, type SampleCheck } from '@kiln/evidence';
 import { VERSION } from './config.ts';
 import { all, get, now, run, tx, type Db } from './db.ts';
 import { cudaIdentity, type CudaIdentity, type Devices } from './devices.ts';
@@ -50,6 +50,8 @@ export interface JobKernelInput {
   expect: (number | null)[];
   /** The page's activation check (activationOf); absent means not checked */
   activation?: Activation;
+  /** The preset, project, parameter values and script the page compiled this kernel from; copied into its record */
+  context?: RecordContext;
 }
 
 export interface JobProtocol {
@@ -104,7 +106,7 @@ export interface JobView {
   codegen: string;
   protocol: JobProtocol;
   specSha256: string;
-  kernels: { name: string; identity: string; row: string; contentId: string; launch: JobKernelInput['launch']; samples: number }[];
+  kernels: { name: string; identity: string; row: string; contentId: string; launch: JobKernelInput['launch']; samples: number; context?: RecordContext }[];
   /** ids of the records the job produced */
   records: string[];
   events?: { at: string; kind: string; detail: string }[];
@@ -135,6 +137,14 @@ export function entrySymbol(source: string): string | null {
  * the same code under two kernel names is one content id (Kiln's contentOf, K/src/std/records.js, does the same).
  */
 const sourceHash = (source: string, symbol: string) => sha256Hex(canonicalSource(source, symbol));
+
+/** A copy of a validated context (validateContext has refused every other field), sharing nothing with the request body. */
+const copyContext = (c: RecordContext): RecordContext => ({
+  ...(c.preset !== undefined ? { preset: c.preset } : {}),
+  ...(c.project !== undefined ? { project: c.project } : {}),
+  ...(c.params !== undefined ? { params: { ...c.params } } : {}),
+  ...(c.script !== undefined ? { script: c.script } : {}),
+});
 
 /** Validate a POST /jobs body. Returns the kernels with their recomputed content ids, or the refusal. */
 export function parseJob(body: unknown, executors: ReadonlySet<string>): { ok: true; executor: string; reason: string; approve: boolean; codegen: string; protocol: JobProtocol; kernels: JobKernelInput[] } | { ok: false; reply: Reply } {
@@ -171,6 +181,8 @@ export function parseJob(body: unknown, executors: ReadonlySet<string>): { ok: t
     if (!Array.isArray(k.expect) || k.expect.length !== k.samples.length || !k.expect.every((v) => v === null || (typeof v === 'number' && Number.isFinite(v)))) return bad(`${at}.expect must hold one reference value (or null for NaN) per sample index`);
     const a = k.activation;
     if (a !== undefined && !(isObj(a) && (a.requested === null || typeof a.requested === 'string') && typeof a.materialized === 'string' && typeof a.ok === 'boolean' && Array.isArray(a.notes) && a.notes.every((x) => typeof x === 'string'))) return bad(`${at}.activation must be {requested, materialized, ok, notes}`);
+    const contextErrors = k.context === undefined ? [] : validateContext(k.context, `${at}.context`);
+    if (contextErrors.length) return bad(contextErrors.slice(0, 3).join('; '));
     const input = k as unknown as JobKernelInput;
     const symbol = entrySymbol(input.source);
     if (!symbol) return bad(`${at}.source has no __global__ function`);
@@ -182,6 +194,7 @@ export function parseJob(body: unknown, executors: ReadonlySet<string>): { ok: t
       launch: { grid: input.launch.grid, block: input.launch.block, smem: input.launch.smem },
       inputs: input.inputs.map((x) => ({ shape: [...x.shape], seed: x.seed })), output: [...input.output], samples: [...input.samples], expect: [...input.expect],
       ...(a ? { activation: { requested: input.activation!.requested, materialized: input.activation!.materialized, ok: input.activation!.ok, notes: [...input.activation!.notes] } } : {}),
+      ...(input.context ? { context: copyContext(input.context) } : {}),
     });
   }
   return { ok: true, executor: body.executor, reason: body.reason, approve: body.approve === true, codegen: body.codegen, protocol: { reps: p.reps, warmup: p.warmup, launches: p.launches, seed: p.seed }, kernels };
@@ -440,7 +453,7 @@ export class Jobs {
       id: j.id, status: j.status, proposedBy: j.proposed_by, executor: j.executor, reason: j.reason,
       createdAt: j.created_at, approvedAt: j.approved_at, startedAt: j.started_at, finishedAt: j.finished_at, error: j.error,
       executorSeconds: j.executor_ms / 1000, codegen: spec.codegen, protocol: spec.protocol, specSha256: j.spec_sha256,
-      kernels: spec.kernels.map((k) => ({ name: k.name, identity: k.identity, row: k.row, contentId: k.contentId, launch: k.launch, samples: k.samples.length })),
+      kernels: spec.kernels.map((k) => ({ name: k.name, identity: k.identity, row: k.row, contentId: k.contentId, launch: k.launch, samples: k.samples.length, ...(k.context ? { context: k.context } : {}) })),
       records: recordIdsOfJob(this.db, j.id),
       ...(events ? { events: all<{ at: string; kind: string; detail: string }>(this.db, 'select at, kind, detail from job_events where job_id = ? order by id', j.id) } : {}),
     };
@@ -477,6 +490,7 @@ function jobRecord(o: { job: string; spec: StoredSpec; k: StoredKernel; a: Acc; 
     validity: { ok: !reasons.length, reasons, partial: [] },
     protocol: { reps, seed, position: a.position, pairId: o.job },
     manifest: { codegen: spec.codegen, app: VERSION, ...(o.runner ? { runner: o.runner } : {}), host: o.host },
+    ...(k.context ? { context: k.context } : {}),
   };
   return { ...rec, id: recordId(rec) } as MeasurementRecord;
 }

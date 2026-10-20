@@ -1,13 +1,14 @@
 // The evidence store and decide.evidence v2 (guide §21–§27): records, dedupe, staleness, legacy import, the
-// policy's defer / confirm / separated / within-noise cases, deterministic devices, pinned-partial, activation.
+// policy's defer / confirm / separated / within-noise cases, deterministic devices, pinned-partial, activation, context.
 import { deviceId, recordId, sha256Hex, validateRecord } from "@kiln/evidence";
-import { k } from "../src/core/kiln.js";
+import { k, ParamSet } from "../src/core/kiln.js";
+import { runScript } from "../src/core/script.js";
 import { N } from "../src/std/tensor.js";
 import { pipeline } from "../src/std/emmy.js";
 import { SimDevice } from "../src/std/devices.js";
 import { SPECS, target } from "../src/std/targets.js";
 import { EvidenceStore } from "../src/std/store.js";
-import { CODEGEN_VERSION, activationOf, contentOf, makeRecord } from "../src/std/records.js";
+import { CODEGEN_VERSION, activationOf, contentOf, makeRecord, recordContext } from "../src/std/records.js";
 import { measureProgram } from "../src/std/tune.js";
 import { programOf } from "../src/std/program.js";
 
@@ -144,6 +145,30 @@ const kernelFor = (device, knobs) => {
   store.observe(prog, sim);
   await measureProgram(prog, sim, { store, run });
   check(store.size === 1 && store.list().every((r) => store.isDecisive(r)) && prog.kernels.every((x) => store.statsFor(sim.evidenceId, x.identity, x.map)), "one record, decisive for both kernels");
+}
+
+{
+  // a record names the settings it was compiled from (context): the project's parameters at the values the compile used,
+  // which otherwise reach the record only as hashes (a different degree is a different identity)
+  const script = `const n = param.int("elements", { min: 64, max: 65536, default: 4096, scale: "log" });
+const d = param.int("degree", { min: 1, max: 64, default: 8 });
+project("poly").params(n, d).program(({ x }, { param }) => { let y = x; for (let i = 0; i < param(d); i++) y = N.add(N.mul(y, x), 1); return { y }; },
+  ({ param }) => ({ x: k.tensor([param(n)]) }));`;
+  const { project } = runScript(script);
+  const at = (degree) => {
+    const params = new ParamSet(project._params).set("degree", degree);
+    const run = pipeline({ target: sim.target }).run(project.graph((p) => params.get(p)), { ctx: { deviceId: sim.evidenceId }, params });
+    return { prog: programOf(run.graph), run, ctx: recordContext({ preset: "W-18", project, params, script }) };
+  };
+  const a = at(3), b = at(4);
+  check(JSON.stringify(a.ctx) === JSON.stringify({ preset: "W-18", project: "poly", params: { elements: 4096, degree: 3 }, script: sha256Hex(script) }), `context ${JSON.stringify(a.ctx)}`);
+  check(a.prog.kernels[0].identity !== b.prog.kernels[0].identity, "degree 3 and degree 4 are different kernel identities");
+  const store = new EvidenceStore();
+  await measureProgram(a.prog, sim, { store, run: a.run, context: a.ctx });
+  const [rec] = store.list();
+  check(store.size === 1 && JSON.stringify(rec.context) === JSON.stringify(a.ctx) && validateRecord(rec).ok, "the measured record carries the context and validates");
+  check(JSON.stringify(recordContext({ project: { name: "p", _params: [{ name: "x" }] }, params: { get: () => NaN } })) === JSON.stringify({ project: "p" }), "a value a record cannot hold is left out");
+  check(!("context" in makeRecord({ device: sim, kern: a.prog.kernels[0], result: { samples: [1], kind: "simulated", reps: 1, check: { ok: true, n: 1 } } })), "no context given, none recorded");
 }
 
 console.log(fails ? `${fails} FAILED` : "all evidence checks pass");

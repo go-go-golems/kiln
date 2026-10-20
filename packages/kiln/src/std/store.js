@@ -39,8 +39,8 @@ export class EvidenceStore {
   }
 
   /** Build a record from a device's result and store it (measure, tune and import all come through here). */
-  record({ device, kern, result, by = "measure", activation = null, pairId = null }) {
-    return this.add(makeRecord({ device, kern, result, by, activation, pairId }));
+  record({ device, kern, result, by = "measure", activation = null, pairId = null, context = null }) {
+    return this.add(makeRecord({ device, kern, result, by, activation, pairId, context }));
   }
 
   /** Note the content ids of a freshly compiled program on `device`: these are now the current ones. */

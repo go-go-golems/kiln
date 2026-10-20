@@ -171,7 +171,8 @@ cuda       kiln_runner.py on an NVIDIA box: nvcc, CUDA events (median of 50), op
            the page is served by the runner, otherwise export a bundle (Devices) and import the results
 Inputs are seeded uniform values in [−1, 1) (mulberry32), identical on every device.
 Every measurement stores a kiln-measure/1 record per kernel: device id (fingerprinted), kernel identity, schedule
-row, content id of the code that ran, one sample per repetition, the output check, activation and protocol. Fresh,
+row, content id of the code that ran, one sample per repetition, the output check, activation and protocol, and a
+context naming the preset, project, parameter values and script hash it was compiled from. Fresh,
 valid, complete records decide: the next compile keeps the model's choice unless a measured option's interval is
 separated from it (on a simulator, the fastest measured row). The Evidence view lists the records with their
 status (fresh, stale, partial, invalid) and imports, exports and forgets them. Tune: SP-MCTS over the program's

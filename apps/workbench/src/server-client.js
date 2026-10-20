@@ -120,7 +120,7 @@ const flatKnobs = (m) => Object.fromEntries(Object.entries(m || {}).filter(([, v
  * device generates, the sample indices, and the reference values there (null where the reference is NaN), which the
  * server compares the runner's outputs with. The content id is Kiln's own (contentOf), which the server recomputes.
  */
-export function jobKernel(kern, { activation = null, count = 384 } = {}) {
+export function jobKernel(kern, { activation = null, context = null, count = 384 } = {}) {
   const samples = sampleIndices(numel(kern.shape), count);
   const want = referenceAt(kern, kernelInputs(kern, INPUT_SEED), samples);
   return {
@@ -129,15 +129,16 @@ export function jobKernel(kern, { activation = null, count = 384 } = {}) {
     inputs: kern.inShapes.map((shape, j) => ({ shape: [...shape], seed: seedOf(kern, INPUT_SEED, j) })), output: [...kern.shape],
     samples, expect: Array.from(want, (x) => (Number.isNaN(x) ? null : x)),
     ...(activation ? { activation } : {}),
+    ...(context ? { context } : {}),
   };
 }
 
 /** A job spec for compiled kernels. protocol defaults: 7 repetitions, 3 warm-up launches, 20 timed launches, seed 1. */
-export function jobSpec(kernels, { executor, reason, protocol = {}, activationOf = null, approve } = {}) {
+export function jobSpec(kernels, { executor, reason, protocol = {}, activationOf = null, contextOf = null, approve } = {}) {
   return {
     executor, reason, codegen: CODEGEN_VERSION,
     protocol: { reps: 7, warmup: 3, launches: 20, seed: 1, ...protocol },
-    kernels: kernels.map((kern) => jobKernel(kern, { activation: activationOf?.(kern) ?? null })),
+    kernels: kernels.map((kern) => jobKernel(kern, { activation: activationOf?.(kern) ?? null, context: contextOf?.(kern) ?? null })),
     ...(approve !== undefined ? { approve } : {}),
   };
 }

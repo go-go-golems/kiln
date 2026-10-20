@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canonicalJSON } from '../src/canonical.ts';
-import { isDecisive, recordId, validateRecord, type MeasurementRecord } from '../src/record.ts';
+import { isDecisive, recordId, validateContext, validateRecord, type MeasurementRecord } from '../src/record.ts';
 import { sha256Hex } from '../src/sha256.ts';
 import { makeRecord } from './fixtures.ts';
 
@@ -94,6 +94,27 @@ describe('validateRecord', () => {
   ])('rejects %s', (_name, patch, pattern) => {
     const errors = errorsOf(makeRecord(patch));
     expect(errors.some((e) => pattern.test(e)), errors.join('\n')).toBe(true);
+  });
+
+  it('accepts a context naming the preset, project, parameters and script', () => {
+    const r = makeRecord((r) => { r.context = { preset: 'W-18', project: 'roofline', params: { elements: 4194304, degree: 8, fused: true, mode: 'horner' }, script: sha256Hex('script') }; });
+    expect(errorsOf(r)).toEqual([]);
+    expect(errorsOf(makeRecord((r) => { r.context = {}; }))).toEqual([]);
+  });
+
+  it.each<[string, unknown, RegExp]>([
+    ['a context that is not an object', 'W-18', /^context: expected an object/],
+    ['an unknown context field', { preset: 'W-18', knobs: { TPB: 64 } }, /^context\.knobs: unknown field/],
+    ['an empty preset', { preset: '' }, /^context\.preset:/],
+    ['a script that is not a digest', { script: 'abc' }, /^context\.script:/],
+    ['nested parameters', { params: { shape: [1, 2] } }, /^context\.params: expected a flat object/],
+    ['a NaN parameter', { params: { elements: Number.NaN } }, /^context\.params: expected a flat object/],
+    ['too many parameters', { params: Object.fromEntries(Array.from({ length: 65 }, (_, i) => [`p${i}`, i])) }, /^context\.params: at most 64/],
+  ])('rejects %s', (_name, context, pattern) => {
+    const errors = validateContext(context);
+    expect(errors.some((e) => pattern.test(e)), errors.join('\n')).toBe(true);
+    // the same problem makes a record carrying it invalid (spread by hand: a NaN has no canonical id)
+    expect(errorsOf({ ...makeRecord(), context }).some((e) => pattern.test(e))).toBe(true);
   });
 
   it('rejects a NaN sample (such a record has no canonical id either)', () => {

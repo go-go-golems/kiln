@@ -6,7 +6,7 @@ import { std } from "@kiln/kiln/std/index.js";
 import { programOf } from "@kiln/kiln/std/program.js";
 import { makeDevices, bundle as makeBundle, ingest } from "@kiln/kiln/std/devices.js";
 import { EvidenceStore } from "@kiln/kiln/std/store.js";
-import { activationOf } from "@kiln/kiln/std/records.js";
+import { activationOf, recordContext } from "@kiln/kiln/std/records.js";
 import { tune as runTune, measureProgram, measurePaired } from "@kiln/kiln/std/tune.js";
 import { canonRow } from "@kiln/kiln/std/tile.js";
 import { Tensor, fmtUs, clip } from "@kiln/kiln/core/util.js";
@@ -173,6 +173,8 @@ class Workbench {
     this.run = run; this.pipe = pipe;
     this.compileMs = performance.now() - t0;
     this.prog = hasKernels(run) ? programOf(run.graph) : null;
+    // what produced this.prog, for the records measured from it: taken here so it cannot drift from the kernels
+    this.compileContext = recordContext({ preset: this.preset?.id, project, params: this.params, script: this.script });
     // this program's content ids are now the current ones: records of other code for the same rows are stale
     if (this.prog) this.store.observe(this.prog, this.device);
     if (!run.ok) this.diags = [...this.diags, { level: "error", line: lineOf(run.error.cause || run.error), message: `${run.error.kind}: ${run.error.message}` }];
@@ -248,7 +250,7 @@ class Workbench {
       const progress = device.measureKernels
         ? { onStep: (done, total) => { Object.assign(this.measuring, { done, total }); this.bump("measure"); } }
         : { onKernel: () => { this.measuring.done++; this.bump("measure"); } };
-      res = await measureProgram(this.prog, device, { store: this.store, run: this.run, kernelPins: this.kernelPins, ...progress });
+      res = await measureProgram(this.prog, device, { store: this.store, run: this.run, kernelPins: this.kernelPins, context: this.compileContext, ...progress });
     } catch (e) { this.measuring = false; this.toast("Measure failed: " + e.message, "bad"); this.bump("measure"); return null; }
     const rec = { t: Date.now(), device: device.id, evidenceId: device.evidenceId, deviceName: device.label, total: res.total, kernels: res.kernels.map((r) => ({ name: r.kern.name, identity: r.kern.identity, row: r.kern.row, us: r.us, metrics: r.metrics, check: r.check, error: r.error, record: r.record?.id ?? null })), ms: performance.now() - t0, preset: this.preset?.id };
     this.measures[device.id] = rec;
@@ -275,7 +277,7 @@ class Workbench {
     this.bump("measure");
     let res;
     try {
-      res = await measurePaired({ pipeline: this.pipe, graph: this.graph, params: this.params, device, store: this.store, identity, rows: [canonRow(a), canonRow(b)],
+      res = await measurePaired({ pipeline: this.pipe, graph: this.graph, params: this.params, device, store: this.store, identity, rows: [canonRow(a), canonRow(b)], context: this.compileContext,
         onStep: (done, total) => { Object.assign(this.measuring, { done, total }); this.bump("measure"); } });
     } catch (e) { this.measuring = false; this.bump("measure"); this.toast(`Compare failed: ${e.message}`, "bad"); return null; }
     this.measuring = false;
@@ -299,7 +301,7 @@ class Workbench {
     this.log("tune", `${strategy} on ${device.label}, budget ${budget}`);
     this.bump("tune");
     try {
-      const r = await runTune({ pipeline: this.pipelineFor(this.project), graph: this.graph, params: this.params, device, store: this.store, strategy: strategy === "sweep-all" ? "sweep" : strategy, perKernel: strategy === "sweep-all" ? Infinity : 6, budget, signal: ctl.signal,
+      const r = await runTune({ pipeline: this.pipelineFor(this.project), graph: this.graph, params: this.params, device, store: this.store, strategy: strategy === "sweep-all" ? "sweep" : strategy, perKernel: strategy === "sweep-all" ? Infinity : 6, budget, signal: ctl.signal, context: this.compileContext,
         onProgress: ({ history, best }) => { this.tuning.history = history.slice(); this.tuning.best = best; this.bump("tune"); } });
       Object.assign(this.tuning, { running: false, done: true, best: r.best, exhausted: r.exhausted });
       this.log("tune", `best ${fmtUs(r.best?.us)} after ${r.history.length} programs`);
@@ -422,9 +424,9 @@ class Workbench {
    * on creation; an agent's ({ proposer: "agent" }) waits in Jobs for the user to approve it. → the job, or null.
    */
   async proposeJob(device, { quiet = false, proposer = "user", reason = null } = {}) {
-    const kernels = this.prog.kernels, run = this.run, pins = { ...this.kernelPins }, n = kernels.length, user = proposer === "user";
+    const kernels = this.prog.kernels, run = this.run, pins = { ...this.kernelPins }, context = this.compileContext, n = kernels.length, user = proposer === "user";
     const what = this.preset ? `${this.preset.id} ${this.preset.title}` : this.project?.name ?? "the program";
-    const spec = jobSpec(kernels, { executor: device.executor, protocol: device.protocol, approve: user, reason: reason ?? `Measure ${what}: ${n} kernel${n === 1 ? "" : "s"} on ${device.label}`, activationOf: (kern) => activationOf(kern, { run, kernelPins: pins }) });
+    const spec = jobSpec(kernels, { executor: device.executor, protocol: device.protocol, approve: user, reason: reason ?? `Measure ${what}: ${n} kernel${n === 1 ? "" : "s"} on ${device.label}`, activationOf: (kern) => activationOf(kern, { run, kernelPins: pins }), contextOf: () => context });
     let job;
     try { job = await this.server.jobs.create(spec, { proposer }); }
     catch (e) { this.toast(`The server did not take the job: ${e.message}`, "bad"); this.log("measure", `job refused: ${e.message}`, { bad: true }); return null; }

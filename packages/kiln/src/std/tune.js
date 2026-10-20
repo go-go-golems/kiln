@@ -26,7 +26,7 @@ function replay(path, rollout, sink) {
 // repetitions, seeded order, guide §28) measures the kernels not yet in `memo` in one run, so a repetition contains
 // every kernel; other devices run each kernel once (runKernel). `run` and `kernelPins` say what the compile asked
 // for, so each record carries its activation check (§27). `onStep(done, total)` reports protocol progress.
-export async function measureProgram(prog, device, { store = null, memo = new Map(), seed = 1, by = "measure", onKernel, onStep, run = null, kernelPins = null } = {}) {
+export async function measureProgram(prog, device, { store = null, memo = new Map(), seed = 1, by = "measure", onKernel, onStep, run = null, kernelPins = null, context = null } = {}) {
   const keyOf = (kn) => kn.identity + "|" + kn.row;
   const now = new Map();
   if (device.measureKernels) {
@@ -45,7 +45,7 @@ export async function measureProgram(prog, device, { store = null, memo = new Ma
       res = now.get(key);
       if (!res) { try { res = await device.runKernel(kn, { seed }); } catch (e) { res = { error: e.message || String(e), us: Infinity }; } }
       memo.set(key, res);
-      if (store) record = store.record({ device, kern: kn, result: res, by, activation: activationOf(kn, { run, kernelPins }) });
+      if (store) record = store.record({ device, kern: kn, result: res, by, activation: activationOf(kn, { run, kernelPins }), context });
     }
     out.push({ kern: kn, ...res, record });
     onKernel?.(kn, res);
@@ -76,7 +76,7 @@ const newPairId = () => globalThis.crypto?.randomUUID?.() ?? `pair-${Date.now().
  * Throws before measuring when a side's compile cannot honour its row or two sides are one schedule.
  * → { pairId, sides: [{ row, kern, result, record }] }
  */
-export async function measurePaired({ pipeline, graph, params, device, store = null, identity, rows, onStep }) {
+export async function measurePaired({ pipeline, graph, params, device, store = null, identity, rows, onStep, context = null }) {
   if (!Array.isArray(rows) || rows.length < 2) throw new Error("measurePaired: give at least two schedule rows");
   const ctx = { deviceId: device.evidenceId ?? device.id, store };
   const sides = rows.map((row) => {
@@ -105,11 +105,11 @@ export async function measurePaired({ pipeline, graph, params, device, store = n
   const pairId = newPairId();
   return {
     pairId,
-    sides: sides.map((s, i) => ({ row: s.row, kern: s.kern, result: results[i], record: store ? store.record({ device, kern: s.kern, result: results[i], by: "measure", activation: s.activation, pairId }) : null })),
+    sides: sides.map((s, i) => ({ row: s.row, kern: s.kern, result: results[i], record: store ? store.record({ device, kern: s.kern, result: results[i], by: "measure", activation: s.activation, pairId, context }) : null })),
   };
 }
 
-export async function tune({ pipeline, graph, params, device, store, strategy = "spmcts", budget = 32, patience = 24, c = Math.SQRT2, perKernel = 6, rollout = null, prior = costPrior, onProgress = () => {}, signal = null }) {
+export async function tune({ pipeline, graph, params, device, store, strategy = "spmcts", budget = 32, patience = 24, c = Math.SQRT2, perKernel = 6, rollout = null, prior = costPrior, onProgress = () => {}, signal = null, context = null }) {
   const memo = new Map();
   const history = [];
   let best = null;
@@ -118,7 +118,7 @@ export async function tune({ pipeline, graph, params, device, store, strategy = 
   const compile = (decide) => pipeline.with({ target: device.target }).run(graph, { params, decide, ctx });
   const evaluate = async (run, label) => {
     const prog = programOf(run.graph);
-    const m = await measureProgram(prog, device, { store, memo, by: "tune", run });
+    const m = await measureProgram(prog, device, { store, memo, by: "tune", run, context });
     const entry = { i: history.length, us: m.total, rows: prog.kernels.map((kn) => `${kn.name}: ${kn.row}`), label, t: Date.now() };
     history.push(entry);
     if (!best || m.total < best.us) best = { ...entry, decisions: run.decisions.map((d) => ({ rule: d.rule, node: d.node, knobs: d.knobs })) };
