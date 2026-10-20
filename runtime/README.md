@@ -41,6 +41,15 @@ kernels   [{ name, identity, row, reads, writes, grid, block, smemBytes, dispatc
                   x = min(grid, 65535), y = ceil(grid / 65535), and the shader skips block ids ≥ grid
 ```
 
+## Caller-owned memory (CUDA)
+
+`CudaProgram(program, allocate=False)` allocates only constant buffers. The caller then passes a device pointer for
+every input and output by name, and one for every intermediate in `program.scratch` (a list of `{id, bytes}`) through
+`launch(stream, scratch={id: pointer}, **pointers)`. Use it when the same program runs concurrently on several streams:
+launcher-owned intermediates would be shared between the launches and race. With PyTorch, allocate the scratch tensors
+inside `torch.cuda.stream(s)` so the caching allocator reuses them in stream order. `launch` makes the program's
+context current first, so it can be called from any thread.
+
 ## Tests
 
 `runtime/test/fixtures.mjs` compiles five cases (one kernel; a grid past 65,535 workgroups; three chained kernels;
@@ -52,6 +61,7 @@ node runtime/test/fixtures.mjs /tmp/kiln-fixtures
 node runtime/test/webgpu-roundtrip.mjs --fixtures /tmp/kiln-fixtures            # headless Chrome, needs a GPU
 python runtime/python/kiln_launch.py check /tmp/kiln-fixtures --backend wgpu     # needs numpy and wgpu
 python runtime/python/kiln_launch.py check /tmp/kiln-fixtures --backend cuda     # needs an NVIDIA GPU
+python runtime/python/test_kiln_launch.py                                       # CUDA pointer plumbing, fake driver
 ```
 
 Both GPU tests are outside `pnpm test`, which must pass on a machine without a GPU.

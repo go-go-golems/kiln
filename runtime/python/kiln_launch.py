@@ -308,9 +308,13 @@ class _Cuda:
 class CudaProgram(Program):
     """Kernels compiled with NVRTC for the current device, buffers allocated with cuMemAlloc. Uses the context already
     current on this thread (PyTorch's, for example) and otherwise retains the device's primary context, which is the
-    one the CUDA runtime uses, so pointers from either are interchangeable."""
+    one the CUDA runtime uses, so pointers from either are interchangeable.
 
-    def __init__(self, program: dict, device: int = 0):
+    ``allocate=False`` allocates only the constant buffers: the caller passes a pointer for every input and output to
+    ``launch``, and one for every buffer in ``scratch`` (the intermediates between kernels). Two launches that run at the
+    same time on different streams then share nothing, which one set of launcher-owned intermediates cannot offer."""
+
+    def __init__(self, program: dict, device: int = 0, allocate: bool = True):
         super().__init__(program)
         cu = self._cuda = _Cuda.get()
         d = ctypes.c_int()
@@ -322,6 +326,7 @@ class CudaProgram(Program):
             cu.check(cu.cu.cuDevicePrimaryCtxRetain(ctypes.byref(ctx), self.device), "cuDevicePrimaryCtxRetain")
             cu.check(cu.cu.cuCtxSetCurrent(ctx), "cuCtxSetCurrent")
             self._retained = True
+        self._ctx = ctx.value
         major, minor = ctypes.c_int(), ctypes.c_int()
         cu.check(cu.cu.cuDeviceGetAttribute(ctypes.byref(major), CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, self.device), "cuDeviceGetAttribute")
         cu.check(cu.cu.cuDeviceGetAttribute(ctypes.byref(minor), CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, self.device), "cuDeviceGetAttribute")
@@ -329,12 +334,17 @@ class CudaProgram(Program):
         name = ctypes.create_string_buffer(256)
         cu.cu.cuDeviceGetName(name, 256, self.device)
         self.device_name = name.value.decode()
-        self._ptrs, self._modules, self._kernels, self.images = [], [], [], {}
+        io = {t["buffer"] for t in program["inputs"]} | {t["buffer"] for t in program["outputs"]}
+        self.scratch = [{"id": b["id"], "bytes": b["bytes"]} for b in self.buffers if b["id"] not in io and not b.get("data")]
+        self._ptrs, self._owned, self._modules, self._kernels, self.images = [None] * len(self.buffers), [], [], [], {}
         try:
             for b in self.buffers:
+                if not (allocate or b.get("data")):
+                    continue
                 p = ctypes.c_uint64()
                 cu.check(cu.cu.cuMemAlloc_v2(ctypes.byref(p), b["bytes"]), f"cuMemAlloc ({b['bytes']} bytes)")
-                self._ptrs.append(p.value)
+                self._ptrs[b["id"]] = p.value
+                self._owned.append(p.value)
                 if b.get("data"):
                     raw = self._constant(b)
                     cu.check(cu.cu.cuMemcpyHtoD_v2(p.value, raw, len(raw)), "cuMemcpyHtoD")
@@ -350,30 +360,49 @@ class CudaProgram(Program):
             self.close()
             raise
 
-    def launch(self, stream: int = 0, **pointers: int) -> None:
+    def launch(self, stream: int = 0, scratch: dict[int, int] | None = None, **pointers: int) -> None:
         """Every kernel in order on ``stream``. ``pointers`` replace the launcher's own buffers for named inputs and
-        outputs with device pointers the caller owns; nothing is copied or synchronised."""
+        outputs with device pointers the caller owns, and ``scratch`` does the same for intermediates, keyed by the
+        ``id`` in ``self.scratch``; nothing is copied or synchronised. Callable from any thread: the program's context is
+        made current first."""
         ptrs = list(self._ptrs)
         for name, p in pointers.items():
             t = self.inputs.get(name) or self.outputs.get(name)
             if t is None:
                 raise KeyError(f"no input or output {name} in {self.name}")
             ptrs[t["buffer"]] = int(p)
+        for bid, p in (scratch or {}).items():
+            if bid not in {b["id"] for b in self.scratch}:
+                raise KeyError(f"buffer {bid} of {self.name} is not an intermediate")
+            ptrs[bid] = int(p)
+        missing = [b["id"] for b in self.buffers if ptrs[b["id"]] is None]
+        if missing:
+            raise ValueError(f"{self.name}: no device pointer for buffer(s) {missing} (allocate=False needs every input, "
+                             "output and scratch buffer)")
         cu = self._cuda.cu
+        current = ctypes.c_void_p()
+        self._cuda.check(cu.cuCtxGetCurrent(ctypes.byref(current)), "cuCtxGetCurrent")
+        if current.value != self._ctx:
+            self._cuda.check(cu.cuCtxSetCurrent(ctypes.c_void_p(self._ctx)), "cuCtxSetCurrent")
         for fn, k in self._kernels:
             vals = [ctypes.c_uint64(ptrs[b]) for b in k["reads"] + [k["writes"]]]
             args = (ctypes.c_void_p * len(vals))(*[ctypes.addressof(v) for v in vals])
             # Kiln kernels declare their shared memory statically, so the dynamic size is 0
             self._cuda.check(cu.cuLaunchKernel(fn, k["grid"], 1, 1, k["block"], 1, 1, 0, ctypes.c_void_p(stream), args, None), f"cuLaunchKernel {k['name']}")
 
+    def _own(self, bid: int) -> int:
+        if self._ptrs[bid] is None:
+            raise RuntimeError(f"{self.name} was opened with allocate=False: buffer {bid} belongs to the caller")
+        return self._ptrs[bid]
+
     def write(self, name: str, data) -> None:
         raw = self._packed(name, data)
-        self._cuda.check(self._cuda.cu.cuMemcpyHtoD_v2(self._ptrs[self.inputs[name]["buffer"]], raw, len(raw)), "cuMemcpyHtoD")
+        self._cuda.check(self._cuda.cu.cuMemcpyHtoD_v2(self._own(self.inputs[name]["buffer"]), raw, len(raw)), "cuMemcpyHtoD")
 
     def read(self, name: str) -> np.ndarray:
         b = self.buffers[self.outputs[name]["buffer"]]
         raw = ctypes.create_string_buffer(b["bytes"])
-        self._cuda.check(self._cuda.cu.cuMemcpyDtoH_v2(raw, self._ptrs[b["id"]], b["bytes"]), "cuMemcpyDtoH")
+        self._cuda.check(self._cuda.cu.cuMemcpyDtoH_v2(raw, self._own(b["id"]), b["bytes"]), "cuMemcpyDtoH")
         return self._host(name, raw.raw)
 
     def run(self, outputs=None, **inputs) -> dict:
@@ -385,11 +414,11 @@ class CudaProgram(Program):
 
     def close(self) -> None:
         cu = self._cuda.cu
-        for p in self._ptrs:
+        for p in self._owned:
             cu.cuMemFree_v2(p)
         for m in self._modules:
             cu.cuModuleUnload(m)
-        self._ptrs, self._modules, self._kernels = [], [], []
+        self._ptrs, self._owned, self._modules, self._kernels = [None] * len(self.buffers), [], [], []
         if self._retained:
             cu.cuDevicePrimaryCtxRelease_v2(self.device)
             self._retained = False
