@@ -1,0 +1,489 @@
+{
+ "host": "manuel@bling.local",
+ "target": "rtx5090",
+ "runner": null,
+ "device": {
+  "name": "NVIDIA GB10",
+  "cc": "12.1",
+  "sms": 48,
+  "smemPerBlock": 49152,
+  "smemPerSM": 102400,
+  "regsPerSM": 65536,
+  "maxThreadsPerBlock": 1024,
+  "maxThreadsPerSM": 1536,
+  "clockMHz": 2418,
+  "memClockMHz": 8533,
+  "busBits": 256,
+  "memGB": 121.7,
+  "l2MB": 24,
+  "runtime": 13000,
+  "driver": 13000,
+  "pciBusId": "000F:01:00.0",
+  "driverVersion": "580.178.04",
+  "persistenceMode": "Enabled",
+  "maxSmClockMHz": 3003,
+  "gpuUuid": "GPU-c6e7f17e-f161-a1d7-8c0b-56bbabb15c41",
+  "hostname": "bling"
+ },
+ "probeMs": 1206,
+ "reps": 20,
+ "rows": [
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 256,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "xcb931li32",
+   "row": "MAP=tiled,BM=32,BN=16,BK=8",
+   "grid": 128,
+   "block": 512,
+   "usMedian": 22.688,
+   "usMin": 22.432,
+   "launches": 20,
+   "regs": 39,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.0000152587890625,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 23.108603667136812,
+   "wallMs": 1647
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 256,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "1728vwo0oer",
+   "row": "MAP=tiled,BM=32,BN=16,BK=8",
+   "grid": 128,
+   "block": 512,
+   "usMedian": 63.648,
+   "usMin": 62.688,
+   "launches": 20,
+   "regs": 38,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.00018310546875,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 16.474610356963296,
+   "wallMs": 1528
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 512,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "267ysds7154",
+   "row": "MAP=tiled,BM=64,BN=32,BK=8,TM=2,TN=2",
+   "grid": 128,
+   "block": 512,
+   "usMedian": 32.784,
+   "usMin": 31.552,
+   "launches": 20,
+   "regs": 38,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.000030517578125,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 47.97657393850659,
+   "wallMs": 1308
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 512,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "1rfgcxjamnf",
+   "row": "MAP=tiled,BM=64,BN=32,BK=8,TM=2,TN=2",
+   "grid": 128,
+   "block": 512,
+   "usMedian": 88.24000000000001,
+   "usMin": 87.296,
+   "launches": 20,
+   "regs": 40,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.000152587890625,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 29.708068902991837,
+   "wallMs": 1066
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 1024,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "118es2rw0t2",
+   "row": "MAP=tiled,BM=128,BN=64,BK=8,TM=4,TN=2",
+   "grid": 128,
+   "block": 1024,
+   "usMedian": 94.368,
+   "usMin": 94.208,
+   "launches": 20,
+   "regs": 64,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.0000152587890625,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 55.55781620888437,
+   "wallMs": 1539
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 1024,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "25olr0avvr",
+   "row": "MAP=tiled,BM=128,BN=64,BK=8,TM=4,TN=2",
+   "grid": 128,
+   "block": 1024,
+   "usMedian": 258.016,
+   "usMin": 257.056,
+   "launches": 20,
+   "regs": 64,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.000091552734375,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 28.447972218777128,
+   "wallMs": 1616
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 1536,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "1cnazf4k3um",
+   "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+   "grid": 144,
+   "block": 1024,
+   "usMedian": 151.552,
+   "usMin": 149.824,
+   "launches": 20,
+   "regs": 64,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.00000762939453125,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 72.64864864864866,
+   "wallMs": 1607
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 1536,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "1b608rph8j2",
+   "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+   "grid": 144,
+   "block": 1024,
+   "usMedian": 396.144,
+   "usMin": 395.168,
+   "launches": 20,
+   "regs": 64,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.00018310546875,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 35.73391494002181,
+   "wallMs": 1065
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 2048,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "12c1yzmw2wf",
+   "row": "MAP=tiled,BM=64,BN=64,BK=8,TM=8,TN=4",
+   "grid": 1024,
+   "block": 128,
+   "usMedian": 278.20799999999997,
+   "usMin": 275.392,
+   "launches": 20,
+   "regs": 79,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.00000762939453125,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 67.84265010351967,
+   "wallMs": 1626
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 2048,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "2q9gl0z7wk",
+   "row": "MAP=tiled,BM=64,BN=64,BK=8,TM=8,TN=4",
+   "grid": 1024,
+   "block": 128,
+   "usMedian": 798.496,
+   "usMin": 787.36,
+   "launches": 20,
+   "regs": 79,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.0001220703125,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 28.890153488558493,
+   "wallMs": 1728
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 2304,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "21jo3qtjpc4",
+   "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+   "grid": 324,
+   "block": 1024,
+   "usMedian": 369.968,
+   "usMin": 366.688,
+   "launches": 20,
+   "regs": 64,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.00003814697265625,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 63.77027202352635,
+   "wallMs": 1106
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 2304,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "identity": "1nbw2903hxh",
+   "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+   "grid": 324,
+   "block": 1024,
+   "usMedian": 929.6479999999999,
+   "usMin": 925.696,
+   "launches": 20,
+   "regs": 64,
+   "check": {
+    "ok": true,
+    "maxAbs": 0.00006103515625,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 30.454055728619867,
+   "wallMs": 1095
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 8,
+    "form": "separable"
+   },
+   "kernel": "k_ew",
+   "identity": "14laimah7fj",
+   "row": "TPB=64",
+   "grid": 39936,
+   "block": 64,
+   "usMedian": 50.256,
+   "usMin": 50.048,
+   "launches": 20,
+   "regs": 34,
+   "check": {
+    "ok": true,
+    "maxAbs": 0,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 268.63291945240366,
+   "wallMs": 2496
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 8,
+    "form": "separable"
+   },
+   "kernel": "k_ew_2",
+   "identity": "yl6ej2j8oh",
+   "row": "TPB=64",
+   "grid": 39936,
+   "block": 64,
+   "usMedian": 59.376000000000005,
+   "usMin": 58.368,
+   "launches": 20,
+   "regs": 30,
+   "check": {
+    "ok": true,
+    "maxAbs": 0,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 344.36863379143085,
+   "wallMs": 2496
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 100,
+    "form": "separable"
+   },
+   "kernel": "k_ew",
+   "identity": "7cg6hgr6cj",
+   "row": "TPB=64",
+   "grid": 499200,
+   "block": 64,
+   "usMedian": 737.7120500000001,
+   "usMin": 735.968,
+   "launches": 20,
+   "regs": 34,
+   "check": {
+    "ok": true,
+    "maxAbs": 0,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 228.75483733795588,
+   "wallMs": 3575
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 100,
+    "form": "separable"
+   },
+   "kernel": "k_ew_2",
+   "identity": "l4jj24ihnh",
+   "row": "TPB=64",
+   "grid": 499200,
+   "block": 64,
+   "usMedian": 1063.76,
+   "usMin": 1060.672,
+   "launches": 20,
+   "regs": 30,
+   "check": {
+    "ok": true,
+    "maxAbs": 0,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 240.27073776039708,
+   "wallMs": 3575
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 8,
+    "form": "direct"
+   },
+   "kernel": "k_ew",
+   "identity": "lqvpjrmo59",
+   "row": "TPB=64",
+   "grid": 39936,
+   "block": 64,
+   "usMedian": 278.64,
+   "usMin": 277.408,
+   "launches": 20,
+   "regs": 128,
+   "check": {
+    "ok": true,
+    "maxAbs": 0,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 48.451105368934826,
+   "wallMs": 2138
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 100,
+    "form": "direct"
+   },
+   "kernel": "k_ew",
+   "identity": "u8zlqdgimr",
+   "row": "TPB=64",
+   "grid": 499200,
+   "block": 64,
+   "usMedian": 3483.12,
+   "usMin": 3469.0881,
+   "launches": 20,
+   "regs": 128,
+   "check": {
+    "ok": true,
+    "maxAbs": 0,
+    "bad": 0,
+    "n": 384
+   },
+   "error": null,
+   "gbs": 48.44943613771561,
+   "wallMs": 1299
+  }
+ ],
+ "ok": true
+}

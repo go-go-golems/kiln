@@ -1,0 +1,435 @@
+{
+ "host": "manuel@bling.local",
+ "device": {
+  "name": "NVIDIA GB10",
+  "cc": "12.1",
+  "sms": 48,
+  "smemPerBlock": 49152,
+  "smemPerSM": 102400,
+  "regsPerSM": 65536,
+  "maxThreadsPerBlock": 1024,
+  "maxThreadsPerSM": 1536,
+  "clockMHz": 2418,
+  "memClockMHz": 8533,
+  "busBits": 256,
+  "memGB": 121.7,
+  "l2MB": 24,
+  "runtime": 13000,
+  "driver": 13000,
+  "pciBusId": "000F:01:00.0",
+  "driverVersion": "580.178.04",
+  "persistenceMode": "Enabled",
+  "maxSmClockMHz": 3003,
+  "gpuUuid": "GPU-c6e7f17e-f161-a1d7-8c0b-56bbabb15c41",
+  "hostname": "bling"
+ },
+ "other": "rtx5090",
+ "specs": {
+  "gb10": {
+   "id": "gb10",
+   "name": "DGX Spark (GB10)",
+   "arch": "Blackwell sm_121",
+   "sm": 121,
+   "sms": 48,
+   "clockGHz": 2.418,
+   "peakTflops": 28.9,
+   "bwGBs": 259,
+   "l2MB": 24,
+   "smemPerSM": 102400,
+   "smemPerBlock": 49152,
+   "maxThreadsPerBlock": 1024,
+   "maxThreadsPerSM": 1536,
+   "maxBlocksPerSM": 24,
+   "regsPerSM": 65536,
+   "launchUs": 2.4,
+   "warp": 32
+  },
+  "fallback": {
+   "id": "rtx5090",
+   "name": "RTX 5090",
+   "arch": "Blackwell sm_120",
+   "sm": 120,
+   "sms": 170,
+   "clockGHz": 2.41,
+   "peakTflops": 104.8,
+   "bwGBs": 1792,
+   "l2MB": 96,
+   "smemPerSM": 131072,
+   "smemPerBlock": 49152,
+   "maxThreadsPerBlock": 1024,
+   "maxThreadsPerSM": 1536,
+   "maxBlocksPerSM": 24,
+   "regsPerSM": 65536,
+   "launchUs": 2.5,
+   "warp": 32
+  }
+ },
+ "rows": [
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 256,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=32,BN=16,BK=8,TN=2",
+    "modelUs": 11.888803088803089,
+    "measuredUs": 16.512,
+    "fallbackModelUs": 8.23609958506224
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=32,BN=16,BK=8",
+    "modelUs": 7.457123098201936,
+    "measuredUs": 22.688,
+    "gb10ModelUs": 13.5166253101737
+   }
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 256,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=32,BN=16,BK=8,TN=2",
+    "modelUs": 30.107305019305016,
+    "measuredUs": 42.992000000000004,
+    "fallbackModelUs": 19.70829875518672
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=32,BN=16,BK=8",
+    "modelUs": 17.371369294605813,
+    "measuredUs": 63.648,
+    "gb10ModelUs": 35.74987593052109
+   }
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 512,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=64,BN=32,BK=8,TM=2,TN=2",
+    "modelUs": 25.903722084367246,
+    "measuredUs": 32.864000000000004,
+    "fallbackModelUs": 12.980774550484094
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=64,BN=32,BK=8,TM=2,TN=2",
+    "modelUs": 12.980774550484094,
+    "measuredUs": 32.784,
+    "gb10ModelUs": 25.903722084367246
+   }
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 512,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=64,BN=32,BK=8,TM=2,TN=2",
+    "modelUs": 72.91116625310175,
+    "measuredUs": 88.256,
+    "fallbackModelUs": 33.942323651452284
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=64,BN=32,BK=8,TM=2,TN=2",
+    "modelUs": 33.942323651452284,
+    "measuredUs": 88.24000000000001,
+    "gb10ModelUs": 72.91116625310175
+   }
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 1024,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=128,BN=64,BK=8,TM=8,TN=4",
+    "modelUs": 69.73498759305213,
+    "measuredUs": 98.336,
+    "fallbackModelUs": 47.53900414937759
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=128,BN=64,BK=8,TM=4,TN=2",
+    "modelUs": 31.81784232365145,
+    "measuredUs": 94.368,
+    "gb10ModelUs": 90.06253101736974
+   }
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 1024,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=128,BN=64,BK=8,TM=8,TN=4",
+    "modelUs": 204.4049627791563,
+    "measuredUs": 264.656,
+    "fallbackModelUs": 137.61701244813278
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=128,BN=64,BK=8,TM=4,TN=2",
+    "modelUs": 90.45352697095436,
+    "measuredUs": 258.016,
+    "gb10ModelUs": 265.3875930521092
+   }
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 1536,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+    "modelUs": 135.79950372208438,
+    "measuredUs": 151.616,
+    "fallbackModelUs": 47.11410788381743
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+    "modelUs": 47.11410788381743,
+    "measuredUs": 151.552,
+    "gb10ModelUs": 135.79950372208438
+   }
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 1536,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+    "modelUs": 402.5985111662531,
+    "measuredUs": 395.376,
+    "fallbackModelUs": 136.3423236514523
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+    "modelUs": 136.3423236514523,
+    "measuredUs": 396.144,
+    "gb10ModelUs": 402.5985111662531
+   }
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 2048,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=128,BN=64,BK=8,TM=8,TN=2",
+    "modelUs": 256.7766197959746,
+    "measuredUs": 292.94399999999996,
+    "fallbackModelUs": 92.57800829875518
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=64,BN=64,BK=8,TM=8,TN=4",
+    "modelUs": 87.26680497925311,
+    "measuredUs": 278.20799999999997,
+    "gb10ModelUs": 288.04433416046317
+   }
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 2048,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=128,BN=64,BK=8,TM=8,TN=2",
+    "modelUs": 765.5298593879239,
+    "measuredUs": 858.704,
+    "fallbackModelUs": 272.73402489626557
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=64,BN=64,BK=8,TM=8,TN=4",
+    "modelUs": 256.80041493775934,
+    "measuredUs": 798.496,
+    "gb10ModelUs": 859.3330024813896
+   }
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 2304,
+    "dims": 256
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+    "modelUs": 313.66550868486354,
+    "measuredUs": 371.776,
+    "fallbackModelUs": 91.72821576763485
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+    "modelUs": 91.72821576763485,
+    "measuredUs": 369.968,
+    "gb10ModelUs": 313.66550868486354
+   }
+  },
+  {
+   "preset": "W-26",
+   "pins": {
+    "windows": 2304,
+    "dims": 768
+   },
+   "kernel": "k_matmul_reduce",
+   "gb10": {
+    "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+    "modelUs": 936.1965260545907,
+    "measuredUs": 930.2239999999999,
+    "fallbackModelUs": 270.1846473029046
+   },
+   "fallback": {
+    "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+    "modelUs": 270.1846473029046,
+    "measuredUs": 929.6479999999999,
+    "gb10ModelUs": 936.1965260545907
+   }
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 8,
+    "form": "separable"
+   },
+   "kernel": "k_ew",
+   "gb10": {
+    "row": "TPB=1024",
+    "modelUs": 1383.9697297297298,
+    "measuredUs": 60.448,
+    "fallbackModelUs": 206.5
+   },
+   "fallback": {
+    "row": "TPB=64",
+    "modelUs": 202.25,
+    "measuredUs": 50.256,
+    "gb10ModelUs": 1383.96972972973
+   }
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 8,
+    "form": "separable"
+   },
+   "kernel": "k_ew_2",
+   "gb10": {
+    "row": "TPB=128",
+    "modelUs": 1291.8650810810811,
+    "measuredUs": 62.464,
+    "fallbackModelUs": 189.72666666666666
+   },
+   "fallback": {
+    "row": "TPB=64",
+    "modelUs": 188.9333333333333,
+    "measuredUs": 59.376000000000005,
+    "gb10ModelUs": 1291.8650810810811
+   }
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 100,
+    "form": "separable"
+   },
+   "kernel": "k_ew",
+   "gb10": {
+    "row": "TPB=128,COARSEN=2",
+    "modelUs": 31087.718918918916,
+    "measuredUs": 696.144,
+    "fallbackModelUs": 4512.9400000000005
+   },
+   "fallback": {
+    "row": "TPB=64",
+    "modelUs": 4499.5525,
+    "measuredUs": 737.7120500000001,
+    "gb10ModelUs": 31096.41411302211
+   }
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 100,
+    "form": "separable"
+   },
+   "kernel": "k_ew_2",
+   "gb10": {
+    "row": "TPB=1024",
+    "modelUs": 29015.36432432432,
+    "measuredUs": 1210.11205,
+    "fallbackModelUs": 4206.532
+   },
+   "fallback": {
+    "row": "TPB=64",
+    "modelUs": 4199.749,
+    "measuredUs": 1063.76,
+    "gb10ModelUs": 29023.479838820636
+   }
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 8,
+    "form": "direct"
+   },
+   "kernel": "k_ew",
+   "gb10": {
+    "row": "TPB=1024,COARSEN=2",
+    "modelUs": 17804.912803088806,
+    "measuredUs": 2704.88,
+    "fallbackModelUs": 2806.4314285714286
+   },
+   "fallback": {
+    "row": "TPB=64",
+    "modelUs": 2576.421428571429,
+    "measuredUs": 278.64,
+    "gb10ModelUs": 17804.91280308881
+   }
+  },
+  {
+   "preset": "W-28",
+   "pins": {
+    "geometry": "768x416",
+    "detections": 100,
+    "form": "direct"
+   },
+   "kernel": "k_ew",
+   "gb10": {
+    "row": "TPB=64",
+    "modelUs": 400558.9380694981,
+    "measuredUs": 3482.41615,
+    "fallbackModelUs": 57905.87457142856
+   },
+   "fallback": {
+    "row": "TPB=64",
+    "modelUs": 57905.87457142856,
+    "measuredUs": 3483.12,
+    "gb10ModelUs": 400558.9380694981
+   }
+  }
+ ]
+}
