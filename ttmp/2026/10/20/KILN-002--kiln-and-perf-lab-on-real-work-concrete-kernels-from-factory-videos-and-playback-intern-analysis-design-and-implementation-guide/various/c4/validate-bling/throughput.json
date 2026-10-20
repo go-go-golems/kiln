@@ -1,0 +1,425 @@
+{
+  "arms": {
+    "a": "http://127.0.0.1:8211",
+    "b": "http://127.0.0.1:8212"
+  },
+  "group": "people",
+  "unit": "burst",
+  "burst_s": 12.0,
+  "pairs": 4,
+  "priority": "live",
+  "force_full_fps": true,
+  "health": {
+    "a": {
+      "ok": true,
+      "deploy": {
+        "gitSha": "ac835daa",
+        "gitBranch": "perf/kiln-002-redaction-mask-post",
+        "gitDirty": false
+      },
+      "instance": {
+        "instanceId": "80d7a7a9-a7da-4b7a-ade4-c45397e20132",
+        "hostname": "7fd665277f55",
+        "startedAt": "2026-10-20T19:11:48Z"
+      },
+      "backend": "trt",
+      "seg_engine_loaded": true,
+      "uptime_s": 1122.87,
+      "stalled": false,
+      "throttle": {
+        "target_fps": 30,
+        "pressure": 0.0
+      }
+    },
+    "b": {
+      "ok": true,
+      "deploy": {
+        "gitSha": "ac835daa",
+        "gitBranch": "perf/kiln-002-redaction-mask-post",
+        "gitDirty": false
+      },
+      "instance": {
+        "instanceId": "56c21fee-86b6-42d6-954e-731a24e7bc3a",
+        "hostname": "005c85948036",
+        "startedAt": "2026-10-20T19:12:24Z"
+      },
+      "backend": "trt",
+      "mask_post": "kiln",
+      "seg_engine_loaded": true,
+      "uptime_s": 1117.64,
+      "stalled": false,
+      "throttle": {
+        "target_fps": 30,
+        "pressure": 0.663
+      }
+    }
+  },
+  "levels": {
+    "1": {
+      "a_median_fps": 76.47,
+      "b_median_fps": 74.34,
+      "ratio_median": 0.974,
+      "ratio_min": 0.9516,
+      "ratio_max": 0.9841,
+      "delta_pct": -2.6,
+      "pairs": [
+        {
+          "pair": 0,
+          "a": {
+            "wall_s": 13.23,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 76.19,
+            "segments_per_s": 0.529,
+            "lat_p50_ms": 1859.3,
+            "lat_p95_ms": 2040.4,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.44,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 74.98,
+            "segments_per_s": 0.521,
+            "lat_p50_ms": 1859.2,
+            "lat_p95_ms": 2162.0,
+            "decimated": 0
+          },
+          "ratio": 0.9841
+        },
+        {
+          "pair": 1,
+          "a": {
+            "wall_s": 12.99,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 77.61,
+            "segments_per_s": 0.539,
+            "lat_p50_ms": 1818.3,
+            "lat_p95_ms": 1920.0,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.65,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 73.85,
+            "segments_per_s": 0.513,
+            "lat_p50_ms": 1970.0,
+            "lat_p95_ms": 2105.8,
+            "decimated": 0
+          },
+          "ratio": 0.9516
+        },
+        {
+          "pair": 2,
+          "a": {
+            "wall_s": 13.13,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 76.76,
+            "segments_per_s": 0.533,
+            "lat_p50_ms": 1869.1,
+            "lat_p95_ms": 2000.1,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.55,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 74.39,
+            "segments_per_s": 0.517,
+            "lat_p50_ms": 1931.4,
+            "lat_p95_ms": 2058.6,
+            "decimated": 0
+          },
+          "ratio": 0.9691
+        },
+        {
+          "pair": 3,
+          "a": {
+            "wall_s": 13.28,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 75.9,
+            "segments_per_s": 0.527,
+            "lat_p50_ms": 1852.7,
+            "lat_p95_ms": 2070.4,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.57,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 74.29,
+            "segments_per_s": 0.516,
+            "lat_p50_ms": 1903.6,
+            "lat_p95_ms": 2013.1,
+            "decimated": 0
+          },
+          "ratio": 0.9788
+        }
+      ]
+    },
+    "4": {
+      "a_median_fps": 129.25,
+      "b_median_fps": 125.48,
+      "ratio_median": 0.9709,
+      "ratio_min": 0.959,
+      "ratio_max": 0.9738,
+      "delta_pct": -2.9,
+      "pairs": [
+        {
+          "pair": 0,
+          "a": {
+            "wall_s": 13.26,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 130.32,
+            "segments_per_s": 0.905,
+            "lat_p50_ms": 4331.5,
+            "lat_p95_ms": 4528.0,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.83,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 124.98,
+            "segments_per_s": 0.868,
+            "lat_p50_ms": 4551.2,
+            "lat_p95_ms": 4686.6,
+            "decimated": 0
+          },
+          "ratio": 0.959
+        },
+        {
+          "pair": 1,
+          "a": {
+            "wall_s": 13.38,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 129.18,
+            "segments_per_s": 0.897,
+            "lat_p50_ms": 4380.6,
+            "lat_p95_ms": 4622.1,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.78,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 125.4,
+            "segments_per_s": 0.871,
+            "lat_p50_ms": 4555.7,
+            "lat_p95_ms": 4650.6,
+            "decimated": 0
+          },
+          "ratio": 0.9707
+        },
+        {
+          "pair": 2,
+          "a": {
+            "wall_s": 13.38,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 129.18,
+            "segments_per_s": 0.897,
+            "lat_p50_ms": 4333.3,
+            "lat_p95_ms": 4578.4,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.74,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 125.8,
+            "segments_per_s": 0.874,
+            "lat_p50_ms": 4568.5,
+            "lat_p95_ms": 4598.2,
+            "decimated": 0
+          },
+          "ratio": 0.9738
+        },
+        {
+          "pair": 3,
+          "a": {
+            "wall_s": 13.36,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 129.31,
+            "segments_per_s": 0.898,
+            "lat_p50_ms": 4337.8,
+            "lat_p95_ms": 4535.7,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.76,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 125.56,
+            "segments_per_s": 0.872,
+            "lat_p50_ms": 4562.5,
+            "lat_p95_ms": 4689.3,
+            "decimated": 0
+          },
+          "ratio": 0.971
+        }
+      ]
+    },
+    "8": {
+      "a_median_fps": 129.77,
+      "b_median_fps": 125.19,
+      "ratio_median": 0.968,
+      "ratio_min": 0.9567,
+      "ratio_max": 0.9832,
+      "delta_pct": -3.2,
+      "pairs": [
+        {
+          "pair": 0,
+          "a": {
+            "wall_s": 17.74,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 129.91,
+            "segments_per_s": 0.902,
+            "lat_p50_ms": 8610.7,
+            "lat_p95_ms": 9006.9,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 18.04,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 127.73,
+            "segments_per_s": 0.887,
+            "lat_p50_ms": 8949.4,
+            "lat_p95_ms": 9206.7,
+            "decimated": 0
+          },
+          "ratio": 0.9832
+        },
+        {
+          "pair": 1,
+          "a": {
+            "wall_s": 17.92,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 128.59,
+            "segments_per_s": 0.893,
+            "lat_p50_ms": 8841.6,
+            "lat_p95_ms": 9079.8,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 18.6,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 123.88,
+            "segments_per_s": 0.86,
+            "lat_p50_ms": 9262.3,
+            "lat_p95_ms": 9588.8,
+            "decimated": 0
+          },
+          "ratio": 0.9634
+        },
+        {
+          "pair": 2,
+          "a": {
+            "wall_s": 17.77,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 129.67,
+            "segments_per_s": 0.901,
+            "lat_p50_ms": 8691.7,
+            "lat_p95_ms": 9024.5,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 18.57,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 124.06,
+            "segments_per_s": 0.862,
+            "lat_p50_ms": 9205.6,
+            "lat_p95_ms": 9615.2,
+            "decimated": 0
+          },
+          "ratio": 0.9567
+        },
+        {
+          "pair": 3,
+          "a": {
+            "wall_s": 17.74,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 129.88,
+            "segments_per_s": 0.902,
+            "lat_p50_ms": 8738.6,
+            "lat_p95_ms": 8989.9,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 18.24,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 126.33,
+            "segments_per_s": 0.877,
+            "lat_p50_ms": 9041.0,
+            "lat_p95_ms": 9270.6,
+            "decimated": 0
+          },
+          "ratio": 0.9727
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "arms": {
+    "a": "http://127.0.0.1:8212",
+    "b": "http://127.0.0.1:8212"
+  },
+  "group": "people",
+  "unit": "burst",
+  "burst_s": 20.0,
+  "pairs": 1,
+  "priority": "live",
+  "force_full_fps": true,
+  "health": {
+    "a": {
+      "ok": true,
+      "deploy": {
+        "gitSha": "ac835daa",
+        "gitBranch": "perf/kiln-002-redaction-mask-post",
+        "gitDirty": false
+      },
+      "instance": {
+        "instanceId": "56c21fee-86b6-42d6-954e-731a24e7bc3a",
+        "hostname": "005c85948036",
+        "startedAt": "2026-10-20T19:12:24Z"
+      },
+      "backend": "trt",
+      "mask_post": "kiln",
+      "seg_engine_loaded": true,
+      "uptime_s": 78.21,
+      "stalled": false,
+      "throttle": {
+        "target_fps": 30,
+        "pressure": 0.0
+      }
+    },
+    "b": {
+      "ok": true,
+      "deploy": {
+        "gitSha": "ac835daa",
+        "gitBranch": "perf/kiln-002-redaction-mask-post",
+        "gitDirty": false
+      },
+      "instance": {
+        "instanceId": "56c21fee-86b6-42d6-954e-731a24e7bc3a",
+        "hostname": "005c85948036",
+        "startedAt": "2026-10-20T19:12:24Z"
+      },
+      "backend": "trt",
+      "mask_post": "kiln",
+      "seg_engine_loaded": true,
+      "uptime_s": 78.21,
+      "stalled": false,
+      "throttle": {
+        "target_fps": 30,
+        "pressure": 0.0
+      }
+    }
+  },
+  "levels": {
+    "8": {
+      "a_median_fps": 126.49,
+      "b_median_fps": 127.39,
+      "ratio_median": 1.0071,
+      "ratio_min": 1.0071,
+      "ratio_max": 1.0071,
+      "delta_pct": 0.7,
+      "pairs": [
+        {
+          "pair": 0,
+          "a": {
+            "wall_s": 27.32,
+            "requests": 24,
+            "ok": 24,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 126.49,
+            "segments_per_s": 0.878,
+            "lat_p50_ms": 8992.5,
+            "lat_p95_ms": 9292.5,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 27.13,
+            "requests": 24,
+            "ok": 24,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 127.39,
+            "segments_per_s": 0.885,
+            "lat_p50_ms": 8950.1,
+            "lat_p95_ms": 9138.8,
+            "decimated": 0
+          },
+          "ratio": 1.0071
+        }
+      ]
+    }
+  }
+}

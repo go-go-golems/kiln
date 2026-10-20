@@ -1,0 +1,164 @@
+
+== 0. Preflight
+  PASS image playback-redaction:kiln-002-ac835daa present
+  PASS recordings host path: /home/manuel/kiln-002/bench-recordings
+  PASS GPU reachable from a container
+
+== 1. Host and accelerator identity
+date            : 2026-10-20T19:11:45Z
+host arch       : aarch64
+kernel          : 7.0.0-1019-nvidia
+cpus            : 20
+git commit      : ac835daa
+git branch      : perf/kiln-002-redaction-mask-post
+gpu             : NVIDIA GB10, 580.178.04
+tensorrt        : 10.16.1.11
+torch           : 2.12.0a0+5aff3928d8.nv26.05
+
+== 2. Materialising the baseline arm
+       baseline ref: d1faf0cf (branch point with main)
+  PASS baseline src: 22 files
+       candidate src: /home/manuel/code/playback-kiln-002/services/redaction/src (working tree)
+
+== 3. Starting both arms (first start may build the TRT engine for this GPU)
+  PASS arm A (baseline) up on :8211
+       candidate-only env: -e REDACTION_MASK_POST=kiln
+  PASS arm B (candidate) up on :8212
+  PASS arm A backend=trt
+       arm A mask_post=cpu
+  PASS arm B backend=trt
+  PASS arm B mask_post=kiln
+       engine built for : NVIDIA GB10 cap=[12, 1] trt=10.16.1.11
+       fp16 / input     : True / [1, 3, 640, 640]
+       TRT engine ready in 3.5s  path=/engine-cache/rtmdet-ins_m.engine  tensors=['input', 'dets', 'labels', 'masks']  pool_size=4  input=640x640  mask_post=kiln
+
+== 4. Staging real inputs (person-containing and empty)
+  probe PEOPLE seg_1792400418.ts      1920x1080 frames= 144 persons=2
+  probe PEOPLE seg_1792400436.ts      1920x1080 frames= 144 persons=3
+  probe PEOPLE seg_1792400454.ts      1920x1080 frames= 144 persons=2
+  probe PEOPLE seg_1792396818.ts      1920x1080 frames= 144 persons=7
+  probe PEOPLE seg_1792396836.ts      1920x1080 frames= 144 persons=9
+  probe PEOPLE seg_1792396854.ts      1920x1080 frames= 144 persons=11
+  probe PEOPLE seg_1792396818.ts      1920x1080 frames= 144 persons=2
+  probe PEOPLE seg_1792396836.ts      1920x1080 frames= 144 persons=2
+  probe PEOPLE seg_1792396854.ts      1920x1080 frames= 144 persons=2
+  probe PEOPLE seg_1792396818.ts      1920x1080 frames= 144 persons=3
+  probe PEOPLE seg_1792396836.ts      1920x1080 frames= 144 persons=2
+  probe PEOPLE seg_1792396854.ts      1920x1080 frames= 144 persons=2
+  probe PEOPLE seg_1792396818.ts      1920x1080 frames= 144 persons=3
+  probe PEOPLE seg_1792396836.ts      1920x1080 frames= 144 persons=3
+  probe PEOPLE seg_1792396854.ts      1920x1080 frames= 144 persons=3
+  staged people seg_1792404018.ts      1920x1080 frames= 144 persons=6
+  staged people seg_1792404036.ts      1920x1080 frames= 144 persons=6
+  staged people seg_1792404054.ts      1920x1080 frames= 144 persons=6
+  staged people seg_1792404018.ts      1920x1080 frames= 144 persons=4
+  staged people seg_1792404036.ts      1920x1080 frames= 144 persons=3
+  staged people seg_1792404054.ts      1920x1080 frames= 144 persons=5
+  staged people seg_1792404018.ts      1920x1080 frames= 144 persons=3
+  staged people seg_1792404036.ts      1920x1080 frames= 144 persons=3
+
+staged 8 person-containing and 0 empty segments (probed 36) -> /data/recordings/_bench
+  PASS 3 person-containing segments staged
+
+== 5. Correctness gate a: baseline vs candidate (serial)
+       rendering the baseline three times to measure the pipeline's run-to-run noise floor
+       3 segments, median 1869 ms
+       3 segments, median 1833 ms
+       3 segments, median 1815 ms
+       3 segments, median 1881 ms
+noise floor from 3 same-code runs:
+  segments that differ run-to-run : 3 of 3
+  worst per-frame black delta     : 2272 px
+  tolerance applied to candidate  : 9088 px per frame
+
+  ok   seg_1700000000: within the floor (max loss 236 px, max gain 284 px)
+  ok   seg_1700000001: within the floor (max loss 2072 px, max gain 703 px)
+  ok   seg_1700000002: within the floor (max loss 78 px, max gain 212 px)
+
+JUDGEMENT: 0 identical, 3 within the noise floor, 0 redacting more than the floor explains, 0 regressed
+VERDICT: NO REGRESSION — every difference is inside the floor the unchanged code already produces
+  PASS serial: candidate stays within the baseline's own noise floor
+
+== 5. Correctness gate b: candidate under concurrency vs candidate serial
+       the in-flight window is adaptive, so 4 competing segments take a different path than 1
+       3 segments rendered at concurrency 4
+noise floor from 3 same-code runs:
+  segments that differ run-to-run : 3 of 3
+  worst per-frame black delta     : 2272 px
+  tolerance applied to candidate  : 9088 px per frame
+
+  ok   seg_1700000000: within the floor (max loss 844 px, max gain 258 px)
+  ok   seg_1700000001: within the floor (max loss 2272 px, max gain 1477 px)
+  ok   seg_1700000002: within the floor (max loss 222 px, max gain 212 px)
+
+JUDGEMENT: 0 identical, 3 within the noise floor, 0 redacting more than the floor explains, 0 regressed
+VERDICT: NO REGRESSION — every difference is inside the floor the unchanged code already produces
+  PASS concurrency 4: within the noise floor (adaptive in-flight window is safe)
+
+== 5. Correctness gate c: soak — errors, shedding, and slot-pool integrity
+       burst a: ok=24 errors=0 shed=0 frames/s=126.49
+       burst b: ok=24 errors=0 shed=0 frames/s=127.39
+  PASS soak: no request errors at concurrency 8
+  PASS post-soak: still within the noise floor (no state carried between renders)
+  PASS post-soak: in_flight back to 0
+
+== 6. Ground truth: both arms against the checked-in SAM3 fixtures
+       recall is the privacy-critical metric; a speed win that costs recall is not a win
+  ### arm-A  (engine input 640x640, 5 fixtures)
+    MEAN  recall=0.9636 precision=0.8678 iou=0.8411 f2=0.9424 over=1.114 detections=29
+  ### arm-B  (engine input 640x640, 5 fixtures)
+    MEAN  recall=0.9636 precision=0.8678 iou=0.8411 f2=0.9424 over=1.114 detections=29
+       recall 0.9636 -> 0.9636 (+0.0000)
+       f2     0.9424 -> 0.9424 (+0.0000)
+       detections 29 -> 29 (+0)
+  PASS ground truth: candidate loses no recall and no detections
+
+== 7. Adaptive controller (live arrival pattern; the throughput leg cannot see this)
+   cameras        arm  rung  frames/s  per cam   late  steps  crossed
+         4   baseline    30     95.20    23.80   0.0%      0        2
+         4  candidate    30     95.20    23.80   0.0%      0        2
+                ratio  1.00x  ok
+         8   baseline    30    191.20    23.90   0.0%      0        2
+         8  candidate    30    192.00    24.00   0.0%      0        1
+                ratio  1.00x  ok
+  PASS controller does not regress delivered frame rate
+       not paired — see the header; read the 4-camera rows as the control
+
+== 8. Paired throughput: baseline (A) vs candidate (B)
+arm a (http://127.0.0.1:8211): backend=trt
+arm b (http://127.0.0.1:8212): backend=trt
+
+=== concurrency 1 ===
+  pair 0: a=  76.19 f/s   b=  74.98 f/s   ratio=0.984
+  pair 1: a=  77.61 f/s   b=  73.85 f/s   ratio=0.952
+  pair 2: a=  76.76 f/s   b=  74.39 f/s   ratio=0.969
+  pair 3: a=  75.90 f/s   b=  74.29 f/s   ratio=0.979
+  -> a=76.47  b=74.34  ratio median=0.974 (min 0.952, max 0.984)  => -2.6%
+
+=== concurrency 4 ===
+  pair 0: a= 130.32 f/s   b= 124.98 f/s   ratio=0.959
+  pair 1: a= 129.18 f/s   b= 125.40 f/s   ratio=0.971
+  pair 2: a= 129.18 f/s   b= 125.80 f/s   ratio=0.974
+  pair 3: a= 129.31 f/s   b= 125.56 f/s   ratio=0.971
+  -> a=129.25  b=125.48  ratio median=0.971 (min 0.959, max 0.974)  => -2.9%
+
+=== concurrency 8 ===
+  pair 0: a= 129.91 f/s   b= 127.73 f/s   ratio=0.983
+  pair 1: a= 128.59 f/s   b= 123.88 f/s   ratio=0.963
+  pair 2: a= 129.67 f/s   b= 124.06 f/s   ratio=0.957
+  pair 3: a= 129.88 f/s   b= 126.33 f/s   ratio=0.973
+  -> a=129.77  b=125.19  ratio median=0.968 (min 0.957, max 0.983)  => -3.2%
+
+wrote /home/manuel/kiln-002/c4-validate/throughput.json
+
+== 9. Summary
+   concurrency   baseline f/s   candidate f/s    ratio     delta
+             1          76.47           74.34    0.974     -2.6%
+                                              (min 0.952, max 0.984 over 4 pairs)
+             4         129.25          125.48    0.971     -2.9%
+                                              (min 0.959, max 0.974 over 4 pairs)
+             8         129.77          125.19    0.968     -3.2%
+                                              (min 0.957, max 0.983 over 4 pairs)
+
+VALIDATION PASSED — evidence in /home/manuel/kiln-002/c4-validate
+  host-identity.txt engine-metadata.json quality-{serial,concurrent,post-soak}.txt ground-truth-{A,B}.json throughput.{txt,json} soak.json ctrl-{a,b}-*cam.json

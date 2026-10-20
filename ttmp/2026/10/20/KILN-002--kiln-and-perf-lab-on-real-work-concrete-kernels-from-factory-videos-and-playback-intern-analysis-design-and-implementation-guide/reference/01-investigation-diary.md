@@ -1577,3 +1577,233 @@ on.
   `various/pn/gb10-spec-check.{md,json}`.
 - Runner on `bling`: `~/.cache/kiln-runner/kiln_runner-94e24ca53607da15.py`; build cache for the image runs in
   `~/.cache/kiln-runner/build`.
+
+## Step 12: C4 on the DGX Spark — correct but 3 % slower; the branch's own image, the stage timed on an idle GB10, and a correction to Step 11's spec result
+
+This step ran C4: the C3 branch as a whole service on a GB10, against its own baseline. It ran on `bling`, the idle
+DGX Spark, so that no co-tenant shares the GPU with either arm. `bling` had no Playback image, and the shared host
+`dgx` could not send one quickly: its uplink measured 0.23 MB/s. So the image was built on `bling` from a git bundle
+of the branch. In that image the mask-post tests pass 25 of 25. The timing script reproduces `dgx`'s numbers with 0
+differing pixels, and it is 5–32 % faster from 16 masks up, which is the bandwidth gap between the two hosts.
+`validate_on_host.sh` then ran with `REDACTION_MASK_POST=kiln` on the candidate arm only. Every correctness gate
+passed. Throughput did not: the candidate is 2.6–3.2 % slower at concurrency 1, 4 and 8, with all 12 paired ratios
+below 1, so `gb10-unchanged-or-better` is refuted. A second, shorter run that kept each arm's stage timers shows why
+in outline. The post-pass gets 1 ms per frame cheaper, as designed, but the preprocess step, which sets the pace and
+which the switch does not touch, takes 3 ms per frame longer.
+
+The same step also corrects Step 11. Step 11 compared the measured `gb10` spec with the fallback a GB10 used to
+receive, the RTX 5090's figures with 48 SMs, and found `gb10`'s schedules faster. The shipped program set, however,
+was exported for the full RTX 5090 spec with 170 SMs. Running those schedules too shows that they are faster than
+`gb10`'s on the GB10: 2,190 against 4,734 µs over the five W-28 kernels that differ. The measured spec makes the
+model's numbers right for W-26 without making its choices better. The shipped set stays as exported.
+
+### Prompt Context
+
+**User prompts (verbatim):** see Step 8 for the prompts that asked for the host work, the report amendment and the
+thorough report; no new prompt arrived during this step.
+
+**Assistant interpretation:** Finish C4 on a GB10, measure what Step 11 left implicit (the schedules the shipped set
+actually uses), and fold both into the diary and the amended reports.
+
+**Inferred user intent:** A report whose claims survive a reviewer who checks them against the hardware, including
+the claims that turned out less favourable than first written.
+
+### What I did
+
+- **Moving the image.** The C3 image is the production redaction image (`nvcr.io/nvidia/pytorch:26.05-py3`, 90
+  layers, 24.5 GB on `dgx`) with the branch's source on top.
+  - On `bling` I pulled the NGC base by digest and started a local registry (`registry:2`, `127.0.0.1:5000`, data in
+    `~/kiln-002/registry`). I pushed the base into it as `localhost:5000/playback-redaction:base-26.05`: 77 layers,
+    10.9 GB compressed. The registry's manifest lists the base's largest layers at 3.0 and 2.3 GB.
+  - Two SSH tunnels joined the hosts through the Mac: `ssh -N -L 15000:localhost:5000 manuel@bling.local` and
+    `ssh -N -R 5000:localhost:15000 playback@dgx`. `dgx` then saw `bling`'s registry at `localhost:5000`
+    (`{"repositories":["playback-redaction"]}`).
+  - `docker push localhost:5000/playback-redaction:pb-obs-001-59c13eed4` on `dgx` found 61 layers already present
+    and pushed 13. It still took **16 min 39 s**, because the link from `dgx` measured 0.23 MB/s (20 MB of
+    `/dev/urandom` over SSH), against 10.9 MB/s from the Mac to `bling`. The upload into the registry ran at
+    557 KiB/s.
+- **Building on `bling` instead.** While the push crawled, I built the branch where the GPU is.
+  - `git bundle create playback-c3.bundle perf/kiln-002-redaction-mask-post` (45.7 MB, 1.7 s), copied to `bling`,
+    cloned to `~/code/playback-kiln-002` at `ac835daa`. The bundle carries `d1faf0cf1`, the baseline.
+  - `docker build -t playback-redaction:kiln-002-ac835daa --build-arg GIT_SHA=ac835daa … services/redaction`.
+    The base came from the local pull. Two stages dominated: there is no vendored mmcv wheel for aarch64, so mmcv
+    2.1.0 compiled from source (117.7 s, a 41 MB wheel), and the RTMDet-Ins-M checkpoint downloaded from
+    openmmlab.com at about 300 KB/s (344.6 s for 105 MB). The image is 11.3 GB.
+  - The `dgx` push finished afterwards (rc 0). It is not used; the tag stays in `bling`'s registry.
+- **Bench inputs.** `bling` has no recordings either. `scripts/make-bench-recordings.sh` (Step 9) had cut the
+  section-table videos into the recorder's layout, 144 segments, 215 MB. I copied them with
+  `COPYFILE_DISABLE=1 tar --no-xattrs -cf - bench-recordings | ssh manuel@bling.local 'tar -C ~/kiln-002 -xf -'`
+  (18 s). They contain real factory footage and stay on the hosts and in `/Volumes/SSD/tmp`.
+- **The tests in the branch's image.** The image has no pytest, so the run installs it first:
+  `docker run --rm --gpus all -v $S:/w:ro -w /w -e PYTHONPATH=/w --entrypoint sh playback-redaction:kiln-002-ac835daa -c "pip install -q pytest; python3 -m pytest -p no:cacheprovider -q -rs tests/test_mask_post.py"`.
+  Result: `25 passed, 1 warning in 5.74s` (the warning is pytest's unknown `asyncio_mode` option). No other process
+  used the GPU before or after.
+- **The stage timed on `bling`.** Same script and mounts as on `dgx` (Step 9), in the new image:
+  `… --entrypoint python3 playback-redaction:kiln-002-ac835daa /k/scripts/mask-post-cuda-time.py --out /k/out/mask-post-cuda-time-bling.json`.
+  0 differing pixels over 24 rows × 15 repetitions. CUDA init 0.36 s, NVRTC compile of 24 programs 1.50 s,
+  `load()` 1.52 s.
+
+| Geometry | Masks | `dgx` kiln + copy (ms) | `bling` kiln + copy (ms) | `dgx` / `bling` | `bling` CPU loop (ms) | `bling` CPU / kiln |
+| -------- | ----: | ---------------------: | -----------------------: | --------------: | --------------------: | -----------------: |
+| 768x416  | 1     | 0.052                  | 0.055                    | 0.95            | 0.219                 | 4.0                |
+| 768x416  | 16    | 0.633                  | 0.481                    | 1.32            | 3.203                 | 6.7                |
+| 768x416  | 100   | 3.340                  | 3.098                    | 1.08            | 19.147                | 6.2                |
+| 640x480  | 100   | 3.914                  | 2.985                    | 1.31            | 16.364                | 5.5                |
+| 768x576  | 100   | 4.585                  | 4.285                    | 1.07            | 27.996                | 6.5                |
+
+- **The service A/B.** From the clone on `bling`:
+  `services/redaction/scripts/validate_on_host.sh --image playback-redaction:kiln-002-ac835daa --recordings ~/kiln-002/bench-recordings --baseline d1faf0cf1 --candidate-env REDACTION_MASK_POST=kiln --out ~/kiln-002/c4-validate`
+  (defaults: concurrency 1,4,8; 4 pairs; burst 12). It ran 19:11–19:37 UTC (26 min), with nothing else on the GPU.
+  - Preflight and identity: aarch64, 20 CPUs, kernel `7.0.0-1019-nvidia`, GB10 driver 580.178.04, TensorRT
+    10.16.1.11, torch `2.12.0a0+5aff3928d8.nv26.05`. Both arms `backend=trt`; arm B `mask_post=kiln`.
+  - Staging: 36 segments probed, 8 with people (3–6 persons, 1920x1080, 144 frames), 0 empty.
+  - Gate a (serial): baseline rendered 3 times for the noise floor (3 of 3 segments differ run to run, worst frame
+    2,272 px, tolerance 9,088 px). Candidate: 3 of 3 inside, worst loss 2,072 px. `NO REGRESSION`.
+  - Gate b (concurrency 4 against serial): 3 of 3 inside, worst loss 2,272 px.
+  - Gate c (soak): two bursts of 24 at concurrency 8, `ok=24 errors=0 shed=0`, 126.5 and 127.4 frames/s; post-soak
+    inside the floor; `in_flight` back to 0.
+  - Ground truth: both arms recall 0.9636, F2 0.9424, 29 detections. **This gate does not exercise the GPU path:**
+    `score_against_ground_truth.py` calls `infer_frame` on the five fixtures at native size (1152×768, 1536×1024,
+    1448×1086, 1536×1024, 1402×1122), none of which is a compiled geometry, so `supports()` is false and arm B uses the
+    CPU loop.
+  - Controller: both arms at rung 30; 4 cameras 95.20 / 95.20 frames/s, 8 cameras 191.20 / 192.00.
+  - Throughput (median of 4 paired ratios): concurrency 1 76.47 → 74.34 frames/s, 0.974 (0.952–0.984);
+    concurrency 4 129.25 → 125.48, 0.971 (0.959–0.974); concurrency 8 129.77 → 125.19, 0.968 (0.957–0.983).
+  - The script printed `VALIDATION PASSED`: it gates correctness and the controller, and only prints throughput.
+- **Why it is slower: a second run with the stage timers.** The arms log a `metric:segment_timing` line per render,
+  and the validation script removes the containers at the end. `scripts/c4-diag.sh` (new, run on `bling`) starts both
+  arms with `start_arm`'s exact mounts and environment, runs `bench_ab.py --conc 1,4 --pairs 2`, and saves both logs.
+  It reproduced the result (0.963 at concurrency 1, 0.956 at 4). Medians per frame over 38 renders per arm,
+  concurrency 1 and 4 mixed:
+
+| ms per frame                  | Baseline | Candidate | Change |
+| ----------------------------- | -------: | --------: | -----: |
+| `infer_preprocess`            | 20.10    | 23.18     | +3.08  |
+| `infer_forward`               | 2.84     | 2.66      | −0.18  |
+| `infer_decode` + `infer_post` | 4.00     | 2.97      | −1.03  |
+| `infer_busy`                  | 7.05     | 5.58      | −1.47  |
+| wall                          | 28.18    | 30.04     | +1.86  |
+
+  - `infer_preprocess` + `infer_busy` is 97 % of the wall in both arms: the inference worker sets the pace.
+  - `preprocess_s` is measured in `submit_frame` after the slot is acquired (`t0` follows `self._pool.get()`): the CPU
+    letterbox into pinned memory and the enqueue of the upload, normalisation and forward on the slot's stream. That
+    code is the same in both arms, so its extra 3 ms is waiting on something shared within the process.
+  - Start-up, from arm B's log: `kiln mask post ready: 24 programs compiled in 1.5s, checked against the CPU loop in
+    1.3s`; `TRT engine ready in 3.5s` against arm A's 0.7 s.
+- **The shipped set's schedules, measured.** `mask_post.json` was exported with `--target rtx5090` (Step 6), and its
+  768x416 kernels at 8 and 100 masks are `TPB=64` in both passes. Step 11 had not timed those. I ran
+  `cuda-runner-smoke.mjs --target rtx5090` on `bling` (18 of 18 agree) and generalised `gb10-spec-check.mjs` with
+  `--other <spec>` so it can compare `gb10` with any spec, not just the fallback.
+
+| W-28 kernel (768x416)        | `gb10`              | µs   | fallback (48 SMs)   | µs   | `rtx5090` (170 SMs) | µs   |
+| ---------------------------- | ------------------- | ---: | ------------------- | ---: | ------------------- | ---: |
+| 8 masks, separable, pass 1   | TPB=1024            | 60.4 | TPB=1024            | 59.6 | TPB=64              | 50.3 |
+| 8 masks, separable, pass 2   | TPB=128             | 62.5 | TPB=1024            | 77.8 | TPB=64              | 59.4 |
+| 100 masks, separable, pass 1 | TPB=128, COARSEN=2  | 696  | TPB=1024, COARSEN=2 | 862  | TPB=64              | 738  |
+| 100 masks, separable, pass 2 | TPB=1024            | 1210 | TPB=1024, COARSEN=2 | 1047 | TPB=64              | 1064 |
+| 8 masks, direct              | TPB=1024, COARSEN=2 | 2705 | TPB=1024            | 7828 | TPB=64              | 279  |
+| 100 masks, direct            | TPB=64              | 3482 | same                | 3479 | same                | 3483 |
+
+- **What the `rtx5090` comparison says** (`various/pn/gb10-spec-check-rtx5090.md`):
+  - 11 of 18 kernels get different schedules (6 W-26, 5 W-28). Over those, `gb10`'s take 6,308 µs and `rtx5090`'s
+    3,705 µs. Without the direct form at 8 masks (2,705 against 279 µs), 3,603 against 3,426 µs.
+  - Ranking: `rtx5090`'s model orders the two schedules as the GPU does in 8 of 11; `gb10`'s in 3 of 11.
+  - W-26: `rtx5090`'s tiles take 2.5–7 % less time at 1,024 and 2,048 windows and 38–48 % more at 256 windows.
+  - Absolute accuracy, measured / modelled: W-26 `gb10` 0.98–1.43 (geometric mean 1.20), `rtx5090` 2.53–4.03 (3.10);
+    W-28 `gb10` 0.01–0.15 (0.04), `rtx5090` 0.06–0.31 (0.17).
+  - The fallback and `rtx5090` specs differ only in `sms` (48 against 170): both have `smemPerBlock` 48 KiB. So every
+    schedule that differs between those two columns differs because of the SM count.
+- **Figures** (`scripts/gb10-figures.py`, new): `timing` draws ms per frame against masks per frame for one or more
+  hosts; `spec` draws modelled against measured per spec; `schedules` draws each spec's measured time relative to the
+  fastest of them. Output: `various/figures/c4-timing-gb10.png`, `pn-spec-check-gb10.png`, `pn-schedules-gb10.png`.
+
+### Why
+
+- **Build where the GPU is.** The image's unique layers above the NGC base are small (the source, a 111 MB model layer,
+  the wheels), but a push from `dgx` still has to move them at 0.23 MB/s and verify the rest. The build needed only the
+  base, which `bling` pulls from NGC directly, and the branch, which is 46 MB as a bundle.
+- **C4 on `bling`, not `dgx`.** `dgx` runs seven production model processes. `validate_on_host.sh` starts two arms that
+  each build a TensorRT engine and then load the GPU for minutes; on `dgx` that would disturb the factory-live stack
+  and the stack would disturb the measurement.
+- **Time the shipped schedules.** Step 11's question was "does the measured spec help?". The question that matters for
+  Playback is "would re-exporting the set for `gb10` help?", and that needs the schedules the set already has.
+
+### What worked
+
+- The bundle-and-build route: 1.7 s to bundle, seconds to copy and clone, and build steps totalling about 13.5 minutes,
+  more than half of it the checkpoint download (344.6 s) and the mmcv compile (117.7 s).
+- Every correctness check on the second host: 25 of 25 tests, 0 differing pixels in the timing run, and gates a–c of
+  `validate_on_host.sh`.
+- Paired measurement: the two runs, 20 minutes apart, agree on the direction and roughly on the size (−2.6 to −3.2 %
+  and −3.7 to −4.4 %).
+
+### What didn't work
+
+- `docker run … --entrypoint python3 playback-redaction:kiln-002-ac835daa -m pytest …` failed with
+  `/usr/bin/python3: No module named pytest`. On `dgx` the same mistake had been avoided by installing pytest in the
+  container (Step 8); the production image does not ship test dependencies.
+- `scp manuel@bling.local:'kiln-002/out/{a,b,c}'` failed with `No such file or directory`: the brace list was not
+  expanded on the remote side. `ssh … tar cf - … | tar xf -` worked.
+- Waiting with `sleep 45; ssh …` was blocked by the harness, which asks for a background command instead; the waits
+  in this step are `while kill -0 <pid>; do sleep 15; done` loops run in the background.
+- The hypothesis `gb10-unchanged-or-better`: refuted (above).
+- `python3 scripts/parse_segment_timing.py --help` does not print usage; it opens `--help` as a log file
+  (`FileNotFoundError: [Errno 2] No such file or directory: '--help'`). The module docstring documents the usage.
+
+### What I learned
+
+- Step 11's conclusion was true but incomplete. The measured spec beats the fallback that a GB10 used to receive; it
+  does not beat the spec the shipped set was exported for. A cost model can be calibrated in its absolute numbers and
+  still rank schedules worse, because ranking depends on terms that calibration does not touch: here the SM count and
+  the gather accounting.
+- With 170 SMs the model prefers 64-thread blocks for W-28, and those are also the fastest on a 48-SM GB10. That is
+  agreement by coincidence, not by design: the model's W-28 estimates are 3–17 times too high under `rtx5090` and
+  7–115 times under `gb10`.
+- The two GB10 hosts differ by 5–32 % on the rows with 16 or more masks, which matches the read-bandwidth gap the probe
+  measured between the idle host and the shared one (258 against about 207 GB/s). The launch-bound rows of 1–2 masks
+  do not move.
+
+### What was tricky to build
+
+- Keeping real footage out of the repository. `validate_on_host.sh` writes rendered segments under its output
+  directory. Only its text and JSON reports are copied into the ticket; the `bench/` directory stays on `bling`.
+
+### What warrants a second pair of eyes
+
+- The `rtx5090` comparison covers two mask counts at one geometry. The shipped set has 24 programs with schedules
+  ranging from `TPB=64` to `TPB=1024`; the claim "the shipped schedules beat `gb10`'s" is measured for four of its 48
+  kernels.
+- The diagnosis rests on stage timers, which say where time is spent and not what it waits for. The three candidate
+  causes (the interpreter lock, the longer context hold, GPU sharing) are untested; each has a named measurement in the
+  report (`py-spy dump`, sampling `in_flight`, `nsys`).
+- The ground-truth row of the validation looks like evidence for the GPU path and is not (above). The script's
+  docstring presents it as the gate for "anything touching the engine, the input geometry or the precision"; it may be
+  worth scoring the fixtures at the pipeline's inference size as well.
+
+### What should be done in the future
+
+- Choose W-28's schedules by measurement on the target (Kiln's tuner over the runner), not by the model, until the
+  gather accounting is fixed. Then re-export the set from those measurements.
+- Run C4 on the RTX PRO 6000 host, which decides `post-moves-to-gpu`. It needs SSH access to
+  `playback@playback-rtx-dev`.
+- Profile arm B's inference thread under load on `bling` before any further GPU stages (§21 of the guide).
+- Report the GB10 result in Playback's performance doc beside the hypotheses C3 recorded there, on the branch.
+
+### Code review instructions
+
+- `scripts/gb10-spec-check.mjs`: `--other`, and the fallback construction it shares with `cuda-runner-smoke.mjs`.
+- `scripts/gb10-figures.py`: `load_checks` (the gb10 rows are taken from the first check; every check must come from
+  the same `gb10` smoke result).
+- Reproduce the comparison: `node scripts/cuda-runner-smoke.mjs --kiln <kiln> --host <gb10> --target rtx5090 --out c.json`,
+  then `node scripts/gb10-spec-check.mjs --kiln <kiln> a.json c.json --other rtx5090`.
+
+### Technical details
+
+- Evidence: `various/c4/bling-test-mask-post.txt`, `various/c4/mask-post-cuda-time-bling.json`,
+  `various/c4/bling-time-{before,after}.txt`, `various/c4/bling-time.log`, `various/c4/validate-bling/` (the script's text and JSON reports, the controller records, `bench/staged.json` and
+  the log; no rendered segments), `various/c4/diag-bling/` (both arms' logs, `throughput.{json,txt}`,
+  `timing-{a,b}.txt`), `scripts/c4-diag.sh`,
+  `various/pn/smoke-bling-rtx5090.{json,log}`, `various/pn/gb10-spec-check-rtx5090.{md,json}`,
+  `various/pn/gb10-spec-check.json` (re-written with an `other` field).
+- On `bling`: `~/code/playback-kiln-002` (clone of the bundle), image `playback-redaction:kiln-002-ac835daa`,
+  registry container `kiln002-registry` with `base-26.05` and `pb-obs-001-59c13eed4`, logs in `~/kiln-002/logs/`.

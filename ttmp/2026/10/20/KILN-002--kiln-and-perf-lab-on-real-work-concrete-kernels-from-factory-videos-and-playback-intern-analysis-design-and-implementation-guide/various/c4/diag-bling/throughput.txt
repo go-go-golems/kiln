@@ -1,0 +1,14 @@
+arm a (http://127.0.0.1:8221): backend=trt
+arm b (http://127.0.0.1:8222): backend=trt
+
+=== concurrency 1 ===
+  pair 0: a=  77.18 f/s   b=  75.83 f/s   ratio=0.983
+  pair 1: a=  79.40 f/s   b=  74.98 f/s   ratio=0.944
+  -> a=78.29  b=75.41  ratio median=0.963 (min 0.944, max 0.983)  => -3.7%
+
+=== concurrency 4 ===
+  pair 0: a= 131.23 f/s   b= 124.78 f/s   ratio=0.951
+  pair 1: a= 130.26 f/s   b= 125.22 f/s   ratio=0.961
+  -> a=130.75  b=125.00  ratio median=0.956 (min 0.951, max 0.961)  => -4.4%
+
+wrote /home/manuel/kiln-002/c4-diag/throughput.json

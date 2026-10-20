@@ -69,3 +69,13 @@ Steps 10–11: kiln-perf image (runner/docker, Kiln 3c71c0d) self-tests 5/5 on t
 - /Volumes/SSD/code/kiln/runner/docker/README.md — kiln-perf image
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/gb10-spec-check.mjs — spec comparison script
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/pn/gb10-spec-check.md — gb10 vs fallback schedules, model vs measured
+
+## 2026-10-20 - C4 on the DGX Spark: correct, 3 % slower
+
+Step 12: the C3 branch's own redaction image built on bling (ac835daa); mask-post tests 25/25 and 0 differing pixels in the timing run there; validate_on_host.sh with REDACTION_MASK_POST=kiln passes every correctness gate but the candidate is 2.6-3.2 % slower at concurrency 1/4/8 (gb10-unchanged-or-better refuted); stage timers: post-pass -1.0 ms/frame, preprocess +3.1 ms/frame; the ground-truth gate does not exercise the GPU path. Also: the shipped set's rtx5090 schedules beat the measured gb10 spec's on the GB10 (b8534b2).
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/c4-diag.sh — re-runs both arms and keeps their stage timers
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/c4/diag-bling/timing-b.txt — candidate stage timers
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/c4/validate-bling/throughput.txt — C4 paired throughput on bling
