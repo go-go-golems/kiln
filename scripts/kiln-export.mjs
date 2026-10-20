@@ -3,7 +3,9 @@
 // launch order, a buffer table, dispatch geometry, and each kernel's identity (KILN-002 guide §29.2).
 //
 //   node scripts/kiln-export.mjs (--preset W-12 | --script path.js) [options]
-//     --param NAME=VALUE  set a parameter; repeatable (the script's defaults fill the rest)
+//     --param NAME=VALUE  set a parameter; repeatable (the script's defaults fill the rest). VALUE may be a
+//                         comma-separated list: every combination is compiled and the output is a kiln-program-set/1,
+//                         { format, programs: [kiln-program/1, ...] }, in the order the combinations are listed
 //     --target ID         webgpu (default: WebGPU's guaranteed limits) or a CUDA spec: rtx5090 rtx4090 h100 a100 orin
 //     --name NAME         program name (default: the project's)
 //     --out PATH          write here (default: stdout)
@@ -53,25 +55,33 @@ function scriptPath(o) {
   return join(PRESETS, f);
 }
 
+function compileOne(pins) {
+  const c = compileScript(text, { params: paramSet([]), target, pins });
+  const at = Object.entries(pins).map(([k, v]) => `${k}=${v}`).join(" ");
+  for (const d of c.diags || []) process.stderr.write(`${at}: ${d.level}${d.line ? ` line ${d.line}` : ""}: ${d.message}\n`);
+  if (!c.ok || !c.prog) { process.stderr.write(`${at}: compile failed\n`); process.exit(1); }
+  if (o.check) {
+    const { e2e } = endToEnd(c.run, c.graph, c.project);
+    const status = e2e.error ? `error: ${e2e.error}` : e2e.skipped ? `skipped: ${e2e.skipped}` : e2e.ok ? `ok at ${e2e.level}` : "FAILED";
+    process.stderr.write(`${at}: end-to-end check ${status}\n`);
+    if (e2e.error || (!e2e.skipped && !e2e.ok)) process.exit(1);
+  }
+  const values = Object.fromEntries([...c.project._params].map((p) => [p.name, c.params.get(p)]));
+  const program = exportProgram(c.run, c.prog, { name: o.name || c.project.name, params: values, target, source });
+  process.stderr.write(`${at}: ${program.kernels.map((k) => `${k.name} ${k.row}`).join("; ")}\n`);
+  return program;
+}
+
 const o = parseArgs(process.argv.slice(2));
 const spec = o.target === "webgpu" ? WEBGPU_DEFAULT : SPECS[o.target];
 if (!spec) { process.stderr.write(`unknown target ${o.target}; one of webgpu ${Object.keys(SPECS).join(" ")}\n`); process.exit(2); }
 const target = mkTarget(spec);
 const file = scriptPath(o), text = readFileSync(file, "utf8");
-const c = compileScript(text, { params: paramSet([]), target, pins: o.params });
-for (const d of c.diags || []) process.stderr.write(`${d.level}${d.line ? ` line ${d.line}` : ""}: ${d.message}\n`);
-if (!c.ok || !c.prog) { process.stderr.write("compile failed\n"); process.exit(1); }
-if (o.check) {
-  const { e2e } = endToEnd(c.run, c.graph, c.project);
-  const status = e2e.error ? `error: ${e2e.error}` : e2e.skipped ? `skipped: ${e2e.skipped}` : e2e.ok ? `ok at ${e2e.level}` : "FAILED";
-  process.stderr.write(`end-to-end check ${status}\n`);
-  if (e2e.error || (!e2e.skipped && !e2e.ok)) process.exit(1);
-}
-const values = Object.fromEntries([...c.project._params].map((p) => [p.name, c.params.get(p)]));
-const program = exportProgram(c.run, c.prog, {
-  name: o.name || c.project.name, params: values, target,
-  source: { path: relative(ROOT, file), sha256: createHash("sha256").update(text).digest("hex") },
-});
-const json = JSON.stringify(program, null, 1) + "\n";
+const source = { path: relative(ROOT, file), sha256: createHash("sha256").update(text).digest("hex") };
+// every combination of the listed values, first parameter slowest
+const combos = Object.entries(o.params).reduce((acc, [k, v]) => acc.flatMap((c) => v.split(",").map((x) => ({ ...c, [k]: x }))), [{}]);
+const programs = combos.map(compileOne);
+const result = combos.length === 1 ? programs[0] : { format: "kiln-program-set/1", programs };
+const json = JSON.stringify(result, null, 1) + "\n";
 if (o.out) writeFileSync(o.out, json); else process.stdout.write(json);
-process.stderr.write(`${program.name}: ${program.kernels.length} kernel${program.kernels.length === 1 ? "" : "s"}, ${program.buffers.length} buffers → ${o.out || "stdout"}\n`);
+process.stderr.write(`${programs.length} program${programs.length === 1 ? "" : "s"} → ${o.out || "stdout"}\n`);
