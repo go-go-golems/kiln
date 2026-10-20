@@ -1,0 +1,27 @@
+-- before: none listed above means idle
+== kiln_launch_old
+  File "/home/manuel/kiln-002/kiln_launch_old.py", line 61, in open_program
+    return CudaProgram(p, **kw)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/kiln-002/kiln_launch_old.py", line 345, in __init__
+    cu.check(cu.cu.cuMemAlloc_v2(ctypes.byref(p), b["bytes"]), f"cuMemAlloc ({b['bytes']} bytes)")
+  File "/home/manuel/kiln-002/kiln_launch_old.py", line 274, in check
+    raise RuntimeError(f"{what}: {(name.value or b'?').decode()} ({r}): {(text.value or b'').decode()}")
+RuntimeError: cuMemAlloc (67174416 bytes): CUDA_ERROR_CONTEXT_IS_DESTROYED (709): context is destroyed
+exit 0
+== kiln_launch_new
+ok   attention.out: 1024 values, max |Δ| 8.94e-08, 0 outside rtol 1e-3 / atol 1e-4; build 259.9 ms, first run 0.1 ms, second 0.0 ms (cuda, NVIDIA GB10 sm_121 via {'cubin'})
+ok   blur-2d-grid.out: 4096 values, max |Δ| 0.00e+00, 0 outside rtol 1e-3 / atol 1e-4; build 181.0 ms, first run 46.5 ms, second 47.0 ms (cuda, NVIDIA GB10 sm_121 via {'cubin'})
+ok   blur-small.out: 6144 values, max |Δ| 0.00e+00, 0 outside rtol 1e-3 / atol 1e-4; build 170.3 ms, first run 0.3 ms, second 0.0 ms (cuda, NVIDIA GB10 sm_121 via {'cubin'})
+ok   grey-u8.grey: 3072 values, max |Δ| 0.00e+00, 0 outside rtol 1e-3 / atol 1e-4; build 184.4 ms, first run 0.1 ms, second 0.0 ms (cuda, NVIDIA GB10 sm_121 via {'cubin'})
+ok   mlp.y: 1024 values, max |Δ| 2.12e-07, 0 outside rtol 1e-3 / atol 1e-4; build 219.6 ms, first run 0.1 ms, second 0.0 ms (cuda, NVIDIA GB10 sm_121 via {'cubin'})
+exit 0
+ok   attention.out: 1024 values, max |Δ| 8.94e-08, 0 outside rtol 1e-3 / atol 1e-4; build 302.8 ms, first run 0.1 ms, second 0.0 ms (cuda, NVIDIA GB10 sm_121 via {'cubin'})
+Traceback (most recent call last):
+RuntimeError: cuMemAlloc (67174416 bytes): CUDA_ERROR_CONTEXT_IS_DESTROYED (709): context is destroyed
+nvrtc 13 0
+lrwxrwxrwx 1 root root       14 Aug 20  2025 /usr/local/cuda/lib64/libnvrtc.so -> libnvrtc.so.13
+lrwxrwxrwx 1 root root       19 Aug 20  2025 /usr/local/cuda/lib64/libnvrtc.so.13 -> libnvrtc.so.13.0.88
+	libnvrtc.so.13 (libc6,AArch64) => /usr/local/cuda/targets/sbsa-linux/lib/libnvrtc.so.13
+	libnvrtc.so (libc6,AArch64) => /usr/local/cuda/targets/sbsa-linux/lib/libnvrtc.so
+	libnvrtc-builtins.so.13.0 (libc6,AArch64) => /usr/local/cuda/targets/sbsa-linux/lib/libnvrtc-builtins.so.13.0

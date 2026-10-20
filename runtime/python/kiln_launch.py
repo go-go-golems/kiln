@@ -240,7 +240,8 @@ class _Cuda:
         sig = {
             "cuInit": [ctypes.c_uint], "cuDeviceGet": [P(I), I], "cuDeviceGetAttribute": [P(I), I, I],
             "cuDeviceGetName": [ctypes.c_char_p, I, I],
-            "cuCtxGetCurrent": [P(VP)], "cuCtxSetCurrent": [VP], "cuDevicePrimaryCtxRetain": [P(VP), I], "cuDevicePrimaryCtxRelease_v2": [I],
+            "cuCtxGetCurrent": [P(VP)], "cuCtxSetCurrent": [VP], "cuCtxGetApiVersion": [VP, P(ctypes.c_uint)],
+            "cuDevicePrimaryCtxRetain": [P(VP), I], "cuDevicePrimaryCtxRelease_v2": [I],
             "cuModuleLoadData": [P(VP), ctypes.c_char_p], "cuModuleGetFunction": [P(VP), VP, ctypes.c_char_p], "cuModuleUnload": [VP],
             "cuMemAlloc_v2": [P(U64), ctypes.c_size_t], "cuMemFree_v2": [U64],
             "cuMemcpyHtoD_v2": [U64, ctypes.c_void_p, ctypes.c_size_t], "cuMemcpyDtoH_v2": [ctypes.c_void_p, U64, ctypes.c_size_t],
@@ -306,9 +307,9 @@ class _Cuda:
 
 
 class CudaProgram(Program):
-    """Kernels compiled with NVRTC for the current device, buffers allocated with cuMemAlloc. Uses the context already
-    current on this thread (PyTorch's, for example) and otherwise retains the device's primary context, which is the
-    one the CUDA runtime uses, so pointers from either are interchangeable.
+    """Kernels compiled with NVRTC for the current device, buffers allocated with cuMemAlloc. Runs in the device's
+    primary context, the one the CUDA runtime (and so PyTorch) uses, so pointers from either are interchangeable; each
+    program holds a reference to it until ``close``. A live non-primary context current on this thread is used as found.
 
     ``allocate=False`` allocates only the constant buffers: the caller passes a pointer for every input and output to
     ``launch``, and one for every buffer in ``scratch`` (the intermediates between kernels). Two launches that run at the
@@ -319,14 +320,22 @@ class CudaProgram(Program):
         cu = self._cuda = _Cuda.get()
         d = ctypes.c_int()
         cu.check(cu.cu.cuDeviceGet(ctypes.byref(d), device), "cuDeviceGet")
-        self.device, self._retained = d.value, False
-        ctx = ctypes.c_void_p()
-        cu.check(cu.cu.cuCtxGetCurrent(ctypes.byref(ctx)), "cuCtxGetCurrent")
-        if not ctx.value:
-            cu.check(cu.cu.cuDevicePrimaryCtxRetain(ctypes.byref(ctx), self.device), "cuDevicePrimaryCtxRetain")
-            cu.check(cu.cu.cuCtxSetCurrent(ctx), "cuCtxSetCurrent")
-            self._retained = True
-        self._ctx = ctx.value
+        self.device = d.value
+        current, primary = ctypes.c_void_p(), ctypes.c_void_p()
+        cu.check(cu.cu.cuCtxGetCurrent(ctypes.byref(current)), "cuCtxGetCurrent")
+        # Every program holds its own reference to the primary context. One reference shared by all the programs of a
+        # thread is released by whichever closes first, which destroys the context under the others and leaves the
+        # thread naming it, so the next program fails with CUDA_ERROR_CONTEXT_IS_DESTROYED.
+        cu.check(cu.cu.cuDevicePrimaryCtxRetain(ctypes.byref(primary), self.device), "cuDevicePrimaryCtxRetain")
+        self._retained = True
+        if current.value and current.value != primary.value and cu.cu.cuCtxGetApiVersion(current, ctypes.byref(ctypes.c_uint())) == 0:
+            cu.cu.cuDevicePrimaryCtxRelease_v2(self.device)    # a live context the caller created: use it as found
+            self._retained = False
+            self._ctx = current.value
+        else:
+            if current.value != primary.value:
+                cu.check(cu.cu.cuCtxSetCurrent(primary), "cuCtxSetCurrent")
+            self._ctx = primary.value
         major, minor = ctypes.c_int(), ctypes.c_int()
         cu.check(cu.cu.cuDeviceGetAttribute(ctypes.byref(major), CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, self.device), "cuDeviceGetAttribute")
         cu.check(cu.cu.cuDeviceGetAttribute(ctypes.byref(minor), CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, self.device), "cuDeviceGetAttribute")
