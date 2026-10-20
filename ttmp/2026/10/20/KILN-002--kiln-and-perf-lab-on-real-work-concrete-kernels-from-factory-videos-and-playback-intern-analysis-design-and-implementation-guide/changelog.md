@@ -49,3 +49,13 @@ Example C, C1–C3: W-28 mask post-processing is bit-exact with Playback (0 of 6
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/nvrtc-compile-check.py — NVRTC-only compile check of a kiln-program-set
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/c3/nvrtc-13.2-arm64.json — 96/96 NVRTC 13.2 compiles, sm_120 and sm_121
 - /Volumes/SSD/code/playback-kiln-002/services/redaction/src/mask_post.py — Playback consumer of the W-28 program set
+
+## 2026-10-20 - GB10 hosts: first NVIDIA run, launcher fix, timing
+
+Step 8–9: W-28 kernels pass Playback's test file inside the redaction image on a GB10 (25/25); launcher context bug fixed (7bcfc06), fixtures pass on bling; GB10 timing of the kiln mask path (0 differing pixels; 6.8x faster than the CPU loop at 100 masks, 768x416); executor probe of bling; bench recordings for C4
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/make-bench-recordings.sh — recorder-shaped bench tree from factory footage
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/mask-post-cuda-time.py — timing script run inside the redaction image
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/c4/mask-post-cuda-time-dgx.json — GB10 timing of REDACTION_MASK_POST=kiln vs the CPU loop

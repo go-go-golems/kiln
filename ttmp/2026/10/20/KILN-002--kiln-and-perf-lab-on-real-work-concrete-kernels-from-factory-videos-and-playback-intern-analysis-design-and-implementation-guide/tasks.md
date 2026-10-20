@@ -24,4 +24,4 @@
 - [ ] PN NVIDIA session (needs permission): runner smoke test, target specs, B on Spark <!-- t:tpbv -->
 - [ ] PE kiln-paired/1 importer, lab programs per example, corresponds_to edges — BLOCKED: the importer belongs in Perf Lab lab-workbench/server/runner.ts, which this ticket must not modify; Kiln's server answers lab job execution with 501 and has no executor for plan status 'import'. Records are ready in various/a4/records/ <!-- t:mo71 -->
 - [x] PR vault report per example with measurements, verdicts and screenshots — vault 594f801, Projects/2026/10/20/ (Examples A, B, C) <!-- t:jram -->
-- [ ] PN.1 kiln_launch.py cuda backend: run the fixture check on an NVIDIA host (written, untested on hardware) <!-- t:6tbh -->
+- [x] PN.1 kiln_launch.py cuda backend: run the fixture check on an NVIDIA host (written, untested on hardware) <!-- t:6tbh -->

@@ -954,3 +954,289 @@ work done, in much much detail. Take screenshots appropriately as well").
 - C4, PN and PN.1 need SSH permission to the GPU hosts.
 - PE is blocked by the constraint on `lab-workbench`.
 - The Playback `docker-compose.yml` line needs a commit decision (Step 6).
+
+## Step 8: Two GB10 hosts — setup, the kernels' first NVIDIA run, and a launcher context bug (PN.1)
+
+The user gave access to two GB10 machines, so the NVIDIA steps that Steps 6 and 7 left open could start. On `dgx` the
+W-28 kernels ran on NVIDIA hardware for the first time. That was Playback's own test file inside the production
+redaction image, and it passed 25 of 25 with the GPU class included. The first timing script then failed in a way that
+exposed a real defect in Kiln's CUDA launcher. Only the first program on a thread took a reference to the device's
+primary context, so closing that program destroyed the context under every other program. Kiln's own fixture check
+(PN.1) fails on its second fixture because of this. The fix is Kiln `7bcfc06`. On the fresh machine `bling`, the old
+launcher fails at fixture 2 and the fixed one passes all five.
+
+### Prompt Context
+
+**User prompts (verbatim, in order):**
+
+- "use playback@dgx"
+- "also try manuel@bing.local but that's a completely fresh install dgx spark so that might need some work."
+- "there's a root tmux open "admin" which you can use to install additional software. btw commit at appropriate
+  intervals and keep a detailed diary as you work (using the diary format from the skill). So that I can trace all you
+  did. Then also Write a detailed project report for the obsidian vault in ~/code/tulip/playback-vault (instead of
+  go-go-parc) as a deep dive technical analysis blog post using a textbook writing style (no analogies, see skill).
+  Commit and push the playback-vault when done. once you are done"
+- "or actually amend the report you just wrote"
+- "can I view this in a browser btw?"
+- "alright, don't forget the diary, i'm going out to get lunch, so you have time to be thorough. I want a great report!"
+
+**Assistant interpretation:**
+- SSH permission is granted for `playback@dgx` and for the fresh Spark. Its mDNS name is `bling.local`: `bing.local` did
+  not resolve, and `dns-sd -B _ssh._tcp` advertises "bling".
+- Run the open NVIDIA steps: C4, PN.1, and what PN can do without the motion-grey kernels that B never built.
+- Install what the fresh host needs through the root tmux session.
+- Fold the results into the existing vault reports rather than writing a new one.
+
+**Inferred user intent:** Evidence from real NVIDIA hardware for the claims the reports could only predict, with a
+trail detailed enough to audit every host-side action.
+
+### What I did
+
+- **Probed both hosts** (read-only):
+  - `dgx` (`gx10-b2d2`): GB10, capability 12.1, driver 580.159.03, Ubuntu 24.04.4, 20 cores, 121 GB. `playback` is in
+    `docker`. It is not idle: the `factory-live` stack's model servers hold about 8.4 GB of GPU memory across seven
+    Python processes at 8–10 % utilisation, and Playback's observability stack runs beside it. It has no Playback
+    redaction service and no recordings (`/data/playback/nvr-recordings` is 88 KB with zero `.ts` files). It does have
+    `playback-redaction:pb-obs-001-59c13eed4` (24.5 GB), built from the same NGC 26.05 base the branch pins: CUDA
+    13.2.1, TensorRT 10.16.1.11, torch 2.12.0a0, OpenCV 4.13.0, `/usr/local/cuda/lib64/libnvrtc.so.13.2.78`.
+  - `bling`: GB10, capability 12.1, driver 580.178.04, Ubuntu 24.04.5, 20 cores, 121 GB, 3.5 TB free, GPU idle with no
+    compute processes. It has CUDA 13.0.88 at `/usr/local/cuda`, docker-ce 29.6.2 and nvidia-container-toolkit
+    1.20.1, but no `/etc/docker/daemon.json`, `manuel` not in `docker`, no numpy and no uv.
+- **Set up `bling` through the root tmux session `admin`.** The pane runs `sudo`, and `id` there prints `uid=0(root)`.
+  - A helper script, `/Volumes/SSD/tmp/kiln-002/hosts/bling-root.sh`, sends one command into the pane, redirects its
+    output to `/tmp/KILN002_<epoch>_<pid>.log`, and polls a `.done` file.
+  - Commands run as root, all at 14:17 EDT:
+    - `nvidia-ctk runtime configure --runtime=docker`, which wrote `/etc/docker/daemon.json` with the `nvidia` runtime;
+    - `systemctl restart docker`;
+    - `usermod -aG docker manuel`.
+  - Check: `docker run --rm --gpus all ubuntu:24.04 nvidia-smi -L` prints
+    `GPU 0: NVIDIA GB10 (UUID: GPU-c6e7f17e-…)`.
+  - As `manuel`, in user space: uv 0.13.4 via the official installer, into `~/.local/bin`.
+- **Put the C3 branch on `dgx` without touching its checkout.** I pushed `perf/kiln-002-redaction-mask-post` to
+  `playback@dgx:code/playback` and ran `git worktree add ~/code/worktrees/kiln-002 …` (HEAD `cdfb0d8c9`).
+  `~/code/playback` stays on its own `main` (`502d965cc`), and its working tree is untouched.
+- **Ran the kernels on NVIDIA for the first time** (`dgx`). The command was
+  `docker run --rm --gpus all -v ~/code/worktrees/kiln-002/services/redaction:/w:ro -w /w -e PYTHONPATH=/w --entrypoint sh playback-redaction:pb-obs-001-59c13eed4 -c "pip install -q pytest; python3 -m pytest -p no:cacheprovider -q -rs tests/test_mask_post.py"`.
+  Result: `25 passed`, no skips. `TestOnGpu` therefore ran:
+  - `load()` compiled all 48 kernels with NVRTC 13.2.78 and self-checked every program against the CPU loop;
+  - the fixture people matched `_post_cpu` exactly at 768x416, 640x480 and 768x576;
+  - two frames on two streams matched.
+  The `nvidia-smi` co-tenant list was identical before and after (`various/c4/dgx-test-mask-post.txt`).
+- **Wrote `scripts/mask-post-cuda-time.py`** to time the engine's entry points (`run()` plus the host copy, the
+  kernels alone through CUDA events, and the CPU loop) on a CUDA host. Its first run on `dgx` failed:
+  `KilnUnavailable: RuntimeError: cuModuleLoadData k_ew__l7ufynazfl: CUDA_ERROR_CONTEXT_IS_DESTROYED (709): context is destroyed`.
+- **Diagnosed and fixed the launcher** (Kiln `7bcfc06`); the mechanism is under What didn't work.
+  - Tests first: the fake driver now models the primary context's reference count, and `cuModuleLoadData` and
+    `cuLaunchKernel` return 709 in a destroyed context. Three new tests were added; the two about reference counts
+    failed before the fix (`AssertionError: 1 != 2`).
+  - The fix: every `CudaProgram` retains the primary context and releases its own reference in `close()`. A live
+    non-primary context current on the thread is still used as found, checked with the newly bound
+    `cuCtxGetApiVersion`.
+  - Result: `python runtime/python/test_kiln_launch.py` reports 7 tests OK.
+- **PN.1 on `bling`.** `node runtime/test/fixtures.mjs` produced the five fixtures, and I copied them to `bling` with
+  both launchers. Command:
+  `uv run --python 3.12 --with numpy python kiln_launch_{old,new}.py check fixtures --backend cuda`.
+  - The old launcher passes `attention`, then fails with
+    `RuntimeError: cuMemAlloc (67174416 bytes): CUDA_ERROR_CONTEXT_IS_DESTROYED (709): context is destroyed`.
+  - The new launcher passes all five, each via a cubin for sm_121 compiled by NVRTC 13.0 from the host toolkit.
+    `various/pn1/bling-gb10-fixture-check.txt` has the output.
+
+| Fixture      | values | max \|Δ\| | build    | first run | second run |
+| ------------ | -----: | --------: | -------: | --------: | ---------: |
+| attention    | 1024   | 8.94e-08  | 259.9 ms | 0.1 ms    | 0.0 ms     |
+| blur-2d-grid | 4096   | 0         | 181.0 ms | 46.5 ms   | 47.0 ms    |
+| blur-small   | 6144   | 0         | 170.3 ms | 0.3 ms    | 0.0 ms     |
+| grey-u8      | 3072   | 0         | 184.4 ms | 0.1 ms    | 0.0 ms     |
+| mlp          | 1024   | 2.12e-07  | 219.6 ms | 0.1 ms    | 0.0 ms     |
+
+### Why
+
+- **Test inside the production image, not on the host.** The service compiles with the image's NVRTC (13.2.78) and
+  loads `libcuda` from the host driver. That pairing is the one to qualify, and the fixtures check on `bling` covers
+  the other one: the host toolkit's NVRTC 13.0.
+- **Fix the launcher rather than reorder the script.** Calling a CUDA op from torch first would have made the script
+  work and left the defect for the next caller. `check --backend cuda` is one such caller: it opens and closes one
+  program per fixture.
+- **Keep the original checkout on `dgx` untouched.** It belongs to other work (five worktrees hang off it); a separate
+  worktree adds one branch and one directory.
+
+### What worked
+
+- Docker GPU access on `bling` after one `nvidia-ctk` configure and a restart.
+- The production image's NVRTC compiled every W-28 kernel for sm_121 on the first try, and the load-time self-check
+  passed.
+
+### What didn't work
+
+- `ssh manuel@bing.local`: `Could not resolve hostname bing.local`. Browsing mDNS found `bling SSH`, and
+  `manuel@bling.local` connected.
+- `docker info` on `bling` as `manuel`: `permission denied while trying to connect to the docker API at
+  unix:///var/run/docker.sock`, and `sudo -n true` reported `a password is required`. Both were fixed through the root
+  pane.
+- **The context bug, mechanism.**
+  - Before the fix, `CudaProgram.__init__` retained the primary context only when `cuCtxGetCurrent` returned null, and
+    then made it current.
+  - Every later program on that thread found it current, took no reference, and stored the same handle.
+  - `close()` released the reference only in the program that had taken it. Closing the first program therefore took
+    the count to 0, which destroys the primary context, while the thread still named it.
+  - The next program found a non-null current context, took no reference, and failed on its first driver call.
+  - In my timing script, the compile-only pass (open 24, close 24) did exactly this before torch had touched CUDA.
+- **Why Playback's engine never saw it.** The TensorRT engine and torch initialise the CUDA runtime before
+  `KilnMaskPost.load`, and the runtime holds its own reference to the primary context until the process exits. The
+  count never reached 0.
+
+### What I learned
+
+- "Use the current context, else retain" is only correct if every user of the retained context holds its own
+  reference. The primary context is reference-counted per retain, not per thread.
+
+### What was tricky to build
+
+- Driving a root shell I cannot see. The helper wraps each command in `{ …; } > log 2>&1; echo rc=$? >> log; touch done`
+  and polls over a second SSH connection, so every root action leaves a log file with its exit code.
+
+### What warrants a second pair of eyes
+
+- The live-non-primary branch in the fixed launcher retains the primary context and releases it at once, which can
+  initialise the primary context on a device where nothing else uses it. No current consumer reaches that branch.
+- `dgx` is shared: every number from it must carry its co-tenant list.
+
+### What should be done in the future
+
+- Re-vendor the fixed launcher into the Playback branch (next step), so that the vendored header names `7bcfc06`.
+
+### Code review instructions
+
+- Kiln `7bcfc06`: `runtime/python/kiln_launch.py` (`CudaProgram.__init__`, the signature table) and
+  `runtime/python/test_kiln_launch.py` (`FakeDriver`, `CudaProgramContexts`).
+- Reproduce on a CUDA host:
+  `node runtime/test/fixtures.mjs F && python runtime/python/kiln_launch.py check F --backend cuda`.
+
+### Technical details
+
+- Host setup commands on `bling` (root, via tmux `admin`):
+  `nvidia-ctk runtime configure --runtime=docker && systemctl restart docker && usermod -aG docker manuel`.
+- `/etc/docker/daemon.json` on `bling` afterwards:
+  `{"runtimes": {"nvidia": {"args": [], "path": "nvidia-container-runtime"}}}`.
+
+## Step 9: The W-28 path timed on a GB10, the launcher re-vendored, the executor's first probe, and bench inputs for C4
+
+With the launcher fixed, the timing script from Step 8 ran to completion on `dgx`. It ran inside the production
+redaction image with the re-vendored launcher. Every timed GPU output equalled the CPU loop: 0 differing pixels over
+24 rows × 15 repetitions. At 100 masks the GPU path is 5–7 times faster than the CPU loop on the same machine. At one
+mask it is about 4 times faster. The fixed costs are paid once per process: 0.26 s to initialise CUDA and 1.69 s for
+`load()`. The Kiln executor's device probe also reached `bling` over SSH, which is the first time Kiln's server-side
+CUDA executor has talked to a real GPU host. Finally, the GB10 hosts hold no recordings, so I built a recorder-shaped
+tree of real factory footage for `validate_on_host.sh`.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 8. No new instruction arrived during this step apart from "yeah, having a
+kiln/perf only image would be interesting, if possible", which is Step 10's subject.
+
+**Assistant interpretation:** Finish the measurements Step 8 started, before moving to the host-level C4 comparison.
+
+**Inferred user intent:** GB10 numbers for the claim that the GPU mask path is cheaper than the CPU loop, and inputs for
+the whole-service comparison.
+
+### What I did
+
+- **Re-vendored the launcher into Playback** (`ac835daa9`, on top of C3 `cdfb0d8c9`). The vendored header now names
+  Kiln `7bcfc06655af751a4625768ba55d94e77bd4c548`. The commit message records why the engine itself was not exposed.
+  Torch's runtime holds the primary context before `KilnMaskPost.load` runs. I fast-forwarded the `dgx` worktree to it
+  through a side ref (`kiln-002-incoming`), because pushing to a checked-out branch is refused.
+- **Timed the path on `dgx`.** I ran `scripts/mask-post-cuda-time.py` in
+  `playback-redaction:pb-obs-001-59c13eed4`, with the worktree's `services/redaction` mounted at `/w` and on
+  `PYTHONPATH`. Each cell is a median of 15 repetitions after 3 warm-up repetitions.
+  - Evidence: `various/c4/mask-post-cuda-time-dgx.json`, plus the co-tenant snapshots `various/c4/dgx-time-before.txt`
+    and `dgx-time-after.txt`.
+  - The seven `factory-live` processes, about 8.4 GB in all, were identical before (14:25:59) and after (14:26:11).
+    GPU utilisation was 11 % and 10 %, the SM clock 2431 MHz of 3003 MHz, power 23–27 W.
+  - Fixed costs: `cuda_init_s` 0.257, `compile_s` 1.621 (24 programs, NVRTC 13.2.78, no self-check), `load_s` 1.687
+    (compile plus the self-check against the CPU loop).
+
+| 768x416, masks       |     1 |     2 |     4 |     8 |    16 |    32 |     64 |    100 |
+| -------------------- | ----: | ----: | ----: | ----: | ----: | ----: | -----: | -----: |
+| gpu: run + copy (ms) | 0.052 | 0.075 | 0.128 | 0.257 | 0.633 | 1.179 |  2.381 |  3.340 |
+| kernels only (ms)    | 0.035 | 0.051 | 0.088 | 0.164 | 0.398 | 0.833 |  1.812 |  2.516 |
+| CPU loop (ms)        | 0.224 | 0.429 | 0.840 | 1.750 | 3.725 | 6.731 | 14.261 | 22.626 |
+
+| 100 masks | gpu (ms) | kernels (ms) | CPU (ms) | CPU / gpu |
+| --------- | -------: | -----------: | -------: | --------: |
+| 768x416   |    3.340 |        2.516 |   22.626 |      6.8x |
+| 640x480   |    3.914 |        3.120 |   18.581 |      4.7x |
+| 768x576   |    4.585 |        3.812 |   28.889 |      6.3x |
+
+- **Probed `bling` through Kiln's executor.** Command:
+  `node scripts/cuda-runner-smoke.mjs --kiln /Volumes/SSD/code/kiln --host manuel@bling.local --device-only --out …/pn/bling-device.json`.
+  The script drives `apps/server/src/executors/cuda-runner.ts`, so the run exercised the real install step: the runner
+  was copied as `~/.cache/kiln-runner/kiln_runner-2ca2cf1a04be49ea.py`, then `device` ran. The probe took 2365 ms,
+  most of it the `nvcc` build of the device query. The report is in `various/pn/bling-device.json`:
+  `NVIDIA GB10, cc 12.1, 48 SMs, 48 KiB shared memory per block, 100 KiB per SM, 65536 registers per SM,
+  1536 threads per SM, clockMHz 2418, memClockMHz 8533, busBits 256, 121.7 GB, L2 24 MB, runtime and driver 13.0`,
+  `maxSmClockMHz 3003`.
+- **Built bench inputs** with `scripts/make-bench-recordings.sh /Volumes/SSD/data/factory-shots/sources
+  /Volumes/SSD/tmp/kiln-002/bench-recordings`. It took 54 s of wall time, and the tree is 214 MB.
+  - Layout: 4 synthetic cameras (`4b1e0c52-0000-4000-8000-00000000000a…d`, the left and right section tables on
+    2026-09-21 and 2026-09-23), hours 2026-10-19 08–10 UTC, 12 segments of 6 s per hour, 144 segments in all.
+  - `ffprobe` of one segment: `h264 1920x1080 24/1, 144 frames, duration 6.000000`. That is one keyframe per segment,
+    the recorder's 1080p24 shape.
+  - The footage shows people at work. It stays on the measurement hosts and in `/Volumes/SSD/tmp`, and never appears
+    in a report.
+
+### Why
+
+- **Time the engine's entry points, not the kernels in isolation.** `gpu_ms` includes the pad, both kernels and the
+  copy of the source-sized masks back to the host. That is what `_collect_with_slot` pays per frame. `kernel_ms` is
+  reported separately so that the copy's share is visible: at 100 masks it is about 0.8 ms of 3.3 ms.
+- **Synthetic camera ids, real footage.** `stage_bench_inputs.py` keeps only segments in which the service finds
+  people, so synthetic video would stage nothing. The ids are made up so that nothing in the tree can be mistaken for
+  a real Playback camera.
+
+### What worked
+
+- Bit-exactness held at all 24 timed points (0 differing pixels), on a different NVRTC (13.2.78) and a different CPU
+  (Grace) from the Mac runs.
+- The executor's install step behaved as designed: the runner is content-addressed on the host, and a second probe
+  reuses the file.
+
+### What didn't work
+
+- Nothing failed in this step. One row is noisy: 640x480 with 1 mask reports `gpu_ms` 0.130 but `kernel_ms` 0.169,
+  more than the wall-clock figure that contains it. It is the first row of a new geometry on a shared GPU. I report it
+  as measured and use only the 100-mask rows for ratios.
+
+### What I learned
+
+- The GB10's CPU loop costs about 0.22 ms per mask at 768x416. The M1 Pro's cost 0.43–0.48 ms (Step 6). A Grace core
+  is about twice as fast at this OpenCV loop, which shrinks the absolute saving on this host but does not reverse it.
+- The GPU path's per-mask cost is about 0.033 ms at 768x416, including the copy: (3.340 − 0.052) / 99.
+
+### What was tricky to build
+
+- Getting the `dgx` worktree to a new commit without touching the main checkout. The sequence was a push to a side
+  ref, then `git -C ~/code/worktrees/kiln-002 merge --ff-only kiln-002-incoming`.
+
+### What warrants a second pair of eyes
+
+- `dgx` numbers were taken beside a 10 % co-tenant load. They are an upper bound for an idle GB10, and they are
+  comparable with each other because the co-tenants did not change during the run.
+
+### What should be done in the future
+
+- Repeat the timing on `bling` (idle GPU) once the redaction image is there, so the co-tenant effect has a number.
+- C4: run `validate_on_host.sh` on the bench tree.
+
+### Code review instructions
+
+- `scripts/mask-post-cuda-time.py`: the CPU side must be the engine's own functions (`_unletterbox_mask`,
+  `_smooth_mask`), and every timed GPU output is compared with the CPU output.
+- `scripts/make-bench-recordings.sh`: the output layout must match what `stage_bench_inputs.py` walks.
+
+### Technical details
+
+- Timing command (on `dgx`):
+  `docker run --rm --gpus all -v ~/code/worktrees/kiln-002/services/redaction:/w:ro -v ~/kiln-002:/k -w /w -e PYTHONPATH=/w -e PYTHONDONTWRITEBYTECODE=1 --entrypoint python3 playback-redaction:pb-obs-001-59c13eed4 /k/scripts/mask-post-cuda-time.py --out /k/out/mask-post-cuda-time-dgx.json`,
+  bracketed by `{ date -Is; $Q; $G; } > ~/kiln-002/out/dgx-time-{before,after}.txt` with the two queries below.
+- Co-tenant snapshot: `nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader` and
+  `nvidia-smi --query-gpu=utilization.gpu,clocks.sm,clocks.max.sm,temperature.gpu,power.draw --format=csv,noheader`.
