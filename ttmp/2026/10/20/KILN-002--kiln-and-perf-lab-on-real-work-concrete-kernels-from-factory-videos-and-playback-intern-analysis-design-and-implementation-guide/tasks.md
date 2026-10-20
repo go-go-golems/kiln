@@ -17,11 +17,11 @@
 - [ ] B3 agreement on golden clips through the wgpu launcher — NOT STARTED: B1 refuted gray-is-worth-a-kernel on the Mac; reopen only if PN shows otherwise on the Spark <!-- t:qd9y -->
 - [ ] B4 backend parameter and kiln.motion_gray registration; motion tests on both backends — NOT STARTED: B1 refuted gray-is-worth-a-kernel on the Mac; reopen only if PN shows otherwise on the Spark <!-- t:bufi -->
 - [ ] B5 paired whole-run comparison on the Mac — NOT STARTED: B1 refuted gray-is-worth-a-kernel on the Mac; reopen only if PN shows otherwise on the Spark <!-- t:1no6 -->
-- [ ] C1 redaction mask-post program (buckets x geometries) <!-- t:xore -->
-- [ ] C2 reference agreement on the Mac against Playback's own functions <!-- t:zp1a -->
-- [ ] C3 Playback branch: REDACTION_MASK_POST, CUDA launcher, collect-path change, unit test <!-- t:g3cs -->
+- [x] C1 redaction mask-post program (buckets x geometries) <!-- t:xore -->
+- [x] C2 reference agreement on the Mac against Playback's own functions <!-- t:zp1a -->
+- [x] C3 Playback branch: REDACTION_MASK_POST, CUDA launcher, collect-path change, unit test — Playback cdfb0d8c9 on perf/kiln-002-redaction-mask-post; the docker-compose.yml line is uncommitted (the stream-engine hook cannot pass on macOS; see diary Step 6) <!-- t:g3cs -->
 - [ ] C4 GPU host validation (needs permission): judge, ground truth, validate_on_host.sh <!-- t:dyb3 -->
 - [ ] PN NVIDIA session (needs permission): runner smoke test, target specs, B on Spark <!-- t:tpbv -->
-- [ ] PE kiln-paired/1 importer, lab programs per example, corresponds_to edges <!-- t:mo71 -->
+- [ ] PE kiln-paired/1 importer, lab programs per example, corresponds_to edges — BLOCKED: the importer belongs in Perf Lab lab-workbench/server/runner.ts, which this ticket must not modify; Kiln's server answers lab job execution with 501 and has no executor for plan status 'import'. Records are ready in various/a4/records/ <!-- t:mo71 -->
 - [ ] PR vault report per example with measurements, verdicts and screenshots <!-- t:jram -->
 - [ ] PN.1 kiln_launch.py cuda backend: run the fixture check on an NVIDIA host (written, untested on hardware) <!-- t:6tbh -->

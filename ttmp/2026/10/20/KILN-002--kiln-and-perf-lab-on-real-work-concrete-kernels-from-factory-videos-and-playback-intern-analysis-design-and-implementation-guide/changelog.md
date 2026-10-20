@@ -38,3 +38,14 @@ B1 on the M1 Pro: gray-is-worth-a-kernel REFUTED (motion.gray 9.3 % of session; 
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/motion-split.py — B1 harness (runs, decode, gray)
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/b1/verdict.json — B1 verdict with the free-grey oracle
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/screenshots/b1-motion-split-m1pro.png — B1 stage split figure
+
+## 2026-10-20
+
+Example C, C1–C3: W-28 mask post-processing is bit-exact with Playback (0 of 67.3 M reference pixels on 3 platforms, 0 of 269 M kernel pixels via wgpu); Playback cdfb0d8c9 adds REDACTION_MASK_POST=kiln with refusals and a load-time self-check; all 48 kernels compile with NVRTC 13.2 for sm_120/sm_121. Not run on an NVIDIA GPU (C4, PN.1 need permission). PE blocked by the lab-workbench constraint.
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/mask-post-timing-figure.py — C2 timing figure across three geometries
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/nvrtc-compile-check.py — NVRTC-only compile check of a kiln-program-set
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/c3/nvrtc-13.2-arm64.json — 96/96 NVRTC 13.2 compiles, sm_120 and sm_121
+- /Volumes/SSD/code/playback-kiln-002/services/redaction/src/mask_post.py — Playback consumer of the W-28 program set

@@ -11,7 +11,13 @@ Topics:
 DocType: reference
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: abs:///Volumes/SSD/code/playback-kiln-002/services/redaction/src/mask_post.py
+      Note: C3 Playback consumer, commit cdfb0d8c9 (Step 6)
+    - Path: repo://ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/nvrtc-compile-check.py
+      Note: C3 NVRTC compile check (Step 6)
+    - Path: repo://ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/c3/nvrtc-13.2-arm64.json
+      Note: C3 NVRTC evidence (Step 6)
 ExternalSources: []
 Summary: 'Chronological diary for KILN-002: choosing real workloads for Kiln and Perf Lab, the research behind them, and the intern guide.'
 LastUpdated: 2026-10-20T11:06:14.12733-04:00
@@ -675,3 +681,238 @@ nothing as shipped and at most 8.0 % / 4.7 % after the convert change.
 - Node ids in a motion run: n0 `video.frames`, n1 `motion.gray` (`cpu.motion_gray`, params `{decodeWidth: 480}`),
   n2 `motion.change`, n3 `video.windows`, n4 `video.zone_motion`; one `cpu` lane.
 - Worker phases of the probe run: runtime entered 0.21 s, compiled 0.43 s, anchored 1.11 s, session ended 12.15 s.
+
+## Step 6: Example C, C1–C3 — redaction mask post-processing, bit-exact, wired into Playback behind a switch
+
+Example C is built up to the point where only a GPU host can say more. The W-28 preset reproduces Playback's per-person
+mask post-processing (`_unletterbox_mask` then `_smooth_mask`) exactly, not approximately: 0 differing pixels in
+269,352,960 through the wgpu launcher on the M1 Pro, after an exact integer re-implementation had already matched
+Playback's own functions on 0 of 67.3 M pixels on three platforms. The Playback branch `perf/kiln-002-redaction-mask-post`
+puts the kernels behind `REDACTION_MASK_POST=kiln` (default `cpu`), with refusals for every configuration the
+exactness argument does not cover and a load-time comparison of every compiled program against the CPU loop on the
+host's own GPU. All 48 CUDA kernels compile with NVRTC 13.2 (the image's toolkit) for sm_120 and sm_121; none has
+run on an NVIDIA GPU yet (C4, PN.1).
+
+Three things in the guide turned out wrong and are corrected here: the program must return per-person masks, not a
+union; the cut is `S >= 32768` exactly, with no boundary differences at all; and the threshold stays in torch while
+Kiln takes `u8` masks.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 and Step 2.
+
+**Assistant interpretation:** Execute guide Part V (C1–C3): the Kiln program, its agreement with Playback on the Mac,
+and the Playback branch, stopping before anything that needs a GPU host.
+
+**Inferred user intent:** A kernel that real code can adopt, with evidence a reviewer can check, and nothing claimed
+about speed that was not measured on the hardware it is for.
+
+### What I did
+
+- **C1, the program.** `apps/workbench/presets/W-28-redaction-mask-post.{js,md}`: parameters `detections`
+  {1,2,4,8,16,32,64,100}, `geometry` {768x416, 640x480, 768x576}, `form` {separable, direct}. Input
+  `masks: k.tensor([n, 640, 640], "u8")` holding 0/1; output `out = N.gt(S, 32767.5)` of shape (n, H, W). The
+  unletterbox and the reflect-101 border are index maps through `T.view`, so no kernel copies a mask; reflection is
+  applied only at non-zero offsets. Kiln commit `3aa8208`.
+- **C1, the launcher.** `runtime/python/kiln_launch.py`: `CudaProgram(program, device, allocate=False)` allocates only
+  constant buffers and lists the intermediates in `.scratch` (`{id, bytes}`); `launch(stream, scratch={id: ptr},
+  **pointers)` raises `ValueError` for a missing pointer and `KeyError` for a non-intermediate id, and makes the
+  program's context current when called from another thread. `write`/`read` raise on caller-owned buffers.
+  `runtime/python/test_kiln_launch.py` tests this on a fake driver (4 tests).
+- **C2, reference.** `scripts/mask-post-reference.py check`: recovers OpenCV's fixed-point weights from an impulse,
+  checks the exact integer blur against `cv2.GaussianBlur` on random 8-bit images, checks the nearest-neighbour index
+  map, and compares an exact re-implementation with Playback's own functions on fixture people (five calibration
+  fixtures split into connected components) and stress masks (ellipses crossing the content border, lines, single
+  pixels including the four corners, 30–90 % noise, a full mask), at three geometries. Run on the Mac (arm64) and in
+  `python:3.11-slim` containers on linux/arm64 and linux/amd64 (OpenCV with Intel IPP 2022.2.0, under emulation).
+- **C2, kernels.** `scripts/mask-post-kiln.py check|time` and `scripts/mask-post-figure.py` through
+  `kiln_launch.WgpuProgram` (Metal). Every case at the bucket the engine would pick and at bucket 100.
+- **Audit of the collect path** (`services/redaction/src/trt_engine.py:693-781` at main `d1faf0cf1`) before C3, which
+  produced the corrections below.
+- **C3, Playback branch** (`/Volumes/SSD/code/playback-kiln-002`, branch `perf/kiln-002-redaction-mask-post` from main
+  `d1faf0cf1`):
+  - `src/kiln/kiln_launch.py` vendored byte-identical below a three-line header (Kiln revision `3aa82089`, sha256);
+    `src/kiln/mask_post.json` exported with
+    `node scripts/kiln-export.mjs --preset W-28 --param detections=1,2,4,8,16,32,64,100 --param geometry=768x416,640x480,768x576 --param form=separable --target rtx5090 --no-check`
+    (24 programs, 490 KB); `src/kiln/README.md` with both regeneration commands.
+  - `src/mask_post.py`: `mask_post_mode()`; `read_program_set()` checks the shape contract of every program;
+    `KilnMaskPost.load()` refuses sigma ≠ 2, dilation ≠ 0 and a canvas other than 640×640 before importing torch,
+    compiles with `CudaProgram(..., allocate=False)`, then `_self_check()` runs every program on a full bucket of probe
+    masks against the engine's own CPU loop; `supports()` keys on (height, width) and the engine's letterbox for that
+    size; `run()` pads to the bucket, allocates output and scratch with torch on the current stream, launches, and
+    returns `out[:n]` as uint8 without synchronising. `load_kiln_mask_post()` catches everything and logs.
+  - `src/trt_engine.py`: the CPU loop moved into `_post_cpu()` (unchanged arithmetic); `load()` builds the Kiln path when
+    the mode is `kiln`; `_collect_with_slot` keeps the thresholded masks on the GPU and, when `supports()` says yes,
+    runs the kernels on the slot stream and copies the source-sized masks back; otherwise the old path. `mask_post`
+    property; `/health` reports it.
+  - `scripts/validate_on_host.sh`: `--candidate-env KEY=VALUE` (candidate arm only), an assertion that a candidate given
+    `REDACTION_MASK_POST=kiln` reports `mask_post=kiln`, and the baseline arm materialised with `git archive` so
+    subdirectories of `src/` exist.
+  - `docker-compose.yml`: `REDACTION_MASK_POST: ${REDACTION_MASK_POST:-cpu}`. `pyproject.toml`: the vendored launcher
+    excluded from ruff, `ignore_errors` for it in mypy.
+  - Docs: a section in `docs/vision/redaction-performance.md` (why this stage, why exact, what is refused, how to read
+    the timers, the two hypotheses and the acceptance run), the knob in the service README.
+  - `tests/test_mask_post.py`: mode parsing; four refusals; a foreign program set; the load wrapper returning `None`
+    on a refusal and on an unexpected exception; the set's 3 × 8 shape; largest bucket = `_MAX_DETECTIONS`; eight
+    common camera sizes reaching a compiled geometry through `_infer_size_for`; kernel names ending in their identity;
+    the launcher hash; and a `TestOnGpu` class (fixtures, two streams at once) that skips without CUDA.
+- **NVRTC compile check.** `scripts/nvrtc-compile-check.py` compiles every kernel of a program set with NVRTC alone (no
+  driver, no GPU) using the launcher's options. Run in `python:3.11-slim` on linux/arm64 with
+  `nvidia-cuda-nvrtc==13.2.*` (13.2.86). Output: `various/c3/nvrtc-13.2-arm64.json`.
+
+### Why
+
+- **Per-person masks, not a union.** `video_pipeline._frame_record` reads `masks_small[i]` for each region's outline in
+  `.redact.json`, `server.py` returns `len(masks)` as the person count, and `image_redact._write_redacted(masks,
+  scores)` takes the stack. A union output would have broken all three.
+- **`u8` input, threshold in torch.** `MASK_THRESHOLD` is calibrated and env-overridable
+  (`REDACTION_MASK_THRESHOLD`); compiling it into the kernel would have frozen a runtime knob. The threshold is one
+  fused torch op that already existed.
+- **Separable, not direct.** At 768x416 on the M1 Pro the separable form costs 0.10–0.17 ms per mask from 16 masks
+  up against 0.39–0.50 ms for the direct form, which is no faster than the CPU loop (0.43–0.48 ms). The price is a
+  1.28 MB intermediate per mask, which is why `allocate=False` exists: with launcher-owned intermediates, two frames
+  collected at once on different slot streams would write the same buffer.
+- **The load-time self-check.** The exactness argument covers the arithmetic, not the CUDA build on a given host
+  (NVRTC version, architecture, FMA contraction). Comparing every program with the CPU loop at load turns "it should
+  be exact" into "it was exact on this GPU a few seconds ago", and a mismatch costs the speed-up, not correctness.
+- **Catching everything in `load_kiln_mask_post`.** `server._load_trt_engine` treats a raising engine load as a broken
+  TensorRT engine to quarantine and rebuild; an exception from the opt-in path must not reach it.
+- **`--candidate-env`.** With the switch off, the candidate arm runs the baseline's path, and the A/B would measure the
+  refactor and report "no change" for a change that never ran.
+
+### What worked
+
+C2 reference (`various/c2/reference-*.json`): weights `k = [1,2,7,16,31,45,52,45,31,16,7,2,1]`, sum 256; exact blur
+equals `cv2.GaussianBlur` on 20 random 8-bit images (max |Δ| 0); nearest map equal at all three geometries; 0 of
+67,272,192 pixels differ between Playback's functions and the exact re-implementation, on all three platforms.
+
+| Geometry | letterbox (new_w, new_h, pad_x, pad_y) |
+| -------- | -------------------------------------- |
+| 768x416  | 640, 347, 0, 146                       |
+| 640x480  | 640, 480, 0, 80                        |
+| 768x576  | 640, 480, 0, 80                        |
+
+C2 kernels (`various/c2/kiln-check-m1pro.json`): 0 of 269,352,960 pixels over 120 runs (3 geometries × 2 forms ×
+10 cases × {fit bucket, 100}). Figure: `various/screenshots/c2-mask-post-768x416.png` (image.04, 5 people, redacted
+output and silhouettes only).
+
+C2 timings, 768x416, M1 Pro, wgpu/Metal, median of 15 dispatch-and-wait (`various/c2/kiln-time-m1pro.json`):
+
+| masks | separable ms | direct ms | CPU loop ms |
+| ----: | -----------: | --------: | ----------: |
+| 1     | 1.39         | 2.64      | 0.64        |
+| 8     | 1.40         | 4.02      | 3.58        |
+| 16    | 2.70         | 7.75      | 6.97        |
+| 32    | 4.02         | 13.02     | 14.49       |
+| 100   | 10.34        | 39.24     | 43.25       |
+
+The ~1.4 ms floor, flat from 1 to 8 masks, is fixed per-dispatch cost (wgpu's submit and wait on Metal), not kernel time; on CUDA the launch sits inside a
+stream that the engine already synchronises for its copy. These numbers say the separable form is the one to ship;
+they do not predict the hosts.
+
+C3: `uv run --python 3.10 ruff check src/ tests/` and `ruff format --check` clean; `uv run --python 3.12 mypy src/ tests/`
+"Success: no issues found in 56 source files"; `uv run --python 3.10 pytest -q tests/test_mask_post.py
+tests/test_aiohttp_server.py tests/test_trt_engine_raw.py tests/test_smoothing.py tests/test_seg_engine.py
+tests/test_server_engine_init.py` → 126 passed, 3 skipped (the CUDA classes). `docker compose config --quiet` exit 0.
+
+NVRTC 13.2.86: 96 of 96 compiles (48 kernels × sm_120, sm_121), no log output, CUBINs 7–10 KB, 41.8 ms median and
+2.08 s in total per architecture — that total is the compile cost the service adds to its load on an arm64 host,
+before the self-check.
+
+### What didn't work
+
+- The guide (§18–§20) had the program return the union of all masks, the cut as "≥ 127.5 with a handful of boundary
+  differences", and the threshold inside the kernel. The audit above replaced all three; the guide should be read with
+  this step.
+- wgpu's default 128 MiB storage-binding limit is too small for the largest buckets (at 768x576, 100 × 576 × 768 ×
+  4 B = 169 MiB of fp32 output, and as much again for the intermediate); `mask-post-kiln.py` requests the adapter's
+  own limits. CUDA has no such limit.
+- A first `src/kiln/README.md` linked a GitHub URL for Kiln that I had not checked; Kiln has no remote. Removed. A
+  first statement there that `--no-check` "takes minutes" was likewise unverified and replaced by what the flag does.
+- `mypy` flagged the GPU test for `cv2.imread(...) > 127` (`ndarray | None`) and a union from `connectedComponents`;
+  fixed with an assertion and `np.asarray`.
+- `validate_on_host.sh` copied the baseline's `src/` with `ls-tree | basename | git show` per entry, which cannot
+  materialise a subdirectory. Harmless at main today (flat `src/`), wrong for any baseline that contains `src/kiln/`.
+- **Pre-commit in the fresh C3 worktree.** `uvx pre-commit run --files <C3 files>` first failed on two missing tools:
+  `sh: oxfmt: command not found` (no `node_modules`; fixed by `pnpm install --frozen-lockfile`), and
+  ``Executable `markdownlint` not found``. The markdownlint hook is `language: system` and nothing on this Mac provides
+  it. I put a two-line wrapper on `PATH` (`/Volumes/SSD/tmp/kiln-002/tools/bin/markdownlint`, which runs
+  `pnpm dlx markdownlint-cli@0.49.1`) for the commit. The three changed Markdown files were clean.
+- **The stream-engine hook cannot pass on macOS.** `docker-compose.yml` triggers `stream-engine-pytest`, which runs
+  the whole stream-engine suite.
+  - `tests/test_file_ipc.py::test_expired_deadline_terminal_offer_never_waits_for_backpressure` blocks forever in
+    `left.send(b"x" * 4096, socket.MSG_DONTWAIT)` (line 164; faulthandler dump at 0 % CPU). That was the "hang".
+  - With that test deselected, the suite gives `98 failed, 1645 passed, 75 skipped, 1 deselected, 8 errors`. Every
+    failure is a Linux-only facility:
+    - `/proc/sys/kernel/random/boot_id` (26);
+    - `dlsym(RTLD_DEFAULT, prctl): symbol not found` (44);
+    - `/proc/<pid>/stat` and `/proc/self/fd`;
+    - `os.pidfd_open`.
+  - The same `test_file_ipc.py` passes 26/26 in `python:3.12-slim` (linux/arm64).
+  - The 8 errors, in `test_file_deployment.py` (`unknown flag: --env-file`), come from the test running `docker` with a
+    temporary `HOME`. Docker Desktop installs the compose plugin only under `~/.docker/cli-plugins`, so the CLI has no
+    `compose`. With a `docker` wrapper that points `DOCKER_CONFIG` at a directory holding only the compose plugin,
+    `test_file_deployment.py` passes 14/14 against the changed compose file.
+  - Logs: `/Volumes/SSD/tmp/kiln-002/c3/stream-engine-pytest{,-2}.log`.
+  - Consequence: I committed C3 without `docker-compose.yml`, since every hook that commit triggers passes. The
+    one-line compose change is still uncommitted in the worktree. Committing it needs either the user's permission to
+    skip `stream-engine-pytest` or a commit from a Linux machine. The A/B does not need it: `validate_on_host.sh` starts
+    both arms with `docker run`.
+
+### What I learned
+
+- OpenCV's 8-bit Gaussian is fixed-point with integer weights summing to 256, and on binary masks the whole
+  blur-then-threshold collapses to an integer inequality. That is the reason the GPU path can be exact; an
+  "approximately equal" kernel would have needed a new quality gate and would have argued with the noise floor.
+- On the pipelined collect path the CPU loop runs after the execution context is released, so it already overlaps the
+  next frame's forward at depth 2. The GPU path holds the context through its post-pass. The saving on a host can
+  therefore be smaller than the loop's 2.87 ms; the hypothesis is stated on `infer_busy` for that reason.
+- In GPU mode the stage timers change meaning (`decode` loses the threshold and the mask copy, `post` gains them).
+  Only `decode + post` or `infer_busy` compare across modes; the doc says so.
+
+### What was tricky to build
+
+- Buffer lifetime without synchronisation: `run()` frees its padded input, output and scratch tensors when it returns,
+  while the kernels may still be queued. It is safe because every allocation and launch is on the slot's stream and
+  PyTorch's caching allocator only reuses a freed block for later work on the same stream. The comment in `_launch`
+  states this; a future change that launches on a different stream from the one it allocates on breaks it.
+- `supports()` must agree with what the kernels hard-code (new_h 347, pad_y 146 for 768x416). Rather than restate
+  `_letterbox_into`'s arithmetic in `mask_post.py`, the engine passes `_letterbox_of`, which runs `_letterbox_into` on a
+  blank frame of each compiled size; the self-check then proves the kernels agree with that letterbox.
+
+### What warrants a second pair of eyes
+
+- Holding the slot through the GPU post-pass (until the masks are copied back): correct, but it changes how long a
+  context is checked out per frame. C4 at concurrency 4 and 8 is where that shows.
+- The broad `except Exception` in `load_kiln_mask_post` is deliberate (see Why), but it is the kind of handler
+  `.claude/rules/fix-quality.md` names as a swallowed failure; it logs with a traceback and `/health` shows the result.
+- NVRTC compile time at boot (~2.1 s per architecture measured off-host) plus the self-check's CPU reference (227 masks
+  per geometry, ~0.5 ms each on the Mac). Measure both in C4.
+
+### What should be done in the future
+
+- C4 (needs permission): `validate_on_host.sh --candidate-env REDACTION_MASK_POST=kiln` on the RTX PRO 6000 and the
+  GB10; `pytest tests/test_mask_post.py` inside the container (runs `TestOnGpu`); record `post-moves-to-gpu` and
+  `gb10-unchanged-or-better`.
+- PN.1 (needs permission): `kiln_launch.py check` with `--backend cuda` on the fixture directory.
+- If C4 confirms: decide whether to flip the default, and whether the temporal OR, the upscale and the fill should follow
+  (guide §21).
+
+### Code review instructions
+
+- Kiln: `apps/workbench/presets/W-28-redaction-mask-post.js`, then `runtime/python/kiln_launch.py` (`CudaProgram`,
+  `launch`) and `runtime/python/test_kiln_launch.py`. Commits `3aa8208` (C1), `f17ed80` (C2).
+- Playback: commit `cdfb0d8c9` on `perf/kiln-002-redaction-mask-post` (`/Volumes/SSD/code/playback-kiln-002`).
+  Read `services/redaction/src/mask_post.py`, then the `_collect_with_slot` hunk in `src/trt_engine.py`, then
+  `tests/test_mask_post.py`. The one-line `docker-compose.yml` change is not in that commit (see What didn't work).
+- Reproduce C2: `/Volumes/SSD/venvs/kiln-c2/bin/python scripts/mask-post-reference.py check --playback <pb> --out r.json`
+  and `.../python scripts/mask-post-kiln.py check --set <W-28 set> --playback <pb> --out k.json`.
+- Reproduce the NVRTC check: `docker run --rm --platform linux/arm64 -v "$PWD:/w" -w /w python:3.11-slim sh -c 'pip
+  install -q "nvidia-cuda-nvrtc==13.2.*" && python -I nvrtc-compile-check.py mask_post.json --arch 120,121'`.
+
+### Technical details
+
+- Kernel pair per program: `k_ew__<id>` (horizontal pass, reads the u8 canvas through crop, resize and reflection,
+  writes fp32 (n, H, W)) and `k_ew_2__<id>` (vertical pass and the cut). Tiling chosen per program by the exporter for
+  the `rtx5090` target (TPB 64–1024, COARSEN 1–4).
+- Program buffers for 768x416, bucket 1: masks u8 409,600 B; intermediate f32 1,277,952 B; out f32 1,277,952 B.
