@@ -1,0 +1,157 @@
+{
+ "format": "kiln-paired/1",
+ "example": "A",
+ "question": "similarity matrix of 691 windows × 768 dims: CPU Float64 vs Kiln W-26 on WebGPU",
+ "consumer": {
+  "repo": "factory-videos",
+  "revision": "3bc92785",
+  "path": "web/live/views/similarity"
+ },
+ "host": {
+  "kind": "browser",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+  "adapter": "Apple M1 Pro (Metal), Chrome 155 headless WebGPU",
+  "harness": "KILN-002 scripts/similarity-bench.mjs paired"
+ },
+ "workload": {
+  "windows": 691,
+  "dims": 768,
+  "vectors": "cosmos-embed1-2297x768.f32 (first 691 rows, unit length)"
+ },
+ "arms": {
+  "a": {
+   "name": "similarityMatrix",
+   "lang": "TypeScript (Float64)",
+   "source": "model.ts"
+  },
+  "b": {
+   "name": "similarityMatrixGpu",
+   "lang": "WGSL via kiln-program/1",
+   "source": "similarityGpu.ts + kiln/window-similarity.json",
+   "kernels": [
+    {
+     "name": "k_matmul_reduce__25olr0avvr",
+     "identity": "25olr0avvr",
+     "codegen": "kiln-codegen/2",
+     "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=8",
+     "bucket": 1024,
+     "preset": "apps/workbench/presets/W-26-window-similarity.js",
+     "presetSha256": "682cdb210f62d53e877b0c0d10fd81253ea5211cef4da6835ce6855f5c0b97a8"
+    }
+   ]
+  }
+ },
+ "protocol": {
+  "unit": "ms",
+  "timer": "performance.now()",
+  "order": "seeded coin per repetition",
+  "seed": 2,
+  "warmup": "one run of each arm",
+  "includes": "b: input packing, upload, kernel, read-back, block extraction, min/max"
+ },
+ "samples": [
+  {
+   "rep": 0,
+   "a": 182.5999999642372,
+   "b": 11,
+   "order": "ab"
+  },
+  {
+   "rep": 1,
+   "a": 185.80000001192093,
+   "b": 10.299999952316284,
+   "order": "ab"
+  },
+  {
+   "rep": 2,
+   "a": 180.5,
+   "b": 8.800000011920929,
+   "order": "ab"
+  },
+  {
+   "rep": 3,
+   "a": 177.60000002384186,
+   "b": 9.899999976158142,
+   "order": "ab"
+  },
+  {
+   "rep": 4,
+   "a": 178.60000002384186,
+   "b": 7.399999976158142,
+   "order": "ba"
+  },
+  {
+   "rep": 5,
+   "a": 178.19999998807907,
+   "b": 10.5,
+   "order": "ab"
+  },
+  {
+   "rep": 6,
+   "a": 181.89999997615814,
+   "b": 10,
+   "order": "ab"
+  },
+  {
+   "rep": 7,
+   "a": 183.80000001192093,
+   "b": 9.099999964237213,
+   "order": "ab"
+  },
+  {
+   "rep": 8,
+   "a": 181.70000004768372,
+   "b": 10.299999952316284,
+   "order": "ab"
+  }
+ ],
+ "ratio": {
+  "median": 0.055435952377047557,
+  "ci": [
+   0.048753462669922046,
+   0.058922558926500626
+  ],
+  "n": 9,
+  "level": 0.95,
+  "method": "paired ratio b/a over 9 repetitions; 95 % bootstrap CI over repetitions",
+  "note": null,
+  "excluded": []
+ },
+ "medians": {
+  "a": 181.70000004768372,
+  "b": 10
+ },
+ "gate": {
+  "maxAbs": 0.0000016613217307392958,
+  "sameStep": 0.9999790264057552,
+  "cells": 476790,
+  "refMin": -0.1323611609799106,
+  "refMax": 0.9967296972433419,
+  "gpuMin": -0.13236095011234283,
+  "gpuMax": 0.9967293739318848,
+  "bucket": 1024,
+  "identity": "25olr0avvr",
+  "diagonal": 1
+ },
+ "paint": {
+  "fillRectMs": [
+   306.30000001192093,
+   311.5,
+   291.0999999642372
+  ],
+  "imageDataMs": [
+   4.699999988079071,
+   4.199999988079071,
+   3.699999988079071,
+   3.900000035762787,
+   3.799999952316284
+  ],
+  "gpuPlusPaintMs": [
+   16.200000047683716,
+   15.199999988079071,
+   14,
+   13.800000011920929,
+   10.599999964237213
+  ]
+ }
+}

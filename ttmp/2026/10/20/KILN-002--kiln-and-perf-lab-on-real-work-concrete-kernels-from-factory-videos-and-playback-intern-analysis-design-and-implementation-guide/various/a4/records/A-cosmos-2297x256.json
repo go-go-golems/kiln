@@ -1,0 +1,129 @@
+{
+ "format": "kiln-paired/1",
+ "example": "A",
+ "question": "similarity matrix of 2297 windows × 256 dims: CPU Float64 vs Kiln W-26 on WebGPU",
+ "consumer": {
+  "repo": "factory-videos",
+  "revision": "3bc92785",
+  "path": "web/live/views/similarity"
+ },
+ "host": {
+  "kind": "browser",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+  "adapter": "Apple M1 Pro (Metal), Chrome 155 headless WebGPU",
+  "harness": "KILN-002 scripts/similarity-bench.mjs paired"
+ },
+ "workload": {
+  "windows": 2297,
+  "dims": 256,
+  "vectors": "cosmos-embed1-2297x256.f32 (first 2297 rows, unit length)"
+ },
+ "arms": {
+  "a": {
+   "name": "similarityMatrix",
+   "lang": "TypeScript (Float64)",
+   "source": "model.ts"
+  },
+  "b": {
+   "name": "similarityMatrixGpu",
+   "lang": "WGSL via kiln-program/1",
+   "source": "similarityGpu.ts + kiln/window-similarity.json",
+   "kernels": [
+    {
+     "name": "k_matmul_reduce__21jo3qtjpc4",
+     "identity": "21jo3qtjpc4",
+     "codegen": "kiln-codegen/2",
+     "row": "MAP=tiled,BM=128,BN=64,BK=8,TM=8,TN=4",
+     "bucket": 2304,
+     "preset": "apps/workbench/presets/W-26-window-similarity.js",
+     "presetSha256": "682cdb210f62d53e877b0c0d10fd81253ea5211cef4da6835ce6855f5c0b97a8"
+    }
+   ]
+  }
+ },
+ "protocol": {
+  "unit": "ms",
+  "timer": "performance.now()",
+  "order": "seeded coin per repetition",
+  "seed": 2,
+  "warmup": "one run of each arm",
+  "includes": "b: input packing, upload, kernel, read-back, block extraction, min/max"
+ },
+ "samples": [
+  {
+   "rep": 0,
+   "a": 680.9000000357628,
+   "b": 31.19999998807907,
+   "order": "ab"
+  },
+  {
+   "rep": 1,
+   "a": 678.3000000119209,
+   "b": 32.19999998807907,
+   "order": "ab"
+  },
+  {
+   "rep": 2,
+   "a": 683.7000000476837,
+   "b": 32.39999997615814,
+   "order": "ab"
+  },
+  {
+   "rep": 3,
+   "a": 678.6999999880791,
+   "b": 31.69999998807907,
+   "order": "ab"
+  },
+  {
+   "rep": 4,
+   "a": 676.2000000476837,
+   "b": 32.39999997615814,
+   "order": "ba"
+  }
+ ],
+ "ratio": {
+  "median": 0.047389205753837135,
+  "ci": [
+   0.04582170654492636,
+   0.0479148180625161
+  ],
+  "n": 5,
+  "level": 0.95,
+  "method": "paired ratio b/a over 5 repetitions; 95 % bootstrap CI over repetitions",
+  "note": "n = 5: the interval is bounded by the sample range",
+  "excluded": []
+ },
+ "medians": {
+  "a": 678.6999999880791,
+  "b": 32.19999998807907
+ },
+ "gate": {
+  "maxAbs": 8.745901645124121e-7,
+  "sameStep": 0.9999742126906933,
+  "cells": 5273912,
+  "refMin": -0.15735152535389976,
+  "refMax": 0.9995146558784874,
+  "gpuMin": -0.1573515385389328,
+  "gpuMax": 0.9995145201683044,
+  "bucket": 2304,
+  "identity": "21jo3qtjpc4",
+  "diagonal": 1
+ },
+ "paint": {
+  "fillRectMs": [],
+  "imageDataMs": [
+   46,
+   34.80000001192093,
+   33.80000001192093,
+   33.19999998807907,
+   34.30000001192093
+  ],
+  "gpuPlusPaintMs": [
+   68.80000001192093,
+   66.89999997615814,
+   66.10000002384186,
+   69,
+   65.29999995231628
+  ]
+ }
+}

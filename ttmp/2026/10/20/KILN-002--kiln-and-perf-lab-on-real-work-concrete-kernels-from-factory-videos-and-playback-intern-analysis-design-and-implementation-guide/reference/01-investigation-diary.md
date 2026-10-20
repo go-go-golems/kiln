@@ -365,3 +365,172 @@ The same kernel's WGSL unpack function:
 @group(0) @binding(0) var<storage, read> b0: array<u32>;
 fn ld0(j: i32) -> f32 { let u = u32(j); return f32((b0[u >> 2u] >> ((u & 3u) * 8u)) & 0xffu); }
 ```
+
+## Step 4: Example A — the similarity matrix on the GPU in factory-videos (A1–A4)
+
+Example A is done on the Mac. Today's TypeScript builds the similarity matrix at a flat 1.0 G multiply-adds per
+second, and its `fillRect` painter costs more than the build at every size. The W-26 kernel, launched from committed
+Kiln programs through the vendored WebGPU launcher, takes 0.024–0.029 times as long at 1,385 windows × 768 dims;
+with a new `ImageData` painter, a 2,297-window run is computed and painted in 76–79 ms. Both hypotheses of guide §11
+are supported and the quality gate passes. The view now shows a whole 46-minute run on a WebGPU browser and falls
+back to its old 400-window view without one.
+
+Commits: Kiln `846282e` (W-26, program sets, harness, A1 data), `293884c` (launcher byte helpers return `Uint8Array<ArrayBuffer>`, see below);
+factory-videos `3bc92785` on branch `FACTORY-KILN-001--gpu-kernels` in the worktree
+`/Volumes/SSD/code/factory-videos-kiln` (symlinked as `~/code/tulip/experiments/2026-09-14--factory-videos-kiln`).
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 and Step 2.
+
+**Assistant interpretation:** Execute Phase A of guide §26 (A1 baseline, A2 preset and exports, A3 integration,
+A4 paired measurement, gate, record, screenshots) on the Mac.
+
+**Inferred user intent:** A real consumer change with numbers that justify it, not a demo.
+
+### What I did
+
+- **Worktree.** `git worktree add -b FACTORY-KILN-001--gpu-kernels /Volumes/SSD/code/factory-videos-kiln main`
+  (main at `7623e4bc`). The `vendor/playback-ui` submodule was uninitialised; my first `pnpm install` had created
+  empty `node_modules` folders in its place (0 tracked files), which I removed before
+  `git submodule update --init --reference <main checkout>/.git/modules/vendor/playback-ui`. Then
+  `pnpm install --frozen-lockfile` and `pnpm build:ui` (the `@playback-ui/*` packages resolve to `dist/`).
+- **Test vectors.** From `FV/cache/embeddings/*/matrix.npz` with FV's venv: 2,297 × 256 (Cosmos-Embed1 224p),
+  2,297 × 768 (Cosmos-Embed1 448p) and 2,297 × 768 (SigLIP2), all unit length (norms 0.9999999–1.0000001), written as
+  raw fp32 to `/Volumes/SSD/tmp/kiln-002/vectors/`.
+- **A1 harness** `scripts/similarity-bench.mjs`: esbuild bundles FV's own `model.ts` (and, for later modes,
+  `similarityGpu.ts` and `paint.ts`) from the checkout; a local HTTP server serves the page and the vectors; headless
+  Chrome with WebGPU runs it. Modes: `baseline`, `paired`, `gate`, `shot`.
+- **A2** `apps/workbench/presets/W-26-window-similarity.{js,md}`: `S = matmul(x, transpose(x, 0, 1))`, params
+  `windows ∈ {256, 512, 1024, 1536, 2048, 2304}`, `dims ∈ {256, 768}`. `kiln-export.mjs` gained comma-separated
+  `--param` values, which compile every combination into a `kiln-program-set/1`.
+- **A3** in FV `web/live/views/similarity/`:
+  - `kiln/window-similarity.json` (twelve programs, 422 KB) and `kiln/launch.ts` (vendored), `kiln/README.md`.
+  - `similarityGpu.ts`: `bucketFor`, `packRows`, `readBlock`, `gpuAvailable`, `similarityMatrixGpu`.
+  - `model.ts`: `similarityMatrix(all, cap, previous)` reuses cells of windows already present with equal vectors.
+  - `paint.ts`: `matrixPixels` / `paintMatrix`, one `putImageData`, exact `sequentialColour` colours, one 32-bit store
+    per pixel.
+  - `useSimilarityMatrix.ts`: CPU matrix (incremental, cap 400) always; GPU matrix when available and n > 400.
+  - `EmbeddingSimilarity.tsx`: uses the hook and painter; canvas drawn at one pixel per window, shown at most 560 px
+    wide with hover mapped through the scale; `data-engine` attribute.
+  - `@webgpu/types@0.1.74` (exact, published 2026-09-19) and `"@webgpu/types"` in `tsconfig.json`'s `types`.
+  - `similarityGpu.test.ts`: 10 tests (buckets, the committed set's names and identities, packing, block read-back,
+    jsdom has no GPU, incremental equality in three cases, painter colours and cell blocks).
+- **A4**: `paired` run (9 pairs, 5 at n = 2,297, seeded coin order, seed 2), `gate` run with the exact painted colour,
+  `scripts/kiln-paired.mjs` writing twelve `kiln-paired/1` records and `various/a4/records/verdicts.json`, and
+  `scripts/similarity-view-shot.mjs`, which mounts the real `EmbeddingSimilarity` component on a 1,385-window store.
+
+### Why
+
+- **GPU only above 400 windows.** Below the old cap the CPU path is already incremental and synchronous; the GPU is
+  needed exactly where the CPU would leave windows out, so the view does not flicker for small runs.
+- **The CPU matrix is always computed.** It is available synchronously, so a large run shows its 400 most recent
+  windows at once and the full GPU matrix replaces it when it resolves; a GPU failure leaves it in place.
+- **A stale GPU result is shown only for the same run.** `belongsTo` checks that every window of the GPU result is
+  still present: during live growth the previous result stays up until the new one arrives; a different run never
+  shows another's matrix.
+- **The painter changed in the same change** because A1 showed it was the larger cost: a fast matrix painted with
+  1.9 million `fillRect` calls would still take 1.2 s.
+
+### What worked
+
+A1, `various/a1/baseline-m1pro.json` (headless Chrome 155 on the M1 Pro; medians):
+
+| n     | d   | similarityMatrix | G mul-add/s | fillRect paint |
+| ----: | --: | ---------------: | ----------: | -------------: |
+| 400   | 256 | 20.3 ms          | 1.01        | 108.6 ms       |
+| 691   | 256 | 58.0 ms          | 1.05        | 304.9 ms       |
+| 1,385 | 256 | 240.8 ms         | 1.02        | 1,245.9 ms     |
+| 2,297 | 256 | 648.5 ms         | 1.04        | 3,366.3 ms     |
+| 400   | 768 | 59.7 ms          | 1.03        | 107.6 ms       |
+| 691   | 768 | 180.2 ms         | 1.02        | 304.4 ms       |
+| 1,385 | 768 | 723.7 ms         | 1.02        | 1,198.3 ms     |
+| 2,297 | 768 | 2,010.2 ms       | 1.01        | 3,351.5 ms     |
+
+A4, `various/a4/paired-m1pro-v2.json` (final painter), Cosmos vectors:
+
+| n     | d   | CPU      | GPU      | GPU/CPU [95 % CI]          | ImageData paint | GPU + paint |
+| ----: | --: | -------: | -------: | -------------------------- | --------------: | ----------: |
+| 400   | 256 | 20.1 ms  | 2.6 ms   | 0.124 [0.027, 0.131]       | 2.2 ms          | 4.3 ms      |
+| 691   | 256 | 59.7 ms  | 6.0 ms   | 0.101 [0.091, 0.110]       | 3.7 ms          | 9.2 ms      |
+| 1,385 | 256 | 245.5 ms | 13.3 ms  | 0.054 [0.047, 0.055]       | 13.1 ms         | 26.3 ms     |
+| 2,297 | 256 | 678.7 ms | 32.2 ms  | 0.047 [0.046, 0.048]       | 34.3 ms         | 66.9 ms     |
+| 400   | 768 | 60.6 ms  | 3.8 ms   | 0.063 [0.060, 0.073]       | 1.5 ms          | 5.9 ms      |
+| 691   | 768 | 181.7 ms | 10.0 ms  | 0.055 [0.049, 0.059]       | 3.9 ms          | 14.0 ms     |
+| 1,385 | 768 | 734.0 ms | 20.7 ms  | 0.029 [0.024, 0.031]       | 12.9 ms         | 35.6 ms     |
+| 2,297 | 768 | 2,025 ms | 42.9 ms  | 0.021 [0.017, 0.022]       | 34.8 ms         | 75.9 ms     |
+
+SigLIP2 at 768: 0.065, 0.057, 0.024 [0.023, 0.028], 0.022 for the four sizes; GPU + paint 79.4 ms at 2,297.
+
+Verdicts (`various/a4/records/verdicts.json`):
+
+- `gpu-rebuild-1385` **supported**: upper CI ends 0.031 (Cosmos) and 0.028 (SigLIP2), both below 0.1.
+- `cap-lift-interactive` **supported**: all ten samples at 2,297 × 768 below 100 ms (66.9–83.5 ms range in v2).
+- Quality gate **pass**: max |Δ| between 8.2e-7 (256-d) and 2.2e-6 (SigLIP2 768-d), limit 1e-5; same colour step
+  99.980–99.998 %; identical painted colour 99.960–99.997 % (`various/a4/gate-m1pro.json`). The two full 1,385 ×
+  768 renders differ in 162 of 1,918,225 pixels, each by one level in one channel.
+
+The view: with WebGPU `{"engine":"webgpu","n":1385,"canvas":"1385x1385","shown":"560px","badge":null}`; without an
+adapter `{"engine":"cpu","n":400,"badge":"the 400 most recent windows; 985 older not shown"}`. FV web suite: 143
+files, 1,123 tests pass; `tsc --noEmit` clean; the live build emits `window-similarity-*.js` as its own 407 KB
+(38.6 KB gzip) chunk.
+
+### What didn't work
+
+- The first `paired` run (`paired-m1pro.json`, kept) used a painter with an inner per-pixel block loop: 53 ms at
+  n = 2,297 and GPU + paint 94.4–98.8 ms, which met the 100 ms target by 1 %. Rewriting the store as one `Uint32Array`
+  write per pixel (and no block loop for one-pixel cells) took the painter to 34.8 ms; v2 is the final measurement.
+- FV typecheck after vendoring: `Cannot find name 'GPUDevice'` (no WebGPU types in TS 5.9's DOM lib), then
+  `Argument of type 'Uint8Array<ArrayBufferLike>' is not assignable to parameter of type 'GPUAllowSharedBufferSource'`.
+  Fixed in Kiln (helpers return `Uint8Array<ArrayBuffer>`) and re-vendored.
+- `pnpm add -D @webgpu/types` in the fresh worktree failed first with `"@playback-ui/core@workspace:*" is in the
+  dependencies but no package named "@playback-ui/core" is present in the workspace` (uninitialised submodule).
+- The first view-screenshot bundle failed: `No loader is configured for ".jsonl" files: …/fixtures/results/cosmos/vectors.jsonl?raw`
+  (Vite's `?raw` imports). The script now builds envelopes in the fixture's shape instead of importing the fixtures.
+
+### What I learned
+
+- The JavaScript dot-product loop is flat at 1.0 G multiply-adds per second from 20 M to 2 G operations, so its cost
+  is exactly n(n−1)/2 · d / 10⁹ seconds on this machine.
+- After the kernel, the next costs are host-side: reading back 21 MB at bucket 2,304, converting the n × n block to
+  Float64, and painting 5.3 million pixels are together larger than the kernel (GPU 42.9 ms includes read-back; the
+  painter adds 34.8 ms).
+- The pnpm 12 lockfile rewrite on `pnpm add` collapsed two Storybook peer variants into one; it changes no package
+  versions.
+
+### What was tricky to build
+
+- **Hover on a scaled canvas.** The canvas is drawn at one pixel per window and shown at up to 560 px, so the mouse
+  position must be multiplied by `size / rect.width` before dividing by the cell size; otherwise hovering picks the
+  wrong pair as soon as the matrix is scaled down.
+- **Incremental update correctness.** Reuse is keyed on `scopeId` *and* equal vectors, because `windowVectors`
+  rebuilds every `Float64Array` on each update (object identity never matches) and a re-delivered envelope could
+  carry a different vector for the same scope. The test covers growth, a sliding cap and a changed vector.
+
+### What warrants a second pair of eyes
+
+- `useSimilarityMatrix` keeps the previous CPU matrix in a ref updated inside `useMemo`; under React StrictMode's
+  double invocation the second call reuses the first's result, which is correct but unusual.
+- The `cos to reference` lane renders axis labels but no visible line in both harness screenshots; the lane is
+  unchanged by this work and the harness mounts the view outside the app shell, so I have not investigated it.
+
+### What should be done in the future
+
+- Read back only the n × n block (or compute min and max on the GPU) to cut the 21 MB read-back at bucket 2,304.
+- PE: import `various/a4/records/*.json` into Perf Lab with `corresponds_to` edges to the W-26 identities.
+
+### Code review instructions
+
+- FV: `git -C /Volumes/SSD/code/factory-videos-kiln show 3bc92785 --stat`, then `similarityGpu.ts`,
+  `useSimilarityMatrix.ts`, `paint.ts`, the `model.ts` diff, the `EmbeddingSimilarity.tsx` diff.
+- Validate: `cd web && pnpm exec vitest run live/views/similarity && pnpm exec tsc --noEmit -p .`; then the harness
+  commands in `scripts/similarity-bench.mjs --help` text with `--fv /Volumes/SSD/code/factory-videos-kiln`.
+
+### Technical details
+
+- W-26 kernels: buckets 256 and 512 use `MAP=tiled,BM=64,BN=32,BK=8,TM=2,TN=4` (3 KiB workgroup memory); 1,024 and up
+  use `MAP=tiled,BM=128,BN=64,BK=8,TM=8,TN=4` (6 KiB). One input binding: the transpose is folded into the load's
+  index map. Identities, e.g. 1,536 × 768 `1b608rph8j2`, 2,304 × 768 `1nbw2903hxh`.
+- Screenshots: `various/screenshots/a3-view-1385-webgpu.png`, `a3-view-1385-cpu-fallback.png`,
+  `a4-matrix-1385x768-cpu-vs-gpu.png` (left Float64 + fillRect, right GPU + ImageData). Full-size renders are in
+  `/Volumes/SSD/tmp/kiln-002/screens/` and regenerate with `similarity-bench.mjs shot`.

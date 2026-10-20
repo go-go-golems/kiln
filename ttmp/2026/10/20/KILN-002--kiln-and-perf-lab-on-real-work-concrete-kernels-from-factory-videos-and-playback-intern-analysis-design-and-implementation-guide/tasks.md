@@ -8,10 +8,10 @@
 - [x] P0.4 TypeScript WebGPU launcher for kiln-program/1 <!-- t:odvs -->
 - [x] P0.5 Python launcher kiln_launch.py with wgpu and cuda (ctypes NVRTC + driver) backends <!-- t:e0iq -->
 - [x] P0.6 identity suffix on emitted kernel names <!-- t:dc6h -->
-- [ ] A1 browser baseline of similarityMatrix at n 400/691/1385/2297, d 256/768 <!-- t:4cf6 -->
-- [ ] A2 W-26 window-similarity preset and bucket exports <!-- t:qyni -->
-- [ ] A3 factory-videos branch: GPU launcher, async hook, incremental row, ImageData painter, cap <!-- t:5ihi -->
-- [ ] A4 paired measurement, quality gate, kiln-paired/1 record, screenshots <!-- t:xmpi -->
+- [x] A1 browser baseline of similarityMatrix at n 400/691/1385/2297, d 256/768 <!-- t:4cf6 -->
+- [x] A2 W-26 window-similarity preset and bucket exports <!-- t:qyni -->
+- [x] A3 factory-videos branch: GPU launcher, async hook, incremental row, ImageData painter, cap <!-- t:5ihi -->
+- [x] A4 paired measurement, quality gate, kiln-paired/1 record, screenshots <!-- t:xmpi -->
 - [ ] B1 motion stage split on the Mac (status.service_ms) and to_gray microbenchmark; verdict gray-is-worth-a-kernel <!-- t:x723 -->
 - [ ] B2 W-27 motion-grey program with Pillow weight tables; exports for 1080p and 4K <!-- t:vvou -->
 - [ ] B3 agreement on golden clips through the wgpu launcher <!-- t:qd9y -->

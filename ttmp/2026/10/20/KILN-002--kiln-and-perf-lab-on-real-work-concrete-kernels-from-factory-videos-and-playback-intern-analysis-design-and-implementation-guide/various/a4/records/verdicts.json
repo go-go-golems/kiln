@@ -1,0 +1,168 @@
+{
+ "gpu-rebuild-1385": {
+  "statement": "at n = 1,385, d = 768, the GPU path's median time is below 0.1 × the CPU's",
+  "rule": "upper end of the paired ratio's 95 % interval < 0.1",
+  "rows": [
+   {
+    "vectors": "cosmos-embed1-2297x768.f32",
+    "ratio": 0.028457519918555885,
+    "ci": [
+     0.023796573292288507,
+     0.030570652173913044
+    ],
+    "supported": true
+   },
+   {
+    "vectors": "siglip2-siglip2-2297x768.f32",
+    "ratio": 0.023989033584647018,
+    "ci": [
+     0.022724161565834164,
+     0.02819419612296562
+    ],
+    "supported": true
+   }
+  ],
+  "verdict": "supported"
+ },
+ "cap-lift-interactive": {
+  "statement": "at n = 2,297, d = 768, GPU compute + read-back + paint completes in under 100 ms",
+  "rule": "every sample < 100 ms",
+  "rows": [
+   {
+    "vectors": "cosmos-embed1-2297x768.f32",
+    "samples": [
+     77.29999995231628,
+     70.20000004768372,
+     81.69999998807907,
+     75.89999997615814,
+     75.60000002384186
+    ],
+    "median": 75.89999997615814,
+    "ci": [
+     70.20000004768372,
+     81.69999998807907
+    ],
+    "supported": true
+   },
+   {
+    "vectors": "siglip2-siglip2-2297x768.f32",
+    "samples": [
+     81.19999998807907,
+     72.59999996423721,
+     81.5,
+     76.40000003576279,
+     79.39999997615814
+    ],
+    "median": 79.39999997615814,
+    "ci": [
+     72.59999996423721,
+     81.5
+    ],
+    "supported": true
+   }
+  ],
+  "verdict": "supported"
+ },
+ "quality-gate": {
+  "statement": "max |s_gpu − s_f64| ≤ 1e-5 and ≥ 99.9 % of cells in the same colour step",
+  "rows": [
+   {
+    "n": 400,
+    "d": 256,
+    "vectors": "cosmos-embed1-2297x256.f32",
+    "maxAbs": 8.230178709656144e-7,
+    "sameStep": 0.9999624060150376,
+    "ok": true
+   },
+   {
+    "n": 691,
+    "d": 256,
+    "vectors": "cosmos-embed1-2297x256.f32",
+    "maxAbs": 8.243133344798537e-7,
+    "sameStep": 0.9999622475303592,
+    "ok": true
+   },
+   {
+    "n": 1385,
+    "d": 256,
+    "vectors": "cosmos-embed1-2297x256.f32",
+    "maxAbs": 8.243133344798537e-7,
+    "sameStep": 0.9999718286346279,
+    "ok": true
+   },
+   {
+    "n": 2297,
+    "d": 256,
+    "vectors": "cosmos-embed1-2297x256.f32",
+    "maxAbs": 8.745901645124121e-7,
+    "sameStep": 0.9999742126906933,
+    "ok": true
+   },
+   {
+    "n": 400,
+    "d": 768,
+    "vectors": "cosmos-embed1-2297x768.f32",
+    "maxAbs": 0.0000016613217307392958,
+    "sameStep": 0.9999749373433584,
+    "ok": true
+   },
+   {
+    "n": 691,
+    "d": 768,
+    "vectors": "cosmos-embed1-2297x768.f32",
+    "maxAbs": 0.0000016613217307392958,
+    "sameStep": 0.9999790264057552,
+    "ok": true
+   },
+   {
+    "n": 1385,
+    "d": 768,
+    "vectors": "cosmos-embed1-2297x768.f32",
+    "maxAbs": 0.0000016613217307392958,
+    "sameStep": 0.9999613947956011,
+    "ok": true
+   },
+   {
+    "n": 2297,
+    "d": 768,
+    "vectors": "cosmos-embed1-2297x768.f32",
+    "maxAbs": 0.0000016613217307392958,
+    "sameStep": 0.9999620774863137,
+    "ok": true
+   },
+   {
+    "n": 400,
+    "d": 768,
+    "vectors": "siglip2-siglip2-2297x768.f32",
+    "maxAbs": 0.000001824295623342742,
+    "sameStep": 0.9997994987468671,
+    "ok": true
+   },
+   {
+    "n": 691,
+    "d": 768,
+    "vectors": "siglip2-siglip2-2297x768.f32",
+    "maxAbs": 0.0000018267562983398378,
+    "sameStep": 0.9998406006837391,
+    "ok": true
+   },
+   {
+    "n": 1385,
+    "d": 768,
+    "vectors": "siglip2-siglip2-2297x768.f32",
+    "maxAbs": 0.0000021746905289887764,
+    "sameStep": 0.9998727071638739,
+    "ok": true
+   },
+   {
+    "n": 2297,
+    "d": 768,
+    "vectors": "siglip2-siglip2-2297x768.f32",
+    "maxAbs": 0.0000021746905289887764,
+    "sameStep": 0.999859307474224,
+    "ok": true
+   }
+  ],
+  "verdict": "pass"
+ }
+}

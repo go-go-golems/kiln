@@ -7,6 +7,8 @@
 //   node similarity-bench.mjs paired --fv DIR --vectors DIR [--out FILE] [--reps N] [--seed S]
 //       A4: baseline vs the WebGPU path (similarityMatrixGpu: upload, kernel, read-back), seeded paired order,
 //       plus the quality gate (max |Δ| and colour-step agreement against Float64) and the paint times
+//   node similarity-bench.mjs gate --fv DIR --vectors DIR [--out FILE]
+//       the quality gate alone, with the exact painted colour of every cell compared as well
 //   node similarity-bench.mjs shot --fv DIR --vectors DIR --out PNG [--n N] [--d D] [--gpu]
 //       a screenshot of the matrix painted from real vectors, as the view paints it
 //
@@ -24,7 +26,7 @@ const esbuild = createRequire("/Volumes/SSD/code/kiln/apps/workbench/package.jso
 const [mode, ...rest] = process.argv.slice(2);
 const opt = (name, def) => { const i = rest.indexOf(`--${name}`); return i >= 0 ? rest[i + 1] : def; };
 const flag = (name) => rest.includes(`--${name}`);
-if (!["baseline", "paired", "shot"].includes(mode) || !opt("fv") || !opt("vectors")) {
+if (!["baseline", "paired", "gate", "shot"].includes(mode) || !opt("fv") || !opt("vectors")) {
   console.error(readFileSync(new URL(import.meta.url), "utf8").split("\n").slice(1, 16).map((l) => l.slice(3)).join("\n"));
   process.exit(2);
 }
@@ -83,7 +85,7 @@ const HELPERS = `
 
 const SIZES = [400, 691, 1385, 2297];
 const SETS = [{ file: "cosmos-embed1-2297x256.f32", d: 256 }, { file: "cosmos-embed1-2297x768.f32", d: 768 }];
-const out = { mode, fv: FV, created: new Date().toISOString(), userAgent: null, results: [] };
+const out = { mode, fv: FV, created: new Date().toISOString(), seed: +opt("seed", 1), userAgent: null, results: [] };
 
 try {
   await withPage({ url, webgpu: true, size: "1400x1000", timeout: 3_600_000 }, async (p) => {
@@ -110,6 +112,7 @@ try {
       }
     }
     if (mode === "paired") await paired(p);
+    if (mode === "gate") await paired(p, { gateOnly: true });
     if (mode === "shot") await shot(p);
   });
 } finally {
@@ -119,7 +122,7 @@ try {
 if (opt("out") && mode !== "shot") { writeFileSync(opt("out"), JSON.stringify(out, null, 1) + "\n"); console.log(`→ ${opt("out")}`); }
 
 // ------------------------------------------------------------------------------------------------------- paired
-async function paired(p) {
+async function paired(p, { gateOnly = false } = {}) {
   const ok = await p.eval(`(async () => { try { return await __sim.gpu.gpuAvailable(); } catch (e) { return String(e); } })()`);
   if (ok !== true) throw new Error(`the page has no usable WebGPU: ${ok}`);
   const reps = +opt("reps", 9), seed = +opt("seed", 1);
@@ -132,15 +135,23 @@ async function paired(p) {
       const got = await __sim.gpu.similarityMatrixGpu(ws, ${n});
       const n = ${n}, STEPS = 256, span = (m) => (m.max > m.min ? m.max - m.min : 1);
       const step = (m, v) => Math.min(STEPS - 1, Math.floor(((v - m.min) / span(m)) * STEPS));
-      let maxAbs = 0, same = 0, cells = 0;
+      // the painted colour, as paint.ts computes it from each matrix's own off-diagonal range
+      const rgb = (m, v) => __sim.paint.sequentialRgb((v - m.min) / span(m)).join(",");
+      let maxAbs = 0, same = 0, samePx = 0, cells = 0;
       for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
         if (i === j) continue;
         const a = ref.values[i * n + j], b = got.values[i * n + j];
         maxAbs = Math.max(maxAbs, Math.abs(a - b)); cells++;
         if (step(ref, a) === step(got, b)) same++;
+        if (rgb(ref, a) === rgb(got, b)) samePx++;
       }
-      return { maxAbs, sameStep: same / cells, cells, refMin: ref.min, refMax: ref.max, gpuMin: got.min, gpuMax: got.max, bucket: got.bucket, identity: got.identity, diagonal: got.values[0] };
+      return { maxAbs, sameStep: same / cells, samePixel: samePx / cells, cells, refMin: ref.min, refMax: ref.max, gpuMin: got.min, gpuMax: got.max, bucket: got.bucket, identity: got.identity, diagonal: got.values[0] };
     })()`);
+    if (gateOnly) {
+      out.results.push({ n, d, file, gate });
+      console.log(`n=${String(n).padStart(4)} d=${d} ${file.split("-")[0].padEnd(7)}: bucket ${gate.bucket}, max|Δ| ${gate.maxAbs.toExponential(2)}, same step ${(gate.sameStep * 100).toFixed(3)} %, same painted colour ${(gate.samePixel * 100).toFixed(3)} % of ${gate.cells} cells; range CPU [${gate.refMin.toFixed(5)}, ${gate.refMax.toFixed(5)}] GPU [${gate.gpuMin.toFixed(5)}, ${gate.gpuMax.toFixed(5)}]`);
+      continue;
+    }
     // paired timing: per repetition one baseline and one GPU run, order from a seeded coin
     const r = await p.eval(`(async () => {
       const ws = await rows(${JSON.stringify(file)}, ${n});
