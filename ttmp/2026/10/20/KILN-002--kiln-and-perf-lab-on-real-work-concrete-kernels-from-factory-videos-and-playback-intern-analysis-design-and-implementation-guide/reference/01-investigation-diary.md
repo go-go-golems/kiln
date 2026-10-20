@@ -534,3 +534,144 @@ files, 1,123 tests pass; `tsc --noEmit` clean; the live build emits `window-simi
 - Screenshots: `various/screenshots/a3-view-1385-webgpu.png`, `a3-view-1385-cpu-fallback.png`,
   `a4-matrix-1385x768-cpu-vs-gpu.png` (left Float64 + fillRect, right GPU + ImageData). Full-size renders are in
   `/Volumes/SSD/tmp/kiln-002/screens/` and regenerate with `similarity-bench.mjs shot`.
+
+## Step 5: Example B, B1 — where a zone-motion run spends its time on the Mac
+
+B1 refutes `gray-is-worth-a-kernel`, so Example B stops here and B2–B5 are not built. In the configuration the
+factory runtime ships, `motion.gray` adds up to 9.3 % of a motion run's session time on both golden clips, against the
+20 % the guide set as the bar. It also runs on its own lane in parallel with a decoder that is busy for the whole
+session: replacing `to_gray` with a function that costs nothing changes the session by −0.2 % and +0.7 %. The run's
+time is the source's, and 90 % of the source's time is GStreamer's single-threaded `videoconvert` from NV12 to RGB,
+not the hardware decode. Running that element on four threads makes the whole run 2.75× faster. That change belongs
+to factory-videos, not to Kiln, and it alters 1.2 % of grey pixels by one level, so it needs its own qualification.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 and Step 2.
+
+**Assistant interpretation:** Execute guide §13 (B1) and apply its decision rule before writing any Example B kernel.
+
+**Inferred user intent:** Kernels only where measurement says they pay; a refuted hypothesis is a result, not a gap.
+
+### What I did
+
+- A motion-only script, `output('motion', input('video').motion(input('zones'), {everyMs: 250, windowMs: 5000}))`, run
+  through `factory.application.runs.offline_run` (one fresh `factory.worker` process per run, target `mac`, batch
+  mode) on `marker-short-left.mp4` and `marker-short-right.mp4` (75 s, 1920×1080, 30 fps, 2,250 frames, 300 selected
+  at 250 ms). The worktree's `src` on `PYTHONPATH` with the main checkout's venv (the worktree's Python is unchanged
+  from main `7623e4bc`).
+- Per run, from the run folder: `run/status.json` (`lane.perNode.<node>.serviceMs` n/p50/p95/max,
+  `source.framesDecoded`, `source.fps`, the decode adapter), `run/phases.json` (session = `sessionEnded − anchored`),
+  `run/run.json` (`executionPlan.tasks` maps node ids to operations), and the worker's CPU from
+  `getrusage(RUSAGE_CHILDREN)`.
+- `scripts/motion-split.py` with three modes:
+  - `runs`: whole runs, seeded order of variants within each repetition. Variants: `default`; `gst480`
+    (`analysisMaxWidth: 480`, GStreamer scales); `vc4` (videoconvert on 4 threads); a `+free` suffix makes `to_gray`
+    return a preallocated zero image. The last two are applied in the worker by `scripts/b1-site/sitecustomize.py`,
+    put on `PYTHONPATH` only for those runs; no factory source is edited.
+  - `decode`: the file source alone (`FileSource(target="mac")`, every frame put into and released from a
+    `HostPixelStore`), full size and at max width 480.
+  - `gray`: the first frame of each 250 ms bucket (300 per clip) held as arrays, then `cv2.cvtColor`, the Pillow
+    resize and `to_gray` timed separately per frame, five passes.
+- `scripts/gst-split.sh`: `gst-launch-1.0` pipelines without Python, timing decode alone, decode + `videoconvert` to
+  RGB on 1 and 4 threads, and to GRAY8.
+- `scripts/videoconvert-threads-diff.py` and `checksumsink hash=sha1` over every frame: does threaded conversion give
+  the same pixels?
+- `scripts/b1-verdict.py`: `various/b1/verdict.json` and the figure `various/screenshots/b1-motion-split-m1pro.png`.
+
+### Why
+
+- **The oracle run** (`+free`) was added after the first numbers, because the guide's metric (lane service time as a
+  share of session time) cannot tell a stage on the critical path from one that runs beside it. Making grey free is
+  the direct question: how much shorter would the run be? It is an upper bound for any grey kernel, which would still
+  upload a 6.2 MB frame and read back 130 KB.
+- **The `vc4` runs** were added because the stage split showed where the time is. Without them the record would say
+  "grey is cheap" without saying what is expensive, and the decision rule names "the existing GPU scale path" as the
+  alternative, which on the Mac turned out to be slower (below).
+
+### What worked
+
+`to_gray` alone (`various/b1/gray-m1pro.json`, cv2 5.0.0, Pillow 12.3.0; p50 per selected frame, both clips within
+0.01 ms): `cvtColor` 0.13 ms, Pillow resize 2.64 ms, `to_gray` 2.78 ms. The resample is 95 % of the grey stage.
+
+The source without Python (`various/b1/gst-split-m1pro.jsonl`, 2,250 frames, median of 3):
+
+| Pipeline after `h264parse`                    | Seconds | ms per frame |
+| --------------------------------------------- | ------: | -----------: |
+| `vtdec ! fakesink`                            | 1.11    | 0.49         |
+| `vtdec ! videoconvert ! RGB`                  | 11.11   | 4.94         |
+| `vtdec ! videoconvert n-threads=4 ! RGB`      | 3.29    | 1.46         |
+| `vtdec ! videoconvert ! GRAY8`                | 24.88   | 11.06        |
+
+`vtdec` outputs NV12. The factory's source through Python (`decode-m1pro.json`): 11.2 s full size (200 fps), 14.4 s
+with `maxWidth` 480 (156 fps) — on the Mac `videoscale` runs on the CPU after a full-size `videoconvert`, so asking
+GStreamer for small frames is slower, not faster.
+
+Whole runs, medians of 4 per clip (`runs-m1pro.json`, `runs-vc4-m1pro.json`, `runs-oracle-m1pro.json`):
+
+| Variant                    | left session | right session | `motion.gray` p50 | grey lane / session |
+| -------------------------- | -----------: | ------------: | ----------------: | ------------------: |
+| default                    | 11.09 s      | 11.04 s       | 3.42 ms           | 9.3 %               |
+| gst480 (GStreamer scales)  | 14.27 s      | 14.20 s       | 0.055 ms          | 0.1 %               |
+| vc4 (4 convert threads)    | 3.99 s       | 4.04 s        | 5.28 ms           | 39–40 %             |
+| oracle: default, grey free | 11.05 s      | 11.23 s       | 0.009 ms          | —                   |
+| oracle: vc4, grey free     | 3.70 s       | 4.15 s        | 0.013 ms          | —                   |
+
+(The oracle file has its own default and vc4 arms: 11.07/11.15 s and 4.02/4.36 s.) Worker CPU per run: 17.1 s
+default, 18.4 s vc4, 15.6 s gst480.
+
+Verdict (`various/b1/verdict.json`): **`gray-is-worth-a-kernel` refuted** — 9.3 % and 9.4 % < 20 %. A free grey saves
+nothing as shipped and at most 8.0 % / 4.7 % after the convert change.
+
+### What didn't work
+
+- Threaded `videoconvert` is not a drop-in: `checksumsink` gives different SHA-1s for **all 2,250 frames**. Over the
+  first 60 frames, 4.7 % of RGB pixels differ (median 97,384 of 2,073,600 per frame), by up to 24 levels, mean |Δ|
+  0.05; in frame 0 every row from 270 down differs and rows 0–269 are identical (the first of four 270-row slices).
+  After `to_gray`, 1.2 % of grey pixels differ, by at most 1 (`various/b1/videoconvert-threads-diff.txt`). I have not
+  found why the later slices differ; the factory would have to qualify the change against its motion budget (mean
+  |Δ| 0.013 of the per-frame change signal) before adopting it.
+- The first version of `videoconvert-threads-diff.py` looked up the decoder with `p.iterate_elements()` in a generator
+  expression: `TypeError: 'Iterator' object is not iterable` (a `Gst.Iterator`); naming the element `dec` fixed it.
+- The first figure placed the value labels on the wrong bars (string categories on a horizontal bar chart are ordered
+  by first appearance, and the text loop assumed another order); it now plots numeric positions.
+
+### What I learned
+
+- In this runtime the cost of a stage on its own lane shows up in wall time only through CPU contention, so "share of
+  wall time" measured from lane service times over-states it; the oracle run is the measurement to make.
+- `motion.gray`'s own cost rises from 3.4 to 5.3 ms per frame when the conversion runs on four threads: the grey lane
+  then competes with the conversion threads.
+- GRAY8 straight out of `videoconvert` would avoid the RGB copy entirely but is 2.2× slower than RGB on this build.
+
+### What was tricky to build
+
+- Getting a patch into the worker without editing factory source: `offline_run` starts `python -m factory.worker` with
+  this process's environment (`runs._worker_env`), so prepending a directory with a `sitecustomize.py` to
+  `PYTHONPATH` patches `gst._RGB` and `motion.to_gray` before the session builds its pipeline. `GrayFrames.evaluate`
+  looks `to_gray` up as a module global at call time, so the replacement takes effect.
+
+### What warrants a second pair of eyes
+
+- The grey share uses p50 × n as the lane's total; the status distribution has no sum. At n = 300 with p95/p50 ≈ 1.3
+  the error is small, and the oracle does not depend on it.
+- The Spark has the GPU colour/scale path (`nvvideoconvert`) and a different CPU; this verdict is for the Mac. The
+  guide's rule reopens B2–B5 if the Spark shows a different picture, which needs SSH permission (PN).
+
+### What should be done in the future
+
+- factory-videos: decide on threaded `videoconvert` (2.75× on these runs) after a motion-signal comparison; or convert
+  only the frames that are selected (the runtime selects 1 in 7.5 at 250 ms, but converts all of them).
+- PN: the same `motion-split.py runs` on the Spark with `--variants default,default+free` (target `spark`).
+
+### Code review instructions
+
+- Start with `scripts/motion-split.py` (`one_run`, `cmd_runs`), then `scripts/b1-site/sitecustomize.py`.
+- Reproduce: `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib PYTHONPATH=<fv>/src <fv venv>/bin/python
+  scripts/motion-split.py runs --fv <fv> --out /tmp/r.json --reps 1 --variants default,default+free`.
+
+### Technical details
+
+- Node ids in a motion run: n0 `video.frames`, n1 `motion.gray` (`cpu.motion_gray`, params `{decodeWidth: 480}`),
+  n2 `motion.change`, n3 `video.windows`, n4 `video.zone_motion`; one `cpu` lane.
+- Worker phases of the probe run: runtime entered 0.21 s, compiled 0.43 s, anchored 1.11 s, session ended 12.15 s.

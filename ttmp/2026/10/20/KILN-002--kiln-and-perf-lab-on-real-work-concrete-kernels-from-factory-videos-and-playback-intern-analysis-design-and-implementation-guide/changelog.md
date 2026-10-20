@@ -28,3 +28,13 @@ Example A done on the M1 Pro: W-26 window-similarity preset and 12-program set (
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/similarity-bench.mjs — A1/A4 harness (baseline, paired, gate, shot)
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/a4/paired-m1pro-v2.json — A4 paired measurement (final painter)
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/a4/records/verdicts.json — A4 verdicts
+
+## 2026-10-20
+
+B1 on the M1 Pro: gray-is-worth-a-kernel REFUTED (motion.gray 9.3 % of session; a zero-cost grey saves nothing as shipped). 90 % of a motion run is single-threaded videoconvert NV12->RGB (4.4 ms/frame vs 0.49 ms VideoToolbox decode); videoconvert n-threads=4 makes the run 2.75x faster but changes 1.2 % of grey pixels by 1. B2-B5 not started per the guide's rule.
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/motion-split.py — B1 harness (runs, decode, gray)
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/b1/verdict.json — B1 verdict with the free-grey oracle
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/screenshots/b1-motion-split-m1pro.png — B1 stage split figure

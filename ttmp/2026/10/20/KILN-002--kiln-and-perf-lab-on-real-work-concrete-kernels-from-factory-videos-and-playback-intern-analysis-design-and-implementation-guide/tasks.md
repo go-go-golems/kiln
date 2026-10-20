@@ -12,11 +12,11 @@
 - [x] A2 W-26 window-similarity preset and bucket exports <!-- t:qyni -->
 - [x] A3 factory-videos branch: GPU launcher, async hook, incremental row, ImageData painter, cap <!-- t:5ihi -->
 - [x] A4 paired measurement, quality gate, kiln-paired/1 record, screenshots <!-- t:xmpi -->
-- [ ] B1 motion stage split on the Mac (status.service_ms) and to_gray microbenchmark; verdict gray-is-worth-a-kernel <!-- t:x723 -->
-- [ ] B2 W-27 motion-grey program with Pillow weight tables; exports for 1080p and 4K <!-- t:vvou -->
-- [ ] B3 agreement on golden clips through the wgpu launcher <!-- t:qd9y -->
-- [ ] B4 backend parameter and kiln.motion_gray registration; motion tests on both backends <!-- t:bufi -->
-- [ ] B5 paired whole-run comparison on the Mac <!-- t:1no6 -->
+- [x] B1 motion stage split on the Mac (status.service_ms) and to_gray microbenchmark; verdict gray-is-worth-a-kernel <!-- t:x723 -->
+- [ ] B2 W-27 motion-grey program with Pillow weight tables; exports for 1080p and 4K — NOT STARTED: B1 refuted gray-is-worth-a-kernel on the Mac; reopen only if PN shows otherwise on the Spark <!-- t:vvou -->
+- [ ] B3 agreement on golden clips through the wgpu launcher — NOT STARTED: B1 refuted gray-is-worth-a-kernel on the Mac; reopen only if PN shows otherwise on the Spark <!-- t:qd9y -->
+- [ ] B4 backend parameter and kiln.motion_gray registration; motion tests on both backends — NOT STARTED: B1 refuted gray-is-worth-a-kernel on the Mac; reopen only if PN shows otherwise on the Spark <!-- t:bufi -->
+- [ ] B5 paired whole-run comparison on the Mac — NOT STARTED: B1 refuted gray-is-worth-a-kernel on the Mac; reopen only if PN shows otherwise on the Spark <!-- t:1no6 -->
 - [ ] C1 redaction mask-post program (buckets x geometries) <!-- t:xore -->
 - [ ] C2 reference agreement on the Mac against Playback's own functions <!-- t:zp1a -->
 - [ ] C3 Playback branch: REDACTION_MASK_POST, CUDA launcher, collect-path change, unit test <!-- t:g3cs -->

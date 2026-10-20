@@ -1,0 +1,72 @@
+{
+ "gray-is-worth-a-kernel": {
+  "statement": "motion.gray is at least 20 % of the run's wall time on the Mac (guide \u00a713)",
+  "rule": "sum of motion.gray lane service time (p50 \u00d7 n) / session time \u2265 0.2, on both golden clips, default configuration",
+  "rows": [
+   {
+    "clip": "marker-short-left",
+    "sessionS": 11.091,
+    "grayLaneS": 1.02705,
+    "grayShare": 0.0932,
+    "oracle": {
+     "default": 11.069500000000001,
+     "default+free": 11.0515,
+     "vc4": 4.02,
+     "vc4+free": 3.6980000000000004
+    },
+    "freeGraySaves": {
+     "default": 0.0016,
+     "vc4": 0.0801
+    },
+    "vc4": {
+     "sessionS": 3.9935,
+     "grayShare": 0.3976,
+     "speedup": 2.764
+    }
+   },
+   {
+    "clip": "marker-short-right",
+    "sessionS": 11.0405,
+    "grayLaneS": 1.0324499999999999,
+    "grayShare": 0.0937,
+    "oracle": {
+     "default": 11.151499999999999,
+     "default+free": 11.228000000000002,
+     "vc4": 4.361000000000001,
+     "vc4+free": 4.154999999999999
+    },
+    "freeGraySaves": {
+     "default": -0.0069,
+     "vc4": 0.0472
+    },
+    "vc4": {
+     "sessionS": 4.0385,
+     "grayShare": 0.392,
+     "speedup": 2.748
+    }
+   }
+  ],
+  "verdict": "refuted",
+  "oracle": "a zero-cost to_gray changes the default session by -0.2 %, +0.7 %; with videoconvert on 4 threads it saves 8.0 %, 4.7 % (upper bounds for any grey kernel: no upload, dispatch or read-back)"
+ },
+ "stages": {
+  "toGrayMsPerFrame": {
+   "left": 2.773,
+   "right": 2.781
+  },
+  "cvtColorMsPerFrame": {
+   "left": 0.131,
+   "right": 0.132
+  },
+  "pillowResizeMsPerFrame": {
+   "left": 2.639,
+   "right": 2.641
+  },
+  "gstLaunchSecondsPer2250Frames": {
+   "decode": 1.112,
+   "decode+videoconvert RGB": 11.109,
+   "decode+videoconvert RGB n-threads=4": 3.292,
+   "decode+videoconvert GRAY8": 24.883
+  }
+ }
+}
