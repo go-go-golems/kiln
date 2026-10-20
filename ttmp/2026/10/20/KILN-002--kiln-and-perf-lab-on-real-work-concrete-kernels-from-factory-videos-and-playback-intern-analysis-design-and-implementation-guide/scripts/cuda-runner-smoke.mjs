@@ -8,18 +8,21 @@
 // executor, and checked with ingest(), which compares the runner's sampled outputs with the Loop IR reference
 // (rtol 2e-3, atol 2e-4).
 //
-//   node cuda-runner-smoke.mjs --kiln /path/to/kiln --host user@host [--target gb10] [--python python3]
+//   node cuda-runner-smoke.mjs --kiln /path/to/kiln (--host user@host | --local) [--target gb10] [--python python3]
 //        [--reps 20] [--out results.json] [--device-only]
 //   --target is a key of SPECS, or fallback (see below)
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { hostname } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const argv = process.argv.slice(2);
 const opt = (name, dflt) => { const i = argv.indexOf(`--${name}`); return i >= 0 ? argv[i + 1] : dflt; };
 const KILN = resolve(opt("kiln", "."));
-const host = opt("host");
-if (!host) { process.stderr.write("--host user@host is required\n"); process.exit(2); }
+// --local runs the runner on this machine (the executor's "local" target), for a run started on the GPU host itself
+const local = argv.includes("--local");
+const host = local ? hostname() : opt("host");
+if (!host) { process.stderr.write("--host user@host or --local is required\n"); process.exit(2); }
 const imp = (p) => import(pathToFileURL(join(KILN, p)).href);
 
 const { CudaRunnerExecutor } = await imp("apps/server/src/executors/cuda-runner.ts");
@@ -29,7 +32,7 @@ const { SPECS, target: mkTarget } = await imp("packages/kiln/src/std/targets.js"
 const { bundle, ingest } = await imp("packages/kiln/src/std/devices.js");
 
 const exec = new CudaRunnerExecutor({
-  id: "smoke", target: "ssh", host, runner: join(KILN, "runner/kiln_runner.py"),
+  id: "smoke", ...(local ? { target: "local" } : { target: "ssh", host }), runner: join(KILN, "runner/kiln_runner.py"),
   ...(opt("python") ? { python: opt("python") } : {}), env: { KILN_ARCH: "native" },
 });
 process.stderr.write(`runner on ${host}: ${exec.remoteRunnerPath()}\n`);

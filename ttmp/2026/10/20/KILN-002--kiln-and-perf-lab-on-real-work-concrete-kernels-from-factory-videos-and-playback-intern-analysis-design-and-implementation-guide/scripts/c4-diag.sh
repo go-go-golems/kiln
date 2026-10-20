@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 # KILN-002 C4 diagnosis: both validate_on_host arms again, one short paired run, then each arm's per-segment stage
 # timers (metric:segment_timing) from its log. Same image, mounts and env as validate_on_host.sh's start_arm.
+#
+#   [IMG=…] [SVC=…] [VALIDATE=…] [OUT=…] [CONC=1,4] [PAIRS=2] c4-diag.sh
+#   VALIDATE is a validate_on_host.sh output directory: its staged people segments are the inputs and its
+#   baseline-src is arm A's code. OUT is emptied first. The defaults are the paths of the first run (Step 12).
 set -euo pipefail
-IMG=playback-redaction:kiln-002-ac835daa
-SVC=~/code/playback-kiln-002/services/redaction
-OUT=~/kiln-002/c4-diag; rm -rf "$OUT"; mkdir -p "$OUT/bench"
-cp -r ~/kiln-002/c4-validate/bench/people "$OUT/bench/people"
+IMG=${IMG:-playback-redaction:kiln-002-ac835daa}
+SVC=${SVC:-$HOME/code/playback-kiln-002/services/redaction}
+VALIDATE=${VALIDATE:-$HOME/kiln-002/c4-validate}
+OUT=${OUT:-$HOME/kiln-002/c4-diag}; rm -rf "$OUT"; mkdir -p "$OUT/bench"
+cp -r "$VALIDATE/bench/people" "$OUT/bench/people"
 start() { # name port src [env...]
   docker rm -f "$1" >/dev/null 2>&1 || true
   docker run -d --name "$1" --gpus all -v "$3:/app/src:ro" -v "$SVC/scripts:/app/scripts:ro" -v "$SVC/tests:/app/tests:ro" \
@@ -14,7 +19,7 @@ start() { # name port src [env...]
     -e NVIDIA_TF32_OVERRIDE=0 -e MALLOC_ARENA_MAX=2 -e REDACTION_PORT=8200 -e REDACTION_ROOT=/data/recordings \
     -e REDACTION_LOG_LEVEL=INFO -e REDACTION_SMOOTHING_WINDOW_MS=100 -e REDACTION_SEMAPHORE_CAPACITY=4 "${@:4}" "$IMG" >/dev/null
 }
-start diag-a 8221 ~/kiln-002/c4-validate/baseline-src
+start diag-a 8221 "$VALIDATE/baseline-src"
 start diag-b 8222 "$SVC/src" -e REDACTION_MASK_POST=kiln
 for p in 8221 8222; do for _ in $(seq 1 240); do curl -sf --max-time 3 "http://127.0.0.1:$p/health" >/dev/null && break; sleep 2; done; done
 curl -s http://127.0.0.1:8221/health | python3 -c 'import json,sys; d=json.load(sys.stdin); print("a", d.get("backend"), d.get("mask_post"))'

@@ -11,9 +11,16 @@
 #     a container's random host name would make the same GPU a new device on every probe.
 #   - --network none: the runner's run and device subcommands need no network (serve does, and is not for executors).
 #   - --init: the runner is not PID 1, so the signals docker run proxies (it does by default) reach it.
+# A "local" executor on the GPU host runs the runner from the Kiln checkout instead of the cache directory, so the
+# runner script's own directory (the first argument) is mounted too, read-only, when it lies outside $dir.
 set -eu
 image=${KILN_PERF_IMAGE:-kiln-perf:latest}
 dir=${KILN_RUNNER_DIR:-$HOME/.cache/kiln-runner}
 mkdir -p "$dir/build"
+runner_dir=$(cd "$(dirname "${1:-.}")" && pwd)
+case $runner_dir in
+  "$dir" | "$dir"/*) set -- -v "$dir:$dir" "$image" python3 "$@" ;;
+  *) set -- -v "$dir:$dir" -v "$runner_dir:$runner_dir:ro" "$image" python3 "$@" ;;
+esac
 exec docker run --rm -i --init --gpus all --network none --hostname "$(hostname)" --user "$(id -u):$(id -g)" \
-  -e HOME=/tmp -e KILN_ARCH -e KILN_CACHE="$dir/build" -v "$dir:$dir" "$image" python3 "$@"
+  -e HOME=/tmp -e KILN_ARCH -e KILN_CACHE="$dir/build" "$@"
