@@ -10,6 +10,8 @@
     "dev": "pnpm --filter @kiln/workbench build && pnpm --filter @kiln/server start",
     "serve": "pnpm --filter @kiln/server start",
     "test": "pnpm -r --workspace-concurrency=1 test",
-    "shoot": "node scripts/shoot.mjs"
+    "shoot": "node scripts/shoot.mjs",
+    "export": "node scripts/kiln-export.mjs",
+    "test:launch": "node runtime/test/fixtures.mjs .launch-fixtures && node runtime/test/webgpu-roundtrip.mjs --fixtures .launch-fixtures"
   }
 }
