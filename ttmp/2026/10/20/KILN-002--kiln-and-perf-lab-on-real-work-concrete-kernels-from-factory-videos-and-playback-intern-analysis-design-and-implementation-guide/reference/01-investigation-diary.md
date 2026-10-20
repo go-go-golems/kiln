@@ -1807,3 +1807,372 @@ the claims that turned out less favourable than first written.
   `various/pn/gb10-spec-check.json` (re-written with an `other` field).
 - On `bling`: `~/code/playback-kiln-002` (clone of the bundle), image `playback-redaction:kiln-002-ac835daa`,
   registry container `kiln002-registry` with `base-26.05` and `pb-obs-001-59c13eed4`, logs in `~/kiln-002/logs/`.
+
+## Step 13: One script for every GPU stage, run from the Mac and on `bling` itself; Node and Kiln on `bling`; three defects it found
+
+The GPU work of Steps 9–12 had been a sequence of hand-typed commands. This step turns it into one script,
+`scripts/run-on-gpu-host.sh`. The script runs either from the Mac, driving the host over SSH, or on the host itself
+with `--local`. Every stage writes its log, its evidence and a verdict into one directory, along with a
+`summary.md`. For the second mode, `bling` needed Node 26, pnpm and a Kiln clone. I installed Node and pnpm as root
+through the `admin` tmux session and cloned Kiln from a git bundle. Run from the Mac, the Kiln and Playback stages
+passed in 3 minutes. Run on `bling` with the A/B and the diagnosis, the whole sequence took 32 minutes. It repeats
+Step 12's result: every correctness gate passes, and the candidate is slower at every concurrency (paired medians
+0.987, 0.958 and 0.964). On the final commit, `9d409d1`, every Kiln and Playback stage passes on `bling` in 3 min 11 s.
+
+Running everything on a fresh host found three defects that a single developer machine had hidden. First, Kiln's
+`pnpm test` ran `lab-e2e.mjs`, which KILN-001 documented as outside the suite. It passed on the Mac only because the
+Mac has a built page and Perf Lab's data. Second, the script's own `pb-test` verdict lost its result in a pipeline
+subshell, so it would have reported a real regression as KNOWN-FLAKY. A new test now covers that verdict. Third,
+Playback's `test_trt_engine_raw.py` fails about half the time, at the baseline as often as on the branch, because it
+assumes TensorRT returns the same masks twice. The first two are fixed. The third belongs to Playback and is
+recorded, not changed.
+
+### Prompt Context
+
+**User prompts (verbatim):**
+
+- "what's left / when can I rty it out myself / can we run all thetests from the browser?"
+- "can you make a script or so to run everythin on bling.local? why do we need playback?"
+- "what's the tensor rt engine and how / why do rwe need the redaction service?"
+- "you can install all the needed stuff on bling.local, btw."
+- "there's a root shell in the "admin" tmux"
+- "justkeep track of it in the diary."
+- "try again" (sent while my test harness for the pb-test verdict was failing on its own stub; see What didn't work)
+
+**Assistant interpretation:** Write one entry point that runs all of KILN-002's GPU work on `bling` and gathers its
+evidence, usable both from the Mac and on `bling` itself. Install whatever the second mode needs through the root
+tmux session, and record each installation here. Answer the two questions in the conversation.
+
+**Inferred user intent:** To rerun the whole measurement without the agent, and to understand which parts need
+Playback at all.
+
+### What I did
+
+- **The two questions, answered in the conversation.**
+  - Playback is needed only for Example C. The redaction service is the consumer of the mask kernels: its tests, the
+    bit-exact comparison against its CPU loop and the service A/B all need it. Kiln's own GPU checks (self-test,
+    probe, compile check, smoke, spec comparison) need only the `kiln-perf` image and SSH.
+  - The TensorRT engine is RTMDet-Ins-m. The service exports it to ONNX on its first start, and `trtexec` compiles
+    that to an FP16 plan specific to the GPU and the TensorRT version: 36 s to build, about 0.3 s to load from the
+    cache volume. `TrtSegEngine` (`services/redaction/src/trt_engine.py`) is the Python class around it. Kiln's
+    kernels run in that class after the network, not inside the network.
+- **The vault reports, committed and pushed** (playback-vault `d5058c9`, `main`): Reports A, B and C as amended in
+  Step 12, with three new figures.
+- **A private browser page of the three reports** (`https://claude.ai/artifact/1U2SDSRNnksA6yBgnTzLTA`). A scratch
+  script renders it from the vault Markdown with the images inlined. The page leaves out `c2-mask-post-768x416.png`,
+  which is `tests/fixtures/image.04.png`, a production camera frame, shown with its people redacted. Its place on the
+  page says so. Before publishing I opened the two `a3-view-1385-*` screenshots: both show the similarity-matrix
+  view (matrix, slider, top-5 list) and no frame.
+- **The two SSH tunnels of Step 12 stopped**, since the registry push they carried had finished. The
+  `localhost:5000` tag the push could have left on `dgx` was already gone; `dgx` lists only its own
+  `pb-obs-001-59c13eed4` tags.
+- **The whole redaction suite in the branch's image.** Step 12 ran only `tests/test_mask_post.py`. Running all of
+  `tests/` took three attempts:
+  - With `services/redaction` mounted as before: two collection errors. `tests/test_build_contract.py` and
+    `tests/test_layout_vectors.py` compute `Path(__file__).parents[3]`, the repository root, which the mount does
+    not contain (`IndexError: 3`).
+  - With the whole clone mounted read-only at `/repo`: `6 failed, 668 passed, 1 skipped`. Each failure was
+    `OSError: [Errno 30] Read-only file system: '/repo/services/redaction/.pytest_defaults_…'`, because
+    `tests/test_defaults.py` creates directories in its working directory.
+  - With the tree copied to `/tmp/r` inside the container: `674 passed, 1 skipped in 13.28s`. The skip was
+    `tests/test_trt_engine_raw.py:60: requires CUDA + the rtmdet-ins_m TRT engine (container-only)`. The test looks
+    for `/opt/models/rtmdet-ins_m.engine`, while the service keeps its engine in the `playback_ds-engine-cache`
+    volume (`rtmdet-ins_m.engine`, 61 MB, built at 19:12 UTC by Step 12's validate run).
+- **The TensorRT raw-path test is flaky, at the baseline as well.** With the volume mounted and the engine linked to
+  `/opt/models`, the test failed with
+  `AssertionError: 28 not less than or equal to 2 : raw vs production mask union disagree on 28 px (limit=2)`. I ran
+  it ten times per revision, each revision's tree streamed in with `git archive`, in the same image with the same
+  engine (table 13.1). The test runs inference twice on one frame, through `infer_frame` and through
+  `infer_frame_raw`, and requires the two mask unions to agree to within 2 px. The redaction performance doc has
+  measured that TensorRT does not return the same masks twice (one engine, one frame, 12 repeats: up to 10 distinct
+  mask-logit hashes). The defect is in the test, and it predates C3. I did not change the test, which is Playback's.
+- **Node and pnpm on `bling`, as root through tmux `admin`**, using the Step 8 helper
+  `/Volumes/SSD/tmp/kiln-002/hosts/bling-root.sh`:
+  - 20:10:32 UTC: Node 26.8.1. The official `node-v26.8.1-linux-arm64.tar.xz` was checked against nodejs.org's
+    `SHASUMS256.txt` (`23c1b4d19e2f12a7d06fe8aa3d6e0e4923cf77a47e13c5ccdf32fadaa33960f2`; `sha256sum -c` printed
+    `OK`), unpacked to `/usr/local/lib/nodejs/node-v26.8.1-linux-arm64`, and `node`, `npm` and `npx` were linked
+    into `/usr/local/bin`. npm is 11.19.0.
+  - 20:10:38 UTC: `npm install -g --no-fund --no-audit pnpm@12.4.1` (Kiln's `packageManager`), linked to
+    `/usr/local/bin/pnpm`. npm warned that it had not run pnpm's `preinstall` and `postinstall` scripts
+    (`allowScripts`). `pnpm --version` prints 12.4.1 as `manuel` regardless.
+- **Kiln on `bling`.** Kiln has no remote, so `git bundle create … main` (22.5 MB) went over SSH and was cloned to
+  `~/code/kiln` at `c800080`. `pnpm install --frozen-lockfile` added 51 packages in 2 s. `lab-workbench/` is not in
+  the pnpm workspace (`pnpm-workspace.yaml` says so), so nothing ran in it. Each later commit arrived as an
+  incremental bundle followed by `git pull --ff-only`, after a check that the clone had no uncommitted changes.
+- **`scripts/run-on-gpu-host.sh`** (Kiln `450fbd0`, then `33196b5`, `4828ea5`, `e4e03c2` and `9d409d1`), with the
+  stages in table 13.2. Its rules:
+  - Each stage writes `logs/<stage>.log`. `summary.md` lists each stage's verdict, duration and a one-line note.
+    The verdicts are PASS, FAIL, DONE (a measurement with no gate), KNOWN-FLAKY and SKIP. The exit status is 1 if
+    any stage fails.
+  - `pb-test` passes if the revision's run has no failure. Otherwise every test that failed at either revision is
+    rerun `--reps` times (default 5) at both. The verdict is FAIL if one of the revision's failures never fails at
+    the baseline, and KNOWN-FLAKY if each one also fails there.
+  - `pb-ab` and `pb-diag` refuse a GPU that `nvidia-smi --query-compute-apps` shows in use, unless
+    `--allow-busy-gpu` is given. On `dgx`, two more service instances would compete with factory-live, and the
+    comparison would mean nothing.
+  - Only text, JSON and charts reach the evidence directory. The host's run directory (`~/kiln-002/runs/<stamp>`)
+    keeps `validate_on_host.sh`'s bench renders; the script copies only the top-level `*.json` and `*.txt` files
+    and `bench/staged.json`, the set Step 12 copied by hand.
+- **Supporting changes**, in `450fbd0`:
+  - `pb-pytest.sh` (new) streams one revision's tree into the image with `git archive`, unpacks it under `/tmp`,
+    links the cached engine to `/opt/models` and runs pytest. With `REPS=N` it reruns the named tests and prints one
+    `<id>\tpass|fail` line per run. The host's clone is never written.
+  - `c4-diag.sh` takes `IMG`, `SVC`, `VALIDATE` and `OUT` from the environment, with the Step 12 paths as
+    defaults.
+  - `cuda-runner-smoke.mjs` gains `--local`, the executor's existing `local` target.
+  - `runner/docker/kiln-docker-python`: a local executor runs the runner from the Kiln checkout rather than from
+    `~/.cache/kiln-runner`, so the shim now also mounts the runner script's directory, read-only, when it lies
+    outside the cache directory. The SSH executor's behaviour is unchanged.
+- **First run, from the Mac** (`./run-on-gpu-host.sh --playback`, 20:10:19–20:13:26 UTC, Kiln `c800080` plus the
+  uncommitted script). All ten stages passed (table 13.3). The numbers repeat Steps 11 and 12. GNU tar on `bling`
+  printed `tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'` three times for
+  the scripts sent from the Mac, so the script now sends with `COPYFILE_DISABLE=1 tar --no-xattrs`, as `build.sh`
+  does.
+- **Two more Kiln stages**, `kiln-unit` and `kiln-cuda-compile`. On their first run from the Mac, `pnpm test`
+  passed in 80 s, and 146 of 146 exported kernels compiled for sm_121 with the image's NVRTC 13.0.88 and ptxas, with
+  no register spills.
+- **A `PATH` gap.** `ssh bling.local 'command -v uv'` prints nothing. uv lives in `~/.local/bin`, which Ubuntu's
+  `.bashrc` adds only for interactive shells. The script now prepends it (`33196b5`).
+- **The whole run on `bling` itself**, started over SSH under `nohup` so that a dropped connection would not stop it:
+  `nohup …/scripts/run-on-gpu-host.sh --local --playback --ab --diag > ~/kiln-002/logs/run-local-20261020T201637Z.log`
+  (Kiln `33196b5`, 20:16:37–20:48:19 UTC). Table 13.4 has the summary.
+  - `pb-ab` repeats Step 12 (table 13.5): every gate passes, and all 12 paired ratios are below 1 again.
+  - `pb-diag` repeats Step 12's stage timers (table 13.6): the post-pass is cheaper, preprocessing takes 2.7 ms per
+    frame longer, and wall time goes up 1.5 ms per frame.
+  - `kiln-unit` FAILED with `FAIL lab-e2e.mjs (exit 1)`:
+    `no /home/manuel/code/kiln/apps/workbench/dist/kiln-workbench.html: build first (node build.mjs)`. I added
+    `pnpm build` before `pnpm test` (`4828ea5`). The next run on `bling` failed one step later:
+    `no Perf Lab store at /home/manuel/code/kiln/lab-workbench/.data/perf-lab.sqlite (--from DIR)`.
+  - `pb-test` came out KNOWN-FLAKY, because the raw-path test failed in the revision's full run. In the reruns it
+    failed 5 of 6 times at `ac835daa9` and 3 of 6 at `d1faf0cf1`. But the note ended in
+    `…; fails at both revisions: ` with nothing after it.
+- **The pb-test verdict bug.** The rerun table was written with `{ … } | tee pytest-reruns.md`. The loop inside the
+  braces sets `regress` and `flaky`, but a pipeline runs it in a subshell, so both assignments were lost. The empty
+  list was the visible half. The other half: `regress` always read 0, so a test failing only at the revision would
+  also have come out KNOWN-FLAKY. The fix writes the table with a plain redirection and prints it afterwards (`e4e03c2`).
+- **A test for it**, `scripts/test-pb-test-verdicts.sh` (same commit). It extracts `stage_pb_test` from
+  `run-on-gpu-host.sh` with `sed`, replaces the host with a stub `R` that prints canned pytest output per revision,
+  and checks four cases. On `4828ea5` it prints `FAIL regression: expected FAIL, got KNOWN-FLAKY`; on `e4e03c2` all
+  four pass, on the Mac and on `bling`:
+
+  ```text
+  ok   passes: PASS
+  ok   flaky: KNOWN-FLAKY
+  ok   regression: FAIL
+  ok   no-suite: FAIL
+  ```
+
+- **`lab-e2e.mjs` out of `pnpm test`** (`9d409d1`). The file's header says "Not part of `pnpm test`: it needs
+  Chrome, a built page and Perf Lab's data (guide §36)", and KILN-001's diary (line 2069) says the same. But
+  `1d31e9d`, which added the file, never added it to the workbench's `--skip` list, and `run-node-tests.mjs` runs every
+  `test/*.mjs` that is not skipped. The fix adds `--skip lab-e2e.mjs`. With that test out of the suite, nothing in
+  `pnpm test` needs `dist/`, so `kiln-unit` goes back to plain `pnpm test`. On the Mac, the workbench suite then
+  reports `skipped: … lab-e2e.mjs` and `all 5 passed`. On `bling`, `kiln-unit` passed in 24 s.
+- **The final run, on `bling`** (`--local --playback`, Kiln `9d409d1`, 20:51:26–20:54:37 UTC): all twelve stages
+  pass (table 13.7). The flaky test passed in this run.
+- **Evidence** in `various/run-on-gpu-host/`: `mac-first-20261020T201016Z` (the first run, from the Mac),
+  `local-full-20261020T201637Z` (the whole run on `bling`, with the A/B and the diagnosis) and
+  `local-final-20261020T205126Z` (the final run). Each holds `summary.md`, `host.txt`, `logs/`, `kiln/`,
+  `playback/` and `figures/`. They contain no video or image file except the three charts per run.
+
+Table 13.1: `test_trt_engine_raw.py`, ten runs per revision, same image and engine.
+
+| Revision               | Passed | Failed, each with "disagree on 28 px" |
+| ---------------------- | -----: | ------------------------------------: |
+| `d1faf0cf1` (baseline) | 6      | 4                                     |
+| `ac835daa` (C3)        | 5      | 5                                     |
+
+Table 13.2: the stages of `run-on-gpu-host.sh`, in order.
+
+| Stage                | What it runs                                                                                        | Where                                         |
+| -------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `kiln-unit`          | `pnpm test` in the Kiln checkout                                                                    | the machine running the script                |
+| `kiln-image`         | `runner/docker/build.sh [--host]`                                                                   | host                                          |
+| `kiln-selftest`      | the image's default command: the launcher fixtures against the GPU                                  | host                                          |
+| `kiln-probe`         | `kiln-probe` in the image, with `--pid host`                                                        | host                                          |
+| `kiln-cuda-compile`  | `apps/workbench/test/export-cuda.mjs`, then `cuda_check.py` with the image's NVRTC and ptxas        | export where the script runs, compile on host |
+| `kiln-smoke`         | `cuda-runner-smoke.mjs` per `--targets` spec (default gb10, fallback, rtx5090)                      | executor over SSH, or local                   |
+| `kiln-spec`          | `gb10-spec-check.mjs` against each other target                                                     | where the script runs                         |
+| `kiln-figures`       | `gb10-figures.py spec` and `schedules`                                                              | where the script runs                         |
+| `pb-sync`            | bundle of the Mac's C3 checkout; fetch and detached checkout in the host clone, which must be clean | host; skipped with `--local`                  |
+| `pb-image`           | `docker build` of `playback-redaction:kiln-002-<rev8>` unless the tag exists                        | host                                          |
+| `pb-test`            | `pb-pytest.sh` at the revision and at the baseline; reruns of any failure at both                   | host                                          |
+| `pb-time`            | `mask-post-cuda-time.py` in the image, and its chart                                                | host                                          |
+| `pb-ab` (`--ab`)     | `validate_on_host.sh --candidate-env REDACTION_MASK_POST=kiln`                                      | host                                          |
+| `pb-diag` (`--diag`) | `c4-diag.sh`, then `parse_segment_timing.py` on each arm's log                                      | host                                          |
+
+Table 13.3: the first run, from the Mac (`mac-first-20261020T201016Z/summary.md`).
+
+| Stage         | Verdict | Seconds | Note                                                                                   |
+| ------------- | ------- | ------: | -------------------------------------------------------------------------------------- |
+| kiln-image    | PASS    | 5       |                                                                                        |
+| kiln-selftest | PASS    | 3       | 5 launcher fixtures agree with their references                                        |
+| kiln-probe    | DONE    | 3       | NVIDIA GB10: 28.9 TFLOP/s FMA, 239 GB/s read, 2.4 us launch                            |
+| kiln-smoke    | PASS    | 103     | 18 of 18 agree under each of gb10, fallback and rtx5090                                |
+| kiln-spec     | DONE    | 13      | the 11 kernels that differ: gb10 6,328 µs, rtx5090 3,749 µs (Step 12: 6,308 and 3,705) |
+| kiln-figures  | DONE    | 2       |                                                                                        |
+| pb-sync       | PASS    | 6       | host clone at `ac835daa9`                                                              |
+| pb-image      | PASS    | 1       | the tag existed                                                                        |
+| pb-test       | PASS    | 36      | 675 passed at `ac835daa9`, 650 at `d1faf0cf1`; the raw-path test ran and passed        |
+| pb-time       | PASS    | 14      | 0 differing pixels; 768x416, 100 masks: 3.107 ms Kiln, 20.836 ms CPU loop              |
+
+Table 13.4: the whole run on `bling` (`local-full-20261020T201637Z/summary.md`, Kiln `33196b5`).
+
+| Stage             | Verdict     | Seconds | Note                                                                                              |
+| ----------------- | ----------- | ------: | ------------------------------------------------------------------------------------------------- |
+| kiln-unit         | FAIL        | 25      | `lab-e2e.mjs`: no `dist/kiln-workbench.html` (fixed in `9d409d1`)                                 |
+| kiln-image        | PASS        | 5       |                                                                                                   |
+| kiln-selftest     | PASS        | 3       | 5 launcher fixtures agree                                                                         |
+| kiln-probe        | DONE        | 3       | 28.9 TFLOP/s FMA, 240 GB/s read, 2.5 µs launch                                                    |
+| kiln-cuda-compile | PASS        | 26      | 146/146 kernels compile for sm_121; 0 with spills                                                 |
+| kiln-smoke        | PASS        | 71      | 18 of 18 under each spec; 71 s against 103 s from the Mac (no SSH per runner call)                |
+| kiln-spec         | DONE        | 11      | the 11 that differ: gb10 6,381 µs, rtx5090 3,765 µs                                               |
+| kiln-figures      | DONE        | 68      | uv fetched matplotlib on `bling` for the first time                                               |
+| pb-sync           | SKIP        | 0       | local run                                                                                         |
+| pb-image          | PASS        | 0       |                                                                                                   |
+| pb-test           | KNOWN-FLAKY | 79      | raw-path test: 5/6 fails at `ac835daa9`, 3/6 at `d1faf0cf1`; note list empty (fixed in `e4e03c2`) |
+| pb-time           | PASS        | 11      | 0 differing pixels; 3.113 ms Kiln, 20.459 ms CPU loop                                             |
+| pb-ab             | PASS        | 1486    | every gate passes; ratios in table 13.5                                                           |
+| pb-diag           | PASS        | 114     | table 13.6                                                                                        |
+
+Table 13.5: `pb-ab` throughput, frames per second, median of 4 pairs, against Step 12.
+
+| Concurrency | Baseline | Candidate | Ratio (min–max)     | Step 12 ratio |
+| ----------: | -------: | --------: | ------------------- | ------------: |
+| 1           | 76.44    | 75.40     | 0.987 (0.972–0.996) | 0.974         |
+| 4           | 130.69   | 125.60    | 0.958 (0.948–0.981) | 0.971         |
+| 8           | 130.32   | 126.01    | 0.964 (0.961–0.976) | 0.968         |
+
+Table 13.6: `pb-diag` stage timers, ms per frame (p50, 38 renders of 144 frames), arm A (baseline) and arm B
+(`REDACTION_MASK_POST=kiln`), against Step 12's diagnosis.
+
+| Timer              | A     | B     | B − A | Step 12 B − A |
+| ------------------ | ----: | ----: | ----: | ------------: |
+| `infer_preprocess` | 20.17 | 22.90 | +2.73 | +3.08         |
+| `infer_forward`    | 2.84  | 2.77  | −0.07 | −0.18         |
+| `infer_decode`     | 1.78  | 1.50  | −0.28 |               |
+| `infer_post`       | 2.19  | 1.55  | −0.64 |               |
+| `infer_busy`       | 6.90  | 5.80  | −1.10 | −1.47         |
+| wall               | 28.39 | 29.93 | +1.54 | +1.86         |
+
+Table 13.7: the final run on `bling` (`local-final-20261020T205126Z/summary.md`, Kiln `9d409d1`).
+
+| Stage             | Verdict | Seconds | Note                                                                 |
+| ----------------- | ------- | ------: | -------------------------------------------------------------------- |
+| kiln-unit         | PASS    | 25      |                                                                      |
+| kiln-image        | PASS    | 4       |                                                                      |
+| kiln-selftest     | PASS    | 3       |                                                                      |
+| kiln-probe        | DONE    | 3       | 28.9 TFLOP/s, 240 GB/s, 2.4 µs                                       |
+| kiln-cuda-compile | PASS    | 26      | 146/146 for sm_121, no spills                                        |
+| kiln-smoke        | PASS    | 68      | 18 of 18 under each spec                                             |
+| kiln-spec         | DONE    | 12      | gb10 6,338 µs, rtx5090 3,776 µs                                      |
+| kiln-figures      | DONE    | 1       |                                                                      |
+| pb-sync           | SKIP    | 0       | local run                                                            |
+| pb-image          | PASS    | 0       |                                                                      |
+| pb-test           | PASS    | 37      | 675 passed at `ac835daa9`, 650 at `d1faf0cf1`; the raw-path test ran |
+| pb-time           | PASS    | 12      | 0 differing pixels; 3.122 ms Kiln, 20.2 ms CPU loop                  |
+
+### Why
+
+- **One script, two modes.** From the Mac, nothing has to be installed on the host beyond Docker. On the host, a
+  person can start everything with one SSH command and leave it running. Both modes run the same stage functions.
+  Only `R` and `RS` differ (`bash -c` instead of `ssh`), so neither mode can drift from the other.
+- **Verdicts rather than logs.** Step 12's refutation came from reading a table, while `validate_on_host.sh` printed
+  PASSED, because it does not gate throughput. The summary therefore states each stage's verdict, and for a
+  measurement it states DONE and puts the figures in the note. Nothing in the summary claims the A/B "passed" on
+  throughput.
+- **Both revisions in `pb-test`.** A failing test at the revision means nothing until the same test has run at the
+  baseline. The raw-path test shows why: it would read as a C3 regression in about half of all runs.
+- **Refusing a busy GPU** for the A/B and the diagnosis, because `dgx` is the shared host and the comparison is
+  worthless with a co-tenant.
+
+### What worked
+
+- Both modes ran end to end; everything that failed on the way is listed under What didn't work. The numbers agree
+  with Steps 11 and 12 to within 1–2 %, and every A/B ratio is below 1 again.
+- `nohup` over SSH for the 32-minute run. One of my status queries was reset during key exchange
+  (`kex_exchange_identification: read: Connection reset by peer`); the run did not notice, and the retry succeeded.
+- The verdict test: red on the commit with the bug, green on the fix, on both machines.
+
+### What didn't work
+
+- Sending scripts from the Mac with plain `tar`: GNU tar on `bling` warned about `LIBARCHIVE.xattr.com.apple.provenance`
+  headers. Fixed with `COPYFILE_DISABLE=1 tar --no-xattrs`.
+- `--local` over SSH without `~/.local/bin` on `PATH`: uv was not found. Fixed in `33196b5`.
+- The whole suite with only `services/redaction` mounted (`IndexError: 3`), then with the clone mounted read-only
+  (`6 failed`, `OSError: [Errno 30] Read-only file system`); see What I did.
+- `kiln-unit` on a fresh clone, twice: first the missing `dist/kiln-workbench.html`, then the missing Perf Lab store.
+  `4828ea5` treated the first symptom; `9d409d1` removed the cause and reverted the build step.
+- The `pb-test` note `fails at both revisions: ` with an empty list, which exposed the subshell bug.
+- My own test harness for that verdict, twice, before it tested anything:
+  - Its first stub matched the revision as `" REV "` with spaces, but the stage passes its arguments through
+    `printf %q`, which escapes spaces. Every case came out `FAIL: the suite did not run`.
+  - Its second stub ended with a `for` loop whose last `[[ … ]] && cat` was false, so the stub returned 1. Under
+    `set -e` the stage stopped at its first `R` call for reruns, and the verdict note was never written.
+  - In both cases the defect was in the stub, not in the script. The committed test's stub ends with `return 0`,
+    like the real `R`, which returns the remote command's status.
+
+### What I learned
+
+- A fresh host is the cheapest audit of a test suite's hidden prerequisites. The Mac had a built `dist/` and Perf
+  Lab's data, so `pnpm test` had been passing there by accident since `1d31e9d`.
+- In bash, `{ …; } | tee` runs the braces in a subshell. Any verdict computed inside them is gone afterwards. Here
+  the lost value was the one that tells a regression from a flaky test.
+- The redaction suite needs a writable whole-repository tree, and its one TensorRT test needs the engine at a path
+  the service itself does not use.
+
+### What was tricky to build
+
+- **Running stage functions with `set -e` in force.** Bash ignores `errexit` inside a function called from an `if`,
+  `&&` or `||` context, so a stage would carry on past a failed command. Each stage therefore runs as
+  `(set -e; stage) > log 2>&1 &` followed by `wait $!`, which is not such a context. The stage communicates its
+  verdict and note through files under `.stage/`, because a subshell cannot set the parent's variables. The
+  `.stage/` directory is cleared at the start of each invocation, so that `--out` pointing at an earlier run cannot
+  pass off that run's verdicts as new ones.
+- **Keeping footage off the evidence path.** `validate_on_host.sh` writes renders under its output directory, so
+  the script points it at the host's run directory and copies back an explicit list of file types, never the
+  directory.
+
+### What warrants a second pair of eyes
+
+- `9d409d1` changes Kiln's `pnpm test` itself: `lab-e2e.mjs` no longer runs there. That matches what the file and
+  KILN-001 say. But anyone who relied on `pnpm test` to exercise the Perf Lab import end to end on the Mac now has
+  to run `node apps/workbench/test/lab-e2e.mjs` by hand, as KILN-001 documented.
+- `pb-test`'s rule treats a test as flaky if it fails at the baseline even once in `--reps + 1` runs. A test that
+  fails much more often at the revision (say 6 of 6 against 1 of 6) still comes out KNOWN-FLAKY. The rule separates
+  "new failure" from "old failure", not "more frequent failure".
+- The kiln-docker-python mount change: for a local executor, the runner directory is mounted read-only. If the
+  runner ever writes next to itself, a local run will fail where an SSH run does not.
+
+### What should be done in the future
+
+- Fix `test_trt_engine_raw.py` in Playback: run inference once and apply both post-processing paths to that one
+  result, which is what its docstring says it tests. That needs a Playback change outside this ticket.
+- Run `run-on-gpu-host.sh --host playback@playback-rtx-dev --playback --ab --diag` on the RTX PRO 6000 once SSH
+  access exists. That host needs a `--targets` list without gb10 first, and `kiln-spec` will SKIP.
+- C4.d (Step 12) is unchanged: profile the inference thread under load. The stage timers in table 13.6 repeat the
+  +2.7–3.1 ms preprocessing cost.
+
+### Code review instructions
+
+- Start with `scripts/run-on-gpu-host.sh`: the stage plumbing (`verdict`, `note`, the `(set -e; …) &` / `wait`
+  loop), then `stage_pb_test`, then the copy-back in `stage_pb_ab`.
+- Run `scripts/test-pb-test-verdicts.sh`; all four cases must print `ok`.
+- Run `scripts/run-on-gpu-host.sh --help`, then `--stages kiln-selftest` against a GPU host as the smallest real run.
+- `apps/workbench/package.json` (one `--skip`) and `runner/docker/kiln-docker-python` (the `case` on the runner
+  directory).
+
+### Technical details
+
+- Commits: Kiln `450fbd0`, `33196b5`, `4828ea5`, `e4e03c2`, `9d409d1`; playback-vault `d5058c9`.
+- Root commands on `bling` (tmux `admin`, via `bling-root.sh`):
+  - `cd /tmp && curl -fsSLO https://nodejs.org/dist/v26.8.1/node-v26.8.1-linux-arm64.tar.xz && echo "23c1b4d1…  node-v26.8.1-linux-arm64.tar.xz" | sha256sum -c - && mkdir -p /usr/local/lib/nodejs && tar -xJf node-v26.8.1-linux-arm64.tar.xz -C /usr/local/lib/nodejs && for b in node npm npx; do ln -sf /usr/local/lib/nodejs/node-v26.8.1-linux-arm64/bin/$b /usr/local/bin/$b; done && rm node-v26.8.1-linux-arm64.tar.xz`
+  - `npm install -g --no-fund --no-audit pnpm@12.4.1 && ln -sf /usr/local/lib/nodejs/node-v26.8.1-linux-arm64/bin/pnpm /usr/local/bin/pnpm`
+- State on `bling` added in this step: `/usr/local/lib/nodejs/node-v26.8.1-linux-arm64` and its four links in
+  `/usr/local/bin`; `~/code/kiln` (at `9d409d1`, with `node_modules`); `~/.local/bin/kiln-docker-python` (updated);
+  `~/kiln-002/runs/<stamp>/` (four runs; the full run's holds bench renders of real footage) and
+  `~/kiln-002/evidence/<host>-<stamp>/`; `~/kiln-002/logs/run-local-20261020T201637Z.log`. The Playback clone is
+  detached at `ac835daa9`.
+- The flaky-test count: `git -C ~/code/playback-kiln-002 archive <rev> | docker run --rm -i --gpus all -v playback_ds-engine-cache:/engine-cache:ro -e NVIDIA_TF32_OVERRIDE=0 --entrypoint sh playback-redaction:kiln-002-ac835daa -c "… ln -sf /engine-cache/rtmdet-ins_m.engine /opt/models/ … for i in 1 … 10; do python3 -m pytest -q tests/test_trt_engine_raw.py | grep -oE 'disagree on [0-9]+ px|1 passed'; done | sort | uniq -c"`.
+- Reproduce everything: `scripts/run-on-gpu-host.sh --host manuel@bling.local --playback --ab --diag` from the
+  Mac, or on `bling`: `cd ~/code/kiln/ttmp/2026/10/20/KILN-002--*/scripts && ./run-on-gpu-host.sh --local --playback --ab --diag`.

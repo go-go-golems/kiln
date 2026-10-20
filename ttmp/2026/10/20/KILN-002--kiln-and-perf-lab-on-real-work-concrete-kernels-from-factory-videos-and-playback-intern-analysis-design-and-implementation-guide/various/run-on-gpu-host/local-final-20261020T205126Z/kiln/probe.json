@@ -1,0 +1,105 @@
+{
+ "format": "kiln-probe/1",
+ "name": "NVIDIA GB10",
+ "cc": "12.1",
+ "sms": 48,
+ "clockMHz": 2418,
+ "memClockMHz": 8533,
+ "busBits": 256,
+ "l2MB": 24.0,
+ "memGB": 121.7,
+ "smemPerSM": 102400,
+ "smemPerBlock": 49152,
+ "maxThreadsPerBlock": 1024,
+ "maxThreadsPerSM": 1536,
+ "maxBlocksPerSM": 24,
+ "regsPerSM": 65536,
+ "runtime": 13000,
+ "driver": 13000,
+ "reps": 20,
+ "bufferMiB": 1024,
+ "copyGBs": {
+  "median": 235.8,
+  "best": 236.7
+ },
+ "readGBs": {
+  "median": 238.7,
+  "best": 240.4
+ },
+ "writeGBs": {
+  "median": 195.5,
+  "best": 196
+ },
+ "fmaTflops": {
+  "median": 28.91,
+  "best": 28.92
+ },
+ "h2dGBs": {
+  "median": 59.07,
+  "best": 59.13
+ },
+ "d2hGBs": {
+  "median": 59.03,
+  "best": 59.07
+ },
+ "launch": {
+  "eventUs": {
+   "median": 2.432,
+   "best": 2.176
+  },
+  "hostUsBackToBack": {
+   "median": 1.847,
+   "best": 1.744
+  },
+  "gpuUsBackToBack": {
+   "median": 2.03,
+   "best": 1.835
+  },
+  "roundTripUs": {
+   "median": 4.96,
+   "best": 3.952
+  }
+ },
+ "hostname": "bling",
+ "nvcc": "13.0.88",
+ "before": {
+  "gpu": {
+   "utilization.gpu": "0",
+   "clocks.sm": "676",
+   "clocks.max.sm": "3003",
+   "clocks.mem": "[N/A]",
+   "temperature.gpu": "42",
+   "power.draw": "5.13"
+  },
+  "computeApps": []
+ },
+ "after": {
+  "gpu": {
+   "utilization.gpu": "65",
+   "clocks.sm": "2405",
+   "clocks.max.sm": "3003",
+   "clocks.mem": "[N/A]",
+   "temperature.gpu": "44",
+   "power.draw": "23.03"
+  },
+  "computeApps": []
+ },
+ "spec": {
+  "id": "gb10",
+  "name": "NVIDIA GB10",
+  "arch": "sm_121",
+  "sm": 121,
+  "sms": 48,
+  "clockGHz": 2.418,
+  "peakTflops": 28.9,
+  "bwGBs": 240,
+  "l2MB": 24.0,
+  "smemPerSM": 102400,
+  "smemPerBlock": 49152,
+  "maxThreadsPerBlock": 1024,
+  "maxThreadsPerSM": 1536,
+  "maxBlocksPerSM": 24,
+  "regsPerSM": 65536,
+  "launchUs": 2.4
+ }
+}

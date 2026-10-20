@@ -1,0 +1,20 @@
+n=38  encoder=libx264  infer_w=768.0  frames=[144]  stride=[1]
+stage                 total ms p50  per-frame ms  % of wall
+decode_busy                  774.0          5.38      18.9%
+infer_busy                   993.3          6.90      24.3%
+smooth_busy                   33.4          0.23       0.8%
+mask_upscale_busy             97.7          0.68       2.4%
+fill_busy                    769.0          5.34      18.8%
+encode_busy                 1063.5          7.39      26.0%
+mux_busy                      11.4          0.08       0.3%
+-----------------------------------------------------------
+wall_ms                     4087.8         28.39     100.0%
+
+inference sub-stages (p50 totals):
+  infer_preprocess        2905.1 ms  ( 20.17 ms/frame)
+  infer_forward            409.4 ms  (  2.84 ms/frame)
+  infer_decode             255.8 ms  (  1.78 ms/frame)
+  infer_post               314.7 ms  (  2.19 ms/frame)
+
+wall p50=4088ms  frames=144  fps=35.2  realtime_factor=0.681  inference share=24.3%
+{"n": 38, "frames": 144.0, "wall_ms_p50": 4087.8, "stages": {"decode_busy": 774.0, "infer_busy": 993.3, "smooth_busy": 33.4, "mask_upscale_busy": 97.7, "fill_busy": 769.0, "encode_busy": 1063.5, "mux_busy": 11.4}, "infer_sub": {"infer_preprocess": 2905.1, "infer_forward": 409.4, "infer_decode": 255.8, "infer_post": 314.7}}

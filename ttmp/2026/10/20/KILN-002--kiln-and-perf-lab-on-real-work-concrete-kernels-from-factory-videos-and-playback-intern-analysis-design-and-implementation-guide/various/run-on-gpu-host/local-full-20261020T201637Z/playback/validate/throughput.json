@@ -1,0 +1,425 @@
+{
+  "arms": {
+    "a": "http://127.0.0.1:8211",
+    "b": "http://127.0.0.1:8212"
+  },
+  "group": "people",
+  "unit": "burst",
+  "burst_s": 12.0,
+  "pairs": 4,
+  "priority": "live",
+  "force_full_fps": true,
+  "health": {
+    "a": {
+      "ok": true,
+      "deploy": {
+        "gitSha": "ac835daa",
+        "gitBranch": "perf/kiln-002-redaction-mask-post",
+        "gitDirty": false
+      },
+      "instance": {
+        "instanceId": "db294ccd-51f7-4b9b-a3da-b53fe836b7da",
+        "hostname": "9760ace24023",
+        "startedAt": "2026-10-20T20:21:42Z"
+      },
+      "backend": "trt",
+      "seg_engine_loaded": true,
+      "uptime_s": 1122.41,
+      "stalled": false,
+      "throttle": {
+        "target_fps": 30,
+        "pressure": 0.0
+      }
+    },
+    "b": {
+      "ok": true,
+      "deploy": {
+        "gitSha": "ac835daa",
+        "gitBranch": "perf/kiln-002-redaction-mask-post",
+        "gitDirty": false
+      },
+      "instance": {
+        "instanceId": "646a9c59-b4ed-4b1d-b22c-46b2e2c03c1f",
+        "hostname": "049fa221be88",
+        "startedAt": "2026-10-20T20:21:45Z"
+      },
+      "backend": "trt",
+      "mask_post": "kiln",
+      "seg_engine_loaded": true,
+      "uptime_s": 1117.14,
+      "stalled": false,
+      "throttle": {
+        "target_fps": 30,
+        "pressure": 0.652
+      }
+    }
+  },
+  "levels": {
+    "1": {
+      "a_median_fps": 76.44,
+      "b_median_fps": 75.4,
+      "ratio_median": 0.9865,
+      "ratio_min": 0.9724,
+      "ratio_max": 0.9955,
+      "delta_pct": -1.4,
+      "pairs": [
+        {
+          "pair": 0,
+          "a": {
+            "wall_s": 13.0,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 77.54,
+            "segments_per_s": 0.538,
+            "lat_p50_ms": 1813.3,
+            "lat_p95_ms": 1970.9,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.37,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 75.4,
+            "segments_per_s": 0.524,
+            "lat_p50_ms": 1855.4,
+            "lat_p95_ms": 2053.9,
+            "decimated": 0
+          },
+          "ratio": 0.9724
+        },
+        {
+          "pair": 1,
+          "a": {
+            "wall_s": 13.3,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 75.77,
+            "segments_per_s": 0.526,
+            "lat_p50_ms": 1930.9,
+            "lat_p95_ms": 1973.3,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.36,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 75.43,
+            "segments_per_s": 0.524,
+            "lat_p50_ms": 1889.0,
+            "lat_p95_ms": 2058.9,
+            "decimated": 0
+          },
+          "ratio": 0.9955
+        },
+        {
+          "pair": 2,
+          "a": {
+            "wall_s": 13.35,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 75.53,
+            "segments_per_s": 0.525,
+            "lat_p50_ms": 1888.2,
+            "lat_p95_ms": 1981.7,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.41,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 75.16,
+            "segments_per_s": 0.522,
+            "lat_p50_ms": 1892.8,
+            "lat_p95_ms": 2065.1,
+            "decimated": 0
+          },
+          "ratio": 0.9951
+        },
+        {
+          "pair": 3,
+          "a": {
+            "wall_s": 13.07,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 77.1,
+            "segments_per_s": 0.535,
+            "lat_p50_ms": 1864.8,
+            "lat_p95_ms": 1971.1,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.37,
+            "requests": 7,
+            "ok": 7,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 75.39,
+            "segments_per_s": 0.524,
+            "lat_p50_ms": 1880.8,
+            "lat_p95_ms": 2064.0,
+            "decimated": 0
+          },
+          "ratio": 0.9778
+        }
+      ]
+    },
+    "4": {
+      "a_median_fps": 130.69,
+      "b_median_fps": 125.6,
+      "ratio_median": 0.9581,
+      "ratio_min": 0.9483,
+      "ratio_max": 0.9805,
+      "delta_pct": -4.2,
+      "pairs": [
+        {
+          "pair": 0,
+          "a": {
+            "wall_s": 13.35,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 129.47,
+            "segments_per_s": 0.899,
+            "lat_p50_ms": 4372.3,
+            "lat_p95_ms": 4498.9,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.61,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 126.95,
+            "segments_per_s": 0.882,
+            "lat_p50_ms": 4494.9,
+            "lat_p95_ms": 4573.7,
+            "decimated": 0
+          },
+          "ratio": 0.9805
+        },
+        {
+          "pair": 1,
+          "a": {
+            "wall_s": 13.21,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 130.76,
+            "segments_per_s": 0.908,
+            "lat_p50_ms": 4343.9,
+            "lat_p95_ms": 4434.4,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.73,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 125.82,
+            "segments_per_s": 0.874,
+            "lat_p50_ms": 4552.2,
+            "lat_p95_ms": 4681.1,
+            "decimated": 0
+          },
+          "ratio": 0.9622
+        },
+        {
+          "pair": 2,
+          "a": {
+            "wall_s": 13.15,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 131.42,
+            "segments_per_s": 0.913,
+            "lat_p50_ms": 4258.4,
+            "lat_p95_ms": 4544.9,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.78,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 125.38,
+            "segments_per_s": 0.871,
+            "lat_p50_ms": 4589.1,
+            "lat_p95_ms": 4722.9,
+            "decimated": 0
+          },
+          "ratio": 0.954
+        },
+        {
+          "pair": 3,
+          "a": {
+            "wall_s": 13.23,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 130.63,
+            "segments_per_s": 0.907,
+            "lat_p50_ms": 4392.6,
+            "lat_p95_ms": 4472.2,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 13.95,
+            "requests": 12,
+            "ok": 12,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 123.87,
+            "segments_per_s": 0.86,
+            "lat_p50_ms": 4588.0,
+            "lat_p95_ms": 4719.6,
+            "decimated": 0
+          },
+          "ratio": 0.9483
+        }
+      ]
+    },
+    "8": {
+      "a_median_fps": 130.32,
+      "b_median_fps": 126.01,
+      "ratio_median": 0.9639,
+      "ratio_min": 0.9608,
+      "ratio_max": 0.9761,
+      "delta_pct": -3.6,
+      "pairs": [
+        {
+          "pair": 0,
+          "a": {
+            "wall_s": 17.67,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 130.35,
+            "segments_per_s": 0.905,
+            "lat_p50_ms": 8728.4,
+            "lat_p95_ms": 8924.8,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 18.11,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 127.23,
+            "segments_per_s": 0.884,
+            "lat_p50_ms": 9005.9,
+            "lat_p95_ms": 9179.8,
+            "decimated": 0
+          },
+          "ratio": 0.9761
+        },
+        {
+          "pair": 1,
+          "a": {
+            "wall_s": 17.57,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 131.16,
+            "segments_per_s": 0.911,
+            "lat_p50_ms": 8691.9,
+            "lat_p95_ms": 8920.0,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 18.18,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 126.74,
+            "segments_per_s": 0.88,
+            "lat_p50_ms": 9058.6,
+            "lat_p95_ms": 9195.6,
+            "decimated": 0
+          },
+          "ratio": 0.9663
+        },
+        {
+          "pair": 2,
+          "a": {
+            "wall_s": 17.68,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 130.3,
+            "segments_per_s": 0.905,
+            "lat_p50_ms": 8662.8,
+            "lat_p95_ms": 8968.8,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 18.39,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 125.28,
+            "segments_per_s": 0.87,
+            "lat_p50_ms": 9047.2,
+            "lat_p95_ms": 9284.8,
+            "decimated": 0
+          },
+          "ratio": 0.9615
+        },
+        {
+          "pair": 3,
+          "a": {
+            "wall_s": 17.69,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 130.26,
+            "segments_per_s": 0.905,
+            "lat_p50_ms": 8717.7,
+            "lat_p95_ms": 8979.5,
+            "decimated": 0
+          },
+          "b": {
+            "wall_s": 18.41,
+            "requests": 16,
+            "ok": 16,
+            "shed_503": 0,
+            "errors": 0,
+            "frames_per_s": 125.16,
+            "segments_per_s": 0.869,
+            "lat_p50_ms": 9141.1,
+            "lat_p95_ms": 9334.2,
+            "decimated": 0
+          },
+          "ratio": 0.9608
+        }
+      ]
+    }
+  }
+}

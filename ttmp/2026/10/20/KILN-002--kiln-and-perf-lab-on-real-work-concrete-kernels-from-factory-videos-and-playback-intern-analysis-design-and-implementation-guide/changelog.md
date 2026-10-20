@@ -79,3 +79,15 @@ Step 12: the C3 branch's own redaction image built on bling (ac835daa); mask-pos
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/c4-diag.sh — re-runs both arms and keeps their stage timers
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/c4/diag-bling/timing-b.txt — candidate stage timers
 - /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/c4/validate-bling/throughput.txt — C4 paired throughput on bling
+
+## 2026-10-20 - 2026-10-20 - One script for every GPU stage; Node and Kiln on bling
+
+Step 13: scripts/run-on-gpu-host.sh runs the GPU work of Steps 9-12 from the Mac (--host) or on the host (--local) and writes verdicts to summary.md. Node 26.8.1 and pnpm 12.4.1 installed on bling as root (tmux admin); Kiln cloned there from a bundle. Full run on bling repeats C4 (0.987/0.958/0.964, all gates pass) and its stage timers (preprocess +2.7 ms/frame). Three defects found by the fresh host: lab-e2e.mjs ran in pnpm test against KILN-001's documented intent (9d409d1); pb-test lost its verdict in a pipeline subshell, so a regression would read KNOWN-FLAKY (e4e03c2, with test-pb-test-verdicts.sh); Playback's test_trt_engine_raw.py is flaky at the baseline too (not changed). Final run on 9d409d1: all stages pass on bling.
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/pb-pytest.sh — the redaction suite at one revision, in the image
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/run-on-gpu-host.sh — one script for every GPU stage
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/test-pb-test-verdicts.sh — checks the pb-test verdicts without a GPU host
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/run-on-gpu-host/local-final-20261020T205126Z/summary.md — the final run on 9d409d1
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/various/run-on-gpu-host/local-full-20261020T201637Z/summary.md — the whole run on bling, with the A/B and the diagnosis

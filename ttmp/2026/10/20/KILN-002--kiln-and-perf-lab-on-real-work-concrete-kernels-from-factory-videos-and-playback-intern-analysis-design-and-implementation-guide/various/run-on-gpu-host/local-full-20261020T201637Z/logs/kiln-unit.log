@@ -1,0 +1,105 @@
+$ pnpm -r --workspace-concurrency=1 test
+Scope: 5 of 6 workspace projects
+$ vitest run
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90m/home/manuel/code/kiln/packages/evidence[39m
+
+ [32m✓[39m test/values.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m test/canonical.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m test/sha256.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m test/protocol.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m test/record.test.ts [2m([22m[2m30 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m test/identity.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m test/stats.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m test/verdict.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m test/package.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 93[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[32m125 passed[39m[22m[90m (125)[39m
+[2m   Start at [22m 16:16:37
+[2m   Duration [22m 226ms[2m (transform 44%, tests 34%, import 19%, worker 3%)[22m
+
+$ node ../../scripts/run-node-tests.mjs test
+ok   core.mjs               45 ms
+ok   evidence.mjs          368 ms
+ok   export.mjs            111 ms
+ok   hypotheses.mjs        290 ms
+ok   paired.mjs            248 ms
+ok   progs.mjs             316 ms
+ok   protocol.mjs          180 ms
+ok   stack1.mjs             87 ms
+ok   stack2.mjs            528 ms
+ok   stack3.mjs            223 ms
+ok   targets.mjs            75 ms
+ok   tune.mjs              993 ms
+ok   u8.mjs                147 ms
+all 13 passed
+$ vitest run
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90m/home/manuel/code/kiln/packages/lab[39m
+
+ [32m✓[39m test/browser-safety.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m test/evidence.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m test/detections.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m test/hypothesis.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m test/stats.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32m✓[39m test/measured.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m test/data.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m test/build.test.ts [2m([22m[2m26 tests[22m[2m)[22m[33m 1144[2mms[22m[39m
+   [32m✓[39m presets [2m(11)[22m
+     [33m[2m✓[22m[39m scenario-b builds without errors[33m 318[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m98 passed[39m[22m[90m (98)[39m
+[2m   Start at [22m 16:16:41
+[2m   Duration [22m 1.54s[2m (transform 52%, tests 38%, import 10%)[22m
+
+$ vitest run
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90m/home/manuel/code/kiln/apps/server[39m
+
+ [32m✓[39m test/security.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 48[2mms[22m[39m
+ [32m✓[39m test/records.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 86[2mms[22m[39m
+ [32m✓[39m test/lab.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 91[2mms[22m[39m
+ [32m✓[39m test/events.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 170[2mms[22m[39m
+ [32m✓[39m test/agent.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 184[2mms[22m[39m
+ [32m✓[39m test/decide.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 225[2mms[22m[39m
+ [32m✓[39m test/executors.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 269[2mms[22m[39m
+ [32m✓[39m test/client.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 321[2mms[22m[39m
+ [32m✓[39m test/jobs.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 1956[2mms[22m[39m
+   [32m✓[39m the job lifecycle with the fake runner [2m(11)[22m
+     [33m[2m✓[22m[39m runs one job at a time, in approval order[33m 550[2mms[22m[39m
+     [33m[2m✓[22m[39m fails a repetition that exceeds the per-repetition timeout, keeping partial records[33m 438[2mms[22m[39m
+     [33m[2m✓[22m[39m stops an agent job when the daily budget runs out[33m 507[2mms[22m[39m
+ [32m✓[39m test/lab-import.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 7023[2mms[22m[39m
+   [32m✓[39m the Perf Lab importer [2m(8)[22m
+     [33m[2m✓[22m[39m imports a Perf Lab data directory, which the lab routes then serve in Perf Lab's shapes[33m 680[2mms[22m[39m
+     [33m[2m✓[22m[39m is idempotent: a second run adds nothing, writes nothing and changes nothing[33m 701[2mms[22m[39m
+     [33m[2m✓[22m[39m opens the source read-only and writes nothing under it, even when it is not writable[33m 790[2mms[22m[39m
+     [33m[2m✓[22m[39m changes no byte or timestamp of a WAL-mode source left with its -wal and -shm, as Perf Lab leaves it[33m 928[2mms[22m[39m
+     [33m[2m✓[22m[39m refuses what fails a check, stores none of it, imports the rest, and takes the rest once it is repaired[33m 1445[2mms[22m[39m
+     [33m[2m✓[22m[39m replaces a synthetic stand-in seeded here with Perf Lab's measured capture[33m 612[2mms[22m[39m
+     [33m[2m✓[22m[39m refuses a missing source, an older Perf Lab schema, and a Kiln data directory inside the source[33m 619[2mms[22m[39m
+     [33m[2m✓[22m[39m runs from the command line: prints the summary; exits 0, 1 when something is refused, 2 when the source is unreadable[33m 1245[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m10 passed[39m[22m[90m (10)[39m
+[2m      Tests [22m [1m[32m89 passed[39m[22m[90m (89)[39m
+[2m   Start at [22m 16:16:43
+[2m   Duration [22m 7.32s[2m (tests 82%, transform 13%, import 4%)[22m
+
+$ node build.mjs --gen-only && node ../../scripts/run-node-tests.mjs test --skip ui.mjs --skip export-cuda.mjs --skip param-sweep.mjs --skip webgpu.mjs --skip paired-webgpu.mjs --skip server-e2e.mjs --skip agent-e2e.mjs
+ok   gateway.mjs            41 ms
+FAIL lab-e2e.mjs            34 ms  (exit 1)
+no /home/manuel/code/kiln/apps/workbench/dist/kiln-workbench.html: build first (node build.mjs)
+ok   notes.mjs            2976 ms
+ok   presets.mjs          7065 ms
+ok   sandbox.mjs          1051 ms
+ok   server-sync.mjs       336 ms
+skipped: ui.mjs, export-cuda.mjs, param-sweep.mjs, webgpu.mjs, paired-webgpu.mjs, server-e2e.mjs, agent-e2e.mjs
+1 of 6 FAILED
+[ELIFECYCLE] Test failed. See above for more details.
+Error: ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL
+
+  × "pnpm recursive run" failed in /home/manuel/code/kiln/apps/workbench
+
+[ELIFECYCLE] Test failed. See above for more details.

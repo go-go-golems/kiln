@@ -1,0 +1,56 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.18kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 0.4s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+#3 resolve docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e 0.0s done
+#3 CACHED
+
+#4 [internal] load metadata for docker.io/library/ubuntu:24.04
+#4 DONE 0.3s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [1/6] FROM docker.io/library/ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
+#6 resolve docker.io/library/ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 535.64kB done
+#7 DONE 0.1s
+
+#8 [2/6] RUN set -eux;     case "arm64" in arm64) repo=sbsa ;; amd64) repo=x86_64 ;; *) echo "unsupported architecture arm64" >&2; exit 1 ;; esac;     v=$(echo "13.0" | tr . -);     apt-get update;     apt-get install -y --no-install-recommends ca-certificates curl;     curl -fsSLo /tmp/cuda-keyring.deb "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/$repo/cuda-keyring_1.1-1_all.deb";     dpkg -i /tmp/cuda-keyring.deb;     rm /tmp/cuda-keyring.deb;     apt-get update;     apt-get install -y --no-install-recommends         "cuda-nvcc-$v" "cuda-cudart-dev-$v" "cuda-nvrtc-dev-$v" g++ python3 python3-numpy         $(if [ "0" = 1 ]; then echo "cuda-nsight-compute-$v"; fi);     apt-get purge -y curl;     apt-get autoremove -y;     rm -rf /var/lib/apt/lists/*;     ln -sfn "/usr/local/cuda-13.0" /usr/local/cuda
+#8 CACHED
+
+#9 [3/6] COPY --chown=0:0 kiln_runner.py kiln_launch.py kiln-probe.cu /opt/kiln/
+#9 CACHED
+
+#10 [4/6] COPY --chown=0:0 fixtures/ /opt/kiln/fixtures/
+#10 CACHED
+
+#11 [5/6] COPY --chown=0:0 --chmod=755 kiln-probe kiln-selftest /usr/local/bin/
+#11 CACHED
+
+#12 [6/6] WORKDIR /tmp
+#12 CACHED
+
+#13 exporting to image
+#13 exporting layers done
+#13 exporting manifest sha256:e7450bac225e77d12aa1881c2854e8c939a98c0b180dcaf71bd9d552b3c190ff 0.0s done
+#13 exporting config sha256:f36111da736585142e7a3fd098ed5ba0ae0905863374a0a2f6b257fd137ba816 0.0s done
+#13 exporting attestation manifest sha256:50ae40d9d2d529e70c19683f08bbb2ed2bf8aa0eeddb39199aa8c7db58d9e00d
+#13 exporting attestation manifest sha256:50ae40d9d2d529e70c19683f08bbb2ed2bf8aa0eeddb39199aa8c7db58d9e00d 0.0s done
+#13 exporting manifest list sha256:285cca16414d6fb34876a7670f8b8bb59b373f9b63557573b7e2653a211ee9cf 0.0s done
+#13 naming to docker.io/library/kiln-perf:c800080-dirty-cuda13.0 done
+#13 unpacking to docker.io/library/kiln-perf:c800080-dirty-cuda13.0 done
+#13 naming to docker.io/library/kiln-perf:latest done
+#13 unpacking to docker.io/library/kiln-perf:latest 0.0s done
+#13 DONE 0.2s
+built kiln-perf:c800080-dirty-cuda13.0 on manuel@bling.local

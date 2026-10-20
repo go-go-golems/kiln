@@ -1,0 +1,25 @@
+arm a (http://127.0.0.1:8211): backend=trt
+arm b (http://127.0.0.1:8212): backend=trt
+
+=== concurrency 1 ===
+  pair 0: a=  77.54 f/s   b=  75.40 f/s   ratio=0.972
+  pair 1: a=  75.77 f/s   b=  75.43 f/s   ratio=0.996
+  pair 2: a=  75.53 f/s   b=  75.16 f/s   ratio=0.995
+  pair 3: a=  77.10 f/s   b=  75.39 f/s   ratio=0.978
+  -> a=76.44  b=75.40  ratio median=0.987 (min 0.972, max 0.996)  => -1.4%
+
+=== concurrency 4 ===
+  pair 0: a= 129.47 f/s   b= 126.95 f/s   ratio=0.981
+  pair 1: a= 130.76 f/s   b= 125.82 f/s   ratio=0.962
+  pair 2: a= 131.42 f/s   b= 125.38 f/s   ratio=0.954
+  pair 3: a= 130.63 f/s   b= 123.87 f/s   ratio=0.948
+  -> a=130.69  b=125.60  ratio median=0.958 (min 0.948, max 0.981)  => -4.2%
+
+=== concurrency 8 ===
+  pair 0: a= 130.35 f/s   b= 127.23 f/s   ratio=0.976
+  pair 1: a= 131.16 f/s   b= 126.74 f/s   ratio=0.966
+  pair 2: a= 130.30 f/s   b= 125.28 f/s   ratio=0.961
+  pair 3: a= 130.26 f/s   b= 125.16 f/s   ratio=0.961
+  -> a=130.32  b=126.01  ratio median=0.964 (min 0.961, max 0.976)  => -3.6%
+
+wrote /home/manuel/kiln-002/runs/20261020T201637Z/validate/throughput.json

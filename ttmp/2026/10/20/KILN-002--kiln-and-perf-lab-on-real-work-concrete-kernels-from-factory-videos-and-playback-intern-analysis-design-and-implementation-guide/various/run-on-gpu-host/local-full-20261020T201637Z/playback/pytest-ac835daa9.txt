@@ -1,0 +1,91 @@
+........................................................................ [ 10%]
+........................................................................ [ 21%]
+........................................................................ [ 32%]
+........................................................................ [ 42%]
+........................................................................ [ 53%]
+........................................................................ [ 64%]
+........................................................................ [ 74%]
+.................................................................F...... [ 85%]
+........................................................................ [ 96%]
+...........................                                              [100%]
+=================================== FAILURES ===================================
+______ TestInferFrameRaw.test_raw_path_matches_production_within_rounding ______
+
+self = <tests.test_trt_engine_raw.TestInferFrameRaw testMethod=test_raw_path_matches_production_within_rounding>
+
+    def test_raw_path_matches_production_within_rounding(self) -> None:
+        from src.seg_engine import (  # noqa: PLC0415
+            PERSON_CLASS_ID,
+            _dilate_mask,
+            _make_dilate_kernel,
+            _resize_mask_to,
+            _smooth_mask,
+            union_masks,
+        )
+        from src.trt_engine import (  # noqa: PLC0415
+            RawInferenceResult,
+            TrtSegEngine,
+            _unletterbox_mask,
+        )
+    
+        frame_bgr = cv2.imread(str(_FIXTURE_PATH), cv2.IMREAD_COLOR)
+        self.assertIsNotNone(frame_bgr, f"fixture missing: {_FIXTURE_PATH}")
+        assert frame_bgr is not None  # narrow for the type checker
+    
+        engine = TrtSegEngine(
+            _ENGINE_PATH,
+            confidence=_CONFIDENCE,
+            mask_dilate_px=_DILATE_PX,
+            mask_smooth_px=_SMOOTH_PX,
+        )
+        engine.load()
+        engine.warmup()
+    
+        # --- Production path ---
+        prod_masks, _ = engine.infer_frame(frame_bgr)
+        prod_union = union_masks(prod_masks)
+    
+        # --- Raw path + manual post-processing matching production ---
+        raw = engine.infer_frame_raw(frame_bgr)
+        self.assertIsInstance(raw, RawInferenceResult)
+        self.assertEqual(raw.scores.shape, (100,))
+        self.assertEqual(raw.labels.shape, (100,))
+        self.assertEqual(raw.mask_probs_lb.shape, (100, 640, 640))
+        self.assertEqual(raw.source_hw, frame_bgr.shape[:2])
+    
+        height, width = raw.source_hw
+        keep = (raw.scores >= _CONFIDENCE) & (raw.labels == PERSON_CLASS_ID)
+        kept_idx = np.flatnonzero(keep)
+        kernel = _make_dilate_kernel(_DILATE_PX)
+    
+        if kept_idx.size == 0:
+            recon_union = np.zeros((height, width), dtype=np.uint8)
+        else:
+            recon = np.empty((kept_idx.size, height, width), dtype=np.uint8)
+            for i, det in enumerate(kept_idx):
+                lb_binary = (raw.mask_probs_lb[det] >= _MASK_THR).astype(np.uint8)
+                m_src = _unletterbox_mask(
+                    lb_binary,
+                    raw.scale,
+                    raw.pad_x,
+                    raw.pad_y,
+                    (height, width),
+                )
+                m_src = _smooth_mask(m_src, _SMOOTH_PX)
+                recon[i] = _dilate_mask(_resize_mask_to(m_src, (height, width)), kernel)
+            recon_union = union_masks(recon)
+    
+        # The two unions should agree everywhere up to cv2.resize /
+        # Gaussian rounding jitter on the silhouette boundary.
+        disagreement = int(np.count_nonzero(np.bitwise_xor(prod_union, recon_union)))
+>       self.assertLessEqual(
+            disagreement,
+            _MAX_DISAGREEMENT_PX,
+            f"raw vs production mask union disagree on {disagreement} px (limit={_MAX_DISAGREEMENT_PX})",
+        )
+E       AssertionError: 28 not less than or equal to 2 : raw vs production mask union disagree on 28 px (limit=2)
+
+tests/test_trt_engine_raw.py:125: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_trt_engine_raw.py::TestInferFrameRaw::test_raw_path_matches_production_within_rounding
+1 failed, 674 passed in 15.06s
