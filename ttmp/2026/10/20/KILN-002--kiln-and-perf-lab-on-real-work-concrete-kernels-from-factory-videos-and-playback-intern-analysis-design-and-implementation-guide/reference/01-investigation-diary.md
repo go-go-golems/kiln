@@ -2273,3 +2273,129 @@ and reading the result.
   `{"status":"ok","version":"kiln-server/0.1",…,"executors":1,"features":["records","devices","jobs","events","lab"]}`.
 - The W-18 job: `job-26f0cd2f-df64-4704-95e4-66e4fbed88b6`; record
   `7935e997d5f27086c016aa64f283b6ea581d6d5196976e9964d76e8fb251d800`.
+
+## Step 15: Records name the program they were compiled from (record context)
+
+The user asked whether a measurement keeps the slider settings it was taken at. It kept the schedule knobs
+(`kernel.knobs`, `kernel.row`, `activation`) and the launch, but a project's parameters, W-18's `elements` and
+`degree`, reached a record only as hashes: the kernel identity (what is computed, on which shapes) and the content id
+(the exact source, launch, inputs and output). The consequence the user could see was in Evidence: two degrees at the
+same schedule were two groups with identical headings, `k_ew TPB=128 · CUDA NVIDIA GB10`. This step adds an optional
+`context` to `kiln-measure/1` records: the preset, the project, the project's parameters at the values the compile
+used, and the sha256 of the script. Every producer fills it, the server stores it per job kernel, and the page shows
+it. On the GB10, W-18 at degree 8 measured 126.5 µs and at degree 32 measured 133.2 µs, and each record names its
+degree.
+
+The same inspection found that 9 of the 11 jobs on the server had lost their records. The only route that deletes
+records is Evidence's Forget (`DELETE /api/records?device=…`, which removes every record of that device). The deletion
+happened between 21:13:56 and 21:14:35 UTC: job `942585ba` (finished 21:13:56) has none, `96066413` (21:14:35) has
+its record. The jobs remain; their measurements cannot be recovered.
+
+### Prompt Context
+
+**User prompts (verbatim):**
+
+- "Do we save the knobs used i the evidence? Like if I adjust elements/degrees in here? How can I see which were used
+  for a specific job / evidence"
+- "Can we record those knobs? also, what else would we like to investigate? and could we do knob sweeps and see the
+  multiple results in kiln? / Also, how do I access the perf lab?"
+
+**Assistant interpretation:** Answer from the stored records rather than from the code's intent; then make records
+carry the parameter values by name, deploy it to `bling`, and verify it on the GB10. Answer the sweep and Perf Lab
+questions from what the page and server do today.
+
+**Inferred user intent:** To be able to look at any stored measurement and know the exact settings that produced it,
+which a parameter sweep will need.
+
+### What I did
+
+- Read one record and the job list through the tunnel (`GET /api/records`, `GET /api/jobs/:id`) and tabulated every
+  job's identity, row, launch and content id. Same row and launch with a different identity (`d1a856e6` vs
+  `d9aad7e4`, both `TPB=64`, `2048 × 64`) showed a degree change; the launch gives `elements` as grid × block ×
+  COARSEN.
+- `@kiln/evidence` (`record.ts`): `RecordContext` `{ preset?, project?, params?, script? }`; `validateContext(x, at)`
+  (unknown fields, 1..200-character names, `params` a flat object of strings, finite numbers and booleans, at most
+  64, `script` a sha256 digest); `validateRecord` checks `context` and accepts it as a known field.
+- Kiln (`std/records.js`): `recordContext({ preset, project, params, script })` builds it from `project._params` and
+  the ParamSet, dropping values a record cannot hold. `makeRecord`, `EvidenceStore.record`, `measureProgram`,
+  `measurePaired` and `tune` take `context` and pass it on.
+- Server (`jobs.ts`): `JobKernelInput.context` is optional and per kernel; `parseJob` validates it with
+  `validateContext(k.context, 'kernels[i].context')`; it is stored in the spec, returned in `JobView.kernels`, and
+  copied into the kernel's record by `jobRecord`.
+- Page: `compile()` sets `wb.compileContext` next to `wb.prog`; `measure`, `compare`, `tune` and `proposeJob` (via
+  `jobSpec`'s new `contextOf`) use it. Evidence shows the parameters in each group heading and a Program block in the
+  record detail; the Jobs detail has a `parameters` row (one per kernel when they differ). `reference.txt` mentions
+  the context.
+- Tests: evidence 133 (8 new), server 91 (2 new: context per kernel through view and record; malformed context
+  refused), `packages/kiln/test/evidence.mjs` (5 new checks), `pnpm test` all green; `node test/server-e2e.mjs`
+  passes with a new check that W-05's records carry `rows=1024, dim=4096`.
+- Deployed to `bling`: bundle `9d409d1..main`, `git pull --ff-only`, `pnpm build`, server restarted in `tmux -L kiln`.
+- Verified on the GB10 headless: W-18 measured at degree 8 and 32 on `spark`, both records and both job views carry
+  the parameters (table below); screenshots of Evidence and Jobs in the scratchpad.
+
+### Why
+
+- A record field rather than a job field: the record is what moves between stores (export, import, sync to the
+  server), so a job-only context would be lost on the first export.
+- Per job kernel rather than per job: a parameter sweep sent as one job holds kernels from several parameter points.
+- Captured at compile time: the context then describes exactly the program `wb.prog` holds, even if the editor has
+  changed since.
+- The field on the page is `compileContext`, not `context`, because the agent's API already has `wb.context()`.
+- Knobs are not copied into the context: they are `kernel.knobs`, and two copies could disagree.
+
+### What worked
+
+- The first record measured after the deploy carried `{"preset":"W-18","project":"roofline","params":{"degree":8,
+  "elements":4194304},"script":"47c77e3b…"}`; Evidence's heading now reads `k_ew TPB=128 · degree=8,
+  elements=4194304 · CUDA NVIDIA GB10`.
+
+### What didn't work
+
+- `pnpm typecheck` in `apps/server` failed on the two deliberately malformed contexts in the new test
+  (`TS2322: Type '[number, number]' is not assignable to type 'string | number | boolean'`, `TS2353: … 'knobs' does
+  not exist in type 'RecordContext'`); marked them `as never`.
+- My screenshot driver failed with `SyntaxError: Unexpected token ';'`: `shoot.mjs`'s `page.eval` wraps its argument
+  as an expression, so two statements must be joined with a comma.
+
+### What I learned
+
+- Tune and Compare refuse a server device by design (`server-sync.js`: "runs jobs only: Measure proposes one (Tune and
+  Compare run on the page's devices)"), so no knob or parameter sweep can run on the GB10 from the page yet.
+- W-18 cannot reach the compute-bound regime on the GB10: its intensity is degree/4 flop/byte, the GB10's ridge in the
+  page's spec is 28.9 TFLOP/s ÷ 259 GB/s ≈ 111 flop/byte, so it would need degree ≈ 446, and the slider stops at 256.
+  The measurement agrees so far: degree 8 → 32 costs 5 %.
+- The Kiln server's Perf Lab routes on `bling` have an empty catalog; `local` is unavailable (Kiln does not execute lab
+  jobs) and `playback@dgx` / `playback@rtx-dev` are synthetic.
+
+### What was tricky to build
+
+- `validateRecord` rejects unknown fields and the record id hashes everything, so the context had to be a declared,
+  validated field; it is optional, which keeps every existing record valid and its id unchanged.
+
+### What warrants a second pair of eyes
+
+- `recordContext` records only `project._params`, not pipeline parameters a user pinned; those that are schedule
+  knobs appear in `kernel.knobs` and `activation`, but a pinned non-knob compiler option would not be named.
+- A page older than `432a4b9` posting to the new server is unaffected; a new page posting records with a context to
+  an old server is refused (`context: unknown field`). Both ends on `bling` are updated together.
+
+### What should be done in the future
+
+- Task udht: sweep as a job (a knob and parameter grid sent as one job, and a view of time against a parameter).
+
+### Code review instructions
+
+- `packages/evidence/src/record.ts` (`RecordContext`, `validateContext`), then `packages/kiln/src/std/records.js`
+  (`recordContext`), `apps/server/src/jobs.ts` (`parseJob`, `copyContext`, `jobRecord`, `view`), `apps/workbench/src/ui/wb.js`
+  (`compileContext`), `Evidence.jsx`, `Jobs.jsx`.
+- `pnpm test`; `cd apps/workbench && node build.mjs && node test/server-e2e.mjs`.
+
+### Technical details
+
+- Commit: Kiln `432a4b9`.
+- Verification jobs on `bling` (W-18, `TPB=128`, 7 × 20 launches):
+
+| job        | degree | elements | identity      | median of 7 (µs) |
+| ---------- | -----: | -------: | ------------- | ---------------: |
+| `e21c5d38` | 8      | 4194304  | `29gtq5uarr9` | 126.5            |
+| `1ddcfc43` | 32     | 4194304  | `3pfhtwvkj4`  | 133.2            |
