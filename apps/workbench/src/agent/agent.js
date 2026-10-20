@@ -111,7 +111,7 @@ const AGENT_SCOPE = [
   ["forks.list() · forks.get(i) · forks.pin(i, optionIndex | row) · forks.unpin(i)", "decisions with every option's model and measured time; pinning fixes one kernel's schedule (by its identity)"],
   ["params.list() · params.set(name, value) · params.pin({ name: value }) · params.unpin(name?)", "program sliders, pipeline params and global knob pins (MAP, TPB, …)"],
   ["kernels.list() · kernels.get(name) · kernels.source(name, 'cuda' | 'wgsl' | 'kernel' | 'tile' | 'loop') · kernels.simulate(name, { device })", "the compiled kernels; simulate runs one on a simulated GPU without recording"],
-  ["devices.list() · devices.current() · devices.use(id)", "sim:rtx5090 sim:rtx4090 sim:h100 sim:a100 sim:orin webgpu cuda"],
+  ["devices.list() · devices.current() · devices.use(id)", "sim:rtx5090 sim:rtx4090 sim:h100 sim:a100 sim:gb10 sim:orin webgpu cuda"],
   ["measure({ device }) · tune({ strategy: 'spmcts' | 'sweep', budget })", "run every kernel (time, metrics, sampled check vs the reference; records evidence) · search schedules"],
   ["evidence.list({ device, all }) · evidence.best(name) · evidence.clear({ device })", "measurement records (median of repetitions, n, status fresh / stale / partial / invalid); only fresh valid ones decide schedules"],
   ["checks.e2e() · checks.outputs()", "the end-to-end check (last evaluable IR vs the frontend) and the output values"],

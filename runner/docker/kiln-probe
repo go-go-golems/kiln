@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""kiln-probe: measure this GPU with kiln-probe.cu and print a JSON report with a Kiln target spec drawn from it.
+
+    kiln-probe [--quick] [--id gb10] [--name "NVIDIA GB10"]
+
+The report carries the probe's own fields (see kiln-probe.cu), the toolkit that built it, the GPU's clocks,
+temperature and power before and after the run, and the compute processes that shared the GPU during it. In a
+container, nvidia-smi lists only the processes of the container's own PID namespace, so an empty list would claim an
+idle GPU that may not be idle: computeApps is null there unless the container runs with --pid host. "spec" has
+the fields of packages/kiln/src/std/targets.js SPECS, with the measured figures in place of public ones:
+peakTflops is the best FMA rate, bwGBs the best read rate, launchUs the median event-timed empty launch.
+"""
+import argparse
+import hashlib
+import json
+import os
+import re
+import shutil
+import socket
+import subprocess
+import sys
+from pathlib import Path
+
+SOURCE = Path(os.environ.get("KILN_PROBE_SOURCE", "/opt/kiln/kiln-probe.cu"))
+CACHE = Path(os.environ.get("KILN_CACHE", "/tmp/kiln-runner-cache"))
+GPU_FIELDS = ["utilization.gpu", "clocks.sm", "clocks.max.sm", "clocks.mem", "temperature.gpu", "power.draw"]
+
+
+def smi(args):
+    tool = shutil.which("nvidia-smi")
+    if not tool:
+        return None
+    r = subprocess.run([tool, *args, "--format=csv,noheader,nounits"], capture_output=True, text=True, timeout=30)
+    return [[v.strip() for v in line.split(",")] for line in r.stdout.strip().splitlines()] if r.returncode == 0 else None
+
+
+def host_pid_namespace():
+    """True when PID 1 is the machine's init, i.e. not a container's own PID namespace."""
+    try:
+        return Path("/proc/1/comm").read_text().strip() in ("systemd", "init")
+    except OSError:
+        return False
+
+
+def snapshot():
+    gpu = smi(["--query-gpu=" + ",".join(GPU_FIELDS)])
+    apps = smi(["--query-compute-apps=pid,process_name,used_memory"]) if host_pid_namespace() else None
+    return {
+        "gpu": dict(zip(GPU_FIELDS, gpu[0])) if gpu else None,
+        "computeApps": None if apps is None else [{"pid": a[0], "name": a[1], "usedMiB": a[2]} for a in apps if len(a) == 3],
+    }
+
+
+def build(arch):
+    src = SOURCE.read_bytes()
+    nvcc = shutil.which("nvcc") or "/usr/local/cuda/bin/nvcc"
+    version = subprocess.run([nvcc, "--version"], capture_output=True, text=True).stdout
+    exe = CACHE / f"kiln-probe-{hashlib.sha256(src + arch.encode() + version.encode()).hexdigest()[:16]}"
+    if not exe.exists():
+        CACHE.mkdir(parents=True, exist_ok=True)
+        r = subprocess.run([nvcc, "-O3", "-std=c++17", f"-arch={arch}", "-o", str(exe), str(SOURCE)], capture_output=True, text=True)
+        if r.returncode != 0:
+            sys.exit("nvcc failed:\n" + (r.stderr or r.stdout)[-3000:])
+    m = re.search(r"release ([\d.]+), V([\d.]+)", version)
+    return exe, (m.group(2) if m else version.strip().splitlines()[-1])
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--quick", action="store_true", help="256 MiB buffers and 7 repetitions instead of 1 GiB and 20")
+    ap.add_argument("--id", help="spec id (default: from the device name)")
+    ap.add_argument("--name", help="spec name (default: the device name)")
+    args = ap.parse_args()
+
+    exe, nvcc_version = build(os.environ.get("KILN_ARCH", "native"))
+    before = snapshot()
+    r = subprocess.run([str(exe)] + (["--quick"] if args.quick else []), capture_output=True, text=True, timeout=600)
+    after = snapshot()
+    probe = json.loads(r.stdout.strip().splitlines()[-1]) if r.stdout.strip() else {"error": r.stderr.strip()[-500:]}
+    if "error" in probe:
+        print(json.dumps(probe))
+        sys.exit(1)
+
+    major, minor = (int(x) for x in probe["cc"].split("."))
+    spec = {
+        "id": args.id or re.sub(r"[^a-z0-9]+", "", probe["name"].lower().replace("nvidia", "")),
+        "name": args.name or probe["name"],
+        "arch": f"sm_{major}{minor}",
+        "sm": major * 10 + minor,
+        **{k: probe[k] for k in ["sms"]},
+        "clockGHz": round(probe["clockMHz"] / 1000, 3),
+        "peakTflops": round(probe["fmaTflops"]["best"], 1),
+        "bwGBs": round(probe["readGBs"]["best"]),
+        "l2MB": probe["l2MB"],
+        **{k: probe[k] for k in ["smemPerSM", "smemPerBlock", "maxThreadsPerBlock", "maxThreadsPerSM", "maxBlocksPerSM", "regsPerSM"]},
+        "launchUs": round(probe["launch"]["eventUs"]["median"], 1),
+    }
+    print(json.dumps({**probe, "hostname": socket.gethostname(), "nvcc": nvcc_version, "before": before, "after": after, "spec": spec}, indent=1))
+
+
+if __name__ == "__main__":
+    main()

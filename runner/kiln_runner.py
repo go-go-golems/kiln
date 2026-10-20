@@ -77,9 +77,10 @@ HARNESS = r"""
 
 #define CK(x) do { cudaError_t e_ = (x); if (e_ != cudaSuccess) { printf("\n{\"error\": \"%%s at line %%d\"}\n", cudaGetErrorString(e_), __LINE__); return 1; } } while (0)
 
-// mulberry32, exactly as the workbench: value = r * 2 - 1, rounded to float
-static float* gen(size_t n, uint32_t seed) {
-    float* h = (float*)malloc(n * sizeof(float) + 4);
+// mulberry32, exactly as the workbench (kernelInputs): with r the draw / 2^32, an f32 input holds r * 2 - 1 rounded to
+// float and a u8 input floor(r * 256), which is the draw's top byte
+static void* gen(size_t n, uint32_t seed, int u8) {
+    void* h = malloc(n * (u8 ? 1 : sizeof(float)) + 4);
     uint32_t a = seed;
     for (size_t i = 0; i < n; i++) {
         a += 0x6D2B79F5u;
@@ -87,23 +88,26 @@ static float* gen(size_t n, uint32_t seed) {
         t = (t ^ (t >> 15)) * (t | 1u);
         t ^= t + (t ^ (t >> 7)) * (t | 61u);
         uint32_t r = t ^ (t >> 14);
-        h[i] = (float)((double)r / 4294967296.0 * 2.0 - 1.0);
+        if (u8) ((uint8_t*)h)[i] = (uint8_t)(r >> 24);
+        else ((float*)h)[i] = (float)((double)r / 4294967296.0 * 2.0 - 1.0);
     }
     return h;
 }
 
 static const size_t IN_SIZES[] = { %(in_sizes)s };
 static const uint32_t IN_SEEDS[] = { %(in_seeds)s };
+static const int IN_U8[] = { %(in_u8)s };
 static const size_t SAMPLES[] = { %(samples)s };
 
 int main(int argc, char** argv) {
     const int NIN = %(nin)d, REPS = argc > 1 ? atoi(argv[1]) : %(reps)d, WARM = argc > 2 ? atoi(argv[2]) : %(warmup)d;
     const size_t OUT = %(out)dULL, NS = sizeof(SAMPLES) / sizeof(SAMPLES[0]);
-    float* d_in[NIN > 0 ? NIN : 1];
+    void* d_in[NIN > 0 ? NIN : 1];
     for (int i = 0; i < NIN; i++) {
-        float* h = gen(IN_SIZES[i], IN_SEEDS[i]);
-        CK(cudaMalloc(&d_in[i], IN_SIZES[i] * sizeof(float) + 4));
-        CK(cudaMemcpy(d_in[i], h, IN_SIZES[i] * sizeof(float), cudaMemcpyHostToDevice));
+        const size_t bytes = IN_SIZES[i] * (IN_U8[i] ? 1 : sizeof(float));
+        void* h = gen(IN_SIZES[i], IN_SEEDS[i], IN_U8[i]);
+        CK(cudaMalloc(&d_in[i], bytes + 4));
+        CK(cudaMemcpy(d_in[i], h, bytes, cudaMemcpyHostToDevice));
         free(h);
     }
     float* d_out;
@@ -230,18 +234,20 @@ def kernel_name(src):
 
 
 def run_kernel(k, reps, warmup, arch, nvcc, ncu):
-    # the harness generates float inputs only; an 8-bit input needs its own generator and has not met hardware yet
-    if any(i.get("dtype", "f32") != "f32" for i in k["inputs"]):
-        raise ValueError("8-bit (u8) inputs are not supported by this runner yet")
+    dtypes = [i.get("dtype", "f32") for i in k["inputs"]]
+    for d in dtypes:
+        if d not in ("f32", "u8"):
+            raise ValueError(f"input dtype {d} is not supported by this runner")
     name = kernel_name(k["source"])
     nin = len(k["inputs"])
     src = HARNESS % {
         "kernel": k["source"], "name": name, "nin": nin, "reps": reps, "warmup": warmup,
         "in_sizes": ", ".join(str(int(i["size"])) for i in k["inputs"]) or "0",
         "in_seeds": ", ".join(f"{int(i['seed']) & 0xffffffff}u" for i in k["inputs"]) or "0u",
+        "in_u8": ", ".join("1" if d == "u8" else "0" for d in dtypes) or "0",
         "samples": ", ".join(str(int(s)) for s in k["samples"]) or "0",
         "out": int(k["out"]), "grid": int(k["grid"]), "block": int(k["block"]),
-        "args": ", ".join([f"d_in[{i}]" for i in range(nin)] + ["d_out"]),
+        "args": ", ".join([f"({'const unsigned char' if d == 'u8' else 'float'}*)d_in[{i}]" for i, d in enumerate(dtypes)] + ["d_out"]),
     }
     exe, regs = build(src, re.sub(r"\W", "_", k["name"])[:40], arch, nvcc)
     r = subprocess.run([exe], capture_output=True, text=True, timeout=300)

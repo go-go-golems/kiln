@@ -19,6 +19,7 @@ Design and analysis live in docmgr tickets under `ttmp/` (start with `KILN-001`)
 packages/kiln/           @kiln/kiln: the compiler framework (src/core) and the standard ML stack (src/std)
 apps/workbench/          @kiln/workbench: the page (UI, agent, presets, docs); build.mjs → dist/kiln-workbench.html
 runner/kiln_runner.py    the CUDA runner (local or remote CUDA box)
+runner/docker/           kiln-perf: the runner, launcher, a device probe and fixtures in a CUDA image
 scripts/                 run-node-tests.mjs (Kiln's script-style tests), shoot.mjs (headless Chrome over CDP)
 imports/                 imported sources, kept as received (zip kept for provenance)
 lab-workbench/           Perf Lab, verbatim copy (node_modules, workloads/.venv, .data and dist are present

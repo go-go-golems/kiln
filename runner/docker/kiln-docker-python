@@ -1,0 +1,19 @@
+#!/bin/sh
+# Run Kiln's CUDA runner inside the kiln-perf image instead of on the host. Install this file on the GPU host and set
+# the executor profile's "python" to its absolute path (the executor quotes it, so ~ does not expand):
+#
+#   { "id": "spark", "target": "ssh", "host": "manuel@bling.local", "python": "/home/manuel/.local/bin/kiln-docker-python",
+#     "env": { "KILN_ARCH": "native" } }
+#
+# The executor runs `<python> ~/.cache/kiln-runner/kiln_runner-<hash>.py <subcommand> …` over SSH. This runs the same
+# command in the image, with the runner directory mounted at the same path so the argument resolves unchanged.
+#   - --hostname: the runner puts the host name into the device report, and the device id is derived from the report;
+#     a container's random host name would make the same GPU a new device on every probe.
+#   - --network none: the runner's run and device subcommands need no network (serve does, and is not for executors).
+#   - --init: the runner is not PID 1, so the signals docker run proxies (it does by default) reach it.
+set -eu
+image=${KILN_PERF_IMAGE:-kiln-perf:latest}
+dir=${KILN_RUNNER_DIR:-$HOME/.cache/kiln-runner}
+mkdir -p "$dir/build"
+exec docker run --rm -i --init --gpus all --network none --hostname "$(hostname)" --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp -e KILN_ARCH -e KILN_CACHE="$dir/build" -v "$dir:$dir" "$image" python3 "$@"

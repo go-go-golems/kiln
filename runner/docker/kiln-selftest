@@ -1,0 +1,6 @@
+#!/bin/sh
+# kiln-perf self-test: the CUDA launcher's five round-trip fixtures on this GPU, then the runner's device report.
+# Exits non-zero if a fixture disagrees with its expected outputs.
+set -eu
+python3 /opt/kiln/kiln_launch.py check /opt/kiln/fixtures --backend cuda
+KILN_ARCH=${KILN_ARCH:-native} python3 /opt/kiln/kiln_runner.py device
