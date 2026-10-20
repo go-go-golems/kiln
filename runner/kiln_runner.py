@@ -230,6 +230,9 @@ def kernel_name(src):
 
 
 def run_kernel(k, reps, warmup, arch, nvcc, ncu):
+    # the harness generates float inputs only; an 8-bit input needs its own generator and has not met hardware yet
+    if any(i.get("dtype", "f32") != "f32" for i in k["inputs"]):
+        raise ValueError("8-bit (u8) inputs are not supported by this runner yet")
     name = kernel_name(k["source"])
     nin = len(k["inputs"])
     src = HARNESS % {

@@ -29,6 +29,7 @@ export const FNS = {
   sigmoid: { n: 1, js: (a) => 1 / (1 + Math.exp(-a)), c: "(1.0f / (1.0f + expf(-({0}))))", w: "(1.0 / (1.0 + exp(-({0}))))", flops: 10 },
   relu: { n: 1, js: (a) => (a > 0 ? a : 0), c: "fmaxf({0}, 0.0f)", w: "max({0}, 0.0)", flops: 1 },
   abs: { n: 1, js: Math.abs, c: "fabsf({0})", w: "abs({0})", flops: 1 },
+  floor: { n: 1, js: Math.floor, c: "floorf({0})", w: "floor({0})", flops: 1 },
   sin: { n: 1, js: Math.sin, c: "sinf({0})", w: "sin({0})", flops: 8 },
   cos: { n: 1, js: Math.cos, c: "cosf({0})", w: "cos({0})", flops: 8 },
   recip: { n: 1, js: (a) => 1 / a, c: "(1.0f / {0})", w: "(1.0 / {0})", flops: 4 },

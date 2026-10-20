@@ -184,7 +184,7 @@ export const T = {
   squeeze(x, axis) { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T.view(x, s.filter((_, i) => i !== a), (c) => [...c.slice(0, a), IX.C(0), ...c.slice(a)]); },
   reshape(x, shape) { return tensor.view(x, { shape, map: reshapeMap(x.type.shape, shape) }); },
 };
-for (const name of ["add", "sub", "mul", "div", "max", "min", "pow", "exp", "log", "sqrt", "rsqrt", "tanh", "sigmoid", "relu", "neg", "abs", "square", "recip", "gt", "lt", "select", "sin", "cos"]) {
+for (const name of ["add", "sub", "mul", "div", "max", "min", "pow", "exp", "log", "sqrt", "rsqrt", "tanh", "sigmoid", "relu", "neg", "abs", "floor", "square", "recip", "gt", "lt", "select", "sin", "cos"]) {
   if (!T[name]) T[name] = (...xs) => T.ew(name, ...xs);
 }
 T.maximum = (a, b) => T.ew("max", a, b);
@@ -196,7 +196,7 @@ export const N = {
   add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b), div: (a, b) => N.ew("div", a, b),
   max: (a, b) => N.ew("max", a, b), min: (a, b) => N.ew("min", a, b), pow: (a, b) => N.ew("pow", a, b),
   exp: (x) => N.ew("exp", x), log: (x) => N.ew("log", x), sqrt: (x) => N.ew("sqrt", x), rsqrt: (x) => N.ew("rsqrt", x), tanh: (x) => N.ew("tanh", x),
-  sigmoid: (x) => N.ew("sigmoid", x), relu: (x) => N.ew("relu", x), abs: (x) => N.ew("abs", x), neg: (x) => N.ew("neg", x), square: (x) => N.ew("square", x),
+  sigmoid: (x) => N.ew("sigmoid", x), relu: (x) => N.ew("relu", x), abs: (x) => N.ew("abs", x), floor: (x) => N.ew("floor", x), neg: (x) => N.ew("neg", x), square: (x) => N.ew("square", x),
   sin: (x) => N.ew("sin", x), cos: (x) => N.ew("cos", x), select: (c, a, b) => N.ew("select", c, a, b), gt: (a, b) => N.ew("gt", a, b), lt: (a, b) => N.ew("lt", a, b),
   sum: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "add", axis, keepdim }),
   amax: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "max", axis, keepdim }),

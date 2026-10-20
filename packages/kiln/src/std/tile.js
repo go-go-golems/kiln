@@ -6,7 +6,7 @@
 //   MAP=tiled   a contraction tiled into BM×BN output tiles with BK-deep shared-memory slabs and a
 //               TM×TN register tile per thread (generalized matmul: any body, any epilogue)
 import { k, P, KilnError } from "../core/kiln.js";
-import { numel, strides, hash } from "../core/util.js";
+import { numel, strides, hash, inKey } from "../core/util.js";
 import * as IX from "../core/ix.js";
 import { schedule, free, printNest, displayNames, workOf } from "./loop.js";
 import { FNS } from "./fns.js";
@@ -339,18 +339,18 @@ const analyzeFor = (node) => analyze(node.attrs.expr, node.attrs.shape, node.att
 export const tile = k.dialect("tile").describe("Tile IR: a Loop IR kernel plus its GPU mapping")
   .op("kernel", {
     args: { variadic: "ins" },
-    attrs: { expr: null, shape: [], name: null, origin: [], map: null, inShapes: [] },
+    attrs: { expr: null, shape: [], name: null, origin: [], map: null, inShapes: [], inDtypes: [] },
     infer: ({ shape }) => k.tensor(shape),
     print: ({ name, ins, map }) => `tile.kernel ${name || "·"}(${ins})  [${canonRow(map || {})}]`,
     body: ({ args, map, node }) => printTile(analyzeFor(node), map, args, node.attrs.name),
-    identity: ({ expr, shape, args }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => a.type.shape.join("x")).join(",")}`),
+    identity: ({ expr, shape, args }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}`),
     keyIgnore: ["name", "origin"],
   });
 
 export const scheduleRule = k.rule("schedule").match(P.op("loop.kernel").as("n")).rewrite(({ n, ctx }) => {
-  const inShapes = n.args.map((a) => a.type.shape);
+  const inShapes = n.args.map((a) => a.type.shape), inDtypes = n.args.map((a) => a.type.dtype || "f32");
   const an = analyze(n.attrs.expr, n.attrs.shape, inShapes);
-  return forkTree(an, ctx.target).leaf((kn) => n.lower(tile.kernel, { ...n.attrs, map: { ...kn }, inShapes }));
+  return forkTree(an, ctx.target).leaf((kn) => n.lower(tile.kernel, { ...n.attrs, map: { ...kn }, inShapes, inDtypes }));
 }).describe("fork over GPU mappings (thread, row, tiled) and their knobs; legality only");
 
 // the prior: rank options with the analytic model on the pipeline's target

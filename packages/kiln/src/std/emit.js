@@ -18,7 +18,8 @@ export function toCuda(K) {
   const fx = (e) => (e.k === "num" ? flit(e.v, "c") : e.k === "var" ? e.n : fill(FNS[e.fn].c, e.a.map(fx)));
   const ins = K.params.filter((p) => p.role === "in");
   const lines = [];
-  lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `const float* __restrict__ src${i}`), "float* __restrict__ dst"].join(", ")}) {`);
+  const ctype = (p) => (p.dtype === "u8" ? "unsigned char" : "float");
+  lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `const ${ctype(p)}* __restrict__ src${i}`), "float* __restrict__ dst"].join(", ")}) {`);
   lines.push(`    const int tid = threadIdx.x;`, `    const int bid = blockIdx.x;`);
   for (const s of K.smem) lines.push(`    __shared__ float ${s.name}[${s.size}];`);
   if (K.floats.length) lines.push(`    float ${K.floats.map((f) => `${f} = 0.0f`).join(", ")};`);
@@ -28,7 +29,7 @@ export function toCuda(K) {
       switch (s.s) {
         case "let": lines.push(`${pad}${s.n} = ${fx(s.e)};`); break;
         case "iset": lines.push(`${pad}${s.n} = ${ix(s.e)};`); break;
-        case "load": lines.push(`${pad}${s.n} = ${bufName(s.buf)}[${ix(s.idx)}];`); break;
+        case "load": lines.push(`${pad}${s.n} = ${ins[s.buf]?.dtype === "u8" ? "(float)" : ""}${bufName(s.buf)}[${ix(s.idx)}];`); break;
         case "store": lines.push(`${pad}${bufName(s.buf)}[${ix(s.idx)}] = ${fx(s.e)};`); break;
         case "sload": lines.push(`${pad}${s.n} = ${s.arr}[${ix(s.idx)}];`); break;
         case "sstore": lines.push(`${pad}${s.arr}[${ix(s.idx)}] = ${fx(s.e)};`); break;
@@ -53,8 +54,10 @@ export function toWgsl(K) {
   const ix = (e) => IX.emit(e, "wgsl", iv);
   const fx = (e) => (e.k === "num" ? flit(e.v, "w") : e.k === "var" ? fv(e.n) : fill(FNS[e.fn].w, e.a.map(fx)));
   const lines = [];
-  ins.forEach((p, i) => lines.push(`@group(0) @binding(${i}) var<storage, read> b${i}: array<f32>;`));
+  // WGSL has no 8-bit storage type: a u8 input binds as packed u32 words and is read through an unpack function
+  ins.forEach((p, i) => lines.push(`@group(0) @binding(${i}) var<storage, read> b${i}: array<${p.dtype === "u8" ? "u32" : "f32"}>;`));
   lines.push(`@group(0) @binding(${ins.length}) var<storage, read_write> bout: array<f32>;`);
+  ins.forEach((p, i) => p.dtype === "u8" && lines.push(`fn ld${i}(j: i32) -> f32 { let u = u32(j); return f32((b${i}[u >> 2u] >> ((u & 3u) * 8u)) & 0xffu); }`));
   for (const s of K.smem) lines.push(`var<workgroup> ${s.name}: array<f32, ${s.size}>;`);
   lines.push("", `@compute @workgroup_size(${K.block})`);
   lines.push(`fn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {`);
@@ -69,7 +72,7 @@ export function toWgsl(K) {
       switch (s.s) {
         case "let": lines.push(`${pad}${fv(s.n)} = ${fx(s.e)};`); break;
         case "iset": lines.push(`${pad}${iv(s.n)} = ${ix(s.e)};`); break;
-        case "load": lines.push(`${pad}${fv(s.n)} = ${bufName(s.buf)}[${ix(s.idx)}];`); break;
+        case "load": lines.push(`${pad}${fv(s.n)} = ${ins[s.buf]?.dtype === "u8" ? `ld${s.buf}(${ix(s.idx)})` : `${bufName(s.buf)}[${ix(s.idx)}]`};`); break;
         case "store": lines.push(`${pad}${bufName(s.buf)}[${ix(s.idx)}] = ${fx(s.e)};`); break;
         case "sload": lines.push(`${pad}${fv(s.n)} = ${s.arr}[${ix(s.idx)}];`); break;
         case "sstore": lines.push(`${pad}${s.arr}[${ix(s.idx)}] = ${fx(s.e)};`); break;

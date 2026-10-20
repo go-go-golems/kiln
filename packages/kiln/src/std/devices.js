@@ -130,7 +130,14 @@ async function runOnce(dev, pipe, kern, { warmup, launches, timestamps, check, i
   dev.pushErrorScope("out-of-memory");
   dev.pushErrorScope("validation");
   try {
-    const bufs = ins.map((d) => { const b = buf({ size: Math.max(4, d.byteLength), usage: GPUBufferUsage.STORAGE, mappedAtCreation: true }); new Float32Array(b.getMappedRange()).set(d); b.unmap(); return b; });
+    // a u8 input uploads one byte per element, padded to whole words (the shader reads it as packed u32)
+    const bufs = ins.map((d, j) => {
+      const u8 = kern.inDtypes?.[j] === "u8";
+      const b = buf({ size: Math.max(4, u8 ? Math.ceil(d.length / 4) * 4 : d.byteLength), usage: GPUBufferUsage.STORAGE, mappedAtCreation: true });
+      (u8 ? new Uint8Array(b.getMappedRange()) : new Float32Array(b.getMappedRange())).set(d);
+      b.unmap();
+      return b;
+    });
     const outN = numel(kern.shape);
     const out = buf({ size: Math.max(4, outN * 4), usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
     const bind = dev.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [...bufs, out].map((buffer, binding) => ({ binding, resource: { buffer } })) });
@@ -338,7 +345,7 @@ export function bundle(kernels, { seed = 1, reps = 50, warmup = 5, ncu = false }
     format: "kiln-bundle/1", reps, warmup, ncu, created: new Date().toISOString(),
     kernels: kernels.map((kn) => ({
       name: kn.name, identity: kn.identity, row: kn.row, source: kn.cuda, grid: kn.K.grid, block: kn.K.block, smem: kn.K.smemBytes,
-      inputs: kn.inShapes.map((s, j) => ({ size: numel(s), seed: seedOf(kn, seed, j) })), out: numel(kn.shape), samples: sampleIndices(numel(kn.shape), 384),
+      inputs: kn.inShapes.map((s, j) => ({ size: numel(s), seed: seedOf(kn, seed, j), dtype: kn.inDtypes?.[j] || "f32" })), out: numel(kn.shape), samples: sampleIndices(numel(kn.shape), 384),
     })),
   };
 }

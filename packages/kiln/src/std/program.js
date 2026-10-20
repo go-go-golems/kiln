@@ -2,7 +2,7 @@
 // to launch them, and the buffers they read and write. Plus seeded inputs and sampled checks that
 // every device shares, so a CUDA box and the browser compare against the same reference values.
 import { k, P } from "../core/kiln.js";
-import { numel, hash, rng } from "../core/util.js";
+import { numel, hash, rng, inKey, dtypeBytes } from "../core/util.js";
 import { checkSamples } from "@kiln/evidence";
 import { toCuda, toWgsl, toSim, SimMetrics } from "./emit.js";
 import { printKernelBody } from "./kernel.js";
@@ -12,11 +12,11 @@ import { timeModel, regsEstimate } from "./tile.js";
 export const gpu = k.dialect("gpu").describe("the final IR: kernels with their rendered sources")
   .op("kernel", {
     args: { variadic: "ins" },
-    attrs: { K: null, cuda: "", wgsl: "", name: null, expr: null, shape: [], inShapes: [], map: null },
+    attrs: { K: null, cuda: "", wgsl: "", name: null, expr: null, shape: [], inShapes: [], inDtypes: [], map: null },
     infer: ({ shape }) => k.tensor(shape),
     print: ({ name, ins }) => `gpu.kernel ${name || "·"}(${ins})`,
     body: ({ cuda }) => cuda,
-    identity: ({ expr, shape, args }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => a.type.shape.join("x")).join(",")}`),
+    identity: ({ expr, shape, args }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}`),
     keyIgnore: ["name", "cuda", "wgsl"],
   });
 export const emitRule = k.rule("emit_sources").match(P.op("kernel.kernel").as("n"))
@@ -31,12 +31,12 @@ export function programOf(g) {
   for (const id of g.topo()) {
     const n = g.nodes.get(id);
     if (n.name !== "gpu.kernel" && n.name !== "kernel.kernel") continue;
-    const a = n.attrs;
+    const a = n.attrs, inDtypes = a.inShapes.map((_, i) => a.inDtypes?.[i] || "f32");
     kernels.push({
-      id, name: a.name || id, K: a.K, cuda: a.cuda || toCuda(a.K), wgsl: a.wgsl || toWgsl(a.K), expr: a.expr, shape: a.shape, inShapes: a.inShapes,
+      id, name: a.name || id, K: a.K, cuda: a.cuda || toCuda(a.K), wgsl: a.wgsl || toWgsl(a.K), expr: a.expr, shape: a.shape, inShapes: a.inShapes, inDtypes,
       args: n.args.map((x) => g.ref(x)), map: a.map, row: a.K.row,
-      identity: hash(`loop|${a.expr.__key}|${a.shape.join("x")}|${a.inShapes.map((s) => s.join("x")).join(",")}`),
-      bytes: (numel(a.shape) + a.inShapes.reduce((s, x) => s + numel(x), 0)) * 4,
+      identity: hash(`loop|${a.expr.__key}|${a.shape.join("x")}|${a.inShapes.map((s, i) => inKey(s, inDtypes[i])).join(",")}`),
+      bytes: numel(a.shape) * 4 + a.inShapes.reduce((s, x, i) => s + numel(x) * dtypeBytes(inDtypes[i]), 0),
     });
   }
   return { kernels, graph: g };
@@ -48,9 +48,9 @@ export function programOf(g) {
 export function seedOf(kern, seed, j) { return (hash(kern.identity || kern.name).split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7) + seed * 7919 + j * 104729) >>> 0; }
 export function kernelInputs(kern, seed = 1) {
   return kern.inShapes.map((s, j) => {
-    const r = rng(seedOf(kern, seed, j));
+    const r = rng(seedOf(kern, seed, j)), u8 = kern.inDtypes?.[j] === "u8";
     const d = new Float32Array(numel(s));
-    for (let i = 0; i < d.length; i++) d[i] = r() * 2 - 1;
+    for (let i = 0; i < d.length; i++) d[i] = u8 ? Math.floor(r() * 256) : r() * 2 - 1;
     return d;
   });
 }
