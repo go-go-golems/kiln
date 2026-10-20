@@ -2,12 +2,12 @@
 
 ## TODO
 - [x] Guide: research notes, intern guide, upload to reMarkable <!-- t:rn6b -->
-- [ ] P0.1 floor function in the Kiln function table (JS, CUDA, WGSL) with tests <!-- t:75h3 -->
-- [ ] P0.2 8-bit (u8) tensor inputs: CUDA and WGSL loads, reference unchanged, tests <!-- t:c9ml -->
-- [ ] P0.3 kiln-program/1 export (kernels in launch order, buffers, dispatch, identities) and CLI <!-- t:lhbi -->
-- [ ] P0.4 TypeScript WebGPU launcher for kiln-program/1 <!-- t:odvs -->
-- [ ] P0.5 Python launcher kiln_launch.py with wgpu and cuda (ctypes NVRTC + driver) backends <!-- t:e0iq -->
-- [ ] P0.6 identity suffix on emitted kernel names <!-- t:dc6h -->
+- [x] P0.1 floor function in the Kiln function table (JS, CUDA, WGSL) with tests <!-- t:75h3 -->
+- [x] P0.2 8-bit (u8) tensor inputs: CUDA and WGSL loads, reference unchanged, tests <!-- t:c9ml -->
+- [x] P0.3 kiln-program/1 export (kernels in launch order, buffers, dispatch, identities) and CLI <!-- t:lhbi -->
+- [x] P0.4 TypeScript WebGPU launcher for kiln-program/1 <!-- t:odvs -->
+- [x] P0.5 Python launcher kiln_launch.py with wgpu and cuda (ctypes NVRTC + driver) backends <!-- t:e0iq -->
+- [x] P0.6 identity suffix on emitted kernel names <!-- t:dc6h -->
 - [ ] A1 browser baseline of similarityMatrix at n 400/691/1385/2297, d 256/768 <!-- t:4cf6 -->
 - [ ] A2 W-26 window-similarity preset and bucket exports <!-- t:qyni -->
 - [ ] A3 factory-videos branch: GPU launcher, async hook, incremental row, ImageData painter, cap <!-- t:5ihi -->
@@ -24,3 +24,4 @@
 - [ ] PN NVIDIA session (needs permission): runner smoke test, target specs, B on Spark <!-- t:tpbv -->
 - [ ] PE kiln-paired/1 importer, lab programs per example, corresponds_to edges <!-- t:mo71 -->
 - [ ] PR vault report per example with measurements, verdicts and screenshots <!-- t:jram -->
+- [ ] PN.1 kiln_launch.py cuda backend: run the fixture check on an NVIDIA host (written, untested on hardware) <!-- t:6tbh -->

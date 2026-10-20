@@ -203,3 +203,165 @@ diary in the skill's investigation format, take screenshots, and finish with a d
 
 - Guide: `design-doc/01-kiln-and-perf-lab-on-real-work-intern-guide-to-the-first-production-kernels.md`.
 - Upload destination: `/ai/2026/10/20/KILN-002/KILN-002 Kiln and Perf Lab on Real Work - Intern Guide.pdf`.
+
+## Step 3: P0 groundwork — floor, u8 inputs, the program export and two launchers
+
+This step built the four pieces that every example depends on: a `floor` function, 8-bit kernel inputs, an export
+format a consumer can load (`kiln-program/1`), and launchers for that format in TypeScript (WebGPU) and Python
+(`wgpu` and CUDA). Both launchers pass five round-trip cases on the M1 Pro, including a u8 grey conversion that is
+bit-exact against the integer formula factory-videos uses. The CUDA backend is written but has not run, because no
+NVIDIA device is reachable without the user's permission.
+
+Two commits: `f272c11` (P0.1–P0.2) and `aa0f0b4` (P0.3–P0.6), both in `/Volumes/SSD/code/kiln`.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (the ticket request) and Step 2 (the mid-step "when done, implement" message).
+
+**Mid-step user action:** I tried to run the whole workspace suite with `pnpm test`; the user rejected that tool call
+and then wrote "continue". I took that as "not the workspace-wide run" and ran the compiler package's eleven test
+files individually instead (all passed). The workspace run has not been repeated.
+
+**Assistant interpretation:** Implement P0 of guide §26 in the Kiln repo, commit at milestones, record evidence here.
+
+**Inferred user intent:** Get to the examples quickly; groundwork should be small and tested, not elaborate.
+
+### What I did
+
+- **P0.1 `floor`.** One entry in `KS/std/fns.js` (`Math.floor` / `floorf` / `floor`), `N.floor` in
+  `KS/std/tensor.js`.
+- **P0.2 u8 inputs.** The authoring call is the existing dtype argument, `k.tensor(shape, "u8")` (`KS/core/kiln.js:9`),
+  not the `{dtype: "u8"}` object the guide shows. The dtype is carried as `inDtypes` on `tile.kernel`, `kernel.kernel`
+  and `gpu.kernel` and in `programOf`'s record. Changes:
+  - `KS/core/util.js`: `inKey(shape, dtype)` appends `:u8` only for non-f32, `dtypeBytes(dtype)`.
+  - Identity in all four places (`tile.js`, `kernel.js`, `program.js` ×2) uses `inKey`.
+  - `KS/std/emit.js`: CUDA declares `const unsigned char* __restrict__ srcN` and casts loads with `(float)`; WGSL binds
+    `array<u32>` and reads through a generated `fn ldN(j: i32) -> f32` that extracts byte `j & 3` of word `j >> 2`.
+  - `KS/std/devices.js`: the WebGPU executor uploads u8 inputs as one byte per element padded to words; `bundle()`
+    carries each input's dtype.
+  - `program.js`: seeded u8 inputs are whole numbers 0..255; `bytes` counts one byte per u8 element.
+  - `runner/kiln_runner.py` refuses u8 inputs per kernel with a clear error (its C harness generates floats only).
+- **P0.3 export.** `KS/std/export.js` (`exportProgram`, `exportedName`, `PROGRAM_FORMAT`) and the CLI
+  `scripts/kiln-export.mjs` (`--preset | --script`, `--param`, `--target`, `--out`, `--no-check`), which runs the
+  workbench's own `compileScript` and `endToEnd` so a CLI export is checked by the same rule as the page.
+- **P0.4 TypeScript launcher.** `runtime/webgpu/launch.ts`: `KilnWebGpuProgram.create(device, program)` compiles
+  every kernel and allocates every buffer; `write`, `encode`, `run`, `buffer`, `destroy`; `unsupportedReason` checks
+  workgroup size, workgroup memory, dispatch size, storage-buffer count and binding size before anything runs.
+- **P0.5 Python launcher.** `runtime/python/kiln_launch.py`: `open_program(path, backend="wgpu"|"cuda")`;
+  `WgpuProgram` (wgpu 0.32); `CudaProgram` (NVRTC → CUBIN for `sm_XY`, PTX for `compute_XY` as fallback; driver API;
+  `launch(stream, **pointers)` on caller-owned device pointers for PyTorch interop); `check <fixtures>` CLI.
+- **P0.6 identity suffix.** Exported kernels are named `<emitted name>__<identity>` and the CUDA entry symbol is
+  renamed to match; the workbench's emitters are untouched (see Why).
+- **Tests.** `packages/kiln/test/u8.mjs` (16 checks) and `packages/kiln/test/export.mjs` (24 checks) in the regular
+  suite; `runtime/test/fixtures.mjs` + `runtime/test/webgpu-roundtrip.mjs` + `kiln_launch.py check` for the GPUs.
+- Python environment: `uv venv --python 3.11 /Volumes/SSD/venvs/kiln-launch`, then `uv pip install wgpu numpy`
+  (wgpu 0.32.0, numpy 2.4.6), cache at `/Volumes/SSD/.uv-cache`.
+
+### Why
+
+- **Identity unchanged for fp32.** Identities are content addresses already stored in evidence records. Appending the
+  dtype only when it is not f32 keeps every existing identity byte-identical while giving u8 kernels distinct ones.
+- **Suffix in the export, not the emitters.** Renaming the symbol in `toCuda` would change every stored CUDA source
+  and therefore its `sourceSha256`, invalidating KILN-001 records for no gain. The export is the only place a symbol
+  leaves Kiln, so it is the only place the suffix is needed.
+- **The full identity, not eight hex digits.** Kiln's `hash` is base 36 (`307lrilpsx`), not hex, and ten or eleven
+  characters is short enough for a symbol. A prefix would add a collision case for no benefit.
+- **Fixture inputs from a formula.** `h = (i·2654435761 + s·40503) mod 2³²` is integer-exact in JavaScript and NumPy,
+  so the browser, Python and Node agree on 16.8 million inputs without shipping 67 MB files.
+
+### What worked
+
+- fp32 identities before and after, from a `git archive HEAD` copy at `/Volumes/SSD/tmp/kiln-head`: byte-identical
+  (`cmp` of two JSON dumps). They are the golden values in `u8.mjs`:
+  softmax `307lrilpsx`, blur `gtseq05iy8`, attention `160ckx28ec8 ylusrrd178 typboubdt0`, layernorm `1a6noxftb1k`.
+- The grey program compiles to one fused kernel (`k_reshape_ew`, 64 threads); frontend and loop-level evaluation equal
+  `(9798R+19235G+3735B+16384)>>15` on all 3,072 test pixels including (255,255,255) and (254,255,253).
+- Compiler package tests, run file by file: core, evidence, hypotheses, paired, progs, protocol, stack1–3, tune, u8 —
+  all exit 0, no `FAIL`/`MISMATCH` lines; then export.mjs, 24/24.
+- WebGPU round trip, headless Chrome on the M1 Pro (`node runtime/test/webgpu-roundtrip.mjs --fixtures …`):
+
+  | Case          | Kernels | Values compared | max abs error | First run | Second run |
+  | ------------- | ------: | --------------: | ------------: | --------: | ---------: |
+  | attention     | 3       | 1,024           | 8.94e-8       | 6.8 ms    | 1.4 ms     |
+  | blur-2d-grid  | 1       | 4,096 sampled   | 0             | 87.7 ms   | 44.9 ms    |
+  | blur-small    | 1       | 6,144           | 0             | 1.8 ms    | 0.6 ms     |
+  | grey-u8       | 1       | 3,072           | 0             | 0.6 ms    | 0.3 ms     |
+  | mlp           | 2       | 1,024           | 2.38e-7       | 2.0 ms    | 0.6 ms     |
+
+  Plus: an export with a 1,048,576-thread workgroup is refused with "threads per workgroup exceeds the device's 256".
+- Python `wgpu` backend on Metal (`kiln_launch.py check … --backend wgpu`): the same five cases, same error maxima;
+  second runs 1.6–1.8 ms for the small cases, 54.4 ms for the 16.8M-element blur.
+- The export CLI on W-12 at 64×96: one kernel `k_slice_ew__1eofyogxcaz`, end-to-end check "ok at loop".
+
+### What didn't work
+
+- My first export test called `N.weight("w", [8, 4])` outside `k.trace`:
+  `KilnError [ScopeError]: tensor.const(…) builds a node, so call it inside k.graph(…), k.trace(…) or a rule's rewrite`.
+  Weights are graph nodes; moved the call inside the traced function.
+- A broad `grep -n … apps/workbench/src/ui/wb.js` matched the generated preset bundle and returned 316 KB; generated
+  files (`*.gen.js`) have single lines of tens of kilobytes and must be excluded from searches.
+- On the Mac, `open_program(..., backend="cuda")` fails as intended:
+  `OSError: none of libcuda.so.1, libcuda.so, nvcuda.dll could be loaded; set KILN_LIBCUDA to the library's path`.
+
+### What I learned
+
+- A WGSL u8 load costs an extra shift and mask per element, but halves nothing else: the grey kernel's traffic falls
+  from 49,152 + 12,288 bytes (fp32 input) to 9,216 + 12,288 bytes for the 48×64 test, which is the point of P0.2.
+- Kernel names come from the ops a kernel fuses (`k_reshape_ew`, `k_slice_ew`, `k_matmul_ew_softmax_reduce`), so
+  two programs can share a name; the identity suffix is what makes a symbol unique.
+- The index expressions Kiln emits are not simplified (`((e % 64) % 64)` in the grey kernel); the GPU compilers fold
+  them, but they make the sources harder to read in a review.
+- wgpu-py's `request_device_sync()` exposes the adapter's maximum limits (1,024 invocations, 4 GiB bindings on the
+  M1 Pro), while Chrome's `requestDevice()` gives the WebGPU defaults (256 invocations) unless limits are requested.
+
+### What was tricky to build
+
+- **Dispatch past 65,535 workgroups.** The 4096×4096 blur needs 131,072 workgroups; `dispatch` is `[65535, 3, 1]`
+  because 65,535 × 2 = 131,070 is two short. The WGSL already computes `bid = wid.x + wid.y·nwg.x` and returns for
+  `bid ≥ grid`, so the 65,533 surplus workgroups exit at once. The fixture exists to prove that path.
+- **Error scopes in `create`.** A pipeline compile failure rejects `Promise.all`, which would skip `popErrorScope` and
+  leave scopes pushed on a device the caller keeps. `create` now catches, pops both scopes on every path, destroys
+  the buffers it made, and reports whichever error came first.
+- **CUDA context sharing.** In Playback the launcher runs inside a process where PyTorch already owns a context. The
+  backend uses the current context when there is one and otherwise retains the primary context (the one the CUDA
+  runtime uses), so `tensor.data_ptr()` values are valid for `launch()` either way.
+
+### What warrants a second pair of eyes
+
+- `CudaProgram` (`runtime/python/kiln_launch.py`) is untested: argument types of `cuLaunchKernel`, the NVRTC CUBIN/PTX
+  fallback, and library discovery inside the Playback image (`libnvrtc.so.13` from CUDA 13.2) all need PN.
+- `exportProgram` treats any `tensor.const` with data as an uploadable constant; a splat constant (no data) reaching a
+  kernel argument would be reported as unsupported rather than folded. No preset produced one.
+
+### What should be done in the future
+
+- Run `kiln_launch.py check <fixtures> --backend cuda` on the Spark and an RTX host in PN.
+- Teach `kiln_runner.py` to generate u8 inputs so a u8 kernel can be measured by the existing CUDA path.
+- Update the guide: `k.tensor(shape, "u8")`, full-identity suffix, the export's extra fields (`target`, `source`,
+  `dispatch`, `shape`, `inShapes`, `inDtypes`, buffer `bytes`).
+
+### Code review instructions
+
+- Start at `packages/kiln/src/std/export.js`, then `runtime/webgpu/launch.ts`, then `runtime/python/kiln_launch.py`.
+- Validate: `node packages/kiln/test/u8.mjs && node packages/kiln/test/export.mjs`;
+  `node runtime/test/fixtures.mjs /tmp/f && node runtime/test/webgpu-roundtrip.mjs --fixtures /tmp/f`;
+  `/Volumes/SSD/venvs/kiln-launch/bin/python runtime/python/kiln_launch.py check /tmp/f --backend wgpu`.
+
+### Technical details
+
+Generated grey kernel (CUDA, before the export renames it):
+
+```c
+extern "C" __global__ void __launch_bounds__(64) k_reshape_ew(const unsigned char* __restrict__ src0, float* __restrict__ dst) {
+    ...
+        in0 = (float)src0[(((192 * ((((e % 64) + (64 * (e / 64))) / 64) % 48)) + (3 * ((e % 64) % 64))) + 2)];
+        v0 = (19235.0f * in2);  v1 = fmaf(in1, 9798.0f, v0);  v2 = fmaf(in0, 3735.0f, v1);
+        v3 = (16384.0f + v2);   v4 = (0.000030517578125f * v3); v5 = floorf(v4);
+```
+
+The same kernel's WGSL unpack function:
+
+```wgsl
+@group(0) @binding(0) var<storage, read> b0: array<u32>;
+fn ld0(j: i32) -> f32 { let u = u32(j); return f32((b0[u >> 2u] >> ((u & 3u) * 8u)) & 0xffu); }
+```
