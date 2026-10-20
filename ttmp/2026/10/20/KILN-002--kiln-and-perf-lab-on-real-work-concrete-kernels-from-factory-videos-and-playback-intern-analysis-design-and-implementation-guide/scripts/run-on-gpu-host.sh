@@ -137,6 +137,8 @@ else
   RS() { R "bash -s -- $(printf '%q ' "$@")"; }
 fi
 [ -d /Volumes/SSD ] && export UV_CACHE_DIR=${UV_CACHE_DIR:-/Volumes/SSD/.uv-cache}
+# uv's installer puts it in ~/.local/bin, which a non-interactive SSH shell on Ubuntu does not have on PATH
+case :$PATH: in *":$HOME/.local/bin:"*) ;; *) PATH=$HOME/.local/bin:$PATH ;; esac
 # tar for streams sent to the host: without macOS extended attributes, which GNU tar there warns about
 send_tar() { if [ "$(uname)" = Darwin ]; then COPYFILE_DISABLE=1 tar --no-xattrs "$@"; else tar "$@"; fi; }
 
