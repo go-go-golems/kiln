@@ -355,7 +355,8 @@ stage_pb_test() {
         if [ "$fails_b" = 0 ]; then regress=1; else flaky="$flaky${flaky:+, }${id##*::} ($fails_c/$((reps + 1)) vs $fails_b/$((reps + 1)))"; fi
       fi
     done
-  } | tee "$out/playback/pytest-reruns.md"
+  } >"$out/playback/pytest-reruns.md" # not a pipe: a pipeline's subshell would drop regress and flaky
+  cat "$out/playback/pytest-reruns.md"
   if [ "$regress" = 1 ]; then
     note "$runs; a test fails at ${rev:0:9} and never at the baseline (playback/pytest-reruns.md)"; return 1
   fi
