@@ -26,14 +26,14 @@ export type InputData = Float32Array | Uint8Array | Uint8ClampedArray | ArrayLik
 
 const STORAGE = 0x80, COPY_SRC = 0x04, COPY_DST = 0x08, MAP_READ = 0x01, MAP_MODE_READ = 0x01;
 
-function decodeBase64(s: string): Uint8Array {
+function decodeBase64(s: string): Uint8Array<ArrayBuffer> {
   const bin = atob(s), out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
 }
 
 /** Bytes for one buffer: fp32 as is, u8 packed one byte per element and padded to whole words. */
-function packed(buf: ProgramBuffer, data: InputData): Uint8Array {
+function packed(buf: ProgramBuffer, data: InputData): Uint8Array<ArrayBuffer> {
   if (data.length !== buf.elements) throw new Error(`buffer ${buf.id} holds ${buf.elements} elements; got ${data.length}`);
   if (buf.dtype === "u8") {
     const out = new Uint8Array(buf.bytes);
@@ -41,7 +41,7 @@ function packed(buf: ProgramBuffer, data: InputData): Uint8Array {
     return out;
   }
   const f = data instanceof Float32Array ? data : Float32Array.from(data as ArrayLike<number>);
-  return new Uint8Array(f.buffer, f.byteOffset, f.byteLength);
+  return new Uint8Array(f.buffer as ArrayBuffer, f.byteOffset, f.byteLength);
 }
 
 /** The limits a program needs, checked against an adapter's or a device's; returns the first violation or null. */
