@@ -175,3 +175,102 @@ diary step 3, the inventory database; keep the stopped agents' partial notes".
 
 - Repository state while reading: `/Volumes/SSD/code/kiln`, branch `main`, at `4d9adc2` (no area-D changes since).
 - Node v26.8.1; no installs, no `pnpm` commands in `lab-workbench/` or `packages/lab/`.
+
+## Step 2: The duplication between @kiln/lab and Perf Lab, measured file by file; two corrections to the notes
+
+The notes said "most files differ only mechanically" without numbers. This step measured it: every
+`packages/lab/src` file was diffed against its `lab-workbench/src` source twice, raw and after undoing the three
+mechanical edits `sed` can undo, and the residue was read by eye. The result is §9.5 of the notes: of 16 language
+files, 9 differ only mechanically, 3 carry one-line semantic edits and 4 are rewritten; of 6 data files, 2 are
+near-copies and 4 are re-architected. The same pass found two errors in the notes written before the interruption,
+both corrected: the presets live in `src/presets/programs/`, and the assistant routes are all under
+`/api/assistant/`.
+
+### Prompt Context
+
+**User prompt (verbatim):** see `01-investigation-diary.md`, Step 1. **Relayed instruction:** see Step 1 above.
+
+**Orchestrator's resume message (summary, not a user quote):** resume after the usage-limit stop; keep editing the
+notes committed in `1d0c894`; write the diary in investigation format; fill `various/inventory/perf-lab.json` per
+the contract in `playbook/01-inventory-database-contract-json-rows-diaries-and-crosslinks.md`; validate with
+`load_inventory.py --check`; pathspec commits of the three files only.
+
+**Commit (previous):** `ae14e8d` — "KILN-004 D: diary step 1, the Perf Lab and @kiln/lab inventory pass".
+
+### What I did
+
+- Diffed every file, raw and normalised:
+
+  ```bash
+  cd /Volumes/SSD/code/kiln
+  norm() { sed -E "s/(from '[^']+)\.ts'/\1'/g; s/ \| undefined//g; s/!([.;,)\[])/\1/g; s/\s+$//" "$1"; }
+  for f in ir refs env query params algo detections builders compare build library runtime rows values stats util; do
+    a=lab-workbench/src/lang/$f.ts; b=packages/lab/src/lang/$f.ts
+    echo "$f $(wc -l <$a) $(wc -l <$b) $(diff $a $b | grep -c '^[<>]') $(diff <(norm $a) <(norm $b) | grep -c '^[<>]')"
+  done   # and the same loop over src/data/{generate,source,env,bundles,capabilities,datasets}.ts
+  ```
+
+- Read the normalised residue of `build`, `runtime`, `query` in full, and of `builders`, `params`, `compare`, `algo`,
+  `detections`, `library` with constructor-field lines filtered out.
+- Diffed the presets: `diff -rq lab-workbench/src/presets/programs packages/lab/presets`, then the two differing
+  programs line by line.
+- Re-read the route registrations: `grep -n "app\.\(get\|post\|put\|delete\)(" server/assistant/service.ts
+  server/app.ts`, and `server/assistant/service.ts:205-245,355-372`, `server/config.ts:20-31`.
+- Edited the notes: §4 (presets path), §5.1 (assistant route prefix; no authentication, bind `127.0.0.1`), §5.7
+  (where the limits live; how model code round-trips through the browser), new §9.5 (the diff table), §11(a)1.
+
+### Why
+
+- A duplication row in the database has to carry evidence a reader can re-run; "differs mechanically" is a claim,
+  the per-file counts are evidence.
+- Normalising before counting separates the strict-tsconfig noise (52 of `ir.ts`'s 52 changed lines) from real
+  behaviour changes, which is what decides whether one copy can simply be deleted.
+
+### What worked
+
+- Raw versus normalised counts (selected): `ir` 52 → 0, `refs` 2 → 0, `env` 10 → 0, `runtime` 70 → 6, `build`
+  38 → 12, `builders` 100 → 60 (all constructor fields), `values` 156 → 156, `stats` 126 → 122, `rows` 70 → 66.
+- The `build.ts` residue is exactly two constructor rewrites (`BuildError.failure`, `NeedsEvidence.mode`) and the
+  `lowered: JSON.parse(stableStringify(i.spec))` change at `packages/lab/src/lang/build.ts:866-868`; the `runtime.ts`
+  residue is the `isSealed` guard in `markDerived` and one `?? pattern`.
+- Presets: 9 programs and 2 reply scripts byte-identical; `local-sampler.lab.js` 15 changed lines, `dino-pr1005.lab.js`
+  4; `sampler-hosts.lab.js` only in the package.
+
+### What didn't work
+
+- The first preset diff, `diff -rq lab-workbench/src/presets packages/lab/presets`, compared the wrong directory and
+  reported every program as "Only in packages/lab/presets"; the follow-up per-file diff failed with
+  `diff: lab-workbench/src/presets/local-sampler.lab.js: No such file or directory`. The programs are one level down,
+  in `src/presets/programs/`, which the notes had also got wrong; both were corrected.
+
+### What I learned
+
+- The sed normalisation cannot undo constructor parameter properties (`erasableSyntaxOnly`), so `builders.ts` keeps
+  60 residual lines that are all mechanical. A count alone would have misclassified it; reading the residue was
+  necessary.
+- The assistant never executes model code on the server: replies carry `code` and `run`, the browser runs them, and
+  `POST /api/assistant/messages/:id/result` stores the observation and continues the turn (`service.ts:355-372`).
+- No Perf Lab route has authentication; the server relies on binding `127.0.0.1` (`server/config.ts:28`).
+
+### What was tricky to build
+
+- Choosing a normalisation that removes only mechanical edits. A broader `sed` (for example stripping every `!`) would
+  also erase logical negations; the pattern only removes a `!` directly followed by `. ; , ) [`, which in this code
+  is always a non-null assertion.
+
+### What warrants a second pair of eyes
+
+- The `norm` counts for `rows.ts` (66) and `generate.ts` (47) were classified from the earlier reading, not
+  re-read line by line in this step.
+
+### What should be done in the future
+
+- Step 3: the inventory JSON, with the duplication rows citing §9.5.
+
+### Code review instructions
+
+- Re-run the loop above from `/Volumes/SSD/code/kiln`; compare with the table in §9.5 of the notes.
+
+### Technical details
+
+- Repository at `ae14e8d` (only ticket files changed since `4d9adc2`; no area-D source changed).

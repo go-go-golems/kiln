@@ -385,10 +385,11 @@ boards `identity/latency/memory/cpu`.
 
 ## 4. Presets (`lab-workbench/src/presets`, 962 LOC) [obs]
 
-`src/presets/index.ts` loads each program with Vite's `?raw` and groups them: `hello`, `parameters`,
-`request-to-kernel`, `compare`, `learn`, `matrices`, `scenario-a` (+ scripted agent replies), `scenario-b`,
-`scenario-c` (+ replies), `local-sampler`, `dino-pr1005`. `build.test.ts` builds every preset. The `?raw` import ties
-the preset registry to Vite; `@kiln/lab` replaces it with a filename registry plus a Node reader (§9.3).
+The programs live in `src/presets/programs/*.lab.js` (11 programs, 2 reply scripts); `src/presets/index.ts` loads
+each with Vite's `?raw` and groups them: `hello`, `parameters`, `request-to-kernel`, `compare`, `learn`, `matrices`,
+`scenario-a` (+ scripted agent replies), `scenario-b`, `scenario-c` (+ replies), `local-sampler`, `dino-pr1005`.
+`build.test.ts` builds every preset. The `?raw` import ties the preset registry to Vite; `@kiln/lab` replaces it with
+a filename registry plus a Node reader (§9.3).
 
 ## 5. Server (`lab-workbench/server`, 3354 LOC)
 
@@ -420,9 +421,13 @@ holds the API, the runner and the assistant.
 | GET    | `/media/:sha`                     | 255   | public media only                                                   |
 | GET    | `/events`                         | 266   | SSE bus, 15 s ping                                                  |
 
-Assistant routes, mounted by `server/assistant/service.ts`: `GET /assistant/models` (249), `GET /conversations`
-(255), `GET /library` (262), `GET /library/:id` (281), `POST /archive` (288), `POST /library/:id/restore` (300),
-`DELETE /library/:id` (312), `POST /assistant/turns` (321, SSE), `POST /assistant/messages/:id/result` (355).
+Assistant routes, mounted by `server/assistant/service.ts`, all under `/api/assistant`: `GET /models` (249),
+`GET /conversations` (255), `GET /library` (262), `GET /library/:id` (281), `POST /archive` (288),
+`POST /library/:id/restore` (300), `DELETE /library/:id` (312), `POST /turns` (321, SSE),
+`POST /messages/:id/result` (355).
+
+No route has authentication: the server binds `127.0.0.1` (`config.ts:28`; port `PERF_LAB_PORT`, default 5198)
+and trusts every local caller. The only role distinction is `proposed_by`, set by the route a job came through.
 
 ### 5.2 SQLite schema (`server/db.ts`) [obs]
 
@@ -503,10 +508,16 @@ outputs in rep-N/: manifest.json, activation.json, quality.json (maxAbsDiff vs e
 
 - `model.ts`: model catalog via the `pi` agent's credentials under `~/.pi/agent`; default model
   `lunaroute/deepseek-4.1-flash:high` (`config.ts`).
-- `prompt.ts`: `RULES`, at most 4 executions per turn, `splitReply`; imports `REFERENCE` from
+- `prompt.ts`: `systemPrompt` (`:28`) states the rules, including "at most four code executions per question"
+  (`:12`); `observationText` (`:39`), `splitReply` (`:52`). It imports `REFERENCE` from
   `src/components/organisms/IdePane/reference.ts` (`prompt.ts:1`) — a server module importing a UI component's file.
-- `service.ts` `PiAssistant`: `MAX_STEPS 4`, history 24 messages, conversations/messages/llm_calls persisted, token
-  estimates recorded (`llm_calls.est_prompt_tokens`).
+- `service.ts` `PiAssistant`: `MAX_STEPS = 4` (`:14`) enforces that limit (`:203`, `:213`; the last step's code is
+  kept but marked `skipped`); `HISTORY = 24` messages (`:15`, `:182`); one answer per conversation at a time
+  (`busy`, `409`); conversations, messages and `llm_calls` persisted with a prompt-token estimate of
+  `ceil(promptChars / 4)` (`:127`, `:225`).
+- The model's code never runs on the server. The SSE `reply` event carries `code` and `run`; the browser runs it in
+  the agent runtime (§6.3) and posts `{status, value, error, logs, ms, continue}` to `POST /messages/:id/result`
+  (`:355-372`), which stores an `observation` message and, with `continue: true`, asks the model again.
 
 ## 6. Frontend (`lab-workbench/src`)
 
@@ -674,6 +685,49 @@ Labels P-n are the package's own change identifiers, cited in its comments.
 - `apps/server` does **not** depend on `@kiln/lab` (its dependencies are `@kiln/evidence`, `@kiln/exec`, `hono`).
 - `packages/lab/scripts/perf-lab.ts:6,40-41` and `check-pl.ts` use `readPerfLabStore`; nothing else does.
 
+### 9.5 Diff counts behind the comparison [ran]
+
+`raw` is `diff <PL> <pkg> | grep -c '^[<>]'`. `norm` is the same after removing the three mechanical edits that
+`sed` can undo: the `.ts` import extension, `| undefined`, and a postfix `!` before `. ; , ) [`. What `norm` still
+shows in a "mechanical" file was inspected by eye: constructor parameter properties rewritten as fields, tuple
+destructuring with defaults, and the one-line semantic edits named in the last column.
+
+| File (`src/…`)        | PL LOC | pkg LOC | raw | norm | Residual after normalising                                            |
+| --------------------- | ------ | ------- | --- | ---- | --------------------------------------------------------------------- |
+| `lang/ir.ts`          | 153    | 153     | 52  | 0    | none                                                                  |
+| `lang/refs.ts`        | 57     | 57      | 2   | 0    | none                                                                  |
+| `lang/env.ts`         | 70     | 70      | 10  | 0    | none                                                                  |
+| `lang/query.ts`       | 155    | 157     | 14  | 10   | `Query` constructor fields                                            |
+| `lang/params.ts`      | 264    | 266     | 16  | 12   | tuple type `[number, number]`, fields                                 |
+| `lang/algo.ts`        | 260    | 260     | 14  | 8    | destructuring defaults                                                |
+| `lang/detections.ts`  | 285    | 288     | 31  | 9    | `cocoBox` defaults, test path in a comment                            |
+| `lang/builders.ts`    | 451    | 463     | 100 | 60   | constructor fields of the builder classes                             |
+| `lang/compare.ts`     | 116    | 121     | 21  | 15   | constructor fields                                                    |
+| `lang/build.ts`       | 1030   | 1036    | 38  | 12   | `BuildError`/`NeedsEvidence` fields; `lowered` normal form (`:866-868`) |
+| `lang/runtime.ts`     | 253    | 255     | 70  | 6    | `markDerived` skips sealed rows (`isSealed`); `?? pattern`            |
+| `lang/library.ts`     | 169    | 178     | 27  | 13   | `below`/`above`; `illustrative` takes a unit or options; `describeText` guard |
+| `lang/rows.ts`        | 350    | 368     | 70  | 66   | semantic: provenance via `combine`, deep seal                         |
+| `lang/values.ts`      | 89     | 113     | 156 | 156  | rewritten on `@kiln/evidence`                                         |
+| `lang/stats.ts`       | 122    | 168     | 126 | 122  | rewritten on `@kiln/evidence`                                         |
+| `lang/util.ts`        | 121    | 114     | 41  | 41   | `rng`/`quantile` from evidence; `hash` unchanged                      |
+| `data/generate.ts`    | 724    | 731     | 57  | 47   | `val` → `illustrative`                                                |
+| `data/source.ts`      | 138    | 142     | 16  | 14   | fields, typing                                                        |
+| `data/env.ts`         | 52     | 83      | 89  | 89   | `labEnv`, `buildSynthetic`                                            |
+| `data/bundles.ts`     | 52     | 24      | 68  | 68   | fetch and cache removed                                               |
+| `data/capabilities.ts`| 123    | 182     | 137 | 135  | host reports instead of a module global                               |
+| `data/datasets.ts`    | 154    | 150     | 130 | 128  | caches removed, Kiln media URL                                        |
+
+Presets (`diff -rq lab-workbench/src/presets/programs packages/lab/presets`): nine programs and both reply scripts are
+byte-identical; `local-sampler.lab.js` differs by 15 lines (a `host` parameter `mac|bling`, `.host(ctx =>
+ctx.param('host'))`, the workload path `HEAD:lab-workbench/workloads/...` instead of the Playback ticket path) and
+`dino-pr1005.lab.js` by 4 (`.host('mac')`, a limitation saying no Kiln kind runs the DINO workload yet);
+`sampler-hosts.lab.js` exists only in the package. The package's `presets.ts:1` still says "copied unmodified".
+
+So of the 16 language files, 9 differ only mechanically (`ir`, `refs`, `env`, `query`, `params`, `algo`,
+`detections`, `builders`, `compare`), 3 carry one-line semantic edits (`build`, `runtime`, `library`) and 4 are
+rewritten (`rows`, `values`, `stats`, `util`); of the 6 data files, 2 are near-copies (`generate`, `source`) and 4
+are re-architected around `LabData` injection.
+
 ## 10. The Kiln-side ports, briefly
 
 ### 10.1 `apps/server/src/lab` (1028 LOC) [obs]
@@ -710,8 +764,9 @@ plan-bound parameter change cannot run captures from this workbench yet.
 ### (a) Duplication
 
 1. **Two copies of the language.** `lab-workbench/src/lang` (3945 LOC) and `packages/lab/src/lang` (about 4000 LOC)
-   implement the same compiler; most files differ only mechanically (§9.2). Every fix must be made twice or the copies
-   drift — and they already have (seed handling, provenance of aggregates, synthetic `observed` labels). [obs]
+   implement the same compiler: 9 of 16 language files differ only mechanically and 3 more by one-line edits (§9.5).
+   Every fix must be made twice or the copies drift — and they already have (seed handling, provenance of
+   aggregates, synthetic `observed` labels). [ran: per-file diffs]
 2. **Three copies of the capture hash.** cyrb53 + `stableStringify` live in `lab-workbench/src/lang/util.ts:1-16`,
    `packages/lab/src/lang/util.ts:6-24` and `packages/exec/src/lab-hash.ts:7,43` (`labCaptureHash`). They must stay
    bit-identical or every stored artifact becomes unmatchable; only the package's comment (P-5) says so. [obs]
