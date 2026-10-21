@@ -669,6 +669,28 @@ determines whether the two UIs can show the same board identically.)
 | CSS file list ×2                    | `build.mjs:55` and `scripts/specimen.mjs:10` (already drifted)                                                 |
 | Hand-rolled SVG chart scaffolding ×5| `Perf.jsx:249` Roofline, `Perf.jsx:375` TuneChart, `common.jsx` Spark, `Evidence.jsx` Strip, `lab/charts.jsx` [inf: no shared axis/scale helper found] |
 
+### 10.3 Duplication confirmed by diff
+
+Reads say a file is a port; a diff says how much of it is the same knowledge. Each line below was checked with
+`diff` or `grep` (commands in diary Step 4) [obs]:
+
+| Pair                                                                                 | Result                                                                                                                         |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `lab/format.js:7-20` vs `lab-workbench/src/lib/format.ts:15-32` (`formatScalar`)     | Same rules line for line once types are stripped and quotes normalised; only the array and object branches are compacted       |
+| `lab/format.js` exports vs `lib/format.ts` exports                                   | Ports `formatScalar`, `formatValue`, `sourceLink`; adds `fieldLabel`; drops `SERIES_FIXED`, `tintOf`, `seriesColor`, `PROV_GLYPH`, `minutesUnit` (colour and glyph helpers) |
+| `lab/charts.jsx:268-274` vs `TimelineView.tsx:21-27` (`ROLE_FILL`)                   | Five kernel-role regexes identical; fills changed from `var(--d1..d6)` to greys, hatch and dots                                |
+| `lab/charts.jsx:418-419` vs `MirrorView.tsx:15-16`                                   | Lane list identical (`cpu:main` … `cuda:copy`), lane height 16 in both                                                         |
+| `lab/charts.jsx:74-77,114` vs `ChartView.tsx:18-22`                                  | `OUTCOME_SHAPE`, `TICK_CHAR_PX = 5.6`, `TILT_RAD = π/6` identical; Kiln adds a sixth shape (`diamond`) and `DASH`/`FILLS` tables so series stay distinct without colour |
+| `lab/panels.jsx:28` vs `TableView.tsx:15`                                            | `LIMIT = 200` in both                                                                                                          |
+| five `plural` helpers                                                                | Byte-identical (`sort \| uniq -c` → one line, count 5)                                                                         |
+| `tokens.css:25-30` vs `tokens.css:33-38`                                             | Empty diff: the two dark blocks are identical                                                                                  |
+| `md.js:4` vs `doc.js:7` (`esc`)                                                      | Same escape (doc.js adds `String()`); the two `inline` functions differ, only doc.js's is exported                            |
+
+The `ROLE_FILL` and lane tables are the finding with consequences: they are **domain knowledge** about traced
+Grounding DINO runs, not styling, so a new kernel role has to be added in both apps or one of them mislabels it. They
+belong in `@kiln/lab` as data, with each app mapping roles to its own fills. Recorded as the duplication row
+"Perf Lab trace vocabulary: kernel-role regexes, mirror lanes and outcome shapes".
+
 ---
 
 ## 11. (d) Complexity hotspots

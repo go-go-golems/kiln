@@ -2348,7 +2348,10 @@
    "locations": "[{\"path\": \"apps/workbench/src/ui/lab/panels.jsx\", \"lines\": \"1-349\", \"note\": \"ported from TableView, StatView, RunListView, ManifestView, HypothesisView, TextView, SourceView, ControlView\"}, {\"path\": \"apps/workbench/src/ui/lab/charts.jsx\", \"lines\": \"1-503\", \"note\": \"ported from ChartView, TimelineView, MirrorView without d3\"}, {\"path\": \"apps/workbench/src/ui/lab/media.jsx\", \"lines\": \"1-232\", \"note\": \"ported from GalleryView, DetectionsView\"}, {\"path\": \"apps/workbench/src/ui/lab/inspect.jsx\", \"lines\": \"1-258\", \"note\": \"ported from KernelCardView, RouteView, LedgerView, StepperView, BatchView\"}, {\"path\": \"lab-workbench/src/components/organisms/views/ChartView/ChartView.tsx\", \"lines\": \"1-374\", \"note\": \"original\"}, {\"path\": \"lab-workbench/src/components/organisms/views/TimelineView/TimelineView.tsx\", \"lines\": \"1-308\", \"note\": \"original\"}, {\"path\": \"lab-workbench/src/components/organisms/views/MirrorView/MirrorView.tsx\", \"lines\": \"1-151\", \"note\": \"original\"}]",
    "severity": "high",
    "suggested_consolidation": "One board renderer package consumed by both apps, rendering the same @kiln/lab IR.",
-   "diary_step": 1
+   "diary_steps": [
+    1,
+    4
+   ]
   },
   {
    "title": "lab board frame: board-context and ViewRenderer vs ui/lab/board.jsx",
@@ -2364,7 +2367,10 @@
    "locations": "[{\"path\": \"apps/workbench/src/ui/lab/format.js\", \"lines\": \"1-48\", \"note\": \"Kiln port\"}, {\"path\": \"lab-workbench/src/lib/format.ts\", \"lines\": \"1-93\", \"note\": \"original\"}]",
    "severity": "low",
    "suggested_consolidation": "Move into the shared board renderer.",
-   "diary_step": 1
+   "diary_steps": [
+    1,
+    4
+   ]
   },
   {
    "title": "lab program tabs: LabTab/PlanTab/RunsTab/InspectTab vs LabView/InspectView",
@@ -2436,7 +2442,10 @@
    "locations": "[{\"path\": \"apps/workbench/src/ui/doc.js\", \"lines\": \"1-114\", \"note\": \"notes and boards\"}, {\"path\": \"apps/workbench/src/ui/md.js\", \"lines\": \"1-45\", \"note\": \"agent answers\"}]",
    "severity": "low",
    "suggested_consolidation": "One renderer with an option for KaTeX and lab: links.",
-   "diary_step": 1
+   "diary_steps": [
+    1,
+    4
+   ]
   },
   {
    "title": "provenance value cell: marks.jsx Val vs lab/panels.jsx LabVal",
@@ -2460,7 +2469,10 @@
    "locations": "[{\"path\": \"apps/workbench/src/ui/Hypotheses.jsx\", \"lines\": \"7\", \"note\": \"plural\"}, {\"path\": \"apps/workbench/src/ui/Jobs.jsx\", \"lines\": \"6-7\", \"note\": \"plural, when\"}, {\"path\": \"apps/workbench/src/ui/Evidence.jsx\", \"lines\": \"10-11\", \"note\": \"when, plural\"}, {\"path\": \"apps/workbench/src/ui/marks.jsx\", \"lines\": \"12\", \"note\": \"plural\"}, {\"path\": \"apps/workbench/src/ui/lab/LabView.jsx\", \"lines\": \"95\", \"note\": \"plural\"}, {\"path\": \"apps/workbench/src/ui/common.jsx\", \"lines\": \"92\", \"note\": \"Empty (exported)\"}, {\"path\": \"apps/workbench/src/ui/lab/panels.jsx\", \"lines\": \"24\", \"note\": \"Empty (local)\"}, {\"path\": \"apps/workbench/src/ui/lab/inspect.jsx\", \"lines\": \"12\", \"note\": \"Empty (local)\"}]",
    "severity": "low",
    "suggested_consolidation": "Export once from common.jsx.",
-   "diary_step": 1
+   "diary_steps": [
+    1,
+    4
+   ]
   },
   {
    "title": "dry-run display: Jobs.jsx DryRun vs LabView LabDryRun",
@@ -2492,7 +2504,10 @@
    "locations": "[{\"path\": \"apps/workbench/src/ui/tokens.css\", \"lines\": \"24-31\", \"note\": \"prefers-color-scheme\"}, {\"path\": \"apps/workbench/src/ui/tokens.css\", \"lines\": \"32-39\", \"note\": \"data-theme\"}, {\"path\": \"scripts/contrast.mjs\", \"lines\": \"12\", \"note\": \"reads data-theme only\"}]",
    "severity": "low",
    "suggested_consolidation": "Generate one from the other, or check both.",
-   "diary_step": 1
+   "diary_steps": [
+    1,
+    4
+   ]
   },
   {
    "title": "CSS bundle file list: build.mjs vs specimen.mjs",
@@ -2517,6 +2532,14 @@
    "severity": "low",
    "suggested_consolidation": "A small scale/axis helper shared by all five.",
    "diary_step": 1
+  },
+  {
+   "title": "Perf Lab trace vocabulary: kernel-role regexes, mirror lanes and outcome shapes",
+   "description": "Domain knowledge about traced runs is copied, not shared: the five kernel-role regexes (encoder.sampling, encoder.reduce, norm, attention, transfer), the five mirror lanes (cpu:main, cpu:worker, cuda:stream 7, cuda:stream 3, cuda:copy) and the outcome-to-shape map are identical in both apps; only the fills differ (Perf Lab colours --d1..d6, Kiln greys, hatch and dots). A new kernel role must be added in two places or one app mislabels it.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/lab/charts.jsx\", \"lines\": \"268-274\", \"note\": \"ROLE_FILL, monochrome fills\"}, {\"path\": \"lab-workbench/src/components/organisms/views/TimelineView/TimelineView.tsx\", \"lines\": \"21-27\", \"note\": \"ROLE_FILL, data palette\"}, {\"path\": \"apps/workbench/src/ui/lab/charts.jsx\", \"lines\": \"418-419\", \"note\": \"MIRROR_LANES, LH 16\"}, {\"path\": \"lab-workbench/src/components/organisms/views/MirrorView/MirrorView.tsx\", \"lines\": \"15-16\", \"note\": \"LANES, LH 16\"}, {\"path\": \"apps/workbench/src/ui/lab/charts.jsx\", \"lines\": \"74-75,114\", \"note\": \"SHAPES (+diamond), OUTCOME_SHAPE, TICK_CHAR_PX, TILT_RAD\"}, {\"path\": \"lab-workbench/src/components/organisms/views/ChartView/ChartView.tsx\", \"lines\": \"18-22\", \"note\": \"SHAPES, OUTCOME_SHAPE, TICK_CHAR_PX, TILT_RAD\"}]",
+   "severity": "medium",
+   "suggested_consolidation": "Move the role and lane tables into @kiln/lab (data, not styling) and let each app map roles to its own fills.",
+   "diary_step": 4
   }
  ],
  "complexity_hotspots": [
@@ -3359,6 +3382,87 @@
    "category": "decision",
    "confidence": "observed",
    "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "After stripping TypeScript annotations and normalising quotes, lab/format.js formatScalar applies the same rules as Perf Lab's lib/format.ts line for line; the only differences are compacted array and object branches.",
+   "evidence_path": "apps/workbench/src/ui/lab/format.js",
+   "evidence_lines": "7-20",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 4
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "lab/format.js ports formatScalar, formatValue and sourceLink from lib/format.ts, adds fieldLabel, and drops the colour helpers (SERIES_FIXED, tintOf, seriesColor), PROV_GLYPH and minutesUnit.",
+   "evidence_path": "apps/workbench/src/ui/lab/format.js",
+   "evidence_lines": "7,21,32,43",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 4
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The kernel-role regexes in lab/charts.jsx ROLE_FILL are identical to Perf Lab's TimelineView ROLE_FILL; only the fills changed from the data palette to greys, hatch and dots.",
+   "evidence_path": "apps/workbench/src/ui/lab/charts.jsx",
+   "evidence_lines": "268-274",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 4
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "MIRROR_LANES in lab/charts.jsx equals LANES in Perf Lab's MirrorView, with the same lane height 16.",
+   "evidence_path": "apps/workbench/src/ui/lab/charts.jsx",
+   "evidence_lines": "418-419",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 4
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "lab/charts.jsx adds a sixth shape (diamond) plus DASH and FILLS tables so series stay distinguishable without colour; Perf Lab's ChartView has five shapes and relies on colour.",
+   "evidence_path": "apps/workbench/src/ui/lab/charts.jsx",
+   "evidence_lines": "74-77",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 4
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "TableView shows at most 200 rows in both apps (LIMIT = 200).",
+   "evidence_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "evidence_lines": "28",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 4
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The five plural helpers are byte-identical one-liners.",
+   "evidence_path": "apps/workbench/src/ui/Hypotheses.jsx",
+   "evidence_lines": "7",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 4
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The two dark token blocks in tokens.css are identical line for line (diff of lines 25-30 and 33-38 is empty).",
+   "evidence_path": "apps/workbench/src/ui/tokens.css",
+   "evidence_lines": "25-30,33-38",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 4
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "md.js and doc.js define the same esc function (doc.js adds String() coercion) and separate inline functions; only doc.js's inline is exported.",
+   "evidence_path": "apps/workbench/src/ui/md.js",
+   "evidence_lines": "4-12",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 4
   }
  ],
  "dependencies": [

@@ -467,3 +467,104 @@ step that found it.
   echo, compile sequence, `saveText`, `src/` placement, frame.js comment) carry `2`; this step's finds (view placement,
   `reference.txt`, `.gen.js` ignore rule, `ParamControl`/`Judged`, page serving, `kiln-program/1`, the export script,
   evidence export, docs, diagrams) carry `3`.
+
+## Step 4: Duplication confirmed with diffs
+
+Steps 1-3 established the duplication between the Kiln page and the Perf Lab UI from the Kiln files' own "ported
+from" headers and from reading both sides. This step measured it: `diff` and `grep` over the pairs that a merged
+board renderer would have to reconcile. The ports are close (the cell formatter is the same rule line for line), and
+one duplication matters more than the rest: the kernel-role regexes and lane names that classify traced Grounding DINO
+runs are copied verbatim into `apps/workbench/src/ui/lab/charts.jsx`. That is domain knowledge, not styling, so it is
+now its own duplication row and a section (§10.3) in the notes.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (which links the original request in `01-investigation-diary.md`).
+
+**Assistant interpretation:** the orchestrator's milestone list named "a duplication finding confirmed with diffs" as
+a diary step; this is that step for area B.
+
+**Inferred user intent:** know which duplicated code can simply be deleted in favour of one copy, and which copies
+encode knowledge that would drift.
+
+**Commit (code):** none (inventory only).
+
+**Previous commit:** 91da803 — "KILN-004 B: workbench inventory database rows; diary step 3".
+
+### What I did
+
+```bash
+cd /Volumes/SSD/code/kiln
+K=apps/workbench/src/ui/lab; P=lab-workbench/src/components/organisms/views
+grep -nE "SHAPES|OUTCOME_SHAPE|TICK_CHAR_PX|TILT|DASH|FILLS" $P/ChartView/ChartView.tsx | head -12
+sed -n '74,77p;114p' $K/charts.jsx
+sed -n 21,27p $P/TimelineView/TimelineView.tsx; sed -n 268,278p $K/charts.jsx
+sed -n 14,20p $P/MirrorView/MirrorView.tsx;      sed -n 418,419p $K/charts.jsx
+grep -nE "^export" lab-workbench/src/lib/format.ts; grep -nE "^export" $K/format.js
+diff <(sed -n 15,32p lab-workbench/src/lib/format.ts | sed -E 's/: [A-Za-z<>|\[\]]+( =|,|\))/\1/g; s/'"'"'/"/g') <(sed -n 7,20p $K/format.js)
+grep -n "LIMIT\|200" $P/TableView/TableView.tsx | head -3
+cd apps/workbench/src/ui
+grep -h "const plural" Hypotheses.jsx Jobs.jsx Evidence.jsx marks.jsx lab/LabView.jsx | sort | uniq -c
+diff <(sed -n 25,30p tokens.css) <(sed -n 33,38p tokens.css) && echo "dark blocks identical (6 lines)"
+grep -nE "esc|inline|function" md.js doc.js
+```
+
+- Updated the generator: five existing duplication rows re-tagged `[1, 4]`, one new duplication row and nine facts
+  tagged `4`; regenerated `various/inventory/workbench-ui.json` with `max_step` 4.
+- Added §10.3 "Duplication confirmed by diff" to `reference/03-inventory-notes-b-the-kiln-workbench-page.md` (857 lines).
+
+### Why
+
+- A merged board renderer is the main extraction candidate (§12). Whether the two sides are the same rule or two rules
+  decides whether merging is deletion or reconciliation.
+
+### What worked
+
+- `formatScalar`: after stripping annotations and normalising quotes, the diff shows only the signature, two compacted
+  branches (arrays and objects) and the doc comment; lines 2-8 match.
+- `plural`: `sort | uniq -c` prints one line with count 5, so the five copies are byte-identical.
+- Dark tokens: the diff of `tokens.css` 25-30 against 33-38 is empty.
+- Chart constants: `OUTCOME_SHAPE`, `TICK_CHAR_PX = 5.6` and `TILT_RAD = Math.PI / 6` are equal in both apps; Kiln's
+  `SHAPES` adds `"diamond"`, and `DASH`/`FILLS` exist only in Kiln.
+- Trace vocabulary: `ROLE_FILL` regexes (`/^encoder\.sampling$/`, `/^encoder\.reduce$/`, `/norm$|^rmsnorm$/`,
+  `/softmax|^attention$/`, `/transfer/`) and the mirror lanes (`cpu:main`, `cpu:worker`, `cuda:stream 7`,
+  `cuda:stream 3`, `cuda:copy`, height 16) are identical; only the fills differ.
+
+### What didn't work
+
+- No command failed. One check was weaker than intended: the type-stripping `sed` in the `formatScalar` diff handles
+  simple annotations only (`v: unknown`, `unit?: string` left a residue on the signature line), so the diff's first
+  hunk is an artefact of the normalisation, not a behavioural difference.
+
+### What I learned
+
+- The Kiln ports are behaviour-preserving copies with the colour layer replaced by shapes, dashes and hatches; that
+  replacement is a deliberate design decision (Swiss monochrome) and the only real fork in the chart code.
+- `lab/format.js` drops exactly the colour and glyph helpers of `lib/format.ts`, which is the same decision seen from
+  the formatter.
+
+### What was tricky to build
+
+- Telling knowledge from styling. Lane names and role regexes look like presentation constants but encode what a trace
+  means; the fills next to them are presentation. Only the former is a drift risk.
+
+### What warrants a second pair of eyes
+
+- Whether the role regexes belong in `@kiln/lab` (area D's package) or with the workload that produces the traces
+  (`lab-workbench/workloads`); either way not in two UIs.
+
+### What should be done in the future
+
+- If the board renderer is merged, keep Kiln's monochrome encoding as a theme of the shared renderer rather than a
+  second implementation.
+
+### Code review instructions
+
+- Re-run the command block above from the repo root; each line's expected result is in "What worked".
+- In the JSON: the row titled "Perf Lab trace vocabulary: kernel-role regexes, mirror lanes and outcome shapes" and
+  the facts with `diary_step` 4.
+
+### Technical details
+
+- Duplication rows re-tagged `[1, 4]`: lab board panels, lab cell formatting, small UI helpers, dark theme token
+  blocks, markdown rendering.
