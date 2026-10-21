@@ -249,6 +249,20 @@ describe('perf-lab-sampler/1', () => {
     expect(staged.collection).toEqual({ mode: 'cpu', requests: 8 });
   });
 
+  it('measures the CPU in a CPU environment on a GPU host: the device and driver are the environment\'s, not the host\'s', () => {
+    const BLING = parseHosts({ format: 'kiln-hosts/1', hosts: [{ id: 'bling', url: 'http://127.0.0.1:5481', environments: { 'kiln-perf': { image: 'kiln-perf:latest' }, 'perf-lab-cpu': { image: 'perf-lab-cpu:latest', docker: { gpus: 'none', network: 'none' } } } }] }).hosts[0]!;
+    const base = macFacts();
+    const facts: Facts = {
+      ...base,
+      host: { ...base.host, hostname: 'bling', arch: 'aarch64', cpu: { model: 'Cortex-X925', cores: 20 } },
+      gpus: [{ index: 0, name: 'NVIDIA GB10', uuid: 'GPU-c6e7f17e', driver: '580.178.04', cc: '12.1', memMiB: null, maxSmClockMHz: null, persistence: 'Enabled' }],
+      gpuError: null,
+    };
+    const r = planJob({ job: 'job-3', host: BLING, facts, kinds: kindById, protocol: { reps: 1, launches: 1, warmup: 0, seed: 1 }, captures: [req({ ...spec('baseline', 'unfused'), host: 'bling' })], asset });
+    if (!r.ok) throw new Error(r.refusal.message);
+    expect(r.captures[0]).toMatchObject({ device: 'cpu:aarch64:Cortex-X925:20', environment: { name: 'perf-lab-cpu', driver: null } });
+  });
+
   it('names its runs by the lab: cyrb53 of the spec, the experiment/arm/mode ref', () => {
     const s = spec('baseline', 'unfused');
     const r = planMac([req(s)]);

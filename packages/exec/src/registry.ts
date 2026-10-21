@@ -1,7 +1,7 @@
 // Workload kinds and collectors (guide §19, §20): the two registries every capture goes through. A kind knows one
 // kind of code; a collector knows one way of observing a run. Neither knows hosts, the driver or the database.
 import type { MeasurementRecord } from '@kiln/evidence';
-import type { Capture, CaptureGroup, EnvironmentBlock, Facts, HostProfile, Mount, Observation, Requirement, Step, StepOutput } from './model.ts';
+import type { Capture, CaptureGroup, EnvironmentBlock, Facts, GpuFact, HostProfile, Mount, Observation, Requirement, Step, StepOutput } from './model.ts';
 
 export type Quantity = 'latency' | 'throughput' | 'memory';
 
@@ -126,6 +126,11 @@ export function environmentBlock(name: string, host: HostProfile, facts: Facts, 
     const t = f?.tools?.[c];
     if (t?.ok && t.from && t.from !== 'image') tools[c] = { version: t.version ?? null, from: t.from };
   }
-  const gpu = facts.gpus.find((g) => g.index === host.gpu) ?? facts.gpus[0];
-  return { name, image: f?.image ?? 'unknown', docker: { ...p.docker }, threads: p.threads ? { ...p.threads } : null, tools, driver: gpu?.driver ?? null };
+  return { name, image: f?.image ?? 'unknown', docker: { ...p.docker }, threads: p.threads ? { ...p.threads } : null, tools, driver: environmentGpu(name, host, facts)?.driver ?? null };
+}
+
+/** The GPU an environment's containers see: none in a CPU environment (`--gpus none`), otherwise the host's GPU. */
+export function environmentGpu(name: string, host: HostProfile, facts: Facts): GpuFact | undefined {
+  if (host.environments[name]?.docker.gpus === 'none') return undefined;
+  return facts.gpus.find((g) => g.index === host.gpu) ?? facts.gpus[0];
 }

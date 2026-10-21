@@ -6,7 +6,7 @@ import { collectorById, MODES, modeCollectors, modeOf } from './collectors/index
 import { captureId, deviceKey } from './identity.ts';
 import type { Capture, CaptureGroup, CaptureRequest, Facts, HostProfile, Plan, PlanEnvironment, Protocol, Step } from './model.ts';
 import { collectorsVerdict, collectorVerdict, kindOffer } from './offers.ts';
-import { environmentBlock, type PlanContext, type Refusal, type WorkloadKind } from './registry.ts';
+import { environmentBlock, environmentGpu, type PlanContext, type Refusal, type WorkloadKind } from './registry.ts';
 
 export const PLAN_LIMITS = { captures: 256, group: 64, reps: 64, warmup: 1000, launches: 10_000, archiveBytes: 2 ** 30, minFreeDiskBytes: 5 * 2 ** 30, stepOutput: 64 * 2 ** 20 };
 
@@ -71,7 +71,6 @@ export function planJob(input: PlanInput): ({ ok: true } & PlanOutput) | { ok: f
   if (!Array.isArray(reqs) || !reqs.length) return refuse(400, 'bad_request', 'captures must be a non-empty array');
   if (reqs.length > PLAN_LIMITS.captures) return refuse(400, 'limit_exceeded', `a job holds at most ${PLAN_LIMITS.captures} captures (got ${reqs.length})`, { got: reqs.length });
   const gpu = facts.gpus.find((g) => g.index === host.gpu) ?? facts.gpus[0];
-  const device = deviceKey(gpu, facts.host);
   const verdicts: CaptureVerdict[] = [];
   const execute: { c: Capture; envName: string }[] = [];
 
@@ -82,6 +81,8 @@ export function planJob(input: PlanInput): ({ ok: true } & PlanOutput) | { ok: f
     if ('blocked' in offer) return void verdicts.push({ ...base, verdict: 'blocked', reason: offer.blocked });
     if (!v.ok) return void verdicts.push({ ...base, verdict: 'blocked', reason: v.reason });
     const environment = environmentBlock(offer.environment, host, facts, collectors);
+    // the device is the one the capture's environment sees: a CPU environment on a GPU host measures the CPU
+    const device = deviceKey(environmentGpu(offer.environment, host, facts), facts.host);
     const id = captureId({ kind: kind.id, contentId: accepted.contentId, collectors, protocol, device, environment });
     const c: Capture = { id, kind: kind.id, pairId, mode, collectors, input: accepted.input, contentId: accepted.contentId, label: accepted.label, symbols: accepted.symbols, protocol, device, environment, rerun, ...(index === null ? { companion: true as const } : {}) };
     if (!rerun && input.cached?.(id)) return void verdicts.push({ ...base, verdict: 'cached', capture: id });
