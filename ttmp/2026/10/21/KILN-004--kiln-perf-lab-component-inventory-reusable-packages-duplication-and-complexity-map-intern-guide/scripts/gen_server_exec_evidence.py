@@ -274,7 +274,7 @@ reusable_components = [
      'current_consumers': '@kiln/server; @kiln/exec; @kiln/kiln std (6 files); @kiln/lab (7 files)',
      'external_deps': 'none', 'internal_deps': 'none', 'packaging_notes': 'Publishable as is; 133 tests.'},
     {'name': '@kiln/exec', 'path': 'packages/exec', 'kind': 'library', 'reuse_readiness': 'needs-extraction',
-     'description': 'Execution model, planner, kinds and collectors.', 'current_consumers': '@kiln/server; @kiln/lab',
+     'description': 'Execution model, planner, kinds and collectors.', 'current_consumers': '@kiln/server (packages/lab re-declares HostView instead of importing it)',
      'external_deps': 'none', 'internal_deps': '@kiln/evidence',
      'packaging_notes': 'Embeds two concrete kinds (one Perf Lab) and a cyrb53 copy; the WorkloadKind/Collector contract could stand alone.'},
     {'name': 'kiln-driver', 'path': 'runner/kiln_driver.py', 'kind': 'tool', 'reuse_readiness': 'ready',

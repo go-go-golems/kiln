@@ -13,7 +13,11 @@ Topics:
 DocType: index
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://ttmp/2026/10/21/KILN-004--kiln-perf-lab-component-inventory-reusable-packages-duplication-and-complexity-map-intern-guide/design-doc/01-intern-guide-the-kiln-perf-lab-system-its-components-and-how-to-separate-them-again.md
+      Note: The intern guide (main deliverable)
+    - Path: repo://ttmp/2026/10/21/KILN-004--kiln-perf-lab-component-inventory-reusable-packages-duplication-and-complexity-map-intern-guide/scripts/gen_server_exec_evidence.py
+      Note: Generates area C rows from notes C
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-10-21T10:27:33.546449-04:00

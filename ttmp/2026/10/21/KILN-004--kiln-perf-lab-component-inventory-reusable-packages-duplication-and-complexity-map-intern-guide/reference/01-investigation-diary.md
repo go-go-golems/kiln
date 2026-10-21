@@ -206,3 +206,77 @@ it. Then the session hit its usage limit, and the agents were stopped to stay wi
   4. The intern guide (G1, G2).
   5. `docmgr doctor`, then the reMarkable upload (V1, D1).
 - The notes in `reference/02`, `05` and `06` are partial, unreviewed agent output.
+
+## Step 4: Finishing without the stopped agents, and writing the guide
+
+Agents B and D finished after the resume; A and C stopped at the monthly spend limit, and E came back later and
+finished on its own. To save credits I did not restart A or C. Instead I generated area C's rows by script from its
+notes and reconciled the cross-area collisions. Then I wrote the intern guide from the five notes files and the
+database, with one SVG package graph and six mermaid diagrams.
+
+The guide's main proposal is to separate three concerns: a measurement substrate (evidence, exec, driver, archives),
+the kernel compiler, and the experiment lab. The compiler and the lab may depend on the substrate but never on each
+other, and a layering check enforces that. The guide also lists seven decisions (KD1–KD7) and a six-phase plan with
+done-conditions.
+
+### Prompt Context
+
+**User prompts (verbatim):**
+
+> continue
+
+> continue
+
+> speed up things a bit so we don't burn all our credits
+
+> cis there anything you think should still be looked at a bit more closely?
+
+**Commits:** `607fbd4` (E's notes as left at the limit), `35dd2cd` (area C rows, collisions reconciled, compiler
+reusable rows); E's own `bbec693`.
+
+### What I did
+
+- `scripts/gen_server_exec_evidence.py` parses the route tables of notes C (§2.3, §5.1) and transcribes the rest:
+  - 3 packages, 47 modules, 47 endpoints and 21 tables;
+  - 6 duplications, 6 hotspots, 7 reusable components and 29 facts;
+  - 3 formats and 2 diagrams.
+
+  Rows owned by another area are skipped: `runner/kiln_driver.py` belongs to compiler-runtime, `kiln-driver/1` and
+  the other wire formats to compiler-runtime or history, and the tar reader to perf-lab.
+- Reconciled E's two title collisions with perf-lab:
+  - the lab-language duplication: E's locations and history appended to D's row;
+  - `detection-qualification/v1`: E's notes appended to D's row.
+
+  E's two copies were dropped. `--check` now reports 0 problems.
+- Added five compiler `reusable_components` rows to `orchestrator.json`, because area A wrote none.
+- Wrote the guide (`design-doc/01-…`, 23 sections) and `design-doc/figures/01-package-graph.svg`.
+- Answered the user's question about what deserves a closer look (six items). Two of them were answered while writing:
+  - Replanning cannot bypass approval: `approve` only works from `proposed`. The edge is a dead end instead.
+  - bling's driver is reached through `ssh -N -L`, and the default bind is `127.0.0.1`.
+
+  Both are recorded in the guide's §21.
+
+### Why
+
+- The remaining agents' work was mostly transcription of notes that already existed. A script was cheaper and keeps
+  the rows reproducible.
+
+### What didn't work
+
+- `git commit … -- <new file>` refused a pathspec for an untracked file:
+  `error: pathspec '…/scripts/gen_server_exec_evidence.py' did not match any file(s) known to git`. Fixed by
+  `git add -- <that file>` first.
+- The first write of the guide was refused (`File has not been read yet`) because the template had not been read in
+  this context.
+
+### What warrants a second pair of eyes
+
+- Area C's rows are a transcription, not an independent inventory. The `reusable_components` consumer of `@kiln/exec`
+  was corrected after checking `package.json` (`@kiln/lab` does not depend on it).
+- The guide's API snippets for `rule()`/`pass()` and `pairedRatio`/`verdict` are labelled as sketches; check
+  signatures before copying.
+
+### What should be done in the future
+
+- KD6 (kernel identity) and the seed fix are the cheapest high-value changes.
+- A semantic comparison of Perf Lab's importer and evidence store with Kiln's, before deleting `lab-workbench`.

@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" width="960" height="600" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="12">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+    <marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f5fa8"/>
+    </marker>
+  </defs>
+  <rect width="960" height="600" fill="#ffffff"/>
+  <text x="20" y="28" font-size="16" font-weight="bold">Kiln repository at 4d9adc2: packages, apps and how they connect</text>
+  <text x="20" y="46" fill="#555">Solid arrow: package.json dependency. Blue arrow: HTTP. Dashed box: frozen copy that imports nothing from @kiln/*.</text>
+
+  <!-- layer labels -->
+  <text x="20" y="92" fill="#777" font-weight="bold">apps</text>
+  <text x="20" y="262" fill="#777" font-weight="bold">libraries</text>
+  <text x="20" y="432" fill="#777" font-weight="bold">leaf</text>
+  <text x="20" y="522" fill="#777" font-weight="bold">GPU host</text>
+
+  <!-- apps -->
+  <rect x="90" y="70" width="210" height="70" rx="4" fill="#f3f3f3" stroke="#333"/>
+  <text x="195" y="94" text-anchor="middle" font-weight="bold">@kiln/workbench</text>
+  <text x="195" y="111" text-anchor="middle">apps/workbench · React 18</text>
+  <text x="195" y="127" text-anchor="middle" fill="#555">compiler UI + lab port + agent</text>
+
+  <rect x="380" y="70" width="210" height="70" rx="4" fill="#f3f3f3" stroke="#333"/>
+  <text x="485" y="94" text-anchor="middle" font-weight="bold">@kiln/server</text>
+  <text x="485" y="111" text-anchor="middle">apps/server · Hono · node:sqlite</text>
+  <text x="485" y="127" text-anchor="middle" fill="#555">records · jobs · lab data · gateway</text>
+
+  <rect x="690" y="70" width="240" height="120" rx="4" fill="#fafafa" stroke="#888" stroke-dasharray="6 4"/>
+  <text x="810" y="94" text-anchor="middle" font-weight="bold">lab-workbench</text>
+  <text x="810" y="111" text-anchor="middle">React 19 · Vite · Redux · TS 5.9</text>
+  <text x="810" y="127" text-anchor="middle" fill="#555">Perf Lab UI + src/lang + agent</text>
+  <text x="810" y="150" text-anchor="middle">lab-workbench/server (Hono)</text>
+  <text x="810" y="166" text-anchor="middle">lab-workbench/workloads (uv)</text>
+  <text x="810" y="182" text-anchor="middle" fill="#a33">frozen since 92daa13</text>
+
+  <!-- libraries -->
+  <rect x="90" y="240" width="190" height="70" rx="4" fill="#fff" stroke="#333"/>
+  <text x="185" y="264" text-anchor="middle" font-weight="bold">@kiln/kiln</text>
+  <text x="185" y="281" text-anchor="middle">packages/kiln · JS · acorn</text>
+  <text x="185" y="297" text-anchor="middle" fill="#555">IR, rewrites, forks, emit</text>
+
+  <rect x="310" y="240" width="190" height="70" rx="4" fill="#fff" stroke="#333"/>
+  <text x="405" y="264" text-anchor="middle" font-weight="bold">@kiln/lab</text>
+  <text x="405" y="281" text-anchor="middle">packages/lab · TS strict</text>
+  <text x="405" y="297" text-anchor="middle" fill="#555">fork of lab.js language</text>
+
+  <rect x="530" y="240" width="190" height="70" rx="4" fill="#fff" stroke="#333"/>
+  <text x="625" y="264" text-anchor="middle" font-weight="bold">@kiln/exec</text>
+  <text x="625" y="281" text-anchor="middle">packages/exec · browser-safe</text>
+  <text x="625" y="297" text-anchor="middle" fill="#555">kinds, collectors, planJob</text>
+
+  <!-- leaf -->
+  <rect x="330" y="410" width="250" height="60" rx="4" fill="#eef5ec" stroke="#2d6a2d"/>
+  <text x="455" y="434" text-anchor="middle" font-weight="bold">@kiln/evidence</text>
+  <text x="455" y="452" text-anchor="middle">zero deps · 133 tests · ready to reuse</text>
+
+  <!-- GPU host -->
+  <rect x="90" y="500" width="250" height="70" rx="4" fill="#fff" stroke="#333"/>
+  <text x="215" y="522" text-anchor="middle" font-weight="bold">runner/kiln_driver.py</text>
+  <text x="215" y="539" text-anchor="middle">kiln-driver/1 · stdlib · no auth</text>
+  <text x="215" y="555" text-anchor="middle" fill="#555">docker run --network none · GPU flock</text>
+
+  <rect x="370" y="500" width="250" height="70" rx="4" fill="#fff" stroke="#333"/>
+  <text x="495" y="522" text-anchor="middle" font-weight="bold">kiln-perf image (runner/docker)</text>
+  <text x="495" y="539" text-anchor="middle">kiln_runner.py · perf_lab_local</text>
+  <text x="495" y="555" text-anchor="middle" fill="#555">kiln-bundle/1 → kiln-results/1</text>
+
+  <rect x="650" y="500" width="280" height="70" rx="4" fill="#fff" stroke="#333"/>
+  <text x="790" y="522" text-anchor="middle" font-weight="bold">runtime/python/kiln_launch.py</text>
+  <text x="790" y="539" text-anchor="middle">kiln-program/1 · wgpu or CUDA ctypes</text>
+  <text x="790" y="555" text-anchor="middle" fill="#555">vendored into Playback</text>
+
+  <!-- dependency edges -->
+  <path d="M170 140 L175 238" stroke="#333" fill="none" marker-end="url(#a)"/>
+  <path d="M230 140 L380 238" stroke="#333" fill="none" marker-end="url(#a)"/>
+  <path d="M520 140 L610 238" stroke="#333" fill="none" marker-end="url(#a)"/>
+  <path d="M440 140 Q300 190 230 238" stroke="#333" fill="none" stroke-dasharray="2 3" marker-end="url(#a)"/>
+  <text x="250" y="190" fill="#555">tests only</text>
+  <path d="M185 310 L380 408" stroke="#333" fill="none" marker-end="url(#a)"/>
+  <path d="M405 310 L440 408" stroke="#333" fill="none" marker-end="url(#a)"/>
+  <path d="M625 310 L490 408" stroke="#333" fill="none" marker-end="url(#a)"/>
+  <path d="M560 140 Q760 300 560 420" stroke="#333" fill="none" marker-end="url(#a)"/>
+
+  <!-- http edges -->
+  <path d="M300 100 L378 100" stroke="#1f5fa8" stroke-width="1.6" fill="none" marker-end="url(#h)"/>
+  <text x="305" y="92" fill="#1f5fa8">/api + SSE</text>
+  <path d="M420 140 Q300 400 230 498" stroke="#1f5fa8" stroke-width="1.6" fill="none" marker-end="url(#h)"/>
+  <text x="250" y="400" fill="#1f5fa8">kiln-driver/1 (ssh -L tunnel)</text>
+  <path d="M340 535 L368 535" stroke="#333" fill="none" marker-end="url(#a)"/>
+  <text x="335" y="590" fill="#555">driver runs each plan step as a container from the kiln-perf image</text>
+</svg>
