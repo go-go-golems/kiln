@@ -152,7 +152,7 @@ export function runFor(reg, x) {
 
 const fmtField = (v) => (v && typeof v === "object" ? Object.entries(v).map(([k, x]) => `${k}=${String(x)}`).join(" · ") : v == null ? "—" : String(v));
 
-function manifestRows(run) {
+export function manifestRows(run) {
   const m = run.manifest ?? {}, v = run.validity ?? { ok: false, reasons: [] }, act = run.activation ?? {};
   const cov = run.coverage ?? {}, lost = cov.trace?.lost ?? [], srcMissing = cov.source?.missing ?? [], linksMissing = cov.links?.missing ?? [];
   return [

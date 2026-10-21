@@ -1,16 +1,16 @@
 // Ported from Perf Lab (PL/src/lang/build.test.ts). Perf Lab set the local host report in a module variable
-// (setLocalReport); here each build takes it as an option, so the tests pass `local` instead.
+// (setLocalReport); here each build takes the real host reports as an option, so the tests pass `hosts` instead.
 import { describe, expect, it } from 'vitest';
-import { buildSynthetic, BuildError, evaluateProgram, checkParam, decodeParam, encodeParam, paramKinds, materialize, readDerive, isValue, type LocalReport, type RuntimeState } from '../src/index.ts';
+import { buildSynthetic, BuildError, evaluateProgram, checkParam, decodeParam, encodeParam, paramKinds, materialize, readDerive, isValue, type HostReport, type RuntimeState } from '../src/index.ts';
 import { readPresets } from '../src/node/index.ts';
 
 const PRESETS = readPresets();
 
-const seedAndBuild = (source: string, params: Record<string, unknown> = {}, local: LocalReport | null = null) =>
-  buildSynthetic(source, { labId: 't', params, local });
+const seedAndBuild = (source: string, params: Record<string, unknown> = {}, local: HostReport | null = null) =>
+  buildSynthetic(source, { labId: 't', params, hosts: local ? { [local.host]: local } : {} });
 
-const LOCAL_FIXTURE: LocalReport = {
-  host: 'local',
+const LOCAL_FIXTURE: HostReport = {
+  host: 'mac',
   arch: 'arm64',
   cpu: { name: 'Test CPU', cores: 10, coreClasses: ['performance', 'efficiency'] },
   memoryBytes: null,
@@ -145,11 +145,11 @@ describe('scenario A evidence', () => {
   });
 });
 
-describe('local host', () => {
+describe('a Kiln host', () => {
   const local = PRESETS.find((p) => p.id === 'local-sampler')!.source;
   it('reports the host as unavailable without a probe report, instead of planning synthetic runs for it', () => {
     const { ir } = seedAndBuild(local, {}, null);
-    expect(ir.lint.filter((l) => l.code === 'host-unavailable').map((l) => l.message)).toEqual([expect.stringMatching(/sampler-local: no capability report for host "local"/)]);
+    expect(ir.lint.filter((l) => l.code === 'host-unavailable').map((l) => l.message)).toEqual([expect.stringMatching(/sampler-local: no capability report for host "mac"/)]);
   });
 
   it('puts the workload sources\' hash into each arm\'s revision, so editing a script changes the experiment', () => {
@@ -162,6 +162,6 @@ describe('local host', () => {
   it('refuses a counter capture on a host without hardware counters', () => {
     const src = local.replace('.capture(capture.cpu()))', '.capture(capture.cpu())\n    .capture(capture.kernels()))');
     const { ir } = seedAndBuild(src, {}, LOCAL_FIXTURE);
-    expect(ir.lint.filter((l) => l.code === 'capture-unsupported').map((l) => l.message)).toEqual(['sampler-local: local exposes no hardware counters; capture.kernels() cannot run there']);
+    expect(ir.lint.filter((l) => l.code === 'capture-unsupported').map((l) => l.message)).toEqual(['sampler-local: mac exposes no hardware counters; capture.kernels() cannot run there']);
   });
 });

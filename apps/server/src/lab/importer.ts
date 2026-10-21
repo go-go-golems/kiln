@@ -18,7 +18,7 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { get, now, run, tx, type Db } from '../db.ts';
-import { captureHash } from './captures.ts';
+import { labCaptureHash } from '@kiln/exec';
 import { getArchive, registerArchive, type ArchiveFile } from './evidence.ts';
 import { mediaDir, mediaFile, mimeOf, SHA256_HEX, sha256, writeFileAtomic, type Mime } from './files.ts';
 import { unpack } from './store.ts';
@@ -219,7 +219,7 @@ function importFrom(pl: DatabaseSync, src: string, db: Db, dataDir: string): Imp
     }
     let actual: string;
     try {
-      actual = captureHash(JSON.parse(a.spec_json));
+      actual = labCaptureHash(JSON.parse(a.spec_json));
     } catch (e) {
       refuse('artifacts', a.hash, `spec is not JSON: ${why(e)}`);
       continue;

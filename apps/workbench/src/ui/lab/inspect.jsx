@@ -21,7 +21,7 @@ const DEFAULT_METRICS = [
 ];
 
 /** Every metric with its unit, scope, denominator and source; an unavailable counter stays visible as missing. */
-function MetricsTable({ entity, names }) {
+export function MetricsTable({ entity, names }) {
   const list = [...new Set([...(names ?? DEFAULT_METRICS), ...Object.keys(entity.metrics ?? {})])];
   return (
     <div className="lab-table">

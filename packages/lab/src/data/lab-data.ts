@@ -6,13 +6,13 @@
 // with the JSON exactly as the routes return it (see `createMemoryLabData`).
 import type { IR } from '../lang/ir.ts';
 import { reviveBundles, type BundleJSON, type RunBundle } from './bundles.ts';
-import type { LocalReport } from './capabilities.ts';
+import type { HostReport } from './capabilities.ts';
 import { defaultMediaUrl, evidenceBlockedBy, type ArchiveInfo, type DatasetDetail } from './datasets.ts';
 
 /** A stored capture, by hash: GET /api/lab/catalog returns `{ [hash]: CatalogEntry }` for the available ones. */
 export interface CatalogEntry {
   /** measured: imported from a real run; the others are synthetic */
-  origin: 'synthetic' | 'measured' | 'seed' | 'job';
+  origin: 'synthetic' | 'measured' | 'seed';
   /** 'evidence:<sha256>' when the run was imported from an archive rather than executed by a lab job */
   source?: string | null | undefined;
   ref?: string | undefined;
@@ -24,7 +24,7 @@ export interface CatalogEntry {
   at?: number | undefined;
 }
 
-/** Everything a build reads besides the program: availability, measured runs, archives, datasets, the local host. */
+/** Everything a build reads besides the program: availability, measured runs, archives, datasets, the hosts. */
 export interface LabData {
   /** the artifact store's available captures by hash: a capture is visible to queries only when listed here */
   catalog(): Readonly<Record<string, CatalogEntry>>;
@@ -38,10 +38,10 @@ export interface LabData {
   datasets(): readonly DatasetDetail[];
   /** why no evidence can be imported at all, if so (a server without the 'evidence-import' feature) */
   evidenceBlocked(): string | undefined;
-  /** the probe report of the machine the lab server runs on; null when there is none */
-  localReport(): LocalReport | null;
-  /** why there is no local report (shown when a program names host 'local') */
-  localReportError?(): string | undefined;
+  /** the capability reports of the server's real hosts, by host id */
+  hostReports(): Readonly<Record<string, HostReport>>;
+  /** why there are no host reports (shown when a program names a host no report covers) */
+  hostReportsError?(): string | undefined;
   /** URL of a dataset image's bytes */
   mediaUrl?(sha256: string): string;
 }
@@ -60,8 +60,8 @@ export interface MemoryLabData extends LabData {
   setDatasets(details: readonly DatasetDetail[]): void;
   /** GET /api/lab/health's `features`; null when unknown */
   setFeatures(features: readonly string[] | null): void;
-  /** GET /api/lab/hosts/local/capabilities, or null and why not */
-  setLocalReport(report: LocalReport | null, error?: string): void;
+  /** the real hosts' reports (hostReport of each GET /api/hosts view), and why there are none, if so */
+  setHostReports(reports: Record<string, HostReport>, error?: string): void;
 }
 
 export interface MemoryLabDataInit {
@@ -70,8 +70,8 @@ export interface MemoryLabDataInit {
   archives?: readonly ArchiveInfo[];
   datasets?: readonly DatasetDetail[];
   features?: readonly string[] | null;
-  localReport?: LocalReport | null;
-  localReportError?: string;
+  hostReports?: Record<string, HostReport>;
+  hostReportsError?: string;
   mediaUrl?: (sha256: string) => string;
 }
 
@@ -81,8 +81,8 @@ export function createMemoryLabData(init: MemoryLabDataInit = {}): MemoryLabData
   let archives = new Map<string, ArchiveInfo>();
   let datasets: readonly DatasetDetail[] = [...(init.datasets ?? [])];
   let features: readonly string[] | null = init.features ?? null;
-  let local: LocalReport | null = init.localReport ?? null;
-  let localError: string | undefined = init.localReportError;
+  let reports: Record<string, HostReport> = { ...(init.hostReports ?? {}) };
+  let reportsError: string | undefined = init.hostReportsError;
   const mediaUrl = init.mediaUrl ?? defaultMediaUrl;
   const data: MemoryLabData = {
     catalog: () => catalog,
@@ -91,8 +91,8 @@ export function createMemoryLabData(init: MemoryLabDataInit = {}): MemoryLabData
     archive: (sha) => archives.has(sha),
     datasets: () => datasets,
     evidenceBlocked: () => evidenceBlockedBy(features),
-    localReport: () => local,
-    localReportError: () => localError,
+    hostReports: () => reports,
+    hostReportsError: () => reportsError,
     mediaUrl,
     setCatalog: (c) => {
       catalog = { ...c };
@@ -112,9 +112,9 @@ export function createMemoryLabData(init: MemoryLabDataInit = {}): MemoryLabData
     setFeatures: (f) => {
       features = f;
     },
-    setLocalReport: (r, error) => {
-      local = r;
-      if (error !== undefined) localError = error;
+    setHostReports: (r, error) => {
+      reports = { ...r };
+      reportsError = error;
     },
   };
   if (init.archives) data.setArchives(init.archives);

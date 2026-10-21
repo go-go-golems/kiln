@@ -124,7 +124,7 @@ export class HostDevice {
 
 /** One host's view and the device its records name, for HostDevice.adopt. */
 async function hostViews(client, host) {
-  const [hosts, devices] = await Promise.all([client.hosts.list(), client.devices.list()]);
+  const [{ hosts }, devices] = await Promise.all([client.hosts.list(), client.devices.list()]);
   return [hosts.find((h) => h.id === host) ?? null, latestDevice(devices, host)];
 }
 

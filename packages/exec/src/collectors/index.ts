@@ -4,8 +4,8 @@ import { gpuSampler } from './gpu-sampler.ts';
 import { ncu } from './ncu.ts';
 import { nsys } from './nsys.ts';
 
-const inProcess = (id: string, title: string, requires: Collector['requires'], env: Record<string, string> = {}): Collector => ({
-  id, title, shape: 'in-process', requires, disturbs: [],
+const inProcess = (id: string, title: string, requires: Collector['requires'], env: Record<string, string> = {}, disturbs: Collector['disturbs'] = []): Collector => ({
+  id, title, shape: 'in-process', requires, disturbs,
   apply: (step) => ({ ...step, env: { ...step.env, ...env } }),
 });
 
@@ -13,15 +13,27 @@ export const cudaEvents = inProcess('cuda-events', 'CUDA event timing', [{ gpu: 
 export const ptxas = inProcess('ptxas', 'ptxas register counts', [{ command: 'nvcc' }]);
 export const nvtx = inProcess('nvtx', 'NVTX ranges', [], { KILN_COLLECT_NVTX: '1' });
 export const stageTimers = inProcess('stage-timers', 'stage timers in the log', []);
+// a Python workload's own instruments (perf-lab-sampler/1): the entry point reads which are on from its spec
+export const wallClock = inProcess('wall-clock', 'per-request wall and thread CPU time (perf_counter_ns)', []);
+export const rusage = inProcess('rusage', 'process resource usage over the measured window (getrusage)', []);
+export const torchProfiler = inProcess('torch-profiler', 'torch.profiler CPU trace: requests, ranges, ATen operators', [{ module: 'torch' }], {}, ['latency']);
+export const torchMemory = inProcess('torch-memory', 'torch.profiler allocator events and the tensor ledger', [{ module: 'torch' }], {}, ['latency', 'memory']);
 
-export const COLLECTORS: readonly Collector[] = [cudaEvents, ptxas, nvtx, stageTimers, ncu, nsys, gpuSampler];
+export const COLLECTORS: readonly Collector[] = [cudaEvents, ptxas, nvtx, stageTimers, wallClock, rusage, torchProfiler, torchMemory, ncu, nsys, gpuSampler];
 export const collectorById = new Map(COLLECTORS.map((c) => [c.id, c]));
 
-/** Named collector sets. A capture's identity holds its set, not the name. */
+/**
+ * Named collector sets. A capture's identity holds its set, not the name. A mode keeps only the collectors a kind
+ * supports, so `timing` is CUDA events for kiln-kernels/1 and the wall clock for perf-lab-sampler/1; `cpu`, `trace`
+ * and `memory` are Perf Lab's modes of its local workload.
+ */
 export const MODES: Record<string, readonly string[]> = {
-  timing: ['cuda-events', 'ptxas', 'stage-timers', 'gpu-sampler'],
+  timing: ['cuda-events', 'ptxas', 'stage-timers', 'wall-clock', 'gpu-sampler'],
   counters: ['ncu', 'gpu-sampler'],
   timeline: ['nsys', 'nvtx', 'gpu-sampler'],
+  cpu: ['wall-clock', 'rusage'],
+  trace: ['torch-profiler'],
+  memory: ['torch-profiler', 'torch-memory'],
 };
 
 /** Whether a kind can use a collector at all: wrappers and sidecars always, in-process ones only when the kind lists them. */

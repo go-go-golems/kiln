@@ -14,7 +14,7 @@ import { gunzipSync } from 'node:zlib';
 import type { BundleJSON } from '../data/bundles.ts';
 import type { ArchiveInfo, DatasetAnnotation, DatasetDetail, DatasetImage } from '../data/datasets.ts';
 import { createMemoryLabData, type CatalogEntry, type MemoryLabData } from '../data/lab-data.ts';
-import type { LocalReport } from '../data/capabilities.ts';
+import type { HostReport } from '../data/capabilities.ts';
 
 type Row = Record<string, unknown>;
 
@@ -36,8 +36,8 @@ export interface PerfLabStore {
 }
 
 export interface ReadPerfLabOptions {
-  /** the probe report to serve as host `local` (Perf Lab does not persist it; its server probes on start) */
-  localReport?: LocalReport | null;
+  /** the report to serve as host `local` (Perf Lab does not persist it; its server probes on start) */
+  localReport?: HostReport | null;
   mediaUrl?: (sha256: string) => string;
 }
 
@@ -171,8 +171,8 @@ function readCopy(dbPath: string, opts: ReadPerfLabOptions): PerfLabStore {
       archives,
       datasets,
       features: PERF_LAB_FEATURES,
-      localReport: opts.localReport ?? null,
-      localReportError: 'no probe report given (Perf Lab does not store it)',
+      hostReports: opts.localReport ? { local: opts.localReport } : {},
+      hostReportsError: 'no probe report given (Perf Lab does not store it)',
       ...(opts.mediaUrl ? { mediaUrl: opts.mediaUrl } : {}),
     });
     return {

@@ -1,8 +1,10 @@
 // Lab programs end to end (guide §33, Phase 8's done-condition): Perf Lab's data directory imported into a fresh
 // KILN_DATA_DIR (the importer reads a temporary copy of its SQLite store), the development server on that directory,
-// and headless Chrome on the page it serves. local-sampler and dino-pr1005 open with their measured runs from the
-// server and the verdicts check:pl computes; every board of every lab program renders without a panel error; the
-// dataset images load from /api/lab/media. Perf Lab's store must be byte- and timestamp-identical afterwards.
+// and headless Chrome on the page it serves. dino-pr1005 opens with its measured runs from the server and the verdicts
+// check:pl computes; its Lab view lists the plan and the runs, and a run chosen there opens in Inspect; every board of
+// every lab program renders without a panel error; the dataset images load from /api/lab/media. Perf Lab's store
+// must be byte- and timestamp-identical afterwards. (local-sampler names Kiln hosts now, so Perf Lab's runs of it on
+// host 'local' no longer match its captures; its runs come from perf-lab-sampler/1 jobs.)
 // Not part of `pnpm test`: it needs Chrome, a built page and Perf Lab's data (guide §36).
 //   node build.mjs && node test/lab-e2e.mjs [--from PERF_LAB_DATA_DIR] [--shots DIR]   (DIR gets p8-*.png)
 import { spawn, spawnSync } from "node:child_process";
@@ -26,10 +28,10 @@ let fails = 0;
 const check = (ok, msg) => { console.log(`${ok ? "ok  " : "FAIL"} ${msg}`); if (!ok) fails++; };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// what check:pl reports for the two measured programs (packages/lab, `pnpm --filter @kiln/lab check:pl`)
+// what check:pl reports for the measured program (packages/lab, `pnpm --filter @kiln/lab check:pl`); dino-local runs on
+// host mac now, which has no runs here, so cpu-parts-preserve has nothing to judge
 const EXPECTED = {
-  "local-sampler": { "compile-removes-intermediate": "refuted" },
-  "dino-pr1005": { "outputs-exact": "supported", "latency-halved": "refuted", "memory-within-20": "refuted", "prompt-reuse": "supported", "cpu-parts-preserve": "supported", "fusion-active": "supported" },
+  "dino-pr1005": { "outputs-exact": "supported", "latency-halved": "refuted", "memory-within-20": "refuted", "prompt-reuse": "supported", "cpu-parts-preserve": "open", "fusion-active": "supported" },
 };
 
 const store = () => readdirSync(from).filter((f) => f.startsWith("perf-lab.sqlite")).sort()
@@ -60,6 +62,9 @@ const show = (view) => `(async () => { const wb = window.__kiln.wb; wb.showView(
 const open = (id) => `window.__kiln.labs.open(${JSON.stringify(id)}).then(() => { const c = window.__kiln.labs.current; return { id: c.id, error: c.error, boards: c.ir?.boards.map((b) => b.id) ?? [], serverState: window.__kiln.labs.serverState, captures: c.ir?.plan.captures.length ?? 0, measured: c.ir?.plan.captures.filter((x) => window.__kiln.labs.catalog[x.hash]?.origin === "measured").length ?? 0, loaded: c.ir?.plan.captures.filter((x) => window.__kiln.labs.client?.bundlesLoaded(x.hash)).length ?? 0 }; })`;
 // every board on screen: its tile's title, panel count, panel errors, and the title block's data line
 const BOARDS = `[...document.querySelectorAll("section.tile")].filter((t) => t.querySelector(".lab-board")).map((t) => ({ tile: t.getAttribute("aria-label"), panels: t.querySelectorAll(".lpanel").length, errors: [...t.querySelectorAll(".lab-err")].map((e) => (e.closest(".lpanel")?.querySelector(".lp-kind")?.textContent ?? "board") + ": " + e.textContent), data: [...t.querySelectorAll(".titleblock div")].find((d) => d.querySelector("label")?.textContent === "data")?.querySelector("b")?.textContent, bignums: [...t.querySelectorAll(".bignum")].map((b) => b.textContent) }))`;
+const PLAN = `[...document.querySelectorAll('section[aria-label="Plan"] tbody tr.clickable')].map((r) => r.querySelector(".stamp")?.textContent)`;
+const RUNS = `[...document.querySelectorAll('section[aria-label="Runs"] .lab-runs button')].length`;
+const INSPECT = `(() => { const t = [...document.querySelectorAll("section.tile")].find((x) => x.querySelector(".insp")); return t ? { ref: t.querySelector(".insp .sub")?.textContent, kv: t.querySelectorAll(".insp .kv dt").length, stamps: [...t.querySelectorAll(".insp .lab-stamps .stamp")].map((s) => s.textContent) } : null; })()`;
 const VERDICTS = `[...document.querySelectorAll('section[aria-label="Hypotheses"] tbody tr')].map((r) => ({ id: r.querySelector(".mono")?.textContent, verdict: r.querySelector(".stamp")?.textContent }))`;
 const IMAGES = `(() => { const imgs = [...document.querySelectorAll(".lab-board img")]; return { n: imgs.length, done: imgs.every((i) => i.complete), ok: imgs.filter((i) => i.complete && i.naturalWidth > 0).length, srcs: [...new Set(imgs.map((i) => i.getAttribute("src").replace(/[0-9a-f]{64}$/, "<sha>")))] }; })()`;
 // board views in the dock that are not boards of the open program
@@ -74,7 +79,7 @@ try {
     await p.until(READY, 60000);
 
     // ---- the two measured programs: data from the server, verdicts as check:pl computes them
-    for (const id of ["local-sampler", "dino-pr1005"]) {
+    for (const id of Object.keys(EXPECTED)) {
       const o = await p.eval(open(id));
       check(!o.error && o.boards.length > 0, `${id}: built, ${o.boards.length} boards${o.error ? ` — ${o.error}` : ""}`);
       check(o.serverState === "online" && o.measured > 0 && o.loaded === o.measured, `${id}: ${o.measured} of ${o.captures} captures measured on the server, ${o.loaded} loaded (server ${o.serverState})`);
@@ -83,6 +88,15 @@ try {
       const got = Object.fromEntries(v.map((r) => [r.id, verdictWord(r.verdict)]));
       for (const [h, want] of Object.entries(EXPECTED[id])) check(got[h] === want, `${id}: ${h} ${got[h] ?? "absent"} (check:pl: ${want})`);
       await shot(p, `p8-lab-${id}-light-1600`);
+      const plan = await p.eval(PLAN), nRuns = await p.eval(RUNS);
+      check(plan.length === o.captures && plan.filter((x) => x === "cached").length >= o.measured, `${id}: Plan lists ${plan.length} of ${o.captures} captures, ${plan.filter((x) => x === "cached").length} cached`);
+      check(nRuns > 0, `${id}: Runs lists ${nRuns} runs`);
+      await p.eval(`(() => { document.querySelector('section[aria-label="Runs"] .lab-runs button')?.click(); return true; })()`);
+      await sleep(400);
+      const ins = await p.eval(INSPECT);
+      check(ins && /#\d+$/.test(ins.ref ?? "") && ins.kv > 5 && ins.stamps.length > 0, `${id}: the first run opens in Inspect (${ins ? `${ins.ref}, ${ins.kv} manifest rows, ${ins.stamps.join(" ")}` : "no Inspect view"})`);
+      await shot(p, `p8-inspect-${id}-light-1600`);
+      await p.eval(show("lab"));
       // only the active view of a tile renders, so each board is read while it is on screen
       const boards = [];
       for (const b of o.boards) {
@@ -95,12 +109,6 @@ try {
       const read = new Set(boards.map((b) => b.tile)).size;
       check(read === o.boards.length, `${id}: read ${read} of ${o.boards.length} boards`);
       for (const b of boards) check(!b.errors.length && b.panels > 0 && /measured/.test(b.data ?? ""), `${b.tile}: ${b.panels} panels, data "${b.data}"${b.errors.length ? ` — ${b.errors.join("; ")}` : ""}`);
-      if (id === "local-sampler") {
-        // the stat shows two significant figures and its interval three
-        const speed = boards.flatMap((b) => b.bignums).find((t) => /×/.test(t)) ?? "";
-        const x = Number(speed.replace(/[^0-9.]/g, ""));
-        check(Math.abs(x - 2.4964) < 0.05, `local-sampler: speedup stat "${speed.trim()}" (check:pl: 2.4964 ×)`);
-      }
       if (id === "dino-pr1005") {
         const im = await p.eval(IMAGES);
         check(im.n > 0 && im.ok === im.n, `dino-pr1005: ${im.ok} of ${im.n} dataset images loaded from ${im.srcs.join(", ")}`);

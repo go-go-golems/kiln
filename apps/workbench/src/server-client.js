@@ -64,7 +64,8 @@ export function connectServer({ base = "", token = sessionToken(), fetch: doFetc
     },
     /** Hosts (guide §13): their drivers, queues and capability documents (kiln-capabilities/1). */
     hosts: {
-      list: () => call("GET", "/hosts").then((x) => x.hosts),
+      /** `{ hosts, workloads }`: every host's view, and the revision of the lab workload sources the server stages. */
+      list: () => call("GET", "/hosts"),
       capabilities: (id) => call("GET", `/hosts/${enc(id)}/capabilities`),
       /** Probe again now, ignoring the cached document */
       probe: (id) => call("POST", `/hosts/${enc(id)}/probe`),

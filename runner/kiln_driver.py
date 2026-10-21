@@ -106,6 +106,44 @@ class Refused(Exception):
 # ------------------------------------------------------------------ host facts
 
 
+def sysctl(name):
+    try:
+        return subprocess.run(["sysctl", "-n", name], capture_output=True, text=True, timeout=5, check=True).stdout.strip() or None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def memory_bytes():
+    if sys.platform == "darwin":
+        v = sysctl("hw.memsize")
+        return int(v) if v and v.isdigit() else None
+    try:
+        return int(re.search(r"MemTotal:\s+(\d+)", Path("/proc/meminfo").read_text()).group(1)) * 1024
+    except (OSError, AttributeError):
+        return None
+
+
+def cpu_facts():
+    """The CPU model and logical core count: a CPU capture's device (identity.ts deviceKey)."""
+    model = None
+    if sys.platform == "darwin":
+        model = sysctl("machdep.cpu.brand_string")
+    else:
+        try:
+            m = re.search(r"^model name\s*:\s*(.+)$", Path("/proc/cpuinfo").read_text(), re.M)
+            model = m.group(1).strip() if m else None
+        except OSError:
+            pass
+        if not model:
+            try:
+                out = subprocess.run(["lscpu"], capture_output=True, text=True, timeout=5).stdout
+                names = sorted({m.strip() for m in re.findall(r"^Model name:\s*(.+)$", out, re.M)})
+                model = " + ".join(names) or None
+            except (OSError, subprocess.SubprocessError):
+                pass
+    return {"model": model, "cores": os.cpu_count()}
+
+
 def gpus(smi):
     fields = "index,name,uuid,driver_version,compute_cap,memory.total,clocks.max.sm,persistence_mode"
     code, out, err = run([smi, f"--query-gpu={fields}", "--format=csv,noheader,nounits"], timeout=30)
@@ -327,15 +365,12 @@ class Driver:
         if not isinstance(req, dict) or req.get("format") != "kiln-probe-request/1":
             raise Refused(400, "bad_request", "expected a kiln-probe-request/1 document")
         gpu_rows, gpu_error = gpus(self.smi)
-        try:
-            mem = int(re.search(r"MemTotal:\s+(\d+)", Path("/proc/meminfo").read_text()).group(1)) * 1024
-        except (OSError, AttributeError):
-            mem = None
+        mem = memory_bytes()
         facts = {
             "format": "kiln-facts/1",
             "probedAt": now(),
             "driver": {"api": API, "sha256": self.sha256},
-            "host": {"hostname": self.hostname, "kernel": os.uname().release, "arch": os.uname().machine, "memBytes": mem,
+            "host": {"hostname": self.hostname, "kernel": os.uname().release, "arch": os.uname().machine, "cpu": cpu_facts(), "memBytes": mem,
                      "freeDiskBytes": shutil.disk_usage(self.root).free, "docker": self.docker.version(), "uid": os.getuid()},
             "gpus": gpu_rows,
             "gpuCounters": gpu_counters(),

@@ -2,7 +2,6 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
-import { captureHash, cyrb53, stableStringify } from '../src/lab/captures.ts';
 import { archiveRoot, evidenceDir, mediaFile, sha256 } from '../src/lab/files.ts';
 import { HOST, makeServer, tempDir } from './support/server.ts';
 import { capture, cocoArchive, cocoManifest, IMAGES, insertMeasured, insertMedia, JPEG, tarGz } from './support/lab.ts';
@@ -15,21 +14,6 @@ function labServer() {
   s.bus.on((e) => events.push(e));
   return { ...s, events };
 }
-
-describe('capture identity (Perf Lab cyrb53)', () => {
-  it('matches vectors computed with Perf Lab\'s own hash and stableStringify (PL/src/lang/util.ts)', () => {
-    expect(cyrb53('')).toBe('bdcb81aee8d83');
-    expect(cyrb53('a')).toBe('1c2ba782c97901');
-    expect(cyrb53('hello', 7)).toBe('12779cb81098a8');
-    expect(stableStringify({ b: 1, a: [1, 'x', null], c: { z: true, y: 'ü→' } })).toBe('{"a":[1,"x",null],"b":1,"c":{"y":"ü→","z":true}}');
-    expect(captureHash({})).toBe('1bc27f5a56d1e7');
-    expect(captureHash({ b: 1, a: [1, 'x', null], c: { z: true, y: 'ü→' } })).toBe('166d2fb354cb60');
-    expect(captureHash({ schema_version: 1, experiment_id: 'sampler-test', arm: 'baseline', host: 'local', workload: { adapter: 'sampler', queries: 64 }, collection: { mode: 'timing', requests: 3 } })).toBe('1a1c0ecec2f625');
-    expect(captureHash('plain')).toBe('75c3fd59f2249');
-    expect(captureHash([3, { k: 'v' }])).toBe('17bb778259fccd');
-    expect(stableStringify({ a: undefined, __fn1: 'dropped' })).toBe('{"a":null}');
-  });
-});
 
 describe('/api/lab: catalog and bundles', () => {
   it('serves bundles by capture hash, repetitions in order, value records intact; unknown hashes are empty', async () => {

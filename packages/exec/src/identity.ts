@@ -17,5 +17,9 @@ export function captureId(c: { kind: string; contentId: string; collectors: read
   }));
 }
 
-/** The device a capture is measured on, as identity sees it: the GPU's UUID from the probe ('none' without a GPU). */
-export const deviceKey = (gpu: { uuid: string } | undefined): string => (gpu ? `gpu:${gpu.uuid}` : 'none');
+/**
+ * The device a capture is measured on, as identity sees it: the GPU's UUID from the probe, or on a host without a
+ * GPU its CPU (architecture, model and logical cores), so that two machines' CPU captures are two identities.
+ */
+export const deviceKey = (gpu: { uuid: string } | undefined, host: { arch: string; cpu?: { model: string | null; cores: number | null } }): string =>
+  gpu ? `gpu:${gpu.uuid}` : `cpu:${host.arch}:${host.cpu?.model ?? 'unknown'}:${host.cpu?.cores ?? '?'}`;

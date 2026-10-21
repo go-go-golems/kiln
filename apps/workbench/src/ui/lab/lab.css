@@ -198,3 +198,24 @@
 .lab-slider { display: inline-flex; align-items: center; gap: 8px; height: var(--h-ctl); }
 .lab-param input[type="range"], .lab-control input[type="range"] { accent-color: var(--ink); }
 .lab-sgrid { max-width: 760px; }
+
+/* the Lab view's plan, host reports and runs; the Inspect view */
+.lab-home section + section { margin-top: 18px; }
+.lab-sechead .sp, .insp .detail-h .sp { flex: 1; }
+.lab-plan td { vertical-align: baseline; }
+.lab-spec { max-height: 320px; overflow: auto; margin: 0; font-size: var(--fs-2xs); }
+.lab-hosts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0 12px; margin-bottom: 8px; }
+.lab-hosts .block { padding: 8px 0; }
+.lab-hosts h3 { margin: 0; font: 600 var(--fs-s)/1.2 var(--code); }
+.lab-dry { padding: 8px 0; }
+.lab-empty.padded { padding: 20px 16px; }
+.insp { padding: 0 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.insp .detail-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+.insp .detail-h h2 { display: flex; align-items: baseline; gap: 8px; }
+.insp .detail-h .sub { flex-basis: 100%; order: 3; margin: 0; overflow-wrap: anywhere; }
+.insp h3 { margin: 0 0 4px; font: 700 var(--fs-m)/1.2 var(--sans); }
+.insp-rel { padding: 4px 0; font-size: var(--fs-xs); }
+.insp-rel + .insp-rel { border-top: 1px solid var(--hair); }
+.insp-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.insp-chips .chip { border: 1px solid var(--rule); background: none; padding: 1px 6px; font-size: var(--fs-2xs); border-radius: 2px; }
+.insp-chips .chip:hover { background: var(--fill); }

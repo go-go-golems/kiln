@@ -1,17 +1,18 @@
 // Local sampler — the first program whose evidence is measured, not generated.
-// The experiment runs on host 'local' (this machine) through the lab server: one Python process per
-// repetition, PyTorch's eager grid_sample against the same function compiled by TorchInductor.
-// Nothing here exists until the plan runs; open PLAN and run it (about a minute).
+// The experiment runs on a Kiln host (Host: the Mac or bling) as perf-lab-sampler/1 jobs in the perf-lab-cpu
+// environment: one Python process per repetition, PyTorch's eager grid_sample against the same function compiled by
+// TorchInductor. Nothing here exists until the plan runs; in the Lab view, Plan → Run (a few minutes).
 const WORKLOADS = src('HEAD:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/experiments/lab-workbench/workloads/perf_lab_local/sampler.py#unfused');
 
 const L = lab('Local · deformable sampling, measured')
-  .param('queries', select([1024, 2048, 4096, 12240]).label('Queries').default(2048));
+  .param('queries', select([1024, 2048, 4096, 12240]).label('Queries').default(2048))
+  .param('host', select(['mac', 'bling']).label('Host').default('mac'));
 const queries = L.ref('queries');
 
 return L
   .experiment('sampler-local', e => e
     .question('Does compiling the sampler change latency on this machine, and does the sampled intermediate disappear?')
-    .host('local')
+    .host(ctx => ctx.param('host'))
     .workload(sampler({ queries: ctx => ctx.param('queries'), heads: 8, channels: 32, points: 16, spatial: 64, device: 'cpu', dtype: 'float32' }))
     .boundary('sampler_output')
     // the workload sources' content hash is part of each arm's identity: editing a script invalidates its runs
@@ -54,7 +55,7 @@ return L
     .scope('allocator evidence for one request per arm on this host; says nothing about GPU fusion'))
   .board('identity', b => b
     .title('Is this a valid comparison?')
-    .subtitle('Measured on this machine: identity, activation and the quality gate come first')
+    .subtitle('Measured on a Kiln host: identity, activation and the quality gate come first')
     .add(manifestDiff('sampler-local/baseline/timing#0', 'sampler-local/candidate/timing#0'))
     .add(row()
       .add(stat(live($ => $.read('speedup')), 'paired median latency ratio, compiled ÷ eager'))

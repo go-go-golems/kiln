@@ -13,6 +13,10 @@ export interface Refusal {
   extra?: Record<string, unknown>;
 }
 
+export interface AcceptContext {
+  asset(name: string): Uint8Array;
+}
+
 export type Accepted<I> = { ok: true; input: I; contentId: string; label: string; symbols: string[] } | ({ ok: false } & Refusal);
 
 export interface PlanContext {
@@ -85,8 +89,9 @@ export interface WorkloadKind<I = unknown> {
   readonly assets: readonly string[];
   /** The NVTX range around the timed work, when the entry point emits one (nsys captures only that range) */
   readonly nvtxRange?: string;
-  /** Checks a capture's input and recomputes its content id; `at` prefixes messages */
-  accept(input: unknown, at: string): Accepted<I>;
+  /** Checks a capture's input and recomputes its content id; `at` prefixes messages. A kind whose code is staged
+   * from server files (its assets) puts their bytes into the content id through `ctx.asset`. */
+  accept(input: unknown, at: string, ctx: AcceptContext): Accepted<I>;
   /** The group's steps for one repetition, captures in ctx order */
   lower(group: CaptureGroup, rep: number, ctx: PlanContext, order: number[]): StepDraft[];
   /** Observations from one step's output */

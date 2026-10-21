@@ -1,12 +1,15 @@
 // The open lab program (guide §33): its source, its build (registry and IR, from @kiln/lab), the applied parameter
 // values and board signals, the selection, and the data it reads. With a Kiln server the data is what
 // `lab:import` brought into it, read through /api/lab/*; without one, and for every capture the server does not
-// hold, the program runs on @kiln/lab's synthetic source, and every board says which of the two it shows.
+// hold, the program runs on @kiln/lab's synthetic source, and every board says which of the two it shows. The hosts a
+// program may name are the server's (GET /api/hosts, one capability report per probed host) and the synthetic ones;
+// a capture on a real host is never seeded, so it is cached only once a job measured it. Running the plan submits the
+// missing captures as jobs; their runs arrive by catalog.changed and the program rebuilds with them.
 // Views subscribe to the workbench's "lab" channel.
 import { wb, lsGet, lsSet } from "../wb.js";
 import * as Dock from "../dock.js";
 import { LAB_PROGRAMS } from "../../labs.gen.js";
-import { build, BuildError, checkParam, dehydrate, isParamRef, isSignalRef, syntheticEnv, serverEnv, labClient } from "./api.js";
+import { build, BuildError, checkParam, dehydrate, isParamRef, isSignalRef, syntheticEnv, serverEnv, labClient, labJobs } from "./api.js";
 
 const bump = () => wb.bump("lab");
 
@@ -15,8 +18,12 @@ class Labs {
     this.programs = LAB_PROGRAMS;
     this.current = null;
     this.client = wb.server ? labClient(wb.server) : null;
-    this.catalog = {}; this.seeds = {};
+    this.catalog = {}; this.seeds = {}; this.reports = {};
     this.serverState = this.client ? "unknown" : "none";
+    /** job id → the refs it runs, for the jobs this page submitted from a plan */
+    this.jobs = new Map();
+    wb.on("hosts", () => this.hostsChanged());
+    wb.on("catalog", () => void this.catalogChanged());
   }
 
   /** Open program `id` and build it; with a server, its imported data first. */
@@ -38,7 +45,7 @@ class Labs {
 
   /** The server's catalog, archives and datasets; a failure leaves the program on synthetic data and says so. */
   async refresh() {
-    try { this.catalog = await this.client.catalog(); await this.client.loadEvidence(); this.serverState = "online"; }
+    try { this.catalog = await this.client.catalog(); await this.client.loadEvidence(); this.reports = this.client.setHosts(wb.hosts, wb.workloads); this.serverState = "online"; }
     catch (e) { this.serverState = "offline"; this.catalog = {}; wb.log("warn", `lab data: the server did not answer (${e.message}); lab programs run on synthetic data`); }
   }
 
@@ -46,11 +53,13 @@ class Labs {
     const cur = this.current;
     if (!cur) return null;
     try {
-      // a capture of the default parameters exists as a synthetic artifact unless a real executor measures it (host local)
-      if (!this.seeds[cur.id]) {
-        const s = build({ source: cur.source, labId: cur.id, params: {}, env: syntheticEnv(new Set()), seedMode: true });
-        this.seeds[cur.id] = Object.fromEntries(s.ir.plan.captures.filter((c) => c.host !== "local").map((c) => [c.hash, { origin: "seed", at: 0 }]));
+      // a capture of the default parameters exists as a synthetic artifact unless a real host measures it
+      const seedKey = `${cur.id}|${Object.keys(this.reports).sort().join(",")}`;
+      if (!this.seeds[seedKey]) {
+        const s = build({ source: cur.source, labId: cur.id, params: {}, env: syntheticEnv(new Set(), { hosts: this.reports }), seedMode: true });
+        this.seeds[seedKey] = Object.fromEntries(s.ir.plan.captures.filter((c) => !(c.host in this.reports)).map((c) => [c.hash, { origin: "seed", at: 0 }]));
       }
+      cur.seedKey = seedKey;
       const out = build({ source: cur.source, labId: cur.id, params: params ?? cur.applied, env: this.env(), patches: [] });
       if (params) return out;
       Object.assign(cur, { reg: out.registry, ir: out.ir, error: null });
@@ -70,7 +79,7 @@ class Labs {
   }
 
   env() {
-    const catalog = { ...this.seeds[this.current.id], ...this.catalog };
+    const catalog = { ...this.seeds[this.current.seedKey], ...this.catalog };
     return this.client && this.serverState === "online" ? serverEnv(catalog, this.client) : syntheticEnv(new Set(Object.keys(catalog)));
   }
 
@@ -98,7 +107,7 @@ class Labs {
     const missing = out.ir.plan.captures.filter((c) => c.status !== "cached");
     if (!missing.length) { cur.applied = desired; cur.pending = null; this.rebuild(`applied ${p.slot.urlKey}=${JSON.stringify(value)}`); void this.loadMeasured(); return; }
     const from = key in cur.applied ? cur.applied[key] : p.summary.defaultValue;
-    cur.pending = { changes: [{ key, urlKey: p.slot.urlKey, from, to: value }], captures: missing };
+    cur.pending = { changes: [{ key, urlKey: p.slot.urlKey, from, to: value }], captures: missing, desired };
     wb.log("warn", `lab: pending plan ${p.slot.urlKey} ${JSON.stringify(from)} → ${JSON.stringify(value)} · ${missing.length} captures not imported`);
     bump();
   }
@@ -121,6 +130,65 @@ class Labs {
   }
 
   select(ref) { if (this.current) { this.current.selected = ref; bump(); } }
+
+  /** The server's hosts changed (probed, or read for the first time): rebuild if the reports a program sees changed. */
+  hostsChanged() {
+    if (!this.client || this.serverState !== "online") return;
+    const before = JSON.stringify(this.reports);
+    this.reports = this.client.setHosts(wb.hosts, wb.workloads);
+    if (this.current && JSON.stringify(this.reports) !== before) { this.rebuild("hosts changed"); void this.loadMeasured(); }
+  }
+
+  /** A job imported runs: read the catalog again, apply a pending plan whose captures all exist now, and rebuild. */
+  async catalogChanged() {
+    const cur = this.current;
+    if (!cur || !this.client || this.serverState !== "online") return;
+    try { this.catalog = await this.client.catalog(); }
+    catch (e) { return wb.log("warn", `lab: reading the catalog failed: ${e.message}`); }
+    if (this.current !== cur) return;
+    if (cur.pending && cur.pending.captures.every((c) => this.catalog[c.hash])) {
+      wb.log("ok", `lab: the pending plan's ${cur.pending.captures.length} captures exist; applying ${cur.pending.changes.map((c) => `${c.urlKey}=${JSON.stringify(c.to)}`).join(", ")}`);
+      Object.assign(cur, { applied: cur.pending.desired, pending: null });
+    }
+    this.rebuild("catalog changed");
+    await this.loadMeasured();
+  }
+
+  /** The captures a plan still needs: the build's own, or the pending plan's. */
+  missing() {
+    const cur = this.current;
+    return cur?.pending ? cur.pending.captures : (cur?.ir?.plan.captures ?? []).filter((c) => c.status === "execute");
+  }
+
+  /**
+   * Run captures on the hosts they name (default: what the plan is missing), as approved jobs; with { dryRun } the
+   * server answers the plans and verdicts and nothing is stored. → the created jobs (or dry-run answers).
+   */
+  async runPlan(captures = this.missing(), { dryRun = false } = {}) {
+    const cur = this.current;
+    if (!cur || !wb.server) return [];
+    const { jobs, skipped } = labJobs(cur.id, captures, { dryRun });
+    for (const s of skipped) wb.log("warn", `lab: ${s.ref} cannot run on a Kiln host: ${s.why}`);
+    if (!jobs.length) { wb.toast(skipped.length ? `None of these captures can run on a Kiln host (${skipped[0].why})` : "Nothing to run", "bad"); return []; }
+    const out = [];
+    for (const spec of jobs) {
+      try {
+        const job = await wb.server.jobs.create(spec);
+        out.push(job);
+        if (dryRun) continue;
+        this.jobs.set(job.id, spec.captures.map((c) => c.input.ref));
+        wb.proposed.add(job.id);
+        wb.log("measure", `lab ${cur.id}: job ${job.id.slice(4, 12)} on ${spec.host}, ${spec.captures.length} captures × ${spec.protocol.reps} processes`);
+      } catch (e) {
+        wb.toast(`${spec.host} did not take the job: ${e.message}`, "bad");
+        wb.log("measure", `lab ${cur.id}: job on ${spec.host} refused: ${e.message}`, { bad: true });
+      }
+    }
+    if (dryRun) { cur.dryRun = { at: new Date().toISOString(), results: out }; bump(); return out; }
+    if (out.length) { wb.toast(`${out.length} job${out.length === 1 ? "" : "s"} submitted: ${out.reduce((n, j) => n + j.captures.length, 0)} captures. The boards rebuild when their runs arrive.`); wb.bump("jobs"); }
+    bump();
+    return out;
+  }
 
   hypotheses() { return this.current?.reg ? [...this.current.reg.hypotheses.keys()] : []; }
 

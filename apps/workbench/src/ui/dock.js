@@ -4,7 +4,7 @@
 // Every operation here is pure: it takes a tree and returns a new one.
 
 export const IDE_VIEWS = ["notes", "code", "agent", "reference"];
-export const SYS_VIEWS = ["ir", "graph", "trace", "kernels", "perf", "knobs", "tune", "evidence", "hypotheses", "devices", "jobs", "events", "lab"];
+export const SYS_VIEWS = ["ir", "graph", "trace", "kernels", "perf", "knobs", "tune", "evidence", "hypotheses", "devices", "jobs", "events", "lab", "inspect"];
 export const ALL_VIEWS = [...IDE_VIEWS, ...SYS_VIEWS];
 // a lab program's board is a view of its own, named after the board (guide §33)
 export const isBoardView = (v) => typeof v === "string" && /^board:[A-Za-z0-9_.-]{1,80}$/.test(v);

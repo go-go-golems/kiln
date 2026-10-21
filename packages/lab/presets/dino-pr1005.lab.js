@@ -67,7 +67,7 @@ return L
 
   .experiment('dino-local', e => e
     .question('On this CPU, do the two changes that run without CUDA — the normalization table and bulk postprocessing — keep outputs exact, and what do they cost here?')
-    .host('local')
+    .host('mac')
     .workload(dino({ dataset: DS, images: ctx => ctx.param('localImages'), labels: LABELS, precision: 'fp32', inputSize: 768, boxThreshold: 0.3, textThreshold: 0.3 }))
     .boundary('detect_with_options')
     .baseline(rev('a6f14d947'))
@@ -79,7 +79,7 @@ return L
     .capture(capture.timing().pairs(2))
     .capture(capture.predictions())
     .limitation('CPU float32 with torch 2.14.1: replay and fusion need CUDA and are not configured, so this run says nothing about them')
-    .limitation('needs the model snapshot (pnpm lab models fetch) and the dataset images (pnpm lab datasets materialize c435d426e9d2)'))
+    .limitation('no Kiln workload kind runs the dino workload yet, so the plan cannot measure this experiment on the Mac'))
 
   .derive('localLatency', q.requests('dino-local/*/timing'), rs =>
     ['baseline', 'candidate'].map(arm => {

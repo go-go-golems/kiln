@@ -37,7 +37,7 @@ try { importScripts(away("importScripts")); out.importScripts = "loaded"; } catc
 try { new Worker(away("worker")); out.worker = "constructed"; } catch (e) { out.worker = e.name; }
 try { location.href = away("navigate"); out.navigate = "navigated"; } catch (e) { out.navigate = e.name; }
 await new Promise((r) => setTimeout(r, 300));
-const job = await jobs.propose({ device: "server:dev-fake", reason: "agent: measure W-05 on the fake GPU" });
+const job = await jobs.propose({ device: "host:dev-fake", reason: "agent: measure W-05 on the fake GPU" });
 out.job = job.status;
 const s = await editor.get();
 const set = await editor.set(s.replace("RMSNorm, fused", "RMSNorm, fused (agent edit)"));
@@ -92,9 +92,9 @@ const show = (view) => `(() => { const wb = window.__kiln.wb; wb.showView(${JSON
 
 try {
   await withPage({ url, size: "1600x1000", timeout: 240000 }, async (p) => {
-    await p.until(`(() => { const wb = window.__kiln?.wb; return wb?.ready && wb.platformReady && wb.sample && wb.devices.some((d) => d.id === "server:dev-fake" && d.status === "ready"); })()`, 60000);
+    await p.until(`(() => { const wb = window.__kiln?.wb; return wb?.ready && wb.platformReady && wb.sample && wb.devices.some((d) => d.id === "host:dev-fake" && d.status === "ready"); })()`, 60000);
     check(true, "the page reaches the model through the server's gateway (no host bridge)");
-    await p.eval(`(async () => { const wb = window.__kiln.wb; await wb.load("W-05"); await wb.setDevice("server:dev-fake", { quiet: true }); return true; })()`);
+    await p.eval(`(async () => { const wb = window.__kiln.wb; await wb.load("W-05"); await wb.setDevice("host:dev-fake", { quiet: true }); return true; })()`);
     const before = await p.eval(`window.__kiln.wb.run.decisions.length`);
     await p.eval(`window.__kiln.agent.send("Try to leave the sandbox, then propose a measurement of W-05 on the fake GPU and rename the project.").then(() => true)`);
     await p.until(`!window.__kiln.agent.agent.busy`, 60000);

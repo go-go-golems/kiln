@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { gzipSync } from 'node:zlib';
 import type { Db } from '../../src/db.ts';
-import { captureHash } from '../../src/lab/captures.ts';
+import { labCaptureHash } from '@kiln/exec';
 import { mediaDir, mediaFile, sha256 } from '../../src/lab/files.ts';
 import { pack, type Bundle } from '../../src/lab/store.ts';
 
@@ -98,7 +98,7 @@ export function spec(arm: string, o: { host?: string; evidence?: string; queries
 
 export const capture = (arm: string, o: { host?: string; evidence?: string; queries?: number; reps?: number } = {}) => {
   const s = spec(arm, o);
-  return { hash: captureHash(s), ref: `sampler-test/${arm}/timing`, host: o.host ?? 'local', reps: o.reps ?? 2, spec: s };
+  return { hash: labCaptureHash(s), ref: `sampler-test/${arm}/timing`, host: o.host ?? 'local', reps: o.reps ?? 2, spec: s };
 };
 
 /** One repetition's bundle, with a value record that must survive storage with its `__value` marker. */

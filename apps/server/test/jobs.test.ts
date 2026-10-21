@@ -190,7 +190,7 @@ describe('the job lifecycle on a driver', () => {
     // one run per capture and repetition, with the kernel, the GPU samples and the link to the page's identity
     const catalog = (await s.json('GET', '/api/lab/catalog')).body;
     const capture = job.captures[0].capture as string;
-    expect(catalog[capture]).toMatchObject({ origin: 'job', source: `job:${id}`, host: 'fake', reps: 4, kind: 'kiln-kernels/1' });
+    expect(catalog[capture]).toMatchObject({ origin: 'measured', source: `job:${id}`, host: 'fake', reps: 4, kind: 'kiln-kernels/1' });
     const bundles = (await s.json('GET', `/api/lab/bundles?hashes=${capture}`)).body[capture];
     expect(bundles).toHaveLength(4);
     expect(bundles[0].run).toMatchObject({ kind: 'run', mode: 'timing', workload: 'kiln-kernels/1', validity: { ok: true }, measured: true, manifest: { job: id, captureId: capture } });

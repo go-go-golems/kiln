@@ -15,17 +15,17 @@ import {
   revive,
   type BundleJSON,
   type DatasetDetail,
-  type LocalReport,
+  type HostReport,
   type PairedRatioResult,
 } from '../src/index.ts';
-import { readPreset } from '../src/node/index.ts';
+import { PERF_LAB_SAMPLER } from './fixtures/perf-lab-sampler.ts';
 import fixture from './fixtures/local-sampler-q2048.json' with { type: 'json' };
 
-const SOURCE = readPreset('local-sampler').source;
+const SOURCE = PERF_LAB_SAMPLER;
 const state = { params: {}, signals: {} };
 const bundles = fixture.bundles as unknown as Record<string, BundleJSON[]>;
 const catalog = fixture.catalog as Record<string, { origin: 'measured' }>;
-const localReport = fixture.localReport as LocalReport;
+const localReport = fixture.localReport as HostReport;
 
 describe('revive', () => {
   it('rebuilds JSON value records as evidence Values, at any depth', () => {
@@ -47,7 +47,7 @@ describe('revive', () => {
 
 describe('a MemoryLabData filled from the routes', () => {
   it('shows a measured capture only once its bundles are loaded', () => {
-    const data = createMemoryLabData({ catalog: fixture.catalog as never, localReport });
+    const data = createMemoryLabData({ catalog: fixture.catalog as never, hostReports: { local: localReport } });
     const env = labEnv(data);
     const first = build({ source: SOURCE, labId: 'l', params: {}, env });
     expect(first.ir.plan.captures.filter((c) => c.status === 'cached').map((c) => c.ref).sort()).toEqual([
@@ -90,14 +90,14 @@ describe('a MemoryLabData filled from the routes', () => {
     const data = createMemoryLabData({ catalog: fixture.catalog as never });
     const env = labEnv(data);
     expect(() => env.capabilities('local')).toThrow(/no capability report for host "local"/);
-    data.setLocalReport(localReport);
+    data.setHostReports({ local: localReport });
     expect(env.capabilities('local').tools.workloads).toBe('1fc6b670a8a6');
   });
 });
 
 describe('entities', () => {
   it('are sealed all the way down (P-6)', () => {
-    const data = createMemoryLabData({ catalog: fixture.catalog as never, bundles, localReport });
+    const data = createMemoryLabData({ catalog: fixture.catalog as never, bundles, hostReports: { local: localReport } });
     const { registry } = build({ source: SOURCE, labId: 'l', params: {}, env: labEnv(data) });
     const run = registry.source.runs('sampler-local/candidate/timing#0')[0]!;
     expect(() => {

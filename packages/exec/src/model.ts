@@ -92,7 +92,7 @@ export interface Facts {
   format: 'kiln-facts/1';
   probedAt: string;
   driver: { api: string; sha256: string };
-  host: { hostname: string; kernel: string; arch: string; memBytes: number | null; freeDiskBytes: number; docker: string | null; uid: number };
+  host: { hostname: string; kernel: string; arch: string; cpu: { model: string | null; cores: number | null }; memBytes: number | null; freeDiskBytes: number; docker: string | null; uid: number };
   gpus: GpuFact[];
   gpuError?: string;
   gpuCounters: GpuCounters;

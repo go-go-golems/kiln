@@ -2,6 +2,7 @@
 // point inside an environment.
 import type { WorkloadKind } from '../registry.ts';
 import { kilnKernels } from './kiln-kernels.ts';
+import { perfLabSampler } from './perf-lab-sampler.ts';
 
-export const KINDS: readonly WorkloadKind[] = [kilnKernels as WorkloadKind];
+export const KINDS: readonly WorkloadKind[] = [kilnKernels as WorkloadKind, perfLabSampler as WorkloadKind];
 export const kindById: ReadonlyMap<string, WorkloadKind> = new Map(KINDS.map((k) => [k.id, k]));

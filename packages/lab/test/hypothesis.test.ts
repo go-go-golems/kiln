@@ -1,7 +1,7 @@
 // Hypothesis verdicts on @kiln/evidence's `verdict` (P-8): three-valued predicates, throwing predicates, missing
 // inputs, invalid support. Each case states what Perf Lab's rule (HypothesisView.tsx L19-48) answered.
 import { describe, expect, it } from 'vitest';
-import { build, buildSynthetic, evaluateHypotheses, evaluateHypothesis, syntheticEnv, type LocalReport, type RuntimeState } from '../src/index.ts';
+import { build, buildSynthetic, evaluateHypotheses, evaluateHypothesis, syntheticEnv, type HostReport, type RuntimeState } from '../src/index.ts';
 import { readPreset } from '../src/node/index.ts';
 
 const state: RuntimeState = { params: {}, signals: {} };
@@ -79,8 +79,8 @@ describe('what Perf Lab got wrong (P-8)', () => {
 });
 
 describe('support', () => {
-  const LOCAL: LocalReport = {
-    host: 'local',
+  const LOCAL: HostReport = {
+    host: 'mac',
     arch: 'arm64',
     cpu: { name: 'Test CPU', cores: 10, coreClasses: ['performance', 'efficiency'] },
     memoryBytes: null,
@@ -94,7 +94,7 @@ describe('support', () => {
 
   it('an invalid supporting run makes the verdict unqualified, naming the run and why', () => {
     // generated runs of the local sampler fail its activation rule, so its memory runs are invalid
-    const { registry } = buildSynthetic(readPreset('local-sampler').source, { local: LOCAL });
+    const { registry } = buildSynthetic(readPreset('local-sampler').source, { hosts: { [LOCAL.host]: LOCAL } });
     const v = evaluateHypothesis(registry, state, 'compile-removes-intermediate');
     expect(v.verdict).toBe('unqualified');
     expect(v.checks).toEqual([]);

@@ -134,7 +134,7 @@ const count = (c, name) => c.calls.filter(([n]) => n === name).length;
   const device = { id: "cuda:fake-1", class: "cuda", name: "CUDA Fake GPU (development)", fingerprint: { name: "Fake GPU (development)", cc: "9.0", sms: 132, host: "box" }, host: "dev-fake", records: 3, lastSeen: "2026-10-20T00:00:00.000Z" };
   const probes = [];
   const client = {
-    hosts: { probe: async (id) => { probes.push(id); }, list: async () => [{ ...hosts[0], reachable: true, gpus: [gpu], offers }] },
+    hosts: { probe: async (id) => { probes.push(id); }, list: async () => ({ hosts: [{ ...hosts[0], reachable: true, gpus: [gpu], offers }], workloads: {} }) },
     devices: { list: async () => [device, { ...device, id: "sim:rtx5090-1", class: "sim", host: null }] },
   };
   const [d, ...rest] = hostDevices(hosts, [], [], client);

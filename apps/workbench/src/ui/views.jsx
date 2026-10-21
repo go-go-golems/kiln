@@ -13,6 +13,7 @@ import { JobsView, ServerLine } from "./Jobs.jsx";
 import { NotesView } from "./Notes.jsx";
 import { LabView } from "./lab/LabView.jsx";
 import { BoardView } from "./lab/board.jsx";
+import { InspectView } from "./lab/InspectView.jsx";
 import { labs } from "./lab/state.js";
 import { isBoardView } from "./dock.js";
 import { agent } from "../agent/agent.js";
@@ -37,6 +38,7 @@ export const VIEWS = {
   jobs: { title: "Jobs", about: "jobs on the Kiln server's hosts: captures, verdicts, plans, events, archives and records; dry runs", el: () => <JobsView />, badge: () => { const n = wb.jobs.filter((j) => j.status === "proposed").length; return n ? [n, false] : wb.jobs.some((j) => j.status === "running" || j.status === "approved" || j.status === "importing") ? ["…", false] : null; } },
   events: { title: "Events", about: "the workbench log and the last compile's events", el: () => <EventsView /> },
   lab: { title: "Lab", about: "lab programs: Perf Lab's experiments, boards and hypotheses over imported runs", col: true, el: () => <LabView />, badge: () => labs.badge() },
+  inspect: { title: "Inspect", about: "the selected lab entity: its fields, counters, relationships and run manifest", col: true, el: () => <InspectView /> },
 };
 
 /** A view's definition: a fixed view, or a board of the open lab program ("board:<id>"). */

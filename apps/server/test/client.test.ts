@@ -53,7 +53,10 @@ describe('server-client.js', () => {
     expect(await c.jobs.create({ ...jobBody([kernelInput({ extra: ' // dry' })]), dryRun: true })).toMatchObject({ dryRun: true, steps: 3, verdicts: [{ verdict: 'execute' }] });
     expect((await c.jobs.plan(proposed.id)).format).toBe('kiln-plan/1');
     expect((await c.hosts.probe('fake')).offers.kinds['kiln-kernels/1']).toEqual({ environment: 'kiln-perf' });
-    expect((await c.hosts.list())[0]).toMatchObject({ id: 'fake', reachable: true });
+    const index = await c.hosts.list();
+    expect(index.hosts[0]).toMatchObject({ id: 'fake', reachable: true });
+    // the revision of the lab workload sources, as probe.py's workloads_revision computes it
+    expect(index.workloads.perf_lab_local).toMatch(/^[0-9a-f]{12}$/);
     expect((await c.devices.list())[0]).toMatchObject({ host: 'fake', records: 1 });
     expect((await c.archives.list())[0]).toMatchObject({ job: proposed.id });
     const bad = await clientFor(s, '0'.repeat(64)).records.add([]).catch((e: unknown) => e);

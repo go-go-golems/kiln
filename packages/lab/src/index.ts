@@ -171,7 +171,7 @@ export { clamp, fmtBytes, fmtNumber, getPath, globToRegExp, hash, nextId, rng, s
 export { buildSynthetic, labEnv, syntheticEnv, type SyntheticBuildOptions, type SyntheticEnvOptions } from './data/env.ts';
 export { bundlesNeeded, createMemoryLabData, type CatalogEntry, type LabData, type MemoryLabData, type MemoryLabDataInit } from './data/lab-data.ts';
 export { reviveBundles, type BundleJSON, type RunBundle } from './data/bundles.ts';
-export { KNOWN_HOSTS, adapter, capabilities, capabilitiesFor, knownHosts, type LocalReport } from './data/capabilities.ts';
+export { KNOWN_HOSTS, adapter, capabilities, capabilitiesFor, hostReport, knownHosts, type HostReport, type HostViewLike } from './data/capabilities.ts';
 export {
   EVIDENCE_IMPORT_FEATURE,
   datasetProvider,

@@ -41,7 +41,7 @@ class Workbench {
     try { const saved = lsGet("evidence2", null); if (saved) this.store.import(saved); else { const old = lsGet("evidence", null); if (old?.rows?.length) this.store.import(old); } } catch {}
     this.store.on(() => { clearTimeout(this._st); this._st = setTimeout(() => lsSet("evidence2", this.store.toJSON()), 400); this.bump("store"); });
     // the Kiln server that served this page, if one did (guide §30); see the server section
-    this.server = connectServer(); this.serverInfo = { state: this.server ? "connecting" : "none" }; this.jobs = []; this.hosts = []; this.plans = new Map(); this.dryRun = null; this.awaiting = new Map(); this.proposed = new Set();
+    this.server = connectServer(); this.serverInfo = { state: this.server ? "connecting" : "none" }; this.jobs = []; this.hosts = []; this.workloads = {}; this.plans = new Map(); this.dryRun = null; this.awaiting = new Map(); this.proposed = new Set();
     this.measures = {}; this.history = []; this.measuring = false;
     this.tuning = null;
     this.events = [];
@@ -338,6 +338,7 @@ class Workbench {
         "host.updated": () => this.serverDevices().catch((e) => this.log("server", `reading hosts failed: ${e.message}`, { bad: true })),
         "job.updated": on((v) => { this.jobs = upsertJob(this.jobs, v); this.jobSettled(v); }),
         "job.event": on((e) => { this.jobs = addJobEvent(this.jobs, e); }),
+        "catalog.changed": (d) => { this.catalogChange = d; this.bump("catalog"); },
         open: () => { this.serverInfo.state = "connected"; this.bump("server"); },
         error: () => { this.serverInfo.state = "reconnecting"; this.bump("server"); },
       });
@@ -352,13 +353,13 @@ class Workbench {
     } catch (e) { this.log("server", `reading the server failed: ${e.message}`, { bad: true }); }
   }
   async serverDevices() {
-    const [hosts, devices] = await Promise.all([this.server.hosts.list(), this.server.devices.list()]);
+    const [{ hosts, workloads }, devices] = await Promise.all([this.server.hosts.list(), this.server.devices.list()]);
     const was = this.evidenceId;
     const devs = hostDevices(hosts, devices, this.devices.filter((d) => d.server), this.server, lsGet("protocol:cuda", null));
     this.devices = [...this.devices.filter((d) => !d.server), ...devs];
-    this.hosts = hosts;
+    this.hosts = hosts; this.workloads = workloads ?? {};
     this.serverInfo.hosts = hosts.length;
-    this.bump("device", "server");
+    this.bump("device", "server", "hosts");
     // a server device saved as the selection exists only now
     if (this.ready && this.device.server && !this._serverPicked) { this._serverPicked = true; return this.setDevice(this.deviceId, { quiet: true }); }
     if (this.ready && this.evidenceId !== was) this.compile();

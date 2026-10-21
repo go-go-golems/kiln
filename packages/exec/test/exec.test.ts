@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { canonicalSource, contentId, sha256Hex } from '@kiln/evidence';
 import { describe, expect, it } from 'vitest';
-import { capabilities, kindById, modeCollectors, parseHosts, parseNcuCsv, planJob, probeRequest, type Facts, type HostProfile, type KernelInput, kilnKernels, parseGpuCsv, kilnIdentityOf } from '../src/index.ts';
+import { capabilities, kindById, modeCollectors, parseHosts, parseNcuCsv, planJob, probeRequest, type Facts, type HostProfile, type KernelInput, kilnKernels, parseGpuCsv, kilnIdentityOf, cyrb53, labCaptureHash, samplerEntities, stableStringify } from '../src/index.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -17,7 +17,7 @@ const host = (): HostProfile => parseHosts(PROFILE).hosts[0]!;
 function facts(o: { counters?: Facts['gpuCounters']; ncu?: boolean; nsys?: boolean; gpu?: boolean } = {}): Facts {
   return {
     format: 'kiln-facts/1', probedAt: '2026-10-20T00:00:00Z', driver: { api: 'kiln-driver/1', sha256: 'd'.repeat(64) },
-    host: { hostname: 'spark-e220', kernel: '6.11', arch: 'aarch64', memBytes: 1, freeDiskBytes: 1e12, docker: '29.0', uid: 1000 },
+    host: { hostname: 'spark-e220', kernel: '6.11', arch: 'aarch64', cpu: { model: 'Cortex-X925 + Cortex-A725', cores: 20 }, memBytes: 1, freeDiskBytes: 1e12, docker: '29.0', uid: 1000 },
     gpus: [{ index: 0, name: 'NVIDIA GB10', uuid: 'GPU-1', driver: '580.178.04', cc: '12.1', memMiB: 1, maxSmClockMHz: 1, persistence: 'Enabled' }],
     gpuCounters: o.counters ?? 'admin-only',
     environments: {
@@ -199,5 +199,125 @@ describe('browser safety', () => {
     };
     visit(resolve(here, '../src/index.ts'));
     expect(bad).toEqual([]);
+  });
+});
+
+describe('capture identity (Perf Lab cyrb53)', () => {
+  it('matches vectors computed with Perf Lab\'s own hash and stableStringify (PL/src/lang/util.ts)', () => {
+    expect(cyrb53('')).toBe('bdcb81aee8d83');
+    expect(cyrb53('a')).toBe('1c2ba782c97901');
+    expect(cyrb53('hello', 7)).toBe('12779cb81098a8');
+    expect(stableStringify({ b: 1, a: [1, 'x', null], c: { z: true, y: 'ü→' } })).toBe('{"a":[1,"x",null],"b":1,"c":{"y":"ü→","z":true}}');
+    expect(labCaptureHash({})).toBe('1bc27f5a56d1e7');
+    expect(labCaptureHash({ b: 1, a: [1, 'x', null], c: { z: true, y: 'ü→' } })).toBe('166d2fb354cb60');
+    expect(labCaptureHash({ schema_version: 1, experiment_id: 'sampler-test', arm: 'baseline', host: 'local', workload: { adapter: 'sampler', queries: 64 }, collection: { mode: 'timing', requests: 3 } })).toBe('1a1c0ecec2f625');
+    expect(labCaptureHash('plain')).toBe('75c3fd59f2249');
+    expect(labCaptureHash([3, { k: 'v' }])).toBe('17bb778259fccd');
+    expect(stableStringify({ a: undefined, __fn1: 'dropped' })).toBe('{"a":null}');
+  });
+});
+
+describe('perf-lab-sampler/1', () => {
+  const MAC = parseHosts({ format: 'kiln-hosts/1', hosts: [{ id: 'mac', url: 'http://127.0.0.1:5282', environments: { 'perf-lab-cpu': { image: 'perf-lab-cpu:latest', docker: { network: 'none' } } } }] }).hosts[0]!;
+  const macFacts = (torch = true): Facts => ({
+    format: 'kiln-facts/1', probedAt: '2026-10-20T00:00:00Z', driver: { api: 'kiln-driver/1', sha256: 'd'.repeat(64) },
+    host: { hostname: 'mbp', kernel: '24.6.0', arch: 'arm64', cpu: { model: 'Apple M1 Pro', cores: 10 }, memBytes: 1, freeDiskBytes: 1e12, docker: '28.0', uid: 501 },
+    gpus: [], gpuError: 'nvidia-smi: not found', gpuCounters: 'unknown',
+    environments: { 'perf-lab-cpu': { imageRef: 'perf-lab-cpu:latest', image: `sha256:${'c'.repeat(64)}`, ok: true, gpuVisible: false, commands: { python: { ok: true, version: '3.12' } }, modules: { torch: torch ? { ok: true, version: '2.9.1' } : { ok: false, error: 'No module named torch' }, numpy: { ok: true, version: '2.3' } }, tools: {} } },
+    conditions: { computeApps: [], containers: [] },
+  });
+  const spec = (arm: string, impl: string, mode = 'timing', extra: Record<string, unknown> = {}) => ({
+    schema_version: 1, experiment_id: 'local-sampler', arm, host: 'mac', workload: { adapter: 'sampler', queries: 2048, device: 'cpu', dtype: 'float32' },
+    comparison: { arm_revision: null, switches: { impl } }, state: null, warmup: null, expect: null, repeat: { processes: 3 }, collection: { mode, requests: 8 }, quality_gate_sha256: null, ...extra,
+  });
+  const req = (s: ReturnType<typeof spec>, labId = 'local-sampler') => ({ kind: 'perf-lab-sampler/1', mode: (s.collection as { mode: string }).mode, pairId: 'local-sampler', input: { labId, ref: `${s.experiment_id}/${s.arm}/${(s.collection as { mode: string }).mode}`, spec: s } });
+  const files: Record<string, string> = { 'perf_lab_local/__init__.py': '', 'perf_lab_local/run.py': '# run\n', 'perf_lab_local/sampler.py': '# sampler\n' };
+  const asset = (name: string) => new TextEncoder().encode(name === 'kiln_runner.py' ? '# runner\n' : files[name]!);
+  const planMac = (captures: unknown[], f = macFacts(), a = asset) => planJob({ job: 'job-2', host: MAC, facts: f, kinds: kindById, protocol: { reps: 2, launches: 1, warmup: 0, seed: 1 }, captures, asset: a });
+
+  it('runs one process per capture and repetition in perf-lab-cpu, with the mode from its collectors', () => {
+    const r = planMac([req(spec('baseline', 'unfused', 'cpu')), req(spec('candidate', 'compiled', 'cpu'))]);
+    if (!r.ok) throw new Error(r.refusal.message);
+    expect(r.verdicts.map((v) => [v.verdict, v.mode, v.collectors.join(',')])).toEqual([['execute', 'cpu', 'rusage,wall-clock'], ['execute', 'cpu', 'rusage,wall-clock']]);
+    expect(r.captures[0]!.device).toBe('cpu:arm64:Apple M1 Pro:10');
+    const p = r.plan!;
+    expect(p.gpu).toBeNull();
+    expect(p.steps).toHaveLength(4);
+    expect(p.steps[0]).toMatchObject({ environment: 'perf-lab-cpu', argv: ['python3', '-m', 'perf_lab_local.run', '--spec', expect.stringMatching(/^\/job\/in\/specs\/[0-9a-f]{64}\.json$/), '--rep', '0', '--out', '/job/out'], env: { PYTHONPATH: '/job/in/workload' }, sidecars: [] });
+    expect(p.files.map((f) => f.path).filter((x) => x.startsWith('workload/'))).toEqual(['workload/perf_lab_local/__init__.py', 'workload/perf_lab_local/run.py', 'workload/perf_lab_local/sampler.py']);
+    const staged = JSON.parse(new TextDecoder().decode(r.files.get(`specs/${r.captures[0]!.id}.json`)!));
+    expect(staged.collection).toEqual({ mode: 'cpu', requests: 8 });
+  });
+
+  it('names its runs by the lab: cyrb53 of the spec, the experiment/arm/mode ref', () => {
+    const s = spec('baseline', 'unfused');
+    const r = planMac([req(s)]);
+    if (!r.ok) throw new Error(r.refusal.message);
+    expect(kindById.get('perf-lab-sampler/1')!.lab!(r.captures[0]!)).toEqual({ labId: 'local-sampler', hash: labCaptureHash(s), ref: 'local-sampler/baseline/timing' });
+  });
+
+  it('keeps the content id across host names and repetition counts, and changes it with the workload or the spec', () => {
+    const id = (s: ReturnType<typeof spec>, a = asset) => { const r = planMac([req(s)], macFacts(), a); if (!r.ok) throw new Error(r.refusal.message); return r.captures[0]!.contentId; };
+    const base = id(spec('baseline', 'unfused'));
+    expect(id({ ...spec('baseline', 'unfused'), host: 'local', repeat: { processes: 9 } })).toBe(base);
+    expect(id(spec('baseline', 'unfused', 'timing', { workload: { adapter: 'sampler', queries: 4096, device: 'cpu', dtype: 'float32' } }))).not.toBe(base);
+    expect(id(spec('baseline', 'unfused'), (n) => (n === 'perf_lab_local/run.py' ? new TextEncoder().encode('# run v2\n') : asset(n)))).not.toBe(base);
+  });
+
+  it('refuses a spec its ref does not name, and is blocked without torch', () => {
+    const bad = planMac([{ ...req(spec('baseline', 'unfused')), input: { labId: 'x', ref: 'local-sampler/candidate/timing', spec: spec('baseline', 'unfused') } }]);
+    expect(bad.ok).toBe(false);
+    if (!bad.ok) expect(bad.refusal.message).toMatch(/does not name the spec/);
+    const r = planMac([req(spec('baseline', 'unfused'))], macFacts(false));
+    if (!r.ok) throw new Error(r.refusal.message);
+    expect(r.verdicts[0]).toMatchObject({ verdict: 'blocked', reason: expect.stringMatching(/torch/) });
+  });
+
+  it('imports timing and getrusage into requests and an instant; a failed process makes the run invalid', () => {
+    const json = (x: unknown) => new TextEncoder().encode(JSON.stringify(x));
+    const s = spec('baseline', 'unfused', 'cpu');
+    const r = planMac([req(s)]);
+    if (!r.ok) throw new Error(r.refusal.message);
+    const c = r.captures[0]!, step = r.plan!.steps[0]!;
+    const out = (exit: number) => ({
+      step, log: 'Traceback\nRuntimeError: boom', execution: { id: step.id, exit, seconds: 2 },
+      files: new Map([
+        ['manifest.json', json({ mode: 'cpu', arm: 'baseline', impl: 'unfused', device: 'cpu', dtype: 'float32', threads: 4, shape: { queries: 2048, heads: 8, channels: 32, points: 4, spatial: 64 }, torch: '2.9.1', python: '3.12.12', numpy: '2.3.5', workload_sha256: 'w', started_at: '2026-10-20T20:00:00+0000' })],
+        ['activation.json', json({ impl: 'unfused', executed: 'unfused', intermediate: 'materialized' })],
+        ['quality.json', json({ reference: 'unfused', maxAbsDiff: 0, tolerance: 1e-5, pass: true })],
+        ['timing.json', json({ requests: [{ i: 0, start_ns: 0, end_ns: 2e6, cpu_ns: 1.9e6 }, { i: 1, start_ns: 2.1e6, end_ns: 4.6e6, cpu_ns: 2.4e6 }] })],
+        ['cpu.json', json({ window_ns: 4.7e6, delta: { ru_utime: 0.01, ru_stime: 0.002, ru_nvcsw: 3, ru_nivcsw: 1, ru_minflt: 40, ru_majflt: 0, ru_inblock: 0, ru_oublock: 0 }, maxrss_bytes: 3e8, scope: 'process (all threads) over the measured window' })],
+      ]),
+    });
+    const ctx = { job: 'job-2', captures: new Map([[c.id, c]]) };
+    const [o] = kindById.get('perf-lab-sampler/1')!.import(out(0), ctx);
+    if (o?.type !== 'entities') throw new Error('no entities');
+    expect(o.entities.filter((e) => e.kind === 'request').map((e) => [e.id, e.latency])).toEqual([['r0-000', 2], ['r0-001', 2.5]]);
+    expect(o.entities.find((e) => e.id === 'rusage')).toMatchObject({ userTime: { value: 10, prov: 'observed', unit: 'ms' } });
+    expect(o.run).toMatchObject({ validity: { ok: true }, requests: 2, durationS: 0.0046, manifest: { toolchain: 'torch 2.9.1 · python 3.12.12 · numpy 2.3.5', specHash: labCaptureHash(s), threads: 4 } });
+    const [bad] = kindById.get('perf-lab-sampler/1')!.import(out(1), ctx);
+    expect(bad?.type === 'entities' && bad.run).toMatchObject({ validity: { ok: false, reasons: ['process exited with 1: RuntimeError: boom'] } });
+  });
+
+  it('imports a torch.profiler trace: requests, ranges and outermost operators, linked', () => {
+    const t = { traceEvents: [
+      { ph: 'X', cat: 'user_annotation', name: 'request#0', ts: 100, dur: 50, tid: 1 },
+      { ph: 'X', cat: 'user_annotation', name: 'compiled_forward', ts: 101, dur: 40, tid: 1 },
+      { ph: 'X', cat: 'cpu_op', name: 'aten::grid_sampler_2d', ts: 102, dur: 30, tid: 1, args: { 'Input Dims': [[1, 2]] } },
+      { ph: 'X', cat: 'cpu_op', name: 'aten::empty', ts: 103, dur: 1, tid: 1 },
+    ] };
+    const o = samplerEntities({ read: (n) => (n === 'trace.json' ? t : n === 'manifest.json' ? { mode: 'trace', arm: 'baseline' } : undefined), capture: 'c', rep: 1, exit: 0 });
+    expect(o.entities.map((e) => `${e.kind}:${e.id}`)).toEqual(['request:r1-000', 'span:r1-000-compiled_forward-0', 'kernel:r1-000-k0000']);
+    expect(o.entities[2]).toMatchObject({ role: 'encoder.sampling', dur: 0.03, lane: 'cpu:main' });
+    expect(o.links).toEqual([
+      { from: 'request:r1-000', to: 'span:r1-000-compiled_forward-0', rel: 'contains', evidence: 'direct', method: 'record_function nesting' },
+      { from: 'span:r1-000-compiled_forward-0', to: 'kernel:r1-000-k0000', rel: 'launches', evidence: 'direct', method: 'torch.profiler nesting' },
+    ]);
+  });
+
+  it('leaves kiln-kernels/1 timing as CUDA events, and has no cpu mode for it', () => {
+    expect(modeCollectors(kindById.get('kiln-kernels/1')!, 'timing')).toEqual(['cuda-events', 'gpu-sampler', 'ptxas']);
+    expect(modeCollectors(kindById.get('kiln-kernels/1')!, 'cpu')).toBeNull();
+    expect(modeCollectors(kindById.get('perf-lab-sampler/1')!, 'memory')).toEqual(['torch-memory', 'torch-profiler']);
   });
 });

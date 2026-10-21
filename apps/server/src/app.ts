@@ -88,7 +88,7 @@ export function createApp(ctx: AppContext): Hono {
 
   // ── devices (the evidence side) and the execution core: hosts, jobs, archives ───────────────────────────────────
   api.get('/devices', (c) => c.json({ devices: listDevices(db) }));
-  api.route('/', execRoutes({ db, bus, hosts, jobs, dataDir: config.dataDir }));
+  api.route('/', execRoutes({ db, bus, hosts, jobs, dataDir: config.dataDir, labWorkloads: config.labWorkloads }));
 
   // ── events ──────────────────────────────────────────────────────────────────────────────────────────────────
   api.get('/events', (c) =>

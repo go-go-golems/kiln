@@ -2,17 +2,17 @@
 // scripts/extract-fixtures.ts into test/fixtures/local-sampler-q2048.json. The expected numbers are what Perf Lab's
 // own code computed from the same runs (Phase 8a diary, Step 1 baseline); the port must reproduce them exactly.
 import { describe, expect, it } from 'vitest';
-import { build, createMemoryLabData, evaluateHypothesis, labEnv, readDerive, type BundleJSON, type LocalReport, type PairedRatioResult, type Value } from '../src/index.ts';
-import { readPreset } from '../src/node/index.ts';
+import { build, createMemoryLabData, evaluateHypothesis, labEnv, readDerive, type BundleJSON, type HostReport, type PairedRatioResult, type Value } from '../src/index.ts';
+import { PERF_LAB_SAMPLER } from './fixtures/perf-lab-sampler.ts';
 import fixture from './fixtures/local-sampler-q2048.json' with { type: 'json' };
 
 const state = { params: {}, signals: {} };
 const data = createMemoryLabData({
   catalog: fixture.catalog as never,
   bundles: fixture.bundles as unknown as Record<string, BundleJSON[]>,
-  localReport: fixture.localReport as LocalReport,
+  hostReports: { local: fixture.localReport as HostReport },
 });
-const { ir, registry } = build({ source: readPreset('local-sampler').source, labId: 'local-sampler', params: {}, env: labEnv(data) });
+const { ir, registry } = build({ source: PERF_LAB_SAMPLER, labId: 'local-sampler', params: {}, env: labEnv(data) });
 
 describe('the local sampler, measured', () => {
   it('finds its timing and memory captures under the hashes Perf Lab stored them by', () => {

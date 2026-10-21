@@ -71,7 +71,7 @@ export function planJob(input: PlanInput): ({ ok: true } & PlanOutput) | { ok: f
   if (!Array.isArray(reqs) || !reqs.length) return refuse(400, 'bad_request', 'captures must be a non-empty array');
   if (reqs.length > PLAN_LIMITS.captures) return refuse(400, 'limit_exceeded', `a job holds at most ${PLAN_LIMITS.captures} captures (got ${reqs.length})`, { got: reqs.length });
   const gpu = facts.gpus.find((g) => g.index === host.gpu) ?? facts.gpus[0];
-  const device = deviceKey(gpu);
+  const device = deviceKey(gpu, facts.host);
   const verdicts: CaptureVerdict[] = [];
   const execute: { c: Capture; envName: string }[] = [];
 
@@ -112,7 +112,7 @@ export function planJob(input: PlanInput): ({ ok: true } & PlanOutput) | { ok: f
       if (!m) return refuse(400, 'bad_request', `${at}.mode: ${kind.id} has no mode ${String(r.mode)} (${Object.keys(MODES).filter((x) => modeCollectors(kind, x)).join(', ')})`);
       collectors = offered(kind, m);
     }
-    const accepted = kind.accept(r.input, `${at}.input`);
+    const accepted = kind.accept(r.input, `${at}.input`, { asset: input.asset });
     if (!accepted.ok) return { ok: false, refusal: { status: accepted.status, error: accepted.error, message: accepted.message, extra: { capture: i, ...(accepted.extra ?? {}) } } };
     build(kind, collectors, modeOf(kind, collectors), r.pairId ?? input.job, accepted, r.rerun === true, i);
   }

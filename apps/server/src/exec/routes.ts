@@ -7,6 +7,7 @@ import type { Db } from '../db.ts';
 import type { EventBus } from '../events.ts';
 import { getArchive, listArchives, MAX_ARCHIVE_BYTES, readArchivePath, registerArchive } from '../lab/evidence.ts';
 import { archiveCopy, SHA256_HEX } from '../lab/files.ts';
+import { workloadsRevision } from './assets.ts';
 import type { Hosts } from './hosts.ts';
 import type { Jobs, Reply } from './jobs.ts';
 
@@ -16,14 +17,14 @@ const readJson = (c: Context): Promise<unknown> => c.req.json().catch(() => unde
 const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const BASE64 = /^[A-Za-z0-9+/]*={0,2}$/;
 
-export function execRoutes({ db, bus, hosts, jobs, dataDir }: { db: Db; bus: EventBus; hosts: Hosts; jobs: Jobs; dataDir: string }): Hono {
+export function execRoutes({ db, bus, hosts, jobs, dataDir, labWorkloads }: { db: Db; bus: EventBus; hosts: Hosts; jobs: Jobs; dataDir: string; labWorkloads: string }): Hono {
   const r = new Hono();
 
   // ── hosts ───────────────────────────────────────────────────────────────────────────────────────────────────────
   r.get('/hosts', async (c) => {
     // the queue state is cheap to refresh; capability documents are refreshed only by a probe
     await Promise.all(hosts.ids().map((id) => hosts.ping(id)));
-    return c.json({ hosts: hosts.list() });
+    return c.json({ hosts: hosts.list(), workloads: { perf_lab_local: workloadsRevision(labWorkloads) } });
   });
   r.get('/hosts/:id/capabilities', async (c) => {
     const id = c.req.param('id');

@@ -81,7 +81,8 @@ export function catalog(db: Db): Record<string, CatalogEntry> {
   for (const a of all<CaptureRow>(db, `select hash, kind, lab_id, lab_hash, experiment, arm, mode, host, reps, origin, source, imported_at from captures where status = 'available' order by imported_at, hash`)) {
     const key = a.lab_hash ?? a.hash;
     out[key] = {
-      origin: a.origin === 'executed' ? 'job' : 'measured', source: a.source, ref: `${a.experiment}/${a.arm}/${a.mode}`, host: a.host, reps: a.reps, labId: a.lab_id, importedAt: a.imported_at,
+      // every available capture has real runs: a job's (source job:<id>) or an import's; the lab tells measured from synthetic
+      origin: 'measured', source: a.source, ref: `${a.experiment}/${a.arm}/${a.mode}`, host: a.host, reps: a.reps, labId: a.lab_id, importedAt: a.imported_at,
       ...(key !== a.hash ? { capture: a.hash } : {}), kind: a.kind,
     };
   }

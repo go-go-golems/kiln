@@ -111,7 +111,7 @@ const VERDICT = {
   blocked: "the host cannot run it",
 };
 /** The planner's verdict on each capture the job asked for (and the companions it added). */
-function Verdicts({ verdicts }) {
+export function Verdicts({ verdicts }) {
   if (!verdicts?.length) return null;
   return (
     <div className="xscroll">
@@ -132,7 +132,7 @@ function Verdicts({ verdicts }) {
 }
 
 /** A kiln-plan/1's steps: what the driver runs, in order, and which capture repetitions each serves. */
-function PlanSteps({ plan }) {
+export function PlanSteps({ plan }) {
   if (!plan) return <p className="note">reading…</p>;
   const envs = Object.entries(plan.environments);
   return (
