@@ -103,9 +103,17 @@ export const PRESET_INFO: readonly PresetInfo[] = [
     id: 'local-sampler',
     name: 'Local · measured sampler',
     group: 'Measured',
-    description: 'Real runs on this machine through the lab server: eager grid_sample against TorchInductor, timing, trace, allocator and CPU evidence.',
+    description: 'Real runs on a Kiln host (the Mac or bling): eager grid_sample against TorchInductor, timing, trace, allocator and CPU evidence.',
     complexity: 3,
     file: 'local-sampler.lab.js',
+  },
+  {
+    id: 'sampler-hosts',
+    name: 'Two hosts · the sampler on the Mac and on bling',
+    group: 'Measured',
+    description: 'One experiment per host, run in parallel: the paired compiled ÷ eager ratio on each machine, every request, and what differs between them.',
+    complexity: 3,
+    file: 'sampler-hosts.lab.js',
   },
   {
     id: 'dino-pr1005',

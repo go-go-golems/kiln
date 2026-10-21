@@ -6,6 +6,7 @@
 //                              src/frame.gen.js (the Node tests need them)
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from "node:fs";
 import * as esbuild from "esbuild";
+import { PRESET_INFO } from "../../packages/lab/src/presets.ts";
 
 const here = (p) => new URL(p, import.meta.url);
 const read = (p) => readFileSync(here(p), "utf8");
@@ -27,24 +28,13 @@ const presets = files.map((f) => {
   return { ...parseHeader(text), text, notes };
 });
 writeFileSync(here("src/presets.gen.js"), "export const PRESETS = " + JSON.stringify(presets) + ";\n");
-// lab programs (guide §33): Perf Lab's presets as @kiln/lab ships them, with the picker's names from Perf Lab's index
-const LAB_META = {
-  hello: ["Hello, Perf Lab", "Basics", "The smallest program: one experiment, one derive, one board."],
-  parameters: ["Parameters", "Parameters", "Every parameter kind, and the three bindings: VIEW re-renders, DATA recomputes, PLAN becomes a pending plan."],
-  "request-to-kernel": ["Request to kernel", "Evidence", "A run picker, a timeline and a route from one request to its kernel, its source and its operation."],
-  compare: ["Compare runs", "Evidence", "Manifest diff, a paired estimate over processes, and a mirror of two traces."],
-  learn: ["Learn the math", "Learning", "Walkthroughs of bilinear sampling, the fused reduction, RMSNorm and tiling."],
-  matrices: ["Matrices and plans", "Plans", "matrix() and when() expand an ablation and an interference study."],
-  "scenario-a": ["Scenario A · sampled intermediate", "Scenarios", "Logical traffic, measured traffic and retained allocation for the DINO fusion."],
-  "scenario-b": ["Scenario B · layout churn", "Scenarios", "Embedding graph-cache captures and evictions under an open-loop offer."],
-  "scenario-c": ["Scenario C · incomplete evidence", "Scenarios", "A lost trace interval and missing symbols: what still holds."],
-  "local-sampler": ["Local · measured sampler", "Measured", "Real runs: eager grid_sample against TorchInductor, timing, trace, allocator and CPU evidence."],
-  "dino-pr1005": ["PR 1005 · Grounding DINO on the DGX", "Measured", "The PR's DGX qualification evidence: paired latency, memory pools, stages, kernels, detections."],
-};
+// lab programs (guide §33): Perf Lab's presets as @kiln/lab ships them, named, grouped and described by its registry;
+// a program file the registry does not list fails the build rather than reaching the picker unnamed
 const labDir = new URL("../../packages/lab/presets/", import.meta.url);
 const labs = readdirSync(labDir).filter((f) => f.endsWith(".lab.js")).sort().map((f) => {
-  const id = f.replace(/\.lab\.js$/, ""), [name, group, description] = LAB_META[id] ?? [id, "Other", ""];
-  return { id, name, group, description, source: readFileSync(new URL(f, labDir), "utf8") };
+  const info = PRESET_INFO.find((p) => p.file === f);
+  if (!info) throw new Error(`packages/lab/presets/${f} is not listed in packages/lab/src/presets.ts (PRESET_INFO)`);
+  return { id: info.id, name: info.name, group: info.group, description: info.description, source: readFileSync(new URL(f, labDir), "utf8") };
 });
 writeFileSync(here("src/labs.gen.js"), "export const LAB_PROGRAMS = " + JSON.stringify(labs) + ";\n");
 writeFileSync(here("src/docs.gen.js"), `export const REFERENCE = ${JSON.stringify(read("reference.txt"))};\nexport const GUIDELINES = ${JSON.stringify(read("agent-guidelines.txt"))};\n`);

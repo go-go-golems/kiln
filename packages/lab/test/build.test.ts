@@ -7,8 +7,8 @@ import { hash, stableStringify } from '../src/lang/util.ts';
 
 const PRESETS = readPresets();
 
-const seedAndBuild = (source: string, params: Record<string, unknown> = {}, local: HostReport | null = null) =>
-  buildSynthetic(source, { labId: 't', params, hosts: local ? { [local.host]: local } : {} });
+const seedAndBuild = (source: string, params: Record<string, unknown> = {}, local: HostReport | HostReport[] | null = null) =>
+  buildSynthetic(source, { labId: 't', params, hosts: Object.fromEntries([local ?? []].flat().map((h) => [h.host, h])) });
 
 const LOCAL_FIXTURE: HostReport = {
   host: 'mac',
@@ -22,19 +22,21 @@ const LOCAL_FIXTURE: HostReport = {
   counters: { unsupported: ['*'] },
   synthetic: false,
 };
+const BLING_FIXTURE: HostReport = { ...LOCAL_FIXTURE, host: 'bling', cpu: { name: 'Test ARM CPU', cores: 20, coreClasses: ['performance', 'efficiency'] }, threads: 20 };
+const HOST_FIXTURES = [LOCAL_FIXTURE, BLING_FIXTURE];
 
 describe('presets', () => {
   // a capture's spec reaches the server as JSON, and the server names the job's runs by the hash of what it received
   it('every capture\'s lowered spec survives JSON and hashes to the capture\'s hash', () => {
     for (const preset of PRESETS) {
-      const { ir } = seedAndBuild(preset.source, {}, LOCAL_FIXTURE);
+      const { ir } = seedAndBuild(preset.source, {}, HOST_FIXTURES);
       for (const c of ir.plan.captures) expect(hash(stableStringify(JSON.parse(JSON.stringify(c.lowered)))), `${preset.id} ${c.ref}`).toBe(c.hash);
     }
   });
 
   for (const preset of PRESETS) {
     it(`${preset.id} builds without errors`, () => {
-      const { ir } = seedAndBuild(preset.source, {}, LOCAL_FIXTURE);
+      const { ir } = seedAndBuild(preset.source, {}, HOST_FIXTURES);
       const errors = ir.lint.filter((l) => l.level === 'error');
       expect(errors, JSON.stringify(errors, null, 2)).toEqual([]);
       expect(ir.plan.execute).toBe(0);

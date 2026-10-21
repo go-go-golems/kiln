@@ -2,7 +2,7 @@
 // The experiment runs on a Kiln host (Host: the Mac or bling) as perf-lab-sampler/1 jobs in the perf-lab-cpu
 // environment: one Python process per repetition, PyTorch's eager grid_sample against the same function compiled by
 // TorchInductor. Nothing here exists until the plan runs; in the Lab view, Plan → Run (a few minutes).
-const WORKLOADS = src('HEAD:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/experiments/lab-workbench/workloads/perf_lab_local/sampler.py#unfused');
+const WORKLOADS = src('HEAD:lab-workbench/workloads/perf_lab_local/sampler.py#unfused');
 
 const L = lab('Local · deformable sampling, measured')
   .param('queries', select([1024, 2048, 4096, 12240]).label('Queries').default(2048))
