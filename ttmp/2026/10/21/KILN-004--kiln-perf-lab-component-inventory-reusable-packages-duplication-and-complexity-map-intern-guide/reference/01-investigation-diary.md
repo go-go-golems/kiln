@@ -156,3 +156,53 @@ notes and diary at milestones; the per-area notes become ticket documents instea
 ### Code review instructions
 
 - `git log --format='%h %s' 4dbf767..` lists the agents' commits; each touches two files under `reference/`.
+
+## Step 3: The inventory database, then a stop at the usage limit
+
+The user asked for every finding to go into a SQLite database as well, including the diaries, crosslinked to the
+other tables, so that a browsable site can be built over it, and pointed at `/tmp/schema.sql` (the PB-ARCH-001
+inventory schema). The database is derived and is never written directly. `scripts/schema.sql` is that schema as
+received. `scripts/schema-kiln.sql` adds `formats`, `diary_links` and `diary_entries.prompt_context`.
+`scripts/load_inventory.py` rebuilds `various/kiln-inventory.sqlite` from `various/inventory/<area>.json`. It also
+parses the six markdown diaries into `diary_entries`. It links each step to rows explicitly, through a
+`diary_step` tag on the row, and by mention, when a path or format name appears in the step's text. The contract is
+`playbook/01-inventory-database-contract-json-rows-diaries-and-crosslinks.md`, and all five agents were briefed on
+it. Then the session hit its usage limit, and the agents were stopped to stay within the grace allowance.
+
+### Prompt Context
+
+**User prompts (verbatim, 2026-10-21):**
+
+> in fact as you analyze, use  sqlite database to store all the facts and modules and functionalities and code and
+> all that you find, so that we can also make a browsable site out of it.
+> keep the diaries in the DB as well actually, crosslink them to other tables.
+>
+> Look at /tmp/schema.sql for schema, tell the agents about it.
+
+**Commits:** `4843e1f` (schema, loader, JSON), `31526ab`, `0c8d8dc` (playbook).
+
+### What I did
+
+- `python3 scripts/load_inventory.py` builds; the `--check` mode exits 0 with orchestrator rows and diary steps 1–2
+  (7 explicit and mention links).
+- At the stop, the agents had left the following:
+
+  | Agent | Committed | On disk, uncommitted at stop |
+  | ----- | --------- | ---------------------------- |
+  | A compiler-runtime | — | `reference/02-…` notes (872 lines), committed here as is |
+  | B workbench-ui | `48f2151` notes + diary step 1 | — |
+  | C server-exec-evidence | — | only scratch vitest JSON reports (in the session scratchpad, not kept) |
+  | D perf-lab | — | `reference/05-…` notes (814 lines), committed here as is |
+  | E history | — | scratch notes moved into `reference/06-…`; `mlperf-report.md` kept under `various/stopped-agent-scratch/` |
+
+- No agent had filled its inventory JSON yet. The JSON files A–E are still `{}`.
+
+### What should be done in the future
+
+- Resume (each remaining task is open in `tasks.md`):
+  1. Agent C's inventory from scratch, since it left no notes.
+  2. JSON rows for all five areas.
+  3. Diaries A, C, D and E.
+  4. The intern guide (G1, G2).
+  5. `docmgr doctor`, then the reMarkable upload (V1, D1).
+- The notes in `reference/02`, `05` and `06` are partial, unreviewed agent output.

@@ -1,0 +1,67 @@
+$ pnpm -r --workspace-concurrency=1 test
+Scope: 6 of 7 workspace projects
+$ vitest run
+
+ RUN  v5.0.5 /Volumes/SSD/code/kiln/packages/evidence
+
+
+ Test Files  9 passed (9)
+      Tests  133 passed (133)
+   Start at  10:28:41
+   Duration  437ms (tests 47%, import 24%, transform 22%, worker 6%)
+
+$ vitest run
+
+ RUN  v5.0.5 /Volumes/SSD/code/kiln/packages/exec
+
+
+ Test Files  1 passed (1)
+      Tests  21 passed (21)
+   Start at  10:28:42
+   Duration  151ms (transform 39%, tests 29%, import 28%, worker 3%)
+
+$ node ../../scripts/run-node-tests.mjs test
+ok   core.mjs               66 ms
+ok   evidence.mjs          443 ms
+ok   export.mjs            163 ms
+ok   hypotheses.mjs        390 ms
+ok   paired.mjs            293 ms
+ok   progs.mjs             348 ms
+ok   protocol.mjs          221 ms
+ok   stack1.mjs             99 ms
+ok   stack2.mjs            695 ms
+ok   stack3.mjs            314 ms
+ok   targets.mjs           116 ms
+ok   tune.mjs             1227 ms
+ok   u8.mjs                196 ms
+all 13 passed
+$ vitest run
+
+ RUN  v5.0.5 /Volumes/SSD/code/kiln/packages/lab
+
+
+ Test Files  8 passed (8)
+      Tests  100 passed (100)
+   Start at  10:28:47
+   Duration  2.21s (tests 75%, transform 12%, import 12%, worker 1%)
+
+$ vitest run
+
+ RUN  v5.0.5 /Volumes/SSD/code/kiln/apps/server
+
+
+ Test Files  9 passed (9)
+      Tests  79 passed (79)
+   Start at  10:28:49
+   Duration  31.95s (tests 97%, transform 2%, import 1%)
+
+$ node build.mjs --gen-only && node ../../scripts/run-node-tests.mjs test --skip ui.mjs --skip export-cuda.mjs --skip param-sweep.mjs --skip webgpu.mjs --skip paired-webgpu.mjs --skip server-e2e.mjs --skip agent-e2e.mjs --skip lab-e2e.mjs
+ok   gateway.mjs            68 ms
+ok   notes.mjs            3269 ms
+ok   presets.mjs          9001 ms
+ok   sandbox.mjs          1317 ms
+ok   server-sync.mjs       415 ms
+skipped: ui.mjs, export-cuda.mjs, param-sweep.mjs, webgpu.mjs, paired-webgpu.mjs, server-e2e.mjs, agent-e2e.mjs, lab-e2e.mjs
+all 5 passed
+pnpm test  48.59s user 10.53s system 107% cpu 55.229 total
+exit=0
