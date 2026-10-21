@@ -16,7 +16,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: 'Component inventory of apps/workbench (@kiln/workbench) and the repo scripts that serve it: build pipeline, the wb/labs singleton stores and dock, every view and the data it reads, server endpoints and runners, the agent sandbox, tests, duplication against lab-workbench/src and within the page, complexity hotspots, extraction candidates and dead code, with file:line evidence marked observed or inferred.'
-LastUpdated: 2026-10-21T12:00:00-04:00
+LastUpdated: 2026-10-21T16:00:00-04:00
 WhatFor: 'Evidence base for the intern guide sections on the workbench page and for deciding which workbench pieces (dock, channel store, agent sandbox, provenance marks, lab board renderer, design tokens, CDP harness) can be extracted or merged with Perf Lab.'
 WhenToUse: 'Before changing or splitting apps/workbench, before merging its lab board renderer with Perf Lab views, or when a guide claim about the workbench needs its file:line source.'
 ---

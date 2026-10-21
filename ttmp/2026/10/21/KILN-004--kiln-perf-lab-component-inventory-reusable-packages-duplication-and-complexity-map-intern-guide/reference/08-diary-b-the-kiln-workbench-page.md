@@ -16,7 +16,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: 'Investigation diary of inventory area B (apps/workbench and the repo scripts that serve it): how the inventory in reference/03 was gathered, which claims were re-verified, the duplication diffs, and the dead ends.'
-LastUpdated: 2026-10-21T12:00:00-04:00
+LastUpdated: 2026-10-21T16:00:00-04:00
 WhatFor: 'Tracing a claim in reference/03-inventory-notes-b-the-kiln-workbench-page.md back to the command or read that produced it, and resuming area B.'
 WhenToUse: 'When a workbench claim in the notes or the intern guide is doubted, or before extending the area B inventory.'
 ---
@@ -568,3 +568,76 @@ grep -nE "esc|inline|function" md.js doc.js
 
 - Duplication rows re-tagged `[1, 4]`: lab board panels, lab cell formatting, small UI helpers, dark theme token
   blocks, markdown rendering.
+
+## Step 5: Closing area B and handing back
+
+Area B is complete for this ticket: the notes (857 lines, 16 sections), this diary (five steps) and the inventory
+JSON (95 facts, 75 modules, 61 functionalities, 23 duplications, 8 hotspots, 14 service calls, 14 reusable components,
+5 formats, 7 dependencies, 2 docs, 2 diagrams) are committed, and the loader validates them. A scratch build of the
+database in the scratchpad (a copy of the ticket, never the orchestrator's `.sqlite`) confirmed that all four earlier
+steps parse into `diary_entries` and link to their rows.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (which links the original request in `01-investigation-diary.md`).
+
+**Assistant interpretation:** finish with a final commit and a summary for the orchestrator, including commit hashes.
+
+**Inferred user intent:** a closed, reviewable area that the intern guide and the browsable site can build on.
+
+**Commit (code):** none (inventory only).
+
+**Previous commit:** 87e06e9 — "KILN-004 B: workbench duplication confirmed by diff; diary step 4".
+
+### What I did
+
+- `python3 <ticket>/scripts/load_inventory.py --check` in place: exit 0, no `PROBLEM` line (`grep -c PROBLEM` → 0).
+- Built the database from a copy of the ticket in the scratchpad and queried it:
+  `select step, how, count(*) from diary_links where agent_area='workbench-ui' group by step, how` →
+  step 1: 399 explicit, 5 mentioned; step 2: 11 explicit, 40 mentioned; step 3: 19 explicit, 19 mentioned;
+  step 4: 15 explicit, 11 mentioned.
+- Updated `LastUpdated` in the frontmatter of both markdown files.
+
+### Why
+
+- The in-place `--check` validates; only a build shows whether the diary parses and crosslinks, and the real build is
+  the orchestrator's.
+
+### What worked
+
+- All four steps parsed with every section filled; crosslinks exist for every step.
+
+### What didn't work
+
+- Step 1 has only 5 mention links because it was written with short paths (`wb.js`, `Perf.jsx`) before the database
+  instruction arrived; its rows still link explicitly through their `diary_step` tags. Steps 2-4 use repo-relative
+  paths and get mention links.
+
+### What I learned
+
+- Explicit tags carry the crosslinks; mention links are a bonus that depends on writing paths exactly as the JSON does.
+
+### What was tricky to build
+
+- Validating while another area's file was broken (Step 3): the isolated copy of the ticket was the way to check this
+  file alone without touching anyone else's.
+
+### What warrants a second pair of eyes
+
+- Schema gaps, for the orchestrator: there is no table for page-side calls per endpoint (recorded as `service_calls`
+  per endpoint family) and none for localStorage keys (recorded as the format "kiln-wb localStorage state"); the
+  `claude.ai artifact host` call target has no `packages` row.
+
+### What should be done in the future
+
+- Reconcile the cross-area duplications with area D (board panels, agent runtime, design tokens, hypothesis
+  evaluation, the trace vocabulary) into single orchestrator rows.
+
+### Code review instructions
+
+- Start from §10 and §13 of the notes, then the JSON rows with `diary_step` 2-4 (the corrections and diff results).
+
+### Technical details
+
+- Commits of area B: 48f2151 (notes, Step 1), 0f960aa (re-verification, Step 2), 91da803 (JSON rows, Step 3),
+  87e06e9 (diffs, Step 4), and the commit that adds this step.
