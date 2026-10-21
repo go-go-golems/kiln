@@ -1,1 +1,2054 @@
-{}
+{
+ "packages": [
+  {
+   "name": "@kiln/server",
+   "path": "apps/server",
+   "kind": "app",
+   "language": "typescript",
+   "runtime": "node",
+   "port": "5280 (KILN_PORT; 5380 in this session)",
+   "entrypoint": "apps/server/src/index.ts",
+   "purpose": "Hono + node:sqlite server: records, devices, hosts, jobs, archives, SSE events, the Anthropic model gateway and the Perf Lab data routes; serves the built workbench page.",
+   "loc_prod": 3022,
+   "notes": "79 tests in 9 files; jobs.test.ts drives the real driver against fake docker/nvidia-smi.",
+   "diary_step": 1
+  },
+  {
+   "name": "@kiln/exec",
+   "path": "packages/exec",
+   "kind": "library",
+   "language": "typescript",
+   "runtime": "node + browser",
+   "entrypoint": "packages/exec/src/index.ts",
+   "purpose": "Browser-safe execution model: host profiles, facts, requirements, offers, the WorkloadKind/Collector plug-in contracts, two kinds, eleven collectors, the planner and capture identity.",
+   "loc_prod": 1964,
+   "notes": "Only dependency: @kiln/evidence. 21 tests.",
+   "diary_step": 1
+  },
+  {
+   "name": "@kiln/evidence",
+   "path": "packages/evidence",
+   "kind": "library",
+   "language": "typescript",
+   "runtime": "node + browser",
+   "entrypoint": "packages/evidence/src/index.ts",
+   "purpose": "Provenance-carrying values, statistics (bootstrap CI, paired ratio), repetition order, pure-JS sha256, canonical JSON, identities, the kiln-measure/1 record and hypothesis verdicts.",
+   "loc_prod": 1051,
+   "notes": "Zero runtime dependencies, no node: imports, 133 tests; consumed by four packages.",
+   "diary_step": 1
+  }
+ ],
+ "modules": [
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/index.ts",
+   "name": "server boot",
+   "kind": "config",
+   "loc": 38,
+   "purpose": "boot",
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/config.ts",
+   "name": "env → config",
+   "kind": "config",
+   "loc": 66,
+   "purpose": "env to config",
+   "key_exports": "loadConfig",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/security.ts",
+   "name": "request guard",
+   "kind": "service",
+   "loc": 48,
+   "purpose": "Host/Origin allow-list, X-Kiln-Token on non-GET, content-type guard",
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/app.ts",
+   "name": "Hono app",
+   "kind": "route",
+   "loc": 126,
+   "purpose": "/api routes, health, records, devices, SSE, page",
+   "key_exports": "createApp",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/db.ts",
+   "name": "kiln SQLite schema",
+   "kind": "schema",
+   "loc": 415,
+   "purpose": "three migrations; helpers migrate/tx/all/get/run copied from PL/db.ts:330-363",
+   "key_exports": "openDb",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/records.ts",
+   "name": "records store",
+   "kind": "store",
+   "loc": 89,
+   "purpose": "validate with @kiln/evidence validateRecord, insert-or-ignore by record id, upsert device",
+   "key_exports": "insertRecords; deleteRecords; recordIdsOfJob",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/devices.ts",
+   "name": "device list",
+   "kind": "store",
+   "loc": 23,
+   "purpose": "devices with record counts",
+   "key_exports": "listDevices",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/events.ts",
+   "name": "event bus",
+   "kind": "service",
+   "loc": 23,
+   "purpose": "synchronous on/emit/size; fed to SSE",
+   "key_exports": "EventBus",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/agent.ts",
+   "name": "model gateway",
+   "kind": "service",
+   "loc": 322,
+   "purpose": "Anthropic Messages proxy re-emitted as NDJSON; one llm_calls row per call; no tools, no transcripts",
+   "key_exports": "parseSample; estimatePromptTokens; withBreakpoint",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/exec/jobs.ts",
+   "name": "job state machine",
+   "kind": "job",
+   "loc": 495,
+   "purpose": "proposed→approved→running→importing→done/failed/cancelled (+ replan approved→proposed); driver follower; import",
+   "key_exports": "Jobs",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/exec/hosts.ts",
+   "name": "host registry",
+   "kind": "service",
+   "loc": 190,
+   "purpose": "kiln-hosts/1, capabilities cache (10 min), probe, driver self-update via PUT /v1/self",
+   "key_exports": "loadHosts; Hosts; HostView",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/exec/driver-client.ts",
+   "name": "kiln-driver/1 client",
+   "kind": "service",
+   "loc": 117,
+   "purpose": "typed client of the driver protocol",
+   "key_exports": "DriverClient; DriverError",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/exec/assets.ts",
+   "name": "staged workload revision",
+   "kind": "service",
+   "loc": 23,
+   "purpose": "revision of perf_lab_local sources, as probe.py computes it",
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/exec/routes.ts",
+   "name": "hosts/jobs/archives routes",
+   "kind": "route",
+   "loc": 102,
+   "purpose": "HTTP surface of the execution core",
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/exec/import.ts",
+   "name": "archive importer",
+   "kind": "service",
+   "loc": 131,
+   "purpose": "result.tar.gz → captures, runs, run_bundles, records",
+   "key_exports": "importArchive",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/exec/nsys-sqlite.ts",
+   "name": "nsys sqlite reader",
+   "kind": "service",
+   "loc": 47,
+   "purpose": "opens an nsys sqlite export with node:sqlite for the browser-safe nsys collector",
+   "key_exports": "NsysTables",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/lab/routes.ts",
+   "name": "Perf Lab data routes",
+   "kind": "route",
+   "loc": 76,
+   "purpose": "/api/lab/* with Perf Lab response shapes",
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/lab/store.ts",
+   "name": "lab catalog store",
+   "kind": "store",
+   "loc": 133,
+   "purpose": "CatalogEntry from captures, bundles, programs, annotations, gzip JSON pack",
+   "key_exports": "catalog; pack",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/lab/datasets.ts",
+   "name": "COCO datasets",
+   "kind": "store",
+   "loc": 206,
+   "purpose": "selection datasets, images, annotations",
+   "key_exports": "registerCocoDataset",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/lab/evidence.ts",
+   "name": "evidence archive registration",
+   "kind": "service",
+   "loc": 118,
+   "purpose": "gzip check, extract under lab/evidence/<sha>/, register COCO selections; 64 MiB cap",
+   "key_exports": "registerArchive; readArchivePath",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/lab/tar.ts",
+   "name": "safe tar.gz",
+   "kind": "service",
+   "loc": 98,
+   "purpose": "reader refusing links, absolute paths, .. and bad checksums; writer",
+   "key_exports": "readTarGz",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/lab/files.ts",
+   "name": "file helpers",
+   "kind": "service",
+   "loc": 37,
+   "purpose": "sha256 (node:crypto), atomic write",
+   "key_exports": "sha256; writeFileAtomic",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/lab/importer.ts",
+   "name": "Perf Lab store importer",
+   "kind": "script",
+   "loc": 326,
+   "purpose": "copies a Perf Lab SQLite store into Kiln; re-verifies cyrb53 capture hashes",
+   "key_exports": "importPerfLabStore",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "path": "apps/server/src/lab/import.ts",
+   "name": "lab:import CLI",
+   "kind": "script",
+   "loc": 34,
+   "purpose": "pnpm lab:import",
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/model.ts",
+   "name": "execution model types",
+   "kind": "schema",
+   "loc": 331,
+   "purpose": "HostProfile, Facts, ProbeRequest, capture identity, Capabilities, Plan, observations",
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/registry.ts",
+   "name": "kind/collector contracts",
+   "kind": "kind",
+   "loc": 136,
+   "purpose": "WorkloadKind and Collector plug-in interfaces",
+   "key_exports": "WorkloadKind; Collector; environmentBlock",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/hosts.ts",
+   "name": "kiln-hosts/1 parser",
+   "kind": "schema",
+   "loc": 99,
+   "purpose": "host profiles",
+   "key_exports": "parseHosts; HOSTS_FORMAT",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/requirements.ts",
+   "name": "requirement checks",
+   "kind": "service",
+   "loc": 85,
+   "purpose": "kind requirements vs kiln-facts/1",
+   "key_exports": "check; checkAll; probeRequest",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/offers.ts",
+   "name": "offers",
+   "kind": "service",
+   "loc": 61,
+   "purpose": "which environment runs which kind; kiln-capabilities/1",
+   "key_exports": "capabilities; offers",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/identity.ts",
+   "name": "capture identity",
+   "kind": "evidence",
+   "loc": 25,
+   "purpose": "sha256 of canonical kiln-capture/1",
+   "key_exports": "captureId; deviceKey",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/lab-hash.ts",
+   "name": "cyrb53 copy",
+   "kind": "evidence",
+   "loc": 43,
+   "purpose": "bit-identical copy of Perf Lab capture hash",
+   "key_exports": "cyrb53; labCaptureHash; stableStringify",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/plan.ts",
+   "name": "planner",
+   "kind": "service",
+   "loc": 199,
+   "purpose": "verdicts, grouping, ncu timing companion, interleaved repetitions, kiln-plan/1",
+   "key_exports": "planJob; PLAN_LIMITS",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/runs.ts",
+   "name": "step → runs",
+   "kind": "service",
+   "loc": 86,
+   "purpose": "observations to run bundles",
+   "key_exports": "stepRuns; captureRef",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/collectors/index.ts",
+   "name": "collector registry",
+   "kind": "collector",
+   "loc": 66,
+   "purpose": "11 collectors, 6 modes",
+   "key_exports": "COLLECTORS; MODES",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/collectors/ncu.ts",
+   "name": "Nsight Compute collector",
+   "kind": "collector",
+   "loc": 100,
+   "purpose": "ncu CSV",
+   "key_exports": "parseNcuCsv; NCU_METRICS",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/collectors/nsys.ts",
+   "name": "Nsight Systems collector",
+   "kind": "collector",
+   "loc": 99,
+   "purpose": "nsys tables → entities",
+   "key_exports": "nsysEntities; kilnIdentityOf",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/gpu-sampler.ts",
+   "name": "nvidia-smi sampler parser",
+   "kind": "collector",
+   "loc": 40,
+   "purpose": "nvidia-smi -lms 100 CSV",
+   "key_exports": "parseGpuCsv",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/kinds/kiln-kernels.ts",
+   "name": "kiln-kernels/1 kind",
+   "kind": "kind",
+   "loc": 244,
+   "purpose": "CUDA kernel timing: bundle, results, kiln-measure/1 records",
+   "key_exports": "kernelContentId; entrySymbol; kernelRecords",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/exec",
+   "path": "packages/exec/src/kinds/perf-lab-sampler.ts",
+   "name": "perf-lab-sampler/1 kind",
+   "kind": "kind",
+   "loc": 367,
+   "purpose": "Perf Lab sampler kind; half of it is a port of PL/importer.ts",
+   "key_exports": "samplerEntities",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/evidence",
+   "path": "packages/evidence/src/values.ts",
+   "name": "provenance values",
+   "kind": "evidence",
+   "loc": 174,
+   "purpose": "observed/derived/heuristic/illustrative/missing",
+   "key_exports": "observed; derived; seal",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/evidence",
+   "path": "packages/evidence/src/stats.ts",
+   "name": "statistics",
+   "kind": "statistics",
+   "loc": 142,
+   "purpose": "median, quantile, mulberry32, bootstrap CI",
+   "key_exports": "summarize; pairedRatio; separated",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/evidence",
+   "path": "packages/evidence/src/protocol.ts",
+   "name": "repetition protocol",
+   "kind": "statistics",
+   "loc": 60,
+   "purpose": "interleaved repetition order",
+   "key_exports": "repetitionOrder; checkSamples",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/evidence",
+   "path": "packages/evidence/src/sha256.ts",
+   "name": "pure-JS sha256",
+   "kind": "evidence",
+   "loc": 65,
+   "purpose": "",
+   "key_exports": "sha256Hex; isSha256Hex",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/evidence",
+   "path": "packages/evidence/src/canonical.ts",
+   "name": "canonical JSON",
+   "kind": "evidence",
+   "loc": 65,
+   "purpose": "",
+   "key_exports": "canonicalJSON",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/evidence",
+   "path": "packages/evidence/src/identity.ts",
+   "name": "content and device identity",
+   "kind": "evidence",
+   "loc": 107,
+   "purpose": "",
+   "key_exports": "contentId; deviceId; cudaDevice",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/evidence",
+   "path": "packages/evidence/src/record.ts",
+   "name": "kiln-measure/1 record",
+   "kind": "evidence",
+   "loc": 287,
+   "purpose": "record validation and identity",
+   "key_exports": "validateRecord; recordId; poolKey; isDecisive",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/evidence",
+   "path": "packages/evidence/src/verdict.ts",
+   "name": "hypothesis verdict",
+   "kind": "evidence",
+   "loc": 151,
+   "purpose": "supported/refuted/open/unqualified",
+   "key_exports": "verdict; below; above",
+   "diary_step": 1
+  }
+ ],
+ "functionalities": [
+  {
+   "name": "Kiln: propose, approve and run a GPU job",
+   "category": "jobs",
+   "surface": "api",
+   "user_facing": 1,
+   "description": "propose, approve and run a GPU job",
+   "diary_step": 1
+  },
+  {
+   "name": "Kiln: host registry, probe and capabilities",
+   "category": "hosts",
+   "surface": "api",
+   "user_facing": 1,
+   "description": "host registry, probe and capabilities",
+   "diary_step": 1
+  },
+  {
+   "name": "Kiln: import a job archive into captures, runs and records",
+   "category": "import",
+   "surface": "background",
+   "user_facing": 0,
+   "description": "import a job archive into captures, runs and records",
+   "diary_step": 1
+  },
+  {
+   "name": "Kiln: store and list measurement records",
+   "category": "evidence",
+   "surface": "api",
+   "user_facing": 1,
+   "description": "store and list measurement records",
+   "diary_step": 1
+  },
+  {
+   "name": "Kiln: server event stream",
+   "category": "jobs",
+   "surface": "api",
+   "user_facing": 0,
+   "description": "server event stream",
+   "diary_step": 1
+  },
+  {
+   "name": "Kiln: model gateway for the page agent",
+   "category": "agent",
+   "surface": "api",
+   "user_facing": 1,
+   "description": "model gateway for the page agent",
+   "diary_step": 1
+  },
+  {
+   "name": "Kiln: Perf Lab data routes (catalog, bundles, programs, datasets)",
+   "category": "datasets",
+   "surface": "api",
+   "user_facing": 1,
+   "description": "Perf Lab data routes (catalog, bundles, programs, datasets)",
+   "diary_step": 1
+  },
+  {
+   "name": "Kiln: register an outside evidence archive",
+   "category": "evidence",
+   "surface": "api",
+   "user_facing": 1,
+   "description": "register an outside evidence archive",
+   "diary_step": 1
+  },
+  {
+   "name": "Kiln: import a Perf Lab store",
+   "category": "import",
+   "surface": "cli",
+   "user_facing": 0,
+   "description": "import a Perf Lab store",
+   "diary_step": 1
+  },
+  {
+   "name": "Evidence: statistics and hypothesis verdicts",
+   "category": "statistics",
+   "surface": "library",
+   "user_facing": 0,
+   "description": "statistics and hypothesis verdicts",
+   "diary_step": 1
+  }
+ ],
+ "functionality_modules": [
+  {
+   "functionality": "Kiln: propose, approve and run a GPU job",
+   "module_path": "apps/server/src/exec/routes.ts",
+   "role": "api"
+  },
+  {
+   "functionality": "Kiln: propose, approve and run a GPU job",
+   "module_path": "apps/server/src/exec/jobs.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Kiln: propose, approve and run a GPU job",
+   "module_path": "packages/exec/src/plan.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Kiln: propose, approve and run a GPU job",
+   "module_path": "apps/server/src/exec/driver-client.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Kiln: propose, approve and run a GPU job",
+   "module_path": "runner/kiln_driver.py",
+   "role": "worker"
+  },
+  {
+   "functionality": "Kiln: host registry, probe and capabilities",
+   "module_path": "apps/server/src/exec/hosts.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Kiln: host registry, probe and capabilities",
+   "module_path": "packages/exec/src/requirements.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Kiln: host registry, probe and capabilities",
+   "module_path": "packages/exec/src/offers.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Kiln: host registry, probe and capabilities",
+   "module_path": "packages/exec/src/hosts.ts",
+   "role": "schema"
+  },
+  {
+   "functionality": "Kiln: import a job archive into captures, runs and records",
+   "module_path": "apps/server/src/exec/import.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Kiln: import a job archive into captures, runs and records",
+   "module_path": "packages/exec/src/kinds/kiln-kernels.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Kiln: import a job archive into captures, runs and records",
+   "module_path": "packages/exec/src/kinds/perf-lab-sampler.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Kiln: import a job archive into captures, runs and records",
+   "module_path": "apps/server/src/lab/tar.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Kiln: store and list measurement records",
+   "module_path": "apps/server/src/records.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Kiln: store and list measurement records",
+   "module_path": "packages/evidence/src/record.ts",
+   "role": "schema"
+  },
+  {
+   "functionality": "Kiln: server event stream",
+   "module_path": "apps/server/src/events.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Kiln: server event stream",
+   "module_path": "apps/server/src/app.ts",
+   "role": "api"
+  },
+  {
+   "functionality": "Kiln: model gateway for the page agent",
+   "module_path": "apps/server/src/agent.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Kiln: Perf Lab data routes (catalog, bundles, programs, datasets)",
+   "module_path": "apps/server/src/lab/routes.ts",
+   "role": "api"
+  },
+  {
+   "functionality": "Kiln: Perf Lab data routes (catalog, bundles, programs, datasets)",
+   "module_path": "apps/server/src/lab/store.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Kiln: Perf Lab data routes (catalog, bundles, programs, datasets)",
+   "module_path": "apps/server/src/lab/datasets.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Kiln: register an outside evidence archive",
+   "module_path": "apps/server/src/lab/evidence.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Kiln: register an outside evidence archive",
+   "module_path": "apps/server/src/lab/tar.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Kiln: import a Perf Lab store",
+   "module_path": "apps/server/src/lab/import.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Kiln: import a Perf Lab store",
+   "module_path": "apps/server/src/lab/importer.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Evidence: statistics and hypothesis verdicts",
+   "module_path": "packages/evidence/src/stats.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Evidence: statistics and hypothesis verdicts",
+   "module_path": "packages/evidence/src/verdict.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Evidence: statistics and hypothesis verdicts",
+   "module_path": "packages/evidence/src/protocol.ts",
+   "role": "shared"
+  }
+ ],
+ "endpoints": [
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/health",
+   "auth": "none",
+   "handler_path": "apps/server/src/app.ts:55",
+   "description": "status, version, migrations count, host count, features, SSE clients",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/records",
+   "auth": "none",
+   "handler_path": "apps/server/src/app.ts:68",
+   "description": "list records; filters device, identity, since (ISO), job",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "POST",
+   "path": "/api/records",
+   "auth": "token",
+   "handler_path": "apps/server/src/app.ts:73",
+   "description": "insert {records:[...]}, capped per request; emits records.added",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "DELETE",
+   "path": "/api/records?device=",
+   "auth": "token",
+   "handler_path": "apps/server/src/app.ts:81",
+   "description": "forget a device's records; emits device.updated",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/devices",
+   "auth": "none",
+   "handler_path": "apps/server/src/app.ts:90",
+   "description": "devices with record counts",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/hosts",
+   "auth": "none",
+   "handler_path": "apps/server/src/exec/routes.ts:24",
+   "description": "host views; pings drivers; adds the perf_lab_local revision",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/hosts/:id/capabilities",
+   "auth": "none",
+   "handler_path": "apps/server/src/exec/routes.ts:29",
+   "description": "cached or fresh kiln-capabilities/1",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "POST",
+   "path": "/api/hosts/:id/probe",
+   "auth": "token",
+   "handler_path": "apps/server/src/exec/routes.ts:38",
+   "description": "force a probe",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/jobs",
+   "auth": "none",
+   "handler_path": "apps/server/src/exec/routes.ts:49",
+   "description": "all jobs (summary views)",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/jobs/:id",
+   "auth": "none",
+   "handler_path": "apps/server/src/exec/routes.ts:50",
+   "description": "one job with its events and captures",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/jobs/:id/plan",
+   "auth": "none",
+   "handler_path": "apps/server/src/exec/routes.ts:54",
+   "description": "the stored kiln-plan/1",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "POST",
+   "path": "/api/jobs",
+   "auth": "token",
+   "handler_path": "apps/server/src/exec/routes.ts:58",
+   "description": "propose, propose and approve, or dry-run; header x-kiln-proposer",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "POST",
+   "path": "/api/jobs/:id/approve",
+   "auth": "token",
+   "handler_path": "apps/server/src/exec/routes.ts:63",
+   "description": "proposed → approved",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "POST",
+   "path": "/api/jobs/:id/cancel",
+   "auth": "token",
+   "handler_path": "apps/server/src/exec/routes.ts:64",
+   "description": "cancel, locally or through the driver",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "POST",
+   "path": "/api/jobs/:id/reimport",
+   "auth": "token",
+   "handler_path": "apps/server/src/exec/routes.ts:65",
+   "description": "re-run the importers on the stored archive",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/archives",
+   "auth": "none",
+   "handler_path": "apps/server/src/exec/routes.ts:68",
+   "description": "evidence and job archives",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/archives/:sha",
+   "auth": "none",
+   "handler_path": "apps/server/src/exec/routes.ts:69",
+   "description": "archive bytes, from archives/ or lab/evidence/",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "POST",
+   "path": "/api/archives",
+   "auth": "token",
+   "handler_path": "apps/server/src/exec/routes.ts:77",
+   "description": "register an outside archive: {data: base64} or {path: absolute}",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/events",
+   "auth": "none",
+   "handler_path": "apps/server/src/app.ts:94",
+   "description": "SSE: hello, bus events, ping every 15 s",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "POST",
+   "path": "/api/agent/sample",
+   "auth": "token",
+   "handler_path": "apps/server/src/agent.ts:251",
+   "description": "Anthropic Messages proxy, streamed back as NDJSON",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/agent/usage",
+   "auth": "none",
+   "handler_path": "apps/server/src/agent.ts:302",
+   "description": "llm_calls totals",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/lab/programs/:labId",
+   "auth": "none",
+   "handler_path": "apps/server/src/lab/routes.ts:26",
+   "description": "one lab program",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "PUT",
+   "path": "/api/lab/programs/:labId",
+   "auth": "token",
+   "handler_path": "apps/server/src/lab/routes.ts:30",
+   "description": "save a lab program",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "DELETE",
+   "path": "/api/lab/programs/:labId",
+   "auth": "token",
+   "handler_path": "apps/server/src/lab/routes.ts:36",
+   "description": "delete a lab program",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/lab/catalog",
+   "auth": "none",
+   "handler_path": "apps/server/src/lab/routes.ts:42",
+   "description": "captures as Perf Lab catalog entries",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/lab/bundles",
+   "auth": "none",
+   "handler_path": "apps/server/src/lab/routes.ts:43",
+   "description": "run bundles by capture key (at most 64 per request)",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/lab/annotations",
+   "auth": "none",
+   "handler_path": "apps/server/src/lab/routes.ts:51",
+   "description": "annotations of a lab",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "POST",
+   "path": "/api/lab/annotations",
+   "auth": "token",
+   "handler_path": "apps/server/src/lab/routes.ts:52",
+   "description": "add an annotation",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/lab/datasets",
+   "auth": "none",
+   "handler_path": "apps/server/src/lab/routes.ts:60",
+   "description": "datasets",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/lab/datasets/:id",
+   "auth": "none",
+   "handler_path": "apps/server/src/lab/routes.ts:61",
+   "description": "one dataset",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "POST",
+   "path": "/api/lab/datasets/:id/materialize",
+   "auth": "token",
+   "handler_path": "apps/server/src/lab/routes.ts:65",
+   "description": "**501**: not implemented in Kiln (Perf Lab fetches the images)",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/api/lab/media/:sha",
+   "auth": "none",
+   "handler_path": "apps/server/src/lab/routes.ts:68",
+   "description": "content-addressed media, immutable",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/",
+   "auth": "none",
+   "handler_path": "apps/server/src/app.ts:122-123",
+   "description": "the built workbench page",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/server",
+   "method": "GET",
+   "path": "/index.html",
+   "auth": "none",
+   "handler_path": "apps/server/src/app.ts:122-123",
+   "description": "the built workbench page",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "GET",
+   "path": "/v1/info",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "api, sha256 of the driver file, hostname, root, running, queued",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "POST",
+   "path": "/v1/probe",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "kiln-probe-request/1 → kiln-facts/1",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "HEAD",
+   "path": "/v1/blobs/:sha",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "200 stored / 404",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "GET",
+   "path": "/v1/blobs/:sha",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "the blob bytes; handled by the same blobs branch (handler_for, ~939), not in the header",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "PUT",
+   "path": "/v1/blobs/:sha",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "201; 400 when the bytes do not hash to the name",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "POST",
+   "path": "/v1/jobs",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "kiln-plan/1 → 202 {position}; 409 missing blobs; 400 refused mount",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "GET",
+   "path": "/v1/jobs",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "every job with its state (no server caller)",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "GET",
+   "path": "/v1/jobs/:id/events",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "the events after N; waits at most 60 s; at most 1000 events per reply",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "GET",
+   "path": "/v1/jobs/:id/plan",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "the stored plan (~977); not in the header",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "POST",
+   "path": "/v1/jobs/:id/cancel",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "202; kills the running container",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "GET",
+   "path": "/v1/jobs/:id/archive",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "result.tar.gz; 409 before the job ended",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "DELETE",
+   "path": "/v1/jobs/:id",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "deletes the job directory once the job ended",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "method": "PUT",
+   "path": "/v1/self",
+   "auth": "none",
+   "handler_path": "runner/kiln_driver.py handler_for (879)",
+   "description": "a new driver source: compile check, 202, then re-exec (reexec, 1008); 409 while busy",
+   "diary_step": 1
+  }
+ ],
+ "db_tables": [
+  {
+   "schema_name": "kiln",
+   "name": "schema_migrations",
+   "purpose": "applied migrations",
+   "owner_package": "@kiln/server",
+   "writers": "db.ts",
+   "readers": "db.ts",
+   "notes": "",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "records",
+   "purpose": "kiln-measure/1 records",
+   "owner_package": "@kiln/server",
+   "writers": "records.ts, exec/import.ts",
+   "readers": "app.ts, workbench",
+   "notes": "insert or ignore on id",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "devices",
+   "purpose": "devices",
+   "owner_package": "@kiln/server",
+   "writers": "records.ts, exec/import.ts:121",
+   "readers": "devices.ts",
+   "notes": "spec_json added in migration 3, never written",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "sources",
+   "purpose": "unused",
+   "owner_package": "@kiln/server",
+   "writers": "",
+   "readers": "",
+   "notes": "never read or written",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "llm_calls",
+   "purpose": "model gateway accounting",
+   "owner_package": "@kiln/server",
+   "writers": "agent.ts",
+   "readers": "agent.ts /agent/usage",
+   "notes": "reasoning_tokens always null",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "jobs",
+   "purpose": "jobs (migration 3)",
+   "owner_package": "@kiln/server",
+   "writers": "exec/jobs.ts",
+   "readers": "exec/jobs.ts, routes",
+   "notes": "status machine, plan and archive sha256",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "job_events",
+   "purpose": "per-job event log",
+   "owner_package": "@kiln/server",
+   "writers": "exec/jobs.ts",
+   "readers": "GET /jobs/:id",
+   "notes": "at most 400 step.output per job",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "job_captures",
+   "purpose": "planned captures with verdict",
+   "owner_package": "@kiln/server",
+   "writers": "exec/jobs.ts",
+   "readers": "GET /jobs/:id",
+   "notes": "execute/cached/blocked",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "captures",
+   "purpose": "capture identity and status",
+   "owner_package": "@kiln/server",
+   "writers": "exec/import.ts, lab/importer.ts",
+   "readers": "lab/store.ts catalog",
+   "notes": "seeded from lab_artifacts where origin=measured",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "runs",
+   "purpose": "runs per capture",
+   "owner_package": "@kiln/server",
+   "writers": "exec/import.ts",
+   "readers": "lab/store.ts",
+   "notes": "",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "run_bundles",
+   "purpose": "gzip JSON run bundles",
+   "owner_package": "@kiln/server",
+   "writers": "exec/import.ts",
+   "readers": "GET /lab/bundles",
+   "notes": "packed by lab/store.ts pack",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "archives",
+   "purpose": "evidence and job archives",
+   "owner_package": "@kiln/server",
+   "writers": "lab/evidence.ts, exec/jobs.ts",
+   "readers": "GET /archives",
+   "notes": "renamed from lab_evidence_archives",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "lab_programs",
+   "purpose": "saved lab programs",
+   "owner_package": "@kiln/server",
+   "writers": "lab/routes.ts",
+   "readers": "lab/routes.ts",
+   "notes": "",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "lab_annotations",
+   "purpose": "lab annotations",
+   "owner_package": "@kiln/server",
+   "writers": "lab/routes.ts",
+   "readers": "lab/routes.ts",
+   "notes": "",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "lab_datasets",
+   "purpose": "COCO datasets",
+   "owner_package": "@kiln/server",
+   "writers": "lab/datasets.ts",
+   "readers": "lab/routes.ts",
+   "notes": "",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "lab_dataset_images",
+   "purpose": "dataset images",
+   "owner_package": "@kiln/server",
+   "writers": "lab/datasets.ts",
+   "readers": "lab/routes.ts",
+   "notes": "",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "lab_dataset_annotations",
+   "purpose": "dataset annotations",
+   "owner_package": "@kiln/server",
+   "writers": "lab/datasets.ts",
+   "readers": "lab/routes.ts",
+   "notes": "",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "lab_media",
+   "purpose": "content-addressed media",
+   "owner_package": "@kiln/server",
+   "writers": "lab/datasets.ts",
+   "readers": "GET /lab/media/:sha",
+   "notes": "",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "lab_artifacts",
+   "purpose": "migration 2 artifacts",
+   "owner_package": "@kiln/server",
+   "writers": "lab/importer.ts",
+   "readers": "migration 3 seed",
+   "notes": "remaining readers unchecked",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "lab_runs",
+   "purpose": "migration 2 runs",
+   "owner_package": "@kiln/server",
+   "writers": "lab/importer.ts",
+   "readers": "migration 3 seed",
+   "notes": "remaining readers unchecked",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "kiln",
+   "name": "lab_run_bundles",
+   "purpose": "migration 2 run bundles",
+   "owner_package": "@kiln/server",
+   "writers": "lab/importer.ts",
+   "readers": "migration 3 seed",
+   "notes": "remaining readers unchecked",
+   "diary_step": 1
+  }
+ ],
+ "service_calls": [
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "http",
+   "description": "records, devices, hosts, jobs, archives, agent/sample, lab/*",
+   "evidence": "apps/workbench/src/server-client.js",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "sse",
+   "description": "/api/events bus events",
+   "evidence": "apps/workbench/src/server-client.js subscribe",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/server",
+   "to_package": "runner",
+   "protocol": "http",
+   "description": "kiln-driver/1: probe, blobs, jobs, events long-poll, archive, self-update",
+   "evidence": "apps/server/src/exec/driver-client.ts",
+   "diary_step": 1
+  },
+  {
+   "from_package": "runner",
+   "to_package": "runner/docker",
+   "protocol": "docker",
+   "description": "docker run --network none per step",
+   "evidence": "runner/kiln_driver.py:773-790",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/server",
+   "to_package": "@kiln/server",
+   "protocol": "sqlite",
+   "description": "node:sqlite kiln schema",
+   "evidence": "apps/server/src/db.ts",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/server",
+   "to_package": "Anthropic API",
+   "protocol": "llm-api",
+   "description": "Messages API stream proxied as NDJSON",
+   "evidence": "apps/server/src/agent.ts",
+   "diary_step": 1
+  }
+ ],
+ "reusable_components": [
+  {
+   "name": "@kiln/evidence",
+   "path": "packages/evidence",
+   "kind": "library",
+   "reuse_readiness": "ready",
+   "description": "Values with provenance, stats, canonical JSON, sha256, identity, kiln-measure/1 records, verdicts.",
+   "current_consumers": "@kiln/server; @kiln/exec; @kiln/kiln std (6 files); @kiln/lab (7 files)",
+   "external_deps": "none",
+   "internal_deps": "none",
+   "packaging_notes": "Publishable as is; 133 tests.",
+   "diary_step": 1
+  },
+  {
+   "name": "@kiln/exec",
+   "path": "packages/exec",
+   "kind": "library",
+   "reuse_readiness": "needs-extraction",
+   "description": "Execution model, planner, kinds and collectors.",
+   "current_consumers": "@kiln/server; @kiln/lab",
+   "external_deps": "none",
+   "internal_deps": "@kiln/evidence",
+   "packaging_notes": "Embeds two concrete kinds (one Perf Lab) and a cyrb53 copy; the WorkloadKind/Collector contract could stand alone.",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-driver",
+   "path": "runner/kiln_driver.py",
+   "kind": "tool",
+   "reuse_readiness": "ready",
+   "description": "Stdlib-only GPU host driver speaking kiln-driver/1.",
+   "current_consumers": "@kiln/server DriverClient",
+   "external_deps": "docker, nvidia-smi on the host",
+   "internal_deps": "none",
+   "packaging_notes": "Missing auth is a deployment constraint: loopback bind plus ssh -L tunnel.",
+   "diary_step": 1
+  },
+  {
+   "name": "DriverClient",
+   "path": "apps/server/src/exec/driver-client.ts",
+   "kind": "library",
+   "reuse_readiness": "needs-extraction",
+   "description": "Typed kiln-driver/1 client.",
+   "current_consumers": "exec/hosts.ts; exec/jobs.ts",
+   "external_deps": "none",
+   "internal_deps": "types only",
+   "packaging_notes": "Belongs beside the driver protocol, e.g. in @kiln/exec or a kiln-driver-client package.",
+   "diary_step": 1
+  },
+  {
+   "name": "EventBus + SSE",
+   "path": "apps/server/src/events.ts",
+   "kind": "pattern",
+   "reuse_readiness": "ready",
+   "description": "23-line synchronous bus fed to /api/events.",
+   "current_consumers": "app.ts; exec; lab",
+   "external_deps": "none",
+   "internal_deps": "none",
+   "packaging_notes": "Trivial; event names belong in a shared list.",
+   "diary_step": 1
+  },
+  {
+   "name": "job pipeline",
+   "path": "apps/server/src/exec/jobs.ts",
+   "kind": "service",
+   "reuse_readiness": "entangled",
+   "description": "Job state machine, driver follower and importer.",
+   "current_consumers": "exec/routes.ts",
+   "external_deps": "none",
+   "internal_deps": "lab/files.ts; lab/tar.ts; lab/store.ts pack; records; db; bus",
+   "packaging_notes": "Move files/tar/pack out of lab/ first.",
+   "diary_step": 1
+  },
+  {
+   "name": "model gateway",
+   "path": "apps/server/src/agent.ts",
+   "kind": "service",
+   "reuse_readiness": "needs-extraction",
+   "description": "Anthropic Messages proxy with token accounting.",
+   "current_consumers": "apps/workbench agent",
+   "external_deps": "Anthropic API",
+   "internal_deps": "config; db",
+   "packaging_notes": "Could front any client, including Perf Lab’s assistant.",
+   "diary_step": 1
+  }
+ ],
+ "duplications": [
+  {
+   "title": "Perf Lab server ported into apps/server and @kiln/exec",
+   "description": "lab-workbench/server is frozen since its import (92daa13); Kiln is canonical. difflib ratios: tar 0.73, events 0.73, importer→perf-lab-sampler 0.65, datasets 0.64, evidence 0.64, db 0.39, store 0.18; app, runner and assistant are separate designs (≤0.11).",
+   "locations": [
+    {
+     "path": "lab-workbench/server/tar.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "apps/server/src/lab/tar.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "lab-workbench/server/importer.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "packages/exec/src/kinds/perf-lab-sampler.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "lab-workbench/server/datasets.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "apps/server/src/lab/datasets.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "lab-workbench/server/evidence.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "apps/server/src/lab/evidence.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "lab-workbench/server/db.ts",
+     "lines": "330-363",
+     "note": ""
+    },
+    {
+     "path": "apps/server/src/db.ts",
+     "lines": "383-415",
+     "note": ""
+    }
+   ],
+   "severity": "medium",
+   "suggested_consolidation": "Retire lab-workbench/server once qualification evidence has a home in Kiln.",
+   "diary_step": 1
+  },
+  {
+   "title": "Perf Lab schema 5: three copies",
+   "description": "The importer test fixture builds a Perf Lab store from a hand copy of schema 5.",
+   "locations": [
+    {
+     "path": "apps/server/test/support/lab.ts",
+     "lines": "",
+     "note": "PL_SCHEMA_5"
+    },
+    {
+     "path": "lab-workbench/server/db.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "apps/server/src/db.ts",
+     "lines": "89-246",
+     "note": "migration 2"
+    }
+   ],
+   "severity": "low",
+   "suggested_consolidation": "Generate the fixture from lab-workbench/server/db.ts, or drop it with the importer.",
+   "diary_step": 1
+  },
+  {
+   "title": "cyrb53 + stableStringify: three bit-identical copies",
+   "description": "Must stay bit-identical or imported capture hashes stop verifying (importer.ts:222).",
+   "locations": [
+    {
+     "path": "packages/exec/src/lab-hash.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "packages/lab/src/lang/util.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "lab-workbench/src/lang/util.ts",
+     "lines": "",
+     "note": ""
+    }
+   ],
+   "severity": "high",
+   "suggested_consolidation": "One export from @kiln/evidence, with a golden-vector test.",
+   "diary_step": 1
+  },
+  {
+   "title": "SHA-256 helpers beside @kiln/evidence",
+   "description": "@kiln/evidence sha256Hex is pure JS; three server sites use node:crypto directly.",
+   "locations": [
+    {
+     "path": "packages/evidence/src/sha256.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "apps/server/src/lab/files.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "apps/server/src/exec/hosts.ts",
+     "lines": "",
+     "note": ""
+    },
+    {
+     "path": "apps/server/src/exec/assets.ts",
+     "lines": "",
+     "note": ""
+    }
+   ],
+   "severity": "low",
+   "suggested_consolidation": "Keep node:crypto for speed but behind one server helper.",
+   "diary_step": 1
+  },
+  {
+   "title": "Archive registration: two paths, two limits, two directories",
+   "description": "lab/evidence.ts registerArchive extracts and registers datasets (64 MiB cap); exec/jobs.ts:434 lists only (2 GiB read limit, 1 GiB plan limit). GET /archives/:sha searches both directories.",
+   "locations": [
+    {
+     "path": "apps/server/src/lab/evidence.ts",
+     "lines": "65",
+     "note": ""
+    },
+    {
+     "path": "apps/server/src/exec/jobs.ts",
+     "lines": "434",
+     "note": ""
+    },
+    {
+     "path": "apps/server/src/exec/routes.ts",
+     "lines": "72",
+     "note": ""
+    }
+   ],
+   "severity": "medium",
+   "suggested_consolidation": "One archive store with one limit and one directory.",
+   "diary_step": 1
+  },
+  {
+   "title": "HostView wire type re-declared",
+   "description": "No shared type package; the page reads hosts untyped.",
+   "locations": [
+    {
+     "path": "apps/server/src/exec/hosts.ts",
+     "lines": "",
+     "note": "HostView"
+    },
+    {
+     "path": "packages/lab/src/data/capabilities.ts",
+     "lines": "48",
+     "note": "HostViewLike"
+    },
+    {
+     "path": "apps/workbench/src/server-sync.js",
+     "lines": "94-142",
+     "note": "untyped"
+    }
+   ],
+   "severity": "medium",
+   "suggested_consolidation": "Export the wire types from @kiln/exec (or a kiln-api types package).",
+   "diary_step": 1
+  }
+ ],
+ "complexity_hotspots": [
+  {
+   "path": "apps/server/src/exec/jobs.ts",
+   "loc": 495,
+   "metric": "state machine",
+   "reason": "Seven states over eight methods, two schedulers, resumable long-poll, budget cancel ends as failed, a replan edge missing from its diagram; restart correctness needs driver_seq, submitted_at and plan files to agree.",
+   "suggestion": "Make the transition table explicit data and test every edge; decide what replan does.",
+   "diary_step": 1
+  },
+  {
+   "path": "apps/server/src/db.ts",
+   "loc": 415,
+   "metric": "schema history",
+   "reason": "Migration 3 rewrites migration 2 tables and seeds captures from lab_artifacts; stale comments; unused sources and devices.spec_json.",
+   "suggestion": "Drop dead columns/tables in migration 4; fix the comments.",
+   "diary_step": 1
+  },
+  {
+   "path": "packages/exec/src/plan.ts",
+   "loc": 199,
+   "metric": "contract surface",
+   "reason": "Kinds and collectors go wrong at the shape/disturbs/exclusive/companion contract; nvtx and stage-timers registered but unusable.",
+   "suggestion": "Contract tests per collector shape.",
+   "diary_step": 1
+  },
+  {
+   "path": "packages/exec/src/kinds/perf-lab-sampler.ts",
+   "loc": 367,
+   "metric": "LOC",
+   "reason": "Largest kind; half is a port of Perf Lab importer.",
+   "suggestion": "Move the importer port beside the kind contract.",
+   "diary_step": 1
+  },
+  {
+   "path": "apps/server/src/lab/importer.ts",
+   "loc": 326,
+   "metric": "two schemas",
+   "reason": "One-shot migration tool that must track two schemas.",
+   "suggestion": "Retire after the last Perf Lab store is imported.",
+   "diary_step": 1
+  },
+  {
+   "path": "apps/server/src/agent.ts",
+   "loc": 322,
+   "metric": "streaming",
+   "reason": "Streaming re-encoding and token accounting.",
+   "suggestion": "Extract as a model-gateway package.",
+   "diary_step": 1
+  }
+ ],
+ "facts": [
+  {
+   "subject": "@kiln/server",
+   "fact": "Every non-GET /api route requires X-Kiln-Token; Host and Origin are checked.",
+   "evidence_path": "apps/server/src/security.ts",
+   "evidence_lines": "",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "An agent-proposed job cannot be approved by the agent (403 agent_cannot_approve) and agent jobs share a 24-hour executor budget (429 agent_budget_exhausted).",
+   "evidence_path": "apps/server/src/exec/jobs.ts",
+   "evidence_lines": "158-210",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "The replan edge approved→proposed (jobs.ts:345-351) keeps the old plan file; re-approving re-submits the same plan, which replans again. Approval cannot be bypassed (approve only from proposed), but the edge is a dead end.",
+   "evidence_path": "apps/server/src/exec/jobs.ts",
+   "evidence_lines": "345-351",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "A budget-forced cancellation ends as failed, not cancelled.",
+   "evidence_path": "apps/server/src/exec/jobs.ts",
+   "evidence_lines": "393",
+   "category": "invariant",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "Job submission is serial per host; the driver additionally serialises steps under a GPU flock.",
+   "evidence_path": "apps/server/src/exec/jobs.ts",
+   "evidence_lines": "332",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "loadHosts refuses to start while the data directory still holds the retired executors.json.",
+   "evidence_path": "apps/server/src/exec/hosts.ts",
+   "evidence_lines": "15",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "DriverClient.jobs() has no caller: the server never reconciles driver-side jobs it lost.",
+   "evidence_path": "apps/server/src/exec/driver-client.ts",
+   "evidence_lines": "109",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "The execution core imports helpers of the Perf Lab port (lab/files.ts, lab/tar.ts, lab/store.ts pack).",
+   "evidence_path": "apps/server/src/exec/jobs.ts",
+   "evidence_lines": "",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "apps/server/README.md documents executors, KILN_EXECUTORS, pnpm dev/serve and 501 lab routes that do not exist; executors were deleted in 49f5156.",
+   "evidence_path": "apps/server/README.md",
+   "evidence_lines": "",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "The sources table is never read or written; devices.spec_json is never written.",
+   "evidence_path": "apps/server/src/db.ts",
+   "evidence_lines": "368",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "CatalogEntry.origin admits job but is always measured.",
+   "evidence_path": "apps/server/src/lab/store.ts",
+   "evidence_lines": "85",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "lab/import.ts help claims jobs are copied; the importer skips jobs, synthetic artifacts and transcripts.",
+   "evidence_path": "apps/server/src/lab/import.ts",
+   "evidence_lines": "",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "Kiln registers only COCO datasets from evidence archives; detection-qualification/v1 evidence is not recognised (PL/qualification.ts not ported).",
+   "evidence_path": "apps/server/src/lab/evidence.ts",
+   "evidence_lines": "65",
+   "category": "gotcha",
+   "confidence": "inferred",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "The model gateway stores no transcripts and runs no tools; Perf Lab’s pi-coding-agent assistant (difflib 0.07) was not ported.",
+   "evidence_path": "apps/server/src/agent.ts",
+   "evidence_lines": "251",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "jobs.test.ts runs the real kiln_driver.py against fake docker, nvidia-smi and nvcc binaries, so the driver protocol is tested end to end without a GPU.",
+   "evidence_path": "apps/server/test/support/bin",
+   "evidence_lines": "",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "Live snapshot 2026-10-21: 3 migrations, hosts mac (127.0.0.1:5381, CPU) and bling (127.0.0.1:5481, GB10), 20 jobs all done (16 bling, 4 mac), 21 archives, one device with 12 records.",
+   "evidence_path": "GET /api/health",
+   "evidence_lines": "",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/exec",
+   "fact": "packages/exec is browser-safe: no node: import anywhere in src.",
+   "evidence_path": "packages/exec/src/index.ts",
+   "evidence_lines": "",
+   "category": "invariant",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/exec",
+   "fact": "KINDS holds exactly kiln-kernels/1 and perf-lab-sampler/1; kiln-probe/1 and kiln-program/1 exist only in the design doc.",
+   "evidence_path": "packages/exec/src/kinds/index.ts",
+   "evidence_lines": "",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/exec",
+   "fact": "The nvtx and stage-timers collectors are registered but never usable: no registered kind cooperates.",
+   "evidence_path": "packages/exec/src/collectors/index.ts",
+   "evidence_lines": "",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/exec",
+   "fact": "ncu and nsys collectors are implemented although KILN-003 tasks.md lists P2 as open.",
+   "evidence_path": "packages/exec/src/collectors/ncu.ts",
+   "evidence_lines": "",
+   "category": "history",
+   "confidence": "inferred",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/exec",
+   "fact": "Capture identity is sha256 of canonical {format: kiln-capture/1, kind, content, collectors, protocol, device, environment}; cyrb53 survives only as lab_hash.",
+   "evidence_path": "packages/exec/src/identity.ts",
+   "evidence_lines": "6",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/exec",
+   "fact": "When ncu is requested the planner adds a timing companion step, because counters disturb timing.",
+   "evidence_path": "packages/exec/src/plan.ts",
+   "evidence_lines": "",
+   "category": "invariant",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/exec",
+   "fact": "kiln-bundle/1 still carries ncu: false, which kiln_runner.py no longer reads.",
+   "evidence_path": "packages/exec/src/kinds/kiln-kernels.ts",
+   "evidence_lines": "121",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/exec",
+   "fact": "Observation types 'program' and 'device-spec' and WorkloadKind.nvtxRange have no producer.",
+   "evidence_path": "packages/exec/src/model.ts",
+   "evidence_lines": "320-321",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/evidence",
+   "fact": "@kiln/evidence has zero runtime dependencies, no node: imports, and 133 tests in nine files.",
+   "evidence_path": "packages/evidence/src/index.ts",
+   "evidence_lines": "",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "runner",
+   "fact": "kiln_driver.py is unauthenticated plain HTTP by decision; it must bind the one address the server reaches (loopback + ssh tunnel in this deployment).",
+   "evidence_path": "runner/kiln_driver.py",
+   "evidence_lines": "1-30",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "runner",
+   "fact": "Each step runs as docker run --rm --init --network <profile, default none> --user uid:gid with the bundle mounted read-only; the GPU lock is fcntl.flock on /run/lock/kiln-gpu-<uuid>.lock.",
+   "evidence_path": "runner/kiln_driver.py",
+   "evidence_lines": "670-790",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "runner",
+   "fact": "The archive’s events.ndjson is packed before the final result event, so it lacks it.",
+   "evidence_path": "runner/kiln_driver.py",
+   "evidence_lines": "",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "runner",
+   "fact": "PUT /v1/self replaces the driver source after a compile check and re-execs; the server pushes it when the remote sha256 differs and the driver is idle.",
+   "evidence_path": "runner/kiln_driver.py",
+   "evidence_lines": "1008",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  }
+ ],
+ "formats": [
+  {
+   "name": "kiln-hosts/1",
+   "kind": "file",
+   "producers": "operator",
+   "consumers": "apps/server (loadHosts)",
+   "definition_path": "packages/exec/src/hosts.ts",
+   "definition_lines": "5",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-capabilities/1",
+   "kind": "wire",
+   "producers": "server",
+   "consumers": "page (GET /hosts/:id/capabilities)",
+   "definition_path": "model.ts",
+   "definition_lines": "139-141",
+   "diary_step": 1
+  },
+  {
+   "name": "result.tar.gz",
+   "kind": "archive",
+   "producers": "driver",
+   "consumers": "server archives/<sha>.tar.gz",
+   "definition_path": "kiln_driver.py header",
+   "definition_lines": "",
+   "diary_step": 1
+  }
+ ],
+ "diagrams": [
+  {
+   "title": "Kiln job state machine",
+   "format": "mermaid",
+   "related": "apps/server/src/exec/jobs.ts",
+   "diary_step": 1,
+   "source": "stateDiagram-v2\n  [*] --> proposed\n  proposed --> approved: approve\n  approved --> proposed: replan (image mismatch)\n  approved --> running: driver.started\n  running --> importing: result\n  importing --> done\n  importing --> failed: importer refused\n  running --> failed: driver failed / budget\n  proposed --> cancelled: cancel\n  approved --> cancelled: cancel\n  running --> cancelled: cancel\n"
+  },
+  {
+   "title": "Kiln job end to end",
+   "format": "mermaid",
+   "related": "apps/server; packages/exec; runner",
+   "diary_step": 1,
+   "source": "sequenceDiagram\n  participant P as page / lab UI\n  participant S as apps/server Jobs\n  participant X as @kiln/exec\n  participant D as kiln_driver.py\n  P->>S: POST /api/jobs\n  S->>D: POST /v1/probe (TTL 10 min)\n  D-->>S: kiln-facts/1\n  S->>X: planJob\n  X-->>S: kiln-plan/1\n  P->>S: POST /api/jobs/:id/approve\n  S->>D: HEAD/PUT /v1/blobs/:sha\n  S->>D: POST /v1/jobs\n  loop long-poll\n    S->>D: GET events?after=seq\n  end\n  D-->>S: result {sha256}\n  S->>D: GET archive\n  S->>S: importArchive → captures, runs, records\n  S->>D: DELETE /v1/jobs/:id\n"
+  }
+ ]
+}

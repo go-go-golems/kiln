@@ -1732,35 +1732,6 @@
    "diary_step": 1
   },
   {
-   "title": "lab language compiler: lab-workbench/src/lang vs packages/lab/src/lang",
-   "description": "KILN-001 Phase 8a ported Perf Lab's language into @kiln/lab: three files rewritten on @kiln/evidence, 'everything else was edited in place', differing 'only mechanically'; check:pl proves equivalence against Perf Lab's own code.",
-   "locations": [
-    {
-     "path": "lab-workbench/src/lang",
-     "lines": "",
-     "note": "Perf Lab original (build.ts 1,030 lines)"
-    },
-    {
-     "path": "packages/lab/src/lang",
-     "lines": "",
-     "note": "port"
-    },
-    {
-     "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/09-phase8a-lab-language-diary.md",
-     "lines": "169-173, 302-304",
-     "note": "port admitted"
-    },
-    {
-     "path": "packages/lab/scripts/check-pl.ts",
-     "lines": "",
-     "note": "fidelity check"
-    }
-   ],
-   "severity": "high",
-   "suggested_consolidation": "Retire lab-workbench/src/lang once nothing builds from it; keep check:pl only while both exist.",
-   "diary_step": 2
-  },
-  {
    "title": "lab capture hash cyrb53: lab-workbench, packages/lab and packages/exec",
    "description": "Perf Lab's cyrb53 capture hash has bodies in three lab-related places (plus Kiln's own cyrb53 hash in packages/kiln/src/core/util.js for unrelated keys); KILN-001 D3 and KILN-003 §12.2 both planned to retire it, 8276bf7 moved it into @kiln/exec instead; a normal-form mismatch between copies caused 877c273.",
    "locations": [
@@ -2093,17 +2064,6 @@
    "definition_lines": "1-43",
    "notes": "Perf Lab's capture identity, kept through three tickets that planned to retire it; normal-form bug fixed in 877c273.",
    "diary_step": 2
-  },
-  {
-   "name": "detection-qualification/v1",
-   "kind": "archive",
-   "producers": "hand-run DINO qualification on dgx; lab-workbench workloads/perf_lab_dino",
-   "consumers": "lab-workbench/server/qualification.ts; apps/server lab importer",
-   "fields": "report layout prescribed by Playback services/detection/GPU.md; mode → report mapping in the ML-PERF-002 guide",
-   "definition_path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/design/01-intern-guide-studying-grounding-dino-acceleration-in-the-perf-lab.md",
-   "definition_lines": "527-538",
-   "notes": "ML-PERF-002's archive format, used both for the imported PR 1005 dgx archive and for local runs.",
-   "diary_step": 1
   },
   {
    "name": "ML-PERF-003 host profile (.data/hosts.json)",

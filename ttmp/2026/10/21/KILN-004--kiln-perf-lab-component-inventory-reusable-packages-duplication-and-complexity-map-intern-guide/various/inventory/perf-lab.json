@@ -2396,7 +2396,7 @@
  "duplications": [
   {
    "title": "lab language compiler: lab-workbench/src/lang vs packages/lab/src/lang",
-   "description": "Two copies of the lab.js language. Of 16 language files, 9 differ only mechanically (strict tsconfig: .ts imports, | undefined, !, constructor fields), 3 by one-line semantic edits (build lowered normal form, runtime sealed rows, library below/above), 4 are rewritten on @kiln/evidence (rows, values, stats, util). Raw/normalised diff counts in notes section 9.5.",
+   "description": "Two copies of the lab.js language. Of 16 language files, 9 differ only mechanically (strict tsconfig: .ts imports, | undefined, !, constructor fields), 3 by one-line semantic edits (build lowered normal form, runtime sealed rows, library below/above), 4 are rewritten on @kiln/evidence (rows, values, stats, util). Raw/normalised diff counts in notes section 9.5. History (area E): KILN-001 Phase 8a ported Perf Lab's language into @kiln/lab: three files rewritten on @kiln/evidence, 'everything else was edited in place', differing 'only mechanically'; check:pl proves equivalence against Perf Lab's own code.",
    "locations": [
     {
      "path": "lab-workbench/src/lang",
@@ -2412,6 +2412,16 @@
      "path": "packages/lab/src/lang/build.ts",
      "lines": "866-868",
      "note": "lowered normal form, the only semantic edit in build"
+    },
+    {
+     "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/09-phase8a-lab-language-diary.md",
+     "lines": "169-173, 302-304",
+     "note": "port admitted"
+    },
+    {
+     "path": "packages/lab/scripts/check-pl.ts",
+     "lines": "",
+     "note": "fidelity check"
     }
    ],
    "severity": "high",
@@ -3083,7 +3093,8 @@
    "diary_steps": [
     1,
     3
-   ]
+   ],
+   "notes": "History (area E): ML-PERF-002's archive format, used both for the imported PR 1005 dgx archive and for local runs. Layout prescribed by report layout prescribed by Playback services/detection/GPU.md; mode → report mapping in the ML-PERF-002 guide; defined in playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/design/01-intern-guide-studying-grounding-dino-acceleration-in-the-perf-lab.md:527-538."
   },
   {
    "name": "lab.js program",

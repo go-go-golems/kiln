@@ -56,5 +56,67 @@
    "purpose": "math rendering",
    "diary_step": 1
   }
+ ],
+ "reusable_components": [
+  {
+   "name": "kiln compiler core",
+   "path": "packages/kiln/src/core",
+   "kind": "library",
+   "description": "IR, Graph, rewrite rules, forks/decide policies, Pass and Pipeline.",
+   "current_consumers": "@kiln/kiln std; @kiln/workbench",
+   "external_deps": "acorn",
+   "internal_deps": "std/index.js (core/script.js:4 leak)",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "Global SCOPES/METHODS/DIALECTS/GID/RID in the Run class; cut the core→std import first.",
+   "diary_step": 3
+  },
+  {
+   "name": "kiln_launch.py",
+   "path": "runtime/python/kiln_launch.py",
+   "kind": "library",
+   "description": "Standalone wgpu or CUDA (ctypes NVRTC) launcher for kiln-program/1.",
+   "current_consumers": "Playback (vendored); runtime tests",
+   "external_deps": "wgpu or libcuda/libnvrtc",
+   "internal_deps": "none",
+   "reuse_readiness": "ready",
+   "packaging_notes": "Already vendored into Playback with a hash test; publish as a wheel.",
+   "diary_step": 3
+  },
+  {
+   "name": "kernel emitters",
+   "path": "packages/kiln/src/std/emit.js",
+   "kind": "library",
+   "description": "CUDA, WGSL and a SIMT simulator built with new Function.",
+   "current_consumers": "@kiln/kiln pipeline",
+   "external_deps": "none",
+   "internal_deps": "kernel IR types",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "Emitters depend on the kernel IR only; the CUDA entry-symbol logic has six copies to fold in.",
+   "diary_step": 3
+  },
+  {
+   "name": "device specs",
+   "path": "packages/kiln/src/std/targets.js",
+   "kind": "schema",
+   "description": "SPECS for rtx5090, rtx4090, h100, a100, gb10, orin used by the cost model.",
+   "current_consumers": "tile.js timeModel; workbench devices view",
+   "external_deps": "none",
+   "internal_deps": "none",
+   "reuse_readiness": "ready",
+   "packaging_notes": "Pure data; could be shared with @kiln/exec facts.",
+   "diary_step": 3
+  },
+  {
+   "name": "kiln_runner.py",
+   "path": "runner/kiln_runner.py",
+   "kind": "tool",
+   "description": "In-container kernel runner: kiln-bundle/1 → kiln-results/1.",
+   "current_consumers": "kiln-kernels/1 kind via the driver",
+   "external_deps": "nvcc/NVRTC in the kiln-perf image",
+   "internal_deps": "none",
+   "reuse_readiness": "domain-specific",
+   "packaging_notes": "README still documents a removed serve mode.",
+   "diary_step": 3
+  }
  ]
 }
