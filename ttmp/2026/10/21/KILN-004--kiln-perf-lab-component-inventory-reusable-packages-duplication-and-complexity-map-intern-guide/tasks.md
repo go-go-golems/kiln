@@ -10,4 +10,4 @@
 - [x] G1: Write the intern guide: orientation, component map, APIs, duplication matrix, complexity hotspots, separation plan <!-- t:919k -->
 - [x] G2: Diagrams (mermaid + SVG) for architecture, data flow, package graph and target layout <!-- t:yt3z -->
 - [x] V1: Relate key files, update changelog, docmgr doctor clean <!-- t:d5mu -->
-- [ ] D1: Upload guide + diary bundle to reMarkable under /ai/2026/10/21/KILN-004 <!-- t:rw51 -->
+- [x] D1: Upload guide + diary bundle to reMarkable under /ai/2026/10/21/KILN-004 <!-- t:rw51 -->

@@ -11,3 +11,7 @@ Area C rows generated from notes C; E/D collisions reconciled; intern guide writ
 ### Related Files
 
 - /Volumes/SSD/code/kiln/ttmp/2026/10/21/KILN-004--kiln-perf-lab-component-inventory-reusable-packages-duplication-and-complexity-map-intern-guide/design-doc/01-intern-guide-the-kiln-perf-lab-system-its-components-and-how-to-separate-them-again.md — guide
+
+## 2026-10-21
+
+Uploaded guide + orchestrator diary to reMarkable: /ai/2026/10/21/KILN-004/KILN-004 Kiln Perf Lab component inventory.pdf
