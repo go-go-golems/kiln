@@ -148,9 +148,6 @@ def parse_diary(path):
                 key = "technical_details"
                 content = f"#### {name}\n{content}"
             entry[key] = (entry.get(key, "") + "\n" + content).strip()
-        cm = re.search(r"\*\*Commit[^*]*\*\*:?\s*`?([0-9a-f]{7,40})`?", block)
-        if cm:
-            entry["commit_hash"] = cm.group(1)
         steps.append(entry)
     return steps
 
@@ -233,9 +230,10 @@ def build(db, problems):
         for entry in parse_diary(path):
             origin = origins.get(entry["step"], (None, None))
             row = {k: v for k, v in entry.items() if k != "raw"}
+            # A step's commit is the one that added its heading. "**Commit**" lines in the text name other
+            # commits (the previous checkpoint, a code commit) and stay in the text, where they are linked by mention.
             row.update(agent_area=area, source_area=area, diary_path=str(path.relative_to(TICKET)),
-                       created_at=origin[1])
-            row.setdefault("commit_hash", origin[0])
+                       created_at=origin[1], commit_hash=origin[0])
             insert("diary_entries", row, area, f"{name} step {entry['step']}")
             text = entry["raw"]
             for table, col in MENTION_KEYS.items():

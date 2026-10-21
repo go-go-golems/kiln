@@ -98,8 +98,10 @@ the diary exactly as in the JSON (repo-relative) and the links come for free.
   `### What should be done in the future`, `### Code review instructions`, `### Technical details`. Any other
   level-3 section is appended to `technical_details` under its own heading.
 - The prose between the step heading and its first `###` becomes `summary`.
-- A `**Commit…**: <hash>` line inside the step sets `commit_hash`. Without one, the loader uses the commit that first
-  added the step heading. `created_at` is that commit's author date.
+- `commit_hash` is the commit that first added the step heading, and `created_at` is that commit's author date.
+  `**Commit…**` lines in a step name other commits (the previous checkpoint, a code commit). They stay in the text and
+  are not parsed. Until 2026-10-21 the loader read the first such line as the step's own commit, which recorded the
+  previous checkpoint for diaries following the "record the previous hash" convention.
 
 ## Natural keys
 
