@@ -1,6 +1,6 @@
 // The served workbench end to end, without a GPU and without SSH (guide §30, Phase 5b): the development server
-// (apps/server/test/support/serve-dev.ts: one fake CUDA executor, "Fake GPU (development)", whose outputs are the
-// job's reference values), headless Chrome on the page it serves, W-05 measured on the server device as a job, the
+// (apps/server/test/support/serve-dev.ts: one host, dev-fake, whose local driver runs the fake runner on
+// "Fake GPU (development)", whose outputs are the job's reference values), headless Chrome on the page it serves, W-05 measured on the host device as a job, the
 // job's records in the store and the Evidence view, and the next compile deciding by evidence. An agent-proposed job
 // is approved and another cancelled through the Jobs view's buttons. A second, fresh page then loads the records from
 // the server and decides by evidence without measuring.
@@ -37,7 +37,7 @@ for (const t0 = Date.now(); !/DEVELOPMENT server on/.test(log); await sleep(50))
 const url = `http://127.0.0.1:${port}/`;
 console.log(log.trim());
 
-const READY = `(() => { const wb = window.__kiln?.wb; return wb?.ready && wb.serverInfo.state === "connected" && wb.devices.some((d) => d.id === "server:dev-fake" && d.status === "ready"); })()`;
+const READY = `(() => { const wb = window.__kiln?.wb; return wb?.ready && wb.serverInfo.state === "connected" && wb.devices.some((d) => d.id === "host:dev-fake" && d.status === "ready"); })()`;
 // select and maximise a view's tile (on a phone, the strip shows one view anyway)
 const show = (view, extra = "") => `(async () => { const wb = window.__kiln.wb; ${extra}; wb.showView(${JSON.stringify(view)}); if (!wb.narrow) { let t = null; const walk = (n) => { if (n.t === "tile" && n.views.includes(${JSON.stringify(view)})) t = n; (n.kids || []).forEach(walk); }; walk(wb.layout); if (t && wb.maxTile !== t.id) { wb.maxTile = null; wb.toggleMax(t.id); } } return true; })()`;
 const clickButton = (label, scope) => `(() => { const b = [...document.querySelectorAll(${JSON.stringify(scope)} + " button")].find((x) => x.textContent.trim() === ${JSON.stringify(label)}); if (!b) return false; b.click(); return true; })()`;
@@ -49,18 +49,20 @@ try {
     const before = await p.eval(`(async () => {
       const wb = window.__kiln.wb;
       await wb.load("W-05");
-      await wb.setDevice("server:dev-fake");
+      await wb.setDevice("host:dev-fake");
       const d = wb.device;
-      return { device: { id: d.id, label: d.label, evidenceId: d.evidenceId, status: d.status, target: d.target.name + " sm_" + d.target.sm + " " + d.target.sms + " SMs" }, runnerOffered: wb.devices.some((x) => x.kind === "cuda" && !x.server), decisions: wb.run.decisions.map((x) => ({ rule: x.rule, by: x.by, note: x.note ?? null })), kernels: wb.prog.kernels.map((k) => k.name + " " + k.row), records: wb.store.list({ device: d.evidenceId }).length };
+      return { device: { id: d.id, label: d.label, evidenceId: d.evidenceId, status: d.status, target: d.target.name + " sm_" + d.target.sm + " " + d.target.sms + " SMs" }, pageCuda: wb.devices.some((x) => x.kind === "cuda" && !x.server), decisions: wb.run.decisions.map((x) => ({ rule: x.rule, by: x.by, note: x.note ?? null })), kernels: wb.prog.kernels.map((k) => k.name + " " + k.row), records: wb.store.list({ device: d.evidenceId }).length };
     })()`);
     const statuses = [];
     await p.eval(`(window.__seen = [], window.__kiln.wb.on("jobs", () => { const j = window.__kiln.wb.jobs[0]; if (j && window.__seen.at(-1) !== j.status) window.__seen.push(j.status); }), window.__kiln.wb.measure().then(() => true))`);
-    await p.until(`(() => { const wb = window.__kiln.wb, j = wb.jobs[0]; return j?.status === "done" && j.records.length && j.records.every((id) => wb.store.records.has(id)) && wb.run.decisions.some((d) => d.by === "evidence"); })()`, 120000);
+    await p.until(`(() => { const wb = window.__kiln.wb, j = wb.jobs[0]; return j?.status === "done" && j.records.length && j.records.every((id) => wb.store.records.has(id)) && wb.run.decisions.some((d) => d.by === "evidence"); })()`, 120000).catch(async (e) => {
+      console.error(await p.eval(`(() => { const wb = window.__kiln.wb, j = wb.jobs[0]; return JSON.stringify({ job: j && { status: j.status, error: j.error, records: j.records, events: (j.events || []).map((e) => e.kind + ": " + e.detail) }, decisions: wb.run.decisions.map((d) => d.by), dev: { id: wb.device.id, ev: wb.evidenceId, label: wb.device.label }, recDev: j && j.records.map((id) => { const r = wb.store.records.get(id); return [r?.device?.id, wb.store.status(r), r?.content?.id ?? r?.kernel?.contentId]; }), kern: wb.prog.kernels.map((k) => [k.name, k.row, k.contentId]), target: [wb.device.target.name, wb.device.target.sms, wb.device.target.smemPerBlock], fp: wb.device.fingerprint, devs: wb.devices.filter((d) => d.server).map((d) => d.id + "=" + d.evidenceId), log: wb.events.slice(-12).map((x) => x.text) }, null, 1); })()`));
+      throw e;
+    });
     const after = await p.eval(`(() => {
       const wb = window.__kiln.wb, j = wb.jobs[0], recs = j.records.map((id) => wb.store.records.get(id)), m = wb.measures[wb.deviceId];
-      return { seen: window.__seen, job: { id: j.id, status: j.status, proposedBy: j.proposedBy, executor: j.executor, executorSeconds: j.executorSeconds, events: (j.events || []).map((e) => e.kind) },
+      return { device: { label: wb.device.label, evidenceId: wb.device.evidenceId }, seen: window.__seen, job: { id: j.id, status: j.status, proposedBy: j.proposedBy, host: j.host, executorSeconds: j.executorSeconds, captures: j.captures.map((c) => c.kind + ":" + c.verdict), steps: j.steps, events: (j.events || []).map((e) => e.kind) },
         records: recs.map((r) => ({ id: r.id, device: r.device.id, by: r.by, valid: r.validity.ok, reasons: r.validity.reasons, check: r.check.ok, activation: r.activation.ok, n: r.timing.samples.length, status: wb.store.status(r), context: r.context ?? null })),
-        jobParams: j.kernels.map((k) => k.context?.params ?? null),
         decisions: wb.run.decisions.map((x) => ({ rule: x.rule, by: x.by, note: x.note ?? null })), measured: m ? { total: m.total, job: m.job, kernels: m.kernels.length } : null, view: wb.phoneView };
     })()`);
     // an agent's job waits for Approve; another is cancelled from the Jobs view
@@ -104,12 +106,12 @@ try {
 
   console.log(JSON.stringify(out, null, 1));
   const b = out.before, a = out.after;
-  check(b.device.status === "ready" && b.device.evidenceId?.startsWith("cuda:fake-gpu-development") && /dev-fake · server/.test(b.device.label), `the server device: ${b.device.label} · ${b.device.evidenceId} · target ${b.device.target}`);
-  check(!b.runnerOffered, "the runner-served CUDA device is not offered on the Kiln server's page");
+  check(b.device.status === "ready" && b.device.evidenceId == null && /^CUDA Fake H100 · dev-fake$/.test(b.device.label) && /sm_90 132 SMs/.test(b.device.target), `before its first records the host device is its probed GPU, without an evidence id: ${b.device.label} · target ${b.device.target}`);
+  check(!b.pageCuda, "CUDA is offered only through the server's hosts");
   check(b.decisions.every((d) => d.by !== "evidence") && b.records === 0, `before: ${b.decisions.map((d) => `${d.rule} by ${d.by}`).join(", ")}, ${b.records} records on the device`);
-  check(a.job.status === "done" && a.job.proposedBy === "user" && ["proposed", "approved", "running", "done"].every((k) => a.job.events.includes(k)), `job ${a.job.id}: events ${a.job.events.filter((k) => k !== "runner").join(" → ")}; statuses seen ${a.seen.join(" → ")}; ${a.job.executorSeconds} executor s`);
-  check(a.records.length > 0 && a.records.every((r) => r.valid && r.check && r.activation && r.by === "job" && r.n === 7 && r.status === "fresh" && r.device === b.device.evidenceId), `${a.records.length} records: valid, checked, activated, 7 samples each, fresh, on ${b.device.evidenceId}`);
-  check(a.records.every((r) => r.context?.preset === "W-05" && r.context.params?.rows === 1024 && r.context.params?.dim === 4096 && /^[0-9a-f]{64}$/.test(r.context.script)) && a.jobParams.every((x) => x?.rows === 1024), `every record and job kernel names its program: ${JSON.stringify(a.records[0]?.context?.params)} from ${a.records[0]?.context?.preset}`);
+  check(a.job.status === "done" && a.job.proposedBy === "user" && ["proposed", "approved", "submitted", "done"].every((k) => a.job.events.includes(k)) && a.job.host === "dev-fake" && a.job.steps > 0 && a.job.captures.every((c) => c === "kiln-kernels/1:execute"), `job ${a.job.id} on ${a.job.host}: ${a.job.captures.length} captures, ${a.job.steps} steps; events ${[...new Set(a.job.events)].join(" → ")}; statuses seen ${a.seen.join(" → ")}; ${a.job.executorSeconds} host s`);
+  check(a.records.length > 0 && a.records.every((r) => r.valid && r.check && r.activation && r.by === "job" && r.n === 7 && r.status === "fresh" && r.device === a.device.evidenceId) && a.device.evidenceId?.startsWith("cuda:fake-gpu-development") && /^CUDA Fake GPU \(development\) · dev-fake$/.test(a.device.label), `${a.records.length} records: valid, checked, activated, 7 samples each, fresh, on ${a.device.evidenceId}, which the host device has adopted (${a.device.label})`);
+  check(a.records.every((r) => r.context?.preset === "W-05" && r.context.params?.rows === 1024 && r.context.params?.dim === 4096 && /^[0-9a-f]{64}$/.test(r.context.script)), `every record names its program: ${JSON.stringify(a.records[0]?.context?.params)} from ${a.records[0]?.context?.preset}`);
   check(a.decisions.some((d) => d.by === "evidence"), `after: ${a.decisions.map((d) => `${d.rule} by ${d.by}${d.note ? ` (${d.note})` : ""}`).join(", ")}`);
   check(a.measured?.job === a.job.id && Number.isFinite(a.measured.total), `Perf's measurement comes from the job: ${a.measured?.total?.toFixed(2)} µs`);
   check(out.proposed.status === "proposed" && out.proposed.proposedBy === "agent" && out.approved, "an agent's job waits as proposed and the Approve button runs it");
@@ -124,7 +126,7 @@ try {
       const res = await p.eval(`(async () => {
         const wb = window.__kiln.wb;
         await wb.load("W-05");
-        await wb.setDevice("server:dev-fake", { quiet: true });
+        await wb.setDevice("host:dev-fake", { quiet: true });
         return { decisions: wb.run.decisions.map((x) => x.by + (x.note ? " (" + x.note + ")" : "")), records: wb.store.list({ device: wb.evidenceId }).length, jobs: wb.jobs.length };
       })()`);
       if (shots && mode !== "light-1600") {
@@ -159,7 +161,7 @@ try {
       const rec = await wb.measure({ device: sim, quiet: true });
       let posted = 0;
       for (let i = 0; i < 50 && !(posted = await count(sim.evidenceId)); i++) await sleep(100);
-      await wb.setDevice("server:dev-fake", { quiet: true });
+      await wb.setDevice("host:dev-fake", { quiet: true });
       const dev = wb.evidenceId, had = await count(dev);
       wb.showView("evidence");
       await sleep(300);

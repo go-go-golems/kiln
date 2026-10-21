@@ -138,7 +138,7 @@ export function jobKernel(kern, { activation = null, context = null, count = 384
   return {
     codegen: CODEGEN_VERSION, name: kern.name, symbol: symbolOf(kern), identity: kern.identity, row: kern.row, knobs: flatKnobs(kern.map),
     contentId: contentOf(kern, CUDA).contentId, source: kern.cuda, launch: launchOf(kern),
-    inputs: kern.inShapes.map((shape, j) => ({ shape: [...shape], seed: seedOf(kern, INPUT_SEED, j) })), output: [...kern.shape],
+    inputs: kern.inShapes.map((shape, j) => ({ shape: [...shape], seed: seedOf(kern, INPUT_SEED, j), ...(kern.inDtypes?.[j] === "u8" ? { dtype: "u8" } : {}) })), output: [...kern.shape],
     samples, expect: Array.from(want, (x) => (Number.isNaN(x) ? null : x)),
     ...(activation ? { activation } : {}),
     ...(context ? { context } : {}),

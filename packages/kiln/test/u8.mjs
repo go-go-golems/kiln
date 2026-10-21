@@ -5,7 +5,6 @@ import { Tensor, rng } from "../src/core/util.js";
 import { N } from "../src/std/tensor.js";
 import { pipeline } from "../src/std/emmy.js";
 import { programOf, simulateKernel, kernelInputs } from "../src/std/program.js";
-import { bundle } from "../src/std/devices.js";
 import { SPECS, target } from "../src/std/targets.js";
 
 const T = target(SPECS.rtx5090);
@@ -41,7 +40,6 @@ if (r.ok) {
   check(/var<storage, read> b0: array<u32>/.test(kn.wgsl) && /fn ld0\(j: i32\) -> f32/.test(kn.wgsl) && /= ld0\(/.test(kn.wgsl), "WGSL binds packed words and unpacks through ld0");
   const seeded = kernelInputs(kn, 1)[0];
   check(seeded.every((v) => Number.isInteger(v) && v >= 0 && v <= 255), "seeded u8 inputs are whole numbers in 0..255");
-  check(bundle([kn]).kernels[0].inputs[0].dtype === "u8", "the runner bundle carries the input dtype");
   const sim = simulateKernel(kn, T);
   check(sim.check.ok, `simulated kernel matches the loop reference (${sim.check.n} samples)`);
 

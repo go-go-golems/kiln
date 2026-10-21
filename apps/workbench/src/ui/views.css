@@ -249,9 +249,16 @@
 .protocol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; }
 .protocol label { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-xs); color: var(--ink-2); }
 .protocol .filter { width: 100%; color: var(--ink); font-variant-numeric: tabular-nums; }
-.cudablk .steps { gap: 8px; font-size: var(--fs-s); }
-.cudablk .steps li { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--ink); }
-.cudablk .steps li b { width: auto; }
+/* a Kiln host (Devices): its environments' facts and its offers */
+.hostenv td { vertical-align: top; }
+.hostenv td small { display: block; color: var(--ink-2); font-size: var(--fs-2xs); }
+.hostenv td.found { white-space: normal; }
+.hostenv .tag { margin: 0 4px 3px 0; display: inline-block; }
+.hostenv .tag.miss { color: var(--accent); border-style: dashed; }
+.offers { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px 14px; margin-top: 8px; font-size: var(--fs-xs); }
+.offers label { font-size: var(--fs-2xs); color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+.offers ul { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.offers li.blocked .mono { color: var(--ink-2); text-decoration: line-through; }
 
 /* events */
 .events .toolbar .seg > button { padding: 0 9px; height: 28px; }

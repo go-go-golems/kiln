@@ -116,7 +116,7 @@ const AGENT_SCOPE = [
   ["evidence.list({ device, all }) · evidence.best(name) · evidence.clear({ device })", "measurement records (median of repetitions, n, status fresh / stale / partial / invalid); only fresh valid ones decide schedules"],
   ["checks.e2e() · checks.outputs()", "the end-to-end check (last evaluable IR vs the frontend) and the output values"],
   ["presets.list() · presets.get(id) · presets.load(id) · presets.save({ asNew })", "presets; saving keeps them in this browser as U-NN"],
-  ["jobs.list() · jobs.propose({ device, reason })", "CUDA jobs on the Kiln server's devices (devices.list() marks them): a job you propose waits for the user's approval in the Jobs view, and its records arrive when it is done; you cannot approve one"],
+  ["jobs.list() · jobs.hosts() · jobs.propose({ device, reason })", "jobs on the Kiln server's hosts (jobs.hosts() lists them with the kinds each offers; device is a host device id or a host id): a job you propose waits for the user's approval in the Jobs view, and its records arrive when it is done; you cannot approve one"],
   ["chat.table(rows, title) · chat.propose(script, title) · chat.code(text, title, lang) · chat.show(view, sel) · chat.place(view, { beside | with, side })", "evidence in the chat; bring a view forward (views: notes code agent reference ir graph trace kernels perf knobs tune evidence devices events) and select {ir, node, step, kernel, decision, record}"],
   ["ref.section(name) · ref.all()", "the API reference"],
   ["k, P, std, N, T, nn, tensor, Tensor, ix, E, KB, kx, project, param", "the same names as project scripts: build dialects, rules, passes, pipelines and programs here to experiment"],
@@ -495,11 +495,12 @@ export function makeAgentScope({ mode = "auto", onPart = () => {} } = {}) {
   };
   // real hardware behind the Kiln server: the agent proposes, only the user approves (the server enforces it too)
   let jobs = {
-    list: () => wb.jobs.slice(0, 20).map((j) => ({ id: j.id, status: j.status, by: j.proposedBy, executor: j.executor, reason: j.reason, kernels: j.kernels.length })),
+    list: () => wb.jobs.slice(0, 20).map((j) => ({ id: j.id, status: j.status, by: j.proposedBy, host: j.host, reason: j.reason, captures: j.captures.length, error: j.error })),
+    hosts: () => wb.hosts.map((h) => ({ id: h.id, reachable: h.reachable, gpus: h.gpus.map((g) => g.name), counters: h.gpuCounters, kinds: Object.fromEntries(Object.entries(h.offers?.kinds ?? {}).map(([k, o]) => [k, o.environment ?? `blocked: ${o.blocked}`])) })),
     async propose({ device, reason } = {}) {
       needProg();
-      const dev = device ? wb.devices.find((d) => d.id === device) : wb.device;
-      if (!dev?.server) throw new Error(`jobs run on the Kiln server's devices: ${wb.devices.filter((d) => d.server).map((d) => d.id).join(" ") || "none (this page is not served by the Kiln server)"}`);
+      const dev = device ? wb.devices.find((d) => d.id === device || d.host === device) : wb.device;
+      if (!dev?.server) throw new Error(`jobs run on the Kiln server's hosts: ${wb.devices.filter((d) => d.server).map((d) => d.id).join(" ") || "none (this page is not served by the Kiln server)"}`);
       const job = await wb.proposeJob(dev, { proposer: "agent", reason: reason == null ? null : String(reason), quiet: true });
       if (!job) throw new Error("the server did not take the job; see the Events view");
       return { id: job.id, status: job.status, note: "it waits for the user to approve it in the Jobs view; its records arrive when it is done" };

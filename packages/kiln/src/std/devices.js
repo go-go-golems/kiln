@@ -1,13 +1,13 @@
 // Devices run kernels and report time, metrics and a correctness check against the Loop IR
-// reference at sampled outputs. Three kinds:
+// reference at sampled outputs. Two kinds run on the page:
 //   sim:<gpu>  the SIMT simulator plus a timing model on a GPU's specs (always available)
 //   webgpu     your own GPU through WebGPU (real timings; timestamp queries when available)
-//   cuda       a CUDA box running runner/kiln_runner.py (live when the page is served by the
-//              runner; otherwise export a bundle, run it there, import the results)
+// CUDA GPUs are hosts of the Kiln server (KILN-003): Measure on one proposes a job, and the workbench's
+// server-sync.js makes their devices.
 import { SPECS, WEBGPU_DEFAULT, target } from "./targets.js";
-import { simulateKernel, kernelInputs, referenceAt, sampleIndices, seedOf } from "./program.js";
+import { simulateKernel, kernelInputs, referenceAt, sampleIndices } from "./program.js";
 import { numel, median } from "../core/util.js";
-import { checkSamples, cudaDevice, deviceId, repetitionOrder } from "@kiln/evidence";
+import { checkSamples, deviceId, repetitionOrder } from "@kiln/evidence";
 import { INPUT_SEED, specHash } from "./records.js";
 
 // Every device has two ids: `id`, the stable key the UI and presets select it by ("sim:rtx5090", "webgpu", "cuda"),
@@ -292,78 +292,17 @@ export class WebGpuDevice {
   }
 }
 
-// The session token a serving process (the runner's serve mode, the Kiln server) writes into the page it serves;
-// both run code only for requests that carry it back as X-Kiln-Token.
+// The session token the Kiln server writes into the page it serves; it runs code only for requests that carry it
+// back as X-Kiln-Token.
 export const sessionToken = (doc = globalThis.document) => doc?.querySelector?.('meta[name="kiln-token"]')?.getAttribute("content") || null;
 
-// The target the compiler sees for a CUDA device, from its runner's device report: the known GPU of that compute
+// The target the compiler sees for a CUDA device, from its device report (the runner's, or a host's GPU facts): the known GPU of that compute
 // capability (an RTX 5090 when none matches), with the report's SM count and shared memory per block.
 export function cudaTarget(info, name) {
   const spec = Object.values(SPECS).find((s) => info?.cc && String(s.sm) === String(info.cc).replace(".", "")) || SPECS.rtx5090;
   return target({ ...spec, name, sms: info?.sms || spec.sms, smemPerBlock: info?.smemPerBlock || spec.smemPerBlock });
 }
 
-// a CUDA box running runner/kiln_runner.py; live only when this page is served by that runner
-export class CudaDevice {
-  constructor(base = null) { this.id = "cuda"; this.kind = "cuda"; this.name = "CUDA runner"; this.label = "CUDA · runner"; this.base = base; this.status = "not connected"; this.target = target(SPECS.rtx5090); this.info = null; this.fingerprint = null; this.evidenceId = null; }
-  async probe() {
-    const base = this.base ?? (typeof location !== "undefined" && /^https?:/.test(location.protocol) ? location.origin : null);
-    if (!base) { this.status = "not connected: open the workbench from the runner (python kiln_runner.py serve) or use bundles"; return false; }
-    try {
-      const r = await fetch(base + "/api/device", { cache: "no-store" });
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      this.adopt(await r.json(), base);
-      this.base = base;
-      this.target = cudaTarget(this.info, this.name);
-      this.status = "ready";
-      return true;
-    } catch (e) { this.status = "not connected: " + (e.message || e); return false; }
-  }
-  // identity from the runner's device report: a live probe, or the results file of an offline bundle
-  adopt(info, host) {
-    this.info = info || {};
-    this.name = `CUDA ${this.info.name || ""}`.trim();
-    this.label = this.name;
-    ({ id: this.evidenceId, fingerprint: this.fingerprint } = cudaDevice(this.info, host));
-    this.runnerVersion = this.info.version ?? null;
-  }
-  describe() { return { kind: "CUDA through kiln_runner.py", ...(this.info || {}), status: this.status, note: "nvcc compiles each kernel; CUDA events time it; optional Nsight Compute metrics" }; }
-  async runKernels(kernels, opts = {}) {
-    if (!(await this.probe())) throw new Error(this.status);
-    const body = bundle(kernels, opts);
-    const token = sessionToken();
-    const r = await fetch(this.base + "/api/run", { method: "POST", headers: { "content-type": "application/json", ...(token ? { "x-kiln-token": token } : {}) }, body: JSON.stringify(body) });
-    if (!r.ok) throw new Error(`runner: HTTP ${r.status} ${await r.text()}`);
-    return ingest(await r.json(), kernels, opts);
-  }
-  async runKernel(kern, opts) { return (await this.runKernels([kern], opts))[0]; }
-}
-
-// the runner protocol, shared by live runs and offline bundles
-export function bundle(kernels, { seed = 1, reps = 50, warmup = 5, ncu = false } = {}) {
-  return {
-    format: "kiln-bundle/1", reps, warmup, ncu, created: new Date().toISOString(),
-    kernels: kernels.map((kn) => ({
-      name: kn.name, identity: kn.identity, row: kn.row, source: kn.cuda, grid: kn.K.grid, block: kn.K.block, smem: kn.K.smemBytes,
-      inputs: kn.inShapes.map((s, j) => ({ size: numel(s), seed: seedOf(kn, seed, j), dtype: kn.inDtypes?.[j] || "f32" })), out: numel(kn.shape), samples: sampleIndices(numel(kn.shape), 384),
-    })),
-  };
-}
-export function ingest(res, kernels, { seed = 1 } = {}) {
-  return kernels.map((kn) => {
-    const r = (res.kernels || []).find((x) => x.name === kn.name && (!x.identity || x.identity === kn.identity));
-    if (!r) return { error: `no result for ${kn.name}` };
-    if (r.error) return { error: r.error };
-    const ins = kernelInputs(kn, seed);
-    const idx = sampleIndices(numel(kn.shape), 384);
-    const check = checkSamples(Float32Array.from(r.samples || []), referenceAt(kn, ins, idx));
-    check.n = idx.length;
-    const us = r.us_median;
-    // one process is one repetition: its sample is the median of the timed launches
-    return { us, samples: [us], raw: r.us_all ? [r.us_all] : undefined, kind: "cuda-events", reps: 1, launches: r.us_all?.length, ncu: r.ncu || null, check, metrics: { us, kind: "CUDA events", min: r.us_min, gbs: kn.bytes / us / 1e3, ...(r.ncu || {}), threads: kn.K.block, blocks: kn.K.grid, smem: kn.K.smemBytes, regs: r.regs ?? null }, device: res.device };
-  });
-}
-
 export function makeDevices() {
-  return [...Object.values(SPECS).map((s) => new SimDevice(s)), new WebGpuDevice(), new CudaDevice()];
+  return [...Object.values(SPECS).map((s) => new SimDevice(s)), new WebGpuDevice()];
 }

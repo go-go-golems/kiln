@@ -7,7 +7,7 @@
 //
 //   KILN_DATA_DIR=<scratch dir> KILN_PORT=5288 node apps/server/test/support/serve-dev.ts
 //
-// The fake GPU computes correctly: when a job is proposed, the server writes its kernels' reference values (the
+// The fake GPU computes correctly: when a job is created, the server writes its kernels' reference values (the
 // `expect` the page sent) as the fake runner's outputs, so every output check passes and the records are valid.
 // Times are the fake runner's deterministic per-name times with a ±2 % spread over launches.
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -36,9 +36,10 @@ const hosts = new Hosts([hostProfile('dev-fake', driver.url)], { driverFile: DRI
 const real = assetReader(config);
 const jobs = new Jobs(db, bus, hosts, { dataDir: config.dataDir, agentBudgetSec: config.agentBudgetSec, pollWaitS: config.pollWaitS, asset: (name) => (name === 'kiln_runner.py' ? readFileSync(FAKE_RUNNER) : real(name)) });
 
-// the job's reference values become the fake runner's outputs before the job reaches the driver
+// the job's reference values become the fake runner's outputs before the job reaches the driver: a job is created
+// proposed (an agent's) or approved (a user's), and either is announced before it is submitted
 bus.on((e) => {
-  if (e.type !== 'job.updated' || (e.data as { status: string }).status !== 'proposed') return;
+  if (e.type !== 'job.updated' || !['proposed', 'approved'].includes((e.data as { status: string }).status)) return;
   const row = get<{ spec_json: string }>(db, 'select spec_json from jobs where id = ?', (e.data as { id: string }).id);
   const captures = row ? (JSON.parse(row.spec_json) as { captures: { kind: string; input: { name: string; row: string; expect: (number | null)[] } }[] }).captures : [];
   const known = JSON.parse(readFileSync(outputs, 'utf8')) as Record<string, number[]>;

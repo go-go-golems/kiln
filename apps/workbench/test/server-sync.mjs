@@ -1,5 +1,5 @@
 // The page's side of the Kiln server without a server: record sync against a fake client (load, debounced posts,
-// rejections remembered, records.added fetches, forget), server devices from GET /devices, and the job list.
+// rejections remembered, records.added fetches, forget), host devices from GET /hosts and GET /devices, and the job list.
 //   node test/server-sync.mjs
 import { k } from "@kiln/kiln/core/kiln.js";
 import { N } from "@kiln/kiln/std/tensor.js";
@@ -9,7 +9,9 @@ import { SimDevice } from "@kiln/kiln/std/devices.js";
 import { EvidenceStore } from "@kiln/kiln/std/store.js";
 import { programOf } from "@kiln/kiln/std/program.js";
 import { measureProgram } from "@kiln/kiln/std/tune.js";
-import { recordSync, ServerDevice, serverDevices, upsertJob, addJobEvent } from "../src/server-sync.js";
+import { recordSync, HostDevice, hostDevices, upsertJob, addJobEvent } from "../src/server-sync.js";
+import { jobKernel } from "../src/server-client.js";
+import { target } from "@kiln/kiln/std/targets.js";
 
 let bad = 0, total = 0;
 const check = (name, ok, detail = "") => { total++; if (!ok) bad++; console.log(`${ok ? "ok  " : "FAIL"} ${name}${!ok && detail ? ` · ${detail}` : ""}`); };
@@ -122,24 +124,32 @@ const count = (c, name) => c.calls.filter(([n]) => n === name).length;
 }
 
 {
-  // server devices from GET /devices
-  const probes = [];
-  const client = { devices: { probe: async (ex) => { probes.push(ex); return { id: "cuda:fake-1", class: "cuda", name: "CUDA Fake GPU (development)", fingerprint: { name: "Fake GPU (development)", cc: "9.0", sms: 132, host: "box" }, executor: ex, available: true, records: 3 }; } } };
-  const views = [
-    { id: null, class: "cuda", name: "dev-fake", fingerprint: null, executor: "dev-fake", available: false, error: "not probed yet", records: 0 },
-    { id: "sim:rtx5090-1", class: "sim", name: "RTX 5090", fingerprint: {}, executor: null, available: false, records: 4 },
+  // host devices from GET /hosts and GET /devices
+  const gpu = { index: 0, uuid: "GPU-fake", name: "Fake GPU (development)", cc: "9.0", driver: "580.00-fake" };
+  const offers = { kinds: { "kiln-kernels/1": { environment: "kiln-perf" } }, collectors: {} };
+  const hosts = [
+    { id: "dev-fake", reachable: null, error: null, driver: null, gpus: [], offers: null },
+    { id: "mac", reachable: true, error: null, driver: { current: true }, gpus: [], offers: { kinds: { "kiln-kernels/1": { blocked: "mac has no CUDA GPU" } }, collectors: {} } },
   ];
-  const [d] = serverDevices(views, [], client);
-  check("one server device per executor", serverDevices(views, [], client).length === 1 && d.id === "server:dev-fake" && d.kind === "cuda" && d.server);
-  check("an executor not reached yet is not ready and has no evidence id", d.status.startsWith("not connected: not probed yet") && d.evidenceId === null && /dev-fake · server/.test(d.label));
+  const device = { id: "cuda:fake-1", class: "cuda", name: "CUDA Fake GPU (development)", fingerprint: { name: "Fake GPU (development)", cc: "9.0", sms: 132, host: "box" }, host: "dev-fake", records: 3, lastSeen: "2026-10-20T00:00:00.000Z" };
+  const probes = [];
+  const client = {
+    hosts: { probe: async (id) => { probes.push(id); }, list: async () => [{ ...hosts[0], reachable: true, gpus: [gpu], offers }] },
+    devices: { list: async () => [device, { ...device, id: "sim:rtx5090-1", class: "sim", host: null }] },
+  };
+  const [d, ...rest] = hostDevices(hosts, [], [], client);
+  check("one device per host that may run kiln-kernels/1; a CPU host makes none", rest.length === 0 && d.id === "host:dev-fake" && d.kind === "cuda" && d.server);
+  check("a host not probed yet is not ready and has no evidence id", d.status === "not probed yet" && d.evidenceId === null && d.label === "CUDA dev-fake · dev-fake");
   const ok = await d.probe();
-  check("a probe adopts the server's identity", ok && probes[0] === "dev-fake" && d.evidenceId === "cuda:fake-1" && d.status === "ready" && d.label === "CUDA Fake GPU (development) · dev-fake · server");
-  check("the target comes from the report (cc 9.0 → H100, 132 SMs)", d.target.sm === 90 && d.target.sms === 132 && d.target.name === "CUDA Fake GPU (development)");
-  const [same] = serverDevices([{ ...views[0], id: "cuda:fake-1", name: "CUDA Fake GPU (development)", fingerprint: { cc: "9.0", sms: 132 }, available: true }], [d], client);
+  check("a probe adopts the host's GPU and the device its records name", ok && probes[0] === "dev-fake" && d.evidenceId === "cuda:fake-1" && d.status === "ready" && d.label === "CUDA Fake GPU (development) · dev-fake");
+  check("the target comes from the device report (cc 9.0 → H100, 132 SMs)", d.target.sm === 90 && d.target.sms === 132 && d.target.name === "CUDA Fake GPU (development)");
+  const [same] = hostDevices([{ ...hosts[0], reachable: true, gpus: [gpu], offers }], [device], [d], client);
   check("a device keeps its object across re-reads", same === d && d.status === "ready");
-  const failing = new ServerDevice("gone", { devices: { probe: async () => { throw new Error("no executor gone"); } } });
-  check("a failed probe says why", !(await failing.probe()) && failing.status === "not connected: no executor gone");
-  check("the job protocol defaults to jobSpec's", JSON.stringify(new ServerDevice("x", null).protocol) === JSON.stringify({ reps: 7, warmup: 3, launches: 20, seed: 1 }));
+  const [blocked] = hostDevices([{ ...hosts[0], reachable: true, gpus: [gpu], offers: { kinds: { "kiln-kernels/1": { blocked: "kiln-perf has no nvcc" } }, collectors: {} } }], [], [], client);
+  check("a host that cannot run kernels says why", blocked.status === "cannot run kernels: kiln-perf has no nvcc");
+  const failing = new HostDevice("gone", { hosts: { probe: async () => { throw new Error("the driver at http://gone:5281 is unreachable"); } } });
+  check("a failed probe says why", !(await failing.probe()) && failing.status === "not reachable: the driver at http://gone:5281 is unreachable");
+  check("the job protocol defaults to jobSpec's", JSON.stringify(new HostDevice("x", null).protocol) === JSON.stringify({ reps: 7, warmup: 3, launches: 20, seed: 1 }));
 }
 
 {
@@ -157,11 +167,20 @@ const count = (c, name) => c.calls.filter(([n]) => n === name).length;
 }
 
 {
-  // a page with a token whose origin is not the Kiln server (the runner's serve mode): no server, the runner stays
+  // a u8 input reaches the job's kernel with its dtype, which kiln_runner.py reads; fp32 inputs carry none
+  {
+    const H = 8, W = 16;
+    const grey = k.trace("grey", ({ rgb }) => N.floor(N.mul(N.reshape(N.slice(rgb, 2, 0, 1), [H, W]), 0.5)), { rgb: k.tensor([H, W, 3], "u8") });
+    const kn = programOf(pipeline({ target: target(SPECS.rtx5090) }).run(grey).graph).kernels[0];
+    const lin = programOf(pipeline({ target: target(SPECS.rtx5090) }).run(g).graph).kernels[0];
+    check("a job kernel carries a u8 input's dtype, and no dtype for fp32", jobKernel(kn).inputs[0].dtype === "u8" && jobKernel(lin).inputs.every((i) => !("dtype" in i)), JSON.stringify(jobKernel(kn).inputs));
+  }
+
+  // a page with a token whose origin is not the Kiln server: no server, and no host devices
   const { wb } = await import("../src/ui/wb.js");
   wb.server = { health: async () => { throw new Error("HTTP 404"); } };
   await wb.startServer();
-  check("a token without the Kiln server behind it: no server, the runner device stays", wb.server === null && wb.serverInfo.state === "none" && wb.devices.some((d) => d.id === "cuda" && !d.server));
+  check("a token without the Kiln server behind it: no server and no host devices", wb.server === null && wb.serverInfo.state === "none" && !wb.devices.some((d) => d.server || d.kind === "cuda"));
 }
 
 console.log(bad ? `${bad} of ${total} FAILED` : `all ${total} passed`);

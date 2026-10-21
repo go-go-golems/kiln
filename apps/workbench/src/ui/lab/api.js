@@ -23,11 +23,10 @@ export function labClient(server) {
     async catalog() { const c = await get("/catalog"); data.setCatalog(c); return c; },
     /** Archives, datasets with their images, and why host `local` has no report. */
     async loadEvidence() {
-      const [archives, list] = await Promise.all([get("/evidence"), get("/datasets")]);
+      const [archives, list] = await Promise.all([server.archives.list(), get("/datasets")]);
       data.setArchives(archives);
       data.setDatasets(await Promise.all(list.map((d) => get(`/datasets/${encodeURIComponent(d.id)}`))));
-      try { data.setLocalReport(await get("/hosts/local/capabilities")); }
-      catch (e) { data.setLocalReport(null, e.body?.message ?? e.message); }
+      data.setLocalReport(null, "host reports move to /api/hosts");
     },
     bundlesLoaded: (hash) => data.bundlesLoaded(hash),
     /** Fetch the runs of `hashes`; returns how many captures were loaded. */

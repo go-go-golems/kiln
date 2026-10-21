@@ -167,8 +167,9 @@ sim:<gpu>  a lockstep SIMT simulator runs sampled blocks; metrics: time (rooflin
            coalesced fp32), shared-memory bank conflicts, branch divergence, barriers, out-of-bounds and divergent-barrier
            detection, and a check of every sampled output against the Loop IR reference
 webgpu     your GPU through WebGPU: real time (timestamp queries when allowed), real outputs checked
-cuda       kiln_runner.py on an NVIDIA box: nvcc, CUDA events (median of 50), optional Nsight Compute metrics; live when
-           the page is served by the runner, otherwise export a bundle (Devices) and import the results
+host:<id>  a Kiln host's GPU (page served by the Kiln server): Measure proposes a job of kiln-kernels/1 captures; the
+           host's driver runs kiln_runner.py in a container (nvcc, CUDA events per repetition), and the records
+           arrive when the job's archive is imported. Devices shows each host's capability document
 Inputs are seeded uniform values in [−1, 1) (mulberry32), identical on every device.
 Every measurement stores a kiln-measure/1 record per kernel: device id (fingerprinted), kernel identity, schedule
 row, content id of the code that ran, one sample per repetition, the output check, activation and protocol, and a

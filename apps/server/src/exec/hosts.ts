@@ -5,7 +5,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { capabilities, COLLECTORS, KINDS, parseHosts, probeRequest, type Capabilities, type GpuFact, type HostProfile, type Offers, type Requirement } from '@kiln/exec';
+import { capabilities, COLLECTORS, KINDS, parseHosts, probeRequest, type Capabilities, type EnvironmentFacts, type Facts, type GpuFact, type HostProfile, type Offers, type Requirement } from '@kiln/exec';
 import type { EventBus } from '../events.ts';
 import { DriverClient, DriverError, type DriverInfo } from './driver-client.ts';
 
@@ -32,10 +32,30 @@ export interface HostView {
   driver: { sha256: string; hostname: string; running: string | null; queued: string[]; current: boolean } | null;
   probedAt: string | null;
   environments: string[];
+  /** The machine the last probe saw: hostname, kernel, arch, memory, free disk, docker version */
+  machine: Facts['host'] | null;
   gpus: GpuFact[];
   gpuCounters: string | null;
+  /** Per environment: its image, whether the probe container ran, and the versions of what it found */
+  environmentFacts: Record<string, EnvironmentSummary>;
   offers: Offers | null;
 }
+
+export interface EnvironmentSummary {
+  imageRef: string;
+  image: string | null;
+  ok: boolean;
+  error: string | null;
+  python: string | null;
+  gpuVisible: boolean | null;
+  /** Commands, modules and tools by name: their version, or null when missing */
+  found: Record<string, string | null>;
+}
+
+const summary = (e: EnvironmentFacts): EnvironmentSummary => ({
+  imageRef: e.imageRef, image: e.image, ok: e.ok, error: e.error ?? null, python: e.python ?? null, gpuVisible: e.gpuVisible ?? null,
+  found: Object.fromEntries([e.commands, e.modules, e.tools].flatMap((m) => Object.entries(m ?? {})).map(([k, r]) => [k, r.ok ? (r.version ?? 'present') : null])),
+});
 
 interface State {
   info: DriverInfo | null;
@@ -156,8 +176,10 @@ export class Hosts {
       driver: s?.info ? { sha256: s.info.sha256, hostname: s.info.hostname, running: s.info.running, queued: s.info.queued, current: s.info.sha256 === sha } : null,
       probedAt: caps?.probedAt ?? null,
       environments: Object.keys(p.environments),
+      machine: caps?.facts.host ?? null,
       gpus: caps?.facts.gpus ?? [],
       gpuCounters: caps?.facts.gpuCounters ?? null,
+      environmentFacts: Object.fromEntries(Object.entries(caps?.facts.environments ?? {}).map(([n, e]) => [n, summary(e)])),
       offers: caps?.offers ?? null,
     };
   }

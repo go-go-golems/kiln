@@ -1,5 +1,5 @@
 // The page's side of the Kiln server (guide §30.3), without React or the workbench: keeping the EvidenceStore and the
-// server's records in step, the CUDA devices the server's executors reach, and the job list the Jobs view draws.
+// server's records in step, the CUDA devices of the server's hosts, and the job list the Jobs view draws.
 // wb.js wires these to the server-client and to its channels; test/server-sync.mjs drives them with a fake client.
 import { EVIDENCE_FORMAT } from "@kiln/kiln/std/store.js";
 import { cudaTarget } from "@kiln/kiln/std/devices.js";
@@ -74,54 +74,78 @@ export function recordSync({ client, store, delay = 400, chunk = 250, onRejected
 }
 
 /**
- * A CUDA device that a server executor reaches. Measure on it proposes a job (wb.js); its identity is the one the
- * server reports for the executor's device (GET /devices), so its records and the page's decisions use one id.
+ * The CUDA GPU of a host that offers kiln-kernels/1 (KILN-003 guide §18). Measure on it proposes a job (wb.js). Its
+ * evidence id is the one the server's records name for the host's device (GET /devices, `host`), known once a job
+ * on the host has produced records; until then the compile decides without evidence from it.
  */
-export class ServerDevice {
-  constructor(executor, client, protocol = null) {
-    this.id = `server:${executor}`; this.kind = "cuda"; this.server = true; this.executor = executor; this.client = client;
-    this.name = `CUDA ${executor}`; this.label = `CUDA · ${executor} · server`; this.status = "not probed yet";
-    this.target = target(SPECS.rtx5090); this.info = null; this.fingerprint = null; this.evidenceId = null; this.view = null;
-    // the job protocol (guide §28), as jobSpec's defaults; the Devices view edits it
+export class HostDevice {
+  constructor(host, client, protocol = null) {
+    this.id = `host:${host}`; this.kind = "cuda"; this.server = true; this.host = host; this.client = client;
+    this.name = `CUDA ${host}`; this.label = `CUDA · ${host}`; this.status = "not probed yet";
+    this.target = target(SPECS.rtx5090); this.info = null; this.fingerprint = null; this.evidenceId = null; this.view = null; this.gpu = null;
+    // the job protocol (guide §24), as jobSpec's defaults; the Devices view edits it
     this.protocol = { reps: 7, warmup: 3, launches: 20, seed: 1, ...protocol };
   }
-  /** Take the server's view of this executor's device (GET /devices, a probe). */
-  adopt(view) {
+  /** Take the server's view of the host (GET /hosts) and of the device its records name (GET /devices). */
+  adopt(view, device = null) {
     if (!view) return;
     this.view = view;
-    this.evidenceId = view.id ?? null;
-    this.fingerprint = view.fingerprint ?? null;
-    this.info = view.fingerprint ?? null;
-    if (view.id) this.name = view.name;
-    this.label = `${view.id ? view.name : "CUDA"} · ${this.executor} · server`;
-    this.status = view.available ? "ready" : `not connected: ${view.error || "the executor has not reached its device"}`;
-    if (this.info) this.target = cudaTarget(this.info, this.name);
+    this.gpu = view.gpus?.[0] ?? null;
+    const offer = view.offers?.kinds?.["kiln-kernels/1"];
+    if (device) { this.evidenceId = device.id; this.fingerprint = device.fingerprint; this.info = device.fingerprint; }
+    this.name = device?.name ?? (this.gpu ? `CUDA ${this.gpu.name}` : `CUDA ${this.host}`);
+    this.label = `${this.name} · ${this.host}`;
+    this.status = view.reachable === false ? `not reachable: ${view.error || "the driver does not answer"}`
+      : !view.offers ? "not probed yet"
+      : offer?.environment ? "ready"
+      : `cannot run kernels: ${offer?.blocked ?? "no environment offers kiln-kernels/1"}`;
+    const facts = this.info ?? (this.gpu ? { name: this.gpu.name, cc: this.gpu.cc } : null);
+    if (facts) this.target = cudaTarget(facts, this.name);
   }
-  /** Ask the server to probe the executor (the runner's device report). */
+  /** Probe the host again (its driver's facts and the capability document derived from them). */
   async probe() {
-    try { this.adopt(await this.client.devices.probe(this.executor)); }
-    catch (e) { this.status = `not connected: ${e.message || e}`; }
+    try { await this.client.hosts.probe(this.host); this.adopt(...(await hostViews(this.client, this.host))); }
+    catch (e) { this.status = `not reachable: ${e.message || e}`; }
     return this.status === "ready";
   }
-  // Tune and Compare run on the page's devices; a server executor runs jobs, which Measure proposes
+  // Tune and Compare run on the page's devices; a host runs jobs, which Measure proposes
   async runKernels() { throw new Error(`${this.label} runs jobs only: Measure proposes one (Tune and Compare run on the page's devices)`); }
   async runKernel() { return this.runKernels(); }
   describe() {
-    return { kind: "CUDA through the Kiln server", executor: this.executor, ...(this.info || {}), status: this.status, note: "Measure proposes a job on this executor and opens the Jobs view; the job's records arrive when it finishes, and the next compile decides with them." };
+    const v = this.view;
+    return {
+      kind: "CUDA on a Kiln host", host: this.host, ...(this.gpu ? { gpu: this.gpu.name, cc: this.gpu.cc, driver: this.gpu.driver ?? "" } : {}),
+      ...(v?.driver ? { "driver file": v.driver.current ? "current" : "out of date", queue: v.driver.running ? `running ${v.driver.running.slice(4, 12)}` : "idle" } : {}),
+      status: this.status,
+      note: "Measure proposes a job on this host and opens the Jobs view; the job's records arrive when it finishes, and the next compile decides with them.",
+    };
   }
 }
 
+/** One host's view and the device its records name, for HostDevice.adopt. */
+async function hostViews(client, host) {
+  const [hosts, devices] = await Promise.all([client.hosts.list(), client.devices.list()]);
+  return [hosts.find((h) => h.id === host) ?? null, latestDevice(devices, host)];
+}
+
+/** The device a host's jobs measured last (GET /devices): the one its next records will name. */
+const latestDevice = (devices, host) => devices.filter((d) => d.host === host && d.class === "cuda").sort((a, b) => (a.lastSeen < b.lastSeen ? 1 : -1))[0] ?? null;
+
 /**
- * The server devices for a GET /devices list: one per executor, in executor order. A device already made for an
- * executor is kept (the selection holds on to it) and adopts the new view.
+ * The page's CUDA devices for GET /hosts and GET /devices: one per host whose profile could run kiln-kernels/1 (a
+ * host that offers it, or one not probed yet), in host order. A device already made for a host is kept (the
+ * selection holds on to it) and adopts the new views. Hosts without a GPU (a CPU host for lab work) make none.
  */
-export function serverDevices(views, existing, client, protocol = null) {
-  const old = new Map(existing.map((d) => [d.executor, d]));
-  return views.filter((v) => v.executor).sort((a, b) => a.executor.localeCompare(b.executor)).map((v) => {
-    const d = old.get(v.executor) ?? new ServerDevice(v.executor, client, protocol);
-    d.adopt(v);
-    return d;
-  });
+export function hostDevices(hostList, deviceList, existing, client, protocol = null) {
+  const old = new Map(existing.map((d) => [d.host, d]));
+  return hostList
+    .filter((h) => !h.offers || h.offers.kinds?.["kiln-kernels/1"]?.environment || h.gpus?.length)
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .map((h) => {
+      const d = old.get(h.id) ?? new HostDevice(h.id, client, protocol);
+      d.adopt(h, latestDevice(deviceList, h.id));
+      return d;
+    });
 }
 
 /** The job list with one job's new view in place, newest first (job.updated carries no events: keep the old ones). */

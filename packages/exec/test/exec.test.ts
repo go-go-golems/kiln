@@ -98,6 +98,20 @@ describe('the planner', () => {
     expect(p.steps[1]!.serves.map((s) => r.captures.findIndex((c) => c.id === s.capture))).toEqual(bundle.kernels.map((k: { name: string }) => ['k_a', 'k_b', 'k_c'].indexOf(k.name)));
   });
 
+  it('carries a u8 input to the runner\'s bundle; the content id ignores the dtype (the source names it)', () => {
+    const k = kernel('k_u8');
+    const u8 = { ...k, inputs: [{ ...k.inputs[0]!, dtype: 'u8' as const }] };
+    const r = plan([{ kind: 'kiln-kernels/1', input: u8 }]);
+    if (!r.ok) throw new Error(r.refusal.message);
+    const bundle = JSON.parse(new TextDecoder().decode(r.files.get('bundles/g0-r0.json')!));
+    expect(bundle.kernels[0].inputs).toEqual([{ size: 16, seed: 11, dtype: 'u8' }]);
+    const f32 = plan([{ kind: 'kiln-kernels/1', input: k }]);
+    if (!f32.ok) throw new Error(f32.refusal.message);
+    expect(JSON.parse(new TextDecoder().decode(f32.files.get('bundles/g0-r0.json')!)).kernels[0].inputs).toEqual([{ size: 16, seed: 11 }]);
+    const bad = plan([{ kind: 'kiln-kernels/1', input: { ...k, inputs: [{ ...k.inputs[0]!, dtype: 'f16' }] } }]);
+    expect(bad.ok).toBe(false);
+  });
+
   it('refuses a content id that does not match, naming the capture', () => {
     const bad = { ...kernel('k_b', 12), contentId: kernel('k_a').contentId };
     const r = plan([{ kind: 'kiln-kernels/1', input: kernel('k_a') }, { kind: 'kiln-kernels/1', input: bad }]);

@@ -30,7 +30,8 @@ export interface KernelInput {
   /** The entry symbol; when given it must be the source's __global__ function */
   symbol?: string;
   launch: { grid: number; block: number; smem: number };
-  inputs: { shape: number[]; seed: number }[];
+  /** Seeded inputs; dtype u8 draws bytes (the draw's top byte), f32 (the default) uniform floats in [-1, 1) */
+  inputs: { shape: number[]; seed: number; dtype?: 'f32' | 'u8' }[];
   output: number[];
   samples: number[];
   /** Reference values at `samples`, null where the reference is NaN */
@@ -53,7 +54,7 @@ export function entrySymbol(source: string): string | null {
 
 /** The content id of a kernel: its source with the entry symbol canonicalised, launch, inputs, output (identity.ts). */
 export function kernelContentId(k: Pick<KernelInput, 'codegen' | 'source' | 'launch' | 'inputs' | 'output'>, symbol: string): string {
-  return contentId({ codegen: k.codegen, lang: 'cuda', sourceSha256: sha256Hex(canonicalSource(k.source, symbol)), launch: { grid: k.launch.grid, block: k.launch.block, smem: k.launch.smem }, inputs: k.inputs, output: k.output, target: null });
+  return contentId({ codegen: k.codegen, lang: 'cuda', sourceSha256: sha256Hex(canonicalSource(k.source, symbol)), launch: { grid: k.launch.grid, block: k.launch.block, smem: k.launch.smem }, inputs: k.inputs.map((i) => ({ shape: i.shape, seed: i.seed })), output: k.output, target: null });
 }
 
 export function acceptKernel(x: unknown, at: string): Accepted<KernelInput> {
@@ -68,7 +69,7 @@ export function acceptKernel(x: unknown, at: string): Accepted<KernelInput> {
   if (!isStr(k.source, KERNEL_LIMITS.source)) return bad(`${at}.source must be CUDA source of at most ${KERNEL_LIMITS.source} characters`);
   const l = k.launch;
   if (!isObj(l) || !isInt(l.grid, 1, 2 ** 31 - 1) || !isInt(l.block, 1, 1024) || !isInt(l.smem, 0, 1 << 20)) return bad(`${at}.launch must be {grid ≥ 1, block in 1..1024, smem ≥ 0}`);
-  if (!Array.isArray(k.inputs) || k.inputs.length > KERNEL_LIMITS.inputs || !k.inputs.every((i) => isObj(i) && isShape(i.shape) && isInt(i.seed, 0, 2 ** 32 - 1))) return bad(`${at}.inputs must be at most ${KERNEL_LIMITS.inputs} {shape, seed} with integer seeds`);
+  if (!Array.isArray(k.inputs) || k.inputs.length > KERNEL_LIMITS.inputs || !k.inputs.every((i) => isObj(i) && isShape(i.shape) && isInt(i.seed, 0, 2 ** 32 - 1) && (i.dtype === undefined || i.dtype === 'f32' || i.dtype === 'u8'))) return bad(`${at}.inputs must be at most ${KERNEL_LIMITS.inputs} {shape, seed, dtype?} with integer seeds and dtype f32 or u8`);
   if (!isShape(k.output) || numel(k.output) < 1) return bad(`${at}.output must be a non-empty shape`);
   const n = numel(k.output);
   if (!Array.isArray(k.samples) || !k.samples.length || k.samples.length > KERNEL_LIMITS.samples || !k.samples.every((s) => isInt(s, 0, n - 1))) return bad(`${at}.samples must be 1..${KERNEL_LIMITS.samples} output indices in 0..${n - 1}`);
@@ -87,7 +88,7 @@ export function acceptKernel(x: unknown, at: string): Accepted<KernelInput> {
   const copy: KernelInput = {
     codegen: input.codegen, name: input.name, symbol, identity: input.identity, row: input.row, knobs: { ...input.knobs }, contentId: got, source: input.source,
     launch: { grid: input.launch.grid, block: input.launch.block, smem: input.launch.smem },
-    inputs: input.inputs.map((i) => ({ shape: [...i.shape], seed: i.seed })), output: [...input.output], samples: [...input.samples], expect: [...input.expect],
+    inputs: input.inputs.map((i) => ({ shape: [...i.shape], seed: i.seed, ...(i.dtype === 'u8' ? { dtype: 'u8' as const } : {}) })), output: [...input.output], samples: [...input.samples], expect: [...input.expect],
     ...(a ? { activation: { requested: input.activation!.requested, materialized: input.activation!.materialized, ok: input.activation!.ok, notes: [...input.activation!.notes] } } : {}),
     ...(c ? { context: { ...(c.preset !== undefined ? { preset: c.preset } : {}), ...(c.project !== undefined ? { project: c.project } : {}), ...(c.params !== undefined ? { params: { ...c.params } } : {}), ...(c.script !== undefined ? { script: c.script } : {}) } } : {}),
   };
@@ -120,7 +121,7 @@ export const kilnKernels: WorkloadKind<KernelInput> = {
       format: 'kiln-bundle/1', reps: single ? 1 : group.protocol.launches, warmup: single ? 0 : group.protocol.warmup, ncu: false,
       kernels: kernels.map((c) => {
         const k = c.input as KernelInput;
-        return { name: k.name, identity: k.identity, row: k.row, source: k.source, grid: k.launch.grid, block: k.launch.block, smem: k.launch.smem, inputs: k.inputs.map((i) => ({ size: numel(i.shape), seed: i.seed })), out: numel(k.output), samples: k.samples };
+        return { name: k.name, identity: k.identity, row: k.row, source: k.source, grid: k.launch.grid, block: k.launch.block, smem: k.launch.smem, inputs: k.inputs.map((i) => ({ size: numel(i.shape), seed: i.seed, ...(i.dtype ? { dtype: i.dtype } : {}) })), out: numel(k.output), samples: k.samples };
       }),
     };
     const runner = ctx.stage('runner/kiln_runner.py', ctx.asset('kiln_runner.py'));

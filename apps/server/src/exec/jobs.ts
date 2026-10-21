@@ -39,6 +39,7 @@ interface JobRow {
   spec_json: string;
   spec_sha256: string;
   plan_sha256: string | null;
+  plan_steps: number;
   archive_sha256: string | null;
   result_json: string | null;
   created_at: string;
@@ -192,8 +193,8 @@ export class Jobs {
     const at = now();
     const byId = new Map(out.captures.map((c) => [c.id, c]));
     tx(this.db, () => {
-      run(this.db, `insert into jobs (id, status, proposed_by, host, reason, spec_json, spec_sha256, plan_sha256, created_at, approved_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        id, approve ? 'approved' : 'proposed', proposer, hostId, String(body.reason), specJson, sha256Hex(specJson), sha256Hex(planJson), at, approve ? at : null);
+      run(this.db, `insert into jobs (id, status, proposed_by, host, reason, spec_json, spec_sha256, plan_sha256, plan_steps, created_at, approved_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        id, approve ? 'approved' : 'proposed', proposer, hostId, String(body.reason), specJson, sha256Hex(specJson), sha256Hex(planJson), plan.steps.length, at, approve ? at : null);
       out.verdicts.forEach((v, seq) => {
         run(this.db, 'insert into job_captures (job_id, seq, idx, capture, kind, pair_id, mode, collectors_json, label, verdict, reason) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           id, seq, v.index, v.capture ?? null, v.kind, v.pairId, v.mode, JSON.stringify(v.collectors), v.label, v.verdict, v.reason ?? (v.capture && byId.get(v.capture)?.companion ? 'timing companion of a counters capture' : null));
@@ -416,7 +417,11 @@ export class Jobs {
     const plan = JSON.parse(readFileSync(join(this.cfg.dataDir, 'plans', `${job.id}.json`), 'utf8')) as Plan;
     const endedAt = (JSON.parse(job.result_json ?? '{}') as { at?: string }).at ?? job.finished_at ?? now();
     const r = importArchive(this.db, { id: job.id, host: job.host, plan, captures: spec.captures, ...this.outcome(job), archive: job.archive_sha256, endedAt }, archive);
-    if (r.records.length) this.bus.emit('records.added', { job: job.id, ids: r.records });
+    if (r.records.length) {
+      this.bus.emit('records.added', { job: job.id, ids: r.records });
+      // the device the records name now belongs to this host: a host's first records give its page device an evidence id
+      for (const d of all<{ device_id: string }>(this.db, 'select distinct device_id from records where job_id = ?', job.id)) this.bus.emit('device.updated', { id: d.device_id, host: job.host });
+    }
     if (r.runs) this.bus.emit('catalog.changed', { job: job.id, captures: r.captures });
     return r;
   }
@@ -469,7 +474,6 @@ export class Jobs {
 
   private toView(j: JobRow, detail: boolean): JobView {
     const spec = JSON.parse(j.spec_json) as Spec;
-    const plan = detail ? this.plan(j.id) : null;
     const caps = all<{ seq: number; idx: number | null; capture: string | null; kind: string; pair_id: string; mode: string; collectors_json: string; label: string; verdict: CaptureVerdict['verdict']; reason: string | null }>(
       this.db, 'select * from job_captures where job_id = ? order by seq', j.id);
     return {
@@ -478,7 +482,7 @@ export class Jobs {
       executorSeconds: j.executor_ms / 1000, protocol: spec.protocol, specSha256: j.spec_sha256, planSha256: j.plan_sha256, archive: j.archive_sha256,
       captures: caps.map((c) => ({ seq: c.seq, index: c.idx, capture: c.capture, kind: c.kind, pairId: c.pair_id, mode: c.mode, collectors: JSON.parse(c.collectors_json) as string[], label: c.label, verdict: c.verdict, reason: c.reason })),
       groups: new Set(spec.captures.map((c) => `${c.kind}|${c.collectors.join(',')}|${c.pairId}`)).size,
-      steps: plan?.steps.length ?? 0,
+      steps: j.plan_steps,
       records: recordIdsOfJob(this.db, j.id),
       ...(detail
         ? {

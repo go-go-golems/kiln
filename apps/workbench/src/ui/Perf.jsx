@@ -1,9 +1,8 @@
-import React, { useRef, useState } from "react";
-import { wb, RUNNER } from "./wb.js";
-import { useLab, Btn, Seg, Tog, Kv, Meter, Spark, Empty, cls } from "./common.jsx";
+import React, { useState } from "react";
+import { wb } from "./wb.js";
+import { useLab, Btn, Seg, Kv, Meter, Spark, Empty, cls } from "./common.jsx";
 import { fmtUs, fmtBytes, fmtNum } from "@kiln/kiln/core/util.js";
 import { knobs as KN } from "@kiln/kiln/core/kiln.js";
-import { saveText, copyText } from "./Kernels.jsx";
 import { CODEGEN_VERSION } from "@kiln/kiln/std/records.js";
 import { std } from "@kiln/kiln/std/index.js";
 import { canonRow } from "@kiln/kiln/std/tile.js";
@@ -420,19 +419,68 @@ function ProtocolBlock({ d }) {
   );
 }
 
+const gib = (b) => (b == null ? "—" : `${(b / 2 ** 30).toFixed(b < 10 * 2 ** 30 ? 1 : 0)} GiB`);
+const COUNTERS = {
+  "all-users": "open to every user: ncu can read counters",
+  "admin-only": "admin only (NVreg_RestrictProfilingToAdminUsers=1): counter captures are blocked",
+  unknown: "unknown: the probe could not tell",
+};
+/**
+ * One host of the Kiln server (guide §13, §17): its driver and queue, the machine and GPUs its last probe saw, each
+ * environment's image and what it found, and the capability document's offers: the kinds and collectors this host
+ * can run, or why not.
+ */
+function HostBlock({ h }) {
+  const [busy, setBusy] = useState(false);
+  const probe = async () => { setBusy(true); try { await wb.probeHost(h.id); } finally { setBusy(false); } };
+  const offers = h.offers, m = h.machine;
+  const state = h.reachable === false ? `not reachable: ${h.error || "no answer"}` : h.reachable ? (h.driver?.running ? `running job ${h.driver.running.slice(4, 12)}` : "idle") : "not contacted yet";
+  return (
+    <div className="block hostblk">
+      <header><h2>Host {h.id}</h2><span className="sub">{state}</span><span className="sp" /><Btn sm onClick={probe} disabled={busy} title="Run the probe containers again and rebuild the capability document">{busy ? "Probing…" : "Probe"}</Btn></header>
+      <Kv rows={[
+        ["driver", h.driver ? <span><span className="mono">{h.url}</span> · {h.driver.hostname} · <span className="mono" title={h.driver.sha256}>{h.driver.sha256.slice(0, 10)}</span> {h.driver.current ? "current" : <b className="bad">out of date</b>}</span> : <span className="mono">{h.url}</span>],
+        h.driver?.queued?.length ? ["queue", `${h.driver.queued.length} waiting`] : null,
+        ["probed", h.probedAt ? new Date(h.probedAt).toLocaleString() : "never"],
+        m ? ["machine", `${m.arch} · ${m.kernel} · ${gib(m.memBytes)} memory · ${gib(m.freeDiskBytes)} free · docker ${m.docker ?? "missing"}`] : null,
+        ...h.gpus.map((g) => [`GPU ${g.index}`, `${g.name} · cc ${g.cc} · ${g.memMiB ? `${Math.round(g.memMiB / 1024)} GiB` : "—"} · driver ${g.driver}`]),
+        h.gpus.length ? ["GPU counters", COUNTERS[h.gpuCounters] ?? h.gpuCounters ?? "—", h.gpuCounters === "admin-only"] : null,
+      ]} />
+      {Object.keys(h.environmentFacts || {}).length ? (
+        <div className="xscroll">
+          <table className="rt hostenv">
+            <thead><tr><th>environment</th><th>image</th><th>found</th></tr></thead>
+            <tbody>
+              {Object.entries(h.environmentFacts).map(([name, e]) => (
+                <tr key={name}>
+                  <td><span className="strong">{name}</span><small>{e.ok ? (e.gpuVisible === false ? "runs · no GPU visible" : "runs") : <span className="bad">{e.error || "does not run"}</span>}</small></td>
+                  <td><span className="mono">{e.imageRef}</span><small className="mono" title={e.image || ""}>{e.image ? e.image.slice(0, 19) : "not on the host"}</small></td>
+                  <td className="found">{Object.entries(e.found).map(([k, v]) => <span key={k} className={cls("tag", v == null && "miss")} title={v ?? "missing"}>{k}{v && v !== "present" ? ` ${String(v).split(/\s+/)[0].slice(0, 16)}` : ""}</span>)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+      {offers ? (
+        <div className="offers">
+          {[["kinds", offers.kinds, (o) => o.environment], ["collectors", offers.collectors, (o) => o.kinds?.join(", ")]].map(([what, map, ok]) => (
+            <div key={what}>
+              <label>{what}</label>
+              <ul>
+                {Object.entries(map).map(([id, o]) => <li key={id} className={cls(o.blocked && "blocked")}><span className="mono">{id}</span> <span className="dim">{o.blocked ? o.blocked : ok(o)}</span></li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ) : <p className="note">Not probed yet: Probe runs one container per environment and derives what the host offers from what it finds.</p>}
+    </div>
+  );
+}
+
 export function DevicesView() {
-  useLab("device", "measure", "compile");
-  const [paste, setPaste] = useState("");
-  const [ncu, setNcu] = useState(false);
-  const fileRef = useRef(null);
+  useLab("device", "measure", "compile", "server");
   const d = wb.device;
-  const cuda = wb.devices.find((x) => x.kind === "cuda" && !x.server);
-  const doImport = (text) => {
-    try { const rec = wb.importResults(text); wb.setDevice(cuda.id, { quiet: true }); wb.toast(`Imported ${rec.kernels.length} kernel results: ${fmtUs(rec.total)}`); setPaste(""); wb.showView("perf"); }
-    catch (e) { wb.toast("Could not import: " + e.message, "bad"); }
-  };
-  const onFile = async (e) => { const f = e.target.files?.[0]; if (f) doImport(await f.text()); e.target.value = ""; };
-  const bundleName = `${wb.preset?.id || "project"}-bundle.json`;
   return (
     <div className="page">
       <div className="stagewrap">
@@ -450,21 +498,7 @@ export function DevicesView() {
               ))}
             </div>
           </div>
-          {cuda ? (
-            <div className="block cudablk">
-              <header><h2>A real CUDA GPU</h2><span className="sub">{cuda.status}</span></header>
-              <p className="note">This page cannot reach other machines, so CUDA runs go through <code>kiln_runner.py</code> on the GPU box. It compiles each kernel with nvcc, times it with CUDA events (median of 50 after 5 warm-ups), optionally profiles it with Nsight Compute, and returns sampled outputs that are checked here against the reference.</p>
-              <ol className="steps">
-                <li><b>Get the runner.</b> <Btn sm onClick={() => saveText("kiln_runner.py", RUNNER)}>Download kiln_runner.py</Btn> <span className="dim">needs Python 3, numpy and the CUDA toolkit</span></li>
-                <li><b>Export the compiled kernels.</b> <Btn sm onClick={() => { const j = wb.bundleJSON({ ncu }); if (j) saveText(bundleName, j); }} disabled={!wb.prog}>Download {bundleName}</Btn> <Tog on={ncu} onClick={() => setNcu(!ncu)} title="Ask the runner to profile each kernel with ncu">Nsight metrics</Tog></li>
-                <li><b>Run it there.</b> <code className="cmd">python kiln_runner.py run {bundleName} -o results.json</code> <Btn sm onClick={() => copyText(`python kiln_runner.py run ${bundleName} -o results.json`, "the command")}>Copy</Btn></li>
-                <li><b>Bring the results back.</b> <Btn sm onClick={() => fileRef.current?.click()} disabled={!wb.prog}>Import results.json…</Btn><input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={onFile} /></li>
-              </ol>
-              <textarea className="pastebox" value={paste} onChange={(e) => setPaste(e.target.value)} placeholder="…or paste the runner's JSON output here" rows={3} aria-label="Runner results" />
-              {paste.trim() ? <div className="actions"><Btn sm primary onClick={() => doImport(paste)}>Import pasted results</Btn></div> : null}
-              <p className="note">Live mode: on the GPU box run <code>python kiln_runner.py serve kiln-workbench.html</code> (the standalone page is in the source zip) and open the address it prints. Served that way, the CUDA device connects directly and Measure and Tune run on the GPU.</p>
-            </div>
-          ) : null}
+          {wb.server ? wb.hosts.map((h) => <HostBlock key={h.id} h={h} />) : null}
         </div>
       </div>
       <aside className="side">

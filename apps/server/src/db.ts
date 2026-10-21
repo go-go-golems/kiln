@@ -267,6 +267,7 @@ const MIGRATIONS: string[] = [
     spec_json      text not null,
     spec_sha256    text not null,
     plan_sha256    text,
+    plan_steps     integer not null default 0,
     archive_sha256 text,
     result_json    text,
     created_at     text not null,
