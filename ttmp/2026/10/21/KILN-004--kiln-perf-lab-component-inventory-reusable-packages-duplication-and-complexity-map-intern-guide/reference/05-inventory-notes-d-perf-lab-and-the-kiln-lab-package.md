@@ -16,7 +16,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: 'Component inventory of lab-workbench/ (Perf Lab, the verbatim ML-PERF-001 copy) and packages/lab (@kiln/lab): the lab.js language and its six build passes, the data layer, presets, the Hono/SQLite server and its job runner, the Python workload protocol, the React/Redux frontend, the tests, a file-by-file comparison of @kiln/lab against its source, and the duplication, hotspots, reusable seams and dead pieces found.'
-LastUpdated: 2026-10-21T11:30:00-04:00
+LastUpdated: 2026-10-21T12:30:00-04:00
 WhatFor: 'Answering what Perf Lab and @kiln/lab contain, where each behavior lives (file:line), which parts are copies of which, and which parts could be repackaged or cut when Kiln and Perf Lab are separated again.'
 WhenToUse: 'Before editing lab-workbench/ or packages/lab, before porting another Perf Lab piece into Kiln, or when the intern guide (design-doc/01) cites area D and the claim needs its evidence.'
 ---

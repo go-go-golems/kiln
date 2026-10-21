@@ -16,7 +16,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: 'Investigation diary of KILN-004 area D: how the inventory of lab-workbench/ (Perf Lab) and packages/lab (@kiln/lab) was gathered, the one headless build run, the file-by-file diffs behind the duplication rows, and the area-D rows of the inventory database.'
-LastUpdated: 2026-10-21T11:40:00-04:00
+LastUpdated: 2026-10-21T12:30:00-04:00
 WhatFor: 'Tracing a claim in reference/05-inventory-notes-d-perf-lab-and-the-kiln-lab-package.md or in various/inventory/perf-lab.json back to the read, command or diff that produced it, and resuming area D.'
 WhenToUse: 'When a Perf Lab or @kiln/lab claim in the notes, the database or the intern guide is doubted, or before extending the area D inventory.'
 ---
@@ -195,7 +195,7 @@ notes committed in `1d0c894`; write the diary in investigation format; fill `var
 the contract in `playbook/01-inventory-database-contract-json-rows-diaries-and-crosslinks.md`; validate with
 `load_inventory.py --check`; pathspec commits of the three files only.
 
-**Commit (previous):** `ae14e8d` — "KILN-004 D: diary step 1, the Perf Lab and @kiln/lab inventory pass".
+**Previous commit:** `ae14e8d` — "KILN-004 D: diary step 1, the Perf Lab and @kiln/lab inventory pass".
 
 ### What I did
 
@@ -291,7 +291,7 @@ third spec identity; the diagrams were also added to the notes as §12.
 **User prompt (verbatim):** see `01-investigation-diary.md`, Step 1. **Relayed instruction:** see Step 1.
 **Orchestrator's resume message (summary):** see Step 2.
 
-**Commit (previous):** `ab74354` — "KILN-004 D: per-file diffs of @kiln/lab against Perf Lab; diary step 2".
+**Previous commit:** `ab74354` — "KILN-004 D: per-file diffs of @kiln/lab against Perf Lab; diary step 2".
 
 ### What I did
 
@@ -389,3 +389,78 @@ third spec identity; the diagrams were also added to the notes as §12.
 - Format names introduced by this area: `perf-lab capture spec/1`, `perf-lab workload event stream`,
   `perf-lab workload rep record`, `perf-lab run bundle`, `lab IR/1`, `detection-qualification/v1`, `lab.js program`.
 - `db_tables.schema_name` is `perf-lab` for all 17 tables; `endpoints.auth` is `local-only` for all 33.
+
+## Step 4: Final validation, crosslinks, and a diary label the loader misread
+
+The last check built the database to a scratch path rather than the ticket, to see how the area's rows and diary
+steps link up. It showed one defect of this diary's own making: the loader reads any `**Commit…**` line as the step's
+commit, so the "**Commit (previous):**" lines I wrote in Steps 2 and 3, recording the previous commit as instructed,
+were taken as those steps' own commits. They are relabelled "**Previous commit:**", which the loader ignores; it then
+falls back to the commit that first added each step heading, which is the right answer. Nothing else changed in the
+earlier entries.
+
+### Prompt Context
+
+**User prompt (verbatim):** see `01-investigation-diary.md`, Step 1. **Relayed instruction:** see Step 1.
+**Orchestrator's resume message (summary):** see Step 2.
+
+**Previous commit:** `7335529` — "KILN-004 D: perf-lab inventory rows; notes section 12 diagrams; diary step 3".
+
+### What I did
+
+- `python3 <ticket>/scripts/load_inventory.py --out <scratchpad>/inv-check.sqlite` (exit 0), then:
+
+  ```sql
+  select * from v_area_counts where area='perf-lab';
+  select step, how, count(*) from diary_links where agent_area='perf-lab' group by step, how;
+  select step, title, commit_hash from diary_entries where agent_area='perf-lab';
+  ```
+
+- Read the loader's commit parsing: `scripts/load_inventory.py:151`,
+  ``re.search(r"\*\*Commit[^*]*\*\*:?\s*`?([0-9a-f]{7,40})`?", block)``.
+- Relabelled the two lines with `sed -i '' 's/^\*\*Commit (previous):\*\* /**Previous commit:** /'` on this diary.
+
+### Why
+
+- A diary step's `commit_hash` is what the site will show as "the commit of this step"; the previous commit there
+  would point every step one commit too early.
+
+### What worked
+
+- Area D in the scratch database: 102 modules, 27 facts, 33 endpoints, 7 duplications, 10 reusable components,
+  8 hotspots, 7 formats, 3 diary steps (4 with this one), 340 diary links — step 1: 259 explicit, 2 mentioned;
+  step 2: 53 explicit, 2 mentioned; step 3: 13 explicit, 11 mentioned.
+- `load_inventory.py --check` exits 0 with every area's files present.
+
+### What didn't work
+
+- Before the relabel, `diary_entries` showed step 2 → `ae14e8d` and step 3 → `ab74354`, the previous commits, not
+  the steps' own (`ab74354`, `7335529`).
+
+### What I learned
+
+- The diary contract's `**Commit…**` line is a step's own commit; the "previous commit" convention needs a label that
+  does not start with `Commit`.
+
+### What was tricky to build
+
+- N/A beyond the label clash above.
+
+### What warrants a second pair of eyes
+
+- Other areas' diaries may carry the same "Commit (previous)" pattern if they followed the same instruction.
+
+### What should be done in the future
+
+- The loader or the contract could name the previous-commit convention explicitly, so every area writes the same
+  label.
+
+### Code review instructions
+
+- `sqlite3 <db> "select step, commit_hash from diary_entries where agent_area='perf-lab'"` after a rebuild should
+  show each step with the commit that added it.
+
+### Technical details
+
+- Area D commits: `ae14e8d` (diary step 1), `ab74354` (diffs, step 2), `7335529` (inventory JSON, diagrams,
+  step 3), and the commit adding this step.
