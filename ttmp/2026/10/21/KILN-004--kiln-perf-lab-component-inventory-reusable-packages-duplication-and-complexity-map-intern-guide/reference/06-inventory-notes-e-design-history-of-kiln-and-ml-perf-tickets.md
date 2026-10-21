@@ -15,13 +15,15 @@ Intent: long-term
 Owners: []
 RelatedFiles: []
 ExternalSources: []
-Summary: ""
-LastUpdated: 2026-10-21T10:34:07.506677-04:00
-WhatFor: ""
-WhenToUse: ""
+Summary: 'Design history of Kiln × Perf Lab from the six tickets that built it (ML-PERF-001..003 in Playback, KILN-001..003 in Kiln): a dated timeline matched to commits, per-ticket goals, decisions, results and open tasks, the decisions that were reversed within days, a glossary with source paths, component status (built / partial / planned / superseded), every place the two systems were copied, merged or linked, and the drift between what the tickets say and what the code holds.'
+LastUpdated: 2026-10-21T11:00:00-04:00
+WhatFor: Knowing why a Kiln or Perf Lab component exists, which ticket decided its shape, whether that decision still holds, and which copies and open tasks surround it, before splitting the system into reusable packages.
+WhenToUse: Before moving, extracting or deleting a component that a KILN or ML-PERF ticket designed; before citing a ticket's task list or guide as current status; when a glossary term from the tickets needs its source.
 ---
 
-> Moved by the orchestrator from agent E's scratch notes after agent E was stopped at the usage limit (2026-10-21); not yet reviewed or turned into JSON rows.
+> Provenance: drafted by agent E in the session scratchpad; moved here unreviewed by the orchestrator after agent E was
+> stopped at the usage limit (`1d0c894`, 2026-10-21 10:42); completed by agent E afterwards (see
+> `reference/11-diary-e-design-history-of-kiln-and-ml-perf-tickets.md`).
 
 # Notes E — design history of Kiln × Perf Lab, reconstructed from the ticket workspaces
 
