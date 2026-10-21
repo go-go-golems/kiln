@@ -195,3 +195,137 @@ for (const dt of ["f32", "u8"]) {
     "activation", JSON.stringify(activationOf(kern, { run }).notes));
 }
 ```
+
+## Step 2: Re-verifying every duplication site, correcting the notes, and the duplication, hotspot and fact rows
+
+Before turning the duplication list into database rows, each site was re-checked with a fresh command at the current
+`main`, because several line numbers in the notes came from the pre-compaction reading and only survived as a summary.
+Most held. Five things were wrong or imprecise and were corrected in the notes: the `imports/` paths are one level
+deeper than the notes said (`imports/kiln-workbench-src/kiln-workbench/...`); `apps/workbench/src/agent/agent.js:114`
+does list `gb10` (the notes had it as lagging; only `apps/workbench/reference.txt:162` and the help comment at
+`scripts/kiln-export.mjs:9` lag, and the option itself resolves any `SPECS` key); `apps/server` imports `@kiln/kiln`
+from two test files, not one; and several line numbers moved (fixture formula at `runtime/test/fixtures.mjs:47`, not
+:44; `nvidia_smi` fields at `runner/kiln_runner.py:180-198`; mulberry32 at `packages/kiln/src/core/util.js:38-41`).
+
+The outcome is 12 duplication rows, 7 complexity hotspots and 111 facts in `various/inventory/compiler-runtime.json`,
+each tagged with the step that found it (most `[1, 2]`: found in the first pass, confirmed here). The notes file grew
+to 883 lines.
+
+### Prompt Context
+
+**User prompt (verbatim):** see `01-investigation-diary.md`, Step 1. The relayed instructions are quoted in Step 1 of
+this diary.
+
+**Assistant interpretation:** every duplication row must carry file:line evidence that holds at the current commit,
+so re-verify before writing rows.
+
+**Commit:** `a36a59c` — "KILN-004 A: diary step 1; packages, modules and formats of the compiler and runtime area"
+(the previous commit; this step's own commit is recorded in Step 3)
+
+### What I did
+
+- Re-ran the u8 identity probe from the scratch directory: `node u8.mjs`, exit 0, same output as Step 1
+  (fork key `302w2uv760` for both dtypes; u8 kernel identity `2dbf6f6auuk`).
+- Identity sites: `grep -n "identity" packages/kiln/src/std/{loop,tile,kernel,program}.js` → loop.js:277 (shape only),
+  tile.js:346, kernel.js:294, program.js:19, program.js:38 (all `inKey(shape, dtype)`).
+- Entry symbol: `grep -n "cname\|entry\|symbolOf"` over `packages/kiln/src/std/{emit,export,records}.js` →
+  emit.js:5 and :22, export.js:9, :17, :19-22, :63, records.js:62-63; `grep -n "entrySymbol\|__global__"
+  packages/exec/src/kinds/kiln-kernels.ts` → :50-52 ("the runner finds it the same way, kiln_runner.py kernel_name").
+- Generators: `grep -n "mulberry\|0x6D2B79F5\|0x6d2b79f5"` → `packages/kiln/src/core/util.js:38-41`,
+  `runner/kiln_runner.py:56-69`; `grep -n "2654435761\|40503"` → `runtime/test/fixtures.mjs:7,47`,
+  `runtime/python/kiln_launch.py:67`.
+- `flatKnobs`: compared `sed -n 68p packages/kiln/src/std/records.js` with `sed -n 129p
+  apps/workbench/src/server-client.js` as shell strings → `IDENTICAL`.
+- Protocol defaults: `grep -n "reps: *7\|warmup: *3"` → `packages/kiln/src/std/devices.js:203`,
+  `apps/workbench/src/server-sync.js:87`, `apps/workbench/src/server-client.js:157`; runner defaults
+  `runner/kiln_runner.py:242` (`reps` 50, `warmup` 5).
+- Grid fold: `grep -n 65535` → `packages/kiln/src/std/emit.js:49`, `packages/kiln/src/std/devices.js:144`,
+  `packages/kiln/src/std/export.js:60-61`; both launchers read `k.dispatch` (`runtime/webgpu/launch.ts:91`,
+  `runtime/python/kiln_launch.py:149`).
+- u8 packing: `sed -n 130,140p packages/kiln/src/std/devices.js` and `sed -n 34,46p runtime/webgpu/launch.ts`.
+- nvidia-smi: `grep -n "query-gpu\|SMI_FIELDS\|GPU_SAMPLER_FIELDS\|--query"` over `runner/kiln_runner.py`,
+  `runner/kiln_driver.py`, `runner/docker/kiln-probe` → three programs; the compute-apps query string is identical at
+  `runner/kiln_driver.py:174` and `runner/docker/kiln-probe:47`.
+- NVRTC: `grep -n "nvrtcCreateProgram\|ctypes.CDLL\|def " apps/workbench/test/cuda_check.py` (63 lines, `to_ptx`).
+- Consumers: `git ls-files | grep -v "^imports/\|^ttmp/" | xargs grep -ln "packages/kiln/src"` →
+  `runtime/test/fixtures.mjs`, `scripts/kiln-export.mjs` (code) and four `runner/docker` files (comments/paths);
+  importers of `workbench/src/compile` outside the app → the same two; `@kiln/kiln/` importers → `apps/workbench` 23
+  files, `apps/server` 2 (`test/decide.test.ts:7-13`, `test/support/modules.d.ts:2`); references to
+  `imports/kiln-workbench-src` → `README.md` only.
+- imports: `git ls-files imports | sed 's|/[^/]*$||' | sort | uniq -c` (116 files), and per-file diff line counts
+  `diff imports/kiln-workbench-src/kiln-workbench/app/src/$f packages/kiln/src/$f | grep -c '^[<>]'`:
+  kiln.js 52, ix.js 0, util.js 4, script.js 0, tile.js 10, devices.js 383, store.js 188, tune.js 91, program.js 37,
+  emit.js 11. Sizes: 11948 lines without built HTML and lock file, `app/src` 8187.
+- Stale text: `sed -n 19,23p README.md`, `grep -n serve README.md` (:40), `grep -n ncu runner/docker/*`
+  (`build.sh:14`, `Dockerfile:9`), `grep -n "SPECS\|target" scripts/kiln-export.mjs` (:9 help, :76-77 resolution).
+- Applied the corrections to the notes with exact-match replacements (a script that refuses any pattern that does not
+  occur exactly once); all applied.
+- Wrote the duplication, hotspot and fact rows; ran `python3 <ticket>/scripts/load_inventory.py --check`.
+
+### Why
+
+- A duplication row is only useful if a later reader can jump to every site; a stale line number costs more than an
+  absent one.
+
+### What worked
+
+- All 12 duplications were reconfirmed; `flatKnobs` is byte-identical.
+- The loader accepted every row shape on the first run.
+
+### What didn't work
+
+- The first `--check` after adding the rows failed by design, because the rows were tagged with step 2 before this
+  step existed in the diary (exit 1, 32 lines of the form):
+
+  ```text
+  PROBLEM: compiler-runtime.json: duplications row 'kernel identity hash: loop, tile, kernel and gpu dialects plus programOf' names diary step 2, which compiler-runtime's diary lacks
+  ```
+
+  Writing this step resolves it.
+
+### What I learned
+
+- The kiln-perf image's sources (`runner/docker/kiln-probe`, `kiln-probe.cu`, `build.sh`, `README.md`) name
+  `packages/kiln/src` paths in comments and in the clean-tree check, so moving the compiler means updating the image.
+- `scripts/kiln-export.mjs` validates `--target` against `SPECS` at run time; only its help comment is stale.
+
+### What was tricky to build
+
+- Telling a stale claim from a stale line number: `apps/workbench/src/agent/agent.js:114` looked like a lagging list in
+  the summary but is in sync; the fix was to grep the target name rather than trust the earlier note.
+
+### What warrants a second pair of eyes
+
+- Severity labels (`high` only for the identity divergence) are judgement calls on an inventory, not measured impact.
+- `packages/exec/src/kinds/kiln-kernels.ts` and `apps/workbench/src/*` belong to areas C and B; their sites are cited
+  here only as the other ends of area-A duplications.
+
+### What should be done in the future
+
+- Functionalities, reusable components, dependencies, service calls and a pipeline diagram (Step 3).
+- The orchestrator may want to reconcile the target-spec duplication with area D's
+  `lab-workbench/src/data/capabilities.ts` row.
+
+### Code review instructions
+
+- `python3 <ticket>/scripts/load_inventory.py --check`, then `jq '.duplications[].title'
+  <ticket>/various/inventory/compiler-runtime.json`.
+- Spot-check two sites per duplication with `sed -n <lines>p <path>`.
+
+### Technical details
+
+Corrections applied to the notes (old → new):
+
+```text
+util.js:39                          -> util.js:38-41
+apps/server: only test/decide.test  -> test/decide.test.ts:7-13 and test/support/modules.d.ts:2
+imports/kiln-workbench-src/app/...  -> imports/kiln-workbench-src/kiln-workbench/app/...
+fixtures.mjs:44                     -> fixtures.mjs:7 (comment), :47 (code)
+kiln_launch.py:65                   -> kiln_launch.py:65-67
+kiln_runner.py:184 nvidia_smi       -> kiln_runner.py:180-198 SMI_FIELDS + nvidia_smi
+kiln-probe compute-apps             -> same string as kiln_driver.py:174 (new)
+README.md:21,40 serve               -> README.md:40 (command), :21 ("local or remote")
+docker README/Dockerfile/build.sh   -> build.sh:14, Dockerfile:9
+agent.js:114 lags SPECS             -> agent.js:114 in sync (literal); reference.txt:162 and kiln-export.mjs:9 lag
+launch.ts:36-45                     -> launch.ts:35-45 packed(); kiln_launch.py:83 _packed (new)
+```

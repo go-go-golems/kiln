@@ -16,7 +16,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: 'Component inventory of the Kiln compiler (@kiln/kiln core and std), the imported original source, the kiln-program/1 launchers (runtime/), the CUDA runner and driver (runner/) and the export/test scripts: public APIs, file formats, the IR pipeline with a worked example, duplicated concepts with file:line evidence, complexity hotspots, reuse candidates and vestigial code.'
-LastUpdated: 2026-10-21T11:10:00-04:00
+LastUpdated: 2026-10-21T11:40:00-04:00
 WhatFor: 'Source material for the KILN-004 intern guide sections on the compiler, the launchers and the CUDA runner; the evidence behind every duplication and reuse claim made about those areas.'
 WhenToUse: 'Before moving, repackaging or deduplicating anything under packages/kiln, runtime/, runner/ or scripts/kiln-export.mjs, or when a claim in the guide about those areas needs its file:line evidence.'
 ---
@@ -199,7 +199,7 @@ Dependencies: none. Consumers: `std/loop.js`, `std/tile.js`, `std/kernel.js`, `s
 ### 1.4 `core/util.js` (76 lines)
 
 `hash(s)` (cyrb53, base-36 string), `clip`, `summarize`, `fmtUs/fmtNum/fmtBytes/fmtMs`, `rng(seed)` (mulberry32 plus
-Box-Muller `normal`, util.js:39), `numel(shape)`, `inKey(shape, dtype)`, `dtypeBytes(dtype)`, `strides(shape)`,
+Box-Muller `normal`, util.js:38-41), `numel(shape)`, `inKey(shape, dtype)`, `dtypeBytes(dtype)`, `strides(shape)`,
 `Tensor` (`fill`, `random`, `at`, `preview`), `compare(a, b)`, `median`, `dur`. No dependencies.
 
 ### 1.5 `core/script.js` (39 lines)
@@ -398,7 +398,8 @@ ticket, step 2): 13 suites pass under `pnpm test`.
 
 - `apps/workbench/src/**` (agent, compile.js, main.jsx, server-client.js, server-sync.js, ui): many deep imports of
   `@kiln/kiln/core/*` and `@kiln/kiln/std/*`.
-- `apps/server`: only `test/decide.test.ts`.
+- `apps/server`: tests only, `test/decide.test.ts:7-13` (imports `k`, `N`, `pipeline`, `SPECS`, `EvidenceStore`,
+  `activationOf`, `programOf`) and the ambient declaration `test/support/modules.d.ts:2` (`declare module '@kiln/kiln/*'`).
 - `scripts/kiln-export.mjs` and `runtime/test/fixtures.mjs`: import by **relative path** (`../packages/kiln/src/...`)
   and both also import `apps/workbench/src/compile.js` (`compileScript`, `endToEnd`), i.e. scripts and the runtime
   tests depend on the app.
@@ -505,10 +506,12 @@ block idle in every strided loop (`r0 = tid; r0 < 64; r0 += 128`).
 ## 3. imports/kiln-workbench-src: what moved, changed, duplicated (observed by diff)
 
 `imports/` holds the original Kiln Workbench as received (source tree and a zip) plus built artefacts
-(`app/dist`, `runner/kiln-workbench.html`). Nothing in live code imports from `imports/` (grep over tracked
-sources). It is a frozen snapshot and therefore a full duplicate of the code it was split from.
+(`app/dist`, `runner/kiln-workbench.html`). Paths are one level deeper than the directory name suggests: the tree is
+`imports/kiln-workbench-src/kiln-workbench/{app,presets,runner,README.md,agent-guidelines.txt,reference.txt}`, next
+to `imports/kiln-workbench-src.zip` (1.09 MB) and `imports/Untitled.md`. Nothing in live code imports from `imports/`
+(grep over tracked sources outside `imports/` and `ttmp/`; the only reference is prose in `README.md:5`). It is a frozen snapshot and therefore a full duplicate of the code it was split from.
 
-| Original (imports/kiln-workbench-src/...) | Now                                    | Status                                                                 |
+| Original (`imports/kiln-workbench-src/kiln-workbench/...`) | Now                                    | Status                                                                 |
 | ----------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------- |
 | `app/src/core/ix.js`, `script.js`         | `packages/kiln/src/core/`              | identical                                                              |
 | `app/src/core/kiln.js`                    | `packages/kiln/src/core/kiln.js`       | 52 diff lines: `decide.pinned` supports partial pins and `fp.pinned`; `decide.evidence` rewritten to `optionStats` with `minReps` and separated intervals |
@@ -590,7 +593,7 @@ check against real GPUs via `kiln-selftest` in the kiln-perf image.
 ### 4.4 `runtime/test/`
 
 - `fixtures.mjs` (78 lines): `CASES` = `blur-small, blur-2d-grid, attention, mlp, grey-u8`; deterministic inputs
-  with `h = (i * 2654435761 + s * 40503) mod 2^32` (fixtures.mjs:44); `buildCase` compiles with `compileScript`
+  with `h = (i * 2654435761 + s * 40503) mod 2^32` (fixtures.mjs:7 comment, :47 code); `buildCase` compiles with `compileScript`
   from `apps/workbench/src/compile.js`; writes program JSON plus expected outputs.
 - `webgpu-roundtrip.mjs` (66 lines): runs each fixture through `launch.ts` in headless Chrome.
 - Root script `test:launch` runs fixtures + roundtrip; both are outside `pnpm test` (GPU/browser needed).
@@ -730,10 +733,10 @@ inShapes, inDtypes})` used at all five sites.
 
 ### 6.3 Input generators
 
-- mulberry32: `core/util.js:39` (`rng`, JS) and `runner/kiln_runner.py:56-69` (C++ in `HARNESS`, comment: "exactly as
+- mulberry32: `core/util.js:38-41` (`rng`, JS) and `runner/kiln_runner.py:56-69` (C++ in `HARNESS`, comment: "exactly as
   the workbench (kernelInputs)"); `std/program.js` `kernelInputs` is the JS consumer that defines the mapping
   (f32 `r*2-1`, u8 `floor(r*256)`).
-- Fixture integer generator: `runtime/test/fixtures.mjs:44` and `runtime/python/kiln_launch.py:65` (`gen`), the same
+- Fixture integer generator: `runtime/test/fixtures.mjs:47` and `runtime/python/kiln_launch.py:65-67` (`gen`), the same
   formula in two languages.
 
 ### 6.4 CUDA compilation paths
@@ -745,16 +748,19 @@ inShapes, inDtypes})` used at all five sites.
 
 ### 6.5 nvidia-smi querying: three implementations
 
-- `runner/kiln_runner.py:184` `nvidia_smi(pci)` with its own `SMI_FIELDS`.
+- `runner/kiln_runner.py:180-198` `SMI_FIELDS` and `nvidia_smi(pci)` (`--query-gpu=` over its own field list, `-i <pci>`).
 - `runner/kiln_driver.py:147-198` `gpus`, `gpu_counters`, `compute_apps`, `gpu_now` (its query list at :185 differs
   from `GPU_SAMPLER_FIELDS` at :64 in the same file).
-- `runner/docker/kiln-probe:29-51` `smi` / `snapshot`.
+- `runner/docker/kiln-probe:29-51` `smi` / `snapshot`; its compute-apps query (`--query-compute-apps=pid,process_name,used_memory`,
+  kiln-probe:47) is the same string as `runner/kiln_driver.py:174`.
 
 ### 6.6 WebGPU execution: two implementations
 
 - `std/devices.js:125-197` (`runOnce`): buffer creation, u8 packing (:134-139), dispatch fold (:144), error scopes,
   readback; used by the workbench for measurement.
-- `runtime/webgpu/launch.ts`: buffer creation, u8 packing (:36-45), dispatch, readback; used only by its test.
+- `runtime/webgpu/launch.ts`: buffer creation, u8 packing (`packed`, :35-45), dispatch, readback; used only by its
+  test. The Python launcher has the same packing in `Program._packed` (`kiln_launch.py:83`). Both launchers read the
+  folded grid from the program's `dispatch` field instead of recomputing it.
 - Grid fold for 65535 appears in three places: `emit.js:64` (WGSL index), `devices.js:144`, `export.js:61`
   (`dispatch` field).
 - `unsupportedReason`: `launch.ts:48` and `kiln_launch.py:179` (same checks, two languages; acceptable as a
@@ -777,8 +783,11 @@ Byte-identical one-liner at `std/records.js:68` and `apps/workbench/src/server-c
 - `apps/workbench/src/server-sync.js:85` `HostDevice` defaults to `rtx5090`.
 - `runner/docker/kiln-probe` emits a measured spec in the `SPECS` shape (copied in by hand, e.g. gb10).
 - `lab-workbench/src/data/capabilities.ts` has separate synthetic host specs (area D).
-- Hard-coded lists that lag `SPECS`: `scripts/kiln-export.mjs` `--target` help (no `gb10`),
-  `apps/workbench` `agent.js:114` device list string, `reference.txt:162` target list (no `gb10`).
+- Hand-written copies of the target list: `scripts/kiln-export.mjs:9` `--target` help comment (no `gb10`; the
+  option itself resolves through `SPECS` at :76-77, so `--target gb10` works), `apps/workbench/reference.txt:162`
+  (no `gb10`), and `apps/workbench/src/agent/agent.js:114` (`sim:rtx5090 ... sim:gb10 sim:orin webgpu cuda`,
+  currently in sync, but a literal string). Correction made in diary A step 2: the first pass listed `agent.js:114`
+  as lagging; it is not.
 
 ### 6.10 The `imports/` snapshot
 
@@ -819,10 +828,12 @@ A full second copy of the compiler, UI, presets, tests and runner (§3). Not imp
 
 ## 9. Vestigial and stale (observed)
 
-- `README.md:21,40` describe `kiln_runner.py serve`; the `serve` mode was removed (§3).
-- `runner/docker/README.md`, `Dockerfile`, `build.sh` mention "the runner's --ncu profiling"; the flag is gone, ncu
+- `README.md:40` still shows `python3 runner/kiln_runner.py serve apps/workbench/dist/kiln-workbench.html   # on a CUDA box`
+  and `README.md:21` calls the runner "local or remote"; the `serve` mode was removed (§3).
+- `runner/docker/build.sh:14` and `runner/docker/Dockerfile:9` mention "the runner's --ncu profiling"; the flag is gone, ncu
   is a collector in `packages/exec/src/collectors/ncu.ts`.
-- `scripts/kiln-export.mjs` `--target` help lists `rtx5090 rtx4090 h100 a100 orin`, not `gb10`.
+- `scripts/kiln-export.mjs:9` `--target` help comment lists `rtx5090 rtx4090 h100 a100 orin`, not `gb10` (the option
+  itself accepts every `SPECS` key).
 - `kiln_driver.py` docstring omits `GET /v1/jobs/<id>/plan` and `GET /v1/blobs/<sha256>`.
 - `std/store.js`: `Store` alias of `EvidenceStore`; `clear()` behaves as `forget()`.
 - `std/records.js` `legacyRecord` keeps the kiln-evidence/1 import path alive for files from the original.
