@@ -13,7 +13,7 @@ Intent: long-term
 Owners: []
 RelatedFiles:
     - Path: repo://apps/server/src/executors/cuda-runner.ts
-      Note: Install-by-hash, SSH command quoting and process groups that the transports and driver keep
+      Note: Executor contract, SSH command building and process groups that the driver HTTP API replaces
     - Path: repo://apps/server/src/jobs.ts
       Note: Today's job loop and record projection; replaced in P1 by the planner, per-host queues and kind finish hooks
     - Path: repo://apps/server/src/lab/routes.ts
@@ -25,7 +25,7 @@ RelatedFiles:
     - Path: repo://runtime/python/kiln_launch.py
       Note: Program launcher that gains the bench entry point for kiln-program/1
 ExternalSources: []
-Summary: 'Design and implementation guide for one execution core shared by Kiln and Perf Lab: hosts and transports, environments, probed facts and derived offers, workload kinds, collectors, plans and a generic driver, identity, import, one job API; what it removes and the phased plan.'
+Summary: 'Design and implementation guide for one execution core shared by Kiln and Perf Lab: hosts and the driver HTTP API, environments, probed facts and derived offers, workload kinds, collectors, plans and a generic driver, identity, import, one job API; what it removes and the phased plan.'
 LastUpdated: 2026-10-20T19:55:54.723171-04:00
 WhatFor: Onboarding an intern to the execution core; the reference for implementing phases P0 to P6.
 WhenToUse: Before changing how Kiln or the lab runs code on a GPU host, adding a workload kind or a collector, or touching jobs, archives or capability documents.
@@ -74,7 +74,7 @@ does not exist yet:
 - **Part II** describes what exists: Kiln's executor, the `kiln-program/1` launcher, Perf Lab's runner, Kiln's port of
   Perf Lab's data, and ML-PERF-003's design. It ends with a gap analysis.
 - **Part III** is the design. It opens with the core model (§11) and the list of what the model removes (§12.2), then
-  covers hosts and transports, environments, capability documents, workload kinds, collectors, identity, plans and
+  covers hosts and the driver API, environments, capability documents, workload kinds, collectors, identity, plans and
   the driver, import, jobs, the page, security and the API.
 - **Part IV** is the implementation plan, the test strategy, risks and how to run things.
 
@@ -100,16 +100,17 @@ needs code to run on a host such as the DGX Spark on the desk (`bling`, an NVIDI
 
 The design separates five concerns that today are fused inside each mechanism:
 
-| Concern            | Question it answers                                  | Examples                                                             |
-| ------------------ | ---------------------------------------------------- | -------------------------------------------------------------------- |
-| Host and transport | Which machine, and how do commands reach it?         | `spark` reached locally, `dgx` over SSH                              |
-| Environment        | In what software does the code run?                  | the `kiln-perf` image by SHA-256, Playback's detection image         |
-| Workload kind      | What runs, from which input, producing which output? | `kiln-kernels/1`, `kiln-program/1`, `playback-dino/1`                |
-| Collector          | How is the run observed?                             | CUDA events, Nsight Compute, Nsight Systems, an `nvidia-smi` sampler |
-| Plan and driver    | In which order do the steps run, under which lock?   | `kiln-plan/1` executed by `kiln_driver.py`                           |
+| Concern         | Question it answers                                  | Examples                                                             |
+| --------------- | ---------------------------------------------------- | -------------------------------------------------------------------- |
+| Host and driver | Which machine, and where does its driver listen?     | `spark` at `127.0.0.1:5281`, `dgx` at its own address                |
+| Environment     | In what software does the code run?                  | the `kiln-perf` image by SHA-256, Playback's detection image         |
+| Workload kind   | What runs, from which input, producing which output? | `kiln-kernels/1`, `kiln-program/1`, `playback-dino/1`                |
+| Collector       | How is the run observed?                             | CUDA events, Nsight Compute, Nsight Systems, an `nvidia-smi` sampler |
+| Plan and driver | In which order do the steps run, under which lock?   | `kiln-plan/1` executed by `kiln_driver.py`                           |
 
-The **driver** is one standard-library Python file that the server copies to each host by content hash, exactly as it
-copies the CUDA runner today. It knows nothing about kernels or Playback: it takes a GPU lock, records what else runs
+The **driver** is one standard-library Python file that a person runs on each host as a small HTTP server while
+developing. Every driver serves the same API over plain TCP, and the server is one HTTP client of all of them,
+including the driver on its own machine. It knows nothing about kernels or Playback: it takes a GPU lock, records what else runs
 on the GPU, runs the plan's steps as containers, samples the GPU, and packs a result archive. Workload kinds and
 collectors are two registries of plain TypeScript modules in a browser-safe package, shared by the server and the
 page. A host reports **facts** (its GPU, its
@@ -178,11 +179,12 @@ since absorbed (KILN-001 Phase 8c).
 The terms below are defined in dependency order: each definition uses only terms defined before it.
 
 - **Host.** A machine with a GPU on which workloads run, named by a short id such as `spark` or `dgx`.
-- **Transport.** How the server sends commands and files to a host and reads their output: `local` (the server runs
-  on the host), `ssh` (OpenSSH with key authentication), and later `agent` (a small service on the host).
-- **Driver.** `kiln_driver.py`, one Python file using only the standard library, installed on a host under its
-  SHA-256. Subcommands: `probe`, `run`, `cancel`, `reconcile`, `gc`. **[new]**, generalising ML-PERF-003's
-  `driver.py`.
+- **Driver.** `kiln_driver.py`, one Python file using only the standard library, run on a host by a person with
+  `kiln_driver.py serve`. It accepts plans, runs them one at a time and keeps their events and archives.
+  **[new]**, generalising ML-PERF-003's `driver.py`.
+- **Driver API.** The HTTP API every driver serves over plain TCP: probe, blobs, jobs, events, archives (§13.2). The
+  server reaches every host through it, including the host it runs on; there is no SSH and no process spawning in
+  the core.
 - **Environment.** A named place on a host where a step's process runs: a container image resolved to its image ID
   (`kiln-perf`, `playback-detection`), or the host itself (`host`). An environment provides **runtimes** (Python,
   PyTorch, CUDA toolkit) and **tools** (`ncu`, `nsys`).
@@ -570,7 +572,7 @@ additions to registries rather than new paths. The model is allowed to cost func
 
 | Noun        | Definition                                                               | Replaces today                                             |
 | ----------- | ------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| Host        | a machine that executes captures; reached by a transport                 | Kiln executor profiles; Perf Lab hosts; the page's devices |
+| Host        | a machine that executes captures; reached through its driver's URL       | Kiln executor profiles; Perf Lab hosts; the page's devices |
 | Environment | a container image by ID on a host (or the host itself for sidecars)      | `kiln-docker-python`; Perf Lab's `uv` project; M3 images   |
 | Kind        | a module that runs one kind of workload and reads its output             | the CUDA runner path; Perf Lab adapter names; M3 recipes   |
 | Collector   | a module that observes runs: wrapper, in-process or sidecar              | the runner's `--ncu`; Perf Lab capture modes               |
@@ -605,7 +607,7 @@ flowchart LR
   S --> PL["planner: captures to steps"]
   PL --> Q["queue for the host"]
   Q --> H["DriverHost"]
-  H -->|"transport: local or ssh"| D["kiln_driver.py on the host"]
+  H -->|"HTTP /v1"| D["kiln_driver.py serve on the host"]
   D --> E1["step in kiln-perf"]
   D --> E2["step in playback-detection"]
   D -->|"result.tar.gz"| H
@@ -622,10 +624,10 @@ A request goes through the system in six stages:
    workload kind to **lower** its captures into step templates. Each collector then **applies** itself to the steps
    it observes. The planner orders the steps in the protocol's seeded paired order and writes a `kiln-plan/1`.
 3. **Approve.** A person approves the job in the page. Agent-proposed jobs wait.
-4. **Stage and run.** The host's queue starts the job when the host is free. `DriverHost` uploads the bundle (plan,
-   inputs, source trees) through the transport and starts `kiln_driver.py run`. The driver takes the GPU lock,
-   records conditions, starts the GPU sampler, runs every step as a container, and streams JSON-line events back.
-5. **Collect.** The driver packs `result.tar.gz`; the server fetches it, checks its SHA-256 and registers it as an
+4. **Submit and run.** `DriverHost` uploads the files the driver does not have yet as blobs and submits the plan.
+   The driver queues it and, when the host is free, takes the GPU lock, records conditions, starts the GPU sampler
+   and runs every step as a container. The server reads the job's events by long polling.
+5. **Collect.** The driver packs `result.tar.gz`; the server downloads it, checks its SHA-256 and registers it as an
    evidence archive.
 6. **Import.** For every step, the kind's importer reads the workload's output and each collector's importer reads
    its own output. Kernel timings become `kiln-measure/1` records; requests, spans, counters and conditions become lab
@@ -638,16 +640,16 @@ browser-safe, in a new package `@kiln/exec` (`K/packages/exec`), following KILN-
 needs them to show blocked captures and to execute its own captures, the server needs them to plan and import.
 Only what moves bytes to a machine is server-only.
 
-| Layer            | Lives in                                     | Knows                                                     | Does not know                |
-| ---------------- | -------------------------------------------- | --------------------------------------------------------- | ---------------------------- |
-| Page             | `K/apps/workbench`                           | programs, parameters, captures, offers; the page host     | transports, the driver       |
-| Model, planner   | `K/packages/exec/src/{model,plan,offers}.ts` | captures, protocols, steps, requirements                  | hosts' addresses             |
-| Kinds            | `K/packages/exec/src/kinds/*.ts`             | one workload: input, lowering, output                     | hosts, other kinds           |
-| Collectors       | `K/packages/exec/src/collectors/*.ts`        | one observation method: requirements, application, output | workloads beyond their needs |
-| Queue, approvals | `K/apps/server/src/exec/{queue,jobs}.ts`     | jobs, hosts, approvals                                    | what a kind does             |
-| Host, transport  | `K/apps/server/src/exec/{host,transport}.ts` | moving files and commands; the driver's CLI               | kinds, collectors            |
-| Driver           | `K/runner/kiln_driver.py` (on the host)      | steps, containers, the lock, conditions, the archive      | kernels, Playback, profilers |
-| Environments     | images on the host                           | runtimes and entry points                                 | the server                   |
+| Layer            | Lives in                                         | Knows                                                     | Does not know                |
+| ---------------- | ------------------------------------------------ | --------------------------------------------------------- | ---------------------------- |
+| Page             | `K/apps/workbench`                               | programs, parameters, captures, offers; the page host     | the driver API               |
+| Model, planner   | `K/packages/exec/src/{model,plan,offers}.ts`     | captures, protocols, steps, requirements                  | hosts' addresses             |
+| Kinds            | `K/packages/exec/src/kinds/*.ts`                 | one workload: input, lowering, output                     | hosts, other kinds           |
+| Collectors       | `K/packages/exec/src/collectors/*.ts`            | one observation method: requirements, application, output | workloads beyond their needs |
+| Queue, approvals | `K/apps/server/src/exec/{queue,jobs}.ts`         | jobs, hosts, approvals                                    | what a kind does             |
+| Driver client    | `K/apps/server/src/exec/{host,driver-client}.ts` | the driver API: blobs, plans, events, archives            | kinds, collectors            |
+| Driver           | `K/runner/kiln_driver.py` (on the host)          | steps, containers, the lock, conditions, the archive      | kernels, Playback, profilers |
+| Environments     | images on the host                               | runtimes and entry points                                 | the server                   |
 
 The table is the dependency rule: a layer may use the layers listed in its "Knows" column and must not import
 anything in its "Does not know" column. A new workload kind is one file in `kinds/` plus, if it needs one, an entry
@@ -668,8 +670,10 @@ point inside an environment. A new profiler is one file in `collectors/`.
   estimated.
 - **Identity covers everything that can change a measurement.** Content, environment, device, protocol, collectors.
   Conditions (co-tenants, utilisation) describe a run and stay out of identity.
-- **Nothing listens on a GPU host.** Commands arrive through SSH or run locally; a job lives as long as its connection.
-  ML-PERF-003 §5 weighed an agent service and kept it as a later transport behind the same interface.
+- **Every host speaks one API.** Each host runs the same driver, which serves the same HTTP API, and the server is
+  one client of it. A job belongs to the driver, not to a connection, so it survives the server restarting or its
+  machine sleeping. ML-PERF-003 §5 chose SSH and deferred an agent service; this design takes the agent and drops
+  SSH (§13.2).
 - **One catalog.** Kiln's SQLite database already holds Kiln records and Perf Lab's runs; executed lab captures and
   collector output go there too, so a board can put a kernel's isolated time beside the same kernel's span inside a
   service trace.
@@ -684,27 +688,28 @@ This is a prototype, and keeping every existing path would mean keeping three me
 table lists what the model removes, what replaces it, and what is lost. Each removal happens in the phase that
 introduces its replacement (§29), never before.
 
-| Removed or changed                                                                                               | Replaced by                                                                              | What is lost                                                                |
-| ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `executors.json`, `Executor`, `CudaRunnerExecutor` (`K/apps/server/src/executors/`)                              | `hosts.json`, `DriverHost`, transports (§13)                                             | the old profile format; profiles are rewritten by hand (one per host)       |
-| `kiln_runner.py serve`, the page's runner-served CUDA device, bundle export and "Import results" in Devices      | jobs on a host; an offline run is a result archive imported through `POST /api/archives` | CUDA without the Kiln server                                                |
-| The runner's own `--ncu` and `profile()` (`kiln_runner.py:44`, `:265`)                                           | the `ncu` collector, which wraps any kind (§20.4)                                        | nothing; the metric list moves into the collector                           |
-| `kiln-docker-python`                                                                                             | the driver's `docker run` from structured step fields                                    | nothing                                                                     |
-| Perf Lab's process executor on the Mac (`host: local`) and its `uv` environment                                  | workloads run in containers on GPU hosts                                                 | CPU-only lab runs on the Mac, as `local-sampler` does them now              |
-| Synthetic hosts and synthetic run generation (`playback@dgx`/`rtx-dev` stand-ins, `POST /api/lab/labs/:id/seed`) | a host has a profile and executes, or its captures are blocked                           | presets that work only on generated data; they keep recorded fixtures or go |
-| Perf Lab adapter names (`sampler`, `dino`) as the extension point                                                | kinds with requirements, lowering and importers (§19)                                    | nothing                                                                     |
-| Two job systems: Kiln `jobs` and `lab_jobs`, `/api/jobs` and `/api/lab/jobs`                                     | one job table and one API whose body is a list of captures (§24)                         | Perf Lab's imported job history (its runs and archives are kept)            |
-| The Kiln job body's `kernels[]`                                                                                  | `captures[]`; a Measure is one capture of `kiln-kernels/1`                               | old clients; the page changes in the same commit                            |
-| Perf Lab's `cyrb53` capture hash                                                                                 | SHA-256 identity (§21)                                                                   | imported Perf Lab captures stay readable under their old hashes, read-only  |
-| "Tune and Compare run on the page's devices" (`server-sync.js:107`)                                              | Compare, Sweep and Tune are capture sets on any host                                     | nothing; this is gained                                                     |
+| Removed or changed                                                                                                     | Replaced by                                                                                      | What is lost                                                                |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| `executors.json`, `Executor`, `CudaRunnerExecutor` (`K/apps/server/src/executors/`)                                    | `hosts.json`, `DriverHost`, the driver API (§13)                                                 | the old profile format; profiles are rewritten by hand (one per host)       |
+| Installing the runner over SSH by content hash; a job's processes tied to its SSH connection (`cuda-runner.ts:98-150`) | a driver started by hand on each host and kept current by the server with `PUT /v1/self` (§13.4) | a host is usable only while a person runs its driver                        |
+| `kiln_runner.py serve`, the page's runner-served CUDA device, bundle export and "Import results" in Devices            | jobs on a host; an offline run is a result archive imported through `POST /api/archives`         | CUDA without the Kiln server                                                |
+| The runner's own `--ncu` and `profile()` (`kiln_runner.py:44`, `:265`)                                                 | the `ncu` collector, which wraps any kind (§20.4)                                                | nothing; the metric list moves into the collector                           |
+| `kiln-docker-python`                                                                                                   | the driver's `docker run` from structured step fields                                            | nothing                                                                     |
+| Perf Lab's process executor on the Mac (`host: local`) and its `uv` environment                                        | workloads run in containers on GPU hosts                                                         | CPU-only lab runs on the Mac, as `local-sampler` does them now              |
+| Synthetic hosts and synthetic run generation (`playback@dgx`/`rtx-dev` stand-ins, `POST /api/lab/labs/:id/seed`)       | a host has a profile and executes, or its captures are blocked                                   | presets that work only on generated data; they keep recorded fixtures or go |
+| Perf Lab adapter names (`sampler`, `dino`) as the extension point                                                      | kinds with requirements, lowering and importers (§19)                                            | nothing                                                                     |
+| Two job systems: Kiln `jobs` and `lab_jobs`, `/api/jobs` and `/api/lab/jobs`                                           | one job table and one API whose body is a list of captures (§24)                                 | Perf Lab's imported job history (its runs and archives are kept)            |
+| The Kiln job body's `kernels[]`                                                                                        | `captures[]`; a Measure is one capture of `kiln-kernels/1`                                       | old clients; the page changes in the same commit                            |
+| Perf Lab's `cyrb53` capture hash                                                                                       | SHA-256 identity (§21)                                                                           | imported Perf Lab captures stay readable under their old hashes, read-only  |
+| "Tune and Compare run on the page's devices" (`server-sync.js:107`)                                                    | Compare, Sweep and Tune are capture sets on any host                                             | nothing; this is gained                                                     |
 
-### 13. Hosts and transports [new]
+### 13. Hosts and the driver API [new]
 
 #### 13.1 Host profiles
 
 Host profiles replace both `executors.json` and ML-PERF-003's `hosts.json`. They live in `<data dir>/hosts.json`
-(overridable with `KILN_HOSTS`), outside git because they name machines and users, and outside SQLite because they
-are configuration, not evidence:
+(overridable with `KILN_HOSTS`), outside git because they name machines, and outside SQLite because they are
+configuration, not evidence:
 
 ```json
 {
@@ -712,8 +717,7 @@ are configuration, not evidence:
   "hosts": [
     {
       "id": "spark",
-      "transport": { "kind": "local" },
-      "root": "/home/manuel/kiln-exec",
+      "url": "http://127.0.0.1:5281",
       "environments": {
         "kiln-perf": { "image": "kiln-perf:latest", "docker": { "gpus": "all", "network": "none" } }
       },
@@ -722,8 +726,7 @@ are configuration, not evidence:
     },
     {
       "id": "dgx",
-      "transport": { "kind": "ssh", "destination": "playback@dgx" },
-      "root": "/home/playback/perf-lab",
+      "url": "http://100.103.58.32:5281",
       "environments": {
         "kiln-perf": { "image": "kiln-perf:latest", "docker": { "gpus": "all", "network": "none" } },
         "playback-detection": {
@@ -741,61 +744,112 @@ are configuration, not evidence:
 
 - `id` is the host's name everywhere: in the page, in job rows, in capture specifications. It matches
   `[a-z0-9][a-z0-9-]{0,62}`, the rule executor ids follow today (`cuda-runner.ts:59`).
+- `url` is where the host's driver listens, and the only thing the server needs to reach the host. A profile holds no
+  SSH destination and no path on the host: the driver's root directory is its own option, reported by
+  `GET /v1/info` (§13.4).
 - `environments` names the images the host may use. Names are configuration; what each image contains is probed
   (§15). A host can run only the environments its profile names, never an image it happens to have.
-- `toolMounts` names host directories the driver may mount read-only into containers to provide a tool the image
-  lacks (§14.3).
+- `toolMounts` names host directories that steps may mount read-only to provide a tool the image lacks (§14.3).
 - The server validates the file at startup against a schema; an invalid host is unavailable with the validation
   message, and the other hosts are unaffected (ML-PERF-003 §6.2).
 - **No migration path.** `executors.json` is deleted in Phase 1 (§29); its one profile on `bling` becomes the `spark`
   entry above. The server refuses to start when `executors.json` exists, with a message naming `hosts.json`, so a
   stale file cannot silently stop working.
 
-#### 13.2 The transport interface
+#### 13.2 The driver API
+
+Every GPU host runs the same driver, and the server reaches all of them with one HTTP client over plain TCP. A server
+on `bling` reaches its own driver at `127.0.0.1`, and a driver on another machine at that machine's address. There is
+no SSH and no local process spawning in the core: the host the server runs on is reached exactly like any other.
+
+| Method and path                                | Body                   | Answer                                                                                         |
+| ---------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------- |
+| `GET /v1/info`                                 | none                   | `api` (`kiln-driver/1`), `sha256` of the running file, `hostname`, `root`, `running`, `queued` |
+| `POST /v1/probe`                               | `kiln-probe-request/1` | facts (§15)                                                                                    |
+| `HEAD /v1/blobs/:sha256`                       | none                   | `200` when the blob is stored, `404` otherwise                                                 |
+| `PUT /v1/blobs/:sha256`                        | the bytes              | `201`; `400` when the bytes do not hash to the name                                            |
+| `POST /v1/jobs`                                | `kiln-plan/1`          | `202` with the queue position; `409` naming missing blobs; `400` naming a refused mount        |
+| `GET /v1/jobs`                                 | none                   | every job the driver holds, with its state                                                     |
+| `GET /v1/jobs/:id/events?after=<seq>&wait=<s>` | none                   | the events after `seq`, waiting up to `wait` seconds for the first one                         |
+| `POST /v1/jobs/:id/cancel`                     | none                   | `202`; the running container is killed and the job ends cancelled                              |
+| `GET /v1/jobs/:id/archive`                     | none                   | `result.tar.gz` once the job has ended; `409` before                                           |
+| `DELETE /v1/jobs/:id`                          | none                   | deletes the job's directory, once the server has stored its archive                            |
+| `PUT /v1/self`                                 | a new `kiln_driver.py` | `202`, then the driver re-executes itself; `409` while a job runs                              |
 
 ```ts
-// K/apps/server/src/exec/transport.ts
-export interface Transport {
-  readonly kind: 'local' | 'ssh' | 'agent';
-  /** Run argv on the host; stream stdout lines; resolve with the exit status. Abort kills the remote command. */
-  exec(argv: string[], io: { stdin?: Readable; onLine?: (line: string) => void; signal?: AbortSignal }): Promise<Exit>;
-  /** Unpack a local directory into `dest` under the host root (tar over the transport). */
-  put(localDir: string, dest: string, signal?: AbortSignal): Promise<void>;
-  /** Read one file under the host root into memory. */
-  get(path: string, signal?: AbortSignal): Promise<Uint8Array>;
+// K/apps/server/src/exec/driver-client.ts
+export class DriverClient {
+  constructor(readonly url: string) {}
+  info(signal?: AbortSignal): Promise<DriverInfo>;
+  probe(request: ProbeRequest, signal?: AbortSignal): Promise<Facts>;
+  /** HEAD each blob, PUT the missing ones. */
+  ensureBlobs(files: { sha256: string; open: () => Readable }[], signal?: AbortSignal): Promise<void>;
+  submit(plan: Plan): Promise<{ position: number }>;
+  /** Repeats the long poll from `after` until the job's `result` or `driver.failed` event. */
+  events(job: string, after: number, signal?: AbortSignal): AsyncIterable<DriverEvent>;
+  cancel(job: string): Promise<void>;
+  archive(job: string): Promise<Uint8Array>;
+  remove(job: string): Promise<void>;
 }
 ```
 
-- `LocalTransport` uses `spawn` with a process group per command, as `CudaRunnerExecutor.exec` does today
-  (`cuda-runner.ts:128`).
-- `SshTransport` runs `ssh -T -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o
-  ServerAliveCountMax=4 -- <destination> '<command>'`. The command string is built only from validated values and
-  `shq`-quoted words (`cuda-runner.ts:40`); job ids, image ids and paths have fixed patterns (§27).
-- `put` is one stream: `tar -C <local> -cz . | ssh … 'mkdir -p <dest> && tar -xz -C <dest>'`. `get` is
-  `ssh … cat <path>`, with the SHA-256 checked by the caller.
-- An `AgentTransport` (ML-PERF-003 §5, option C) would implement the same three methods over an authenticated
-  channel to a small service on the host, so that a job survives the server's machine sleeping. Nothing above the
-  transport changes.
+Three properties follow from the driver owning a job instead of a connection:
+
+- **A job survives the server.** Restarting the server, or the Mac it runs on going to sleep, does not touch a running
+  job. The driver appends every event with a sequence number to `jobs/<id>/events.ndjson`; when the server returns it
+  asks for the events after the last sequence number it stored and carries on.
+- **The driver queues.** It runs one job at a time, in submission order, so two Kiln servers that use the same host
+  are serialized without knowing about each other.
+- **Long polling, not streaming.** With `wait`, one request returns as soon as an event exists, and the server repeats
+  it. This needs nothing beyond the standard library's `http.server`, and a dropped request loses nothing: the next
+  one names the same `after`. A request that fails tells the server the driver is unreachable; one that returns empty
+  after `wait` tells it a step is still running.
+
+The API has no authentication, by decision (2026-10-20): drivers run only while a person is developing, on machines
+they control. §27 states what this permits.
 
 #### 13.3 The host root
 
-Everything the core writes on a host lives under the profile's `root`:
+Everything a driver writes lives under its `--root`:
 
 ```text
 <root>/
-  drivers/kiln_driver-<16 hex>.py     installed by content hash, as the runner is today
+  blobs/<sha256>                      uploaded files, content-addressed, shared by jobs: bundles, source trees, media
   jobs/<jobId>/
-    bundle/                           uploaded: plan.json, inputs, source trees, workload packages
+    plan.json                         as submitted
+    events.ndjson                     every event with its sequence number
+    bundle/                           hard links to blobs, at the paths the plan names
     out/<step>/                       written by steps (mounted read-write into exactly one step)
     conditions/                       written by the driver
     logs/<step>.log
     result.tar.gz                     packed by the driver at the end
-  cache/<kind>/                       persistent per-kind caches (e.g. nvcc build cache for kiln-kernels)
-  media/<sha256>.<ext>                content-addressed dataset images, shared by jobs
+  cache/<role>/                       persistent per-kind caches (e.g. nvcc build cache for kiln-kernels)
 ```
 
-The driver refuses any mount whose source is outside `<root>`, except the read-only `toolMounts` of the profile
-(ML-PERF-003 §6.8's mount check, extended).
+Blobs make uploads incremental: a Playback source tree or a dataset image crosses the network once per host, however
+many jobs use it. The driver refuses any mount whose source is outside `<root>`, except tool directories, which it
+mounts only read-only and only at their own path (ML-PERF-003 §6.8's mount check, extended).
+
+#### 13.4 Starting and updating a driver
+
+```bash
+python3 kiln_driver.py serve --root ~/kiln-exec --listen 127.0.0.1:5281
+```
+
+- **Started by hand.** A person starts the driver in a tmux window for as long as they work with the host; there is no
+  service unit. A host whose driver is not running shows as unreachable with its URL, and its captures are blocked
+  with that reason.
+- **As a `docker` user.** The driver starts containers, so it runs as a member of the `docker` group: `manuel` on
+  `bling`, `playback` on `dgx`.
+- **One address.** `--listen 127.0.0.1:5281` when the server runs on the same machine; otherwise the one address the
+  server's machine reaches, never all interfaces.
+- **Kept current by the server.** `GET /v1/info` reports the SHA-256 of the running file. When it differs from the
+  server's copy of `K/runner/kiln_driver.py`, the server sends its copy with `PUT /v1/self` while the driver is idle;
+  the driver writes it beside itself and re-executes with the same arguments. A person copies the file to a host once,
+  and the server keeps it current from then on, as installation by content hash did for the runner over SSH.
+- **Restart recovery.** On start the driver reads `jobs/`. A job without a `result` event was interrupted: the driver
+  kills that job's labelled containers, packs a partial archive and appends `driver.failed` with the reason
+  "driver restarted". The server sees it on its next poll.
 
 ### 14. Environments [new]
 
@@ -851,7 +905,7 @@ Either way the probe runs `<tool> --version` inside the container with the mount
 
 ### 15. The probe and its facts [new, generalising ML-PERF-003 §6.3]
 
-`DriverHost.probe()` runs `kiln_driver.py probe` with a **probe request** on stdin. The request is built by the server
+`DriverHost.probe()` sends a **probe request** to `POST /v1/probe`. The request is built by the server
 from the host profile and from what the registered kinds and collectors want checked; the driver does not know why it
 checks anything:
 
@@ -1156,7 +1210,7 @@ tree, and the dataset images' SHA-256s.
 | capture identity: Perf Lab hash + environment   | SHA-256 identity (§21)                                                                   |
 
 Staging writes `git archive` trees of `services/detection` at both revisions into the bundle, and the dataset images
-into `<root>/media/<sha256>.jpg` once per host. The step argument vectors are those of ML-PERF-003 §6.7, with the
+by SHA-256; they reach a host once, as blobs (§13.3). The step argument vectors are those of ML-PERF-003 §6.7, with the
 container options from §14.2 and the Playback-specific mounts (`/app/src` from the arm's tree, `PYTHONPATH`, cache
 roles) declared by the kind. The `run.py` changes ML-PERF-003 §6.13 lists (`--trees`, CUDA synchronization around
 each timed call, a complete report header) are prerequisites of this kind.
@@ -1173,7 +1227,7 @@ uses both:
 - **Input.** The redaction tree at each arm's revision, the arm's environment switches (for W-28:
   `REDACTION_MASK_POST=kiln` against the default), and one segment by SHA-256.
 - **Step.** One per arm per repetition, in `playback-redaction` (the service image), argument vector
-  `python3 /job/in/trees/<arm>/services/redaction/scripts/bench_segment.py /job/media/<sha256>.ts`.
+  `python3 /job/in/trees/<arm>/services/redaction/scripts/bench_segment.py /job/in/media/<sha256>.ts`.
 - **Intrinsic output.** The benchmark report on stdout, captured by the driver into `out/<step>/stdout.json`.
 - **Stage timers.** The `stage-timers` collector (§20.6) parses the step log for `metric:segment_timing` lines with
   the same rules as `parse_segment_timing.py`, including its frame-count filter, because the adaptive controller
@@ -1204,7 +1258,7 @@ any environment with PyTorch, including Playback's images.
 | 5    | `K/packages/exec/test/kinds/<name>.test.ts` | `lower` snapshot for two repetitions; `import` on a recorded output directory          |
 | 6    | `K/packages/exec/test/fixtures/<name>/`     | one real output directory from a host, with no media                                   |
 
-Nothing in the driver, the transports, the queue or the page changes. The page learns about the kind from the
+Nothing in the driver, the driver API, the queue or the page changes. The page learns about the kind from the
 capability document: a host that can serve it lists it under `offers.kinds`, and the capture editor shows it.
 
 ### 20. Collectors [new]
@@ -1459,16 +1513,16 @@ export interface Step {
   wrap: string[];                             // collector prefixes, outermost first (§20.1)
   post?: string[];                            // a second process after argv exits, same environment (nsys export)
   env: Record<string, string>;                // names match [A-Z_][A-Z0-9_]*
-  mounts: Mount[];                            // by role: bundle, media, cache, tool, tree
+  mounts: Mount[];                            // by role: bundle, cache, tool
   user: 'host-user' | 'root';
   sidecars: string[];                         // 'gpu-sampler'
   timeoutSeconds: number;
   maxOutputBytes: number;
 }
-export type Mount = { role: 'bundle' | 'media' | 'cache' | 'tool' | 'tree'; source: string; target: string; ro: boolean };
+export type Mount = { role: 'bundle' | 'cache' | 'tool'; source: string; target: string; ro: boolean };
 ```
 
-A mount's `source` is relative to its role's directory on the host (`bundle/…`, `media/…`, `cache/<role>/…`), or a
+A mount's `source` is relative to its role's directory on the host (`bundle/…`, `cache/<role>/…`), or a
 path from the profile's `toolMounts`. The driver resolves it and refuses anything else, so a plan cannot name an
 arbitrary host path (§27).
 
@@ -1503,7 +1557,7 @@ The W-28 timing job on `spark`, abbreviated to the first step:
   "format": "kiln-plan/1",
   "job": "job-7c41e0a2-…",
   "host": "spark",
-  "driver": { "sha256": "9f2c…", "path": "drivers/kiln_driver-9f2c3a1b04d7e655.py" },
+  "driver": { "sha256": "9f2c…" },
   "environments": { "kiln-perf": "sha256:4be1…" },
   "lock": { "gpu": "GPU-…", "waitSeconds": 1800 },
   "limits": { "archiveBytes": 1073741824, "minFreeDiskBytes": 5368709120 },
@@ -1557,44 +1611,46 @@ The importer copies a summary into every run (`conditions.computeApps`, `conditi
 #### 22.6 The driver
 
 ```text
-kiln_driver.py run <plan.json> --plan-sha256 <hex>            # K/runner/kiln_driver.py, standard library only
-  verify  sha256(plan.json) and every file in plan.files      → driver.failed on mismatch
-  check   every mount resolves under <root> or a toolMount    → driver.failed naming the mount
-  check   free disk under <root> ≥ limits.minFreeDiskBytes
+POST /v1/jobs (plan):                                         # K/runner/kiln_driver.py, standard library only
+  check   every file in plan.files is a stored blob            → 409 naming the missing ones
+  check   every mount resolves under <root>, or is a tool directory mounted read-only → 400 naming the mount
+  write   jobs/<id>/plan.json; link bundle/ from the blobs; append the job to the queue → 202 { position }
+
+worker, one job at a time in submission order:
+  check   free disk under <root> ≥ limits.minFreeDiskBytes     → driver.failed
   emit    driver.started { driver sha256, pid, host }
   lock    flock with timeout lock.waitSeconds, emitting lock.waiting every 30 s, then lock.acquired
-  record  conditions/before.json                              → conditions
+  record  conditions/before.json                               → conditions
   for step in plan.steps:
-    stop if a cancel marker exists
-    verify the environment's image id                         → step.refused on mismatch
+    stop if the job was cancelled
+    verify the environment's image id                          → step.refused on mismatch
     start the step's sidecars
     docker run <options from §14.2> <wrap…> <argv…>, stdout → out/<step>/stdout, stderr → logs/<step>.log,
-      each stderr line forwarded as step.output, killed at timeoutSeconds
+      each stderr line appended as step.output, killed at timeoutSeconds
     run post, if any, in the same environment
     stop sidecars; enforce maxOutputBytes
     emit step.finished { exit, seconds, outputBytes }
   record  conditions/after.json
-  pack    result.tar.gz: plan.json, conditions/, logs/, out/, execution.json (every step's exit and timing)
-  emit    result { path, sha256, bytes }
+  pack    result.tar.gz: plan.json, events.ndjson, conditions/, logs/, out/, execution.json
+  emit    result { sha256, bytes, partial }
   release the lock
 ```
 
-Events are JSON objects, one per line on stdout. A `heartbeat` event every 15 s lets the server tell a slow step from
-a dropped connection. The driver keeps stdin open, as the runner does with `--exit-on-eof`: when the connection drops,
-stdin reaches end of file, and the driver kills its containers by label, packs what it has, marks the archive partial
-and releases the lock. The server fetches a partial archive during reconciliation.
+Every event is a JSON object with a sequence number `seq` and a time `at`, appended to `jobs/<id>/events.ndjson`
+before anything else sees it, and served by the long poll of §13.2. Because the file is the source, a server that was
+away for an hour reads the same events as one that watched the job live.
 
-The other subcommands:
+Cancellation and cleanup are API calls instead of subcommands:
 
-| Subcommand  | Input                           | Does                                                                                              |
-| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `probe`     | `kiln-probe-request/1` on stdin | prints facts (§15)                                                                                |
-| `cancel`    | a job id                        | writes the cancel marker, `docker kill` every container labelled with the job                     |
-| `reconcile` | the job ids the server tracks   | lists job directories and labelled containers; kills containers of jobs the server does not track |
-| `gc`        | job ids to keep, an age in days | deletes other job directories older than the age, and cache roles above their size                |
+| Operation             | API                        | Does                                                                                                            |
+| --------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| cancel                | `POST /v1/jobs/:id/cancel` | marks the job cancelled; `docker kill` every container labelled with the job                                    |
+| reconcile             | `GET /v1/jobs`             | the server compares the driver's jobs with its own; restart recovery (§13.4) has already ended interrupted ones |
+| garbage collection    | `DELETE /v1/jobs/:id`      | the server deletes a job once its archive is stored                                                             |
+| cache and blob limits | at driver start            | cache roles above their size and blobs no job links are deleted, oldest first                                   |
 
-The driver touches only containers labelled `kiln.job` and only directories under its root. On a shared host this is
-what makes cancel and garbage collection safe to run at any time.
+The driver touches only containers labelled `kiln.job` and only files under its root. On a shared host this is what
+makes cancel and cleanup safe at any time.
 
 #### 22.7 Limits
 
@@ -1612,11 +1668,12 @@ what makes cancel and garbage collection safe to run at any time.
 
 #### 23.1 Archives first
 
-The server fetches `result.tar.gz` with `transport.get`, checks the SHA-256 the driver reported, stores it at
+The server downloads `result.tar.gz` with `GET /v1/jobs/:id/archive`, checks the SHA-256 the driver reported, stores it at
 `<data>/archives/<sha256>.tar.gz` and registers it in the `archives` table before reading a single file from it.
 Import then reads only from the stored archive, never from the host. Two properties follow: an importer bug can be
-fixed and the job re-imported (`POST /api/jobs/:id/reimport`), and an archive produced without the server (a driver
-run by hand, a host with no route to the server) is imported the same way through `POST /api/archives`. That upload
+fixed and the job re-imported (`POST /api/jobs/:id/reimport`), and an archive copied by hand from a host the server
+cannot reach is imported the same way through `POST /api/archives`. Once the archive is stored, the server deletes the
+job on the driver (`DELETE /v1/jobs/:id`). That upload
 replaces the page's bundle export and "Import results" (§12.2).
 
 An archive is untrusted input. Its entries must be relative paths without `..` or links, each file is checked against
@@ -1725,10 +1782,10 @@ stateDiagram-v2
   [*] --> approved: created by the page with approve true
   proposed --> approved: the person approves the plan
   proposed --> cancelled: withdrawn
-  approved --> running: the host's queue starts it
+  approved --> running: the host's driver starts it
   approved --> cancelled: withdrawn
   running --> importing: result archive fetched
-  running --> failed: driver failed, lock timeout, connection lost
+  running --> failed: driver failed, lock timeout, driver restarted
   running --> cancelled: cancel, partial archive fetched
   importing --> done: every step imported
   importing --> failed: an importer refused the archive
@@ -1742,10 +1799,11 @@ projected records are marked invalid with the reason.
 
 #### 24.2 Queues
 
-Each host has its own queue, and a host runs one job at a time. Jobs on different hosts run concurrently. This
-replaces today's single global queue (`kick()` at `jobs.ts:302` starts a job only when no job is active anywhere),
-which would let a long DINO job on `dgx` block a 20-second Measure on `spark`. The GPU lock (§22.4) still serializes
-jobs on one GPU across servers.
+The server submits a job to its host's driver when the job is approved, and the driver's queue decides when it runs
+(§13.2): one job at a time per host, jobs on different hosts concurrently. This replaces today's single global queue
+(`kick()` at `jobs.ts:302` starts a job only when no job is active anywhere), which would let a long DINO job on `dgx`
+block a 20-second Measure on `spark`. Because the queue is the driver's, two servers that use one host are also
+serialized; the GPU lock (§22.4) remains for benchmarks people run by hand.
 
 #### 24.3 Approvals and budgets
 
@@ -1796,24 +1854,24 @@ through the existing `/api/lab/catalog` and `/api/lab/bundles` routes, which rea
 ML-PERF-003 is closed as superseded by this ticket. Every decision of its design survives; what changed is where it
 lives and how general it is.
 
-| ML-PERF-003                             | KILN-003                                                                                        |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| §5 SSH from the lab server, agent later | §13.2 transports: `local`, `ssh`, `agent` later                                                 |
-| §6.1 `StepHost`                         | `DriverHost` over a `Transport` (§13, §22.6)                                                    |
-| §6.2 `hosts.json` for the lab           | `kiln-hosts/1` for everything, replacing `executors.json` too (§13.1)                           |
-| §6.3 remote probe of one image          | probe requests built from every kind's and collector's requirements (§15), offers derived (§18) |
-| §6.4 environment block in lab identity  | environment block in every capture and record (§21)                                             |
-| §6.6 staged bundle                      | `kind.stage` and the host root (§13.3, §22.2)                                                   |
-| §6.7 recipes                            | `playback-dino/1`'s `lower` (§19.5)                                                             |
-| §6.8 `driver.py`                        | `kiln_driver.py` (§22.6), adding the per-GPU lock path and image verification per step          |
-| §6.10 result archive import             | archives first, one import pipeline (§23)                                                       |
-| §6.11 co-tenancy as conditions          | unchanged (§22.5)                                                                               |
-| §6.12 cancel and reconcile by label     | `kiln.job` label (§22.6)                                                                        |
-| §6.13 `run.py` changes                  | prerequisites of `playback-dino/1` (§19.5)                                                      |
-| §6.14 security                          | §27                                                                                             |
-| §6.15 lab job API                       | the one job API (§24)                                                                           |
-| §7 first experiments                    | Phase 4's acceptance runs (§29)                                                                 |
-| Its home: the Perf Lab prototype server | the Kiln server; the prototype stays a read-only reference                                      |
+| ML-PERF-003                             | KILN-003                                                                                                                |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| §5 SSH from the lab server, agent later | the agent instead of SSH: every host runs the driver's HTTP API (§13.2)                                                 |
+| §6.1 `StepHost`                         | `DriverHost` over `DriverClient` (§13.2, §22.6)                                                                         |
+| §6.2 `hosts.json` for the lab           | `kiln-hosts/1` for everything, replacing `executors.json` too (§13.1)                                                   |
+| §6.3 remote probe of one image          | probe requests built from every kind's and collector's requirements (§15), offers derived (§18)                         |
+| §6.4 environment block in lab identity  | environment block in every capture and record (§21)                                                                     |
+| §6.6 staged bundle                      | `kind.stage` and the host root (§13.3, §22.2)                                                                           |
+| §6.7 recipes                            | `playback-dino/1`'s `lower` (§19.5)                                                                                     |
+| §6.8 `driver.py`                        | `kiln_driver.py serve` (§22.6), adding a queue, persisted events, the per-GPU lock path and image verification per step |
+| §6.10 result archive import             | archives first, one import pipeline (§23)                                                                               |
+| §6.11 co-tenancy as conditions          | unchanged (§22.5)                                                                                                       |
+| §6.12 cancel and reconcile by label     | `kiln.job` label, `POST /v1/jobs/:id/cancel`, restart recovery (§13.4, §22.6)                                           |
+| §6.13 `run.py` changes                  | prerequisites of `playback-dino/1` (§19.5)                                                                              |
+| §6.14 security                          | §27                                                                                                                     |
+| §6.15 lab job API                       | the one job API (§24)                                                                                                   |
+| §7 first experiments                    | Phase 4's acceptance runs (§29)                                                                                         |
+| Its home: the Perf Lab prototype server | the Kiln server; the prototype stays a read-only reference                                                              |
 
 ### 27. Security
 
@@ -1822,22 +1880,25 @@ boundaries and adds the ones execution needs:
 
 - **The page boundary is unchanged.** The Host allow-list, Origin check, `X-Kiln-Token` and JSON content type of
   `K/apps/server/src/security.ts` guard every new route. Only the page holds the token, so only a person approves.
-- **No shell strings from input.** Transports build commands from validated values only: host ids, job ids and step
-  ids match fixed patterns, image references are resolved IDs, environment names match `[A-Z_][A-Z0-9_]*`, and every
-  word is `shq`-quoted (`cuda-runner.ts:40`). The SSH destination rule of today stays: no leading `-`, no port syntax.
+- **The driver API has no authentication, by decision.** Drivers run only while a person develops, on machines that
+  person controls (decision of 2026-10-20). Whoever can reach a driver's port can run containers with the GPU as the
+  driver's user, who is in the `docker` group. Two habits keep that small: a driver listens on one address, and on
+  `127.0.0.1` when the server is on the same machine (§13.4), and it is stopped when the work stops.
+- **Values have fixed patterns.** Host, job and step ids, blob names (64 hex) and environment variable names
+  (`[A-Z_][A-Z0-9_]*`) are checked by the server and again by the driver, which builds `docker run` argument vectors
+  without a shell.
 - **Fixed container options.** A step cannot ask for `--privileged`, `--pid host`, a network, a device, a capability
   or an arbitrary mount. Mount sources resolve under the host root or a profile `toolMount`. `user: 'root'` is allowed
   only for kinds that declare it, and the plan shows it before approval.
-- **The driver validates the plan.** It trusts the server, but it re-checks the plan's schema, file hashes and mounts,
-  so a planner bug fails before a container starts.
+- **The driver validates the plan.** It re-checks the plan's schema, blob hashes and mounts, so a planner bug, or a
+  hand-written request, fails before a container starts.
 - **Archives are untrusted input** (§23.1): path, size and extension checks; the `nsys` SQLite export is opened
   read-only.
 - **No footage leaves a host in an archive.** Kinds that read camera media accept only registered fixture sets, and
   their extension allow-lists keep frames out of `out/` (§19.6). Reports show text, numbers and charts.
 - **Shared hosts are left alone.** Cancel, reconcile and gc touch only containers labelled `kiln.job` and directories
   under the root. Co-tenants are recorded, never stopped.
-- **No stored credentials.** SSH uses the server user's agent and `~/.ssh/config`; profiles hold destinations, not
-  keys.
+- **No credentials anywhere.** Profiles hold URLs; there are no keys or tokens to store or leak.
 - **Counter access is a host decision.** Opening GPU counters to all users (`NVreg_RestrictProfilingToAdminUsers=0`)
   lets any local user profile other users' kernels. It is a per-host choice recorded in the host's facts, made by the
   host's owner (§31.2), never by the system.
@@ -1850,7 +1911,7 @@ All routes are under `/api` and answer JSON.
 
 | Method and path                                                                                           | Status  | Body or answer                                                                            |
 | --------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| `GET /hosts`                                                                                              | new     | hosts with id, transport kind, state, last probe time, queue length                       |
+| `GET /hosts`                                                                                              | new     | hosts with id, URL, driver state (reachable, version, queue), last probe time             |
 | `GET /hosts/:id/capabilities`                                                                             | new     | `kiln-capabilities/1` (§17)                                                               |
 | `POST /hosts/:id/probe`                                                                                   | new     | re-probes; answers the new capability document                                            |
 | `GET /jobs`                                                                                               | changed | jobs, newest first, with host, status, capture and group counts                           |
@@ -1868,30 +1929,23 @@ All routes are under `/api` and answer JSON.
 | `/lab/evidence*`                                                                                          | moved   | to `/archives`                                                                            |
 | `/lab/programs*`, `/lab/catalog`, `/lab/bundles`, `/lab/annotations`, `/lab/datasets*`, `/lab/media/:sha` | same    | read the renamed tables                                                                   |
 
-#### 28.2 Driver command line
+#### 28.2 Driver
 
-| Command                                                    | Standard input               | Standard output                                                    |
-| ---------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------ |
-| `kiln_driver.py probe`                                     | `kiln-probe-request/1`       | facts, one JSON document                                           |
-| `kiln_driver.py run <plan.json> --plan-sha256 <hex>`       | kept open; EOF stops the job | events, one JSON object per line                                   |
-| `kiln_driver.py cancel <jobId>`                            | none                         | `{ "killed": [names] }`                                            |
-| `kiln_driver.py reconcile --known <jobId,…>`               | none                         | job directories and labelled containers found, and what was killed |
-| `kiln_driver.py gc --keep <jobId,…> --older-than-days <n>` | none                         | what was deleted                                                   |
-
-Driver events:
+The driver has one subcommand, `kiln_driver.py serve --root <dir> --listen <address:port>`, and the API of §13.2.
+Its events, each with `seq` and `at`:
 
 | Event            | Fields                                               |
 | ---------------- | ---------------------------------------------------- |
+| `job.queued`     | `position`                                           |
 | `driver.started` | `sha256`, `pid`, `hostname`                          |
 | `lock.waiting`   | `gpu`, `holder` (job, user, since)                   |
 | `lock.acquired`  | `gpu`, `waitedSeconds`                               |
-| `conditions`     | `at` (`before` or `after`), the summary              |
+| `conditions`     | `when` (`before` or `after`), the summary            |
 | `step.started`   | `step`, `image`                                      |
 | `step.output`    | `step`, `line` (a workload's stderr line)            |
 | `step.refused`   | `step`, `reason` (image mismatch, mount)             |
 | `step.finished`  | `step`, `exit`, `seconds`, `outputBytes`, `timedOut` |
-| `heartbeat`      | `at`, `step`                                         |
-| `result`         | `path`, `sha256`, `bytes`, `partial`                 |
+| `result`         | `sha256`, `bytes`, `partial`                         |
 | `driver.failed`  | `reason`                                             |
 
 #### 28.3 Formats
@@ -1899,6 +1953,7 @@ Driver events:
 | Format                            | Written by                                 | Read by                  | Defined in                                                                           | Status           |
 | --------------------------------- | ------------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------ | ---------------- |
 | `kiln-hosts/1`                    | a person                                   | server                   | `K/apps/server/src/exec/hosts.ts`                                                    | new              |
+| `kiln-driver/1` (the API)         | driver                                     | server                   | `K/runner/kiln_driver.py`, `K/apps/server/src/exec/driver-client.ts`                 | new              |
 | `kiln-probe-request/1`            | server                                     | driver                   | `K/packages/exec/src/probe.ts`                                                       | new              |
 | `kiln-capabilities/1`             | server                                     | page                     | `K/packages/exec/src/offers.ts`                                                      | new              |
 | `kiln-capture/1`                  | page, server                               | identity hash only       | `K/packages/exec/src/identity.ts`                                                    | new              |
@@ -1927,7 +1982,7 @@ flowchart LR
   P2 --> P5["P5 playback-redaction"]
   P3 --> P5
   P4 --> P5
-  P3 --> P6["P6 torch-function, agent transport"]
+  P3 --> P6["P6 torch-function"]
 ```
 
 #### P0. Hosts, probe, capability documents
@@ -1937,26 +1992,27 @@ flowchart LR
 | `@kiln/exec` package: model types, requirements, offers, identity    | `K/packages/exec/src/{model,requirements,offers,identity}.ts` |
 | Kind and collector registries with `requires` only (no lowering yet) | `K/packages/exec/src/kinds/index.ts`, `collectors/index.ts`   |
 | Host profiles and their validation                                   | `K/apps/server/src/exec/hosts.ts`                             |
-| Transports                                                           | `K/apps/server/src/exec/transport.ts`                         |
-| Driver `probe` and installation by content hash                      | `K/runner/kiln_driver.py`, `K/apps/server/src/exec/host.ts`   |
+| Driver client                                                        | `K/apps/server/src/exec/driver-client.ts`                     |
+| Driver `serve` with `/v1/info`, `/v1/probe`, `/v1/self`              | `K/runner/kiln_driver.py`, `K/apps/server/src/exec/host.ts`   |
 | Routes `/api/hosts*`                                                 | `K/apps/server/src/exec/routes.ts`                            |
 | Devices view shows capability documents                              | `K/apps/workbench/src/ui/Perf.jsx` (`DevicesView`)            |
 
-**Acceptance.** `spark` (local) and `dgx` (SSH) probe in under a minute each. `spark`'s document shows the GB10,
+**Acceptance.** `spark` and `dgx` probe through their drivers in under a minute each. `spark`'s document shows the GB10,
 `gpuCounters: "admin-only"`, `kiln-perf` with `nvcc` 13.0, and offers `kiln-kernels/1`, with `ncu` blocked for the
 reason of §16. `dgx`'s document lists `playback-detection` with its image ID. The probe on `dgx` runs one short
-container per environment with `--network none` and touches nothing else.
+container per environment with `--network none` and touches nothing else. Editing `kiln_driver.py` on the server's
+side and probing again replaces the running driver through `PUT /v1/self`.
 
 #### P1. The driver runs `kiln-kernels/1`
 
-| Work                                                                           | Files                                                                |
-| ------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| Driver `run`, `cancel`, `reconcile`, `gc`; GPU lock; conditions; `gpu-sampler` | `K/runner/kiln_driver.py`                                            |
-| Planner and `kiln-plan/1`                                                      | `K/packages/exec/src/plan.ts`                                        |
-| `kiln-kernels/1`, `kiln-probe/1`; `cuda-events`, `ptxas`                       | `K/packages/exec/src/kinds/`, `collectors/`                          |
-| One job API with captures, per-host queues                                     | `K/apps/server/src/exec/{jobs,queue}.ts` replacing `jobs.ts`         |
-| Archives and import, record projection                                         | `K/apps/server/src/exec/import.ts`, `K/packages/exec/src/archive.ts` |
-| Page: `HostDevice`, Compare and Sweep on a host, Jobs view with plans          | `server-sync.js`, `ui/Jobs.jsx`, `ui/Perf.jsx`                       |
+| Work                                                                                                | Files                                                                |
+| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Driver jobs, blobs, events, cancel, archives, restart recovery; GPU lock; conditions; `gpu-sampler` | `K/runner/kiln_driver.py`                                            |
+| Planner and `kiln-plan/1`                                                                           | `K/packages/exec/src/plan.ts`                                        |
+| `kiln-kernels/1`, `kiln-probe/1`; `cuda-events`, `ptxas`                                            | `K/packages/exec/src/kinds/`, `collectors/`                          |
+| One job API with captures, per-host queues                                                          | `K/apps/server/src/exec/{jobs,queue}.ts` replacing `jobs.ts`         |
+| Archives and import, record projection                                                              | `K/apps/server/src/exec/import.ts`, `K/packages/exec/src/archive.ts` |
+| Page: `HostDevice`, Compare and Sweep on a host, Jobs view with plans                               | `server-sync.js`, `ui/Jobs.jsx`, `ui/Perf.jsx`                       |
 
 Removed in this phase: `K/apps/server/src/executors/`, `executors.json` support, `kiln_runner.py serve` and `--ncu`,
 `kiln-docker-python`, the page's runner device and bundle export and import.
@@ -1970,8 +2026,10 @@ Removed in this phase: `K/apps/server/src/executors/`, `executors.json` support,
 - A second Kiln server on `bling` with its own data directory queues behind the first on the GPU lock; its
   `lock.waiting` event names the first server's job.
 - Cancelling a running job leaves a partial archive, invalid records with the reason, and no `kiln.job` container.
-- Killing the SSH connection to a `dgx` job stops its containers within one heartbeat interval, and the server's
-  restart reconciliation marks the job failed.
+- Stopping the server in the middle of a `dgx` job leaves the job running; the restarted server reads its events
+  from the last stored sequence number and imports its archive.
+- Stopping the driver in the middle of a job and starting it again ends the job as failed with a partial archive and
+  no `kiln.job` container left.
 
 #### P2. `ncu` and `nsys`
 
@@ -2022,26 +2080,25 @@ is visible as a stage span with its kernels.
 
 #### P6. Extensions
 
-`torch-function/1` (§19.7) as the first kind built only from the checklist of §19.8, and an `AgentTransport` if jobs
-need to outlive the server's connection. Neither is required by the earlier phases.
+`torch-function/1` (§19.7) as the first kind built only from the checklist of §19.8. No earlier phase needs it.
 
 ### 30. Test strategy
 
 Most of the design is pure functions, and the tests follow that: the expensive host runs check only what pure tests
 cannot.
 
-| Layer                   | Test                                                                                                                                                                                | Needs      |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| Requirements and offers | fixture facts for `spark`, `dgx`, a host without Docker, a host with counters open → offer tables                                                                                   | nothing    |
-| Identity                | golden capture ids; changing any identity input changes the id; conditions never do                                                                                                 | nothing    |
-| Planner                 | plan snapshot for the W-28 job; every repetition serves every capture once; groups interleave; seeds stable                                                                         | nothing    |
-| Kinds                   | `lower` snapshots for two repetitions; `import` on recorded output fixtures                                                                                                         | fixtures   |
-| Collectors              | `apply` snapshots; `ncu` on a recorded CSV; `nsys` on a small recorded SQLite export                                                                                                | fixtures   |
-| Archives                | path traversal, links, oversize files and disallowed extensions are refused                                                                                                         | nothing    |
-| Pooling                 | records of different scope, environment or disturbing collectors never share a pool key                                                                                             | nothing    |
-| Driver                  | Python `unittest` with fake `docker`, `nvidia-smi` and `flock` scripts on `PATH`: mount refusal, image mismatch, two drivers on one lock, cancel marker, stdin EOF, partial archive | Python     |
-| Host runs               | `pnpm --filter @kiln/server test:host spark`: probe and a two-kernel job end to end; manual, not CI                                                                                 | a GPU host |
-| Page                    | headless scripts in the style of `scripts/01-verify-measure-context.mjs`: Measure, Compare, a blocked counters capture                                                              | a server   |
+| Layer                   | Test                                                                                                                                                                                                                                                                                                          | Needs      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Requirements and offers | fixture facts for `spark`, `dgx`, a host without Docker, a host with counters open → offer tables                                                                                                                                                                                                             | nothing    |
+| Identity                | golden capture ids; changing any identity input changes the id; conditions never do                                                                                                                                                                                                                           | nothing    |
+| Planner                 | plan snapshot for the W-28 job; every repetition serves every capture once; groups interleave; seeds stable                                                                                                                                                                                                   | nothing    |
+| Kinds                   | `lower` snapshots for two repetitions; `import` on recorded output fixtures                                                                                                                                                                                                                                   | fixtures   |
+| Collectors              | `apply` snapshots; `ncu` on a recorded CSV; `nsys` on a small recorded SQLite export                                                                                                                                                                                                                          | fixtures   |
+| Archives                | path traversal, links, oversize files and disallowed extensions are refused                                                                                                                                                                                                                                   | nothing    |
+| Pooling                 | records of different scope, environment or disturbing collectors never share a pool key                                                                                                                                                                                                                       | nothing    |
+| Driver                  | Python `unittest` against a driver on an ephemeral port, with fake `docker`, `nvidia-smi` and `flock` scripts on `PATH`: blob hash refusal, mount refusal, image mismatch, queue order, two drivers on one lock, cancel, events resumed with `after`, restart recovery with a partial archive, `PUT /v1/self` | Python     |
+| Host runs               | `pnpm --filter @kiln/server test:host spark`: probe and a two-kernel job end to end; manual, not CI                                                                                                                                                                                                           | a GPU host |
+| Page                    | headless scripts in the style of `scripts/01-verify-measure-context.mjs`: Measure, Compare, a blocked counters capture                                                                                                                                                                                        | a server   |
 
 Fixtures from hosts go under `K/packages/exec/test/fixtures/<kind or collector>/` and contain only JSON, CSV, logs and
 SQLite exports; never media.
@@ -2054,13 +2111,13 @@ SQLite exports; never media.
 # on bling, as manuel
 cd ~/code/kiln/runner/docker && ./build.sh --ncu            # kiln-perf with Nsight Compute
 cat > ~/kiln-002/server-data/hosts.json <<'JSON'
-{ "format": "kiln-hosts/1", "hosts": [ { "id": "spark", "transport": { "kind": "local" },
-  "root": "/home/manuel/kiln-exec",
+{ "format": "kiln-hosts/1", "hosts": [ { "id": "spark", "url": "http://127.0.0.1:5281",
   "environments": { "kiln-perf": { "image": "kiln-perf:latest", "docker": { "gpus": "all", "network": "none" } } },
   "toolMounts": { "nsys": "/opt/nvidia/nsight-systems" }, "lock": { "waitSeconds": 1800 } } ] }
 JSON
 rm ~/kiln-002/server-data/executors.json                     # the server refuses to start while it exists
 tmux -L kiln new -d -s kiln 'cd ~/code/kiln && pnpm serve'   # as in KILN-002 Step 13
+tmux -L kiln new-window -t kiln 'python3 ~/code/kiln/runner/kiln_driver.py serve --root ~/kiln-exec --listen 127.0.0.1:5281'
 
 # on the Mac
 ssh -N -L 5280:127.0.0.1:5280 manuel@bling.local            # then open http://127.0.0.1:5280/
@@ -2086,20 +2143,21 @@ of §27. On `dgx`, which is shared with factory-live, counters stay blocked unle
 
 #### 31.3 `dgx`
 
-```json
-{ "id": "dgx", "transport": { "kind": "ssh", "destination": "playback@dgx" }, "root": "/home/playback/perf-lab",
-  "environments": {
-    "kiln-perf": { "image": "kiln-perf:latest", "docker": { "gpus": "all", "network": "none" } },
-    "playback-detection": { "image": "pb-dgx-sim-detection:latest", "python": "/app/.venv/bin/python",
-      "docker": { "gpus": "all", "network": "none", "memory": "16g", "shmSize": "1g" },
-      "threads": { "omp": 2, "mkl": 2, "openblas": 1, "inductorCompile": 4 } } },
-  "toolMounts": { "nsys": "/opt/nvidia/nsight-systems" },
-  "lock": { "waitSeconds": 1800 }, "idleWindowSeconds": 10 }
+```bash
+# once: copy the driver; afterwards the server keeps it current (§13.4)
+scp ~/code/kiln/runner/kiln_driver.py playback@dgx:kiln_driver.py
+# on dgx, as playback, in a tmux window
+python3 ~/kiln_driver.py serve --root /home/playback/perf-lab --listen 100.103.58.32:5281
 ```
 
-As of 2026-10-20, `dgx` has `kiln-perf:latest`, `nsys` at `/usr/local/bin/nsys`, `/opt/nvidia/nsight-systems` and
-`/opt/nvidia/nsight-compute`, `RmProfilingAdminOnly: 1` and a world-writable `/run/lock`. The server reaches it with
-the SSH key of the user that runs the server.
+The profile entry is the `dgx` host of §13.1. As of 2026-10-20, `dgx` has `kiln-perf:latest`, `nsys` at
+`/usr/local/bin/nsys`, `/opt/nvidia/nsight-systems` and `/opt/nvidia/nsight-compute`, `RmProfilingAdminOnly: 1` and a
+world-writable `/run/lock`.
+
+`dgx`'s address, `100.103.58.32`, is on the Tailscale network. The Mac reaches it; `bling` does not (a TCP connection
+from `bling` to its port 22 fails, and the name `dgx` does not resolve there). A server that uses both hosts therefore
+runs on the Mac, with `spark`'s URL `http://bling.local:5281` and `bling`'s driver listening on `bling`'s LAN address;
+or `bling` joins the tailnet. Nothing else in the design depends on where the server runs.
 
 #### 31.4 Running the W-28 example
 
@@ -2135,7 +2193,9 @@ tar -xzOf ~/kiln-002/server-data/archives/$sha.tar.gz conditions/before.json | j
 | Table renames break `lab:import`                                    | updated in the same P4 commit as the migration                                                                                                   |
 | Long DINO jobs consume the agent budget                             | one budget for all kinds is deliberate; revisit after P4 with real numbers                                                                       |
 | The lock is advisory                                                | processes that ignore it are recorded, not excluded (§22.4)                                                                                      |
-| Where the driver lives when the server's machine sleeps             | `ssh` ties a job to its connection; `AgentTransport` is P6, only if this hurts                                                                   |
+| The driver API is unauthenticated                                   | decided for development (§27); one listen address per driver, stopped when not in use                                                            |
+| A host is usable only while a person runs its driver                | the page shows the URL and why it is unreachable; acceptable during development                                                                  |
+| `dgx` is not reachable from `bling`                                 | run the server on the Mac for jobs on both hosts, or put `bling` on the tailnet (§31.3)                                                          |
 | `kiln-probe/1` specs as device specs                                | stored in `devices.spec_json`; whether Tune should prefer them over public specs is open                                                         |
 
 ### 33. File index
@@ -2145,7 +2205,7 @@ tar -xzOf ~/kiln-002/server-data/archives/$sha.tar.gz conditions/before.json | j
 | File                                                                    | Why                                                                      |
 | ----------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | `K/apps/server/src/jobs.ts`                                             | today's job loop and record projection, which P1 replaces                |
-| `K/apps/server/src/executors/cuda-runner.ts`                            | installation by content hash, SSH command building, process groups       |
+| `K/apps/server/src/executors/cuda-runner.ts`                            | the executor contract and process handling that the driver API replaces  |
 | `K/runner/kiln_runner.py`                                               | the runner `kiln-kernels/1` keeps calling, and the `ncu` code that moves |
 | `K/runner/docker/{Dockerfile,build.sh,kiln-docker-python,kiln-probe}`   | the `kiln-perf` image and its options                                    |
 | `K/runtime/python/kiln_launch.py`                                       | the program launcher that gains `bench`                                  |
@@ -2158,20 +2218,20 @@ tar -xzOf ~/kiln-002/server-data/archives/$sha.tar.gz conditions/before.json | j
 
 #### 33.2 New files
 
-| File                                                                        | Phase | Contents                                 |
-| --------------------------------------------------------------------------- | ----- | ---------------------------------------- |
-| `K/packages/exec/src/model.ts`                                              | P0    | captures, groups, steps, observations    |
-| `K/packages/exec/src/requirements.ts`                                       | P0    | the requirement language and its reasons |
-| `K/packages/exec/src/offers.ts`                                             | P0    | offer derivation, `kiln-capabilities/1`  |
-| `K/packages/exec/src/identity.ts`                                           | P0    | capture ids, environment blocks          |
-| `K/packages/exec/src/plan.ts`                                               | P1    | the planner, `kiln-plan/1`               |
-| `K/packages/exec/src/archive.ts`                                            | P1    | reading `kiln-result/1` archives safely  |
-| `K/packages/exec/src/kinds/*.ts`                                            | P1–P6 | one file per kind                        |
-| `K/packages/exec/src/collectors/*.ts`                                       | P1–P5 | one file per collector                   |
-| `K/apps/server/src/exec/{hosts,transport,host,queue,jobs,import,routes}.ts` | P0–P1 | the server side                          |
-| `K/apps/server/src/exec/nsys-sqlite.ts`                                     | P2    | read-only reader of `nsys` exports       |
-| `K/runner/kiln_driver.py`                                                   | P0–P1 | the driver                               |
-| `K/runner/test/test_driver.py`                                              | P1    | driver tests with fake tools             |
+| File                                                                      | Phase | Contents                                 |
+| ------------------------------------------------------------------------- | ----- | ---------------------------------------- |
+| `K/packages/exec/src/model.ts`                                            | P0    | captures, groups, steps, observations    |
+| `K/packages/exec/src/requirements.ts`                                     | P0    | the requirement language and its reasons |
+| `K/packages/exec/src/offers.ts`                                           | P0    | offer derivation, `kiln-capabilities/1`  |
+| `K/packages/exec/src/identity.ts`                                         | P0    | capture ids, environment blocks          |
+| `K/packages/exec/src/plan.ts`                                             | P1    | the planner, `kiln-plan/1`               |
+| `K/packages/exec/src/archive.ts`                                          | P1    | reading `kiln-result/1` archives safely  |
+| `K/packages/exec/src/kinds/*.ts`                                          | P1–P6 | one file per kind                        |
+| `K/packages/exec/src/collectors/*.ts`                                     | P1–P5 | one file per collector                   |
+| `K/apps/server/src/exec/{hosts,driver-client,host,jobs,import,routes}.ts` | P0–P1 | the server side                          |
+| `K/apps/server/src/exec/nsys-sqlite.ts`                                   | P2    | read-only reader of `nsys` exports       |
+| `K/runner/kiln_driver.py`                                                 | P0–P1 | the driver                               |
+| `K/runner/test/test_driver.py`                                            | P1    | driver API tests with fake tools         |
 
 #### 33.3 Deleted files
 

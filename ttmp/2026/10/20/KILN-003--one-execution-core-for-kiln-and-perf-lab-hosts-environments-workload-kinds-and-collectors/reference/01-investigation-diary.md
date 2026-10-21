@@ -206,3 +206,109 @@ ssh playback@dgx 'stat -c "%A %U %n" /run/lock; command -v nsys ncu; ls -d /opt/
 
 `ncu` is not on `PATH` on `dgx` (only under `/opt/nvidia/nsight-compute`); on `bling` it is at
 `/usr/local/cuda-13.0/bin/ncu` (KILN-002 Step 13).
+
+## Step 2: One HTTP API on every host instead of local and SSH transports
+
+The user asked whether the design could say that every runner exposes the same API over one conduit, HTTP, instead
+of `local` and `ssh` transports, and what would be lost. I answered that one API is a clear simplification and that a
+pure-HTTP conduit would lose SSH's authentication, encryption and zero-install deployment. The user decided: plain TCP,
+a local HTTP server on the server's own machine too, and no authentication, because drivers run only during active
+development. The guide now has one driver API (§13.2) and no transports.
+
+The decision moves job ownership from a connection to the driver. That removes more than the transports: the
+`heartbeat` event, the stdin end-of-file lifetime, label-scanning reconciliation as a subcommand, and the P6 agent
+transport all go, and two servers sharing a host are serialized by the driver's queue. One fact found while revising
+constrains deployment: `dgx` is at a Tailscale address that the Mac reaches and `bling` does not.
+
+### Prompt Context
+
+**User prompts (verbatim, 2026-10-20):**
+
+- "how can i give manuel admin rights to get access to ncu cuda gpu perf on bling?"
+- "can we simplify to say "every runner exposes the same API, there is one conduit for it all, we don't need
+  ssh/local/etc... one http?" or would we be missing something?"
+- "plain TCP is fine, this is all local. same with the remote / local stuff, we can just run a local HTTP server too.
+  let's leave authentication out of this, it's fine, this will only be started when doing active development anyway"
+
+(An "open with md-view view" request in between opened the guide in the md-view desktop viewer.)
+
+**Assistant interpretation:** Replace the `Transport` interface (local, ssh, agent) with one HTTP API served by the
+driver on every host, the local host included; no authentication; drivers started by hand. Revise every section that
+mentioned transports, SSH, stdin lifetime or the agent phase, and re-upload.
+
+**Inferred user intent:** Fewer mechanisms in the core: one client, one server program, one way to reach any host.
+
+### What I did
+
+- Answered the `ncu` question from bling's state (read-only): `manuel` is in groups `sudo` and `docker`;
+  `/etc/modprobe.d/` sets no profiling option; `RmProfilingAdminOnly: 1`. The NVIDIA driver reads counters only with
+  `CAP_SYS_ADMIN`, so there is no group to add `manuel` to; the options are the module option plus a reboot, `sudo
+  ncu`, or a root container with `--cap-add SYS_ADMIN`. Nothing was changed on bling.
+- Checked reachability for the HTTP design: on the Mac `dgx` resolves to `100.103.58.32` (a Tailscale address); on
+  `bling`, `getent hosts dgx` finds nothing and `bash -c '</dev/tcp/100.103.58.32/22'` fails. `bling` listens on
+  `127.0.0.1:5280` (the Kiln server) and nothing on 5281.
+- Revised the guide with a script of exact replacements (`scripts/02-revise-guide-http-driver.py`, run once on the guide):
+  §13 rewritten as "Hosts and the driver API" (profiles with `url`, the API table, `DriverClient`, the host root
+  with `blobs/`, a new §13.4 on starting and updating a driver); §22.6 rewritten around `POST /v1/jobs`, a queue and
+  persisted events; §24.2 (the driver's queue), §27 (no authentication, by decision), §28.2 (the driver's one
+  subcommand and its events), §31.1 and §31.3 (start commands, the Tailscale finding), §32 and §33; smaller edits in
+  §1, §3, §11, §12, §15, §19, §23, §26, §29 and §30.
+- Edited tasks `jygn`, `si2b` and `bieo` to match.
+
+### Why
+
+- **Job ownership.** With SSH, a job lived as long as its connection, which is why the design had a heartbeat, a
+  stdin lifetime and an agent transport deferred to P6. A driver that owns its jobs makes all three unnecessary.
+- **Long polling.** `GET /v1/jobs/:id/events?after=<seq>&wait=<s>` needs nothing beyond `http.server`, and a dropped
+  request loses nothing; streaming would need connection state on both sides.
+- **Blobs.** Content-addressed uploads replace tar-over-SSH and the separate `media/` directory, and send a Playback
+  source tree or dataset image to a host once.
+- **Self-update.** `PUT /v1/self` keeps what installation by content hash gave the runner: the server's copy is the
+  one that runs, without a person redeploying after each edit.
+
+### What worked
+
+- The revision applied with every replacement asserted; the table check reported 0 column mismatches and balanced code
+  fences; no occurrence of "transport" remains in the guide.
+
+### What didn't work
+
+- N/A
+
+### What I learned
+
+- `dgx` is reachable only over Tailscale. A server on `bling` cannot use a driver on `dgx` until `bling` joins the
+  tailnet; a server on the Mac can use both (`http://bling.local:5281` with bling's driver on its LAN address).
+
+### What was tricky to build
+
+- Deciding what "reconcile" means once the driver owns jobs: the driver's own restart recovery ends interrupted jobs
+  with a partial archive, and the server's part shrinks to comparing `GET /v1/jobs` with its rows.
+
+### What warrants a second pair of eyes
+
+- §27: without authentication, anyone who reaches a driver's port can run GPU containers as a `docker`-group user.
+  The guide asks for one listen address per driver and `127.0.0.1` when the server is local; on `dgx`, the
+  Tailscale address limits exposure to the tailnet.
+- `PUT /v1/self` replaces running code on request; it is refused while a job runs.
+
+### What should be done in the future
+
+- Decide where the server runs for two-host work (the Mac, or `bling` on the tailnet) before P4.
+
+### Code review instructions
+
+- Read §13 in full, then §22.6, §24.2, §27 and §31.3. Validate with `docmgr doctor --ticket KILN-003`.
+
+### Technical details
+
+```bash
+ssh -G dgx | grep -E '^(hostname|port) '          # hostname dgx, port 22
+dscacheutil -q host -a name dgx                    # ip_address: 100.103.58.32
+ssh manuel@bling.local "getent hosts dgx || echo 'dgx: no name on bling'; \
+  timeout 3 bash -c '</dev/tcp/100.103.58.32/22' && echo reachable || echo not-reachable"   # no name; not-reachable
+ssh manuel@bling.local 'id; grep -rn NVreg /etc/modprobe.d/; grep -i profil /proc/driver/nvidia/params'
+# groups=…,27(sudo),…,988(docker)
+# nvidia-graphics-drivers-kms.conf: NVreg_PreserveVideoMemoryAllocations=1, NVreg_TemporaryFilePath=/var
+# RmProfilingAdminOnly: 1
+```

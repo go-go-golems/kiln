@@ -28,8 +28,8 @@ ML-PERF-003 designed a third, SSH-based executor for Playback code on the DGX. T
 core model: every measurement is a set of captures that a job runs on a host; hosts report probed facts from which
 the server derives what they can run and why not; workload kinds (`kiln-kernels/1`, `kiln-program/1`,
 `playback-dino/1`, `playback-redaction/1`, …) and collectors (CUDA events, `ncu`, `nsys`, NVTX, memory, stage timers,
-a GPU sampler) are two registries in a browser-safe package; a standard-library driver runs the plan's steps as
-containers under a per-GPU lock and packs a result archive. The design removes paths deliberately (guide §12.2).
+a GPU sampler) are two registries in a browser-safe package; a standard-library driver, which every host serves as
+the same HTTP API, queues plans, runs their steps as containers under a per-GPU lock and packs a result archive. The design removes paths deliberately (guide §12.2).
 ML-PERF-003 is closed as superseded by this ticket.
 
 - Guide: [Intern guide: one execution core for Kiln and Perf Lab](design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md)

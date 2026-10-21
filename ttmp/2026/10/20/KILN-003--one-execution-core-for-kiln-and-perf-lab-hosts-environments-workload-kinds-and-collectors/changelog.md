@@ -15,3 +15,7 @@ Intern guide written (design-doc/01, 33 sections): core model, removals, hosts a
 ## 2026-10-20
 
 Guide uploaded to reMarkable: /ai/2026/10/20/KILN-003/KILN-003 Intern Guide One Execution Core.pdf
+
+## 2026-10-20
+
+Guide revised: one HTTP driver API on every host (plain TCP, no authentication, drivers started by hand) replaces local/ssh transports; jobs owned by the driver, blobs, long-poll events, PUT /v1/self; dgx reachable only over Tailscale from the Mac. Diary step 2.
