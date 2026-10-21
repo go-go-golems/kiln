@@ -863,7 +863,9 @@ export function build(input: BuildInput): BuildOutput {
           blockedOn: i.blockedOn,
           estimateGpuMin: i.estimateGpuMin,
           host: i.host,
-          lowered: i.spec,
+          // the spec in the normal form its hash is taken over (undefined → null, no functions): what leaves the
+          // build crosses JSON intact, so whoever receives it computes the same hash (a server naming a job's runs)
+          lowered: JSON.parse(stableStringify(i.spec)) as Record<string, unknown>,
         })),
         execute: count('execute'),
         import: count('import'),

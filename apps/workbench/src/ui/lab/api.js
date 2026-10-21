@@ -48,6 +48,13 @@ export function labClient(server) {
   };
 }
 
+/** "exp: arm, arm × mode, mode" per experiment, for a job's reason. */
+function summarize(refs) {
+  const byExp = new Map();
+  for (const r of refs) { const [e, a, m] = r.split("/"); const x = byExp.get(e) ?? { arms: new Set(), modes: new Set() }; x.arms.add(a); x.modes.add(m); byExp.set(e, x); }
+  return [...byExp].map(([e, x]) => `${e} ${[...x.arms].join(", ")} × ${[...x.modes].join(", ")}`).join("; ");
+}
+
 /** The workload kind a lab adapter's captures run as on a Kiln host; an adapter not here cannot run there. */
 const KINDS = { sampler: "perf-lab-sampler/1" };
 
@@ -67,7 +74,7 @@ export function labJobs(labId, captures, { reason, dryRun = false } = {}) {
   }
   const jobs = [...groups.values()].map((g) => ({
     host: g.host,
-    reason: reason ?? `${labId}: ${g.captures.map((c) => c.input.ref).join(", ")}`,
+    reason: reason ?? `${labId} on ${g.host}: ${summarize(g.captures.map((c) => c.input.ref))}`,
     protocol: { reps: g.reps, launches: 1, warmup: 0, seed: g.seed },
     captures: g.captures,
     ...(dryRun ? { dryRun: true } : { approve: true }),

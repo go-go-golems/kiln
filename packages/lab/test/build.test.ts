@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildSynthetic, BuildError, evaluateProgram, checkParam, decodeParam, encodeParam, paramKinds, materialize, readDerive, isValue, type HostReport, type RuntimeState } from '../src/index.ts';
 import { readPresets } from '../src/node/index.ts';
+import { hash, stableStringify } from '../src/lang/util.ts';
 
 const PRESETS = readPresets();
 
@@ -23,6 +24,14 @@ const LOCAL_FIXTURE: HostReport = {
 };
 
 describe('presets', () => {
+  // a capture's spec reaches the server as JSON, and the server names the job's runs by the hash of what it received
+  it('every capture\'s lowered spec survives JSON and hashes to the capture\'s hash', () => {
+    for (const preset of PRESETS) {
+      const { ir } = seedAndBuild(preset.source, {}, LOCAL_FIXTURE);
+      for (const c of ir.plan.captures) expect(hash(stableStringify(JSON.parse(JSON.stringify(c.lowered)))), `${preset.id} ${c.ref}`).toBe(c.hash);
+    }
+  });
+
   for (const preset of PRESETS) {
     it(`${preset.id} builds without errors`, () => {
       const { ir } = seedAndBuild(preset.source, {}, LOCAL_FIXTURE);

@@ -120,7 +120,7 @@ function Plan({ cur }) {
         ) : null}
       </div>
       {other ? <p className="note">{plural(other, "capture")} name a synthetic host or a workload no Kiln host runs; the boards show generated runs for them.</p> : null}
-      {live.length ? <p className="note" role="status">Running: {live.map((j) => `${j.id.slice(4, 12)} on ${j.host} (${j.status}, ${Math.round((j.progress ?? 0) * 100)} %)`).join(" · ")}. The boards rebuild when the runs arrive.</p> : null}
+      {live.length ? <p className="note" role="status">Running: {live.map((j) => `${j.id.slice(4, 12)} on ${j.host} (${j.status})`).join(" · ")}. The boards rebuild when the runs arrive.</p> : null}
       <div className="lab-table">
         <table className="rt lab-plan">
           <thead><tr><th>status</th><th>capture</th><th>host</th><th className="num">processes</th><th>lab hash</th><th className="num">estimate</th></tr></thead>
