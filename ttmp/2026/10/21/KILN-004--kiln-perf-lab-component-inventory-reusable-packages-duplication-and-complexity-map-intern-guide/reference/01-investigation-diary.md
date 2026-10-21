@@ -98,3 +98,61 @@ original Kiln source. Two facts from this pass shaped everything after it:
 
 - Confirm the listener is still the kiln server before relying on live GETs against it (`lsof -iTCP:5380`).
 - Commits the inventory describes: kiln `4d9adc2`, Playback worktree `cdb84891c`.
+
+## Step 2: Splitting the inventory into five areas, and one diary per area
+
+The codebase was split along its package boundaries into five inventory areas, each given to a separate agent so that
+each could read its area deeply instead of skimming everything: **A** the compiler, runtime launchers and CUDA
+runner (`packages/kiln`, `imports/kiln-workbench-src`, `runtime/`, `runner/`); **B** the Kiln workbench page
+(`apps/workbench`, `scripts/`); **C** the server, execution core and evidence (`apps/server`, `packages/exec`,
+`packages/evidence`); **D** Perf Lab and its extracted language (`lab-workbench/`, `packages/lab`); **E** the design
+history in KILN-001..003 and ML-PERF-001..003. While they ran, the test suites of both pnpm roots were run as a
+baseline. Then the user asked for each agent to commit as it goes and keep its own detailed diary. Each agent got two
+pre-created, tracked documents in this ticket (`reference/02`–`06` notes, `reference/07`–`11` diaries), and commits
+them alone with pathspec commits, so that five concurrent writers never touch the same file or race on the index.
+
+### Prompt Context
+
+**User prompt (verbatim, 2026-10-21):** "Tell each agent btw commit at appropriate intervals and keep a detailed diary
+as you work (using the diary format from the skill)."
+
+**Assistant interpretation:** each inventory agent keeps an investigation-format diary of its own work and commits its
+notes and diary at milestones; the per-area notes become ticket documents instead of scratch files.
+
+**Commit:** `4dbf767` — "KILN-004: ticket for the Kiln × Perf Lab component inventory; diary step 1"
+
+### What I did
+
+- Baseline tests, both pnpm roots, at kiln `4d9adc2`:
+
+  ```text
+  pnpm test (workspace root)            exit 0, 55 s wall
+    packages/evidence   vitest  9 files  133 tests passed
+    packages/exec       vitest  1 file    21 tests passed
+    packages/kiln       run-node-tests.mjs  13 suites passed
+    packages/lab        vitest  8 files  100 tests passed
+    apps/server         vitest  9 files   79 tests passed (32 s; the slow package)
+    apps/workbench      run-node-tests.mjs   5 suites passed; 8 browser/GPU suites skipped by the script
+                        (ui, export-cuda, param-sweep, webgpu, paired-webgpu, server-e2e, agent-e2e, lab-e2e)
+  cd lab-workbench && pnpm test         exit 0, 11 files 104 tests passed (vitest 4)
+  ```
+
+- Created ten reference documents with `docmgr doc add` (sequentially, so their numeric prefixes could not collide)
+  and committed the skeleton before any agent wrote to it, so every agent's file is tracked and
+  `git commit -- <two paths>` needs no `git add`.
+
+### Why
+
+- One diary per agent rather than a shared one: five agents appending to one file would interleave and conflict.
+  This diary keeps the orchestration steps; the area diaries keep the evidence of each inventory.
+- Pathspec commits (`git commit -- <paths>`) commit only the named files from a temporary index, so one agent's
+  commit cannot pick up another's half-written file.
+
+### What didn't work
+
+- Nothing failed. A first cross-package import grep was mangled by zsh treating `--include=*.ts` as a glob
+  (`(eval):1: no matches found: --include=*.ts`); the `git ls-files | xargs grep` form was used instead.
+
+### Code review instructions
+
+- `git log --format='%h %s' 4dbf767..` lists the agents' commits; each touches two files under `reference/`.
