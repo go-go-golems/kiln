@@ -1,0 +1,22 @@
+{
+  "packages": [
+    {"name": "@kiln/kiln", "path": "packages/kiln", "kind": "library", "language": "javascript", "runtime": "browser+node", "purpose": "The compiler framework (src/core) and the standard ML stack (src/std).", "diary_step": 1},
+    {"name": "@kiln/lab", "path": "packages/lab", "kind": "library", "language": "typescript", "runtime": "browser+node", "purpose": "Perf Lab's lab language as a workspace package (a fork of lab-workbench/src/lang).", "diary_step": 1},
+    {"name": "@kiln/exec", "path": "packages/exec", "kind": "library", "language": "typescript", "runtime": "browser+node", "purpose": "The execution core: hosts, environments, workload kinds and collectors.", "diary_step": 1},
+    {"name": "@kiln/evidence", "path": "packages/evidence", "kind": "library", "language": "typescript", "runtime": "browser+node", "purpose": "Records, provenance and statistics shared by every other package.", "diary_step": 1},
+    {"name": "@kiln/server", "path": "apps/server", "kind": "app", "language": "typescript", "runtime": "node", "port": "5380", "entrypoint": "apps/server/src/index.ts", "purpose": "Hono + SQLite server: jobs, hosts, lab data, agent.", "diary_step": 1},
+    {"name": "@kiln/workbench", "path": "apps/workbench", "kind": "app", "language": "javascript", "runtime": "browser", "entrypoint": "apps/workbench/build.mjs", "purpose": "The single-file workbench page (dist/kiln-workbench.html).", "diary_step": 1},
+    {"name": "lab-workbench", "path": "lab-workbench", "kind": "imported", "language": "typescript", "runtime": "browser+node", "purpose": "Perf Lab as received from Playback ML-PERF-001 (own pnpm root).", "diary_step": 1}
+  ],
+  "facts": [
+    {"subject": "@kiln/server", "fact": "The process listening on 127.0.0.1:5380 is the kiln server: node src/index.ts, cwd /Volumes/SSD/code/kiln/apps/server, started 2026-10-20 23:46.", "category": "architecture", "confidence": "observed", "diary_step": 1},
+    {"subject": "lab-workbench", "fact": "lab-workbench imports nothing from @kiln/*; it is a standalone copy with its own pnpm root.", "evidence_path": "pnpm-workspace.yaml", "category": "architecture", "confidence": "observed", "diary_step": 1},
+    {"subject": "kiln", "fact": "Baseline at 4d9adc2: pnpm test passes (evidence 133, exec 21, lab 100, server 79 tests; kiln 13 and workbench 5 script suites); lab-workbench pnpm test passes 104 tests.", "category": "metric", "confidence": "observed", "diary_step": 2}
+  ],
+  "dependencies": [
+    {"package": "@kiln/workbench", "name": "react", "version": "18.3.1", "kind": "prod", "purpose": "UI", "diary_step": 1},
+    {"package": "lab-workbench", "name": "react", "version": "^19.3.0", "kind": "prod", "purpose": "UI", "diary_step": 1},
+    {"package": "@kiln/workbench", "name": "katex", "version": "0.16.9", "kind": "prod", "purpose": "math rendering", "diary_step": 1},
+    {"package": "lab-workbench", "name": "@mathjax/src", "version": "4.1.3", "kind": "prod", "purpose": "math rendering", "diary_step": 1}
+  ]
+}
