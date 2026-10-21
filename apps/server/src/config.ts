@@ -14,22 +14,26 @@ export interface ServerConfig {
   dataDir: string;
   /** ':memory:' in tests */
   dbFile: string;
-  /** Perf Lab's workload sources; their content hash is host `local`'s workload revision (lab/probe.ts) */
+  /** Perf Lab's workload sources (perf_lab_local/): staged into the jobs of perf-lab-sampler/1 */
   labWorkloads: string;
   /** The built workbench (apps/workbench/dist); the server serves kiln-workbench.html from it */
   dist: string;
-  /** CUDA executor profiles (§30.5); a missing file means no executors */
-  executorsFile: string;
-  /** The runner the local executor runs and the SSH executor copies */
-  runner: string;
+  /** Host profiles, kiln-hosts/1 (KILN-003 guide §13.1); a missing file means no hosts */
+  hostsFile: string;
+  /** runner/: kiln_driver.py (what every driver should run) and kiln_runner.py (staged into kernel jobs) */
+  runnerDir: string;
+  /** runtime/python/: kiln_launch.py */
+  runtimeDir: string;
+  /** How long a host's capability document is used before the next plan probes again */
+  probeTtlMs: number;
+  /** Seconds one events request to a driver waits for news */
+  pollWaitS: number;
   /** Model for the agent gateway (Phase 7); null turns the gateway off (503 no_model) */
   model: string | null;
   /** The Anthropic Messages endpoint the gateway streams from (tests point it at a fake) */
   modelUrl: string;
   /** ANTHROPIC_API_KEY. Sent upstream only: never logged, returned in a response, or written to the database */
   apiKey: string | null;
-  /** Per-repetition timeout of a job (§30.4) */
-  repTimeoutMs: number;
   /** Executor seconds agent-proposed jobs may spend per rolling 24 hours (§30.4) */
   agentBudgetSec: number;
   /** Server-sent events keep-alive */
@@ -47,12 +51,14 @@ export function loadConfig(overrides: Partial<ServerConfig> = {}, env: NodeJS.Pr
     dbFile: resolve(dataDir, 'kiln.sqlite'),
     dist: resolve(env.KILN_DIST ?? resolve(REPO, 'apps/workbench/dist')),
     labWorkloads: resolve(env.KILN_LAB_WORKLOADS ?? resolve(REPO, 'lab-workbench/workloads/perf_lab_local')),
-    executorsFile: resolve(env.KILN_EXECUTORS ?? resolve(dataDir, 'executors.json')),
-    runner: resolve(REPO, 'runner/kiln_runner.py'),
+    hostsFile: resolve(env.KILN_HOSTS ?? resolve(dataDir, 'hosts.json')),
+    runnerDir: resolve(REPO, 'runner'),
+    runtimeDir: resolve(REPO, 'runtime/python'),
+    probeTtlMs: 10 * 60_000,
+    pollWaitS: 25,
     model: env.KILN_MODEL || null,
     modelUrl: env.KILN_MODEL_URL || 'https://api.anthropic.com/v1/messages',
     apiKey: env.ANTHROPIC_API_KEY || null,
-    repTimeoutMs: 120_000,
     agentBudgetSec: 600,
     pingMs: 15_000,
     ...overrides,

@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+"""Test-only stand-in for nvidia-smi: one fake GPU. KILN_FAKE_APPS: JSON [[pid, name, MiB], …] compute apps."""
+import json, os, sys, time
+GPU = {"index": "0", "name": "Fake H100", "uuid": "GPU-fake-0000-0000", "driver_version": "580.00-fake", "compute_cap": "9.0",
+       "memory.total": "81559", "clocks.max.sm": "1980", "clocks.max.memory": "2619", "persistence_mode": "Enabled",
+       "timestamp": "2026/10/20 00:00:00.000", "utilization.gpu": "0", "clocks.sm": "1980", "clocks.mem": "2619",
+       "memory.used": "1", "power.draw": "70.0", "temperature.gpu": "30"}
+a = sys.argv[1:]
+if "-L" in a:
+    print(f"GPU 0: {GPU['name']} (UUID: {GPU['uuid']})")
+    sys.exit(0)
+q = next((x.split("=", 1)[1] for x in a if x.startswith("--query-gpu=")), None)
+if q:
+    fields = q.split(",")
+    loop = "-lms" in a
+    while True:
+        print(", ".join(GPU.get(f, "[N/A]") for f in fields), flush=True)
+        if not loop:
+            break
+        time.sleep(0.1)
+    sys.exit(0)
+if any(x.startswith("--query-compute-apps") for x in a):
+    for pid, name, mib in json.loads(os.environ.get("KILN_FAKE_APPS") or "[]"):
+        print(f"{pid}, {name}, {mib}")
+    sys.exit(0)
+sys.exit(2)

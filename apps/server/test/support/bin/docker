@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+"""Test-only stand-in for `docker`, enough for kiln_driver.py: version, image inspect, ps, kill and run.
+
+`run` executes the container's command on this machine: every -v mount's container path is rewritten to its host path
+in the arguments and in -e values, `python3` as the entrypoint becomes this interpreter, and $KILN_FAKE_BIN is put first
+on PATH (fake nvidia-smi, nvcc, ncu, nsys). Running containers are files in $KILN_FAKE_DOCKER_STATE.
+
+  KILN_FAKE_IMAGES        JSON {ref: id}; default {"kiln-perf:latest": "sha256:aaaa…"}
+  KILN_FAKE_DOCKER_STATE  directory for running containers (required for run, ps, kill)
+  KILN_FAKE_DOCKER_LOG    file every run's argument vector is appended to, one JSON line each
+"""
+import json, os, signal, subprocess, sys, time
+from pathlib import Path
+
+DEFAULT = {"kiln-perf:latest": "sha256:" + "a" * 64}
+images = json.loads(os.environ.get("KILN_FAKE_IMAGES") or "null") or DEFAULT
+state = Path(os.environ.get("KILN_FAKE_DOCKER_STATE", "/nonexistent"))
+args = sys.argv[1:]
+
+
+def containers():
+    out = []
+    for p in sorted(state.glob("*.json")) if state.exists() else []:
+        try:
+            out.append(json.loads(p.read_text()))
+        except ValueError:
+            pass
+    return out
+
+
+if args[:1] == ["version"]:
+    print("fake-docker/1")
+elif args[:2] == ["image", "inspect"]:
+    ref = args[-1]
+    if ref in images:
+        print(images[ref], "2026-10-20T00:00:00Z")
+    elif ref in images.values():
+        print(ref, "2026-10-20T00:00:00Z")
+    else:
+        print(f"Error: No such image: {ref}", file=sys.stderr)
+        sys.exit(1)
+elif args[:1] == ["ps"]:
+    label = next((a.split("=", 1)[1] for a in args if a.startswith("label=")), None)
+    for c in containers():
+        if label is None or label in c["labels"]:
+            print(c["name"])
+elif args[:1] == ["kill"]:
+    for c in containers():
+        if c["name"] == args[1]:
+            try:
+                os.killpg(c["pid"], signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            print(c["name"])
+elif args[:1] == ["run"]:
+    if os.environ.get("KILN_FAKE_DOCKER_LOG"):
+        with open(os.environ["KILN_FAKE_DOCKER_LOG"], "a") as f:
+            f.write(json.dumps(args) + "\n")
+    i, name, labels, env, mounts, entry = 1, None, [], {}, [], None
+    flags = {"--rm", "--init", "-i", "-t"}
+    while i < len(args) and args[i].startswith("-"):
+        a = args[i]
+        if a in flags:
+            i += 1
+            continue
+        v = args[i + 1]
+        if a == "--name":
+            name = v
+        elif a == "--label":
+            labels.append(v)
+        elif a == "-e":
+            k, _, val = v.partition("=")
+            env[k] = val
+        elif a == "-v":
+            parts = v.split(":")
+            mounts.append((parts[1], parts[0]))
+        elif a == "--entrypoint":
+            entry = v
+        i += 2
+    image, rest = args[i], args[i + 1:]
+    if image not in images.values() and image not in images:
+        print(f"Unable to find image '{image}' locally", file=sys.stderr)
+        sys.exit(125)
+    mounts.sort(key=lambda m: -len(m[0]))
+
+    def host(s):
+        for target, source in mounts:
+            if s == target or s.startswith(target + "/"):
+                return source + s[len(target):]
+        return s
+
+    argv = [entry] + rest if entry else rest
+    argv = [host(a) for a in argv]
+    if argv[0] in ("python3", "python"):
+        argv[0] = sys.executable
+    child_env = {**os.environ, **{k: host(v) for k, v in env.items()}}
+    if os.environ.get("KILN_FAKE_BIN"):
+        child_env["PATH"] = os.environ["KILN_FAKE_BIN"] + os.pathsep + child_env.get("PATH", "")
+    child_env["HOME"] = os.environ.get("HOME", "/tmp")
+    proc = subprocess.Popen(argv, env=child_env, start_new_session=True)
+    name = name or f"fake-{proc.pid}"
+    state.mkdir(parents=True, exist_ok=True)
+    f = state / f"{name}.json"
+    f.write_text(json.dumps({"name": name, "pid": proc.pid, "labels": labels}))
+
+    def forward(sig, _):
+        try:
+            os.killpg(proc.pid, sig)
+        except ProcessLookupError:
+            pass
+    signal.signal(signal.SIGTERM, forward)
+    signal.signal(signal.SIGINT, forward)
+    code = proc.wait()
+    f.unlink(missing_ok=True)
+    sys.exit(code if code >= 0 else 128 - code)
+else:
+    print(f"fake docker: unsupported {args}", file=sys.stderr)
+    sys.exit(2)

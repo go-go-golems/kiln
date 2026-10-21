@@ -66,7 +66,7 @@ const failWith = (status: number, type: string, message: string): Handler => (_b
 
 // ── the gateway ─────────────────────────────────────────────────────────────────────────────────────────────────────
 const gateway = (config: Partial<ServerConfig> = {}) =>
-  makeServer({ executors: [], config: { model: MODEL, apiKey: KEY, modelUrl: upstreamUrl, ...config } });
+  makeServer({ config: { model: MODEL, apiKey: KEY, modelUrl: upstreamUrl, ...config } });
 type Gateway = ReturnType<typeof gateway>;
 const ask = (o: object = {}) => ({ conversation: 'c1', messages: [{ role: 'user', content: 'hello' }], ...o });
 const rows = (s: Gateway) => all<any>(s.db, 'select * from llm_calls order by id');

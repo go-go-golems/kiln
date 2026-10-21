@@ -1,0 +1,22 @@
+{
+  "name": "@kiln/exec",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "One execution core: hosts, environments, workload kinds, collectors, captures, plans for the Kiln driver, and the importers that turn a result archive into runs and records. Browser-safe.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@kiln/evidence": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

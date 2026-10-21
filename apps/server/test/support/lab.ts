@@ -114,19 +114,19 @@ export function bundle(hash: string, ref: string, rep: number, latency: number):
   };
 }
 
-/** A measured artifact with its runs, written straight into the Kiln lab tables. */
+/** A measured capture imported from Perf Lab with its runs, written straight into the capture tables. */
 export function insertMeasured(db: Db, labId: string, c: ReturnType<typeof capture>, latencies: number[]): void {
   const [experiment, arm, mode] = c.ref.split('/');
   db.prepare(
-    `insert into lab_artifacts (hash, lab_id, experiment, arm, mode, host, reps, spec_json, origin, status, created_at, imported_at, source)
-     values (?, ?, ?, ?, ?, ?, ?, ?, 'measured', 'available', '2026-10-12T00:00:00.000Z', '2026-10-12T00:01:00.000Z', null)`,
-  ).run(c.hash, labId, experiment!, arm!, mode!, c.host, c.reps, JSON.stringify(c.spec));
+    `insert into captures (hash, kind, lab_id, lab_hash, experiment, arm, mode, host, reps, spec_json, origin, status, created_at, imported_at, source)
+     values (?, null, ?, ?, ?, ?, ?, ?, ?, ?, 'imported', 'available', '2026-10-12T00:00:00.000Z', '2026-10-12T00:01:00.000Z', null)`,
+  ).run(c.hash, labId, c.hash, experiment!, arm!, mode!, c.host, c.reps, JSON.stringify(c.spec));
   latencies.forEach((latency, rep) => {
     const b = bundle(c.hash, c.ref, rep, latency);
-    db.prepare('insert into lab_runs (hash, rep, ref, experiment, arm, mode, host, started_at, duration_s, run_json) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
+    db.prepare('insert into runs (hash, rep, ref, experiment, arm, mode, host, started_at, duration_s, run_json) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
       c.hash, rep, c.ref, experiment!, arm!, mode!, c.host, null, 0.5, JSON.stringify(b.run),
     );
-    db.prepare('insert into lab_run_bundles (hash, rep, entities, links, n_entities, n_links) values (?, ?, ?, ?, ?, ?)').run(c.hash, rep, pack(b.entities), pack(b.links), b.entities.length, b.links.length);
+    db.prepare('insert into run_bundles (hash, rep, entities, links, n_entities, n_links) values (?, ?, ?, ?, ?, ?)').run(c.hash, rep, pack(b.entities), pack(b.links), b.entities.length, b.links.length);
   });
 }
 

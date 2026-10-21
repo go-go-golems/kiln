@@ -46,10 +46,14 @@ export interface MeasurementRecord {
     warmup?: number;
     /** Per-launch times, per repetition */
     raw?: number[][];
+    /** Timed alone in a harness, or between events inside a program run (KILN-003 §19.3); absent means isolated */
+    scope?: TimingScope;
   };
   counts?: Record<string, number>;
   /** Simulator counts are derived; ncu counters are observed */
   countsProv?: 'derived' | 'observed';
+  /** The clocks ncu held the GPU at while it counted (KILN-003 §20.4) */
+  countsClock?: 'base' | 'boost';
   check: { ok: boolean; sampled: number; maxAbsErr?: number; detail?: string };
   activation: { requested: string | null; materialized: string; ok: boolean; notes: string[] };
   validity: { ok: boolean; reasons: string[]; partial: string[] };
@@ -57,7 +61,30 @@ export interface MeasurementRecord {
   manifest: { codegen: string; app: string; runner?: string; userAgent?: string; host?: string; [k: string]: unknown };
   /** Where the kernel came from, for people: the content id already names what ran, this says which settings made it */
   context?: RecordContext;
+  /** The software the kernel ran in: image id, container options, mounted tools, driver (KILN-003 §21.2) */
+  environment?: RecordEnvironment;
+  /** Sorted ids of the collectors that observed the runs; absent means ['cuda-events'] */
+  collectors?: string[];
 }
+
+export type TimingScope = 'isolated' | 'in-program';
+
+export interface RecordEnvironment {
+  name: string;
+  /** The image id (sha256:…), never a tag */
+  image: string;
+  docker: Record<string, string | null>;
+  threads: Record<string, number> | null;
+  tools: Record<string, { version: string | null; from: string }>;
+  driver: string | null;
+}
+
+/**
+ * The key under which samples may be pooled into one statistic (KILN-003 §21.3): the same code, on the same device,
+ * in the same image, timed in the same scope.
+ */
+export const poolKey = (r: MeasurementRecord): string =>
+  [r.kernel.contentId, r.device.id, r.environment?.image ?? 'unknown', r.timing.scope ?? 'isolated'].join('|');
 
 /**
  * The program a kernel was compiled from. `params` holds the project's parameters at the values the compile used
@@ -176,6 +203,7 @@ export function validateRecord(x: unknown): Validation {
     if (!Array.isArray(t.samples) || !t.samples.every((v) => isFin(v) && v >= 0)) err('timing.samples', 'expected finite non-negative numbers');
     if (t.launches !== undefined && !isInt(t.launches, 1)) err('timing.launches', 'expected a positive integer');
     if (t.warmup !== undefined && !isInt(t.warmup)) err('timing.warmup', 'expected a non-negative integer');
+    if (t.scope !== undefined && t.scope !== 'isolated' && t.scope !== 'in-program') err('timing.scope', 'expected isolated or in-program');
     if (t.raw !== undefined) {
       if (!Array.isArray(t.raw) || !t.raw.every((rep) => Array.isArray(rep) && rep.every((v) => isFin(v) && v >= 0))) err('timing.raw', 'expected arrays of finite non-negative numbers');
       else if (Array.isArray(t.samples) && t.raw.length !== t.samples.length) err('timing.raw', 'expected one array per sample');
@@ -186,6 +214,19 @@ export function validateRecord(x: unknown): Validation {
     if (!isObj(r.counts) || !Object.values(r.counts).every(isFin)) err('counts', 'expected an object of finite numbers');
     if (r.countsProv !== 'derived' && r.countsProv !== 'observed') err('countsProv', 'counts need a provenance: derived or observed');
   } else if (r.countsProv !== undefined) err('countsProv', 'set without counts');
+  if (r.countsClock !== undefined) {
+    if (r.counts === undefined) err('countsClock', 'set without counts');
+    else if (r.countsClock !== 'base' && r.countsClock !== 'boost') err('countsClock', 'expected base or boost');
+  }
+  if (r.collectors !== undefined && !(isStrs(r.collectors) && r.collectors.length > 0 && r.collectors.every((c, i, a) => c && (i === 0 || a[i - 1]! < c)))) {
+    err('collectors', 'expected sorted, distinct, non-empty collector ids');
+  }
+  const env = r.environment;
+  if (env !== undefined) {
+    if (!isObj(env) || !isStr(env.name) || !env.name || !isStr(env.image) || !env.image || !isObj(env.docker) || !(env.threads === null || isObj(env.threads)) || !isObj(env.tools) || !(env.driver === null || isStr(env.driver))) {
+      err('environment', 'expected {name, image, docker, threads, tools, driver}');
+    }
+  }
 
   const c = r.check;
   if (!isObj(c) || typeof c.ok !== 'boolean' || !isInt(c.sampled)) err('check', 'expected {ok: boolean, sampled: integer}');
@@ -212,11 +253,11 @@ export function validateRecord(x: unknown): Validation {
 
   const m = r.manifest;
   if (!isObj(m) || !isStr(m.codegen) || !isStr(m.app)) err('manifest', 'expected {codegen: string, app: string}');
-  else for (const f of ['runner', 'userAgent', 'host'] as const) if (m[f] !== undefined && !isStr(m[f])) err(`manifest.${f}`, 'expected a string');
+  else for (const f of ['runner', 'userAgent', 'host', 'job', 'capture', 'archive'] as const) if (m[f] !== undefined && !isStr(m[f])) err(`manifest.${f}`, 'expected a string');
 
   if (r.context !== undefined) errors.push(...validateContext(r.context));
 
-  const known = new Set(['format', 'id', 'at', 'by', 'device', 'kernel', 'timing', 'counts', 'countsProv', 'check', 'activation', 'validity', 'protocol', 'manifest', 'context']);
+  const known = new Set(['format', 'id', 'at', 'by', 'device', 'kernel', 'timing', 'counts', 'countsProv', 'countsClock', 'check', 'activation', 'validity', 'protocol', 'manifest', 'context', 'environment', 'collectors']);
   for (const key of Object.keys(r)) if (!known.has(key)) err(key, 'unknown field');
 
   // the rules that tie the parts together, checked only once the parts are well-formed

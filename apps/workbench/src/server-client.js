@@ -7,7 +7,7 @@ import { sessionToken } from "@kiln/kiln/std/devices.js";
 import { kernelInputs, referenceAt, sampleIndices, seedOf } from "@kiln/kiln/std/program.js";
 import { CODEGEN_VERSION, INPUT_SEED, contentOf, launchOf, symbolOf } from "@kiln/kiln/std/records.js";
 
-export const EVENT_TYPES = ["hello", "ping", "job.updated", "job.event", "records.added", "device.updated"];
+export const EVENT_TYPES = ["hello", "ping", "job.updated", "job.event", "records.added", "device.updated", "host.updated", "catalog.changed", "evidence.registered"];
 
 // the session token of the served page (null when no server served it), read as the CUDA device reads it
 export { sessionToken };
@@ -58,21 +58,33 @@ export function connectServer({ base = "", token = sessionToken(), fetch: doFetc
       /** Forget a device: its records and its row. → the number of records deleted */
       forget: (device) => call("DELETE", `/records${query({ device })}`).then((x) => x.deleted),
     },
+    /** Devices that records name, with the host whose jobs measured each (GET /devices). */
     devices: {
       list: () => call("GET", "/devices").then((x) => x.devices),
-      probe: (executor) => call("POST", `/devices/${enc(executor)}/probe`),
+    },
+    /** Hosts (guide §13): their drivers, queues and capability documents (kiln-capabilities/1). */
+    hosts: {
+      list: () => call("GET", "/hosts").then((x) => x.hosts),
+      capabilities: (id) => call("GET", `/hosts/${enc(id)}/capabilities`),
+      /** Probe again now, ignoring the cached document */
+      probe: (id) => call("POST", `/hosts/${enc(id)}/probe`),
     },
     jobs: {
       list: () => call("GET", "/jobs").then((x) => x.jobs),
       get: (id) => call("GET", `/jobs/${enc(id)}`),
+      plan: (id) => call("GET", `/jobs/${enc(id)}/plan`),
       /**
-       * spec: { executor, reason, codegen, protocol: { reps, warmup, launches, seed }, kernels: [jobKernel(…)], approve? }.
+       * spec: { host, reason, protocol: { reps, warmup, launches, seed }, captures: [{ kind, mode?, input, pairId?, rerun? }], approve?, dryRun? }.
        * The agent bridge passes { proposer: "agent" }; the server keeps such a job proposed until the user approves it.
+       * With dryRun the server answers the verdicts and the plan and stores nothing.
        */
       create: (spec, { proposer = "user" } = {}) => call("POST", "/jobs", spec, { "x-kiln-proposer": proposer }),
       approve: (id) => call("POST", `/jobs/${enc(id)}/approve`),
       cancel: (id) => call("POST", `/jobs/${enc(id)}/cancel`),
+      reimport: (id) => call("POST", `/jobs/${enc(id)}/reimport`),
     },
+    /** Result archives of jobs and evidence archives produced elsewhere */
+    archives: { list: () => call("GET", "/archives") },
     /** The lab route group (guide §33): Perf Lab's catalog, bundles, evidence archives and datasets, read-only here. */
     lab: { get: (path) => call("GET", `/lab${path}`) },
     /** Server-sent events; see subscribe(). Returns the function that unsubscribes. */
@@ -124,7 +136,7 @@ export function jobKernel(kern, { activation = null, context = null, count = 384
   const samples = sampleIndices(numel(kern.shape), count);
   const want = referenceAt(kern, kernelInputs(kern, INPUT_SEED), samples);
   return {
-    name: kern.name, symbol: symbolOf(kern), identity: kern.identity, row: kern.row, knobs: flatKnobs(kern.map),
+    codegen: CODEGEN_VERSION, name: kern.name, symbol: symbolOf(kern), identity: kern.identity, row: kern.row, knobs: flatKnobs(kern.map),
     contentId: contentOf(kern, CUDA).contentId, source: kern.cuda, launch: launchOf(kern),
     inputs: kern.inShapes.map((shape, j) => ({ shape: [...shape], seed: seedOf(kern, INPUT_SEED, j) })), output: [...kern.shape],
     samples, expect: Array.from(want, (x) => (Number.isNaN(x) ? null : x)),
@@ -133,12 +145,20 @@ export function jobKernel(kern, { activation = null, context = null, count = 384
   };
 }
 
-/** A job spec for compiled kernels. protocol defaults: 7 repetitions, 3 warm-up launches, 20 timed launches, seed 1. */
-export function jobSpec(kernels, { executor, reason, protocol = {}, activationOf = null, contextOf = null, approve } = {}) {
+/**
+ * A job spec for compiled kernels: one kiln-kernels/1 capture each, measured again even when the server has runs of
+ * the same capture (a Measure is new evidence). protocol defaults: 7 repetitions, 3 warm-up launches, 20 timed
+ * launches, seed 1. `mode` is timing (default), counters or timeline.
+ */
+export function jobSpec(kernels, { host, reason, protocol = {}, mode = "timing", pairId, rerun = true, activationOf = null, contextOf = null, approve, dryRun } = {}) {
   return {
-    executor, reason, codegen: CODEGEN_VERSION,
+    host, reason,
     protocol: { reps: 7, warmup: 3, launches: 20, seed: 1, ...protocol },
-    kernels: kernels.map((kern) => jobKernel(kern, { activation: activationOf?.(kern) ?? null, context: contextOf?.(kern) ?? null })),
+    captures: kernels.map((kern) => ({
+      kind: "kiln-kernels/1", mode, rerun, ...(pairId ? { pairId } : {}),
+      input: jobKernel(kern, { activation: activationOf?.(kern) ?? null, context: contextOf?.(kern) ?? null }),
+    })),
     ...(approve !== undefined ? { approve } : {}),
+    ...(dryRun ? { dryRun: true } : {}),
   };
 }

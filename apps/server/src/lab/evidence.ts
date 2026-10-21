@@ -1,5 +1,5 @@
 // Evidence archives (PL/server/evidence.ts): .tar.gz files produced outside the lab (the PR 1005 DGX reproduction),
-// identified by their SHA-256. Every entry is read and validated in memory before anything is written (tar.ts), so
+// identified by their SHA-256, listed in one table with the result archives of jobs (exec/jobs.ts). Every entry is read and validated in memory before anything is written (tar.ts), so
 // an archive can only create regular files and directories below its own directory; a COCO selection inside it is
 // registered as a dataset in the same transaction as the archive row.
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from 'node:fs';
@@ -24,6 +24,8 @@ export interface ArchiveSummary {
   addedAt: string;
   /** ids of the datasets registered from this archive */
   datasets: string[];
+  /** The job whose result archive this is; null for evidence produced outside Kiln */
+  job: string | null;
 }
 
 interface ArchiveRow {
@@ -32,6 +34,7 @@ interface ArchiveRow {
   bytes: number;
   files_json: string;
   added_at: string;
+  job_id: string | null;
 }
 
 const summaryOf = (db: Db, r: ArchiveRow): ArchiveSummary => ({
@@ -41,12 +44,13 @@ const summaryOf = (db: Db, r: ArchiveRow): ArchiveSummary => ({
   files: JSON.parse(r.files_json) as ArchiveFile[],
   addedAt: r.added_at,
   datasets: all<{ id: string }>(db, 'select id from lab_datasets where source = ? order by id', `evidence:${r.sha256}`).map((d) => d.id),
+  job: r.job_id,
 });
 
-export const listArchives = (db: Db): ArchiveSummary[] => all<ArchiveRow>(db, 'select * from lab_evidence_archives order by added_at, sha256').map((r) => summaryOf(db, r));
+export const listArchives = (db: Db): ArchiveSummary[] => all<ArchiveRow>(db, 'select * from archives order by added_at, sha256').map((r) => summaryOf(db, r));
 
 export function getArchive(db: Db, hash: string): ArchiveSummary | undefined {
-  const r = get<ArchiveRow>(db, 'select * from lab_evidence_archives where sha256 = ?', hash);
+  const r = get<ArchiveRow>(db, 'select * from archives where sha256 = ?', hash);
   return r ? summaryOf(db, r) : undefined;
 }
 
@@ -88,7 +92,7 @@ export function registerArchive(db: Db, dataDir: string, data: Uint8Array, name:
         const p = byPath.get(sel.provenance);
         if (m && p) registerCocoDataset(db, m, JSON.parse(Buffer.from(p).toString('utf8')), { name: `${name} · COCO selection`, source: `evidence:${hash}`, addedAt });
       }
-      run(db, 'insert into lab_evidence_archives (sha256, name, bytes, files_json, added_at) values (?, ?, ?, ?, ?)', hash, name, data.byteLength, JSON.stringify(listed), addedAt);
+      run(db, 'insert into archives (sha256, name, bytes, files_json, added_at) values (?, ?, ?, ?, ?)', hash, name, data.byteLength, JSON.stringify(listed), addedAt);
     });
     return { archive: getArchive(db, hash)!, created: true };
   } catch (e) {

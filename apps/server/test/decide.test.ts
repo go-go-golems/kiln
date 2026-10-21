@@ -3,7 +3,7 @@
 // the page's EvidenceStore, make the greedy compile choose the faster schedule by evidence.
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, onTestFinished } from 'vitest';
 import { k } from '@kiln/kiln/core/kiln.js';
 import { N } from '@kiln/kiln/std/tensor.js';
 import { pipeline } from '@kiln/kiln/std/emmy.js';
@@ -12,7 +12,7 @@ import { EvidenceStore } from '@kiln/kiln/std/store.js';
 import { activationOf } from '@kiln/kiln/std/records.js';
 import { programOf } from '@kiln/kiln/std/program.js';
 import { jobSpec } from '../../workbench/src/server-client.js';
-import { fakeExecutor, makeServer, tempDir } from './support/server.ts';
+import { hostProfile, makeServer, startDriver, tempDir } from './support/server.ts';
 
 const g = k.trace('lin', ({ x }: any) => N.linear(x, N.weight('w', [256, 256])), { x: k.tensor([256, 256]) });
 const compile = (store: unknown, device: any, decide?: unknown) =>
@@ -33,11 +33,13 @@ describe('records from a fake CUDA job drive a decision', () => {
     expect(kernels[0].row).not.toBe(kernels[1].row);
 
     // the page's job spec; the fake GPU computes correctly (outputs = the page's reference) and runs `other` 4× faster
-    const spec = jobSpec(kernels, { executor: 'fake', reason: 'which schedule is faster on CUDA', protocol: { reps: 5, warmup: 1, launches: 5 }, approve: true, activationOf: (kern: any) => activationOf(kern, { run: runs[kernels.indexOf(kern)] }) });
+    const spec = jobSpec(kernels, { host: 'fake', reason: 'which schedule is faster on CUDA', protocol: { reps: 5, warmup: 1, launches: 5 }, approve: true, activationOf: (kern: any) => activationOf(kern, { run: runs[kernels.indexOf(kern)] }) });
     const outputs = join(tempDir(), 'outputs.json');
-    writeFileSync(outputs, JSON.stringify(Object.fromEntries(spec.kernels.map((x: any) => [`${x.name}|${x.row}`, x.expect.map((v: number | null) => v ?? 0)]))));
+    writeFileSync(outputs, JSON.stringify(Object.fromEntries(spec.captures.map(({ input: x }: any) => [`${x.name}|${x.row}`, x.expect.map((v: number | null) => v ?? 0)]))));
     const times = { [`${kernels[0].name}|${kernels[0].row}`]: 40, [`${kernels[1].name}|${kernels[1].row}`]: 10 };
-    const s = makeServer({ executors: [fakeExecutor({ KILN_FAKE_OUTPUTS: outputs, KILN_FAKE_TIMES: JSON.stringify(times) })] });
+    const d = await startDriver({ env: { KILN_FAKE_OUTPUTS: outputs, KILN_FAKE_TIMES: JSON.stringify(times) } });
+    onTestFinished(() => d.stop());
+    const s = makeServer({ hosts: [hostProfile('fake', d.url)] });
     const created = await s.json('POST', '/api/jobs', { proposer: 'user', body: spec });
     expect(created.status).toBe(201);
     await s.jobs.idle();

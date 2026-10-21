@@ -7,9 +7,12 @@
 // hold the image and annotation rows it counts. What fails a check is refused, reported, and not stored.
 //
 // Re-running adds nothing new: every row is keyed as Perf Lab keys it, and a known key is counted `present`.
-// Not imported: Perf Lab's assistant transcripts (conversations, messages, llm_calls) — agent conversations are not lab
-// data, and Kiln keeps its own (llm_calls, guide §31) — and the raw job output directories (PL/.data/artifacts), whose
-// imported form is the runs and bundles.
+// Not imported: synthetic artifacts (stand-ins generated from a hash, not measurements), Perf Lab's job history (its
+// jobs ran on a runner that no longer exists; the one job API of KILN-003 replaces them, and what they measured is
+// kept as captures and runs), Perf Lab's assistant transcripts (conversations, messages, llm_calls) — agent
+// conversations are not lab data, and Kiln keeps its own (llm_calls, guide §31) — and the raw job output directories
+// (PL/.data/artifacts), whose imported form is the runs and bundles. A measured artifact becomes an `imported` capture
+// whose lab_hash is its Perf Lab hash.
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
@@ -18,7 +21,7 @@ import { get, now, run, tx, type Db } from '../db.ts';
 import { captureHash } from './captures.ts';
 import { getArchive, registerArchive, type ArchiveFile } from './evidence.ts';
 import { mediaDir, mediaFile, mimeOf, SHA256_HEX, sha256, writeFileAtomic, type Mime } from './files.ts';
-import { unpack, type ArtifactRow } from './store.ts';
+import { unpack } from './store.ts';
 
 /** Perf Lab's schema version the importer reads (PL/server/db.ts migration 5: evidence, datasets, media) */
 export const PL_SCHEMA = 5;
@@ -38,7 +41,6 @@ export interface ImportSummary {
   media: KindSummary;
   artifacts: KindSummary;
   runs: KindSummary;
-  jobs: KindSummary;
   programs: KindSummary;
   annotations: KindSummary;
   /** bytes written after verification */
@@ -48,7 +50,7 @@ export interface ImportSummary {
   notes: string[];
 }
 
-const KINDS = ['datasets', 'archives', 'media', 'artifacts', 'runs', 'jobs', 'programs', 'annotations'] as const;
+const KINDS = ['datasets', 'archives', 'media', 'artifacts', 'runs', 'programs', 'annotations'] as const;
 type Kind = (typeof KINDS)[number];
 
 const why = (e: unknown): string => (e instanceof Error ? e.message : String(e));
@@ -96,7 +98,7 @@ function importFrom(pl: DatabaseSync, src: string, db: Db, dataDir: string): Imp
   const kind = (): KindSummary => ({ added: 0, present: 0, refused: [] });
   const s: ImportSummary = {
     source: src, sourceSchema,
-    datasets: kind(), archives: kind(), media: kind(), artifacts: kind(), runs: kind(), jobs: kind(), programs: kind(), annotations: kind(),
+    datasets: kind(), archives: kind(), media: kind(), artifacts: kind(), runs: kind(), programs: kind(), annotations: kind(),
     bytes: { archives: 0, media: 0 },
     notImported: {},
     notes: [],
@@ -206,9 +208,15 @@ function importFrom(pl: DatabaseSync, src: string, db: Db, dataDir: string): Imp
     }
   }
 
-  // ── artifacts: the capture hash recomputed from the spec ────────────────────────────────────────────────────────────
-  const imported = new Set<string>();
-  for (const a of q<ArtifactRow & { spec_json: string }>('select * from artifacts order by created_at, hash')) {
+  // ── artifacts: the capture hash recomputed from the spec; measured ones only ─────────────────────────────────────
+  type ArtifactRow = { hash: string; lab_id: string; experiment: string; arm: string; mode: string; host: string; reps: number; spec_json: string; origin: string; status: string; created_at: string; imported_at: string | null; source: string | null };
+  const imported = new Set<string>(), synthetic = new Set<string>();
+  for (const a of q<ArtifactRow>('select * from artifacts order by created_at, hash')) {
+    if (a.origin !== 'measured') {
+      synthetic.add(a.hash);
+      s.notImported.synthetic_artifacts = (s.notImported.synthetic_artifacts ?? 0) + 1;
+      continue;
+    }
     let actual: string;
     try {
       actual = captureHash(JSON.parse(a.spec_json));
@@ -220,17 +228,11 @@ function importFrom(pl: DatabaseSync, src: string, db: Db, dataDir: string): Imp
       refuse('artifacts', a.hash, `the spec hashes to ${actual}`);
       continue;
     }
-    const known = get<{ origin: string }>(db, 'select origin from lab_artifacts where hash = ?', a.hash);
     try {
-      if (!known) {
-        run(db, 'insert into lab_artifacts (hash, lab_id, experiment, arm, mode, host, reps, spec_json, origin, status, created_at, imported_at, source) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          a.hash, a.lab_id, a.experiment, a.arm, a.mode, a.host, a.reps, a.spec_json, a.origin, a.status, a.created_at, a.imported_at, a.source);
+      if (!get(db, 'select 1 from captures where hash = ?', a.hash)) {
+        run(db, `insert into captures (hash, kind, lab_id, lab_hash, experiment, arm, mode, host, reps, spec_json, origin, status, created_at, imported_at, source) values (?, null, ?, ?, ?, ?, ?, ?, ?, ?, 'imported', ?, ?, ?, ?)`,
+          a.hash, a.lab_id, a.hash, a.experiment, a.arm, a.mode, a.host, a.reps, a.spec_json, a.status, a.created_at, a.imported_at, a.source);
         s.artifacts.added++;
-      } else if (known.origin === 'synthetic' && a.origin === 'measured') {
-        // a measured capture replaces its synthetic stand-in, as an import does in Perf Lab (store.ts insertArtifact)
-        run(db, 'update lab_artifacts set origin = ?, status = ?, imported_at = ?, source = ? where hash = ?', a.origin, a.status, a.imported_at, a.source, a.hash);
-        s.artifacts.added++;
-        s.notes.push(`artifact ${a.hash}: the synthetic stand-in seeded here was replaced by Perf Lab's measured capture`);
       } else s.artifacts.present++;
       imported.add(a.hash);
     } catch (e) {
@@ -243,8 +245,12 @@ function importFrom(pl: DatabaseSync, src: string, db: Db, dataDir: string): Imp
   type BundleCols = { entities: Uint8Array | null; links: Uint8Array | null; n_entities: number | null; n_links: number | null };
   for (const r of q<RunRow & BundleCols>('select r.*, b.entities, b.links, b.n_entities, b.n_links from runs r left join run_bundles b on b.hash = r.hash and b.rep = r.rep order by r.hash, r.rep')) {
     const key = `${r.hash}#${r.rep}`;
-    if (get(db, 'select 1 from lab_runs where hash = ? and rep = ?', r.hash, r.rep)) {
+    if (get(db, 'select 1 from runs where hash = ? and rep = ?', r.hash, r.rep)) {
       s.runs.present++;
+      continue;
+    }
+    if (synthetic.has(r.hash)) {
+      s.notImported.synthetic_runs = (s.notImported.synthetic_runs ?? 0) + 1;
       continue;
     }
     if (!imported.has(r.hash)) {
@@ -262,9 +268,9 @@ function importFrom(pl: DatabaseSync, src: string, db: Db, dataDir: string): Imp
       if (!Array.isArray(entities) || entities.length !== r.n_entities) throw new Error(`the bundle holds ${Array.isArray(entities) ? entities.length : 'no array of'} entities, Perf Lab recorded ${r.n_entities}`);
       if (!Array.isArray(links) || links.length !== r.n_links) throw new Error(`the bundle holds ${Array.isArray(links) ? links.length : 'no array of'} links, Perf Lab recorded ${r.n_links}`);
       tx(db, () => {
-        run(db, 'insert into lab_runs (hash, rep, ref, experiment, arm, mode, host, started_at, duration_s, run_json) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        run(db, 'insert into runs (hash, rep, ref, experiment, arm, mode, host, started_at, duration_s, run_json) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           r.hash, r.rep, r.ref, r.experiment, r.arm, r.mode, r.host, r.started_at, r.duration_s, r.run_json);
-        run(db, 'insert into lab_run_bundles (hash, rep, entities, links, n_entities, n_links) values (?, ?, ?, ?, ?, ?)', r.hash, r.rep, r.entities!, r.links!, r.n_entities!, r.n_links!);
+        run(db, 'insert into run_bundles (hash, rep, entities, links, n_entities, n_links) values (?, ?, ?, ?, ?, ?)', r.hash, r.rep, r.entities!, r.links!, r.n_entities!, r.n_links!);
       });
       s.runs.added++;
     } catch (e) {
@@ -272,34 +278,8 @@ function importFrom(pl: DatabaseSync, src: string, db: Db, dataDir: string): Imp
     }
   }
 
-  // ── jobs: whole (row, captures, events) or not at all; history only, nothing here runs them ─────────────────────────
-  const UNFINISHED = new Set(['approved', 'running', 'importing']);
-  for (const j of q<Record<string, string | number | null> & { id: string; status: string }>('select * from jobs order by created_at, id')) {
-    if (get(db, 'select 1 from lab_jobs where id = ?', j.id)) {
-      s.jobs.present++;
-      continue;
-    }
-    // a job Perf Lab left mid-flight can never finish here; Perf Lab fails such jobs when it restarts (failInterruptedJobs)
-    const interrupted = UNFINISHED.has(j.status);
-    const at = now();
-    try {
-      tx(db, () => {
-        run(db, 'insert into lab_jobs (id, lab_id, status, proposed_by, reason, hosts, budget_gpu_min, progress, created_at, approved_at, finished_at, error) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          j.id, j.lab_id!, interrupted ? 'failed' : j.status, j.proposed_by!, j.reason!, j.hosts!, j.budget_gpu_min!, j.progress!, j.created_at!, j.approved_at ?? null,
-          interrupted ? at : (j.finished_at ?? null), interrupted ? 'not finished when imported from Perf Lab' : (j.error ?? null));
-        const cap = db.prepare('insert into lab_job_captures (job_id, hash, ref, experiment, arm, mode, host, reps, spec_json, status, error) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        for (const c of pl.prepare('select * from job_captures where job_id = ? order by rowid').all(j.id) as Record<string, string | number | null>[])
-          cap.run(j.id, c.hash!, c.ref!, c.experiment!, c.arm!, c.mode!, c.host!, c.reps!, c.spec_json!, c.status!, c.error ?? null);
-        const ev = db.prepare('insert into lab_job_events (job_id, at, kind, detail) values (?, ?, ?, ?)');
-        for (const e of pl.prepare('select at, kind, detail from job_events where job_id = ? order by id').all(j.id) as { at: string; kind: string; detail: string | null }[]) ev.run(j.id, e.at, e.kind, e.detail);
-        if (interrupted) ev.run(j.id, at, 'job.failed', 'not finished when imported from Perf Lab');
-      });
-      s.jobs.added++;
-      if (interrupted) s.notes.push(`job ${j.id} was ${j.status} in Perf Lab and is imported as failed`);
-    } catch (e) {
-      refuse('jobs', j.id, why(e));
-    }
-  }
+  // ── jobs: Perf Lab's job history is not carried over (its runs are) ───────────────────────────────────────────────
+  if (tables.has('jobs')) s.notImported.jobs = q<{ n: number }>('select count(*) as n from jobs')[0]?.n ?? 0;
 
   // ── programs: an edit already made here is never overwritten ───────────────────────────────────────────────────────
   for (const p of q<{ lab_id: string; source: string; preset_hash: string | null; updated_at: string }>('select * from programs order by lab_id')) {
@@ -339,7 +319,7 @@ export function formatSummary(s: ImportSummary, target: { dbFile: string; dataDi
   for (const k of KINDS) lines.push(`  ${k.padEnd(12)} ${n(s[k].added).padStart(7)} ${n(s[k].present).padStart(8)} ${n(s[k].refused.length).padStart(8)}`);
   lines.push('', `  verified bytes written: archives ${n(s.bytes.archives)}, media ${n(s.bytes.media)}`);
   const left = Object.entries(s.notImported).filter(([, c]) => c > 0);
-  if (left.length) lines.push(`  not imported (assistant transcripts are not lab data): ${left.map(([t, c]) => `${t} ${n(c)}`).join(', ')}`);
+  if (left.length) lines.push(`  not imported (synthetic stand-ins, Perf Lab job history, assistant transcripts): ${left.map(([t, c]) => `${t} ${n(c)}`).join(', ')}`);
   for (const k of KINDS) for (const r of s[k].refused) lines.push(`  REFUSED ${k} ${r.key}: ${r.reason}`);
   for (const note of s.notes) lines.push(`  note: ${note}`);
   return `${lines.join('\n')}\n`;

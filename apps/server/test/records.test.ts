@@ -66,11 +66,11 @@ describe('records (guide §30.3)', () => {
   });
 
   it('forgets a device: its records and its row', async () => {
-    const s = makeServer({ executors: [] });
+    const s = makeServer();
     const a = record();
     await s.json('POST', '/api/records', { body: { records: [a, record((r) => { r.at = '2026-10-19T17:00:00.000Z'; })] } });
     const [dev] = (await s.json('GET', '/api/devices')).body.devices;
-    expect(dev).toMatchObject({ id: a.device.id, class: 'webgpu', name: 'Apple M3 Max', fingerprint: FP, executor: null, available: false, records: 2, firstSeen: '2026-10-19T15:00:00.000Z', lastSeen: '2026-10-19T17:00:00.000Z' });
+    expect(dev).toMatchObject({ id: a.device.id, class: 'webgpu', name: 'Apple M3 Max', fingerprint: FP, host: null, records: 2, firstSeen: '2026-10-19T15:00:00.000Z', lastSeen: '2026-10-19T17:00:00.000Z' });
     expect((await s.json('DELETE', '/api/records')).status).toBe(400);
     expect((await s.json('DELETE', `/api/records?device=${encodeURIComponent(a.device.id)}`)).body).toEqual({ deleted: 2 });
     expect((await s.json('GET', '/api/devices')).body.devices).toEqual([]);

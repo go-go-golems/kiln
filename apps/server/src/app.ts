@@ -9,9 +9,11 @@ import { agentRoutes } from './agent.ts';
 import { labRoutes } from './lab/routes.ts';
 import { VERSION, type ServerConfig } from './config.ts';
 import { get, now, type Db } from './db.ts';
-import type { Devices } from './devices.ts';
+import { listDevices } from './devices.ts';
 import type { EventBus } from './events.ts';
-import type { Jobs, Reply } from './jobs.ts';
+import type { Hosts } from './exec/hosts.ts';
+import type { Jobs } from './exec/jobs.ts';
+import { execRoutes } from './exec/routes.ts';
 import { deleteRecords, insertRecords, listRecords, MAX_RECORDS_PER_POST } from './records.ts';
 import { security } from './security.ts';
 
@@ -19,18 +21,17 @@ export interface AppContext {
   config: ServerConfig;
   db: Db;
   bus: EventBus;
-  devices: Devices;
+  hosts: Hosts;
   jobs: Jobs;
   token: string;
   startedAt: string;
 }
 
-export const FEATURES = ['records', 'devices', 'jobs', 'events', 'lab'];
+export const FEATURES = ['records', 'devices', 'hosts', 'jobs', 'archives', 'events', 'lab'];
 const PAGE = 'kiln-workbench.html';
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
 
 const err = (error: string, message: string, extra: Record<string, unknown> = {}) => ({ error, message, ...extra });
-const reply = (c: Context, r: Reply) => c.json(r.body as object, r.status);
 const readJson = (c: Context): Promise<unknown> => c.req.json().catch(() => undefined);
 
 /** The built page with the token in a meta tag; the page reads it to call the API. */
@@ -40,7 +41,7 @@ export function pageWithToken(html: string, token: string): string {
 }
 
 export function createApp(ctx: AppContext): Hono {
-  const { db, bus, devices, jobs, config } = ctx;
+  const { db, bus, hosts, jobs, config } = ctx;
   const app = new Hono();
   app.use('*', security({ port: config.port, token: ctx.token }));
   app.use('/api/*', bodyLimit({ maxSize: 32 * 1024 * 1024, onError: (c) => c.json(err('too_large', 'request bodies are limited to 32 MiB'), 413) }));
@@ -57,7 +58,7 @@ export function createApp(ctx: AppContext): Hono {
       version: VERSION,
       startedAt: ctx.startedAt,
       db: { migrations: get<{ n: number }>(db, 'select count(*) as n from schema_migrations')?.n ?? 0 },
-      executors: devices.executors.size,
+      hosts: hosts.size,
       features: FEATURES,
       sseClients: bus.size,
     }),
@@ -85,26 +86,9 @@ export function createApp(ctx: AppContext): Hono {
     return c.json({ deleted });
   });
 
-  // ── devices ─────────────────────────────────────────────────────────────────────────────────────────────────
-  api.get('/devices', (c) => c.json({ devices: devices.list() }));
-  api.post('/devices/:executor/probe', async (c) => {
-    const view = await devices.probe(c.req.param('executor'));
-    return view ? c.json(view) : c.json(err('not_found', `no executor ${c.req.param('executor')}`), 404);
-  });
-
-  // ── jobs ────────────────────────────────────────────────────────────────────────────────────────────────────
-  api.get('/jobs', (c) => c.json({ jobs: jobs.list() }));
-  api.get('/jobs/:id', (c) => {
-    const v = jobs.view(c.req.param('id'));
-    return v ? c.json(v) : c.json(err('not_found', `no job ${c.req.param('id')}`), 404);
-  });
-  api.post('/jobs', async (c) => {
-    const body = await readJson(c);
-    if (body === undefined) return c.json(err('bad_json', 'the body is not JSON'), 400);
-    return reply(c, jobs.create(body, c.req.header('x-kiln-proposer')));
-  });
-  api.post('/jobs/:id/approve', (c) => reply(c, jobs.approve(c.req.param('id'))));
-  api.post('/jobs/:id/cancel', async (c) => reply(c, await jobs.cancel(c.req.param('id'))));
+  // ── devices (the evidence side) and the execution core: hosts, jobs, archives ───────────────────────────────────
+  api.get('/devices', (c) => c.json({ devices: listDevices(db) }));
+  api.route('/', execRoutes({ db, bus, hosts, jobs, dataDir: config.dataDir }));
 
   // ── events ──────────────────────────────────────────────────────────────────────────────────────────────────
   api.get('/events', (c) =>
@@ -122,8 +106,8 @@ export function createApp(ctx: AppContext): Hono {
   // ── the model gateway (Phase 7): POST /agent/sample, GET /agent/usage ─────────────────────────────────────────
   api.route('/agent', agentRoutes(config, db));
 
-  // ── Perf Lab's data routes (Phase 8c): /api/lab/… with Perf Lab's response shapes ───────────────────────────────
-  api.route('/lab', labRoutes({ config, db, bus }));
+  // ── Perf Lab's data routes: /api/lab/… with Perf Lab's response shapes ────────────────────────────────────────────
+  api.route('/lab', labRoutes({ config, db }));
 
   api.notFound((c) => c.json(err('not_found', `no route ${c.req.method} ${c.req.path}`), 404));
   app.route('/api', api);

@@ -23,3 +23,13 @@ Guide revised: one HTTP driver API on every host (plain TCP, no authentication, 
 ## 2026-10-20
 
 Revised guide uploaded to reMarkable: /ai/2026/10/20/KILN-003/KILN-003 Intern Guide One Execution Core v2 HTTP driver.pdf (the first version is kept beside it)
+
+## 2026-10-20
+
+P0/P1 server side: @kiln/exec (model, kinds, collectors, offers, planner, runs), kiln_driver.py, server src/exec (hosts, one job API, archive import), migration 3; executors, runner serve, kiln-docker-python, lab jobs/hosts/seeds removed. Workspace tests green. Diary step 3.
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/apps/server/src/exec/jobs.ts — The one job API
+- /Volumes/SSD/code/kiln/packages/exec/src/plan.ts — The planner
+- /Volumes/SSD/code/kiln/runner/kiln_driver.py — The driver

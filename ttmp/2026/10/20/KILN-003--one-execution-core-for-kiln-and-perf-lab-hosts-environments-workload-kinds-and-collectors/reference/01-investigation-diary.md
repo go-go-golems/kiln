@@ -312,3 +312,182 @@ ssh manuel@bling.local 'id; grep -rn NVreg /etc/modprobe.d/; grep -i profil /pro
 # nvidia-graphics-drivers-kms.conf: NVreg_PreserveVideoMemoryAllocations=1, NVreg_TemporaryFilePath=/var
 # RmProfilingAdminOnly: 1
 ```
+
+## Step 3: The execution core on the server: hosts, the driver, one job API, import into runs
+
+This step builds P0 and most of P1 on the server side: `@kiln/exec` (the model, the registries of workload kinds and
+collectors, requirements, offers, identity, the planner and the run builder), `runner/kiln_driver.py` (the one HTTP
+driver), and the server's `src/exec/` (hosts and their capability documents, the job API, archive import). The old
+execution paths are deleted rather than adapted: `src/executors/`, `src/jobs.ts`, the runner's `serve` mode and
+`kiln-docker-python`. Perf Lab's job tables and lab-local hosts go too; what Perf Lab measured survives as captures.
+
+The tests run the production path end to end. A real `kiln_driver.py` starts on a free port with a fake `docker` and
+`nvidia-smi`; the server plans a job, submits it, follows its events, fetches the archive and imports it. The step
+ended with the whole workspace green: 80 server tests, 11 exec tests, 133 and 98 in the other packages. The page's
+views (Devices, Jobs, the lab dock) still speak the old API and are the next step.
+
+### Prompt Context
+
+**User prompts (verbatim, 2026-10-20):**
+
+- "Ok, implement it, streamline, no backwards compatibilitty, this was all prototyping and now we have something
+  concrete to pull on. What happened to all those rich views from perf-lab btw? are they integreated? \n\nAnswer and
+  stop, we'll implement after your answer"
+- "perfect. Implement, btw commit at appropriate intervals and keep a detailed diary as you work (using the diary
+  format from the skill)."
+- Sent while the work was under way: "i'm gonna go swim. When it comes time to test and such, run the frontend on the
+  mac, a runner on the mac and a runner on bling, and then collect a whole set of data so we can see all the pretty
+  widgets and such. Add necessary presets and what not too. Take screenshots for the diary and the report we will
+  write. btw commit at appropriate intervals and keep a detailed diary as you work (using the diary format from the
+  skill)."
+
+**Assistant interpretation:** Implement the guide's core without compatibility layers. The scope agreed in the answer
+to the first prompt: Perf Lab's Plan tab becomes the Jobs view's plan and dry run, the Runs tab and the Inspector are
+ported, imports write `corresponds_to` links from runs to Kiln identities, and the Graph tab and the `lab.js` editor
+are left out. Testing happens on real hosts (a server and a driver on the Mac, a driver on bling) with a full data
+set, presets and screenshots.
+
+**Inferred user intent:** One execution path that both Kiln and the lab use, proven on real hardware, with enough data
+in it to judge the views.
+
+**Commit (code):** see the commit that adds this step ("KILN-003 P0/P1: …").
+
+### What I did
+
+- **`packages/exec` (`@kiln/exec`)**, pure TypeScript with no I/O:
+  - `model.ts`: hosts, facts, capability documents, captures, groups, plans (`kiln-plan/1`), steps, observations;
+  - `registry.ts`: the `WorkloadKind` and `Collector` interfaces, `environmentBlock` (the image id, never a tag);
+  - `requirements.ts`, `offers.ts`: a requirement checked against facts gives a verdict with a reason; offers are
+    the same checks applied to every kind and collector, so the capability document and the planner cannot disagree;
+  - `identity.ts`: `captureId` over kind, content id, collector set, protocol, device and environment;
+  - `plan.ts`: `planJob` accepts every capture through its kind (which recomputes the content id), drops optional
+    collectors the host does not offer, marks `execute`, `cached` or `blocked` with a reason, adds the timing
+    companion of a counters capture, groups by kind, collectors and pair id, and lowers each group per repetition in
+    the protocol's seeded order;
+  - `runs.ts`: `stepRuns` turns one step's observations into one bundle per (capture, repetition) in the lab's
+    entity model, with a `corresponds_to` link from each measured kernel to `kiln:identity:<identity>`;
+  - `kinds/kiln-kernels.ts`: `kiln-kernels/1` (accept, lower to a `kiln-bundle/1` per repetition, import the
+    runner's `kiln-results/1`, project `kiln-measure/1` records in `finish`);
+  - `collectors/`: `cuda-events`, `ptxas`, `nvtx`, `stage-timers`, `ncu`, `nsys`, and `gpu-sampler` (a sidecar the
+    driver runs; optional, so a timing capture on a host without `nvidia-smi` is still planned).
+- **`runner/kiln_driver.py`**, standard library only: `/v1/info`, `/v1/probe`, `/v1/blobs/:sha`, `/v1/jobs` (submit,
+  list, events with long polling, cancel, archive, delete), `/v1/plan`, `PUT /v1/self`; a FIFO queue, a GPU lock file
+  shared between drivers, conditions snapshots before and after, the sampler, restart recovery.
+- **`apps/server/src/exec/`**: `driver-client.ts`, `hosts.ts` (probe with a TTL cache and de-duplicated concurrent
+  probes; self-update when the driver's hash differs and it is idle), `jobs.ts` (the lifecycle in its header comment),
+  `import.ts`, `nsys-sqlite.ts` (node:sqlite, read-only), `routes.ts` (`/hosts`, `/jobs`, `/archives`), `assets.ts`.
+- **Database migration 3** (`src/db.ts`): new `jobs`, `job_events`, `job_captures`; `captures`, `runs`, `run_bundles`
+  replace `lab_artifacts`, `lab_runs`, `lab_run_bundles` (measured artifacts are copied, synthetic ones dropped);
+  `lab_evidence_archives` becomes `archives` with a `job_id`; `devices` gains `host`.
+- **Removed**: `src/executors/` and `test/executors.test.ts`, `src/jobs.ts`, `src/lab/probe.ts`, the lab's seed, job,
+  host and evidence routes, `runner/docker/kiln-docker-python`, `test/support/fake-runner.mjs`; `kiln_runner.py` keeps
+  only `device` and `run <bundle> --out`.
+- **Tests**: `test/support/server.ts` rewritten around `startDriver()` (a real driver with the fakes of
+  `test/support/bin/`), `hostProfile`, `kernelInput`, `jobBody`. `test/jobs.test.ts` rewritten (22 tests: capability
+  documents, an unreachable host, driver self-update, dry run, content ids, symbol canonicalisation, proposer and
+  budget rules, limits, caching, the lifecycle, context, output mismatch, queue order, cancel, reimport, a failing
+  kernel, a runner exit, cancel while running, the agent budget, server restart, driver restart, two drivers on one
+  lock). `client`, `events`, `decide`, `lab`, `lab-import`, `records` and `security` tests moved to the new API;
+  `serve-dev.ts` now starts a local driver with the fake GPU.
+- **`apps/workbench/src/server-client.js`**: `hosts.{list,capabilities,probe}`, `jobs.{plan,reimport}`,
+  `archives.list`; `jobSpec` emits `{host, reason, protocol, captures: [{kind: 'kiln-kernels/1', mode, rerun, input}]}`.
+
+### Why
+
+- **The driver's queue is the only queue.** A server that kept its own queue would need to agree with the driver's
+  after every restart; following the driver's events from a stored sequence number needs no agreement.
+- **Records are dated by the driver's `result` event**, not by the import. An archive imported again then produces
+  the same record ids, and `insert or ignore` makes reimport idempotent.
+- **Measure re-measures.** `jobSpec` sets `rerun: true`: a Measure on the page is new evidence, while lab captures
+  keep the planner's `cached` verdict.
+- **Perf Lab's job history is not imported.** Its jobs ran on a runner that no longer exists; their measured
+  captures and runs are imported, and the summary counts the rest under `notImported`.
+
+### What worked
+
+- `pnpm test` at the workspace root: every package passes (server 80, exec 11, and 133 and 98 in the others).
+- `pnpm --filter @kiln/server exec tsc --noEmit -p .` is clean, tests included.
+- The lifecycle test sees `proposed → approved → running → importing → done`, four containers started by image id
+  with `--network none` and the bundle mounted read-only, three valid records on the fake device, twelve runs with
+  `sample` entities on `conditions:gpu`, and the `corresponds_to` link to `kiln:identity:id-k_a`.
+
+### What didn't work
+
+- The first run of the new `jobs.test.ts` failed 3 of 22 tests:
+  - Queue order: `expected [ '2026-10-21T01:50:19Z', …(2) ] to deeply equal …` — the three jobs' start times were
+    19, 20, 19. Each approved job's follower submitted concurrently, so the driver queued them in whatever order the
+    HTTP requests landed. Fixed with `Jobs.serial(host, f)`: submissions to one host go one at a time.
+  - Reimport: `expected [ …(2) ] to deeply equal [ Array(1) ]` — a second record id appeared. `kernelRecords` used
+    the import time as `at`, which is inside the record's hash. Fixed by passing `endedAt` (the `result` event's `at`).
+  - Driver restart: `TypeError: Cannot read properties of undefined (reading 'timing')` — no record at all. After a
+    SIGKILL, `recover()` wrote `execution.json` with `steps: []`, so the finished repetition was lost. Fixed in the
+    driver: each finished step is appended to `steps.ndjson`, and `finish()` builds `execution.json` from it when the
+    job never wrote one.
+- The relative queue test then failed once more: positions came back 1, 2, 3 instead of 0, 1, 2 because the driver was
+  still finishing the previous test's job. The test now compares positions relative to the first.
+- The agent-budget stop ended the job `cancelled` with no error, because the server cancels it on the driver. The job
+  row now takes the budget message as `error` before cancelling, and `Jobs.outcome()` reports a cancelled job with an
+  error as `failed`. A consequence: `import.ts` can no longer use the job's status to recognise the step a cancel
+  killed; it now reads the driver's own `execution.json` `status`.
+- The Perf Lab importer counted runs of a refused artifact as `synthetic_runs`. It now tracks synthetic hashes
+  separately and refuses the others with "its artifact was not imported", as before.
+
+### What I learned
+
+- `step.output` lines arrive in the server's job event list interleaved with step events; the lifecycle test filters
+  them before comparing kinds.
+- The driver's `job.queued` position counts a running job, so it is not an absolute index.
+- Timestamps from the driver have one-second resolution; ordering assertions on them must allow ties.
+
+### What was tricky to build
+
+- **Who decides how a job ended.** Three parties have an opinion: the driver's `result` (done, failed, cancelled),
+  the server (the agent budget), and the import (which steps count). The rule now lives in one function,
+  `Jobs.outcome(job)`, used both when the job completes and when it is imported again, so the records of a reimport
+  say the same thing as the first import.
+- **The step a cancel kills.** It exits non-zero, but it did not fail; counting it would add a failed repetition to
+  every cancelled job. The import skips the last executed step when the driver's execution status is `cancelled` and
+  that step's exit is non-zero.
+
+### What warrants a second pair of eyes
+
+- `Jobs.serial` chains submissions per host in memory. A second server sharing a host is serialized only by the
+  driver's queue, so approval order across two servers is not defined (it never was).
+- `cancel()` waits up to 15 s for the follower to import the partial archive; a slow archive fetch returns the job
+  still `importing`.
+- The importer reads archives up to `plan.limits.archiveBytes + 64 MiB` into memory.
+
+### What should be done in the future
+
+- The page: Devices with capability documents, Jobs with the plan and the dry run, the lab dock on `/api/jobs` and
+  `/api/archives`, the Runs tab and the Inspector.
+- `perf-lab-sampler/1` for CPU work on the Mac; presets for `mac` and `bling`; the deployment and the data set.
+
+### Code review instructions
+
+- Start at `apps/server/src/exec/jobs.ts` (the header comment, `create`, `drive`, `collect`, `outcome`), then
+  `packages/exec/src/plan.ts` (`planJob`) and `apps/server/src/exec/import.ts`.
+- In the driver, read `execute`, `run_step`, `finish` and `recover` together.
+- Validate: `pnpm --filter @kiln/exec test`, `pnpm --filter @kiln/server test`, then `pnpm test` at the root.
+
+### Technical details
+
+The job lifecycle as the lifecycle test observes it, with the event kinds the job keeps (step output omitted):
+
+```text
+proposed, approved, submitted, job.queued, driver.started, lock.acquired, conditions,
+step.started, step.finished  ×4, conditions, result, done
+statuses: proposed → approved → running → importing → done
+```
+
+A capture request and its verdict (dry run):
+
+```json
+{ "kind": "kiln-kernels/1", "mode": "counters", "input": { "name": "k_a", "contentId": "…" }, "rerun": true }
+{ "verdict": "blocked", "reason": "kiln-perf has no ncu: build the image with it or add a tool mount" }
+```
+
+The archive a driver returns: `plan.json`, `events.ndjson`, `execution.json` (`kiln-execution/1`),
+`conditions/{before,after}.json`, `logs/<step>.{out,log}`, `out/<step>/…` (for kiln-kernels: `results.json`, and
+`gpu.csv` from the sampler). `steps.ndjson` stays in the driver's job directory; it exists only so that recovery can
+write `execution.json`.

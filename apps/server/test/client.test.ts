@@ -1,7 +1,12 @@
 // The page-side client (apps/workbench/src/server-client.js) against the real application.
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { connectServer, sessionToken, subscribe, ServerError } from '../../workbench/src/server-client.js';
-import { HOST, jobBody, jobKernel, makeServer } from './support/server.ts';
+import { HOST, hostProfile, jobBody, kernelInput, makeServer as makeBare, startDriver, type FakeDriver } from './support/server.ts';
+
+let d: FakeDriver;
+beforeAll(async () => void (d = await startDriver()));
+afterAll(() => d.stop());
+const makeServer = () => makeBare({ hosts: [hostProfile('fake', d.url)] });
 
 const clientFor = (s: ReturnType<typeof makeServer>, token = s.token) =>
   connectServer({ base: `http://${HOST}`, token, fetch: (url: string, init: RequestInit) => s.app.request(url, { ...init, headers: { ...(init.headers as Record<string, string>), host: HOST } }) });
@@ -18,7 +23,7 @@ describe('server-client.js', () => {
     const s = makeServer();
     const c = clientFor(s);
     expect((await c.health()).status).toBe('ok');
-    const id = (await c.jobs.create(jobBody([jobKernel()], { approve: true }))).id;
+    const id = (await c.jobs.create(jobBody([kernelInput()], { approve: true }))).id;
     await s.jobs.idle();
     const recs = await c.records.list({ job: id });
     expect(recs).toHaveLength(1);
@@ -31,22 +36,26 @@ describe('server-client.js', () => {
     expect(await oc.records.list()).toEqual([]);
   });
 
-  it('jobs and devices: create, approve, cancel, probe; refusals arrive as ServerError', async () => {
+  it('jobs and hosts: create, dry-run, approve, cancel, probe; refusals arrive as ServerError', async () => {
     const s = makeServer();
     const c = clientFor(s);
-    const err = await c.jobs.create(jobBody([jobKernel()], { approve: true }), { proposer: 'agent' }).catch((e: unknown) => e);
+    const err = await c.jobs.create(jobBody([kernelInput()], { approve: true }), { proposer: 'agent' }).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ServerError);
     expect([err.status, err.code]).toEqual([403, 'agent_cannot_approve']);
-    const proposed = await c.jobs.create(jobBody([jobKernel()]), { proposer: 'agent' });
+    const proposed = await c.jobs.create(jobBody([kernelInput()]), { proposer: 'agent' });
     expect(proposed.status).toBe('proposed');
     expect((await c.jobs.list()).map((j: { id: string }) => j.id)).toEqual([proposed.id]);
     await c.jobs.approve(proposed.id);
     await s.jobs.idle();
     expect((await c.jobs.get(proposed.id)).status).toBe('done');
-    const second = await c.jobs.create(jobBody([jobKernel()]));
+    const second = await c.jobs.create(jobBody([kernelInput()]));
     expect((await c.jobs.cancel(second.id)).status).toBe('cancelled');
-    expect((await c.devices.probe('fake')).available).toBe(true);
-    expect((await c.devices.list())[0]).toMatchObject({ executor: 'fake', available: true });
+    expect(await c.jobs.create({ ...jobBody([kernelInput({ extra: ' // dry' })]), dryRun: true })).toMatchObject({ dryRun: true, steps: 3, verdicts: [{ verdict: 'execute' }] });
+    expect((await c.jobs.plan(proposed.id)).format).toBe('kiln-plan/1');
+    expect((await c.hosts.probe('fake')).offers.kinds['kiln-kernels/1']).toEqual({ environment: 'kiln-perf' });
+    expect((await c.hosts.list())[0]).toMatchObject({ id: 'fake', reachable: true });
+    expect((await c.devices.list())[0]).toMatchObject({ host: 'fake', records: 1 });
+    expect((await c.archives.list())[0]).toMatchObject({ job: proposed.id });
     const bad = await clientFor(s, '0'.repeat(64)).records.add([]).catch((e: unknown) => e);
     expect([bad.status, bad.code]).toEqual([403, 'bad_token']);
   });

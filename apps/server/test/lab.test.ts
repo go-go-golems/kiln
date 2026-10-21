@@ -10,7 +10,7 @@ import { capture, cocoArchive, cocoManifest, IMAGES, insertMeasured, insertMedia
 const b64 = (x: Uint8Array) => Buffer.from(x).toString('base64');
 
 function labServer() {
-  const s = makeServer({ executors: [] });
+  const s = makeServer();
   const events: { type: string; data: any }[] = [];
   s.bus.on((e) => events.push(e));
   return { ...s, events };
@@ -31,35 +31,7 @@ describe('capture identity (Perf Lab cyrb53)', () => {
   });
 });
 
-describe('/api/lab: catalog, seeds and bundles', () => {
-  it('seeds synthetic captures, never an executing host or an evidence capture, and lists them in the catalog', async () => {
-    const s = labServer();
-    expect((await s.json('GET', '/api/lab/catalog')).body).toEqual({});
-    const dgx = capture('baseline', { host: 'playback@dgx' });
-    const r = await s.json('POST', '/api/lab/labs/sampler/seed', {
-      body: { captures: [capture('baseline'), dgx, capture('candidate', { host: 'playback@dgx', evidence: 'abc' })] },
-    });
-    expect(r).toEqual({ status: 200, body: { seeded: 1 } });
-    expect(s.events).toEqual([{ type: 'catalog.changed', data: { labId: 'sampler' } }]);
-    const cat = (await s.json('GET', '/api/lab/catalog')).body;
-    expect(cat).toEqual({ [dgx.hash]: { origin: 'synthetic', source: null, ref: 'sampler-test/baseline/timing', host: 'playback@dgx', reps: 2, labId: 'sampler', importedAt: expect.any(String) } });
-    expect((await s.json('POST', '/api/lab/labs/sampler/seed', { body: { captures: [dgx] } })).body).toEqual({ seeded: 0 });
-    expect(s.events).toHaveLength(1);
-  });
-
-  it('recomputes every capture hash: a forged one is 409, a malformed capture 400', async () => {
-    const s = labServer();
-    const c = capture('baseline', { host: 'playback@dgx' });
-    const forged = await s.json('POST', '/api/lab/labs/l/seed', { body: { captures: [{ ...c, hash: 'deadbeef' }] } });
-    expect(forged.status).toBe(409);
-    expect(forged.body).toEqual({ error: 'spec_hash_mismatch', message: `spec of ${c.ref} hashes to ${c.hash}, not deadbeef`, ref: c.ref });
-    for (const captures of [[], undefined, [{ ...c, ref: 'no-slashes' }], [{ ...c, reps: 0 }], [{ ...c, spec: null }], [{ ...c, reps: 65 }]]) {
-      const r = await s.json('POST', '/api/lab/labs/l/seed', { body: { captures } });
-      expect([r.status, r.body.error]).toEqual([400, 'bad_request']);
-    }
-    expect((await s.json('GET', '/api/lab/catalog')).body).toEqual({});
-  });
-
+describe('/api/lab: catalog and bundles', () => {
   it('serves bundles by capture hash, repetitions in order, value records intact; unknown hashes are empty', async () => {
     const s = labServer();
     const a = capture('baseline');
@@ -72,14 +44,14 @@ describe('/api/lab: catalog, seeds and bundles', () => {
     expect(r.body[a.hash].map((x: any) => [x.run.ref, x.entities[0].latency])).toEqual([['sampler-test/baseline/timing#0', 2], ['sampler-test/baseline/timing#1', 2.5]]);
     expect(r.body[b.hash][0].entities[1].userTime).toEqual({ __value: true, v: 1.5, unit: 'ms', source: 'sampler-test/candidate/timing#0/cpu.json' });
     expect(r.body[b.hash][0].links).toEqual([expect.objectContaining({ rel: 'contains', evidence: 'direct' })]);
-    expect((await s.json('GET', '/api/lab/catalog')).body[a.hash]).toEqual({ origin: 'measured', source: null, ref: a.ref, host: 'local', reps: 2, labId: 'sampler', importedAt: '2026-10-12T00:01:00.000Z' });
+    expect((await s.json('GET', '/api/lab/catalog')).body[a.hash]).toEqual({ origin: 'measured', source: null, ref: a.ref, host: 'local', reps: 2, labId: 'sampler', importedAt: '2026-10-12T00:01:00.000Z', kind: null });
     const many = Array.from({ length: 70 }, (_, i) => `h${i}`).join(',');
     expect(Object.keys((await s.json('GET', `/api/lab/bundles?hashes=${many}`)).body)).toHaveLength(64);
     expect((await s.json('GET', '/api/lab/bundles')).body).toEqual({});
   });
 });
 
-describe('/api/lab: programs, annotations, jobs and hosts', () => {
+describe('/api/lab: programs and annotations', () => {
   it('stores, returns and deletes an edited program', async () => {
     const s = labServer();
     expect((await s.json('GET', '/api/lab/programs/sampler')).status).toBe(404);
@@ -104,66 +76,23 @@ describe('/api/lab: programs, annotations, jobs and hosts', () => {
     expect((await s.json('POST', '/api/lab/annotations', { body: { labId: 'x', kind: 'note' } })).status).toBe(400);
   });
 
-  it('lists jobs read-only, in Perf Lab\'s JobView shape, and refuses to create, approve or cancel one', async () => {
+  it('has no lab jobs, hosts, seeds or evidence of its own: those are /api/jobs, /api/hosts and /api/archives', async () => {
     const s = labServer();
-    expect((await s.json('GET', '/api/lab/jobs')).body).toEqual([]);
-    s.db.prepare(`insert into lab_jobs values ('job-a', 'sampler', 'done', 'user', 'why', 'local', 3.8, 1, '2026-10-12T00:00:00Z', '2026-10-12T00:00:01Z', '2026-10-12T00:01:00Z', null)`).run();
-    s.db.prepare(`insert into lab_job_captures values ('job-a', 'h1', 'e/a/timing', 'e', 'a', 'timing', 'local', 2, '{"secret":"spec"}', 'imported', null)`).run();
-    s.db.prepare(`insert into lab_job_events (job_id, at, kind, detail) values ('job-a', '2026-10-12T00:00:00Z', 'job.proposed', 'why')`).run();
-    const view = {
-      id: 'job-a', lab_id: 'sampler', status: 'done', proposed_by: 'user', reason: 'why', hosts: 'local', budget_gpu_min: 3.8, progress: 1,
-      created_at: '2026-10-12T00:00:00Z', approved_at: '2026-10-12T00:00:01Z', finished_at: '2026-10-12T00:01:00Z', error: null,
-      captures: [{ job_id: 'job-a', hash: 'h1', ref: 'e/a/timing', experiment: 'e', arm: 'a', mode: 'timing', host: 'local', reps: 2, status: 'imported', error: null }],
-      events: [{ id: 1, at: '2026-10-12T00:00:00Z', kind: 'job.proposed', detail: 'why' }],
-    };
-    expect((await s.json('GET', '/api/lab/jobs')).body).toEqual([view]);
-    expect((await s.json('GET', '/api/lab/jobs?lab=sampler')).body).toEqual([view]);
-    expect((await s.json('GET', '/api/lab/jobs?lab=other')).body).toEqual([]);
-    expect((await s.json('GET', '/api/lab/jobs/job-a')).body).toEqual(view);
-    expect((await s.json('GET', '/api/lab/jobs/job-b')).status).toBe(404);
-    for (const path of ['/api/lab/jobs', '/api/lab/jobs/job-a/approve', '/api/lab/jobs/job-a/cancel']) {
-      const r = await s.json('POST', path, { body: { labId: 'sampler', captures: [capture('baseline')], approve: true } });
-      expect([path, r.status, r.body.error]).toEqual([path, 501, 'not_implemented']);
-    }
-    expect((await s.json('GET', '/api/lab/jobs/job-a')).body.status).toBe('done');
-  });
-
-  it('reports no host that executes lab jobs, and no local report without workload sources', async () => {
-    const s = labServer();
-    const hosts = (await s.json('GET', '/api/lab/hosts')).body;
-    expect(hosts.map((h: any) => [h.host, h.executor, h.synthetic, h.available])).toEqual([
-      ['local', 'none', false, false],
-      ['playback@dgx', 'synthetic', true, true],
-      ['playback@rtx-dev', 'synthetic', true, true],
-    ]);
-    expect(await s.json('GET', '/api/lab/hosts/local/capabilities')).toMatchObject({ status: 503, body: { error: 'no_probe' } });
-    expect(await s.json('GET', '/api/lab/hosts/playback@dgx/capabilities')).toMatchObject({ status: 404, body: { error: 'not_found' } });
-  });
-
-  it("reports host local's workload revision as Perf Lab's probe computes it, from the sources' names and bytes", async () => {
-    const dir = tempDir();
-    writeFileSync(join(dir, 'sampler.py'), 'import torch\n');
-    writeFileSync(join(dir, 'bench.py'), 'def run():\n    return 1\n');
-    writeFileSync(join(dir, 'notes.txt'), 'not python\n');
-    const s = makeServer({ executors: [], config: { labWorkloads: dir } });
-    const r = await s.json('GET', '/api/lab/hosts/local/capabilities');
-    // computed with PL/workloads/perf_lab_local/probe.py's workloads_revision (Python hashlib) over the same files
-    expect(r).toMatchObject({ status: 200, body: { host: 'local', synthetic: false, devices: ['cpu'], tools: { workloads: 'ddf321d31bc9' } } });
-    writeFileSync(join(dir, 'bench.py'), 'def run():\n    return 2\n');
-    expect((await s.json('GET', '/api/lab/hosts/local/capabilities')).body.tools.workloads).not.toBe('ddf321d31bc9');
+    for (const path of ['/api/lab/jobs', '/api/lab/hosts', '/api/lab/hosts/local/capabilities', '/api/lab/evidence']) expect([path, (await s.call('GET', path)).status]).toEqual([path, 404]);
+    expect((await s.call('POST', '/api/lab/labs/sampler/seed', { body: { captures: [capture('baseline')] } })).status).toBe(404);
   });
 });
 
-describe('/api/lab: evidence archives and datasets', () => {
+describe('/api/archives and /api/lab/datasets', () => {
   it('registers an archive uploaded as base64, by content, with its COCO selection as a dataset', async () => {
     const s = labServer();
     const gz = cocoArchive();
     const hash = sha256(gz);
-    const r = await s.json('POST', '/api/lab/evidence', { body: { name: 'fixture', data: b64(gz) } });
+    const r = await s.json('POST', '/api/archives', { body: { name: 'fixture', data: b64(gz) } });
     expect(r.status).toBe(201);
     const { datasetId } = cocoManifest();
     expect(r.body).toEqual({
-      sha256: hash, name: 'fixture', bytes: gz.byteLength, addedAt: expect.any(String), datasets: [datasetId],
+      sha256: hash, name: 'fixture', bytes: gz.byteLength, addedAt: expect.any(String), datasets: [datasetId], job: null,
       files: [
         { path: 'qualification/coco/fixture-provenance.json', bytes: expect.any(Number) },
         { path: 'qualification/coco/instances_selected.json', bytes: expect.any(Number) },
@@ -174,12 +103,13 @@ describe('/api/lab: evidence archives and datasets', () => {
     expect(readFileSync(join(archiveRoot(s.config.dataDir, hash), 'qualification/reports/paired.json'), 'utf8')).toBe('{"results":[]}');
     expect(readFileSync(join(evidenceDir(s.config.dataDir), `${hash}.tar.gz`))).toEqual(Buffer.from(gz));
 
-    const again = await s.json('POST', '/api/lab/evidence?name=again', { body: { data: b64(gz) } });
+    const again = await s.json('POST', '/api/archives', { body: { data: b64(gz) } });
     expect([again.status, again.body.name]).toEqual([200, 'fixture']);
     expect(s.events).toHaveLength(1);
-    expect((await s.json('GET', '/api/lab/evidence')).body).toEqual([r.body]);
-    expect((await s.json('GET', `/api/lab/evidence/${hash}`)).body).toEqual(r.body);
-    expect((await s.json('GET', `/api/lab/evidence/${'0'.repeat(64)}`)).status).toBe(404);
+    expect((await s.json('GET', '/api/archives')).body).toEqual([r.body]);
+    const bytes = await s.call('GET', `/api/archives/${hash}`);
+    expect([bytes.headers.get('content-type'), Buffer.from(await bytes.arrayBuffer())]).toEqual(['application/gzip', Buffer.from(gz)]);
+    expect((await s.json('GET', `/api/archives/${'0'.repeat(64)}`)).status).toBe(404);
 
     expect((await s.json('GET', '/api/lab/datasets')).body).toEqual([
       { id: datasetId, name: 'fixture · COCO selection', format: 'coco', privacy: 'public', source: `evidence:${hash}`, categories: ['person', 'chair'], imageCount: 2, annotationCount: 2, present: 0, addedAt: r.body.addedAt },
@@ -206,7 +136,7 @@ describe('/api/lab: evidence archives and datasets', () => {
     const dir = tempDir();
     const file = join(dir, 'evidence-final.tar.gz');
     writeFileSync(file, cocoArchive({ extra: '{"results":[1]}' }));
-    const r = await s.json('POST', '/api/lab/evidence', { body: { name: 'by path', path: file } });
+    const r = await s.json('POST', '/api/archives', { body: { name: 'by path', path: file } });
     expect([r.status, r.body.sha256, r.body.name]).toEqual([201, sha256(readFileSync(file)), 'by path']);
     writeFileSync(join(dir, 'archive.zip'), cocoArchive());
     writeFileSync(join(dir, 'notes.txt.tar.gz'), 'not gzip at all');
@@ -224,11 +154,11 @@ describe('/api/lab: evidence archives and datasets', () => {
       [[1, 2], 400, 'bad_request', /body must be/],
     ];
     for (const [body, status, error, message] of refusals) {
-      const res = await s.json('POST', '/api/lab/evidence', { body });
+      const res = await s.json('POST', '/api/archives', { body });
       expect([JSON.stringify(body).slice(0, 60), res.status, res.body.error], res.body.message).toEqual([JSON.stringify(body).slice(0, 60), status, error]);
       expect(res.body.message).toMatch(message);
     }
-    expect((await s.json('GET', '/api/lab/evidence')).body).toHaveLength(1);
+    expect((await s.json('GET', '/api/archives')).body).toHaveLength(1);
   });
 
   it('refuses hostile and invalid archives, and leaves nothing behind', async () => {
@@ -246,13 +176,13 @@ describe('/api/lab: evidence archives and datasets', () => {
       [cocoArchive({ host: 'camera.factory.local' }), /no public source/],
     ];
     for (const [gz, message] of cases) {
-      const r = await s.json('POST', '/api/lab/evidence', { body: { data: b64(gz) } });
+      const r = await s.json('POST', '/api/archives', { body: { data: b64(gz) } });
       expect([r.status, r.body.error]).toEqual([400, 'bad_archive']);
       expect(r.body.message).toMatch(message);
     }
     expect(existsSync(join(s.config.dataDir, 'escape.json')) || existsSync(join(s.config.dataDir, 'lab', 'escape.json'))).toBe(false);
     expect(existsSync(evidenceDir(s.config.dataDir)) ? readdirSync(evidenceDir(s.config.dataDir)) : []).toEqual([]);
-    expect(s.db.prepare('select count(*) as n from lab_evidence_archives').get()).toEqual({ n: 0 });
+    expect(s.db.prepare('select count(*) as n from archives').get()).toEqual({ n: 0 });
     expect(s.db.prepare('select count(*) as n from lab_datasets').get()).toEqual({ n: 0 });
     expect(s.events).toEqual([]);
   });
@@ -312,16 +242,14 @@ describe('/api/lab/media/:sha', () => {
   });
 });
 
-describe('/api/lab behind the four checks (guide §30.2)', () => {
+describe('/api/lab and /api/archives behind the four checks (guide §30.2)', () => {
   const s = labServer();
-  const gets = ['/api/lab/catalog', '/api/lab/bundles?hashes=x', `/api/lab/media/${sha256('x')}`, '/api/lab/evidence', '/api/lab/datasets', '/api/lab/jobs', '/api/lab/hosts'];
+  const gets = ['/api/lab/catalog', '/api/lab/bundles?hashes=x', `/api/lab/media/${sha256('x')}`, '/api/archives', '/api/lab/datasets', '/api/lab/annotations?lab=l'];
   const writes: [string, string, unknown][] = [
-    ['POST', '/api/lab/evidence', { data: b64(cocoArchive()) }],
-    ['POST', '/api/lab/labs/l/seed', { captures: [capture('baseline', { host: 'playback@dgx' })] }],
+    ['POST', '/api/archives', { data: b64(cocoArchive()) }],
     ['PUT', '/api/lab/programs/l', { source: 'x' }],
     ['DELETE', '/api/lab/programs/l', {}],
     ['POST', '/api/lab/annotations', { labId: 'l', target: 't', kind: 'k' }],
-    ['POST', '/api/lab/jobs', {}],
   ];
 
   it('refuses a foreign Host and a foreign or null Origin on every lab route', async () => {
@@ -341,7 +269,7 @@ describe('/api/lab behind the four checks (guide §30.2)', () => {
       const r = await s.json(method, path, { body, headers: { 'content-type': 'application/gzip' } });
       expect([method, path, r.status, r.body.error]).toEqual([method, path, 415, 'unsupported_media_type']);
     }
-    expect((await s.json('GET', '/api/lab/evidence')).body).toEqual([]);
+    expect((await s.json('GET', '/api/archives')).body).toEqual([]);
     expect((await s.json('GET', '/api/lab/catalog')).body).toEqual({});
     expect((await s.json('GET', '/api/lab/annotations?lab=l')).body).toEqual([]);
     expect(s.events).toEqual([]);
