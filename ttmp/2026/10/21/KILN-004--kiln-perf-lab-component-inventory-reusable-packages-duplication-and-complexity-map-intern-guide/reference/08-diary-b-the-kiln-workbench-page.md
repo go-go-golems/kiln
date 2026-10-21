@@ -198,3 +198,127 @@ cd /Volumes/SSD/code/kiln && for f in algo build builders compare detections env
   were already on top when this diary started.
 - Notes source: scratchpad `notes-B-workbench-ui.md` (741 lines) → ticket `reference/03-…` (764 lines with
   frontmatter).
+
+## Step 2: Re-verifying the line references carried across the context compaction
+
+Step 1 left a list of line references that came from the pre-compaction summary rather than from a read. This step
+re-read every one of them with `sed -n` at the cited lines. Most held. Four did not, and the notes are corrected:
+three files were placed under the wrong directory, the `.gitignore` reference named a file that does not exist, and
+the "compile sequence written twice" finding was overstated in one direction and understated in another. Three new
+findings came out of the re-reads (a stale comment in the agent frame, the misplaced home of `saveText`, and the
+condition under which the server relay is used at all).
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (which links the original request in `01-investigation-diary.md`).
+
+**Assistant interpretation:** make the notes trustworthy before they are loaded into the inventory database; a wrong
+path there becomes a dead link in the site.
+
+**Inferred user intent:** every claim in the inventory traceable to a line that says what the claim says.
+
+**Commit (code):** none (inventory only).
+
+**Previous commit:** 48f2151 — "KILN-004 B: workbench page inventory notes; diary step 1".
+
+### What I did
+
+- Re-read each reference with a small shell function, `p(){ echo "--- $1:$2"; sed -n "$2p" "$1" | cut -c1-230; }`,
+  over `apps/workbench/src/ui/wb.js` (1-2, 21-26, 51-53, 68-70, 75-77, 154-188, 226-233, 319-321, 464-466,
+  505-506), `apps/workbench/src/ui/common.jsx` (7-12), `apps/workbench/src/agent/agent.js` (102-104, 112-122,
+  357-358, 535-538), `apps/workbench/src/agent/gateway.js` (17-35), `apps/workbench/src/ui/tokens.css` (22-40),
+  `scripts/contrast.mjs` (10-14), `apps/workbench/src/ui/Kernels.jsx` (9-16), `apps/workbench/src/ui/App.jsx`
+  (11-18, 48-56, 109), `apps/workbench/build.mjs` (16-17, 31-33, 40-43, 55, 67-69), `apps/workbench/src/main.jsx`
+  (15, 24, 31), `apps/workbench/src/ui/dock.js` (6-11, 17-22), `apps/workbench/src/ui/views.jsx` (23-24, 45-50),
+  `apps/workbench/src/ui/Dock.jsx` (11-12, 298-300), `apps/workbench/src/ui/Jobs.jsx` (197),
+  `apps/workbench/src/ui/lab/api.js` (19), `packages/kiln/src/std/devices.js` (297, 306-308),
+  `apps/workbench/src/ui/lab/board.jsx` (62-66), `scripts/specimen.mjs` (10), `apps/workbench/test/ui.mjs` (4, 36),
+  `apps/workbench/src/ui/Ide.jsx` (77-85), `apps/server/src/agent.ts` (252-253), `apps/server/src/config.ts`
+  (35, 59-61), `packages/lab/src/lang/hypothesis.ts` (58), `lab-workbench/src/features/agent/runtime.ts`
+  (443, 531-533, 538).
+- Followed up the compile claim: `grep -n "^import" apps/workbench/src/ui/wb.js` and
+  `grep -rn "compileScript" apps/workbench/src`, then read `apps/workbench/src/compile.js` whole (77 lines).
+- Followed up the download claim: `grep -rn 'saveText\|claude?.use?.("downloads")' apps/workbench/src`.
+- Followed up the gateway claim: `grep -n "modelTier\|effort" apps/workbench/src/agent/gateway.js`.
+- Applied 14 exact-once replacements to the notes with a scratchpad helper (`replace_once.py`, all-or-nothing:
+  it refuses an edit whose old text does not occur exactly once). Result: "applied 14 edits", notes now 773 lines.
+
+### Why
+
+- The notes are about to become database rows keyed by repo-relative path. A path that is wrong in the notes would be
+  wrong in `modules.path` and would never join to anything.
+
+### What worked
+
+- Held as cited: the Octavo comment (`wb.js:1-2`), the `kiln-wb:` prefix (`wb.js:21`), the migration flags
+  (`wb.js:51-70`), `on/bump/version` (`wb.js:75-77`), `evaluateHypotheses` (`wb.js:226-233`), the server section
+  bounds (`wb.js:319-466`), `useLab` (`common.jsx:7-12`), `AGENT_SCOPE` (`agent.js:102`), the `webgpu cuda` device
+  list (`agent.js:114`), the view list without hypotheses/jobs/lab/inspect (`agent.js:120`), `makeAgentScope`
+  bounds (`agent.js:357-537`), the duplicated dark blocks (`tokens.css:24-31` and `32-39`, identical values),
+  `contrast.mjs:12` reading only `[data-theme="dark"]`, the CSS list (`build.mjs:55`) and its shorter copy
+  (`specimen.mjs:10`), the keyboard map (`App.jsx:14-16`, `Ide.jsx:79-84`), `EDGE`/`NARROW` (`Dock.jsx:11-12`),
+  `PhoneDock` (`Dock.jsx:298`), the panel-kind map (`board.jsx:62-66`), the Playwright container paths
+  (`ui.mjs:4,36`), the relay's 503 codes (`agent.ts:252-253`), `KILN_MODEL_URL` default (`config.ts:60`), and
+  Perf Lab's unsandboxed `new AsyncFunction` (`runtime.ts:443`) with its six-call loop (`runtime.ts:538`).
+
+### What didn't work
+
+- `sed -n 1,77p ui/compile.js` from `apps/workbench/src` failed:
+
+  ```text
+  sed: ui/compile.js: No such file or directory
+  ```
+
+  `ls apps/workbench/src` shows `compile.js`, `server-client.js` and `server-sync.js` sit in `src/`, beside
+  `main.jsx`, not in `src/ui/`. The notes had all three under `ui/`.
+- `sed -n 5p apps/workbench/.gitignore` failed:
+
+  ```text
+  sed: apps/workbench/.gitignore: No such file or directory
+  ```
+
+  `grep -n dist .gitignore` at the repo root gives `5:dist/`; the reference was to the root file.
+
+### What I learned
+
+- The compile duplication is narrower and more deliberate than Step 1 said. `wb.js:13` imports `pipelineFor`,
+  `endToEnd` and `hasKernels` from `src/compile.js`; only the core sequence is written twice (`wb.js:157-181` vs
+  `compile.js:22-36`), because the page mutates its live `ParamSet` and applies first-time pins and device, while
+  `compileScript` works on a clone. `compileScript` has exactly one caller, `agent/frame.js:53`.
+- `agent/frame.js:10` ("by the same compileScript the page uses") is stale narration; `compile.js:1-3` is accurate
+  only for the helpers.
+- `saveText` is a shared helper living in a view module: exported at `Kernels.jsx:10`, imported by
+  `Evidence.jsx:7`, `Agent.jsx:11` and `Notes.jsx:7`, while `App.jsx:49-55` and `App.jsx:109` re-implement it inline.
+- The server relay is opt-in at runtime: `main.jsx:24` installs `gatewaySample` only when `/api/agent/usage`
+  answers `ready`.
+- `gateway.js` accepts `modelTier` (l.19) and reports it back as `modelTierApplied` (l.90-97) without sending it
+  (l.33); `effort` is in the header comment (l.5) and nowhere else. The UI therefore tells the user a tier was
+  applied when the relay never saw it [inf from the echo; not run].
+
+### What was tricky to build
+
+- Nothing was built. The trap was that a summary-derived line reference reads exactly like a verified one; the only
+  defence is to re-read them, which is what this step did.
+
+### What warrants a second pair of eyes
+
+- Whether `modelTierApplied` being an echo matters: if the server picks the model from `KILN_MODEL` alone, the
+  Fast/Balanced/Deep control is cosmetic on the relay path. Check `apps/server/src/agent.ts` for any tier handling
+  (area C owns that file).
+
+### What should be done in the future
+
+- Load the notes into the inventory database (Step 3).
+- Confirm the duplication rows with diffs, not reads.
+
+### Code review instructions
+
+- `grep -n "src/compile.js\|src/server-client.js\|repo-root" reference/03-inventory-notes-b-the-kiln-workbench-page.md`
+  shows the corrected places; re-run the `p` function above on any reference to check it.
+
+### Technical details
+
+- Edits applied (old → new, abbreviated): `.gitignore:5` → repo-root `.gitignore:5`; three file-map rows moved from
+  `ui/` to `src/`; `main.jsx:24` now states the `ready` condition; the §3.2 compile paragraph rewritten; two §10.2
+  rows (download logic, compile sequence) refined; two path fixes in §12; §13 gains three rows (frame.js stale
+  comment, `saveText` home, gateway `modelTier` echo detail).

@@ -58,7 +58,7 @@ Marking convention:
   - `test` → gen-only, then `scripts/run-node-tests.mjs` over `test/*.mjs`, **skipping**
     `ui`, `export-cuda`, `param-sweep`, `webgpu`, `paired-webgpu`, `server-e2e`, `agent-e2e`, `lab-e2e`.
   - `test:ui`, `test:sweep`, `test:webgpu`, `test:paired`, `test:server`, `test:agent` run those individually.
-- `dist/` is gitignored (`.gitignore:5`) [obs]. A built `dist/kiln-workbench.html` (5009 lines) and
+- `dist/` is gitignored by the repo-root `.gitignore:5` (there is no `apps/workbench/.gitignore`) [obs]. A built `dist/kiln-workbench.html` (5009 lines) and
   `dist/specimen.html` (796 lines) were present on disk at inspection time [obs].
 
 ### 1.2 Repository README context
@@ -95,13 +95,13 @@ Source under `apps/workbench/src/` (generated `*.gen.js` excluded):
 | `ui/Jobs.jsx`                | 256 | Server jobs, devices/hosts                                            |
 | `ui/Events.jsx`              | 58  | Event log                                                             |
 | `ui/Agent.jsx`               | 267 | Agent chat panel                                                      |
-| `ui/server-client.js`        | 165 | HTTP + SSE client for the Kiln server                                 |
-| `ui/server-sync.js`          | 168 | Record push/pull, `HostDevice`, job merge                             |
+| `server-client.js`           | 165 | HTTP + SSE client for the Kiln server (in `src/`, not `src/ui/`)      |
+| `server-sync.js`             | 168 | Record push/pull, `HostDevice`, job merge (in `src/`)                 |
 | `ui/doc.js`                  | 114 | Notes markdown renderer                                               |
 | `ui/md.js`                   | 45  | Agent-answer markdown renderer                                        |
 | `ui/highlight.js`            | 69  | Syntax highlighter for the editor                                     |
 | `ui/links.js`                | 56  | `lab:` link scheme                                                    |
-| `ui/compile.js`              | 77  | `compileScript` (used by the agent frame)                             |
+| `compile.js`                 | 77  | `pipelineFor`, `compileScript`, `hasKernels`, `endToEnd` (in `src/`)  |
 | `ui/lab/state.js`            | 210 | `Labs` singleton (Perf Lab programs inside Kiln)                      |
 | `ui/lab/api.js`              | 86  | Lab client over `/api/lab/*`, re-exports from `@kiln/lab`             |
 | `ui/lab/board.jsx`           | 156 | Board renderer, `ViewRenderer`, `Panel`, error boundary               |
@@ -196,7 +196,9 @@ one HTML file [obs from build steps + dist size].
 - `main.jsx:15` exposes `window.__kiln = { wb, k, P, std, agent, labs }` [obs]. This global is the
   test/automation seam: `scripts/shoot-views.mjs` and the e2e tests drive the UI through
   `window.__kiln.wb` rather than through DOM events [obs].
-- `main.jsx:24` polls `GET /api/agent/usage` [obs].
+- `main.jsx:24` asks `GET /api/agent/usage` once at start; only when it answers `ready` does it set
+  `wb.sample = gatewaySample(...)` (the server relay). Otherwise `wb.sample` stays on the claude.ai host bridge
+  [obs for the condition; inf that the bridge is the fallback].
 
 ### 3.2 State: the `Workbench` singleton and named channels
 
@@ -225,9 +227,14 @@ What `wb` owns (grouped by responsibility, all [obs] in `wb.js`):
 | Layout          | `setLayout`, `showView`, `dropView`, `focusTile`, `toggleMax`, layout-migration flags (l.51-70)                           |
 | Misc            | `toast`, `log`, `summary()` (used by the agent context), `sample` (agent model bridge)                                    |
 
-`compile` (l.154-188) re-implements the same sequence as `ui/compile.js` `compileScript`
-(`runScript` → params → `pipelineFor` → `pipe.run`) instead of calling it [obs]. `compile.js` is
-used by the agent frame (section 7) [obs].
+`compile` (l.154-188) shares `pipelineFor`, `hasKernels` and `endToEnd` with `src/compile.js` (imported at
+`wb.js:13`), but writes the core sequence of `compileScript` out a second time: `runScript` → declare params →
+`project.graph` → `pipe.run` → diagnostics (`wb.js:157-181` vs `compile.js:22-36`) [obs]. The two copies differ on
+purpose: the page mutates its live `ParamSet` (`params.params.set`) and applies first-time pins and device, while
+`compileScript` declares params on a clone [obs]. `compileScript` itself has one caller, the agent frame
+(`agent/frame.js:15,53`) [obs]. `compile.js:1-3` says "The page's compile and the agent's sandbox frame both call
+these" and `frame.js:10` says "by the same compileScript the page uses"; the first is true of the helpers, the
+second is not [obs].
 
 ### 3.3 Second singleton: `labs` (Perf Lab inside Kiln)
 
@@ -311,7 +318,7 @@ Section 5 lists every entry.
 
 ### 4.1 Client
 
-`ui/server-client.js` `connectServer` (165 LOC) [obs]:
+`src/server-client.js` `connectServer` (165 LOC) [obs]:
 
 - Token: read from `<meta name="kiln-token">` (lookup in `packages/kiln/src/std/devices.js:297`) [obs].
 - Every non-GET request sends `x-kiln-token` [obs].
@@ -503,7 +510,7 @@ Reference view and the agent's instructions [obs].
   (`runInFrame`) [obs].
 - `agent/frame.js` (108 LOC): `startFrame`, `runEval` inside the worker; page calls are stubs that
   cross the channel; `editor.check` / `compile` run **locally in the worker** via `compileScript`
-  (`ui/compile.js`); `inspectScope` (`agent/inspect.js`: `ir`, `trace` namespaces); code runs via
+  (`src/compile.js`); `inspectScope` (`agent/inspect.js`: `ir`, `trace` namespaces); code runs via
   `new Function` [obs].
 - `agent/encode.js` (95 LOC): `errs`, `warns`, `runSummary`, `e2eLine`, `rowOf`, `r3`, `plain`,
   `yaml`, `toWire`, `fromWire` [obs].
@@ -653,8 +660,8 @@ determines whether the two UIs can show the same board identically.)
 | `when` date formatter ×2            | `Jobs.jsx:7`, `Evidence.jsx:10` (near-identical; Jobs adds a null guard)                                       |
 | `Empty` component ×3                | `common.jsx:92` (exported) vs local redefinitions `lab/panels.jsx:24`, `lab/inspect.jsx:12` (identical to each other, different markup from common) |
 | Two dry-run UIs                     | `Jobs.jsx` `DryRun` and `lab/LabView.jsx` `LabDryRun`, both composing `Verdicts` / `PlanSteps`                 |
-| Download/save-text logic ×3         | `Kernels.jsx:10-15`, `App.jsx:49-55`, and inline in `App.jsx:109`                                              |
-| Compile sequence ×2                 | `wb.js:154-188` and `ui/compile.js` `compileScript`                                                            |
+| Download/save-text logic ×3         | `saveText` is exported from `Kernels.jsx:10-15` and imported by `Evidence.jsx:7`, `Agent.jsx:11`, `Notes.jsx:7`; `App.jsx:49-55` (script download) and `App.jsx:109` (notes download) inline the same downloads-or-clipboard logic instead |
+| Compile sequence ×2                 | `wb.js:157-181` and `src/compile.js:22-36` (`compileScript`); helpers are shared, the sequence is not           |
 | Dark tokens ×2                      | `tokens.css:24-31` and `tokens.css:32-39`                                                                      |
 | CSS file list ×2                    | `build.mjs:55` and `scripts/specimen.mjs:10` (already drifted)                                                 |
 | Hand-rolled SVG chart scaffolding ×5| `Perf.jsx` Roofline, `Knobs.jsx` TuneChart, `common.jsx` Spark, `Evidence.jsx` Strip, `lab/charts.jsx` [inf: no shared axis/scale helper found] |
@@ -694,14 +701,14 @@ Ranked by how much unrelated responsibility one unit carries (LOC as a proxy) [i
 | ------------------------------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Dock layout engine                         | `ui/dock.js`, `ui/Dock.jsx`                                   | `wb.setLayout` / `dropView` / `focusTile`; `viewDef` / `addableViews` from `views.jsx`; hardcoded `IDE_VIEWS`/`SYS_VIEWS`; `labs` manipulates the tree via `import * as Dock` (`state.js:10`). `dock.js` is already pure. |
 | Channel store + hook                       | `wb.js:75-77` (`on/bump/version`), `common.jsx:7-12` (`useLab`)| None material; a ~20-line module. `labs` already reuses it by borrowing `wb`'s channel.                                 |
-| Agent sandbox                              | `agent/sandbox.js`, `agent/frame.js`, `agent/worker-main.js`, `agent/encode.js` (wire) | `frame.js` imports `compileScript` (`ui/compile.js`) and `inspectScope` (`agent/inspect.js`) and `@kiln/kiln`; the build step that inlines `WORKER_JS`. The sandbox is the one piece Perf Lab lacks (it evals in-page). |
+| Agent sandbox                              | `agent/sandbox.js`, `agent/frame.js`, `agent/worker-main.js`, `agent/encode.js` (wire) | `frame.js` imports `compileScript` (`src/compile.js`) and `inspectScope` (`agent/inspect.js`) and `@kiln/kiln`; the build step that inlines `WORKER_JS`. The sandbox is the one piece Perf Lab lacks (it evals in-page). |
 | Agent gateway loop                         | `agent/gateway.js`                                            | Generic: a tool loop over an NDJSON endpoint. Coupled only to the endpoint path and message shape.                     |
 | Provenance cells (`Val`, stamps, METHOD)   | `ui/marks.jsx`, related CSS in `tokens.css`/`views.css`       | Reads `wb.store`, `wb.run` directly; would need values passed in. `LabVal` in `lab/panels.jsx` is the second consumer. |
 | Design system package                      | `tokens.css`, `base.css`, `utilities.css`, `common.jsx` primitives, `scripts/{specimen,contrast,css-usage}.mjs` | CSS order list lives in `build.mjs:55`; specimen keeps its own list. Perf Lab has a competing token set.               |
 | Browser test harness                       | `scripts/shoot.mjs` (`withPage`)                              | Already shared by 5 tests + `shoot-views.mjs`; `ui.mjs` (Playwright) is a second harness to retire or fold in.         |
 | Lab board renderer                         | `ui/lab/board.jsx`, `panels.jsx`, `charts.jsx`, `media.jsx`, `inspect.jsx`, `format.js`, `params.jsx`, `lab.css` | `labs` singleton (`state.js`), `wb.toast` / `wb` channels, `doc.js` `inline`, `useLab`. This is the natural seam for a single board renderer shared by both apps. |
 | Markdown/notes renderer                    | `ui/doc.js`, `ui/md.js`, `ui/links.js`                        | KaTeX; `lab:` link scheme resolves against `labs`/`wb`.                                                                |
-| Server client                              | `ui/server-client.js`, `ui/server-sync.js`                    | `wb` merge calls (`upsertJob`, `addJobEvent`); token lookup lives in `@kiln/kiln` std (`devices.js:297`).               |
+| Server client                              | `src/server-client.js`, `src/server-sync.js`                  | `wb` merge calls (`upsertJob`, `addJobEvent`); token lookup lives in `@kiln/kiln` std (`devices.js:297`).               |
 
 ---
 
@@ -716,8 +723,10 @@ Ranked by how much unrelated responsibility one unit carries (LOC as a proxy) [i
 | Comment says the workbench "does not run lab captures yet"                                         | `lab/params.jsx:4`; `labs.runPlan` in `state.js` does run them as jobs              | [obs] stale |
 | "(Runs view)" in the Jobs note                                                                     | `Jobs.jsx:229`; there is no `runs` view id, only a `Runs` section inside the Lab view (`LabView.jsx:29,193`) | [obs] stale wording |
 | Agent scope doc lists device ids `webgpu cuda`                                                     | `agent.js:114`; CUDA devices are `host:<id>` (`server-sync.js` `HostDevice`)        | [obs] stale |
-| Agent scope doc's view list omits `hypotheses`, `jobs`, `lab`, `inspect`                           | `agent.js:120` vs `dock.js:6-11`                                                    | [obs] stale |
-| Model tier / thinking controls are inert on the server-relay path                                  | `gateway.js:19,33` send only conversation, messages, tools                          | [obs] partially vestigial |
+| Agent scope doc's view list omits `hypotheses`, `jobs`, `lab`, `inspect` and `board:<id>`          | `agent.js:120` vs `dock.js:6-11`                                                    | [obs] stale |
+| Model tier / thinking controls are inert on the server-relay path                                  | `gateway.js:19` accepts `modelTier` and echoes it back as `modelTierApplied` (l.90-97) but the request body (l.33) sends only conversation, messages, tools; `effort` is documented at l.5 and not even destructured | [obs] partially vestigial |
+| Comment claims the page compiles with `compileScript`                                              | `agent/frame.js:10` vs `wb.js:154-188` (the page has its own sequence)              | [obs] stale narration |
+| `saveText` / `copyText` live in the Kernels view module                                            | `Kernels.jsx:10`, imported by Evidence, Agent and Notes views                       | [obs] misplaced home, not dead |
 | Host-bridge error codes (`not_granted`, …) in `ERRORS`                                             | `agent.js` `ERRORS`                                                                 | [inf] only meaningful inside the artifact host |
 | Playwright test with container paths                                                               | `test/ui.mjs:4,36` (`/opt/npm-tools`, `/opt/pw-browsers/...`)                       | [obs] not runnable on the dev Mac as-is; [inf] imported leftover |
 | Layout migration flags                                                                             | `wb.js:51-70` (`evidenceView`, `jobsView`, `hypothesesView`)                        | [inf] vestigial once all stored layouts are migrated |
