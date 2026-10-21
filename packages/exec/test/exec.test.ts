@@ -77,6 +77,7 @@ describe('offers', () => {
     expect(capabilities(host(), facts({ ncu: true }), [kilnKernels as never]).offers.collectors['ncu']).toEqual({ blocked: 'GPU counters are restricted to administrators on spark (RmProfilingAdminOnly=1)' });
     expect(capabilities(host(), facts({ ncu: true, counters: 'all-users' }), [kilnKernels as never]).offers.collectors['ncu']).toEqual({ kinds: ['kiln-kernels/1'] });
     expect(capabilities(host(), facts({ gpu: false }), [kilnKernels as never]).offers.kinds['kiln-kernels/1']).toEqual({ blocked: 'no CUDA GPU is visible inside kiln-perf (nvidia-smi -L failed: unknown)' });
+    expect(capabilities(host(), { ...facts({ gpu: false }), gpus: [], gpuError: 'nvidia-smi: not found' }, [kilnKernels as never]).offers.kinds['kiln-kernels/1']).toEqual({ blocked: 'spark has no NVIDIA GPU (nvidia-smi: not found)' });
   });
 });
 

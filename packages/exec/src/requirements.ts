@@ -26,7 +26,12 @@ export function check(req: Requirement, c: CheckContext): Verdict {
   const base = environmentVerdict(c);
   if (!base.ok || !env) return base;
   if ('environment' in req) return req.environment === c.env ? OK : no(`${c.host} has no environment ${req.environment}`);
-  if ('gpu' in req) return env.gpuVisible ? OK : no(`no CUDA GPU is visible inside ${c.env} (nvidia-smi -L failed: ${env.gpuError ?? 'unknown'})`);
+  if ('gpu' in req) {
+    if (env.gpuVisible) return OK;
+    // a host whose probe found no GPU is the reason, not the environment that inherits it
+    if (!c.facts.gpus.length) return no(`${c.host} has no NVIDIA GPU (${c.facts.gpuError ?? 'nvidia-smi listed none'})`);
+    return no(`no CUDA GPU is visible inside ${c.env} (nvidia-smi -L failed: ${env.gpuError ?? 'unknown'})`);
+  }
   if ('command' in req) return env.commands?.[req.command]?.ok ? OK : no(`${c.env} has no ${req.command}`);
   if ('module' in req) return env.modules?.[req.module]?.ok ? OK : no(`${c.env} cannot import ${req.module}`);
   if ('tool' in req) return env.tools?.[req.tool]?.ok ? OK : no(`${c.env} has no ${req.tool}: build the image with it or add a tool mount`);
