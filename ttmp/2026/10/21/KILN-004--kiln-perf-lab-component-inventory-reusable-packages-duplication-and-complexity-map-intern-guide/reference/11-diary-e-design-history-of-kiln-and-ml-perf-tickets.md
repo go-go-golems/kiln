@@ -192,3 +192,126 @@ Later orchestrator messages added these constraints:
 
 - Reader agent ids: `af74eda3cf7a3dc74` (KILN-001), `af4eee0f9f999e0e1` (KILN-002/003), `a264a6b4bbcca3467` (ML-PERF).
 - Orchestrator commit that rescued the draft: `1d0c894` (2026-10-21 10:42:18 -0400).
+
+## Step 2: Folding in the diary readers and writing the synthesis sections
+
+After resuming, I filled the six `[[DIARY-…]]` placeholders in the notes with what the three readers had extracted. Before any reader claim became a finding, I re-checked the ones the synthesis depends on against the code. Then I replaced `[[SECTIONS-3-PLUS]]` with sections 3–11:
+
+- §3, reversal chains;
+- §4, glossary;
+- §5, component status;
+- §6, the copy/merge/link map;
+- §7, consolidated open tasks;
+- §8, hosts;
+- §9, deciding results;
+- §10, recurring pain;
+- §11, documentation drift.
+
+The notes now have no placeholders.
+
+The main finding is that the history contains reversals made within hours. Four chains matter most for KILN-004:
+
+- **Remote execution:** SSH, then an HTTP agent, then SSH again as a tunnel.
+- **Capture hash:** cyrb53 was due to be retired twice, and now has four copies.
+- **Synthetic hosts:** removed in the design, kept as the fallback in code.
+- **CPU lab runs on the Mac:** declared lost, then brought back the same evening.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1.
+
+**Orchestrator message on resume (my summary, not a user quote):** the scratch notes had been moved into this ticket file and committed in `1d0c894`; the ML-PERF report is preserved under `various/stopped-agent-scratch/`. I am to keep editing the ticket file, fill its Summary, write this diary, fill `various/inventory/history.json` per the playbook contract, validate with `load_inventory.py --check`, and commit only my three files.
+
+**Assistant interpretation:** finish the notes first, so the JSON rows can cite sections and lines that exist.
+
+**Commit (code):** previous commit `a8394d6` ("KILN-004 E: history notes frontmatter; diary step 1, written after the fact").
+
+### What I did
+
+**Inputs.**
+
+- Extracted the ML-PERF reader's final report from its transcript into the scratchpad (794 lines; the same text the orchestrator preserved at `various/stopped-agent-scratch/mlperf-report.md`).
+- Received the KILN-001 report (`af74eda3cf7a3dc74`) and the KILN-002/003 report (`af4eee0f9f999e0e1`).
+
+**Notes edits.**
+
+- Added a citation-key table to section 0 (`K1D01`…`K1D10`, `K2D`, `K3D`, `MP1-D3`, …).
+- Replaced the KILN-004 timeline row ("uncommitted") with `4dbf767` … `1d0c894`.
+- Wrote the six "From the diaries" blocks. Each has a step → commit table, decisions with rationale, defects, measurements, admitted copies and pain points, each with `KEY:line` citations.
+
+**Re-checked against the code:**
+
+- `ls packages/exec/src/kinds/` returns `index.ts kiln-kernels.ts perf-lab-sampler.ts`. `ls packages/exec/src/collectors/` returns `gpu-sampler.ts index.ts ncu.ts nsys.ts`.
+- `grep -rl cyrb53` (excluding `node_modules`, `dist`, `.data`, `imports`, `ttmp`, `*.gen.js`) finds a cyrb53 body in four files:
+  - `packages/kiln/src/core/util.js:3`, Kiln's own `hash`, base-36;
+  - `packages/lab/src/lang/util.ts:10`, `hash`;
+  - `packages/exec/src/lab-hash.ts:7`, `cyrb53`, exported at `packages/exec/src/index.ts:9`;
+  - `lab-workbench/src/lang/util.ts:1`.
+
+  `apps/server/src/lab/` no longer contains `captures.ts`.
+- `grep -rn "kiln-probe/1"` finds only `runner/docker/kiln-probe.cu:174`, the probe binary's output format string. No kind of that name exists.
+- `grep -rn corresponds_to` finds the edge emitted in `packages/exec/src/runs.ts:57` and `packages/exec/src/collectors/nsys.ts:42`, and asserted in `apps/server/test/jobs.test.ts:199`.
+- In `runner/kiln_driver.py`:
+  - l.1032: `--listen` defaults to `127.0.0.1:5281`;
+  - l.1035: `--lock-dir` defaults to `/run/lock`;
+  - l.1020: a plain `ThreadingHTTPServer`, with no authentication.
+- `packages/lab/src/data/capabilities.ts:11-24` still holds the synthetic GB10 and RTX PRO 6000 reports, and `packages/lab/src/data/generate.ts` is 731 lines.
+- `K/README.md`:
+  - l.40 still documents `kiln_runner.py serve`;
+  - the layout block (l.17-30) omits `apps/server`, `packages/{evidence,lab,exec}`, `runtime/` and `kiln_driver.py`;
+  - l.27-28 says the copied `lab-workbench` keeps `node_modules`, `.venv`, `.data` and `dist` on disk, gitignored;
+  - `git log -1 -- README.md` returns `3c71c0d`.
+
+**Sections 3–11** were written from the notes plus these checks.
+
+### Why
+
+- The synthesis sections are what KILN-004 consumes: component status (§5) and the copy map (§6) feed the duplication rows, and the reversal chains (§3) explain why several components exist twice.
+- Reader claims that are cheap to check against the code were re-checked. A diary records intent at the time it was written, and several later commits contradicted it.
+
+### What worked
+
+- **Status lines.** Every component in §5 has a status backed by a commit or a code check, not by a task box.
+- **The cyrb53 chain.** Re-checking resolved it: KILN-001's copy in `apps/server/src/lab/captures.ts` is gone. Three of the four copies remain because KILN-003 chose to move the hash rather than retire it (`8276bf7`). The fourth, Kiln's own `hash`, was never part of the chain.
+
+### What didn't work
+
+- `grep -rln 'cyrb53' --include=*.ts --include=*.js … .` failed under zsh with `(eval):1: no matches found: --include=*.ts`, because the unquoted glob in the flag is expanded by the shell. I re-ran it without `--include`, using `--exclude-dir` filters.
+- `… ; echo ==; …` and `… ; echo =====; …` failed with `(eval):1: = not found` and `(eval):1: ===== not found`: zsh's `=word` expansion treats a leading `=` as a command lookup. The commands before the `echo` had already printed; I reran the remaining parts separately.
+- The first `Write` of this diary was refused with `File has not been read yet. Read it first before writing to it.` I read the file, then wrote it.
+- **Length.** The notes grew to about 1,295 lines, above the 500–1,000 the original brief asked for. I kept the per-ticket diary blocks rather than cut citations, because the JSON rows cite them.
+
+### What I learned
+
+- Two corrections to the scratch draft:
+  - `lab-workbench`'s heavy directories are on disk but gitignored, so the copy is verbatim on disk but not in git.
+  - The README's layout has been stale since KILN-001 Phase 5a, not only since KILN-003.
+- `corresponds_to` exists in data, so the entity-graph task is half-done in a ticket that never names it.
+
+### What was tricky to build
+
+- Dating the reversals: decisions are spread across guides, diaries and commit bodies, and the guides' frontmatter dates are wrong. I ordered every chain by commit time and quoted the line that states each position.
+
+### What warrants a second pair of eyes
+
+- §3.1's conclusion: D10's rationale ("removes a network-exposed code-execution endpoint") is contradicted by the unauthenticated driver. That is a judgement on two documents read side by side. The mitigation is binding to loopback or Tailscale, and this step did not test it.
+- §5 rates the `ncu`/`nsys` collectors "partial" because the code exists and the hosts block counters. I have not seen them run.
+
+### What should be done in the future
+
+- Turn §3–§9 into `history.json` rows (Step 3).
+- Someone who owns the KILN tickets should fix the task boxes (`KT3/tasks.md:6`, `KT1/tasks.md:22`) and the stale README and index lines. I did not edit them; they are outside my three files.
+
+### Code review instructions
+
+- Read notes §3 and §5 first, then spot-check two citations per diary block, e.g. `K1D01:1252-1254` and `K3D:907-913`.
+- Re-run the checks: `ls packages/exec/src/kinds/`; `grep -rn "kiln-probe/1" --exclude-dir=node_modules --exclude-dir=ttmp .`; `grep -n listen runner/kiln_driver.py`.
+
+### Technical details
+
+- Notes placeholders filled: `[[DIARY-MP1]]`, `[[DIARY-MP2]]`, `[[DIARY-MP3]]`, `[[DIARY-K1]]`, `[[DIARY-K2]]`, `[[DIARY-K3]]`, `[[SECTIONS-3-PLUS]]`. `grep -n '\[\[' …06-…md` now returns nothing.
+- The copy map (§6) lists 19 relations. Four of them have an enforcement seam:
+  - `check:pl`;
+  - the golden matching test;
+  - the vendored-launcher hash test;
+  - `diff -rq`, run by hand.
