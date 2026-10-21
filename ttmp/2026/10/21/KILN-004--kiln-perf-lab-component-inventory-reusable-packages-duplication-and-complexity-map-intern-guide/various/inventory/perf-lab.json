@@ -1,1 +1,3281 @@
-{}
+{
+ "packages": [
+  {
+   "name": "@kiln/lab",
+   "path": "packages/lab",
+   "kind": "library",
+   "language": "typescript",
+   "runtime": "node + browser",
+   "purpose": "Perf Lab's lab.js language, headless: builders, the six build passes, queries, derives, estimators and hypothesis verdicts on @kiln/evidence, a synthetic data layer and an injected LabData for real runs.",
+   "entrypoint": "packages/lab/src/index.ts",
+   "loc_prod": 6150,
+   "loc_test": 883,
+   "notes": "exports '.', './node' (readPerfLabStore, readPresets) and './presets/*'; only dependency @kiln/evidence; only consumer apps/workbench. Scripts check-pl.ts, extract-fixtures.ts, perf-lab.ts (178 LOC).",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "name": "lab-workbench",
+   "path": "lab-workbench",
+   "kind": "imported",
+   "language": "typescript",
+   "runtime": "browser (vite)",
+   "port": "5199",
+   "purpose": "Perf Lab's browser workbench and its lab.js language: a verbatim copy of Playback ML-PERF-001 experiments/lab-workbench at Playback commit cdb84891c, its own pnpm root.",
+   "entrypoint": "lab-workbench/src/main.tsx",
+   "loc_prod": 18396,
+   "loc_test": 509,
+   "notes": "src/ (290 files) holds lang, data, presets, Redux features, React components (atomic design); the 5682-line quality-golden.json fixture is excluded from loc_prod. pnpm-workspace.yaml declares packages: [].",
+   "diary_step": 1
+  },
+  {
+   "name": "lab-workbench/server",
+   "path": "lab-workbench/server",
+   "kind": "imported",
+   "language": "typescript",
+   "runtime": "node (tsx)",
+   "port": "5198",
+   "purpose": "Perf Lab server: Hono API under /api, node:sqlite store, one-job-at-a-time runner that spawns the Python workloads, importers for repetition outputs and PR 1005 qualification reports, evidence archives, COCO datasets and media, and the LLM assistant.",
+   "entrypoint": "lab-workbench/server/index.ts",
+   "loc_prod": 3354,
+   "loc_test": 704,
+   "notes": "Binds 127.0.0.1 with no authentication (server/config.ts:28). Imports browser modules from ../src/lang (util, values, rows, detections) and a UI file (IdePane/reference.ts).",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "name": "lab-workbench/workloads",
+   "path": "lab-workbench/workloads",
+   "kind": "python-runtime",
+   "language": "python",
+   "runtime": "python 3.12-3.13 via uv",
+   "purpose": "The real workloads the Perf Lab runner executes: deformable-attention sampling (unfused, gather, compiled with TorchInductor), the Grounding DINO paired runner from PR 1005, and a capability probe.",
+   "entrypoint": "lab-workbench/workloads/perf_lab_local/run.py",
+   "loc_prod": 680,
+   "loc_test": 0,
+   "notes": "uv project perf-lab-local (package = false), torch 2.14.1, transformers 5.2.0; workloads/.venv/ is on disk and gitignored.",
+   "diary_step": 1
+  }
+ ],
+ "modules": [
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/ir.ts",
+   "name": "lab.js IR types",
+   "kind": "compiler-core",
+   "purpose": "IR type definitions: node and edge kinds, IRNode, lint items, param/board/capture/plan summaries, IR, BuildFailure.",
+   "loc": 153,
+   "key_exports": "NodeKind; EdgeKind; IRNode; IR; LintItem; ParamSummary; CaptureSummary; PlanSummary",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/ir.ts",
+   "name": "@kiln/lab IR types",
+   "kind": "compiler-core",
+   "purpose": "IR type definitions: node and edge kinds, IRNode, lint items, param/board/capture/plan summaries, IR, BuildFailure.",
+   "loc": 153,
+   "key_exports": "NodeKind; EdgeKind; IRNode; IR; LintItem; ParamSummary; CaptureSummary; PlanSummary",
+   "notes": "port of lab-workbench/src/lang/ir.ts; mechanical only (raw 52, norm 0)",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/builders.ts",
+   "name": "lab.js fluent builders and method recorder",
+   "kind": "lang",
+   "purpose": "Fluent builders for lab, experiment, arm, capture, board, view, hypothesis; a Proxy records unknown methods as props and flags names outside VIEW_METHODS/CAPTURE_METHODS.",
+   "loc": 451,
+   "key_exports": "recorder; VIEW_METHODS; CAPTURE_METHODS; LabB; ExperimentB; ArmB; CaptureB; BoardB; ViewB; HypothesisB",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/builders.ts",
+   "name": "@kiln/lab fluent builders and method recorder",
+   "kind": "lang",
+   "purpose": "Fluent builders for lab, experiment, arm, capture, board, view, hypothesis; a Proxy records unknown methods as props and flags names outside VIEW_METHODS/CAPTURE_METHODS.",
+   "loc": 463,
+   "key_exports": "recorder; VIEW_METHODS; CAPTURE_METHODS; LabB; ExperimentB; ArmB; CaptureB; BoardB; ViewB; HypothesisB",
+   "notes": "port of lab-workbench/src/lang/builders.ts; mechanical only (raw 100, norm 60: constructor fields)",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/library.ts",
+   "name": "lab.js lab.js free names",
+   "kind": "lang",
+   "purpose": "createLibrary(): every free name a program sees (lab, rev, workloads, capture.*, q, stats, params, views, algo, component).",
+   "loc": 169,
+   "key_exports": "createLibrary; capture; component; defineCollector; defineKind",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/library.ts",
+   "name": "@kiln/lab lab.js free names",
+   "kind": "lang",
+   "purpose": "createLibrary(): every free name a program sees (lab, rev, workloads, capture.*, q, stats, params, views, algo, component).",
+   "loc": 178,
+   "key_exports": "createLibrary; capture; component; defineCollector; defineKind",
+   "notes": "port of lab-workbench/src/lang/library.ts; package adds below/above and illustrative(value, opts)",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/build.ts",
+   "name": "lab.js compiler: six passes",
+   "kind": "compiler-core",
+   "purpose": "evaluateProgram via new Function, then structure, expand-resolve, trace, validate (lints), lower (perf_lab specs, cyrb53 hash), plan (stages 0-2).",
+   "loc": 1030,
+   "key_exports": "build; evaluateProgram; BuildError; paramSpecOf; selectImages",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/build.ts",
+   "name": "@kiln/lab compiler: six passes",
+   "kind": "compiler-core",
+   "purpose": "evaluateProgram via new Function, then structure, expand-resolve, trace, validate (lints), lower (perf_lab specs, cyrb53 hash), plan (stages 0-2).",
+   "loc": 1036,
+   "key_exports": "build; evaluateProgram; BuildError; paramSpecOf; selectImages",
+   "notes": "port of lab-workbench/src/lang/build.ts; package: lowered normal form at build.ts:866-868",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/runtime.ts",
+   "name": "lab.js derives, signals, $",
+   "kind": "lang",
+   "purpose": "BuildRegistry of non-serialisable functions; param values; memoised derive reads with cycle detection; board signals ($); dehydrate/rehydrate; capture pattern resolution.",
+   "loc": 253,
+   "key_exports": "BuildRegistry; paramValue; readDerive; markDerived; queryEnv; makeDollar; dehydrate; rehydrate; instancesForPattern",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/runtime.ts",
+   "name": "@kiln/lab derives, signals, $",
+   "kind": "lang",
+   "purpose": "BuildRegistry of non-serialisable functions; param values; memoised derive reads with cycle detection; board signals ($); dehydrate/rehydrate; capture pattern resolution.",
+   "loc": 255,
+   "key_exports": "BuildRegistry; paramValue; readDerive; markDerived; queryEnv; makeDollar; dehydrate; rehydrate; instancesForPattern",
+   "notes": "port of lab-workbench/src/lang/runtime.ts; package: markDerived skips sealed rows",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/query.ts",
+   "name": "lab.js lazy queries",
+   "kind": "lang",
+   "purpose": "Query: a root (entities, runs, read, of) plus recorded ops replayed on Rows; q roots runs, requests, spans, kernels, tensors, allocs, instants, batches, graphs, images, annotations, detections, checks.",
+   "loc": 155,
+   "key_exports": "Query; q; isQuery",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/query.ts",
+   "name": "@kiln/lab lazy queries",
+   "kind": "lang",
+   "purpose": "Query: a root (entities, runs, read, of) plus recorded ops replayed on Rows; q roots runs, requests, spans, kernels, tensors, allocs, instants, batches, graphs, images, annotations, detections, checks.",
+   "loc": 157,
+   "key_exports": "Query; q; isQuery",
+   "notes": "port of lab-workbench/src/lang/query.ts; mechanical only",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/rows.ts",
+   "name": "lab.js row algebra",
+   "kind": "lang",
+   "purpose": "Entity kinds, DataSource, Ent prototype (metric, follow, back, overlaps), Rows extends Array (where, groupBy, stats...), Grouped.agg, AggRows, FIELD_UNITS.",
+   "loc": 350,
+   "key_exports": "Rows; Grouped; AggRows; makeEnt; DataSource; EntityKind; FIELD_UNITS",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/rows.ts",
+   "name": "@kiln/lab row algebra",
+   "kind": "lang",
+   "purpose": "Entity kinds, DataSource, Ent prototype (metric, follow, back, overlaps), Rows extends Array (where, groupBy, stats...), Grouped.agg, AggRows, FIELD_UNITS.",
+   "loc": 368,
+   "key_exports": "Rows; Grouped; AggRows; makeEnt; DataSource; EntityKind; FIELD_UNITS",
+   "notes": "port of lab-workbench/src/lang/rows.ts; package: aggregate provenance via combine; deep seal",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/values.ts",
+   "name": "lab.js provenance-carrying values",
+   "kind": "evidence",
+   "purpose": "Value with unit and provenance (observed, derived, heuristic, illustrative, unknown); missing is NaN, not zero; sealObserved Proxy throws ProvenanceError.",
+   "loc": 89,
+   "key_exports": "val; derived; missing; illustrative; sealObserved; ProvenanceError",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/values.ts",
+   "name": "@kiln/lab provenance-carrying values",
+   "kind": "evidence",
+   "purpose": "Value with unit and provenance (observed, derived, heuristic, illustrative, unknown); missing is NaN, not zero; sealObserved Proxy throws ProvenanceError.",
+   "loc": 113,
+   "key_exports": "val; derived; missing; illustrative; sealObserved; ProvenanceError",
+   "notes": "port of lab-workbench/src/lang/values.ts; package re-exports @kiln/evidence; val removed",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/stats.ts",
+   "name": "lab.js estimators",
+   "kind": "statistics",
+   "purpose": "pairedRatio: per-process medians, candidate/baseline ratio per rep, median of ratios, 2000-resample bootstrap CI over processes; offered: open-loop offered-rate accounting; summary.",
+   "loc": 122,
+   "key_exports": "stats.pairedRatio; stats.offered; stats.summary",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/stats.ts",
+   "name": "@kiln/lab estimators",
+   "kind": "statistics",
+   "purpose": "pairedRatio: per-process medians, candidate/baseline ratio per rep, median of ratios, 2000-resample bootstrap CI over processes; offered: open-loop offered-rate accounting; summary.",
+   "loc": 168,
+   "key_exports": "stats.pairedRatio; stats.offered; stats.summary",
+   "notes": "port of lab-workbench/src/lang/stats.ts; PL ignores the seed option (stats.ts:23,69); package honours it and adds caveat/seed/n",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/compare.ts",
+   "name": "lab.js structural kernel matching",
+   "kind": "lang",
+   "purpose": "compare(a, b).match(by.op/layout/role/code/name): matched pairs, unmatched and excluded kernels.",
+   "loc": 116,
+   "key_exports": "compare; by; CompareB; MatcherB",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/compare.ts",
+   "name": "@kiln/lab structural kernel matching",
+   "kind": "lang",
+   "purpose": "compare(a, b).match(by.op/layout/role/code/name): matched pairs, unmatched and excluded kernels.",
+   "loc": 121,
+   "key_exports": "compare; by; CompareB; MatcherB",
+   "notes": "port of lab-workbench/src/lang/compare.ts; mechanical only",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/params.ts",
+   "name": "lab.js parameter specs and URL codec",
+   "kind": "lang",
+   "purpose": "ParamSpec kinds and constraints, checkParam, encodeParam/decodeParam for URLs, formatParam, implicitDefault.",
+   "loc": 264,
+   "key_exports": "checkParam; encodeParam; decodeParam; formatParam; implicitDefault",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/params.ts",
+   "name": "@kiln/lab parameter specs and URL codec",
+   "kind": "lang",
+   "purpose": "ParamSpec kinds and constraints, checkParam, encodeParam/decodeParam for URLs, formatParam, implicitDefault.",
+   "loc": 266,
+   "key_exports": "checkParam; encodeParam; decodeParam; formatParam; implicitDefault",
+   "notes": "port of lab-workbench/src/lang/params.ts; mechanical only",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/algo.ts",
+   "name": "lab.js illustrative walkthroughs",
+   "kind": "lang",
+   "purpose": "Deterministic step-by-step algorithm walkthroughs (bilinear, weightedReduction, rmsnorm, matmulTiles), all values illustrative.",
+   "loc": 260,
+   "key_exports": "algo; walkthrough",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/algo.ts",
+   "name": "@kiln/lab illustrative walkthroughs",
+   "kind": "lang",
+   "purpose": "Deterministic step-by-step algorithm walkthroughs (bilinear, weightedReduction, rmsnorm, matmulTiles), all values illustrative.",
+   "loc": 260,
+   "key_exports": "algo; walkthrough",
+   "notes": "port of lab-workbench/src/lang/algo.ts; mechanical only",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/detections.ts",
+   "name": "lab.js detection comparison (PR 1005 port)",
+   "kind": "evidence",
+   "purpose": "Port of grounding_dino_quality.py: maximum matching, pairDetections with tolerances, IoU/overlap with crowd rules, evaluateDetections, compareGroundTruth, verdicts.",
+   "loc": 285,
+   "key_exports": "pairDetections; compareDetections; evaluateDetections; compareGroundTruth; overlap; cocoBox; verdicts",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/detections.ts",
+   "name": "@kiln/lab detection comparison (PR 1005 port)",
+   "kind": "evidence",
+   "purpose": "Port of grounding_dino_quality.py: maximum matching, pairDetections with tolerances, IoU/overlap with crowd rules, evaluateDetections, compareGroundTruth, verdicts.",
+   "loc": 288,
+   "key_exports": "pairDetections; compareDetections; evaluateDetections; compareGroundTruth; overlap; cocoBox; verdicts",
+   "notes": "port of lab-workbench/src/lang/detections.ts; golden-tested against quality-golden.json",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/env.ts",
+   "name": "lab.js build environment contract",
+   "kind": "lang",
+   "purpose": "BuildEnv, Capabilities, AdapterContract, CaptureInstance, DatasetInfo types.",
+   "loc": 70,
+   "key_exports": "BuildEnv; Capabilities; AdapterContract; CaptureInstance; DatasetInfo",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/env.ts",
+   "name": "@kiln/lab build environment contract",
+   "kind": "lang",
+   "purpose": "BuildEnv, Capabilities, AdapterContract, CaptureInstance, DatasetInfo types.",
+   "loc": 70,
+   "key_exports": "BuildEnv; Capabilities; AdapterContract; CaptureInstance; DatasetInfo",
+   "notes": "port of lab-workbench/src/lang/env.ts; mechanical only",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/refs.ts",
+   "name": "lab.js reference parsing",
+   "kind": "lang",
+   "purpose": "Parsing of capture and run references.",
+   "loc": 57,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/refs.ts",
+   "name": "@kiln/lab reference parsing",
+   "kind": "lang",
+   "purpose": "Parsing of capture and run references.",
+   "loc": 57,
+   "key_exports": "",
+   "notes": "port of lab-workbench/src/lang/refs.ts; mechanical only",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lang/util.ts",
+   "name": "lab.js hash, RNG, stable JSON",
+   "kind": "lang",
+   "purpose": "cyrb53 hash (capture identity), stableStringify, mulberry32/rng, quantile, getPath, globToRegExp.",
+   "loc": 121,
+   "key_exports": "hash; stableStringify; mulberry32; rng; quantile; globToRegExp",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/util.ts",
+   "name": "@kiln/lab hash, RNG, stable JSON",
+   "kind": "lang",
+   "purpose": "cyrb53 hash (capture identity), stableStringify, mulberry32/rng, quantile, getPath, globToRegExp.",
+   "loc": 114,
+   "key_exports": "hash; stableStringify; mulberry32; rng; quantile; globToRegExp",
+   "notes": "port of lab-workbench/src/lang/util.ts; package takes rng/quantile from @kiln/evidence; hash kept bit for bit (P-5)",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/lang/hypothesis.ts",
+   "name": "@kiln/lab hypothesis verdicts",
+   "kind": "evidence",
+   "purpose": "Headless hypothesis evaluation on @kiln/evidence verdict: supported, refuted, open, undecided, unqualified; a throwing predicate is open, a null one undecided.",
+   "loc": 103,
+   "key_exports": "evaluateHypothesis; evaluateHypotheses",
+   "notes": "replaces the React-side evaluateHypothesis in lab-workbench HypothesisView.tsx:19-48",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/data/generate.ts",
+   "name": "Perf Lab synthetic run generator",
+   "kind": "store",
+   "purpose": "Deterministic synthetic runs seeded by capture hash and rep: requests, spans, kernels with metrics, memory, DINO detections, embeddings, collectors.",
+   "loc": 724,
+   "key_exports": "generateRun; syntheticMissing",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/data/generate.ts",
+   "name": "@kiln/lab synthetic run generator",
+   "kind": "store",
+   "purpose": "Deterministic synthetic runs seeded by capture hash and rep: requests, spans, kernels with metrics, memory, DINO detections, embeddings, collectors.",
+   "loc": 731,
+   "key_exports": "generateRun; syntheticMissing",
+   "notes": "port of lab-workbench/src/data/generate.ts; package labels synthetic metrics illustrative (P-7)",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/data/source.ts",
+   "name": "Perf Lab data source",
+   "kind": "store",
+   "purpose": "createSource/createSyntheticSource over RunProvider and DatasetProvider, with a run cache.",
+   "loc": 138,
+   "key_exports": "createSource; createSyntheticSource",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/data/source.ts",
+   "name": "@kiln/lab data source",
+   "kind": "store",
+   "purpose": "createSource/createSyntheticSource over RunProvider and DatasetProvider, with a run cache.",
+   "loc": 142,
+   "key_exports": "createSource; createSyntheticSource",
+   "notes": "port of lab-workbench/src/data/source.ts; near-copy",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/data/env.ts",
+   "name": "Perf Lab build environments",
+   "kind": "store",
+   "purpose": "PL: syntheticEnv, appEnv(catalog). Package: syntheticEnv({hosts}), labEnv(LabData), buildSynthetic.",
+   "loc": 52,
+   "key_exports": "syntheticEnv; appEnv; labEnv; buildSynthetic",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/data/env.ts",
+   "name": "@kiln/lab build environments",
+   "kind": "store",
+   "purpose": "PL: syntheticEnv, appEnv(catalog). Package: syntheticEnv({hosts}), labEnv(LabData), buildSynthetic.",
+   "loc": 83,
+   "key_exports": "syntheticEnv; appEnv; labEnv; buildSynthetic",
+   "notes": "port of lab-workbench/src/data/env.ts; re-architected",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/data/bundles.ts",
+   "name": "Perf Lab run bundles",
+   "kind": "store",
+   "purpose": "PL: module cache and fetch of /api/bundles in batches of 16, revive. Package: reviveBundles only.",
+   "loc": 52,
+   "key_exports": "reviveBundles; BundleJSON",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/data/bundles.ts",
+   "name": "@kiln/lab run bundles",
+   "kind": "store",
+   "purpose": "PL: module cache and fetch of /api/bundles in batches of 16, revive. Package: reviveBundles only.",
+   "loc": 24,
+   "key_exports": "reviveBundles; BundleJSON",
+   "notes": "port of lab-workbench/src/data/bundles.ts; fetch and cache removed in the package",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/data/capabilities.ts",
+   "name": "Perf Lab hosts and adapters",
+   "kind": "store",
+   "purpose": "PL: synthetic hosts and a module-global local report. Package: hostReport(view, workloads) from Kiln /api/hosts and capabilitiesFor(reports).",
+   "loc": 123,
+   "key_exports": "capabilities; adapter; hostReport; capabilitiesFor; KNOWN_HOSTS",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/data/capabilities.ts",
+   "name": "@kiln/lab hosts and adapters",
+   "kind": "store",
+   "purpose": "PL: synthetic hosts and a module-global local report. Package: hostReport(view, workloads) from Kiln /api/hosts and capabilitiesFor(reports).",
+   "loc": 182,
+   "key_exports": "capabilities; adapter; hostReport; capabilitiesFor; KNOWN_HOSTS",
+   "notes": "port of lab-workbench/src/data/capabilities.ts; re-architected",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/data/datasets.ts",
+   "name": "Perf Lab datasets and evidence",
+   "kind": "store",
+   "purpose": "PL: module caches and fetches of /api/datasets, mediaUrl /api/media. Package: no caches, indexDataset, /api/lab/media, evidenceBlockedBy.",
+   "loc": 154,
+   "key_exports": "indexDataset; mediaUrl; evidenceBlockedBy",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/data/datasets.ts",
+   "name": "@kiln/lab datasets and evidence",
+   "kind": "store",
+   "purpose": "PL: module caches and fetches of /api/datasets, mediaUrl /api/media. Package: no caches, indexDataset, /api/lab/media, evidenceBlockedBy.",
+   "loc": 150,
+   "key_exports": "indexDataset; mediaUrl; evidenceBlockedBy",
+   "notes": "port of lab-workbench/src/data/datasets.ts; re-architected",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/data/lab-data.ts",
+   "name": "@kiln/lab LabData",
+   "kind": "store",
+   "purpose": "The injected data interface a build reads (catalog, bundles, datasets, media URLs); createMemoryLabData; bundlesNeeded.",
+   "loc": 132,
+   "key_exports": "LabData; createMemoryLabData; bundlesNeeded; CatalogEntry",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/index.ts",
+   "name": "@kiln/lab public barrel",
+   "kind": "config",
+   "purpose": "The package entry: re-exports the language, data layer, evidence helpers and preset registry.",
+   "loc": 192,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/presets.ts",
+   "name": "@kiln/lab preset registry",
+   "kind": "preset",
+   "purpose": "PRESET_INFO: preset file names, groups and descriptions, free of bundler specifics.",
+   "loc": 128,
+   "key_exports": "PRESET_INFO; presetInfo",
+   "notes": "comment at :1 says presets were copied unmodified; local-sampler and dino-pr1005 were edited",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/node/presets.ts",
+   "name": "@kiln/lab Node preset reader",
+   "kind": "preset",
+   "purpose": "readPresets/readPreset from the presets directory with node:fs.",
+   "loc": 19,
+   "key_exports": "readPresets; readPreset",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/src/node/perf-lab-store.ts",
+   "name": "Perf Lab store reader",
+   "kind": "store",
+   "purpose": "readPerfLabStore: copies a WAL-mode Perf Lab SQLite store (db + -wal) to a temp dir and opens the copy read-only.",
+   "loc": 194,
+   "key_exports": "readPerfLabStore; PERF_LAB_FEATURES",
+   "notes": "second implementation of the same copy-then-open in apps/server/src/lab/importer.ts:79-82",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/presets",
+   "name": "@kiln/lab presets",
+   "kind": "preset",
+   "purpose": "12 lab.js programs and 2 reply scripts; 9 programs identical to Perf Lab, 2 edited, sampler-hosts added.",
+   "key_exports": "",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/scripts/check-pl.ts",
+   "name": "check against a Perf Lab store",
+   "kind": "script",
+   "purpose": "Replays builds against a real Perf Lab store read through readPerfLabStore.",
+   "loc": 104,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/scripts/extract-fixtures.ts",
+   "name": "fixture extraction",
+   "kind": "script",
+   "purpose": "Extracts test fixtures from a Perf Lab store.",
+   "loc": 32,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "path": "packages/lab/test",
+   "name": "@kiln/lab tests",
+   "kind": "test-infra",
+   "purpose": "build, data, detections, evidence, hypothesis, measured, stats and browser-safety suites.",
+   "loc": 883,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/presets",
+   "name": "Perf Lab presets",
+   "kind": "preset",
+   "purpose": "11 lab.js programs and 2 reply scripts under programs/, registered by index.ts with Vite ?raw imports.",
+   "loc": 962,
+   "key_exports": "",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/app.ts",
+   "name": "Perf Lab API routes",
+   "kind": "route",
+   "purpose": "Hono app with basePath /api: health, hosts, programs, catalog, seed, bundles, jobs, annotations, evidence, datasets, media, SSE events; validateCaptures recomputes capture hashes.",
+   "loc": 286,
+   "key_exports": "createApp; validateCaptures; SERVER_FEATURES",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/index.ts",
+   "name": "Perf Lab server entry",
+   "kind": "config",
+   "purpose": "Loads config, opens the DB, fails interrupted jobs, starts the runner, serves on 127.0.0.1:5198.",
+   "loc": 39,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/config.ts",
+   "name": "Perf Lab server config",
+   "kind": "config",
+   "purpose": "PERF_LAB_DATA_DIR, PERF_LAB_PORT (5198), PERF_LAB_MODEL, PERF_LAB_UV; host 127.0.0.1.",
+   "loc": 34,
+   "key_exports": "loadConfig; ServerConfig",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/db.ts",
+   "name": "Perf Lab SQLite schema and helpers",
+   "kind": "schema",
+   "purpose": "node:sqlite in WAL mode with foreign keys; five migrations; all/get/run/tx helpers.",
+   "loc": 363,
+   "key_exports": "openDb; all; get; run; tx",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/store.ts",
+   "name": "Perf Lab store operations",
+   "kind": "store",
+   "purpose": "Programs, artifacts, runs and bundles, jobs and job events, annotations; seedSynthetic; failInterruptedJobs.",
+   "loc": 276,
+   "key_exports": "putProgram; insertArtifact; seedSynthetic; insertRun; bundlesFor; createJob; addJobEvent",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/bundles.ts",
+   "name": "Perf Lab bundle packing",
+   "kind": "store",
+   "purpose": "pack/unpack entities and links as gzip-compressed JSON.",
+   "loc": 5,
+   "key_exports": "pack; unpack",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/runner.ts",
+   "name": "Perf Lab job runner",
+   "kind": "runner",
+   "purpose": "One job and one process at a time; groups captures by experiment/mode@host; paired per-rep arm order (Fisher-Yates with rng(seed:rep)); process and synthetic executors; evidence and DINO paths.",
+   "loc": 380,
+   "key_exports": "Runner; Executor; processExecutor",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/importer.ts",
+   "name": "Perf Lab repetition importer",
+   "kind": "evidence",
+   "purpose": "Turns one rep output directory into run, request, span, kernel, alloc, tensor and instant entities and links; validity from exit code and activation; quality qualified iff gate declared, quality.pass and valid.",
+   "loc": 286,
+   "key_exports": "importRepetition; roleOf",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/qualification.ts",
+   "name": "Perf Lab qualification-report importer",
+   "kind": "evidence",
+   "purpose": "Imports PR 1005 'detection-qualification/v1' reports: profiler tables, JUnit, timing, memory pools, stages, predictions with verdicts and ground-truth evaluation, kernels, tests.",
+   "loc": 394,
+   "key_exports": "importQualification; reportsFor; parseProfilerTable; parseJunit; kernelRole; QUALIFICATION_FORMAT",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/dino.ts",
+   "name": "Perf Lab DINO runner",
+   "kind": "runner",
+   "purpose": "Runs both DINO arms in one Python process per rep over the selected dataset images.",
+   "loc": 114,
+   "key_exports": "runDinoRepetition; workloadImages; playbackRepo",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/probe.ts",
+   "name": "Perf Lab local capability probe",
+   "kind": "runner",
+   "purpose": "Runs perf_lab_local.probe (180 s timeout) and parses its capability JSON.",
+   "loc": 37,
+   "key_exports": "probeLocal",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/evidence.ts",
+   "name": "Perf Lab evidence archives",
+   "kind": "evidence",
+   "purpose": "Validates and stores tar.gz evidence archives by SHA-256 (64 MiB cap) and registers COCO selections inside them.",
+   "loc": 100,
+   "key_exports": "registerArchive; listArchives; getArchive; archiveFile",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/datasets.ts",
+   "name": "Perf Lab datasets and media",
+   "kind": "store",
+   "purpose": "COCO dataset registration, listing, media reads (public only), materialisation from public COCO URLs with SHA-256 verification.",
+   "loc": 266,
+   "key_exports": "registerCocoDataset; listDatasets; getDataset; readMedia; materialize",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/tar.ts",
+   "name": "Perf Lab tar.gz reader/writer",
+   "kind": "tool",
+   "purpose": "In-memory ustar/pax/GNU tar reader that accepts only regular files and directories inside the archive root; writer for tests.",
+   "loc": 129,
+   "key_exports": "readTarGz; checkPath; writeTar",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/events.ts",
+   "name": "Perf Lab event bus",
+   "kind": "service",
+   "purpose": "In-process EventBus feeding /api/events SSE.",
+   "loc": 21,
+   "key_exports": "EventBus; ServerEvent",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/assistant/service.ts",
+   "name": "Perf Lab assistant service",
+   "kind": "agent",
+   "purpose": "PiAssistant: conversations, transcript library, SSE turns; at most 4 code steps per question; history 24; llm_calls with token estimates; code runs in the browser and returns via /messages/:id/result.",
+   "loc": 377,
+   "key_exports": "PiAssistant",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/assistant/prompt.ts",
+   "name": "Perf Lab assistant prompt",
+   "kind": "agent",
+   "purpose": "System prompt with the lab reference, observation text, splitReply into prose and a js block.",
+   "loc": 59,
+   "key_exports": "systemPrompt; observationText; splitReply",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/assistant/model.ts",
+   "name": "Perf Lab assistant model catalog",
+   "kind": "agent",
+   "purpose": "Model catalog and completion through @earendil-works/pi-ai using ~/.pi/agent credentials.",
+   "loc": 188,
+   "key_exports": "parseModelSpec; ModelCatalog",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "path": "lab-workbench/server/server.test.ts",
+   "name": "Perf Lab server tests",
+   "kind": "test-infra",
+   "purpose": "Migrations, importer, API seed, paired job, parameter separation, failure; plus qualification, evidence and assistant suites beside it.",
+   "loc": 202,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/scripts/lab.ts",
+   "name": "Perf Lab CLI",
+   "kind": "script",
+   "purpose": "pnpm lab evidence add/list, datasets list/materialize, models fetch (Grounding DINO snapshot); talks to the running server.",
+   "loc": 115,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/workloads",
+   "path": "lab-workbench/workloads/perf_lab_local/run.py",
+   "name": "local workload runner",
+   "kind": "driver",
+   "purpose": "Reads a capture spec, runs one repetition of the sampler workload in the requested mode, writes manifest/activation/quality/timing/cpu/trace/memory JSON and emits JSON-line events.",
+   "loc": 219,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/workloads",
+   "path": "lab-workbench/workloads/perf_lab_local/sampler.py",
+   "name": "deformable-attention sampler",
+   "kind": "driver",
+   "purpose": "Three implementations of bilinear deformable-attention sampling: unfused grid_sample, gather, and unfused compiled by TorchInductor.",
+   "loc": 120,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/workloads",
+   "path": "lab-workbench/workloads/perf_lab_local/probe.py",
+   "name": "capability probe",
+   "kind": "driver",
+   "purpose": "Prints the local host capabilities (python, torch, devices, tools) as JSON.",
+   "loc": 76,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/workloads",
+   "path": "lab-workbench/workloads/perf_lab_dino/run.py",
+   "name": "DINO paired runner",
+   "kind": "driver",
+   "purpose": "Runs baseline and candidate Grounding DINO specs in one process and writes PR 1005 qualification reports (paired.json or example-predictions.json, provenance, run configuration).",
+   "loc": 261,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/app/store.ts",
+   "name": "Perf Lab Redux store",
+   "kind": "state",
+   "purpose": "Redux Toolkit store with slices program, build, params, signals, selection, catalog, jobs, agent, annotations, ui, server and the labApi RTK Query API; localStorage persistence; debounced program autosave.",
+   "loc": 94,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/app/registry.ts",
+   "name": "Perf Lab build registry",
+   "kind": "state",
+   "purpose": "Keeps the last 24 non-serialisable builds and agent patches outside Redux.",
+   "loc": 24,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/features/build/thunks.ts",
+   "name": "Perf Lab buildLab thunk",
+   "kind": "state",
+   "purpose": "Seed build excluding host 'local', POST seed, real build with appEnv(catalog), load measured bundles, rebuild.",
+   "loc": 63,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/features/server/thunks.ts",
+   "name": "Perf Lab server thunks",
+   "kind": "state",
+   "purpose": "EventSource /api/events, health, catalog, models, programs, jobs, setLocalReport.",
+   "loc": 239,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/features/jobs/thunks.ts",
+   "name": "Perf Lab job thunks",
+   "kind": "state",
+   "purpose": "Propose, approve, cancel jobs and follow their progress.",
+   "loc": 118,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/features/params/thunks.ts",
+   "name": "Perf Lab parameter thunks",
+   "kind": "state",
+   "purpose": "Apply parameter changes: view/data-bound at once, plan-bound through a rebuild.",
+   "loc": 102,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/features/agent/runtime.ts",
+   "name": "Perf Lab agent runtime",
+   "kind": "agent",
+   "purpose": "Runs scripted or live assistant code with AsyncFunction over createLibrary() plus lab/self handles; snapshots and rollback; 10-minute timeout.",
+   "loc": 639,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/ViewRenderer",
+   "name": "Perf Lab view renderer",
+   "kind": "view",
+   "purpose": "VIEWS registry mapping view kinds to components (ViewRenderer.tsx:41-64) and the row/stack/grid/split/component layouts.",
+   "loc": 121,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/views",
+   "name": "Perf Lab board views",
+   "kind": "view",
+   "purpose": "18 board views: Batch, Chart, Control, Detections, Gallery, Hypothesis, KernelCard, Ledger, Manifest, Mirror, Route, RunList, Source, Stat, Stepper, Table, Text, Timeline.",
+   "loc": 2164,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/views/HypothesisView",
+   "name": "Perf Lab hypothesis card and verdict",
+   "kind": "view",
+   "purpose": "Hypothesis card; also holds evaluateHypothesis (HypothesisView.tsx:19-48), the only Perf Lab implementation of verdicts.",
+   "loc": 130,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/views/ChartView",
+   "name": "Perf Lab chart view",
+   "kind": "view",
+   "purpose": "d3-scale/d3-shape chart with marks, tracks, rules and roofs.",
+   "loc": 375,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/views/TimelineView",
+   "name": "Perf Lab timeline view",
+   "kind": "view",
+   "purpose": "Lanes of spans and requests over time with buckets and windows.",
+   "loc": 309,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/views/DetectionsView",
+   "name": "Perf Lab detections view",
+   "kind": "view",
+   "purpose": "One image with ground truth and per-arm boxes.",
+   "loc": 216,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/IdePane",
+   "name": "Perf Lab IDE pane",
+   "kind": "component",
+   "purpose": "Program editor and the language reference (reference.ts) that the server assistant also imports.",
+   "loc": 213,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/AgentRail",
+   "name": "Perf Lab agent rail",
+   "kind": "component",
+   "purpose": "Assistant transcript and input beside the board.",
+   "loc": 203,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/TranscriptLibrary",
+   "name": "Perf Lab transcript library",
+   "kind": "component",
+   "purpose": "Archived assistant conversations: list, restore, delete.",
+   "loc": 290,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/PlanTab",
+   "name": "Perf Lab plan tab",
+   "kind": "component",
+   "purpose": "Plan stages, capture statuses, GPU-minute estimates, job proposal.",
+   "loc": 162,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/GraphTab",
+   "name": "Perf Lab graph tab",
+   "kind": "component",
+   "purpose": "The IR graph of nodes and edges.",
+   "loc": 173,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/LabTab",
+   "name": "Perf Lab lab tab",
+   "kind": "component",
+   "purpose": "Experiments, hypotheses and lints of the current build.",
+   "loc": 209,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components/organisms/ParamBar",
+   "name": "Perf Lab parameter bar",
+   "kind": "component",
+   "purpose": "Controls for declared parameters, by binding phase.",
+   "loc": 128,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/components",
+   "name": "Perf Lab component library (atomic design)",
+   "kind": "component",
+   "purpose": "atoms (17), molecules (18), organisms, templates/WorkbenchLayout, pages Workbench/NotFound; 5910 TS/TSX and 3366 CSS lines.",
+   "loc": 5910,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/lib",
+   "name": "Perf Lab frontend helpers",
+   "kind": "tool",
+   "purpose": "format, highlight, params, tex (MathJax), texFonts, yaml.",
+   "loc": 370,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "path": "lab-workbench/src/services",
+   "name": "Perf Lab HTTP clients",
+   "kind": "service",
+   "purpose": "labApi (RTK Query: hosts, capabilities) and the server fetch client.",
+   "loc": 122,
+   "key_exports": "",
+   "diary_step": 1
+  }
+ ],
+ "functionalities": [
+  {
+   "name": "Perf Lab: build a lab.js program",
+   "category": "lab-language",
+   "description": "Evaluate a lab.js program and run the six passes (structure, expand-resolve, trace, validate, lower, plan) into an IR, lints and a capture plan.",
+   "surface": "library",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: queries and derives over runs",
+   "category": "lab-language",
+   "description": "Lazy q.* queries materialised into Rows, grouped and aggregated in derives, memoised by the parameters they read.",
+   "surface": "library",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: provenance-tracked values",
+   "category": "evidence",
+   "description": "Every number carries a unit and provenance (observed, derived, heuristic, illustrative, unknown); missing is never zero; observed rows are sealed.",
+   "surface": "library",
+   "user_facing": 0,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: paired comparison statistics",
+   "category": "statistics",
+   "description": "pairedRatio bootstrap over per-process medians with an interleaved paired run order; offered-rate accounting for open-loop load.",
+   "surface": "library",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: hypothesis verdicts",
+   "category": "statistics",
+   "description": "Evaluate a hypothesis predicate over derive rows into supported, refuted, open or unqualified (package adds undecided).",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: detection quality comparison",
+   "category": "evidence",
+   "description": "Pair detections between arms within tolerance and evaluate against COCO ground truth (port of PR 1005 grounding_dino_quality.py).",
+   "surface": "library",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: synthetic data",
+   "category": "measurement",
+   "description": "Deterministic synthetic runs per capture hash and rep, so every program renders before anything is measured.",
+   "surface": "library",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: parameters and URL state",
+   "category": "lab-language",
+   "description": "Typed parameters with binding phases (plan, data, view); plan-bound changes rebuild and change capture hashes; values round-trip through the URL.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: board views",
+   "category": "views",
+   "description": "Boards of table, chart, timeline, stat, manifest, mirror, kernel card, ledger, stepper, route, hypothesis card, text, gallery and detections views over derive rows.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: plan and run jobs",
+   "category": "jobs",
+   "description": "Propose a job from the plan, approve it, run captures one process at a time with paired arm order, import each repetition, report progress over SSE.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: local workload execution",
+   "category": "launch",
+   "description": "Spawn uv run python -m perf_lab_local.run per capture and rep; JSON-line events on stdout; JSON records in the rep directory.",
+   "surface": "background",
+   "user_facing": 0,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: Grounding DINO paired runs",
+   "category": "measurement",
+   "description": "Run baseline and candidate DINO revisions in one process over dataset images and import the PR 1005 qualification reports.",
+   "surface": "background",
+   "user_facing": 0,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: host capabilities",
+   "category": "hosts",
+   "description": "Probe the local host (python, torch, devices, tools) and combine it with synthetic remote hosts to decide which captures can run.",
+   "surface": "api",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: evidence archive import",
+   "category": "import",
+   "description": "Upload a tar.gz of qualification reports, validate every entry, register datasets it contains, and import its captures without running them.",
+   "surface": "cli",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: COCO datasets and media",
+   "category": "datasets",
+   "description": "Register COCO selections, materialise public images with SHA-256 checks, serve public media, browse images with predicted and ground-truth boxes.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Perf Lab: lab assistant",
+   "category": "agent",
+   "description": "LLM assistant that writes lab.js code against the open board; the browser runs the code and returns observations; at most four executions per question; transcripts archived.",
+   "surface": "agent",
+   "user_facing": 1,
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "name": "Perf Lab: preset programs",
+   "category": "presets",
+   "description": "Example lab.js programs from hello to the PR 1005 DINO comparison, with scripted assistant replies for scenarios A and C.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "name": "@kiln/lab: headless build for Kiln",
+   "category": "lab-language",
+   "description": "Build a lab program in Node or the Kiln workbench against injected LabData (catalog, bundles, datasets) and Kiln host reports, or against synthetic data.",
+   "surface": "library",
+   "user_facing": 0,
+   "diary_step": 1
+  },
+  {
+   "name": "@kiln/lab: read a Perf Lab store",
+   "category": "import",
+   "description": "Open a copy of a Perf Lab SQLite store read-only to replay or check builds against measured data.",
+   "surface": "cli",
+   "user_facing": 0,
+   "diary_step": 1
+  }
+ ],
+ "functionality_modules": [
+  {
+   "functionality": "Perf Lab: build a lab.js program",
+   "module_path": "lab-workbench/src/lang/build.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: build a lab.js program",
+   "module_path": "lab-workbench/src/lang/builders.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: build a lab.js program",
+   "module_path": "lab-workbench/src/lang/library.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: build a lab.js program",
+   "module_path": "lab-workbench/src/lang/ir.ts",
+   "role": "schema"
+  },
+  {
+   "functionality": "Perf Lab: build a lab.js program",
+   "module_path": "packages/lab/src/lang/build.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: queries and derives over runs",
+   "module_path": "lab-workbench/src/lang/query.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: queries and derives over runs",
+   "module_path": "lab-workbench/src/lang/rows.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: queries and derives over runs",
+   "module_path": "lab-workbench/src/lang/runtime.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: queries and derives over runs",
+   "module_path": "packages/lab/src/lang/rows.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: provenance-tracked values",
+   "module_path": "lab-workbench/src/lang/values.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: provenance-tracked values",
+   "module_path": "packages/lab/src/lang/values.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: paired comparison statistics",
+   "module_path": "lab-workbench/src/lang/stats.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: paired comparison statistics",
+   "module_path": "lab-workbench/server/runner.ts",
+   "role": "worker"
+  },
+  {
+   "functionality": "Perf Lab: paired comparison statistics",
+   "module_path": "packages/lab/src/lang/stats.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: hypothesis verdicts",
+   "module_path": "lab-workbench/src/components/organisms/views/HypothesisView",
+   "role": "ui"
+  },
+  {
+   "functionality": "Perf Lab: hypothesis verdicts",
+   "module_path": "packages/lab/src/lang/hypothesis.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: detection quality comparison",
+   "module_path": "lab-workbench/src/lang/detections.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: detection quality comparison",
+   "module_path": "lab-workbench/server/qualification.ts",
+   "role": "worker"
+  },
+  {
+   "functionality": "Perf Lab: detection quality comparison",
+   "module_path": "packages/lab/src/lang/detections.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: synthetic data",
+   "module_path": "lab-workbench/src/data/generate.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: synthetic data",
+   "module_path": "lab-workbench/src/data/source.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: synthetic data",
+   "module_path": "packages/lab/src/data/generate.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: parameters and URL state",
+   "module_path": "lab-workbench/src/lang/params.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: parameters and URL state",
+   "module_path": "lab-workbench/src/features/params/thunks.ts",
+   "role": "ui"
+  },
+  {
+   "functionality": "Perf Lab: parameters and URL state",
+   "module_path": "lab-workbench/src/components/organisms/ParamBar",
+   "role": "ui"
+  },
+  {
+   "functionality": "Perf Lab: board views",
+   "module_path": "lab-workbench/src/components/organisms/ViewRenderer",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: board views",
+   "module_path": "lab-workbench/src/components/organisms/views",
+   "role": "ui"
+  },
+  {
+   "functionality": "Perf Lab: plan and run jobs",
+   "module_path": "lab-workbench/src/components/organisms/PlanTab",
+   "role": "ui"
+  },
+  {
+   "functionality": "Perf Lab: plan and run jobs",
+   "module_path": "lab-workbench/src/features/jobs/thunks.ts",
+   "role": "ui"
+  },
+  {
+   "functionality": "Perf Lab: plan and run jobs",
+   "module_path": "lab-workbench/server/app.ts",
+   "role": "api"
+  },
+  {
+   "functionality": "Perf Lab: plan and run jobs",
+   "module_path": "lab-workbench/server/runner.ts",
+   "role": "worker"
+  },
+  {
+   "functionality": "Perf Lab: plan and run jobs",
+   "module_path": "lab-workbench/server/importer.ts",
+   "role": "worker"
+  },
+  {
+   "functionality": "Perf Lab: local workload execution",
+   "module_path": "lab-workbench/server/runner.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: local workload execution",
+   "module_path": "lab-workbench/workloads/perf_lab_local/run.py",
+   "role": "worker"
+  },
+  {
+   "functionality": "Perf Lab: local workload execution",
+   "module_path": "lab-workbench/workloads/perf_lab_local/sampler.py",
+   "role": "worker"
+  },
+  {
+   "functionality": "Perf Lab: Grounding DINO paired runs",
+   "module_path": "lab-workbench/server/dino.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: Grounding DINO paired runs",
+   "module_path": "lab-workbench/workloads/perf_lab_dino/run.py",
+   "role": "worker"
+  },
+  {
+   "functionality": "Perf Lab: Grounding DINO paired runs",
+   "module_path": "lab-workbench/server/qualification.ts",
+   "role": "worker"
+  },
+  {
+   "functionality": "Perf Lab: host capabilities",
+   "module_path": "lab-workbench/server/probe.ts",
+   "role": "api"
+  },
+  {
+   "functionality": "Perf Lab: host capabilities",
+   "module_path": "lab-workbench/workloads/perf_lab_local/probe.py",
+   "role": "worker"
+  },
+  {
+   "functionality": "Perf Lab: host capabilities",
+   "module_path": "lab-workbench/src/data/capabilities.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: host capabilities",
+   "module_path": "packages/lab/src/data/capabilities.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: evidence archive import",
+   "module_path": "lab-workbench/server/evidence.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: evidence archive import",
+   "module_path": "lab-workbench/server/tar.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: evidence archive import",
+   "module_path": "lab-workbench/server/qualification.ts",
+   "role": "worker"
+  },
+  {
+   "functionality": "Perf Lab: evidence archive import",
+   "module_path": "lab-workbench/scripts/lab.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: COCO datasets and media",
+   "module_path": "lab-workbench/server/datasets.ts",
+   "role": "api"
+  },
+  {
+   "functionality": "Perf Lab: COCO datasets and media",
+   "module_path": "lab-workbench/src/data/datasets.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: COCO datasets and media",
+   "module_path": "lab-workbench/src/components/organisms/views/DetectionsView",
+   "role": "ui"
+  },
+  {
+   "functionality": "Perf Lab: lab assistant",
+   "module_path": "lab-workbench/server/assistant/service.ts",
+   "role": "api"
+  },
+  {
+   "functionality": "Perf Lab: lab assistant",
+   "module_path": "lab-workbench/server/assistant/prompt.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: lab assistant",
+   "module_path": "lab-workbench/server/assistant/model.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "Perf Lab: lab assistant",
+   "module_path": "lab-workbench/src/features/agent/runtime.ts",
+   "role": "ui"
+  },
+  {
+   "functionality": "Perf Lab: lab assistant",
+   "module_path": "lab-workbench/src/components/organisms/AgentRail",
+   "role": "ui"
+  },
+  {
+   "functionality": "Perf Lab: preset programs",
+   "module_path": "lab-workbench/src/presets",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: preset programs",
+   "module_path": "packages/lab/presets",
+   "role": "entry"
+  },
+  {
+   "functionality": "Perf Lab: preset programs",
+   "module_path": "packages/lab/src/presets.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "@kiln/lab: headless build for Kiln",
+   "module_path": "packages/lab/src/index.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "@kiln/lab: headless build for Kiln",
+   "module_path": "packages/lab/src/data/lab-data.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "@kiln/lab: headless build for Kiln",
+   "module_path": "packages/lab/src/data/env.ts",
+   "role": "shared"
+  },
+  {
+   "functionality": "@kiln/lab: read a Perf Lab store",
+   "module_path": "packages/lab/src/node/perf-lab-store.ts",
+   "role": "entry"
+  },
+  {
+   "functionality": "@kiln/lab: read a Perf Lab store",
+   "module_path": "packages/lab/scripts/check-pl.ts",
+   "role": "entry"
+  }
+ ],
+ "endpoints": [
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/health",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:70",
+   "description": "Health with features ['evidence-import','datasets','media'].",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/hosts",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:85",
+   "description": "Synthetic hosts plus the local host.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/hosts/:host/capabilities",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:92",
+   "description": "Local host only: runs the Python capability probe (180 s timeout).",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/programs/:labId",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:102",
+   "description": "Saved lab program source.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "PUT",
+   "path": "/api/programs/:labId",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:106",
+   "description": "Save a lab program (debounced autosave from the client).",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "DELETE",
+   "path": "/api/programs/:labId",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:112",
+   "description": "Delete a saved program.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/catalog",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:118",
+   "description": "Artifacts by capture hash with origin and status.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "POST",
+   "path": "/api/labs/:labId/seed",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:126",
+   "description": "Register synthetic artifacts for captures on non-executable hosts.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/bundles",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:134",
+   "description": "Run bundles for up to 64 capture hashes (?hashes=).",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/jobs",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:142",
+   "description": "List jobs.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/jobs/:id",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:143",
+   "description": "One job with captures and events.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "POST",
+   "path": "/api/jobs",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:147",
+   "description": "Propose (or, for user jobs, approve at once) a job; validateCaptures recomputes each cyrb53 hash and answers 409 spec_hash_mismatch.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "POST",
+   "path": "/api/jobs/:id/approve",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:183",
+   "description": "Approve a proposed job.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "POST",
+   "path": "/api/jobs/:id/cancel",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:191",
+   "description": "Cancel a job; kills the running child process.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/annotations",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:205",
+   "description": "Annotations of a lab.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "POST",
+   "path": "/api/annotations",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:206",
+   "description": "Add an annotation (author user or assistant).",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/evidence",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:214",
+   "description": "List evidence archives.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/evidence/:sha",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:215",
+   "description": "One evidence archive summary.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "POST",
+   "path": "/api/evidence",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:219",
+   "description": "Upload a tar.gz evidence archive (64 MiB cap).",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/datasets",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:233",
+   "description": "List datasets.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/datasets/:id",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:234",
+   "description": "Dataset detail with images and annotations.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "POST",
+   "path": "/api/datasets/:id/materialize",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:240",
+   "description": "Download and SHA-verify public COCO images; answers 202.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/media/:sha",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:255",
+   "description": "Public media bytes by SHA-256.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/events",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/app.ts:266",
+   "description": "Server-sent events from the in-process bus, 15 s ping.",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/assistant/models",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/assistant/service.ts:249",
+   "description": "Available assistant models.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/assistant/conversations",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/assistant/service.ts:255",
+   "description": "Active conversation of a board.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/assistant/library",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/assistant/service.ts:262",
+   "description": "Archived transcripts.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "GET",
+   "path": "/api/assistant/library/:id",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/assistant/service.ts:281",
+   "description": "One archived transcript.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "POST",
+   "path": "/api/assistant/archive",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/assistant/service.ts:288",
+   "description": "Archive the active conversation.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "POST",
+   "path": "/api/assistant/library/:id/restore",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/assistant/service.ts:300",
+   "description": "Restore an archived conversation.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "DELETE",
+   "path": "/api/assistant/library/:id",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/assistant/service.ts:312",
+   "description": "Delete an archived transcript.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "POST",
+   "path": "/api/assistant/turns",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/assistant/service.ts:321",
+   "description": "Ask the assistant; SSE stream of reply/error/end events; 409 when the board is busy.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "package": "lab-workbench/server",
+   "method": "POST",
+   "path": "/api/assistant/messages/:id/result",
+   "auth": "local-only",
+   "handler_path": "lab-workbench/server/assistant/service.ts:355",
+   "description": "The browser posts the result of running the model code; stores an observation and, with continue: true, asks the model again.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  }
+ ],
+ "db_tables": [
+  {
+   "schema_name": "perf-lab",
+   "name": "schema_migrations",
+   "purpose": "Applied migration versions.",
+   "owner_package": "lab-workbench/server",
+   "writers": "server/db.ts",
+   "readers": "server/db.ts",
+   "notes": "db.ts:331",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "programs",
+   "purpose": "Saved lab program source per lab id.",
+   "owner_package": "lab-workbench/server",
+   "writers": "store.putProgram (PUT /api/programs)",
+   "readers": "GET /api/programs",
+   "notes": "v1, db.ts:13: lab_id, source, preset_hash, updated_at",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "artifacts",
+   "purpose": "One row per capture hash: lowered spec, origin synthetic|measured, status running|available|failed.",
+   "owner_package": "lab-workbench/server",
+   "writers": "store.insertArtifact (seed, runner)",
+   "readers": "GET /api/catalog",
+   "notes": "v1 db.ts:20; v5 adds source (evidence archive)",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "runs",
+   "purpose": "One run per (capture hash, rep): run JSON, timing.",
+   "owner_package": "lab-workbench/server",
+   "writers": "store.insertRun",
+   "readers": "store.bundlesFor",
+   "notes": "v3 (db.ts:161-191) re-keyed to (hash, rep): ref-keyed runs had overwritten each other across parameter values",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "run_bundles",
+   "purpose": "Gzip-compressed JSON entities and links of a run.",
+   "owner_package": "lab-workbench/server",
+   "writers": "store.insertRun",
+   "readers": "GET /api/bundles",
+   "notes": "v3 keyed (hash, rep); n_entities, n_links",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "jobs",
+   "purpose": "Execution jobs: proposed|approved|running|importing|done|failed|cancelled; proposed_by user|assistant; GPU-minute budget.",
+   "owner_package": "lab-workbench/server",
+   "writers": "store.createJob, Runner",
+   "readers": "GET /api/jobs",
+   "notes": "v1 db.ts:58",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "job_captures",
+   "purpose": "Captures of a job with spec, reps and status.",
+   "owner_package": "lab-workbench/server",
+   "writers": "store.createJob, Runner",
+   "readers": "Runner, GET /api/jobs/:id",
+   "notes": "v1 db.ts:73",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "job_events",
+   "purpose": "Ordered job log including script.<event> lines from workloads.",
+   "owner_package": "lab-workbench/server",
+   "writers": "Runner.event",
+   "readers": "GET /api/jobs/:id, SSE",
+   "notes": "v1 db.ts:88",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "annotations",
+   "purpose": "User or assistant annotations on lab targets.",
+   "owner_package": "lab-workbench/server",
+   "writers": "POST /api/annotations",
+   "readers": "GET /api/annotations",
+   "notes": "v1 db.ts:97",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "conversations",
+   "purpose": "Assistant conversation per (lab, board); archived_at marks library transcripts.",
+   "owner_package": "lab-workbench/server",
+   "writers": "PiAssistant",
+   "readers": "assistant routes",
+   "notes": "v4: partial unique index on the active conversation (db.ts:252)",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "messages",
+   "purpose": "Conversation messages: user, assistant (with code and status), observation (result_json).",
+   "owner_package": "lab-workbench/server",
+   "writers": "PiAssistant",
+   "readers": "PiAssistant.history",
+   "notes": "v4 rebuild, db.ts:210",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "llm_calls",
+   "purpose": "One row per model call: provider, model, token counts, duration, stop reason, prompt_chars, est_prompt_tokens.",
+   "owner_package": "lab-workbench/server",
+   "writers": "PiAssistant.recordCall",
+   "readers": "(none in the UI)",
+   "notes": "v2 adds prompt_chars/est_prompt_tokens; v4 rebuild",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "evidence_archives",
+   "purpose": "Registered tar.gz evidence archives by SHA-256 with file list.",
+   "owner_package": "lab-workbench/server",
+   "writers": "evidence.registerArchive",
+   "readers": "runner importEvidence, GET /api/evidence",
+   "notes": "v5 db.ts:262",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "datasets",
+   "purpose": "COCO datasets with privacy flag, provenance and categories.",
+   "owner_package": "lab-workbench/server",
+   "writers": "datasets.registerCocoDataset",
+   "readers": "GET /api/datasets, dino.workloadImages",
+   "notes": "v5 db.ts:270",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "dataset_images",
+   "purpose": "Images of a dataset with SHA-256, size, license and source URL.",
+   "owner_package": "lab-workbench/server",
+   "writers": "datasets.registerCocoDataset",
+   "readers": "dataset routes, materialize",
+   "notes": "v5 db.ts:283",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "dataset_annotations",
+   "purpose": "COCO ground-truth boxes per image.",
+   "owner_package": "lab-workbench/server",
+   "writers": "datasets.registerCocoDataset",
+   "readers": "dataset routes, qualification import",
+   "notes": "v5 db.ts:299",
+   "diary_step": 1
+  },
+  {
+   "schema_name": "perf-lab",
+   "name": "media",
+   "purpose": "Media bytes registry (public only served).",
+   "owner_package": "lab-workbench/server",
+   "writers": "datasets.materialize",
+   "readers": "GET /api/media/:sha",
+   "notes": "v5 db.ts:311",
+   "diary_step": 1
+  }
+ ],
+ "service_calls": [
+  {
+   "from_package": "lab-workbench",
+   "to_package": "lab-workbench/server",
+   "protocol": "http",
+   "description": "REST /api: programs, catalog, seed, bundles, jobs, annotations, evidence, datasets, media, hosts",
+   "evidence": "lab-workbench/src/features/server/thunks.ts; lab-workbench/src/data/bundles.ts; lab-workbench/server/app.ts",
+   "diary_step": 1
+  },
+  {
+   "from_package": "lab-workbench",
+   "to_package": "lab-workbench/server",
+   "protocol": "sse",
+   "description": "GET /api/events: job progress and catalog changes",
+   "evidence": "lab-workbench/src/features/server/thunks.ts; lab-workbench/server/app.ts:266",
+   "diary_step": 1
+  },
+  {
+   "from_package": "lab-workbench",
+   "to_package": "lab-workbench/server",
+   "protocol": "sse",
+   "description": "POST /api/assistant/turns: assistant replies; results posted back to /api/assistant/messages/:id/result",
+   "evidence": "lab-workbench/server/assistant/service.ts:321,355",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "from_package": "lab-workbench/server",
+   "to_package": "lab-workbench/workloads",
+   "protocol": "process",
+   "description": "uv run python -m perf_lab_local.run --spec --rep --out, one process per capture and rep; JSON-line events on stdout",
+   "evidence": "lab-workbench/server/runner.ts:57",
+   "diary_step": 1
+  },
+  {
+   "from_package": "lab-workbench/server",
+   "to_package": "lab-workbench/workloads",
+   "protocol": "process",
+   "description": "uv run python -m perf_lab_dino.run with both arm specs per rep",
+   "evidence": "lab-workbench/server/dino.ts:60",
+   "diary_step": 1
+  },
+  {
+   "from_package": "lab-workbench/server",
+   "to_package": "lab-workbench/workloads",
+   "protocol": "process",
+   "description": "perf_lab_local.probe for local capabilities (180 s timeout)",
+   "evidence": "lab-workbench/server/probe.ts:23",
+   "diary_step": 1
+  },
+  {
+   "from_package": "lab-workbench/workloads",
+   "to_package": "lab-workbench/server",
+   "protocol": "fs",
+   "description": "rep directory records (manifest, activation, quality, timing, cpu, trace, memory JSON) read by importRepetition",
+   "evidence": "lab-workbench/server/importer.ts:63",
+   "diary_step": 1
+  },
+  {
+   "from_package": "lab-workbench/server",
+   "to_package": "llm-provider (external)",
+   "protocol": "llm-api",
+   "description": "assistant completions through @earendil-works/pi-ai with ~/.pi/agent credentials",
+   "evidence": "lab-workbench/server/assistant/model.ts",
+   "diary_step": 1
+  },
+  {
+   "from_package": "lab-workbench/server",
+   "to_package": "COCO image host (external)",
+   "protocol": "http",
+   "description": "dataset materialisation downloads public COCO images and verifies SHA-256",
+   "evidence": "lab-workbench/server/datasets.ts:71,227",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/lab",
+   "to_package": "lab-workbench/server",
+   "protocol": "sqlite",
+   "description": "readPerfLabStore opens a temp copy of the Perf Lab store (db + wal) read-only",
+   "evidence": "packages/lab/src/node/perf-lab-store.ts:45-59",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "http",
+   "description": "@kiln/lab LabData filled from /api/lab/* (programs, catalog, bundles, datasets, media) by the workbench's lab api.js",
+   "evidence": "apps/workbench/src/ui/lab/api.js:1-12; apps/server/src/lab/routes.ts:26-68",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/server",
+   "to_package": "lab-workbench/server",
+   "protocol": "fs",
+   "description": "lab:import copies a Perf Lab .data directory (store copy opened read-only, archives, media) into the Kiln database, checking every hash",
+   "evidence": "apps/server/src/lab/importer.ts:1-24,79-82",
+   "diary_step": 1
+  }
+ ],
+ "reusable_components": [
+  {
+   "name": "lab.js language and compiler",
+   "path": "packages/lab/src/lang",
+   "kind": "library",
+   "description": "Builders, six-pass build to an IR and capture plan, runtime for derives and signals.",
+   "current_consumers": "@kiln/workbench (via @kiln/lab); lab-workbench keeps its own copy",
+   "external_deps": "none",
+   "internal_deps": "@kiln/evidence",
+   "reuse_readiness": "ready",
+   "packaging_notes": "Already packaged as @kiln/lab; the open step is making lab-workbench consume it instead of src/lang (9 of 16 files differ only mechanically).",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "name": "rows and query algebra with provenance",
+   "path": "packages/lab/src/lang/rows.ts",
+   "kind": "library",
+   "description": "Rows (filter, group, aggregate, follow links) over entity graphs, lazy q.* queries, provenance-carrying values.",
+   "current_consumers": "@kiln/lab build and derives; lab-workbench views",
+   "external_deps": "none",
+   "internal_deps": "@kiln/evidence (values); lang/util",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "No lab-specific dependency beyond entity kinds; could live beside @kiln/evidence as a query package [inferred].",
+   "diary_step": 1
+  },
+  {
+   "name": "detection pairing and ground-truth evaluation",
+   "path": "packages/lab/src/lang/detections.ts",
+   "kind": "library",
+   "description": "Pure TS port of PR 1005 detection comparison: maximum matching within tolerances, IoU with crowd rules, verdicts.",
+   "current_consumers": "@kiln/lab; lab-workbench/server/qualification.ts (from the browser tree)",
+   "external_deps": "none",
+   "internal_deps": "none",
+   "reuse_readiness": "ready",
+   "packaging_notes": "Self-contained and golden-tested; three implementations exist (Python, two TS).",
+   "diary_step": 1
+  },
+  {
+   "name": "paired-ratio bootstrap and offered-rate accounting",
+   "path": "packages/lab/src/lang/stats.ts",
+   "kind": "library",
+   "description": "Process-level paired ratio with bootstrap CI and open-loop offered-rate accounting.",
+   "current_consumers": "@kiln/lab programs; Perf Lab programs",
+   "external_deps": "none",
+   "internal_deps": "@kiln/evidence (pairedRatio, median, rng)",
+   "reuse_readiness": "ready",
+   "packaging_notes": "The package version already delegates to @kiln/evidence; Perf Lab keeps an older copy that ignores the seed option.",
+   "diary_step": 1
+  },
+  {
+   "name": "capture spec hash (cyrb53 + stableStringify)",
+   "path": "packages/exec/src/lab-hash.ts",
+   "kind": "schema",
+   "description": "The identity of every Perf Lab capture: cyrb53 over the key-sorted lowered spec.",
+   "current_consumers": "@kiln/exec perf-lab-sampler kind; apps/server lab importer; separately copied in @kiln/lab and lab-workbench",
+   "external_deps": "none",
+   "internal_deps": "none",
+   "reuse_readiness": "ready",
+   "packaging_notes": "Keep one implementation (labCaptureHash) and import it from @kiln/lab and Perf Lab; the copies must stay bit-identical or stored artifacts become unmatchable.",
+   "diary_step": 1
+  },
+  {
+   "name": "safe tar.gz reader",
+   "path": "lab-workbench/server/tar.ts",
+   "kind": "tool",
+   "description": "In-memory ustar/pax/GNU reader that refuses links, devices and paths escaping the archive root.",
+   "current_consumers": "lab-workbench/server evidence; apps/server/src/lab/tar.ts (port, 61 changed lines)",
+   "external_deps": "node:zlib",
+   "internal_deps": "none",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "Two diverging copies; a small Node package would serve both servers.",
+   "diary_step": 1
+  },
+  {
+   "name": "workload process protocol",
+   "path": "lab-workbench/server/runner.ts",
+   "kind": "pattern",
+   "description": "Spec file in, JSON-line events on stdout, JSON records in a rep directory, exit code as validity, stderr tail for errors.",
+   "current_consumers": "perf_lab_local, perf_lab_dino",
+   "external_deps": "uv",
+   "internal_deps": "lab-workbench/server/importer.ts",
+   "reuse_readiness": "entangled",
+   "packaging_notes": "Implicit in run.py and runner.ts with no schema file; Kiln has its own @kiln/exec kinds for the same job.",
+   "diary_step": 1
+  },
+  {
+   "name": "qualification-report importer",
+   "path": "lab-workbench/server/qualification.ts",
+   "kind": "library",
+   "description": "Importer for PR 1005 'detection-qualification/v1' report trees into entities and links.",
+   "current_consumers": "lab-workbench/server runner (evidence and DINO paths)",
+   "external_deps": "none",
+   "internal_deps": "lab-workbench/src/lang/values.ts (val, missing); lab-workbench/src/lang/detections.ts",
+   "reuse_readiness": "entangled",
+   "packaging_notes": "Depends on the browser val(), which @kiln/lab removed; port needs an observed-value constructor owned by importers.",
+   "diary_step": 1
+  },
+  {
+   "name": "LabData injection seam",
+   "path": "packages/lab/src/data/lab-data.ts",
+   "kind": "pattern",
+   "description": "The interface through which a build reads catalog, bundles and datasets, replacing module-global fetch caches.",
+   "current_consumers": "@kiln/workbench lab api.js",
+   "external_deps": "none",
+   "internal_deps": "@kiln/lab data layer",
+   "reuse_readiness": "ready",
+   "packaging_notes": "The pattern to copy back into Perf Lab to remove module state from src/data.",
+   "diary_step": 1
+  },
+  {
+   "name": "lab board view set",
+   "path": "lab-workbench/src/components/organisms/views",
+   "kind": "ui-component",
+   "description": "18 views keyed by view kind over derive rows and IR view nodes.",
+   "current_consumers": "lab-workbench; re-implemented in apps/workbench/src/ui/lab",
+   "external_deps": "react, d3-scale, d3-shape, @mathjax/src",
+   "internal_deps": "lab-workbench Redux store, board context",
+   "reuse_readiness": "entangled",
+   "packaging_notes": "Two UI stacks with no shared code; a written view contract (kind, inputs, props) would let one stack go.",
+   "diary_step": 1
+  }
+ ],
+ "duplications": [
+  {
+   "title": "lab language compiler: lab-workbench/src/lang vs packages/lab/src/lang",
+   "description": "Two copies of the lab.js language. Of 16 language files, 9 differ only mechanically (strict tsconfig: .ts imports, | undefined, !, constructor fields), 3 by one-line semantic edits (build lowered normal form, runtime sealed rows, library below/above), 4 are rewritten on @kiln/evidence (rows, values, stats, util). Raw/normalised diff counts in notes section 9.5.",
+   "locations": [
+    {
+     "path": "lab-workbench/src/lang",
+     "lines": "3945 LOC",
+     "note": "Perf Lab copy"
+    },
+    {
+     "path": "packages/lab/src/lang",
+     "lines": "~4000 LOC",
+     "note": "@kiln/lab port"
+    },
+    {
+     "path": "packages/lab/src/lang/build.ts",
+     "lines": "866-868",
+     "note": "lowered normal form, the only semantic edit in build"
+    }
+   ],
+   "severity": "high",
+   "suggested_consolidation": "Make lab-workbench import @kiln/lab (or retire lab-workbench/src/lang); the mechanical differences are compatible with the looser Perf Lab tsconfig.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "title": "lab data layer: lab-workbench/src/data vs packages/lab/src/data",
+   "description": "Synthetic generator and source are near-copies (generate norm 47 lines, source 14); env, bundles, capabilities and datasets were re-architected in the package around LabData injection, removing module-global caches and fetch.",
+   "locations": [
+    {
+     "path": "lab-workbench/src/data",
+     "lines": "1243 LOC",
+     "note": "fetch + module state"
+    },
+    {
+     "path": "packages/lab/src/data",
+     "lines": "1444 LOC",
+     "note": "LabData injection"
+    }
+   ],
+   "severity": "medium",
+   "suggested_consolidation": "Adopt the package data layer in Perf Lab with a LabData backed by its own /api.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "title": "capture hash: three cyrb53 + stableStringify implementations",
+   "description": "The capture identity is implemented three times and must stay bit-identical for stored artifacts to match.",
+   "locations": [
+    {
+     "path": "lab-workbench/src/lang/util.ts",
+     "lines": "1-16",
+     "note": "hash, stableStringify"
+    },
+    {
+     "path": "packages/lab/src/lang/util.ts",
+     "lines": "6-24",
+     "note": "hash kept bit for bit (P-5)"
+    },
+    {
+     "path": "packages/exec/src/lab-hash.ts",
+     "lines": "7,43",
+     "note": "cyrb53, labCaptureHash"
+    }
+   ],
+   "severity": "high",
+   "suggested_consolidation": "One implementation (labCaptureHash) imported everywhere, with a golden-vector test.",
+   "diary_step": 1
+  },
+  {
+   "title": "hypothesis verdicts: lab-workbench HypothesisView vs @kiln/lab lang/hypothesis",
+   "description": "Perf Lab computes verdicts inside HypothesisView; @kiln/lab has a headless hypothesis.ts on @kiln/evidence verdict with different semantics (undecided; a throwing predicate is open).",
+   "locations": [
+    {
+     "path": "lab-workbench/src/components/organisms/views/HypothesisView/HypothesisView.tsx",
+     "lines": "19-48",
+     "note": "evaluateHypothesis"
+    },
+    {
+     "path": "packages/lab/src/lang/hypothesis.ts",
+     "lines": "1-103",
+     "note": "evaluateHypothesis(es)"
+    }
+   ],
+   "severity": "medium",
+   "suggested_consolidation": "Use the headless module in both UIs.",
+   "diary_step": 1
+  },
+  {
+   "title": "lab presets: lab-workbench/src/presets/programs vs packages/lab/presets",
+   "description": "Nine programs and both reply scripts identical; local-sampler (15 lines: host parameter, workload path) and dino-pr1005 (4 lines) edited; sampler-hosts only in the package. The package comment still says copied unmodified.",
+   "locations": [
+    {
+     "path": "lab-workbench/src/presets/programs",
+     "lines": "11 programs",
+     "note": "Vite ?raw registry"
+    },
+    {
+     "path": "packages/lab/presets",
+     "lines": "12 programs",
+     "note": "file registry + Node reader"
+    },
+    {
+     "path": "packages/lab/src/presets.ts",
+     "lines": "1",
+     "note": "stale \"copied unmodified\" comment"
+    }
+   ],
+   "severity": "low",
+   "suggested_consolidation": "Keep presets in the package only; host-specific edits become parameters.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  },
+  {
+   "title": "Perf Lab server modules ported into apps/server/src/lab",
+   "description": "tar, evidence, datasets and store exist in both servers as adapted ports (changed lines: tar 61, evidence 84, datasets 182, store 327). apps/server/src/lab/importer.ts is a different importer (whole .data directory), not a port.",
+   "locations": [
+    {
+     "path": "lab-workbench/server/tar.ts",
+     "lines": "1-129",
+     "note": "original"
+    },
+    {
+     "path": "apps/server/src/lab/tar.ts",
+     "lines": "1-98",
+     "note": "port"
+    },
+    {
+     "path": "lab-workbench/server/datasets.ts",
+     "lines": "1-266",
+     "note": "original"
+    },
+    {
+     "path": "apps/server/src/lab/datasets.ts",
+     "lines": "1-206",
+     "note": "port without materialisation"
+    }
+   ],
+   "severity": "medium",
+   "suggested_consolidation": "Extract tar/evidence/media storage into a shared Node package, or retire the Perf Lab server.",
+   "diary_step": 1
+  },
+  {
+   "title": "Perf Lab store reader: copy-then-open implemented twice",
+   "description": "Both copy the WAL-mode SQLite store (and -wal) into a temp directory before opening it read-only.",
+   "locations": [
+    {
+     "path": "packages/lab/src/node/perf-lab-store.ts",
+     "lines": "45-59",
+     "note": "readPerfLabStore"
+    },
+    {
+     "path": "apps/server/src/lab/importer.ts",
+     "lines": "79-82",
+     "note": "importPerfLab"
+    }
+   ],
+   "severity": "low",
+   "suggested_consolidation": "apps/server could use readPerfLabStore from @kiln/lab/node.",
+   "diary_step": 1
+  }
+ ],
+ "complexity_hotspots": [
+  {
+   "path": "lab-workbench/src/lang/build.ts",
+   "loc": 1030,
+   "reason": "Six passes, plan-lambda resolution with a NeedsEvidence control-flow exception, parameter-binding inference by dry-run tracing, ~25 lint codes, lowering and plan staging in one module; copied as packages/lab/src/lang/build.ts.",
+   "metric": "LOC; passes",
+   "suggestion": "Split per pass; keep one copy.",
+   "diary_step": 1
+  },
+  {
+   "path": "lab-workbench/src/lang/builders.ts",
+   "loc": 451,
+   "reason": "A Proxy records any unknown method as a prop; correctness depends on VIEW_METHODS/CAPTURE_METHODS being complete, and kinds missing from the table (detections, gallery) are never checked.",
+   "metric": "dynamic dispatch",
+   "suggestion": "Make every view kind declare its methods.",
+   "diary_step": 1
+  },
+  {
+   "path": "lab-workbench/src/features/agent/runtime.ts",
+   "loc": 639,
+   "reason": "AsyncFunction evaluation of model or scripted code with live lab/self handles, snapshots and rollback, two reply sources.",
+   "metric": "LOC; eval",
+   "suggestion": "Separate the handle API from the execution loop.",
+   "diary_step": 1
+  },
+  {
+   "path": "lab-workbench/server/runner.ts",
+   "loc": 380,
+   "reason": "Three execution paths (process per rep, DINO both arms per process, archive import) with their own validity and quality rules; paired ordering; cancellation.",
+   "metric": "state machine",
+   "suggestion": "One executor interface per path.",
+   "diary_step": 1
+  },
+  {
+   "path": "lab-workbench/server/qualification.ts",
+   "loc": 394,
+   "reason": "Parses a whole report tree format (profiler tables, JUnit, paired timing, predictions, memory pools) into entities.",
+   "metric": "format surface",
+   "suggestion": "Document detection-qualification/v1 as a format with fixtures.",
+   "diary_step": 1
+  },
+  {
+   "path": "lab-workbench/src/data/generate.ts",
+   "loc": 724,
+   "reason": "Synthetic generators for every workload and collector; labels generated numbers observed (fixed in the package).",
+   "metric": "LOC",
+   "suggestion": "Keep only the package copy.",
+   "diary_step": 1
+  },
+  {
+   "path": "lab-workbench/src/features/build/thunks.ts",
+   "loc": 63,
+   "reason": "buildLab builds twice around a seed POST and a bundle load, with host 'local' hard-coded.",
+   "metric": "ordering",
+   "suggestion": "Use LabData and host reports as in @kiln/lab.",
+   "diary_step": 1
+  },
+  {
+   "path": "lab-workbench/server/assistant/service.ts",
+   "loc": 377,
+   "reason": "SSE turns, browser round-trip of code results, step limits, archive/restore library, token accounting.",
+   "metric": "protocol",
+   "suggestion": "Document the turn protocol.",
+   "diary_steps": [
+    1,
+    2
+   ]
+  }
+ ],
+ "facts": [
+  {
+   "subject": "@kiln/lab",
+   "fact": "The only consumer of @kiln/lab is apps/workbench (package.json:21, src/ui/lab/api.js, state.js, panels.jsx, build.mjs, test/lab-e2e.mjs); apps/server does not depend on it.",
+   "evidence_path": "apps/workbench/src/ui/lab/api.js",
+   "evidence_lines": "5-12",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/lab",
+   "fact": "Of 16 language files, 9 differ from lab-workbench only mechanically, 3 by one-line edits and 4 are rewritten on @kiln/evidence.",
+   "evidence_path": "packages/lab/src/lang",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "lab.js",
+   "fact": "A program is evaluated with new Function over the library free names in strict mode; there is no other sandbox.",
+   "evidence_path": "lab-workbench/src/lang/build.ts",
+   "evidence_lines": "72-96",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab.js",
+   "fact": "The build has six passes: structure, expand-resolve, trace, validate, lower, plan.",
+   "evidence_path": "lab-workbench/src/lang/build.ts",
+   "evidence_lines": "174-872",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab.js",
+   "fact": "A capture is identified by cyrb53(stableStringify(lowered spec)); the server recomputes it and answers 409 spec_hash_mismatch.",
+   "evidence_path": "lab-workbench/server/app.ts",
+   "evidence_lines": "50-64",
+   "category": "invariant",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab.js",
+   "fact": "quality_gate_sha256 and (without a dataset) fixture_manifest_sha256 hold cyrb53 values, not SHA-256; importers label the gate sha256:<cyrb53>.",
+   "evidence_path": "lab-workbench/src/lang/build.ts",
+   "evidence_lines": "554,601",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab.js",
+   "fact": "Parameter binding is the strongest reader phase, plan > data > view; plan-bound changes rebuild and change capture hashes.",
+   "evidence_path": "lab-workbench/src/lang/build.ts",
+   "evidence_lines": "635-745",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab.js",
+   "fact": "View kinds absent from VIEW_METHODS (detections, gallery) accept any method without an unknown-method lint.",
+   "evidence_path": "lab-workbench/src/lang/builders.ts",
+   "evidence_lines": "83",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab.js",
+   "fact": "Compiling the hello preset yields 12 nodes, 13 edges, 2 timing captures x3 reps on playback@dgx and lints no-quality-gate, no-activation-rule, no-repetition.",
+   "evidence_path": "packages/lab/presets/hello.lab.js",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "stats.pairedRatio",
+   "fact": "Perf Lab resamples processes, not requests: median per (arm, rep), ratio per rep, median of ratios, 2000-iteration bootstrap.",
+   "evidence_path": "lab-workbench/src/lang/stats.ts",
+   "evidence_lines": "21-92",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "stats.pairedRatio",
+   "fact": "Perf Lab accepts a seed option but seeds the bootstrap from the ratios ('pairedRatio:' + ratios); @kiln/lab honours the seed.",
+   "evidence_path": "lab-workbench/src/lang/stats.ts",
+   "evidence_lines": "23,69",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "values",
+   "fact": "missing is not zero: its valueOf is NaN; observed rows are sealed and mutation throws ProvenanceError.",
+   "evidence_path": "lab-workbench/src/lang/values.ts",
+   "category": "invariant",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench/src/data",
+   "fact": "Synthetic kernel metrics are created with val() and so labelled observed; @kiln/lab relabels them illustrative (P-7).",
+   "evidence_path": "lab-workbench/src/data/generate.ts",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench/server",
+   "fact": "Every route is unauthenticated; the server binds 127.0.0.1.",
+   "evidence_path": "lab-workbench/server/config.ts",
+   "evidence_lines": "28",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "lab-workbench/server",
+   "fact": "The runner executes one job and one process at a time and shuffles arms per rep with rng(paired_order_seed:rep).",
+   "evidence_path": "lab-workbench/server/runner.ts",
+   "evidence_lines": "302-310",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench/server",
+   "fact": "Schema v3 re-keyed runs to (hash, rep) because ref-keyed runs overwrote each other across parameter values.",
+   "evidence_path": "lab-workbench/server/db.ts",
+   "evidence_lines": "161-191",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench/server",
+   "fact": "A run is valid iff the process exited 0 and the declared activation held; quality is qualified iff a gate was declared, quality passed and the run is valid.",
+   "evidence_path": "lab-workbench/server/importer.ts",
+   "evidence_lines": "243-258",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench/server",
+   "fact": "Server modules import browser code: ../src/lang/util, values, rows, detections, and the UI file IdePane/reference.ts.",
+   "evidence_path": "lab-workbench/server/assistant/prompt.ts",
+   "evidence_lines": "1",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench/server",
+   "fact": "The assistant never runs model code on the server; the browser runs it and posts the result to /api/assistant/messages/:id/result.",
+   "evidence_path": "lab-workbench/server/assistant/service.ts",
+   "evidence_lines": "205-245,355-372",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "lab-workbench/server",
+   "fact": "qualification.ts imports the PR 1005 detection-qualification/v1 report format; it is not a statistics module.",
+   "evidence_path": "lab-workbench/server/qualification.ts",
+   "evidence_lines": "16,115",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench/workloads",
+   "fact": "manifest.json records spec_sha256, a real SHA-256 of the sort_keys spec: a third spec identity, matching neither the cyrb53 capture hash nor quality_gate_sha256.",
+   "evidence_path": "lab-workbench/workloads/perf_lab_local/run.py",
+   "evidence_lines": "88-110",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 3
+  },
+  {
+   "subject": "lab-workbench/workloads",
+   "fact": "workloads/.venv is on disk and gitignored; a naive find over workloads counts site-packages.",
+   "evidence_path": "lab-workbench/.gitignore",
+   "evidence_lines": "5",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench",
+   "fact": "Perf Lab language test src/lang/evidence.test.ts imports evaluateHypothesis from a React component.",
+   "evidence_path": "lab-workbench/src/lang/evidence.test.ts",
+   "evidence_lines": "97",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench",
+   "fact": "The jobList view is declared in the library and VIEW_METHODS but has no renderer in either UI.",
+   "evidence_path": "lab-workbench/src/lang/library.ts",
+   "evidence_lines": "159",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "apps/server/src/lab",
+   "fact": "apps/server/src/lab/importer.ts imports a whole Perf Lab .data directory into Kiln; it is not a port of Perf Lab importer.ts.",
+   "evidence_path": "apps/server/src/lab/importer.ts",
+   "evidence_lines": "1-24",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench",
+   "fact": "The 18 board views are re-implemented, without shared code, in apps/workbench/src/ui/lab; area B records this as the duplication \"lab board panels: lab-workbench views vs apps/workbench/src/ui/lab\". Kiln has 21 view kinds (no metrics alias); an unknown kind renders a panel error in both.",
+   "evidence_path": "apps/workbench/src/ui/lab/board.jsx",
+   "evidence_lines": "62-66",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 3
+  },
+  {
+   "subject": "apps/server/src/lab",
+   "fact": "Kiln serves Perf Lab data routes at /api/lab without job, host, archive, materialisation or assistant routes.",
+   "evidence_path": "apps/server/src/lab/routes.ts",
+   "evidence_lines": "1-6",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  }
+ ],
+ "formats": [
+  {
+   "name": "perf-lab capture spec/1",
+   "kind": "record",
+   "producers": "lab-workbench/src/lang/build.ts makeInstance; packages/lab/src/lang/build.ts",
+   "consumers": "lab-workbench/server (job_captures, artifacts, spec.json for workloads); perf_lab_local/run.py; perf_lab_dino/run.py; @kiln/exec",
+   "fields": [
+    {
+     "name": "schema_version",
+     "type": "1"
+    },
+    {
+     "name": "experiment_id",
+     "type": "string"
+    },
+    {
+     "name": "arm",
+     "type": "string"
+    },
+    {
+     "name": "host",
+     "type": "string"
+    },
+    {
+     "name": "workload",
+     "type": "object",
+     "note": "adapter, boundary, fixture_manifest_sha256 (cyrb53 unless dataset), dataset_sha256, image_ids, options"
+    },
+    {
+     "name": "comparison",
+     "type": "object",
+     "note": "baseline_revision, candidate_revision, arm_revision, switches, corunner, paired_order_seed"
+    },
+    {
+     "name": "state, warmup, expect, phases, offer, admission, deadline",
+     "type": "object|null"
+    },
+    {
+     "name": "repeat",
+     "type": "object",
+     "note": "processes"
+    },
+    {
+     "name": "collection",
+     "type": "object",
+     "note": "mode + capture options"
+    },
+    {
+     "name": "quality_gate_sha256",
+     "type": "string|null",
+     "note": "cyrb53 of the gate"
+    },
+    {
+     "name": "evidence",
+     "type": "object?",
+     "note": "archive-backed captures"
+    }
+   ],
+   "definition_path": "lab-workbench/src/lang/build.ts",
+   "definition_lines": "517-625",
+   "notes": "Identity = cyrb53(stableStringify(spec)); @kiln/lab ships it as lowered = JSON normal form.",
+   "diary_steps": [
+    1,
+    3
+   ]
+  },
+  {
+   "name": "perf-lab workload event stream",
+   "kind": "protocol",
+   "producers": "perf_lab_local/run.py; perf_lab_dino/run.py",
+   "consumers": "lab-workbench/server/runner.ts (job_events script.<event>)",
+   "fields": "One JSON object per stdout line (run.py:24-25 emit): start {mode, impl, device, requests}; warmup {i, ms}; request {i, ms}; done {window_ms}; error {message}. The runner logs each as job event script.<event>, keeps the last 8000 chars of stderr, and treats exit code 0 as success.",
+   "definition_path": "lab-workbench/workloads/perf_lab_local/run.py",
+   "definition_lines": "24-25,112-214",
+   "notes": "Implicit: no schema file; consumed in lab-workbench/server/runner.ts:46-100.",
+   "diary_steps": [
+    1,
+    3
+   ]
+  },
+  {
+   "name": "perf-lab workload rep record",
+   "kind": "file",
+   "producers": "perf_lab_local/run.py",
+   "consumers": "lab-workbench/server/importer.ts importRepetition",
+   "fields": [
+    {
+     "name": "manifest.json",
+     "type": "file",
+     "note": "spec_sha256 (real SHA-256 of the sort_keys spec, not the cyrb53 capture hash), experiment, arm, mode, rep, impl, device, dtype, threads, shape, python/torch/numpy versions, platform, git_revision, workload_sha256, boundary, pid, started_at, inductor_cache (run.py:88-110)"
+    },
+    {
+     "name": "activation.json",
+     "type": "file",
+     "note": "whether the requested implementation (e.g. compiled) was active"
+    },
+    {
+     "name": "quality.json",
+     "type": "file",
+     "note": "maxAbsDiff vs eager unfused, tolerance, pass"
+    },
+    {
+     "name": "timing.json",
+     "type": "file",
+     "note": "boundary, requests (per-request start/end/cpu ns), clock perf_counter_ns, cpu_clock thread_time_ns"
+    },
+    {
+     "name": "cpu.json",
+     "type": "file",
+     "note": "getrusage delta"
+    },
+    {
+     "name": "trace.json",
+     "type": "file",
+     "note": "torch.profiler chrome trace"
+    },
+    {
+     "name": "memory.json",
+     "type": "file",
+     "note": "ledger, device, allocator"
+    }
+   ],
+   "definition_path": "lab-workbench/workloads/perf_lab_local/run.py",
+   "definition_lines": "1-219",
+   "notes": "Written to <data>/<hash>/rep-N.",
+   "diary_steps": [
+    1,
+    3
+   ]
+  },
+  {
+   "name": "perf-lab run bundle",
+   "kind": "record",
+   "producers": "lab-workbench/server/importer.ts; qualification.ts",
+   "consumers": "GET /api/bundles; lab-workbench/src/data/bundles.ts; @kiln/lab reviveBundles; apps/server lab store",
+   "fields": [
+    {
+     "name": "run",
+     "type": "object"
+    },
+    {
+     "name": "entities",
+     "type": "RawEntity[]",
+     "note": "gzip JSON in run_bundles"
+    },
+    {
+     "name": "links",
+     "type": "Link[]",
+     "note": "contains, launches, aliases"
+    }
+   ],
+   "definition_path": "lab-workbench/server/importer.ts",
+   "definition_lines": "6-21",
+   "notes": "Value records keep their __value marker (server/bundles.ts).",
+   "diary_steps": [
+    1,
+    3
+   ]
+  },
+  {
+   "name": "lab IR/1",
+   "kind": "ir",
+   "producers": "lab-workbench/src/lang/build.ts; packages/lab/src/lang/build.ts",
+   "consumers": "lab-workbench Redux build slice and tabs; apps/workbench lab views",
+   "fields": [
+    {
+     "name": "buildId, version (1), labId, title",
+     "type": "scalars"
+    },
+    {
+     "name": "nodes",
+     "type": "IRNode[]",
+     "note": "lab|experiment|arm|capture|import|derive|param|signal|lambda|board|view|hypothesis|compare"
+    },
+    {
+     "name": "edges",
+     "type": "Edge[]",
+     "note": "contains|input|reads|produces|evidence|binds"
+    },
+    {
+     "name": "passes",
+     "type": "PassRecord[]"
+    },
+    {
+     "name": "lint",
+     "type": "LintItem[]"
+    },
+    {
+     "name": "boards, params, plan, experiments, hypotheses, stats, durationMs",
+     "type": "summaries"
+    }
+   ],
+   "definition_path": "lab-workbench/src/lang/ir.ts",
+   "definition_lines": "1-153",
+   "notes": "Serialisable half of a build; functions live in BuildRegistry.",
+   "diary_steps": [
+    1,
+    3
+   ]
+  },
+  {
+   "name": "detection-qualification/v1",
+   "kind": "archive",
+   "producers": "Playback PR 1005 qualification scripts; perf_lab_dino/run.py",
+   "consumers": "lab-workbench/server/qualification.ts; evidence archive import",
+   "fields": "Report tree under qualification/reports/: paired.json or example-predictions.json, artifact-provenance.json, run-configuration.json, profiler tables, JUnit XML.",
+   "definition_path": "lab-workbench/server/qualification.ts",
+   "definition_lines": "16-115",
+   "diary_steps": [
+    1,
+    3
+   ]
+  },
+  {
+   "name": "lab.js program",
+   "kind": "file",
+   "producers": "users, presets, the assistant",
+   "consumers": "evaluateProgram in both language copies",
+   "fields": "JavaScript evaluated with the library free names (lab, rev, capture, q, stats, views, params...); one lab(...) value per program.",
+   "definition_path": "lab-workbench/src/lang/library.ts",
+   "definition_lines": "85-167",
+   "diary_steps": [
+    1,
+    3
+   ]
+  }
+ ],
+ "diagrams": [
+  {
+   "title": "Perf Lab: processes and data flow",
+   "format": "mermaid",
+   "related": "lab-workbench; lab-workbench/server; lab-workbench/workloads",
+   "diary_step": 3,
+   "source": "flowchart LR\n  subgraph Browser[\"lab-workbench (Vite :5199)\"]\n    Prog[\"lab.js program\"] --> Build[\"src/lang build (6 passes)\"]\n    Build --> IR[\"IR + plan\"]\n    IR --> Views[\"board views\"]\n    Data[\"src/data (synthetic + bundles)\"] --> Build\n    Agent[\"agent runtime\"] --> Build\n  end\n  subgraph Server[\"lab-workbench/server (:5198, 127.0.0.1)\"]\n    API[\"Hono /api\"] --> Store[(\"SQLite: perf-lab\")]\n    Runner[\"Runner (1 job, 1 process)\"] --> Importer[\"importRepetition / importQualification\"]\n    Importer --> Store\n    Assistant[\"PiAssistant\"] --> LLM[\"LLM provider\"]\n  end\n  subgraph Workloads[\"lab-workbench/workloads (uv)\"]\n    Local[\"perf_lab_local.run\"]\n    Dino[\"perf_lab_dino.run\"]\n  end\n  Browser -- \"REST /api, SSE /api/events\" --> API\n  Agent -- \"SSE /api/assistant/turns\" --> Assistant\n  Runner -- \"spawn: spec.json, rep\" --> Local\n  Runner -- \"spawn: both arms\" --> Dino\n  Local -- \"JSON lines + rep-N/*.json\" --> Runner\n"
+  },
+  {
+   "title": "lab.js build pipeline",
+   "format": "mermaid",
+   "related": "lab-workbench/src/lang/build.ts; packages/lab/src/lang/build.ts",
+   "diary_step": 3,
+   "source": "flowchart TD\n  Src[\"program source\"] --> Eval[\"evaluateProgram: new Function(lib names)\"]\n  Eval --> P1[\"1 structure: nodes, contains edges\"]\n  P1 --> P2[\"2 expand · resolve: arms x captures, plan lambdas (NeedsEvidence -> stage 2)\"]\n  P2 --> P3[\"3 trace: dry-run derives and live lambdas, param binding plan>data>view\"]\n  P3 --> P4[\"4 validate: lints\"]\n  P4 --> P5[\"5 lower: spec per capture, hash = cyrb53(stableStringify(spec))\"]\n  P5 --> P6[\"6 plan: stage 0 capabilities, 1 captures, 2 evidence; cached|import|execute|blocked\"]\n  P6 --> Out[\"IR (serialisable) + BuildRegistry (functions)\"]\n"
+  },
+  {
+   "title": "Perf Lab job run sequence",
+   "format": "mermaid",
+   "related": "lab-workbench/server/runner.ts; lab-workbench/server/importer.ts",
+   "diary_step": 3,
+   "source": "sequenceDiagram\n  participant UI as lab-workbench\n  participant API as server /api\n  participant R as Runner\n  participant W as workload process\n  UI->>API: POST /api/jobs (captures with hashes)\n  API->>API: validateCaptures (recompute cyrb53, 409 on mismatch)\n  UI->>API: POST /api/jobs/:id/approve\n  API->>R: job approved\n  loop each rep\n    R->>R: shuffle arms with rng(paired_order_seed:rep)\n    loop each arm in that order\n      R->>W: uv run python -m perf_lab_local.run --spec --rep --out\n      W-->>R: JSON-line events (start, warmup, request, done)\n      W-->>R: exit code, rep-N/*.json\n      R->>R: importRepetition -> runs, run_bundles\n      R-->>UI: SSE job progress\n    end\n  end\n  UI->>API: GET /api/bundles?hashes=...\n"
+  },
+  {
+   "title": "Perf Lab and @kiln/lab lineage",
+   "format": "mermaid",
+   "related": "lab-workbench; @kiln/lab; @kiln/workbench; @kiln/server",
+   "diary_steps": [
+    2,
+    3
+   ],
+   "source": "flowchart LR\n  PB[\"Playback ML-PERF-001 lab-workbench @ cdb84891c\"] -->|verbatim copy| LW[\"lab-workbench/src/lang + src/data + presets\"]\n  LW -->|\"port: 9/16 lang files mechanical, 3 one-line, 4 rewritten\"| KL[\"packages/lab (@kiln/lab)\"]\n  EV[\"@kiln/evidence\"] --> KL\n  KL --> WB[\"apps/workbench/src/ui/lab (JSX views, ported)\"]\n  LWS[\"lab-workbench/server\"] -->|\"ported: tar, evidence, datasets, store\"| KS[\"apps/server/src/lab (/api/lab)\"]\n  LWS -. \"lab:import copies .data\" .-> KS\n  KS -->|\"HTTP /api/lab/*\"| WB\n  EX[\"@kiln/exec labCaptureHash\"] -. \"same cyrb53\" .- KL\n"
+  }
+ ],
+ "dependencies": [
+  {
+   "package": "lab-workbench/server",
+   "name": "hono",
+   "version": "^4.13.13",
+   "kind": "prod",
+   "purpose": "HTTP routing",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "name": "@hono/node-server",
+   "version": "(package.json)",
+   "kind": "prod",
+   "purpose": "Node HTTP server",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "name": "@earendil-works/pi-ai",
+   "version": "0.87.1",
+   "kind": "prod",
+   "purpose": "assistant model calls",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/server",
+   "name": "@earendil-works/pi-coding-agent",
+   "version": "0.87.1",
+   "kind": "prod",
+   "purpose": "assistant model catalog and credentials",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "name": "@reduxjs/toolkit",
+   "version": "^2.13",
+   "kind": "prod",
+   "purpose": "state and RTK Query",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "name": "react-router-dom",
+   "version": "7",
+   "kind": "prod",
+   "purpose": "routing",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "name": "d3-scale",
+   "version": "(package.json)",
+   "kind": "prod",
+   "purpose": "chart scales",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "name": "d3-shape",
+   "version": "(package.json)",
+   "kind": "prod",
+   "purpose": "chart shapes",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "name": "vite",
+   "version": "8",
+   "kind": "dev",
+   "purpose": "dev server and bundler",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench",
+   "name": "vitest",
+   "version": "4",
+   "kind": "dev",
+   "purpose": "tests (lang and server)",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/workloads",
+   "name": "torch",
+   "version": "2.14.1",
+   "kind": "prod",
+   "purpose": "workloads, TorchInductor, profiler",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/workloads",
+   "name": "transformers",
+   "version": "5.2.0",
+   "kind": "prod",
+   "purpose": "Grounding DINO",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/workloads",
+   "name": "numpy",
+   "version": "2.5.4",
+   "kind": "prod",
+   "purpose": "arrays",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/workloads",
+   "name": "uv",
+   "version": "",
+   "kind": "system",
+   "purpose": "runs the workload project",
+   "diary_step": 1
+  },
+  {
+   "package": "lab-workbench/workloads",
+   "name": "Grounding DINO snapshot",
+   "version": "pinned (~690 MB)",
+   "kind": "model",
+   "purpose": "DINO workload (pnpm lab models fetch)",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "name": "@kiln/evidence",
+   "version": "workspace:*",
+   "kind": "prod",
+   "purpose": "values, estimators, verdicts, rng",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "name": "typescript",
+   "version": "^7.0.2",
+   "kind": "dev",
+   "purpose": "typecheck",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/lab",
+   "name": "vitest",
+   "version": "^5.0.5",
+   "kind": "dev",
+   "purpose": "tests",
+   "diary_step": 1
+  }
+ ]
+}

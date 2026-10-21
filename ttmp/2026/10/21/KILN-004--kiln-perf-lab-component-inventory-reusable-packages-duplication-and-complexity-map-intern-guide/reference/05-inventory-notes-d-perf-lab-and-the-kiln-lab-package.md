@@ -838,7 +838,94 @@ Couplings observed inside Perf Lab that would block a clean split [obs]:
 - Synthetic executor (`runner.ts`) sleeps 150 ms and stores nothing; it exists so synthetic jobs walk the job state
   machine.
 - Stale narration: `packages/lab/src/presets.ts` says presets are copied unmodified; two are edited.
-- `*_sha256` field names hold cyrb53 values outside the dataset path (§2.5).
+- `*_sha256` field names hold cyrb53 values outside the dataset path (§2.5). The workload's own
+  `manifest.json` adds a third identity, `spec_sha256`, a real SHA-256 of the `sort_keys` spec
+  (`workloads/perf_lab_local/run.py:89`), which matches neither the capture hash nor the gate field.
+
+## 12. Diagrams
+
+The same four diagrams are rows of the `diagrams` table (`various/inventory/perf-lab.json`).
+
+Processes and data flow [obs]:
+
+```mermaid
+flowchart LR
+  subgraph Browser["lab-workbench (Vite :5199)"]
+    Prog["lab.js program"] --> Build["src/lang build (6 passes)"]
+    Build --> IR["IR + plan"]
+    IR --> Views["board views"]
+    Data["src/data (synthetic + bundles)"] --> Build
+    Agent["agent runtime"] --> Build
+  end
+  subgraph Server["lab-workbench/server (:5198, 127.0.0.1)"]
+    API["Hono /api"] --> Store[("SQLite: perf-lab")]
+    Runner["Runner (1 job, 1 process)"] --> Importer["importRepetition / importQualification"]
+    Importer --> Store
+    Assistant["PiAssistant"] --> LLM["LLM provider"]
+  end
+  subgraph Workloads["lab-workbench/workloads (uv)"]
+    Local["perf_lab_local.run"]
+    Dino["perf_lab_dino.run"]
+  end
+  Browser -- "REST /api, SSE /api/events" --> API
+  Agent -- "SSE /api/assistant/turns" --> Assistant
+  Runner -- "spawn: spec.json, rep" --> Local
+  Runner -- "spawn: both arms" --> Dino
+  Local -- "JSON lines + rep-N/*.json" --> Runner
+```
+
+The build pipeline [obs]:
+
+```mermaid
+flowchart TD
+  Src["program source"] --> Eval["evaluateProgram: new Function(lib names)"]
+  Eval --> P1["1 structure: nodes, contains edges"]
+  P1 --> P2["2 expand · resolve: arms x captures, plan lambdas (NeedsEvidence -> stage 2)"]
+  P2 --> P3["3 trace: dry-run derives and live lambdas, param binding plan>data>view"]
+  P3 --> P4["4 validate: lints"]
+  P4 --> P5["5 lower: spec per capture, hash = cyrb53(stableStringify(spec))"]
+  P5 --> P6["6 plan: stage 0 capabilities, 1 captures, 2 evidence; cached|import|execute|blocked"]
+  P6 --> Out["IR (serialisable) + BuildRegistry (functions)"]
+```
+
+A job run [obs]:
+
+```mermaid
+sequenceDiagram
+  participant UI as lab-workbench
+  participant API as server /api
+  participant R as Runner
+  participant W as workload process
+  UI->>API: POST /api/jobs (captures with hashes)
+  API->>API: validateCaptures (recompute cyrb53, 409 on mismatch)
+  UI->>API: POST /api/jobs/:id/approve
+  API->>R: job approved
+  loop each rep
+    R->>R: shuffle arms with rng(paired_order_seed:rep)
+    loop each arm in that order
+      R->>W: uv run python -m perf_lab_local.run --spec --rep --out
+      W-->>R: JSON-line events (start, warmup, request, done)
+      W-->>R: exit code, rep-N/*.json
+      R->>R: importRepetition -> runs, run_bundles
+      R-->>UI: SSE job progress
+    end
+  end
+  UI->>API: GET /api/bundles?hashes=...
+```
+
+Lineage of the copies [obs, from §9.5 and §10]:
+
+```mermaid
+flowchart LR
+  PB["Playback ML-PERF-001 lab-workbench @ cdb84891c"] -->|verbatim copy| LW["lab-workbench/src/lang + src/data + presets"]
+  LW -->|"port: 9/16 lang files mechanical, 3 one-line, 4 rewritten"| KL["packages/lab (@kiln/lab)"]
+  EV["@kiln/evidence"] --> KL
+  KL --> WB["apps/workbench/src/ui/lab (JSX views, ported)"]
+  LWS["lab-workbench/server"] -->|"ported: tar, evidence, datasets, store"| KS["apps/server/src/lab (/api/lab)"]
+  LWS -. "lab:import copies .data" .-> KS
+  KS -->|"HTTP /api/lab/*"| WB
+  EX["@kiln/exec labCaptureHash"] -. "same cyrb53" .- KL
+```
 
 ## Usage Examples
 
