@@ -979,8 +979,12 @@ decision and in a different process. It is mitigated only by binding to loopback
 3. **KILN-001 8a/8c** kept cyrb53 bit-for-bit, "because the store and routes are keyed by them" (K1G:1928;
    K1D09:132-133). A third copy went into `apps/server/src/lab/captures.ts` (K1D10:181-182).
 4. **KILN-003 §12.2** retires cyrb53 in favour of SHA-256 (K3G:703).
-5. **`8276bf7`** instead moves it into the new core, `packages/exec/src/lab-hash.ts:1-43`. Its comment: "cyrb53 is not
-   SHA-256; it is kept because it is the identity every existing Perf Lab artifact and program uses".
+5. **`49f5156`** does introduce a SHA-256 capture identity: `captureId` hashes `kiln-capture/1` canonical JSON
+   (`packages/exec/src/identity.ts:6-18`), and catalog rows are keyed by it. But migration 3 keeps `lab_hash` as "the
+   lab's own name for it, which lab programs look up" (`apps/server/src/db.ts:248-252`).
+6. **`8276bf7`** moves the cyrb53 that computes that name into the new core, `packages/exec/src/lab-hash.ts:1-43`. Its
+   comment: "cyrb53 is not SHA-256; it is kept because it is the identity every existing Perf Lab artifact and program
+   uses". Every capture now has two identities, a SHA-256 key and a cyrb53 lab name. `877c273` was a bug in the second.
 
 **Checked 2026-10-21 — cyrb53 bodies now in the tree:**
 
