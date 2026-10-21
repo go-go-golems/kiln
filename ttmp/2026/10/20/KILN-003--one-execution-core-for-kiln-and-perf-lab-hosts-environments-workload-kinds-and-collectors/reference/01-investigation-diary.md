@@ -635,3 +635,375 @@ The diagnostic dump that found the invalid record (from the e2e's `catch`):
 "target": ["CUDA Fake GPU (development)", 132, 49152],
 "devs": ["host:dev-fake=cuda:fake-gpu-development-2b7b53f8"]
 ```
+
+## Step 5: Perf Lab's local workload as a Kiln kind, and lab programs on real hosts
+
+Perf Lab measured its local sampler with its own lab server: a Node process that ran `python -m perf_lab_local.run` on
+the Mac, wrote runs into its SQLite store, and reported one host, `local`. This step makes that workload a Kiln
+workload kind, `perf-lab-sampler/1`, that any host with a `perf-lab-cpu` environment can run, and makes the Lab view
+plan and run on the server's hosts. The page derives one capability report per probed host from `GET /api/hosts`; a
+lab program names `mac` or `bling` instead of `local`; the Lab view gains Plan and Runs; and Perf Lab's Inspector
+becomes the dock view Inspect.
+
+The step also found that the server read every capture a job imported as synthetic, and moved the lab capture hash
+(Perf Lab's cyrb53 over a stable stringification) from the server into `@kiln/exec`, where the sampler kind needs it
+to name its captures the way the lab does.
+
+### Prompt Context
+
+**User prompt (verbatim):** the implementation request is quoted in Step 3. During this step the user added:
+
+> i'm gonna go swim. When it comes time to test and such, run the frontend on the mac, a runner on the mac and a runner on bling, and then collect a whole set of data so we can see all the pretty widgets and such. Add necessary presets and what not too. Take screenshots for the diary and the report we will write. btw commit at appropriate intervals and keep a detailed diary as you work (using the diary format from the skill).
+
+**Assistant interpretation:** Finish the agreed scope (Perf Lab's Plan folded into Jobs, Runs and the Inspector
+ported, `corresponds_to` links), make the lab's measured workload runnable on the Mac and on bling, then deploy a
+server and two drivers and collect real data with screenshots.
+
+**Inferred user intent:** One system in which Perf Lab's programs run on the same hosts and through the same job API
+as Kiln's kernels, demonstrated with real measurements rather than fixtures.
+
+**Commit (code):** 8276bf7 — "KILN-003 P1: perf-lab-sampler/1, CPU hosts, and lab programs on real hosts"
+
+### What I did
+
+- **`packages/exec/src/kinds/perf-lab-sampler.ts`** (new): input `{labId, ref, spec}`; `accept` checks that the ref
+  names the spec's experiment, arm and `collection.mode`, and computes the content id from the spec without `host`,
+  `repeat` and `collection.mode` (those are the device, the protocol and the collectors) plus the sha256 of the three
+  staged workload files. `lower` stages `workload/perf_lab_local/*.py` and one `specs/<capture>.json` per capture,
+  with `collection.mode` set from the collector set (`samplerMode`), and makes one step per capture and repetition:
+  `python -m perf_lab_local.run --spec … --rep N --out /job/out`, `PYTHONPATH=/job/in/workload`, the Inductor cache in
+  the `perf-lab-cache` mount, 900 s. `import` is Perf Lab's `importRepetition` turned into one observation per
+  repetition (`samplerEntities`). `lab(c)` returns `{labId, hash, ref}`, which the importer writes into
+  `captures.lab_id/lab_hash/experiment/arm/mode`.
+- **Collectors and modes** (`packages/exec/src/collectors/index.ts`): in-process `wall-clock`, `rusage`,
+  `torch-profiler` (disturbs latency), `torch-memory` (disturbs latency and memory); modes `cpu`, `trace`, `memory`;
+  `timing` gains `wall-clock`, so one mode name means CUDA events for kernels and the wall clock for the sampler.
+- **`packages/exec/src/registry.ts`**: `accept(input, at, ctx)` with `ctx.asset(name)`, so a kind's content id can hash
+  the bytes it will stage.
+- **`packages/exec/src/identity.ts`**: on a host without a GPU, `deviceKey` is `cpu:<arch>:<model>:<cores>`;
+  `runner/kiln_driver.py` reports `host.cpu` (sysctl `machdep.cpu.brand_string` on darwin, `/proc/cpuinfo` or `lscpu`
+  on Linux) and memory (`hw.memsize`).
+- **`packages/exec/src/lab-hash.ts`** (new): `cyrb53`, `stableStringify`, `labCaptureHash`. The server's
+  `apps/server/src/lab/captures.ts` is deleted; its vector tests moved to `exec.test.ts`.
+- **Server**: `GET /api/hosts` returns `workloads.perf_lab_local`, the revision of the workload sources computed as
+  `probe.py`'s `workloads_revision` (sha256 over every `*.py` by name, name bytes then file bytes, 12 hex digits;
+  `1fc6b670a8a6` for the repository's copy). `catalog()` marks every available capture `measured`.
+- **`packages/lab`**: `HostReport` and `hostReport(view, workloads)` replace the single local report; `capabilitiesFor`
+  prefers a real report and falls back to the synthetic `playback@dgx`/`playback@rtx-dev`. `local-sampler.lab.js`
+  takes `host` as a parameter (`mac` | `bling`); `dino-pr1005.lab.js`'s `dino-local` names `mac`.
+- **Workbench**: `api.js` `setHosts(hosts, workloads)` and `labJobs(labId, captures)` (one approved job per host and
+  repetition count, `pairId` = experiment, seed = the experiment's `paired_order_seed`); `state.js` re-derives reports
+  on the `hosts` channel, re-reads the catalog on `catalog.changed`, applies a pending plan once its captures exist,
+  seeds only captures on hosts without a report, and has `runPlan(captures, {dryRun})`; `LabView.jsx` gains Plan and
+  Runs; `InspectView.jsx` is the new `inspect` dock view; `Jobs.jsx` exports `Verdicts` and `PlanSteps`.
+- **Image**: `runner/docker/perf-lab-cpu/Dockerfile` (python 3.12-slim, g++, torch 2.14.1+cpu, numpy 2.5.4); built on
+  the Mac as `perf-lab-cpu:latest` (af6e978b3c8c).
+- **Tests**: 7 sampler tests in `exec.test.ts`; `client.test.ts` checks `workloads`; `lab-e2e.mjs` checks Plan, Runs
+  and Inspect; `agent-e2e.mjs` uses `host:dev-fake`.
+
+### Why
+
+- A lab capture and a Kiln capture are different names for one thing: the lab names it by the hash of its spec, the
+  server by the content id the kind computes. Writing the lab's name into the `captures` row at import is what lets a
+  build find the runs of a job it submitted (`catalog()` is keyed by `lab_hash`).
+- The host is part of every lab capture hash (`spec.host`). Keeping `local` would have tied programs to a host that
+  no longer exists; naming Kiln hosts makes the same program plan on the Mac or on bling.
+- Seeds exist so that a program shows generated runs for hosts that only exist as synthetic reports. A capture on a
+  host with a real report must never be seeded, or the plan would call it cached and the boards would show fiction
+  labelled as a cached capture.
+
+### What worked
+
+- `pnpm --filter @kiln/exec test` 20 passed; `@kiln/server` 79; `@kiln/lab` 98; workbench unit 5 files. `tsc` clean
+  for exec, server and lab.
+- `node test/lab-e2e.mjs`: all passed — dino-pr1005 `14 of 18 captures measured on the server, 14 loaded`, every
+  verdict as `check:pl` computes it, `Plan lists 18 of 18 captures, 14 cached`, `Runs lists 20 runs`, `the first run
+  opens in Inspect (pr1005-dgx/baseline/timing#0, 18 manifest rows, ✓ valid qualified coverage complete measured)`,
+  `11 programs, 27 boards shown, no panel errors`, Perf Lab's store unchanged.
+- `server-e2e.mjs` and `agent-e2e.mjs`: all passed.
+
+### What didn't work
+
+- `apps/server/test/client.test.ts`: `AssertionError: expected undefined to match object { id: 'fake', reachable:
+  true }` — `hosts.list()` now returns `{hosts, workloads}`; the test indexed the old array.
+- `packages/lab` build test: `dino-local: no capability report for host "local" (known: mac, playback@dgx,
+  playback@rtx-dev)` — a second preset named `local`.
+- `agent-e2e.mjs`: `timed out waiting for … d.id === "server:dev-fake" …` — the device id has been `host:<id>` since
+  Step 4; the test was not run then.
+
+### What I learned
+
+- The jobs table's view has no `progress` field (Perf Lab's job card had one); the Lab view's running line now shows
+  only status.
+- Only `ncu` brings a timing companion; disturbing sampler modes (`trace`, `memory`) do not, so a lab capture never
+  shares a lab hash with a companion capture.
+
+### What was tricky to build
+
+- The Perf Lab fixture (`test/fixtures/local-sampler-q2048.json`) holds runs stored under hashes of specs whose host
+  is `local`. The tests that reproduce Perf Lab's numbers from it (`measured.test.ts`, `data.test.ts`) now read the
+  preset through `test/fixtures/perf-lab-sampler.ts`, which restores `.host('local')` and fails loudly if the preset
+  no longer declares the host parameter it replaces.
+- Perf Lab's runs of `dino-local` (imported from its store) no longer match `dino-pr1005`'s captures, so
+  `cpu-parts-preserve` is `open` in `lab-e2e.mjs`; no Kiln kind runs the dino workload yet.
+
+### What warrants a second pair of eyes
+
+- `labJobs` groups by host and repetition count. Captures of one experiment with different repetition counts (timing
+  ×4, trace ×1) land in two jobs, so they do not share one seeded interleaving across modes; within a job, arms are
+  interleaved as the experiment's `paired` order asks.
+- `hostReport` sets `devices: ['cpu']` and `coreClasses: ['unknown']` for every host; a lab program that asks for a
+  GPU device on a real host gets a refusal, not a plan.
+
+### What should be done in the future
+
+- A Kiln kind for the dino workload, so `dino-local` can run again.
+- Kernel captures' runs (cuda-events, nsys) are in the catalog without a lab hash; no board reads them yet.
+
+### Code review instructions
+
+- Start with `packages/exec/src/kinds/perf-lab-sampler.ts` (`accept`, `lower`, `lab`), then
+  `apps/workbench/src/ui/lab/api.js` (`labJobs`, `setHosts`) and `state.js` (`runPlan`, `catalogChanged`,
+  `hostsChanged`), then `LabView.jsx` (Plan, Runs) and `InspectView.jsx`.
+- Validate: `pnpm --filter @kiln/exec test && pnpm --filter @kiln/lab test && pnpm --filter @kiln/server test`, then
+  `pnpm --filter @kiln/workbench build && node apps/workbench/test/lab-e2e.mjs`.
+
+### Technical details
+
+A lab job as the page submits it (one of the two for local-sampler's default plan):
+
+```json
+{ "host": "mac", "reason": "local-sampler on mac: sampler-local baseline, candidate × trace, memory, cpu",
+  "protocol": { "reps": 1, "launches": 1, "warmup": 0, "seed": 20261012 },
+  "captures": [{ "kind": "perf-lab-sampler/1", "mode": "trace", "pairId": "sampler-local",
+                 "input": { "labId": "local-sampler", "ref": "sampler-local/baseline/trace", "spec": { "…": "…" } },
+                 "rerun": false }, "…"],
+  "approve": true }
+```
+
+## Step 6: Two hosts and a real data set — the deployment, the two identity bugs it found, and the measurements
+
+This step deploys what Steps 2–5 built: one Kiln server on the Mac, a driver on the Mac and a driver on bling (the
+DGX Spark, GB10), and collects a complete data set through the served workbench the way a person would — open a
+program, run its plan, wait for the jobs, read the boards. It adds the preset `sampler-hosts`, which runs the same
+sampler experiment on both machines at once, and four ticket scripts that drive the page and take the screenshots.
+
+The data set had to be collected three times. The first attempt showed that the server and the page computed
+different lab hashes for the same capture; the second showed that a CPU capture on bling was identified by bling's
+GPU. Both are identity bugs that synthetic data could not have revealed, because both appear only when a capture
+crosses the wire to a real host. The third attempt, after both fixes, is the data set the screenshots show.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 5 ("i'm gonna go swim. When it comes time to test and such, run the frontend on
+the mac, a runner on the mac and a runner on bling, and then collect a whole set of data …").
+
+**Assistant interpretation:** Deploy the server and both drivers, run every program that can run on these two hosts
+(the local sampler on each host, both hosts at once, ten kernel presets on bling), show the imported PR 1005 evidence,
+add a preset that makes the two-host setup visible, and screenshot every board and view for the diary and the report.
+
+**Inferred user intent:** See the whole system working on real machines, with the rich views populated by measured
+data, before writing the report.
+
+**Commits (code):**
+
+- 877c273 — "KILN-003: a capture's lowered spec is the normal form its lab hash is taken over"
+- c746899 — "KILN-003: a capture's device is the one its environment sees"
+- 31b769f — "KILN-003: the sampler on two hosts, and one registry of lab presets"
+- 5dffd13 — "KILN-003: the kiln-perf README describes a Kiln host, not an executor"
+- 670c5ce — "KILN-003: a host without a GPU is the reason its GPU kinds are blocked"
+
+### What I did
+
+- **Hosts file** `/Volumes/SSD/kiln-data/kiln-003/hosts.json` (`kiln-hosts/1`, in Technical details): `mac` with one
+  environment, `perf-lab-cpu` (`gpus: none`, 6 GiB); `bling` with `kiln-perf` (`gpus: all`) and `perf-lab-cpu`
+  (`gpus: none`, 16 GiB), Nsight Systems 2025.3.2 and Nsight Compute 2025.3.1 as tool mounts, a 600 s GPU-lock wait.
+- **Drivers**: on the Mac, `python3 kiln_driver.py serve --root /Volumes/SSD/kiln-exec-mac/root --listen
+  127.0.0.1:5381`; on bling, the same command in tmux session `kiln-exec` under `sg docker -c '…'`, listening on
+  127.0.0.1:5481 and reached through `ssh -N -L 5481:127.0.0.1:5481 manuel@bling.local`. The `perf-lab-cpu` image was
+  built on the Mac and copied with `docker save | ssh … docker load`.
+- **Server**: `env -u ANTHROPIC_API_KEY -u KILN_MODEL KILN_DATA_DIR=/Volumes/SSD/kiln-data/kiln-003 KILN_PORT=5380
+  node src/index.ts`; Perf Lab's PR 1005 evidence imported with the server stopped (`node apps/server/src/lab/import.ts
+  /Volumes/SSD/code/kiln/lab-workbench/.data`: 1 dataset, 1 archive, 128 media, 50 artifacts, 80 runs).
+- **Ticket scripts**:
+  - `03-run-lab-program.mjs` opens a program, sets parameters, dry-runs and runs the missing captures, waits for the
+    jobs and the catalog, then shoots the Lab view, Plan, Runs, every board and Inspect. `--dry-only` stops after the
+    dry run; `--view-only` shoots without running; `--views jobs,devices` adds dock views.
+  - `04-measure-presets.mjs` loads kernel presets one at a time, picks a host's device, presses Measure and shoots
+    Perf, Evidence and the job.
+  - `05-collect.sh` runs the whole collection in order (the final attempt took 7 minutes, 03:38–03:45 UTC).
+  - `06-shoot-view.mjs` shoots one dock view.
+- **`packages/lab/presets/sampler-hosts.lab.js`** ("Two hosts · the sampler on the Mac and on bling"): two
+  experiments, `sampler-mac` and `sampler-bling`, each pinned to its host, six paired processes (seed 20261020),
+  timing and cpu captures. Derives: `speedup-<host>`, `ratios` (one row per host: ratio, interval, pairs, excluded) and
+  `latency` (per host and arm). Hypothesis `compile-slower-on-both` predicts each host's lower bound above 1×. Boards:
+  `hosts`, `requests`, `machines` (the two baseline manifests side by side, then getrusage).
+- **Fixes found by the deployment** (each in What didn't work): the lab-hash normal form (877c273), the device of a
+  CPU capture on a GPU host (c746899), preset names in the picker (31b769f), the stale image README (5dffd13), and the
+  refusal text on a host with no GPU (670c5ce).
+
+### Why
+
+- A plan's captures are found again by their lab hash once their job finishes (`catalog()` is keyed on it). Any
+  difference between the hash the page computes and the hash the server computes leaves every capture "execute" for
+  ever, while the runs sit in the database under another name.
+- A capture's device is part of its identity (`captureId`). Two machines' CPU captures must be two identities, and a
+  CPU capture must not change identity when the host's GPU is replaced or its driver upgraded.
+- The two-host preset exists because "the same program on two machines" is the case a single-host program cannot
+  show: a cross-host manifest diff must exclude the comparison (host, device and threads differ), while each host's
+  own paired ratio stays valid.
+
+### What worked
+
+Every job of the final attempt ended `done` (18 jobs: 10 kernel jobs and 8 sampler jobs). Every board rendered without a
+panel error.
+
+| Program · host        | Compiled ÷ eager | 95 % CI   | Processes | Hypothesis                           |
+| --------------------- | ---------------- | --------- | --------- | ------------------------------------ |
+| local-sampler · mac   | 1.43×            | 1.26–1.60 | 4         | compile-removes-intermediate refuted |
+| local-sampler · bling | 1.08×            | 1.07–1.12 | 4         | compile-removes-intermediate refuted |
+| sampler-hosts · mac   | 1.45×            | 1.38–1.48 | 6         | compile-slower-on-both supported     |
+| sampler-hosts · bling | 1.1×             | 1.07–1.11 | 6         | (same hypothesis, both rows hold)    |
+
+On both hosts the first profiled request allocates two 32 MiB blocks in the eager arm (`aten::empty` for the sample,
+`aten::mul` for the reduce) and one in the compiled arm (`Torch-Compiled Region: 0/0`). The intermediate is
+$8 \cdot 32 \cdot 2048 \cdot 16 \cdot 4\ \text{B} = 32\ \text{MiB}$, so the hypothesis that compiling removes it is
+refuted on both CPUs, as it was in Perf Lab. getrusage over the measured window (sampler-hosts, `cpu` captures):
+
+| Run                           | User time | System time | Voluntary ctx switches | Max RSS   |
+| ----------------------------- | --------- | ----------- | ---------------------- | --------- |
+| sampler-mac/baseline/cpu#0    | 1,750 ms  | 30.3 ms     | 1,853                  | 425.8 MiB |
+| sampler-mac/candidate/cpu#0   | 2,806 ms  | 35.41 ms    | 990                    | 583.9 MiB |
+| sampler-bling/baseline/cpu#0  | 1,674 ms  | 58.75 ms    | 3,869                  | 391.2 MiB |
+| sampler-bling/candidate/cpu#0 | 3,256 ms  | 19.83 ms    | 2,183                  | 526.6 MiB |
+
+Ten kernel presets on bling (`kiln-kernels/1` in `kiln-perf`, CUDA events, 7 repetitions × 20 timed launches after 3
+warm-up launches; every record `validity.ok` and every output within 1.8e-4 of the reference):
+
+| Preset | Kernel                       | Schedule                        | Median   | Range       |
+| ------ | ---------------------------- | ------------------------------- | -------- | ----------- |
+| W-05   | `k_rms_norm_reduce`          | MAP=row, TPB=1024, STAGE=all    | 148.5 µs | 144.2–158.7 |
+| W-06   | `k_softmax_reduce`           | MAP=row, TPB=1024               | 53.4 µs  | 53.4–53.5   |
+| W-08   | `k_linear_reduce`            | tiled 128×64×8, TM=8, TN=4      | 348.5 µs | 348.2–350.9 |
+| W-10   | `k_matmul_reduce`            | tiled 128×32×16, TM=8           | 18.4 µs  | 17.4–18.5   |
+| W-10   | `k_matmul_ew_softmax_reduce` | MAP=row, TPB=128                | 12.5 µs  | 12.4–12.5   |
+| W-10   | `k_matmul_reduce_2`          | tiled 32×32×16, TM=4            | 24.6 µs  | 24.6–24.8   |
+| W-12   | `k_slice_ew`                 | TPB=128, COARSEN=4              | 10.6 µs  | 10.5–11.2   |
+| W-18   | `k_ew`                       | TPB=128                         | 118.1 µs | 114.9–132.1 |
+| W-19   | `k_ew_gelu`                  | TPB=128                         | 203.7 µs | 202.8–207.7 |
+| W-21   | `k_matmul_reduce`            | TPB=256                         | 2071 µs  | 2062–2089   |
+| W-25   | `k_softmax_reduce`           | MAP=row, TPB=1024, STAGE=reused | 699.9 µs | 698.3–705.6 |
+| W-26   | `k_matmul_reduce`            | tiled 128×128×8, TM=8, TN=2     | 396.1 µs | 393.7–397.7 |
+
+Each kernel job took 13–18 s from Measure to records in the page, of which 6.9–7.9 s on the host (13 s for W-10's
+three kernels). The two hosts run jobs in parallel: `sampler-hosts` submitted four jobs (two per host) at 23:41:12
+local time and the last finished at 23:42:17, 65 s later.
+
+Tests after the fixes: `@kiln/exec` 21 passed, `@kiln/lab` 100, `@kiln/server` 79, workbench unit 5 files;
+`lab-e2e.mjs` all passed (`12 programs, 30 boards shown, no panel errors`, Perf Lab's store unchanged).
+
+### What didn't work
+
+- **Attempt 1, lab hashes.** After the local-sampler jobs finished, every capture stayed `execute`. The catalog held
+  the runs under `1c2ee7b51bf704` while the build looked for `21477f7f5fa54`. The page hashes the in-memory spec, in
+  which `warmup.until` is `undefined`; `stableStringify` writes that as `null`. The server hashes the spec it received
+  as JSON, from which `JSON.stringify` had dropped the key. Fix (877c273): the build lowers a capture's spec to its
+  JSON normal form first (`lowered: JSON.parse(stableStringify(i.spec))`), and a build test asserts for every preset
+  capture that `hash(stableStringify(JSON.parse(JSON.stringify(c.lowered)))) === c.hash`. Evidence: the data dir
+  `/Volumes/SSD/kiln-data/kiln-003-attempt1-json-hash` and `various/shots/attempt1-json-hash/`.
+- **Attempt 2, the device of a CPU capture.** The manifest diff of `sampler-mac/baseline/timing#0` against
+  `sampler-bling/baseline/timing#0` read `cpu:arm64:Apple M1 Pro:10` against
+  `gpu:GPU-c6e7f17e-f161-a1d7-8c0b-56bbabb15c41`: `planJob` computed one device per job from the host's GPU, so a
+  `perf-lab-sampler/1` capture in bling's `perf-lab-cpu` environment (`--gpus none`) was keyed on a GPU it could not
+  see, and its environment block carried the GPU driver. Fix (c746899): `environmentGpu(name, host, facts)` returns no
+  GPU for an environment with `gpus: none`; the device key and the environment's driver come from it per capture. Test:
+  a bling-shaped host plans the sampler as `cpu:aarch64:Cortex-X925:20` with `driver: null`. Evidence:
+  `various/shots/attempt2-gpu-device/` (two shots) and `/Volumes/SSD/kiln-data/kiln-003-attempt2-gpu-device`
+  (data and the other 58 shots).
+- **The new preset reached the picker as `sampler-hosts` under "Other".** `labs.gen.js` held
+  `"id":"sampler-hosts","name":"sampler-hosts"`: the workbench build named programs from its own `LAB_META` table, a
+  second copy of `PRESET_INFO`. Fix (31b769f): the build imports `PRESET_INFO` and throws on a `.lab.js` file the
+  registry does not list.
+- **bling's first probe saw no Docker.** The tmux server on bling was started before `manuel` joined the `docker` group,
+  so processes it spawns lack the group; the driver started there could not use the Docker socket. Restarting the
+  driver under `sg docker -c '…'` fixed it without restarting tmux. The probe's exact text was not preserved.
+
+### What I learned
+
+- **One session's interval does not cover the next session.** The Mac's compiled ÷ eager ratio was 1.57× (1.54–1.61,
+  4 processes) in attempt 1, 1.68× (1.43–1.77, 6 processes) in attempt 2, and 1.43× (1.26–1.60) and 1.45× (1.38–1.48)
+  in attempt 3, with the same code, image and inputs. The 1.45× interval excludes the 1.68× median an hour earlier. The
+  bootstrap interval is over processes within one session, so it says nothing about what differs between sessions on
+  a laptop (thermal state, other load). bling, an idle desktop-class machine, moved much less: 1.12× (1.09–1.13) in
+  attempt 2 and 1.10× (1.07–1.11) in attempt 3.
+- **The same image has two ids on two daemons.** `perf-lab-cpu:latest` is `sha256:af6e978b3c8c…` on the Mac (Docker
+  Desktop 29.8.2) and `sha256:f790bf9ea358…` on bling (29.6.2) after `docker save | docker load`. The environment
+  block carries the image id, so two hosts' captures of one image differ in the environment as well as the device. I
+  did not verify why the ids differ.
+- **A CPU job on a GPU host still takes the GPU lock.** The plan of a `perf-lab-cpu` job on bling waits up to 600 s for
+  the GPU lock (`plan.gpu`, `plan.lock` are per job and come from the host). This is kept deliberately: a GPU job on the
+  same machine would disturb the CPU job's timing.
+
+### What was tricky to build
+
+- The device of a capture belongs to the environment it runs in, not to the job or the host. A job can hold captures
+  of two kinds in two environments; computing the device per capture after the offer chooses the environment is what
+  makes that correct.
+- Running the same program on two hosts needed nothing new in the lab language: each experiment names its host, the
+  page groups captures into one job per host, and the drivers run them in parallel. The board has to keep the
+  estimators apart, which is why `ratios` filters on the run prefix rather than pooling the requests.
+
+### What warrants a second pair of eyes
+
+- `environmentGpu` treats only `gpus: none` as "no GPU". An environment with `gpus: device=<uuid>` still keys on the
+  host's configured GPU (`host.gpu`), not on the UUID it names.
+- `apps/workbench/build.mjs` now imports `packages/lab/src/presets.ts` directly, which relies on Node's type
+  stripping (the server already runs `.ts` this way).
+- The picker moved Scenario C from "Scenarios" to "Assistant", because that is the group `PRESET_INFO` gives it.
+
+### What should be done in the future
+
+- A protocol that spreads repetitions over sessions, or a board that reports between-session spread next to the
+  within-session interval, before a Mac ratio is quoted in the report.
+- The kernel side has no Nsight Systems or Nsight Compute capture path in the workbench yet (P2's timeline and counter
+  panels); `ncu` stays blocked on bling until the counters decision (task 8nqq).
+- A Kiln kind for the dino workload, so `cpu-parts-preserve` can be decided on these hosts.
+
+### Code review instructions
+
+- `packages/exec/src/registry.ts` (`environmentGpu`, `environmentBlock`) and `packages/exec/src/plan.ts` (the device
+  inside `build`), then `packages/lab/presets/sampler-hosts.lab.js` and `apps/workbench/build.mjs`.
+- Validate: `pnpm --filter @kiln/exec test && pnpm --filter @kiln/lab test && pnpm --filter @kiln/server test`, then
+  `cd apps/workbench && pnpm build && node test/lab-e2e.mjs`. To reproduce the data set, start a server and two drivers
+  with the hosts file below and run `scripts/05-collect.sh`.
+
+### Technical details
+
+The hosts file of the deployment:
+
+```json
+{ "format": "kiln-hosts/1", "hosts": [
+  { "id": "mac", "url": "http://127.0.0.1:5381",
+    "environments": { "perf-lab-cpu": { "image": "perf-lab-cpu:latest", "docker": { "gpus": "none", "network": "none", "memory": "6g", "shmSize": "1g" } } },
+    "lock": { "waitSeconds": 60 } },
+  { "id": "bling", "url": "http://127.0.0.1:5481",
+    "environments": {
+      "kiln-perf": { "image": "kiln-perf:latest", "docker": { "gpus": "all", "network": "none", "shmSize": "1g" } },
+      "perf-lab-cpu": { "image": "perf-lab-cpu:latest", "docker": { "gpus": "none", "network": "none", "memory": "16g", "shmSize": "1g" } } },
+    "toolMounts": {
+      "nsys": { "mount": "/opt/nvidia/nsight-systems/2025.3.2", "bin": "/opt/nvidia/nsight-systems/2025.3.2/bin/nsys" },
+      "ncu": { "mount": "/opt/nvidia/nsight-compute/2025.3.1", "bin": "/opt/nvidia/nsight-compute/2025.3.1/ncu" } },
+    "lock": { "waitSeconds": 600 } } ] }
+```
+
+Screenshots of the final data set (`various/shots/`, 1600×1000):
+
+| Prefix                               | What it shows                                                                    |
+| ------------------------------------ | -------------------------------------------------------------------------------- |
+| `local-sampler-*`                    | Mac: dry run, running, Lab, Plan, Runs, four boards, Inspect (run and request)   |
+| `local-sampler_host-bling-*`         | the same program with Host = bling (a pending plan applied after its jobs)       |
+| `local-sampler_queries-4096-dry-run` | the dry run of a pending plan at 4096 queries, with the paired step order        |
+| `sampler-hosts-*`                    | the two-host preset: Lab, Plan, Runs, boards `hosts`, `requests`, `machines`     |
+| `W-NN-bling-{perf,evidence,job}`     | ten kernel presets measured on bling                                             |
+| `dino-pr1005-*`                      | the imported PR 1005 evidence: seven boards, Inspect, the Jobs and Devices views |
+| `devices-bling`                      | Devices with both hosts' capability documents                                    |

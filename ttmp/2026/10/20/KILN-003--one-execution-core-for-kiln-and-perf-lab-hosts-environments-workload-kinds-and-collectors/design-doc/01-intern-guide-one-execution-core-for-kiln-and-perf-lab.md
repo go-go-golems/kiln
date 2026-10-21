@@ -12,10 +12,10 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
-    - Path: repo://apps/server/src/executors/cuda-runner.ts
-      Note: Executor contract, SSH command building and process groups that the driver HTTP API replaces
-    - Path: repo://apps/server/src/jobs.ts
-      Note: Today's job loop and record projection; replaced in P1 by the planner, per-host queues and kind finish hooks
+    - Path: repo://runner/kiln_driver.py
+      Note: The driver HTTP API that replaced the executors (apps/server/src/executors/, deleted in P1)
+    - Path: repo://apps/server/src/exec/jobs.ts
+      Note: The job loop on the driver API that replaced apps/server/src/jobs.ts in P1 (planner, per-host queues, kind finish hooks)
     - Path: repo://apps/server/src/lab/routes.ts
       Note: Lab routes whose 501 job endpoints and synthetic hosts the one job API replaces
     - Path: repo://packages/evidence/src/record.ts

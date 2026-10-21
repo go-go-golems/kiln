@@ -42,3 +42,13 @@ Step 4: workbench on hosts — HostDevice, Jobs with verdicts/plan/dry run/reimp
 
 - /Volumes/SSD/code/kiln/apps/workbench/src/server-sync.js — HostDevice
 - /Volumes/SSD/code/kiln/apps/workbench/src/ui/Jobs.jsx — Jobs view with plans and dry runs
+
+## 2026-10-20
+
+Step 6: deployed a server and drivers on the Mac and bling; collected the demonstration data set (local-sampler on both hosts, the new sampler-hosts preset, ten kernel presets on bling, PR 1005 evidence) with 78 screenshots. Real runs found two identity bugs, fixed in 877c273 (lab hash normal form) and c746899 (device of a CPU capture on a GPU host); 31b769f makes the workbench name lab programs from PRESET_INFO; 670c5ce names a GPU-less host as the reason GPU kinds are blocked.
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/packages/exec/src/plan.ts — device per capture from the environment's GPU
+- /Volumes/SSD/code/kiln/packages/lab/presets/sampler-hosts.lab.js — the sampler on two hosts
+- /Volumes/SSD/code/kiln/ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/scripts/05-collect.sh — reproduces the data set
