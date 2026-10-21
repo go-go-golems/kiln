@@ -1,1 +1,823 @@
-{}
+{
+ "packages": [
+  {
+   "name": "@kiln/kiln",
+   "path": "packages/kiln",
+   "kind": "library",
+   "language": "javascript",
+   "runtime": "node|browser",
+   "purpose": "The Kiln compiler: a generic IR/rewrite/fork-decision core (src/core) and a GPU compiler stack on it (src/std): nn/tensor dialects, loop fusion, tile scheduling with a cost model, kernel materialisation, CUDA/WGSL/simulator emitters, devices, measurement records, evidence store, tuner and kiln-program/1 export.",
+   "entrypoint": "no index; package.json exports ./core/* and ./std/*",
+   "loc_prod": 4536,
+   "loc_test": 855,
+   "notes": "Plain ES modules, no build, no types. Deps: acorn 8.19.0, @kiln/evidence (TS source). Tests: 13 node scripts run by scripts/run-node-tests.mjs.",
+   "diary_step": 1
+  },
+  {
+   "name": "runtime/webgpu",
+   "path": "runtime/webgpu",
+   "kind": "library",
+   "language": "typescript",
+   "runtime": "browser",
+   "purpose": "Browser launcher for kiln-program/1: KilnWebGpuProgram.create(device, program), write, encode, run, destroy.",
+   "entrypoint": "runtime/webgpu/launch.ts",
+   "loc_prod": 160,
+   "loc_test": 66,
+   "notes": "Imports nothing from the repo. Only consumer: runtime/test/webgpu-roundtrip.mjs (headless Chrome).",
+   "diary_step": 1
+  },
+  {
+   "name": "runtime/python",
+   "path": "runtime/python",
+   "kind": "python-runtime",
+   "language": "python",
+   "runtime": "python3",
+   "purpose": "Python launcher for kiln-program/1 with two backends: wgpu-py (WgpuProgram) and CUDA via ctypes driver API + NVRTC (CudaProgram, allocate=False for caller-owned memory). CLI: kiln_launch.py check <fixtures> --backend.",
+   "entrypoint": "runtime/python/kiln_launch.py",
+   "loc_prod": 552,
+   "loc_test": 172,
+   "notes": "numpy required; wgpu or libcuda/libnvrtc (system or torch wheel). runtime/test/fixtures.mjs is counted here: it builds the fixture programs both launchers and the kiln-perf image check.",
+   "diary_step": 1
+  },
+  {
+   "name": "runner",
+   "path": "runner",
+   "kind": "python-runtime",
+   "language": "python",
+   "runtime": "python3",
+   "purpose": "CUDA execution on a GPU host: kiln_runner.py (nvcc harness, kiln-bundle/1 -> kiln-results/1, runs inside the kiln-perf image) and kiln_driver.py (kiln-driver/1 HTTP executor: blobs, jobs as Docker containers, per-GPU flock, events, archives, self-replace).",
+   "entrypoint": "runner/kiln_runner.py; runner/kiln_driver.py serve",
+   "loc_prod": 1325,
+   "loc_test": 0,
+   "notes": "Standard library only (+ nvcc, docker, nvidia-smi on the host). No test file in the repo is named for either.",
+   "diary_step": 1
+  },
+  {
+   "name": "runner/docker",
+   "path": "runner/docker",
+   "kind": "docker-image",
+   "language": "shell|python|cuda|dockerfile",
+   "runtime": "docker",
+   "purpose": "The kiln-perf image (Ubuntu 24.04, CUDA 13.0 nvcc + NVRTC, numpy, optional Nsight Compute) with the runner, the Python launcher, prebuilt fixtures, kiln-probe and kiln-selftest; plus the perf-lab-cpu image.",
+   "entrypoint": "runner/docker/build.sh",
+   "loc_prod": 434,
+   "loc_test": 0,
+   "notes": "build.sh refuses a dirty tree over runner, runtime/python, runtime/test, packages/kiln/src, apps/workbench/src and apps/workbench/presets, because fixtures are compiled from the workbench.",
+   "diary_step": 1
+  },
+  {
+   "name": "imports/kiln-workbench-src",
+   "path": "imports/kiln-workbench-src",
+   "kind": "imported",
+   "language": "javascript|python",
+   "runtime": "none (snapshot)",
+   "purpose": "The original Kiln Workbench as received: one app/ (core, std, ui, agent, tests), presets, runner, docs, built HTML and the zip it came in. Frozen; not imported by live code.",
+   "entrypoint": "imports/kiln-workbench-src/kiln-workbench/app/src/main.jsx (original)",
+   "loc_prod": 11948,
+   "loc_test": null,
+   "notes": "116 tracked files under imports/ including kiln-workbench-src.zip (1.09 MB). 11948 lines excluding dist, built HTML and package-lock; app/src alone 8187 lines.",
+   "diary_step": 1
+  }
+ ],
+ "modules": [
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/core",
+   "name": "compiler core",
+   "kind": "compiler-core",
+   "purpose": "Generic graph IR, dialects, patterns, rules, passes, forks, decision policies, pipelines, run engine; index algebra; utilities; script runner.",
+   "loc": 1508,
+   "key_exports": "k; ix; util; runScript",
+   "diary_step": 1,
+   "notes": "Directory row. Depends on nothing but acorn, except core/script.js -> std/index.js."
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/core/kiln.js",
+   "name": "kiln.js (IR, rewriting, forks, Run)",
+   "kind": "compiler-core",
+   "purpose": "Types, KilnError/Skip, global build scopes and dialect registry, OpDef/Dialect, Node/Graph (clone, topo, dce, print, eval), Value proxies, Builder/graph/trace/lift, patterns P, params/knobs, Fork/fork/expandFork, decide policies, Rule/Pass/Pipeline/Strategy, the Run engine, identityOf, unifiedDiff, the k namespace.",
+   "loc": 1152,
+   "key_exports": "k; tensor; scalar; T; KilnError; Skip; skip; OpDef; Dialect; DIALECTS; dialect; Node; Graph; Value; wrap; Builder; graph; trace; lift; Pat; P; Param; param; ParamSet; params; knobs; Fork; fork; decide; Rule; rule; Pass; pass; PipelineBuilder; pipeline; Pipeline; Strategy; strategy; Run; identityOf; unifiedDiff",
+   "diary_step": 1,
+   "notes": "70.7 KB. Module-level state: SCOPES :20, METHODS :25, DIALECTS :99, GID :112, RID :621."
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/core/ix.js",
+   "name": "ix.js (index expressions)",
+   "kind": "compiler-core",
+   "purpose": "Immutable, self-simplifying integer index expressions with a linear normal form; index maps; emit to js/c/wgsl.",
+   "loc": 241,
+   "key_exports": "Ix; C; V; lift; ix; keyOf; vars; subst; evalIx; affine; print; emit; toJs; IxMap; coordVars; map; compose; identity",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/core/util.js",
+   "name": "util.js",
+   "kind": "compiler-core",
+   "purpose": "cyrb53 hash, mulberry32 rng with normal(), formatting, numel/strides/inKey/dtypeBytes, host Tensor, compare, median.",
+   "loc": 76,
+   "key_exports": "hash; rng; inKey; dtypeBytes; strides; numel; Tensor; compare; median; fmtUs; fmtNum; fmtBytes; fmtMs; clip; summarize; dur",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/core/script.js",
+   "name": "script.js (preset script runner)",
+   "kind": "compiler-core",
+   "purpose": "Parses a user/preset script with acorn and evaluates it with new Function over makeScriptScope().",
+   "loc": 39,
+   "key_exports": "headerOf; lineOf; runScript",
+   "diary_step": 1,
+   "notes": "Below 50 LOC; listed because it is the only core -> std import (script.js:4)."
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std",
+   "name": "GPU compiler stack (std)",
+   "kind": "compiler-core",
+   "purpose": "Dialects nn/tensor/loop/tile/kernel/gpu, their passes, emitters, simulator, cost model, devices, records, evidence store, tuner, export, hypotheses.",
+   "loc": 3028,
+   "key_exports": "std; Project; makeScriptScope",
+   "diary_step": 1,
+   "notes": "Directory row."
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/index.js",
+   "name": "std/index.js (std namespace, Project)",
+   "kind": "compiler-core",
+   "purpose": "The std namespace object, the Project class preset scripts build, and the script scope.",
+   "loc": 77,
+   "key_exports": "std; Project; makeScriptScope",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/emmy.js",
+   "name": "emmy.js (default pipeline)",
+   "kind": "pass",
+   "purpose": "The default pipeline 'emmy' (d,o,l,f,s,t,k,c over IRs torch..gpu) and its decision chain pinned -> evidence -> cost model -> first.",
+   "loc": 37,
+   "key_exports": "IRS; defaultDecide; pipeline; passes; dialects",
+   "diary_step": 1,
+   "notes": "Below 50 LOC; key entry point."
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/targets.js",
+   "name": "targets.js (GPU specs)",
+   "kind": "device-model",
+   "purpose": "SPECS for rtx5090, rtx4090, h100, a100, gb10 (measured with kiln-probe 2026-10-20), orin; WEBGPU_DEFAULT; target().",
+   "loc": 19,
+   "key_exports": "SPECS; WEBGPU_DEFAULT; target",
+   "diary_step": 1,
+   "notes": "Below 50 LOC; single source of device specs for the compiler."
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/fns.js",
+   "name": "fns.js (scalar function table)",
+   "kind": "emitter",
+   "purpose": "Per scalar function: JS, C and WGSL templates and a flop count; reducers with identities.",
+   "loc": 48,
+   "key_exports": "FNS; REDUCERS; fn; reducer; fill; fr",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/tensor.js",
+   "name": "tensor IR stage (nn, tensor dialects)",
+   "kind": "ir-stage",
+   "purpose": "Frontend dialects nn (torch-like) and tensor (ew/reduce/view/const), reference evaluators, decompositions (pass d) and frontend optimisation (pass o).",
+   "loc": 306,
+   "key_exports": "nn; tensor; N; T; weight; decompose; decompositions; decomposition pass; optimization pass; ewRef; reduceRef; viewRef; matmulRef",
+   "diary_step": 1,
+   "notes": "Module-level VIEW_FNS cache of new Function view evaluators (tensor.js:83-101)."
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/loop.js",
+   "name": "loop IR stage",
+   "kind": "ir-stage",
+   "purpose": "Hash-consed scalar expressions, loop nests with LICM scheduling, JS reference compiler, loop.kernel dialect, lift (l), fusion merge_loop_ops (f), stamp names (s).",
+   "loc": 359,
+   "key_exports": "E; substE; walkE; printE; schedule; printNest; workOf; compileSerial; compilePoint; runSerial; loop dialect; liftPass; fusionPass; stampPass",
+   "diary_step": 1,
+   "notes": "Module-level INTERN (capped 400000), FREE WeakMap, RV counter. loop.kernel identity omits dtype (loop.js:277)."
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/tile.js",
+   "name": "tile IR stage (schedules, cost model)",
+   "kind": "cost-model",
+   "purpose": "Schedule knobs MAP/TPB/COARSEN/STAGE/BM/BN/BK/TM/TN, kernel analysis, legal maps, the schedule fork tree, launch geometry, register estimate, roofline+occupancy time model, analytic counts, tile.kernel dialect, pass t.",
+   "loc": 364,
+   "key_exports": "KNOBS; canonRow; analyze; legalMaps; forkTree; launch; regsEstimate; timeModel; estimate; printTile; scheduleRule; costPrior; tilePass",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/kernel.js",
+   "name": "kernel IR stage",
+   "kind": "ir-stage",
+   "purpose": "Kernel IR statements (let/iset/load/store/sload/sstore/sync/for/if/note), builder KB, materialisation (thread/row tree-combine/tiled), redundant-sync removal, kernel.kernel dialect, pass k.",
+   "loc": 318,
+   "key_exports": "kx; KB; matThread; matRow; matTiled; materialize; printKernelBody; materializeRule; dropRedundantSyncs; kernelPass",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/program.js",
+   "name": "program.js (gpu dialect, programOf, inputs, simulation)",
+   "kind": "ir-stage",
+   "purpose": "gpu.kernel dialect and emit pass c; programOf(g) -> {kernels, graph}; seeded inputs; reference sampling; SIMT simulation with metrics.",
+   "loc": 135,
+   "key_exports": "programOf; seedOf; kernelInputs; referenceAt; sampleIndices; sampleBlocks; simulateKernel; regsOf; metricsOf; simulateFull; emitPass",
+   "diary_step": 1,
+   "notes": "Module-level SIMS WeakMap. Identity recomputed at program.js:19 and :38."
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/emit.js",
+   "name": "emit.js (CUDA, WGSL, simulator emitters)",
+   "kind": "emitter",
+   "purpose": "toCuda, toWgsl (65535 grid fold, packed u8), toSim (lockstep SIMT simulator generated as JS, instrumented metrics).",
+   "loc": 254,
+   "key_exports": "toCuda; toWgsl; toSim; SimMetrics",
+   "diary_step": 1,
+   "notes": "toSim compiles with new Function (emit.js:200)."
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/devices.js",
+   "name": "devices.js (SimDevice, WebGpuDevice, protocol)",
+   "kind": "device-model",
+   "purpose": "Simulator and WebGPU devices, measurement protocol with seeded rep order, timer quantum, deadlines, session token, CUDA target mapping.",
+   "loc": 308,
+   "key_exports": "SimDevice; WebGpuDevice; runProtocol; timerQuantum; deadline; CONTEXT_TIMEOUT_MS; sessionToken; cudaTarget; makeDevices",
+   "diary_step": 1,
+   "notes": "CudaDevice/bundle/ingest of the original removed; CUDA goes through the Kiln server."
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/records.js",
+   "name": "records.js (kiln-measure/1)",
+   "kind": "evidence",
+   "purpose": "Builds kiln-measure/1 records: content ids, entry symbol, launch, activation, validity, protocol, manifest; converts legacy kiln-evidence/1 rows.",
+   "loc": 208,
+   "key_exports": "CODEGEN_VERSION; APP; INPUT_SEED; makeRecord; legacyRecord; contentOf; symbolOf; activationOf; launchOf; recordContext; sourceOf; langOf; specHash",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/store.js",
+   "name": "store.js (EvidenceStore, kiln-evidence/2)",
+   "kind": "store",
+   "purpose": "In-memory evidence store keyed by kernel identity/row/device; stats per option, staleness, decisiveness, events, JSON slices.",
+   "loc": 174,
+   "key_exports": "EVIDENCE_FORMAT; EvidenceStore; Store; add; record; observe; optionStats; statsFor; best; toJSON; slice; fromSlice; import",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/export.js",
+   "name": "export.js (kiln-program/1)",
+   "kind": "schema",
+   "purpose": "Exports a compiled run as a kiln-program/1 document with renamed CUDA entry symbols.",
+   "loc": 75,
+   "key_exports": "PROGRAM_FORMAT; exportedName; renameCuda; exportProgram",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/tune.js",
+   "name": "tune.js (tuner)",
+   "kind": "service",
+   "purpose": "Replay policy, program measurement, kernel pin policy, paired A/B measurement, tune() with SP-MCTS and sweep.",
+   "loc": 178,
+   "key_exports": "replay; measureProgram; kernelPinPolicy; measurePaired; tune",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/src/std/evidence-context.js",
+   "name": "evidence-context.js (hypotheses)",
+   "kind": "evidence",
+   "purpose": "Builds an evidence context for a program on a device and evaluates Hypothesis objects against it.",
+   "loc": 168,
+   "key_exports": "evidenceContext; evaluateHypotheses; Hypothesis",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/kiln",
+   "path": "packages/kiln/test",
+   "name": "@kiln/kiln tests",
+   "kind": "test-infra",
+   "purpose": "13 node test scripts: core, stack1-3, progs, tune, evidence, export, hypotheses, paired, protocol, targets, u8.",
+   "loc": 855,
+   "key_exports": "core.mjs; stack1.mjs; stack2.mjs; stack3.mjs; progs.mjs; tune.mjs; evidence.mjs; export.mjs; hypotheses.mjs; paired.mjs; protocol.mjs; targets.mjs; u8.mjs",
+   "diary_step": 1
+  },
+  {
+   "package": "runtime/webgpu",
+   "path": "runtime/webgpu/launch.ts",
+   "name": "launch.ts (WebGPU launcher)",
+   "kind": "launcher",
+   "purpose": "Loads a kiln-program/1 into GPU buffers and pipelines; writes inputs (u8 packed to u32), encodes all kernels in one compute pass, runs and reads back outputs.",
+   "loc": 160,
+   "key_exports": "Dtype; ProgramTensor; ProgramBuffer; ProgramKernel; KilnProgram; InputData; unsupportedReason; KilnWebGpuProgram",
+   "diary_step": 1
+  },
+  {
+   "package": "runtime/webgpu",
+   "path": "runtime/test/webgpu-roundtrip.mjs",
+   "name": "webgpu-roundtrip.mjs",
+   "kind": "test-infra",
+   "purpose": "Strips launch.ts types with node's stripTypeScriptTypes and runs every fixture in headless Chrome via scripts/shoot.mjs withPage.",
+   "loc": 66,
+   "key_exports": "(script)",
+   "diary_step": 1
+  },
+  {
+   "package": "runtime/python",
+   "path": "runtime/python/kiln_launch.py",
+   "name": "kiln_launch.py (Python launcher)",
+   "kind": "launcher",
+   "purpose": "kiln-program/1 loader with wgpu-py and CUDA (ctypes driver API + NVRTC) backends; fixture checker CLI.",
+   "loc": 474,
+   "key_exports": "FORMAT; load; open_program; gen; Program; WgpuProgram; unsupported_reason; CudaProgram; check_fixtures",
+   "diary_step": 1
+  },
+  {
+   "package": "runtime/python",
+   "path": "runtime/python/test_kiln_launch.py",
+   "name": "test_kiln_launch.py",
+   "kind": "test-infra",
+   "purpose": "unittest suite with a fake CUDA driver for CudaProgram and the loader.",
+   "loc": 172,
+   "key_exports": "(unittest)",
+   "diary_step": 1
+  },
+  {
+   "package": "runtime/python",
+   "path": "runtime/test/fixtures.mjs",
+   "name": "fixtures.mjs (launcher fixtures)",
+   "kind": "test-infra",
+   "purpose": "Builds fixture programs (blur-small, blur-2d-grid, attention, mlp, grey-u8) and expected outputs with compileScript from apps/workbench/src/compile.js.",
+   "loc": 78,
+   "key_exports": "CASES; buildCase",
+   "diary_step": 1
+  },
+  {
+   "package": "runtime/python",
+   "path": "runtime/README.md",
+   "name": "runtime README",
+   "kind": "docs",
+   "purpose": "Describes the kiln-program/1 schema and both launchers, including caller-owned memory for CUDA.",
+   "loc": 67,
+   "key_exports": "(doc)",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "path": "runner/kiln_runner.py",
+   "name": "kiln_runner.py (CUDA kernel runner)",
+   "kind": "runner",
+   "purpose": "Compiles each kernel of a kiln-bundle/1 with nvcc into a timing harness, runs it on seeded inputs, returns timings, sampled outputs and register counts as kiln-results/1.",
+   "loc": 281,
+   "key_exports": "RUNNER_VERSION; HARNESS; build; device_info; nvidia_smi; kernel_name; run_kernel; run_bundle; main",
+   "diary_step": 1
+  },
+  {
+   "package": "runner",
+   "path": "runner/kiln_driver.py",
+   "name": "kiln_driver.py (kiln-driver/1 executor)",
+   "kind": "driver",
+   "purpose": "HTTP job executor on a GPU host: content-addressed blobs, kiln-plan/1 jobs run as Docker containers under a per-GPU flock with idle-window conditions, nvidia-smi sampler sidecar, event long-poll, result archives, environment probes, self-replacement.",
+   "loc": 1044,
+   "key_exports": "API; Refused; Docker; Job; Driver; handler_for; serve; main",
+   "diary_step": 1
+  },
+  {
+   "package": "runner/docker",
+   "path": "runner/docker/Dockerfile",
+   "name": "kiln-perf Dockerfile",
+   "kind": "config",
+   "purpose": "Ubuntu 24.04 + CUDA 13.0 nvcc/NVRTC + numpy (+ optional ncu); copies runner, launcher, fixtures, probe, selftest.",
+   "loc": 49,
+   "key_exports": "(image)",
+   "diary_step": 1
+  },
+  {
+   "package": "runner/docker",
+   "path": "runner/docker/build.sh",
+   "name": "build.sh (kiln-perf build)",
+   "kind": "script",
+   "purpose": "Builds the kiln-perf image locally or on a host; clean-tree check over the sources the image embeds.",
+   "loc": 62,
+   "key_exports": "--host; --tag; --cuda; --ncu; --context-only",
+   "diary_step": 1
+  },
+  {
+   "package": "runner/docker",
+   "path": "runner/docker/kiln-probe",
+   "name": "kiln-probe",
+   "kind": "tool",
+   "purpose": "Python CLI that compiles kiln-probe.cu with nvcc, measures the GPU and prints a JSON report with a SPECS-shaped target spec.",
+   "loc": 102,
+   "key_exports": "kiln-probe [--quick] [--id] [--name]",
+   "diary_step": 1
+  },
+  {
+   "package": "runner/docker",
+   "path": "runner/docker/kiln-probe.cu",
+   "name": "kiln-probe.cu",
+   "kind": "tool",
+   "purpose": "CUDA microbenchmarks behind kiln-probe (bandwidth, clocks, smem).",
+   "loc": 194,
+   "key_exports": "(cuda)",
+   "diary_step": 1
+  },
+  {
+   "package": "runner/docker",
+   "path": "runner/docker/README.md",
+   "name": "kiln-perf README",
+   "kind": "docs",
+   "purpose": "How the kiln-perf image is built and used on a Kiln host.",
+   "loc": 84,
+   "key_exports": "(doc)",
+   "diary_step": 1
+  },
+  {
+   "package": "imports/kiln-workbench-src",
+   "path": "imports/kiln-workbench-src/kiln-workbench/app/src/core",
+   "name": "original core",
+   "kind": "compiler-core",
+   "purpose": "Original core/ (ix, kiln, script, util).",
+   "loc": null,
+   "key_exports": "(snapshot)",
+   "diary_step": 1
+  },
+  {
+   "package": "imports/kiln-workbench-src",
+   "path": "imports/kiln-workbench-src/kiln-workbench/app/src/std",
+   "name": "original std",
+   "kind": "compiler-core",
+   "purpose": "Original std/ (13 files).",
+   "loc": null,
+   "key_exports": "(snapshot)",
+   "diary_step": 1
+  },
+  {
+   "package": "imports/kiln-workbench-src",
+   "path": "imports/kiln-workbench-src/kiln-workbench/app/src/ui",
+   "name": "original ui",
+   "kind": "view",
+   "purpose": "Original UI (21 files), now apps/workbench/src/ui.",
+   "loc": null,
+   "key_exports": "(snapshot)",
+   "diary_step": 1
+  },
+  {
+   "package": "imports/kiln-workbench-src",
+   "path": "imports/kiln-workbench-src/kiln-workbench/app/test",
+   "name": "original tests",
+   "kind": "test-infra",
+   "purpose": "Original tests (12 files), now split over packages/kiln/test and apps/workbench/test.",
+   "loc": null,
+   "key_exports": "(snapshot)",
+   "diary_step": 1
+  },
+  {
+   "package": "imports/kiln-workbench-src",
+   "path": "imports/kiln-workbench-src/kiln-workbench/presets",
+   "name": "original presets",
+   "kind": "preset",
+   "purpose": "Original presets (50 files), now apps/workbench/presets.",
+   "loc": null,
+   "key_exports": "(snapshot)",
+   "diary_step": 1
+  },
+  {
+   "package": "imports/kiln-workbench-src",
+   "path": "imports/kiln-workbench-src/kiln-workbench/runner/kiln_runner.py",
+   "name": "original kiln_runner.py",
+   "kind": "runner",
+   "purpose": "Original runner (361 lines) with a 'serve' HTTP mode and NCU_METRICS, both since removed.",
+   "loc": 361,
+   "key_exports": "serve; run; device",
+   "diary_step": 1
+  },
+  {
+   "package": "scripts",
+   "path": "scripts/kiln-export.mjs",
+   "name": "kiln-export.mjs",
+   "kind": "script",
+   "purpose": "CLI: compile a preset or script and write kiln-program/1, or kiln-program-set/1 when --param takes comma lists.",
+   "loc": 87,
+   "key_exports": "--preset; --script; --param; --target; --name; --out; --no-check",
+   "diary_step": 1
+  },
+  {
+   "package": "scripts",
+   "path": "scripts/run-node-tests.mjs",
+   "name": "run-node-tests.mjs",
+   "kind": "test-infra",
+   "purpose": "Runs every <dir>/*.mjs as a separate node process; --skip, --verbose. Test runner of @kiln/kiln and @kiln/workbench.",
+   "loc": 34,
+   "key_exports": "(script)",
+   "diary_step": 1
+  }
+ ],
+ "formats": [
+  {
+   "name": "kiln-program/1",
+   "kind": "file",
+   "producers": "packages/kiln/src/std/export.js exportProgram; scripts/kiln-export.mjs",
+   "consumers": "runtime/webgpu/launch.ts; runtime/python/kiln_launch.py; runner/docker kiln-selftest",
+   "fields": [
+    {
+     "name": "format",
+     "type": "string"
+    },
+    {
+     "name": "name",
+     "type": "string"
+    },
+    {
+     "name": "codegen",
+     "type": "string",
+     "note": "kiln-codegen/2"
+    },
+    {
+     "name": "target",
+     "type": "object"
+    },
+    {
+     "name": "params",
+     "type": "object"
+    },
+    {
+     "name": "source",
+     "type": "string"
+    },
+    {
+     "name": "inputs",
+     "type": "[{name, buffer, shape, dtype}]"
+    },
+    {
+     "name": "outputs",
+     "type": "[{name, buffer, shape, dtype}]"
+    },
+    {
+     "name": "buffers",
+     "type": "[{id, dtype, elements, bytes, name?, data? (base64 constant)}]"
+    },
+    {
+     "name": "kernels",
+     "type": "[{name, identity, row, reads, writes, grid, block, smemBytes, dispatch, shape, inShapes, inDtypes, wgsl, cuda}]"
+    }
+   ],
+   "definition_path": "packages/kiln/src/std/export.js",
+   "definition_lines": "7-75",
+   "notes": "Kernel CUDA entry renamed to <cname>__<identity> (export.js:17,63). Launchers: runtime/README.md.",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-program-set/1",
+   "kind": "file",
+   "producers": "scripts/kiln-export.mjs (comma-list --param)",
+   "consumers": "no in-repo reader found",
+   "fields": [
+    {
+     "name": "format"
+    },
+    {
+     "name": "programs",
+     "type": "[kiln-program/1]",
+     "note": "one per parameter combination"
+    }
+   ],
+   "definition_path": "scripts/kiln-export.mjs",
+   "definition_lines": "7, 84",
+   "notes": "Only the writer exists in tracked sources.",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-measure/1",
+   "kind": "record",
+   "producers": "packages/kiln/src/std/records.js makeRecord, legacyRecord",
+   "consumers": "packages/kiln/src/std/store.js; @kiln/evidence; @kiln/server",
+   "fields": [
+    {
+     "name": "format"
+    },
+    {
+     "name": "at"
+    },
+    {
+     "name": "by"
+    },
+    {
+     "name": "device",
+     "type": "{id, class, name, fingerprint}"
+    },
+    {
+     "name": "kernel",
+     "type": "{name, identity, row, knobs, contentId, lang, sourceSha256, launch{grid, block, smem}}"
+    },
+    {
+     "name": "timing",
+     "type": "{kind, unit: us, samples[], launches?, warmup?, raw?}"
+    },
+    {
+     "name": "check",
+     "type": "{ok, sampled, maxAbsErr?, detail?}"
+    },
+    {
+     "name": "activation",
+     "type": "{requested, materialized, ok, notes[]}"
+    },
+    {
+     "name": "validity",
+     "type": "{ok, reasons[], partial}"
+    },
+    {
+     "name": "protocol",
+     "type": "{reps, seed, order?, position?, pairId?}"
+    },
+    {
+     "name": "manifest",
+     "type": "{codegen, app, userAgent?, runner?}"
+    },
+    {
+     "name": "counts?"
+    },
+    {
+     "name": "countsProv?"
+    },
+    {
+     "name": "context?"
+    },
+    {
+     "name": "id"
+    }
+   ],
+   "definition_path": "packages/kiln/src/std/records.js",
+   "definition_lines": "129-188",
+   "notes": "contentId = sha256 of the source with the entry symbol canonicalised (records.js:39-51).",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-evidence/2",
+   "kind": "file",
+   "producers": "packages/kiln/src/std/store.js EvidenceStore.toJSON / slice",
+   "consumers": "EvidenceStore.import / fromSlice; @kiln/workbench",
+   "fields": "Store snapshot of kiln-measure/1 records with derived status.",
+   "definition_path": "packages/kiln/src/std/store.js",
+   "notes": "EVIDENCE_FORMAT constant.",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-evidence/1",
+   "kind": "file",
+   "producers": "the imported original workbench (legacy)",
+   "consumers": "packages/kiln/src/std/records.js legacyRecord (import only)",
+   "fields": "Legacy rows {name, identity, row, knobs, metrics{blocks, threads, smem}, ...}",
+   "definition_path": "packages/kiln/src/std/records.js",
+   "definition_lines": "189-208",
+   "notes": "Kept only so files from the original can still be imported.",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-bundle/1",
+   "kind": "wire",
+   "producers": "packages/exec/src/kinds/kiln-kernels.ts lower()",
+   "consumers": "runner/kiln_runner.py run",
+   "fields": [
+    {
+     "name": "format"
+    },
+    {
+     "name": "reps",
+     "note": "default 50"
+    },
+    {
+     "name": "warmup",
+     "note": "default 5"
+    },
+    {
+     "name": "kernels",
+     "type": "[{name, identity?, source, inputs[{size, seed, dtype f32|u8}], samples[], out, grid, block}]"
+    }
+   ],
+   "definition_path": "runner/kiln_runner.py",
+   "definition_lines": "212-253",
+   "notes": "The runner rejects any other format string; dtypes other than f32/u8 raise per kernel.",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-results/1",
+   "kind": "wire",
+   "producers": "runner/kiln_runner.py run_bundle",
+   "consumers": "@kiln/exec kiln-kernels kind; @kiln/server",
+   "fields": [
+    {
+     "name": "format"
+    },
+    {
+     "name": "device",
+     "type": "object (device_info + nvidia_smi facts)"
+    },
+    {
+     "name": "kernels",
+     "type": "[{name, identity, us_median, us_min, us_all[], samples[], regs} | {name, identity, error}]"
+    },
+    {
+     "name": "runner",
+     "note": "kiln_runner/2"
+    },
+    {
+     "name": "created"
+    }
+   ],
+   "definition_path": "runner/kiln_runner.py",
+   "definition_lines": "253",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-driver/1",
+   "kind": "protocol",
+   "producers": "runner/kiln_driver.py handler_for",
+   "consumers": "@kiln/server executor client",
+   "fields": "HTTP API: /v1/info, /v1/probe, /v1/blobs/<sha256>, /v1/jobs, /v1/jobs/<id>/{events,plan,cancel,archive}, /v1/self",
+   "definition_path": "runner/kiln_driver.py",
+   "definition_lines": "15-25, 879-1007",
+   "notes": "GET /v1/jobs/<id>/plan and GET /v1/blobs/<sha256> are served but not in the docstring.",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-plan/1",
+   "kind": "manifest",
+   "producers": "@kiln/server / @kiln/exec",
+   "consumers": "runner/kiln_driver.py submit",
+   "fields": "Job plan: steps (id, environment image, argv, env, mounts with roles bundle/cache/tool, gpu, timeout, conditions), outputs.",
+   "definition_path": "runner/kiln_driver.py",
+   "definition_lines": "455-547",
+   "notes": "Validated by Driver.submit/check_step/resolve_mount; limits MAX_PLAN_BYTES 16 MiB, MAX_STEPS 4096.",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-probe-request/1",
+   "kind": "wire",
+   "producers": "@kiln/server",
+   "consumers": "runner/kiln_driver.py probe",
+   "fields": "Which environments (images) to probe for tool versions.",
+   "definition_path": "runner/kiln_driver.py",
+   "definition_lines": "364-418",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-facts/1",
+   "kind": "record",
+   "producers": "runner/kiln_driver.py probe",
+   "consumers": "@kiln/server",
+   "fields": "Host facts: cpu, memory, gpus (nvidia-smi), docker version, per-environment tool versions.",
+   "definition_path": "runner/kiln_driver.py",
+   "definition_lines": "364-418",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-execution/1",
+   "kind": "record",
+   "producers": "runner/kiln_driver.py finish/pack",
+   "consumers": "result archive readers (@kiln/server)",
+   "fields": "Per-job execution record written into the job directory and result.tar.gz.",
+   "definition_path": "runner/kiln_driver.py",
+   "definition_lines": "620-653",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-codegen/2",
+   "kind": "manifest",
+   "producers": "packages/kiln/src/std/records.js CODEGEN_VERSION",
+   "consumers": "kiln-measure/1 manifest.codegen; kiln-program/1 codegen",
+   "fields": "Version tag of the code generators; records from another codegen are stale.",
+   "definition_path": "packages/kiln/src/std/records.js",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln IR checkpoints (torch, tensor, loop, tile, kernel, gpu)",
+   "kind": "ir",
+   "producers": "packages/kiln/src/std/emmy.js pipeline",
+   "consumers": "Run.at(ir); @kiln/workbench IR views",
+   "fields": "Graph of frozen Nodes per IR; each IR declares its allowed dialects and is strict-checked.",
+   "definition_path": "packages/kiln/src/std/emmy.js",
+   "notes": "See notes §2.",
+   "diary_step": 1
+  }
+ ]
+}
