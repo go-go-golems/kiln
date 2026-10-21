@@ -1,1 +1,3513 @@
-{}
+{
+ "packages": [
+  {
+   "name": "@kiln/workbench",
+   "path": "apps/workbench",
+   "kind": "app",
+   "language": "javascript (jsx), css",
+   "runtime": "browser (React 18, single HTML file); node for build and tests",
+   "port": "served by @kiln/server",
+   "purpose": "The Kiln workbench page: a dock of compiler, performance, evidence, jobs, lab-board and agent views over one Workbench singleton; built into one self-contained HTML file that the Kiln server serves.",
+   "entrypoint": "apps/workbench/src/main.jsx (bundle via apps/workbench/build.mjs)",
+   "loc_prod": 8914,
+   "loc_test": 1629,
+   "notes": "27 W-NN presets (.js + .md) in apps/workbench/presets; generated src/*.gen.js and dist/ are gitignored.",
+   "diary_step": 1
+  },
+  {
+   "name": "scripts",
+   "path": "scripts",
+   "kind": "tooling",
+   "language": "javascript (node mjs)",
+   "runtime": "node",
+   "purpose": "Repo-level tooling used by the workbench: CDP screenshot harness, named view shots, design specimen, WCAG contrast check, dead-CSS finder, kiln-program/1 export, plain-node test runner.",
+   "entrypoint": "scripts/shoot.mjs; scripts/run-node-tests.mjs",
+   "loc_prod": 504,
+   "loc_test": 0,
+   "diary_step": 1
+  }
+ ],
+ "modules": [
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/build.mjs",
+   "name": "workbench build",
+   "kind": "script",
+   "purpose": "Generates presets/labs/docs/worker .gen.js modules, bundles main.jsx and the agent worker with esbuild, concatenates CSS and writes dist/index.html and dist/kiln-workbench.html.",
+   "loc": 71,
+   "key_exports": "parseHeader; --gen-only; --dev",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/main.jsx",
+   "name": "page entry",
+   "kind": "page",
+   "purpose": "Mounts <App/>, exposes window.__kiln, switches the agent to the server relay when /api/agent/usage is ready.",
+   "loc": 38,
+   "key_exports": "window.__kiln",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/compile.js",
+   "name": "page compile helpers",
+   "kind": "service",
+   "purpose": "pipelineFor, compileScript, hasKernels, endToEnd: compile a project script against given state; compileScript is used by the agent frame, the helpers by the page too.",
+   "loc": 77,
+   "key_exports": "pipelineFor; compileScript; hasKernels; endToEnd",
+   "diary_step": 2
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/server-client.js",
+   "name": "Kiln server client",
+   "kind": "service",
+   "purpose": "HTTP client for /api/*, SSE subscription with backoff, and the kiln-kernels/1 job spec builders.",
+   "loc": 165,
+   "key_exports": "connectServer; subscribe; jobSpec; jobKernel; EVENT_TYPES; ServerError",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/server-sync.js",
+   "name": "record sync and host devices",
+   "kind": "service",
+   "purpose": "Debounced record push/pull with the server, HostDevice for server hosts, job list merge helpers.",
+   "loc": 168,
+   "key_exports": "recordSync; HostDevice; hostDevices; upsertJob; addJobEvent",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/wb.js",
+   "name": "Workbench singleton",
+   "kind": "state",
+   "purpose": "The page's one mutable store: script, compile, params, devices, evidence, hypotheses, measure, compare, tune, server, jobs, presets, layout; named pub/sub channels.",
+   "loc": 506,
+   "key_exports": "wb; lsGet; lsSet; GROUP_ORDER; REFERENCE; GUIDELINES",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/dock.js",
+   "name": "dock layout tree",
+   "kind": "state",
+   "purpose": "Pure operations on the dock tree (tiles and splits), the view-id lists and the four preset layouts.",
+   "loc": 176,
+   "key_exports": "IDE_VIEWS; SYS_VIEWS; ALL_VIEWS; LAYOUTS; isBoardView; normalize; moveToTab; moveToSide; splitTile; closeView; flatViews",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Dock.jsx",
+   "name": "dock renderer",
+   "kind": "component",
+   "purpose": "Renders the dock: splits with draggable gutters, tab strips, view picker, drag-and-drop with edge hit testing, phone fallback.",
+   "loc": 309,
+   "key_exports": "Dock",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/views.jsx",
+   "name": "view registry",
+   "kind": "config",
+   "purpose": "VIEWS map from view id to title, about text, column flag, element and badge; viewDef resolves board:<id> views.",
+   "loc": 53,
+   "key_exports": "VIEWS; viewDef; addableViews",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/App.jsx",
+   "name": "app shell",
+   "kind": "page",
+   "purpose": "Top bar (preset menu, save/download/import, layout menu, kernel and time pills), toasts, global shortcuts.",
+   "loc": 134,
+   "key_exports": "App",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/common.jsx",
+   "name": "UI primitives",
+   "kind": "component",
+   "purpose": "useLab channel hook and the primitive components every view uses.",
+   "loc": 107,
+   "key_exports": "useLab; cls; Btn; Seg; Tog; Pill; Tabs; Kv; Meter; Code; Spark; Menu; Empty",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/marks.jsx",
+   "name": "provenance marks",
+   "kind": "component",
+   "purpose": "Shared vocabulary for values with provenance (model, simulated, measured), status stamps and the SVG hatch defs.",
+   "loc": 195,
+   "key_exports": "METHOD; Val; StatusStamp; modelOf; modelVal; evidenceVal; optionEvidence; simRef; hwRef; recordVal; valueVal; SvgDefs",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Ide.jsx",
+   "name": "code and reference panes",
+   "kind": "view",
+   "purpose": "Code view (textarea editor over a highlighted pre, parameter controls, checks) and the Reference view.",
+   "loc": 157,
+   "key_exports": "CodePane; Reference",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Notes.jsx",
+   "name": "notes view",
+   "kind": "view",
+   "purpose": "Renders the preset's markdown notes with KaTeX, lab: links and portaled hypothesis cards; edit and save.",
+   "loc": 58,
+   "key_exports": "NotesView",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Compiler.jsx",
+   "name": "compiler views",
+   "kind": "view",
+   "purpose": "IR view (pipeline map, step banner, clickable IR text, node side panel), Graph view (own layered layout, 500-node cap) and Trace view (pass steps with diffs).",
+   "loc": 358,
+   "key_exports": "IrView; GraphView; TraceView; IrText; NodeRef; NodeSide; Diff",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Kernels.jsx",
+   "name": "kernels view",
+   "kind": "view",
+   "purpose": "Kernels table (model, measured, validity), content ids and activation, source tabs CUDA/WGSL/Kernel IR/Tile/Loop/Launch; also hosts the shared saveText/copyText helpers.",
+   "loc": 97,
+   "key_exports": "KernelsView; saveText; copyText",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Perf.jsx",
+   "name": "perf, tune and devices views",
+   "kind": "view",
+   "purpose": "Perf view (big number, history, per-kernel model/sim/hw cells, metrics, roofline, across-devices table, compare panel), Tune view with TuneChart, Devices view with protocol and host blocks.",
+   "loc": 528,
+   "key_exports": "PerfView; TuneView; DevicesView",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Knobs.jsx",
+   "name": "knobs view",
+   "kind": "view",
+   "purpose": "Forks table with options, model and measured times, pins and sliders; the shared ParamControl used by the Code view.",
+   "loc": 179,
+   "key_exports": "KnobsView; ParamControl; paramGroups",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Evidence.jsx",
+   "name": "evidence view",
+   "kind": "view",
+   "purpose": "Evidence records grouped by identity, row or device; import/export/forget; record detail with sample strip.",
+   "loc": 225,
+   "key_exports": "EvidenceView",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Hypotheses.jsx",
+   "name": "hypotheses view",
+   "kind": "view",
+   "purpose": "Kiln-project hypotheses judged against evidence (supported/refuted/open/unqualified), predicates and per-row judgments; also the card embedded in notes.",
+   "loc": 145,
+   "key_exports": "HypothesesView; HypothesisCard; NoteHypothesis",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Jobs.jsx",
+   "name": "jobs view",
+   "kind": "view",
+   "purpose": "Server jobs with status stamps, planner verdicts, plan steps, dry runs, detail with archive link; ServerLine for the Devices view.",
+   "loc": 256,
+   "key_exports": "JobsView; JobStamp; Verdicts; PlanSteps; ServerLine",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Events.jsx",
+   "name": "events view",
+   "kind": "view",
+   "purpose": "Workbench log and the last compile's events, filterable by kind.",
+   "loc": 58,
+   "key_exports": "EventsView",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/Agent.jsx",
+   "name": "agent panel",
+   "kind": "view",
+   "purpose": "Agent chat: settings, composer, user and assistant messages, tool cards with approval, parts (table/code/proposal), conversation history and export.",
+   "loc": 267,
+   "key_exports": "AgentPanel",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/doc.js",
+   "name": "notes markdown renderer",
+   "kind": "component",
+   "purpose": "Markdown + KaTeX renderer for notes and board text, with lab: links and hypothesis slots; exports inline() used by lab boards.",
+   "loc": 114,
+   "key_exports": "renderDoc; inline",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/md.js",
+   "name": "agent answer markdown",
+   "kind": "component",
+   "purpose": "Small markdown renderer for agent answers, separate from doc.js.",
+   "loc": 45,
+   "key_exports": "md",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/highlight.js",
+   "name": "script highlighter",
+   "kind": "component",
+   "purpose": "Tokeniser/highlighter for the project-script editor.",
+   "loc": 69,
+   "key_exports": "highlight",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/links.js",
+   "name": "lab: link scheme",
+   "kind": "component",
+   "purpose": "Parses and resolves lab: links in notes to views and selections.",
+   "loc": 56,
+   "key_exports": "lab link helpers",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/tokens.css",
+   "name": "design tokens",
+   "kind": "config",
+   "purpose": "Swiss monochrome tokens (Arial, greys, one red accent), light and dark (dark defined twice).",
+   "loc": 44,
+   "key_exports": "--bg; --ink; --accent; --tok-*",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/base.css",
+   "name": "base styles",
+   "kind": "component",
+   "purpose": "Element defaults over the tokens.",
+   "loc": 166,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/chrome.css",
+   "name": "chrome styles",
+   "kind": "component",
+   "purpose": "Top bar and dock chrome.",
+   "loc": 126,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/views.css",
+   "name": "view styles",
+   "kind": "component",
+   "purpose": "Per-view styling for compiler, kernels, perf, knobs, agent and others.",
+   "loc": 388,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/evidence.css",
+   "name": "evidence styles",
+   "kind": "component",
+   "purpose": "Evidence and hypotheses styling.",
+   "loc": 101,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/state.js",
+   "name": "Labs singleton",
+   "kind": "state",
+   "purpose": "Second store: builds Perf Lab programs from LAB_PROGRAMS over synthetic or server data, tracks params, plans and runs them as jobs; publishes on wb's lab channel.",
+   "loc": 210,
+   "key_exports": "labs",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/api.js",
+   "name": "lab client",
+   "kind": "service",
+   "purpose": "Wraps /api/lab/* (catalog, datasets, bundles, media) as @kiln/lab data; turns lab captures into Kiln jobs; re-exports @kiln/lab build/runtime names.",
+   "loc": 86,
+   "key_exports": "labClient; labJobs; serverEnv; syntheticEnv; build; materialize",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/board.jsx",
+   "name": "board renderer",
+   "kind": "component",
+   "purpose": "BoardView, ViewRenderer, Panel frame and error boundary; dispatches board panel kinds and layouts.",
+   "loc": 156,
+   "key_exports": "BoardView; ViewRenderer; Panel; useBoard; useResolved; Rich; PanelError",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/panels.jsx",
+   "name": "board panels (non-chart)",
+   "kind": "component",
+   "purpose": "Table, stat, run list, manifest, manifest diff, hypothesis card, text, note, math, source, control panels; LabVal value cell.",
+   "loc": 349,
+   "key_exports": "TableView; StatView; RunListView; ManifestView; ManifestDiffView; HypothesisCardView; TextView; NoteView; MathView; SourceView; ControlView; LabVal",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/charts.jsx",
+   "name": "board charts",
+   "kind": "component",
+   "purpose": "Chart, timeline and mirror panels ported from Perf Lab without d3, monochrome with shapes/dashes/hatches.",
+   "loc": 503,
+   "key_exports": "ChartView; TimelineView; MirrorView",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/media.jsx",
+   "name": "board media panels",
+   "kind": "component",
+   "purpose": "Gallery and detections panels with a detection overlay, ported from Perf Lab.",
+   "loc": 232,
+   "key_exports": "GalleryView; DetectionsView",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/inspect.jsx",
+   "name": "board inspection panels",
+   "kind": "component",
+   "purpose": "Kernel card, route, ledger, stepper and batch panels; MetricsTable.",
+   "loc": 258,
+   "key_exports": "KernelCardView; RouteView; LedgerView; StepperView; BatchView; MetricsTable",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/LabView.jsx",
+   "name": "lab view",
+   "kind": "view",
+   "purpose": "Lab program picker, boards list, hypotheses table, plan with run/dry-run, host reports, runs.",
+   "loc": 221,
+   "key_exports": "LabView",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/InspectView.jsx",
+   "name": "inspect view",
+   "kind": "view",
+   "purpose": "Detail of the selected lab entity: fields, relations, metrics, manifest.",
+   "loc": 81,
+   "key_exports": "InspectView",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/params.jsx",
+   "name": "board param bar",
+   "kind": "component",
+   "purpose": "Board parameters (plan/data/view bound); pending plan when captures are missing.",
+   "loc": 103,
+   "key_exports": "ParamBar",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/lab.css",
+   "name": "lab board styles",
+   "kind": "component",
+   "purpose": "Styles for boards, panels and the Lab view.",
+   "loc": 221,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/agent/agent.js",
+   "name": "agent loop",
+   "kind": "agent",
+   "purpose": "Agent settings, conversations, context summary, the single eval tool with approval and undo, and the agent scope namespaces.",
+   "loc": 551,
+   "key_exports": "agent; makeAgentScope; AGENT_SCOPE; SUGGESTIONS",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/agent/sandbox.js",
+   "name": "agent sandbox",
+   "kind": "agent",
+   "purpose": "Per-eval sandboxed iframe (allow-scripts, strict CSP) hosting a Blob worker; MessageChannel bridge to the page.",
+   "loc": 62,
+   "key_exports": "servePort; runInFrame",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/agent/frame.js",
+   "name": "agent frame runtime",
+   "kind": "agent",
+   "purpose": "Runs one eval inside the worker: script names local, page calls proxied, compile/check local via compileScript.",
+   "loc": 108,
+   "key_exports": "startFrame; runEval",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/agent/encode.js",
+   "name": "agent result encoding",
+   "kind": "agent",
+   "purpose": "Encodes eval results and diagnostics for the model; toWire/fromWire structured-clone-safe wire format.",
+   "loc": 95,
+   "key_exports": "toWire; fromWire; runSummary; yaml; plain",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/agent/gateway.js",
+   "name": "agent server relay loop",
+   "kind": "agent",
+   "purpose": "Page-side tool loop over POST /api/agent/sample (NDJSON), up to 12 model calls per turn.",
+   "loc": 104,
+   "key_exports": "gatewaySample",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/agent/inspect.js",
+   "name": "agent ir/trace scope",
+   "kind": "agent",
+   "purpose": "ir and trace namespaces available to evals inside the frame.",
+   "loc": 48,
+   "key_exports": "inspectScope",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/agent/worker-main.js",
+   "name": "agent worker entry",
+   "kind": "agent",
+   "purpose": "Entry of the worker bundle that build.mjs embeds as WORKER_JS.",
+   "loc": 7,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/presets",
+   "name": "workbench presets",
+   "kind": "preset",
+   "purpose": "27 W-NN project scripts with markdown notes (Basics, ML compiler, Write programs, Extend the compiler, Other compilers, GPU optimization, Real work).",
+   "loc": null,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/reference.txt",
+   "name": "API reference text",
+   "kind": "docs",
+   "purpose": "Kiln API reference shown in the Reference view and given to the agent.",
+   "loc": 198,
+   "key_exports": "REFERENCE",
+   "diary_step": 3
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/test",
+   "name": "workbench tests",
+   "kind": "test-infra",
+   "purpose": "Plain node test scripts: five in pnpm test, eight manual (browser, CUDA, server, agent, lab e2e).",
+   "loc": null,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/test/gateway.mjs",
+   "name": "gateway test",
+   "kind": "test-infra",
+   "purpose": "gatewaySample tool loop against a fake fetch.",
+   "loc": 174,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/test/sandbox.mjs",
+   "name": "sandbox test",
+   "kind": "test-infra",
+   "purpose": "Sandbox bridge over Node MessageChannel.",
+   "loc": 131,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/test/server-sync.mjs",
+   "name": "server-sync test",
+   "kind": "test-infra",
+   "purpose": "recordSync and job merging against a fake client.",
+   "loc": 187,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/test/ui.mjs",
+   "name": "Playwright UI test",
+   "kind": "test-infra",
+   "purpose": "UI smoke via Playwright with Linux container paths.",
+   "loc": 268,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/test/webgpu.mjs",
+   "name": "WebGPU test",
+   "kind": "test-infra",
+   "purpose": "Real WebGPU in Chrome via scripts/shoot.mjs.",
+   "loc": 96,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/test/paired-webgpu.mjs",
+   "name": "paired WebGPU test",
+   "kind": "test-infra",
+   "purpose": "Paired compare on WebGPU via scripts/shoot.mjs.",
+   "loc": 65,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/test/server-e2e.mjs",
+   "name": "server e2e test",
+   "kind": "test-infra",
+   "purpose": "Page against the dev server with a fake host.",
+   "loc": 188,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/test/agent-e2e.mjs",
+   "name": "agent e2e test",
+   "kind": "test-infra",
+   "purpose": "Agent through the relay against a fake model upstream, with leak checks.",
+   "loc": 166,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/test/lab-e2e.mjs",
+   "name": "lab e2e test",
+   "kind": "test-infra",
+   "purpose": "Imports a Perf Lab data dir (dino-pr1005) and checks the store byte-identically.",
+   "loc": 165,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/test/cuda_check.py",
+   "name": "CUDA export check",
+   "kind": "test-infra",
+   "purpose": "Compiles exported CUDA with NVRTC/ptxas.",
+   "loc": 63,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "scripts",
+   "path": "scripts/shoot.mjs",
+   "name": "CDP screenshot harness",
+   "kind": "test-infra",
+   "purpose": "Drives Chrome over the DevTools protocol: throwaway profile, withPage, eval/until/shot; CLI for screenshots.",
+   "loc": 133,
+   "key_exports": "withPage",
+   "diary_step": 1
+  },
+  {
+   "package": "scripts",
+   "path": "scripts/shoot-views.mjs",
+   "name": "named view shots",
+   "kind": "script",
+   "purpose": "15 named shots that drive window.__kiln.wb into a layout and screenshot it.",
+   "loc": 51,
+   "key_exports": "SHOTS",
+   "diary_step": 1
+  },
+  {
+   "package": "scripts",
+   "path": "scripts/specimen.mjs",
+   "name": "design specimen",
+   "kind": "script",
+   "purpose": "Writes dist/specimen.html: tokens, provenance marks, value cells, stamps, titleblock, series.",
+   "loc": 56,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "scripts",
+   "path": "scripts/css-usage.mjs",
+   "name": "dead CSS finder",
+   "kind": "script",
+   "purpose": "Finds selectors in the workbench CSS that no source uses; --write removes them.",
+   "loc": 96,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "scripts",
+   "path": "scripts/kiln-export.mjs",
+   "name": "kiln-program export",
+   "kind": "script",
+   "purpose": "Compiles a preset or script and writes kiln-program/1 (or kiln-program-set/1) for the runtime launchers.",
+   "loc": 87,
+   "key_exports": "",
+   "diary_step": 3
+  },
+  {
+   "package": "scripts",
+   "path": "scripts/contrast.mjs",
+   "name": "contrast check",
+   "kind": "script",
+   "purpose": "WCAG contrast of token pairs in light and dark (dark from the data-theme block only).",
+   "loc": 47,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "scripts",
+   "path": "scripts/run-node-tests.mjs",
+   "name": "node test runner",
+   "kind": "test-infra",
+   "purpose": "Runs every *.mjs in a directory with node, with --skip.",
+   "loc": 34,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab/format.js",
+   "name": "lab cell format",
+   "kind": "component",
+   "purpose": "Cell text for lab boards, ported from Perf Lab lib/format.ts.",
+   "loc": 48,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/agent-guidelines.txt",
+   "name": "agent guidelines",
+   "kind": "docs",
+   "purpose": "Guidelines appended to the agent's instructions and shown in Reference.",
+   "loc": 22,
+   "key_exports": "",
+   "diary_step": 3
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui",
+   "name": "workbench UI",
+   "kind": "view",
+   "purpose": "All dock views, the shell, primitives, stores and styles of the Kiln page.",
+   "loc": null,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/ui/lab",
+   "name": "lab boards inside Kiln",
+   "kind": "component",
+   "purpose": "Perf Lab programs, boards, panels and inspect, ported into the Kiln page.",
+   "loc": null,
+   "key_exports": "",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "path": "apps/workbench/src/agent",
+   "name": "workbench agent",
+   "kind": "agent",
+   "purpose": "The coding agent: loop, sandbox, frame, encoding, server relay.",
+   "loc": null,
+   "key_exports": "",
+   "diary_step": 1
+  }
+ ],
+ "functionalities": [
+  {
+   "name": "Workbench view: Notes",
+   "category": "views",
+   "description": "The preset's tutorial notes: markdown, KaTeX maths, lab: links, hypothesis cards in place.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Code",
+   "category": "views",
+   "description": "Project script editor with highlighting, diagnostics, parameter sliders and end-to-end checks.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Agent",
+   "category": "agent",
+   "description": "Chat with the coding agent that edits, compiles, measures and tunes the project.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Reference",
+   "category": "views",
+   "description": "The Kiln API reference and the agent guidelines.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: IR",
+   "category": "views",
+   "description": "Every IR level as clickable text with a pipeline map, step banner and node side panel.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Graph",
+   "category": "views",
+   "description": "The selected IR level drawn as a layered DAG (first 500 nodes).",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Trace",
+   "category": "views",
+   "description": "Each pass's rewrites, declines and forks with unified diffs and pass statistics.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Kernels",
+   "category": "views",
+   "description": "Generated kernels with model vs measured time and validity; CUDA, WGSL, kernel IR, tile, loop and launch sources.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Perf",
+   "category": "views",
+   "description": "Measure on a device: total, history, per-kernel model/sim/hw cells, metrics, roofline, across devices, paired compare.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Knobs",
+   "category": "views",
+   "description": "Forks with their options, model and measured times, pins and parameter sliders.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Tune",
+   "category": "views",
+   "description": "Autotuning with SP-MCTS or sweep over the program's forks, with a progress chart.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Evidence",
+   "category": "views",
+   "description": "Measurement records with status, samples and validity; import, export and forget.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Hypotheses",
+   "category": "views",
+   "description": "The project's claims judged against evidence: supported, refuted, open or unqualified.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Devices",
+   "category": "views",
+   "description": "Simulated GPUs, WebGPU, the server connection line and server hosts with capabilities, probe and protocol.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Jobs",
+   "category": "views",
+   "description": "Jobs on the Kiln server's hosts: status, planner verdicts, plan steps, events, archive, dry runs.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Events",
+   "category": "views",
+   "description": "The workbench log and the last compile's events.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Lab",
+   "category": "views",
+   "description": "Perf Lab programs inside Kiln: picker, boards, hypotheses, plan with run and dry run, host reports, runs.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Inspect",
+   "category": "views",
+   "description": "The selected lab entity: fields, counters, relations and run manifest.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench view: Board",
+   "category": "views",
+   "description": "One lab board as its own dock view: parameter bar and panels.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: table",
+   "category": "reports",
+   "description": "Rows of a lab query as a sortable table (first 200).",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: stat",
+   "category": "reports",
+   "description": "One headline value with its provenance.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: runList",
+   "category": "reports",
+   "description": "Runs with validity stamps.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: manifest",
+   "category": "reports",
+   "description": "A run's manifest.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: manifestDiff",
+   "category": "reports",
+   "description": "Two manifests compared, invalidating vs treatment fields.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: hypothesisCard",
+   "category": "reports",
+   "description": "A lab hypothesis with its verdict and checks.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: text",
+   "category": "reports",
+   "description": "Inline-markdown text.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: note",
+   "category": "reports",
+   "description": "A note block.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: math",
+   "category": "reports",
+   "description": "A KaTeX formula.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: source",
+   "category": "reports",
+   "description": "A source reference with evidence.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: control",
+   "category": "reports",
+   "description": "A board control bound to a parameter.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: chart",
+   "category": "reports",
+   "description": "Scatter/line chart with shapes, dashes and hatches instead of colour.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: timeline",
+   "category": "reports",
+   "description": "One run's spans and kernels on lanes with a ruler.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: mirror",
+   "category": "reports",
+   "description": "Two runs' traces mirrored lane by lane.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: gallery",
+   "category": "reports",
+   "description": "A dataset's images with detection overlays.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: detections",
+   "category": "reports",
+   "description": "Per-image detections of baseline vs candidate with status.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: kernelCard",
+   "category": "reports",
+   "description": "One kernel and its counters.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: route",
+   "category": "reports",
+   "description": "A query walked through its route.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: ledger",
+   "category": "reports",
+   "description": "Memory ledger entries of a scope.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: stepper",
+   "category": "reports",
+   "description": "Step-by-step walk through a sequence.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench board panel: batchView",
+   "category": "reports",
+   "description": "A batch and its members.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: dock layout",
+   "category": "views",
+   "description": "Tiles and splits with drag-and-drop, gutters, four preset layouts, maximise, phone fallback under 640px.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: top bar and preset menu",
+   "category": "presets",
+   "description": "Preset picker by group, save/save-as, download script and notes, import, layout menu, kernel and time pills.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: user presets",
+   "category": "presets",
+   "description": "Save the current script and notes as U-NN presets in this browser.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: keyboard shortcuts",
+   "category": "views",
+   "description": "Cmd-\\ maximise, Cmd-B compile, Cmd-Enter measure, Cmd-S save, Tab indent.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: live compile",
+   "category": "compiler",
+   "description": "Recompile 350 ms after each edit; diagnostics, run, program and end-to-end checks.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: measure on WebGPU or simulated GPU",
+   "category": "measurement",
+   "description": "Run every kernel on the selected browser device and record evidence.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: propose a CUDA job on a server host",
+   "category": "jobs",
+   "description": "Measure on a host device becomes a kiln-kernels/1 job proposal on the Kiln server.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: paired compare",
+   "category": "measurement",
+   "description": "Paired measurement of two variants and the ratio with its interval.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: autotune",
+   "category": "tuning",
+   "description": "SP-MCTS or sweep over forks on a browser device.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: record sync with the server",
+   "category": "evidence",
+   "description": "Debounced push of local records and pull of server records, with refusals tracked.",
+   "surface": "background",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: live server events",
+   "category": "jobs",
+   "description": "SSE subscription to jobs, records, devices, hosts and catalog changes with reconnect backoff.",
+   "surface": "background",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: run a lab plan as jobs",
+   "category": "jobs",
+   "description": "Turn a lab program's missing captures into approved jobs, or a dry run.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: sandboxed agent eval",
+   "category": "agent",
+   "description": "Each agent eval runs in a sandboxed iframe worker with page calls proxied and mutations approved.",
+   "surface": "agent",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: agent through the server relay",
+   "category": "agent",
+   "description": "Model calls through POST /api/agent/sample when the server reports the agent ready; otherwise the claude.ai host bridge.",
+   "surface": "agent",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: single-file build",
+   "category": "tooling",
+   "description": "One HTML file holding JS, CSS, worker, presets, lab programs and reference text.",
+   "surface": "cli",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: design tokens and primitives",
+   "category": "design-system",
+   "description": "Swiss monochrome tokens, provenance marks and primitive components shared by every view.",
+   "surface": "ui",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: design specimen page",
+   "category": "design-system",
+   "description": "dist/specimen.html showing tokens, marks, value cells, stamps and series.",
+   "surface": "cli",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: contrast check",
+   "category": "design-system",
+   "description": "WCAG contrast of token pairs, light and dark.",
+   "surface": "cli",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: dead CSS finder",
+   "category": "tooling",
+   "description": "Selectors no source uses, optionally removed.",
+   "surface": "cli",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: view screenshots",
+   "category": "tooling",
+   "description": "Chrome over CDP: one-off screenshots and 15 named view shots.",
+   "surface": "cli",
+   "user_facing": 1,
+   "diary_step": 1
+  },
+  {
+   "name": "Workbench: kiln-program export",
+   "category": "tooling",
+   "description": "Compile a preset or script to kiln-program/1 for the runtime launchers.",
+   "surface": "cli",
+   "user_facing": 1,
+   "diary_step": 3
+  }
+ ],
+ "functionality_modules": [
+  {
+   "functionality": "Workbench view: Notes",
+   "module_path": "apps/workbench/src/ui/Notes.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Notes",
+   "module_path": "apps/workbench/src/ui/doc.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Notes",
+   "module_path": "apps/workbench/src/ui/links.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Notes",
+   "module_path": "apps/workbench/src/ui/Hypotheses.jsx",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Code",
+   "module_path": "apps/workbench/src/ui/Ide.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Code",
+   "module_path": "apps/workbench/src/ui/highlight.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Code",
+   "module_path": "apps/workbench/src/ui/Knobs.jsx",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Code",
+   "module_path": "apps/workbench/src/compile.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Agent",
+   "module_path": "apps/workbench/src/ui/Agent.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Agent",
+   "module_path": "apps/workbench/src/agent/agent.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Reference",
+   "module_path": "apps/workbench/src/ui/Ide.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Reference",
+   "module_path": "apps/workbench/reference.txt",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Reference",
+   "module_path": "apps/workbench/agent-guidelines.txt",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: IR",
+   "module_path": "apps/workbench/src/ui/Compiler.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Graph",
+   "module_path": "apps/workbench/src/ui/Compiler.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Trace",
+   "module_path": "apps/workbench/src/ui/Compiler.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Kernels",
+   "module_path": "apps/workbench/src/ui/Kernels.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Kernels",
+   "module_path": "apps/workbench/src/ui/marks.jsx",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Perf",
+   "module_path": "apps/workbench/src/ui/Perf.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Perf",
+   "module_path": "apps/workbench/src/ui/marks.jsx",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Knobs",
+   "module_path": "apps/workbench/src/ui/Knobs.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Knobs",
+   "module_path": "apps/workbench/src/ui/marks.jsx",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Tune",
+   "module_path": "apps/workbench/src/ui/Perf.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Evidence",
+   "module_path": "apps/workbench/src/ui/Evidence.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Evidence",
+   "module_path": "apps/workbench/src/server-sync.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Hypotheses",
+   "module_path": "apps/workbench/src/ui/Hypotheses.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Devices",
+   "module_path": "apps/workbench/src/ui/Perf.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Devices",
+   "module_path": "apps/workbench/src/ui/Jobs.jsx",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Devices",
+   "module_path": "apps/workbench/src/server-sync.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Jobs",
+   "module_path": "apps/workbench/src/ui/Jobs.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Jobs",
+   "module_path": "apps/workbench/src/server-client.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Events",
+   "module_path": "apps/workbench/src/ui/Events.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Lab",
+   "module_path": "apps/workbench/src/ui/lab/LabView.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Lab",
+   "module_path": "apps/workbench/src/ui/lab/state.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Lab",
+   "module_path": "apps/workbench/src/ui/lab/api.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Inspect",
+   "module_path": "apps/workbench/src/ui/lab/InspectView.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Inspect",
+   "module_path": "apps/workbench/src/ui/lab/inspect.jsx",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Board",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Board",
+   "module_path": "apps/workbench/src/ui/lab/params.jsx",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Board",
+   "module_path": "apps/workbench/src/ui/lab/state.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: table",
+   "module_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: table",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: stat",
+   "module_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: stat",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: runList",
+   "module_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: runList",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: manifest",
+   "module_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: manifest",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: manifestDiff",
+   "module_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: manifestDiff",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: hypothesisCard",
+   "module_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: hypothesisCard",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: text",
+   "module_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: text",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: note",
+   "module_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: note",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: math",
+   "module_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: math",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: source",
+   "module_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: source",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: control",
+   "module_path": "apps/workbench/src/ui/lab/panels.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: control",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: chart",
+   "module_path": "apps/workbench/src/ui/lab/charts.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: chart",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: timeline",
+   "module_path": "apps/workbench/src/ui/lab/charts.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: timeline",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: mirror",
+   "module_path": "apps/workbench/src/ui/lab/charts.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: mirror",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: gallery",
+   "module_path": "apps/workbench/src/ui/lab/media.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: gallery",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: detections",
+   "module_path": "apps/workbench/src/ui/lab/media.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: detections",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: kernelCard",
+   "module_path": "apps/workbench/src/ui/lab/inspect.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: kernelCard",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: route",
+   "module_path": "apps/workbench/src/ui/lab/inspect.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: route",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: ledger",
+   "module_path": "apps/workbench/src/ui/lab/inspect.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: ledger",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: stepper",
+   "module_path": "apps/workbench/src/ui/lab/inspect.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: stepper",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: batchView",
+   "module_path": "apps/workbench/src/ui/lab/inspect.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench board panel: batchView",
+   "module_path": "apps/workbench/src/ui/lab/board.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: dock layout",
+   "module_path": "apps/workbench/src/ui/dock.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: dock layout",
+   "module_path": "apps/workbench/src/ui/Dock.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: dock layout",
+   "module_path": "apps/workbench/src/ui/views.jsx",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: top bar and preset menu",
+   "module_path": "apps/workbench/src/ui/App.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: user presets",
+   "module_path": "apps/workbench/src/ui/wb.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: keyboard shortcuts",
+   "module_path": "apps/workbench/src/ui/App.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: keyboard shortcuts",
+   "module_path": "apps/workbench/src/ui/Ide.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: live compile",
+   "module_path": "apps/workbench/src/ui/wb.js",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: live compile",
+   "module_path": "apps/workbench/src/compile.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: measure on WebGPU or simulated GPU",
+   "module_path": "apps/workbench/src/ui/wb.js",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: measure on WebGPU or simulated GPU",
+   "module_path": "apps/workbench/src/ui/Perf.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: propose a CUDA job on a server host",
+   "module_path": "apps/workbench/src/ui/wb.js",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: propose a CUDA job on a server host",
+   "module_path": "apps/workbench/src/server-client.js",
+   "role": "api",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: propose a CUDA job on a server host",
+   "module_path": "apps/workbench/src/ui/Jobs.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: paired compare",
+   "module_path": "apps/workbench/src/ui/Perf.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: paired compare",
+   "module_path": "apps/workbench/src/ui/wb.js",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: autotune",
+   "module_path": "apps/workbench/src/ui/wb.js",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: autotune",
+   "module_path": "apps/workbench/src/ui/Perf.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: record sync with the server",
+   "module_path": "apps/workbench/src/server-sync.js",
+   "role": "worker",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: record sync with the server",
+   "module_path": "apps/workbench/src/ui/wb.js",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: live server events",
+   "module_path": "apps/workbench/src/server-client.js",
+   "role": "api",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: live server events",
+   "module_path": "apps/workbench/src/ui/wb.js",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: run a lab plan as jobs",
+   "module_path": "apps/workbench/src/ui/lab/state.js",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: run a lab plan as jobs",
+   "module_path": "apps/workbench/src/ui/lab/api.js",
+   "role": "api",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: run a lab plan as jobs",
+   "module_path": "apps/workbench/src/ui/lab/LabView.jsx",
+   "role": "ui",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: sandboxed agent eval",
+   "module_path": "apps/workbench/src/agent/sandbox.js",
+   "role": "worker",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: sandboxed agent eval",
+   "module_path": "apps/workbench/src/agent/frame.js",
+   "role": "worker",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: sandboxed agent eval",
+   "module_path": "apps/workbench/src/agent/agent.js",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: sandboxed agent eval",
+   "module_path": "apps/workbench/src/agent/encode.js",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: agent through the server relay",
+   "module_path": "apps/workbench/src/agent/gateway.js",
+   "role": "api",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: agent through the server relay",
+   "module_path": "apps/workbench/src/main.jsx",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: single-file build",
+   "module_path": "apps/workbench/build.mjs",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: design tokens and primitives",
+   "module_path": "apps/workbench/src/ui/tokens.css",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: design tokens and primitives",
+   "module_path": "apps/workbench/src/ui/common.jsx",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: design tokens and primitives",
+   "module_path": "apps/workbench/src/ui/marks.jsx",
+   "role": "shared",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: design specimen page",
+   "module_path": "scripts/specimen.mjs",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: contrast check",
+   "module_path": "scripts/contrast.mjs",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: dead CSS finder",
+   "module_path": "scripts/css-usage.mjs",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: view screenshots",
+   "module_path": "scripts/shoot.mjs",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: view screenshots",
+   "module_path": "scripts/shoot-views.mjs",
+   "role": "entry",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: kiln-program export",
+   "module_path": "scripts/kiln-export.mjs",
+   "role": "entry",
+   "diary_step": 3
+  },
+  {
+   "functionality": "Workbench: agent through the server relay",
+   "module_path": "apps/workbench/test/gateway.mjs",
+   "role": "test",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: sandboxed agent eval",
+   "module_path": "apps/workbench/test/sandbox.mjs",
+   "role": "test",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: record sync with the server",
+   "module_path": "apps/workbench/test/server-sync.mjs",
+   "role": "test",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: measure on WebGPU or simulated GPU",
+   "module_path": "apps/workbench/test/webgpu.mjs",
+   "role": "test",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: paired compare",
+   "module_path": "apps/workbench/test/paired-webgpu.mjs",
+   "role": "test",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench: propose a CUDA job on a server host",
+   "module_path": "apps/workbench/test/server-e2e.mjs",
+   "role": "test",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Agent",
+   "module_path": "apps/workbench/test/agent-e2e.mjs",
+   "role": "test",
+   "diary_step": 1
+  },
+  {
+   "functionality": "Workbench view: Lab",
+   "module_path": "apps/workbench/test/lab-e2e.mjs",
+   "role": "test",
+   "diary_step": 1
+  }
+ ],
+ "service_calls": [
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "http",
+   "description": "records: GET/POST/DELETE /api/records (pull, debounced push in chunks of 250, forget)",
+   "evidence": "apps/workbench/src/server-sync.js; apps/workbench/src/ui/wb.js:319-466",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "http",
+   "description": "devices and hosts: GET /api/devices, /api/hosts, /api/hosts/:id/capabilities; POST /api/hosts/:id/probe",
+   "evidence": "apps/workbench/src/server-client.js",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "http",
+   "description": "jobs: GET /api/jobs, /api/jobs/:id, /api/jobs/:id/plan; POST /api/jobs (x-kiln-proposer); POST /api/jobs/:id/{approve,cancel,reimport}",
+   "evidence": "apps/workbench/src/server-client.js:154-165",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "http",
+   "description": "archives: GET /api/archives and the /api/archives/:sha download link",
+   "evidence": "apps/workbench/src/ui/Jobs.jsx:197",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "http",
+   "description": "lab data: GET /api/lab/catalog, /api/lab/datasets, /api/lab/datasets/:id, /api/lab/bundles?hashes= (batches of 64), /api/lab/media/:sha",
+   "evidence": "apps/workbench/src/ui/lab/api.js:18-66",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "http",
+   "description": "agent readiness: GET /api/agent/usage at start",
+   "evidence": "apps/workbench/src/main.jsx:24",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "http",
+   "description": "agent relay: POST /api/agent/sample, NDJSON stream of text deltas and a done event, up to 12 calls per turn",
+   "evidence": "apps/workbench/src/agent/gateway.js:30-35",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "http",
+   "description": "health: GET /api/health",
+   "evidence": "apps/workbench/src/server-client.js",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/server",
+   "protocol": "sse",
+   "description": "GET /api/events: hello, ping, job.updated, job.event, records.added, device.updated, host.updated, catalog.changed, evidence.registered; backoff 1 s to 30 s",
+   "evidence": "apps/workbench/src/server-client.js:10,102",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/server",
+   "to_package": "@kiln/workbench",
+   "protocol": "http",
+   "description": "serves dist/kiln-workbench.html with <meta name=\"kiln-token\"> injected",
+   "evidence": "apps/server/src/app.ts:31-39",
+   "diary_step": 3
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "@kiln/kiln",
+   "protocol": "webgpu",
+   "description": "WebGpuDevice runs compiled WGSL kernels in the browser for measure, compare and tune",
+   "evidence": "packages/kiln/src/std/devices.js:199,306-308",
+   "diary_step": 1
+  },
+  {
+   "from_package": "@kiln/workbench",
+   "to_package": "claude.ai artifact host",
+   "protocol": "llm-api",
+   "description": "host bridge window.claude.use('sample') when the page runs as an artifact and the relay is not ready",
+   "evidence": "apps/workbench/src/agent/agent.js",
+   "diary_step": 1
+  },
+  {
+   "from_package": "scripts",
+   "to_package": "@kiln/workbench",
+   "protocol": "websocket",
+   "description": "shoot.mjs drives Chrome over the DevTools protocol to load the built page and screenshot it",
+   "evidence": "scripts/shoot.mjs",
+   "diary_step": 1
+  },
+  {
+   "from_package": "scripts",
+   "to_package": "@kiln/kiln",
+   "protocol": "fs",
+   "description": "kiln-export.mjs imports packages/kiln/src by relative path to compile a preset",
+   "evidence": "scripts/kiln-export.mjs:19-20",
+   "diary_step": 3
+  }
+ ],
+ "reusable_components": [
+  {
+   "name": "Dock layout engine",
+   "path": "apps/workbench/src/ui/dock.js",
+   "kind": "ui-component",
+   "description": "Pure tile/split tree operations plus a React renderer with drag-and-drop, gutters, tab strips and a phone fallback.",
+   "current_consumers": "@kiln/workbench views.jsx; lab/state.js (board views)",
+   "external_deps": "react",
+   "internal_deps": "apps/workbench/src/ui/views.jsx viewDef/addableViews; apps/workbench/src/ui/wb.js setLayout/dropView/focusTile; hardcoded IDE_VIEWS/SYS_VIEWS",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "dock.js is already pure; parameterise the view list and the store calls to make Dock.jsx generic.",
+   "diary_step": 1
+  },
+  {
+   "name": "Channel store and useLab hook",
+   "path": "apps/workbench/src/ui/wb.js",
+   "kind": "pattern",
+   "description": "Mutable singleton with named channels (on/bump/version) and a useSyncExternalStore hook that re-renders on listed channels.",
+   "current_consumers": "every view; lab/state.js borrows wb's lab channel",
+   "external_deps": "react",
+   "internal_deps": "none beyond the store object",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "About 20 lines (wb.js:75-77 plus common.jsx:7-12); lift into a tiny module.",
+   "diary_step": 1
+  },
+  {
+   "name": "Agent eval sandbox",
+   "path": "apps/workbench/src/agent/sandbox.js",
+   "kind": "library",
+   "description": "Sandboxed iframe (allow-scripts, CSP default-src 'none') running a Blob worker per eval, MessageChannel bridge, structured wire encoding.",
+   "current_consumers": "agent.js",
+   "external_deps": "",
+   "internal_deps": "apps/workbench/src/agent/frame.js -> apps/workbench/src/compile.js, apps/workbench/src/agent/inspect.js, @kiln/kiln; build.mjs embeds WORKER_JS",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "The one isolation layer Perf Lab's agent lacks; the frame's Kiln imports are the coupling to cut.",
+   "diary_step": 1
+  },
+  {
+   "name": "Agent relay tool loop",
+   "path": "apps/workbench/src/agent/gateway.js",
+   "kind": "library",
+   "description": "Page-side tool-use loop over an NDJSON model relay with a call cap.",
+   "current_consumers": "main.jsx",
+   "external_deps": "",
+   "internal_deps": "endpoint path /api/agent/sample",
+   "reuse_readiness": "ready",
+   "packaging_notes": "Generic apart from the endpoint and message shape.",
+   "diary_step": 1
+  },
+  {
+   "name": "Provenance value marks",
+   "path": "apps/workbench/src/ui/marks.jsx",
+   "kind": "ui-component",
+   "description": "Value cells and stamps that show whether a number is modelled, simulated or measured, with hatch patterns.",
+   "current_consumers": "Perf, Kernels, Knobs, Evidence, Hypotheses views",
+   "external_deps": "react",
+   "internal_deps": "apps/workbench/src/ui/wb.js (store, run)",
+   "reuse_readiness": "entangled",
+   "packaging_notes": "Reads wb.store and wb.run directly; LabVal (lab/panels.jsx) is a second implementation.",
+   "diary_step": 1
+  },
+  {
+   "name": "Swiss design tokens and primitives",
+   "path": "apps/workbench/src/ui/tokens.css",
+   "kind": "ui-component",
+   "description": "Monochrome tokens, base/utilities CSS and primitive components (Btn, Seg, Tabs, Kv, Meter, Spark, Menu).",
+   "current_consumers": "every view",
+   "external_deps": "",
+   "internal_deps": "apps/workbench/src/ui/common.jsx imports wb",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "Pairs with scripts/specimen.mjs, contrast.mjs and css-usage.mjs as a design-system package.",
+   "diary_step": 1
+  },
+  {
+   "name": "CDP page harness",
+   "path": "scripts/shoot.mjs",
+   "kind": "tool",
+   "description": "Launches Chrome with a throwaway profile, exposes withPage(eval/until/shot) over the DevTools protocol, CLI screenshots.",
+   "current_consumers": "test/webgpu.mjs, paired-webgpu.mjs, server-e2e.mjs, agent-e2e.mjs, lab-e2e.mjs, scripts/shoot-views.mjs",
+   "external_deps": "Chrome",
+   "internal_deps": "none",
+   "reuse_readiness": "ready",
+   "packaging_notes": "Already the shared browser harness; test/ui.mjs (Playwright) is the second one.",
+   "diary_step": 1
+  },
+  {
+   "name": "Lab board renderer (Kiln port)",
+   "path": "apps/workbench/src/ui/lab/board.jsx",
+   "kind": "ui-component",
+   "description": "Renders a lab board: panel kinds, layouts, parameter bar, error boundary, monochrome charts without d3.",
+   "current_consumers": "board:<id> views, LabView",
+   "external_deps": "react, katex",
+   "internal_deps": "apps/workbench/src/ui/lab/state.js labs; apps/workbench/src/ui/wb.js toast/channels; apps/workbench/src/ui/doc.js inline; apps/workbench/src/ui/common.jsx useLab",
+   "reuse_readiness": "entangled",
+   "packaging_notes": "The natural seam for one board renderer shared with lab-workbench.",
+   "diary_step": 1
+  },
+  {
+   "name": "Notes markdown with KaTeX",
+   "path": "apps/workbench/src/ui/doc.js",
+   "kind": "library",
+   "description": "Markdown + KaTeX renderer with lab: links and hypothesis slots.",
+   "current_consumers": "Notes view, lab boards (inline)",
+   "external_deps": "katex",
+   "internal_deps": "apps/workbench/src/ui/links.js; labs/wb for link targets",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "md.js is a second renderer for agent answers.",
+   "diary_step": 1
+  },
+  {
+   "name": "Kiln server client with SSE",
+   "path": "apps/workbench/src/server-client.js",
+   "kind": "library",
+   "description": "Fetch client for /api/*, token header, typed errors, EventSource subscription with exponential backoff, job-spec builders.",
+   "current_consumers": "wb.js, server-sync.js, lab/api.js",
+   "external_deps": "",
+   "internal_deps": "@kiln/kiln std (sessionToken, kernel helpers)",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "The transport part is generic; jobSpec/jobKernel are Kiln-domain.",
+   "diary_step": 1
+  },
+  {
+   "name": "Record sync",
+   "path": "apps/workbench/src/server-sync.js",
+   "kind": "library",
+   "description": "Debounced chunked push/pull of evidence records with a refused map; HostDevice adapter.",
+   "current_consumers": "wb.js",
+   "external_deps": "",
+   "internal_deps": "@kiln/kiln EvidenceStore",
+   "reuse_readiness": "domain-specific",
+   "packaging_notes": "Tied to the evidence record shape.",
+   "diary_step": 1
+  },
+  {
+   "name": "Layered DAG layout",
+   "path": "apps/workbench/src/ui/Compiler.jsx",
+   "kind": "ui-component",
+   "description": "Own layered graph layout and SVG renderer for IR graphs, capped at 500 nodes.",
+   "current_consumers": "Graph view",
+   "external_deps": "react",
+   "internal_deps": "apps/workbench/src/ui/wb.js selection",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "Self-contained algorithm inside a 358-line view file (Compiler.jsx:198-288).",
+   "diary_step": 1
+  },
+  {
+   "name": "Roofline chart with label placement",
+   "path": "apps/workbench/src/ui/Perf.jsx",
+   "kind": "ui-component",
+   "description": "Roofline SVG with collision-avoiding label placement.",
+   "current_consumers": "Perf view",
+   "external_deps": "react",
+   "internal_deps": "apps/workbench/src/ui/marks.jsx",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "Perf.jsx:249-339; placeLabels is generic.",
+   "diary_step": 1
+  },
+  {
+   "name": "Design checks (specimen, contrast, css-usage)",
+   "path": "scripts/specimen.mjs",
+   "kind": "tool",
+   "description": "Specimen page, WCAG contrast check and dead-selector finder over the workbench CSS.",
+   "current_consumers": "manual",
+   "external_deps": "",
+   "internal_deps": "hardcoded CSS file lists and token block regexes",
+   "reuse_readiness": "needs-extraction",
+   "packaging_notes": "Should read one CSS manifest instead of keeping their own lists.",
+   "diary_step": 1
+  }
+ ],
+ "duplications": [
+  {
+   "title": "lab board panels: lab-workbench views vs apps/workbench/src/ui/lab",
+   "description": "Every Perf Lab board panel exists twice: the React 19/TypeScript/d3 originals in lab-workbench and hand ports in the Kiln page (plain JSX, no d3, monochrome). The Kiln files say so in their first line.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/lab/panels.jsx\", \"lines\": \"1-349\", \"note\": \"ported from TableView, StatView, RunListView, ManifestView, HypothesisView, TextView, SourceView, ControlView\"}, {\"path\": \"apps/workbench/src/ui/lab/charts.jsx\", \"lines\": \"1-503\", \"note\": \"ported from ChartView, TimelineView, MirrorView without d3\"}, {\"path\": \"apps/workbench/src/ui/lab/media.jsx\", \"lines\": \"1-232\", \"note\": \"ported from GalleryView, DetectionsView\"}, {\"path\": \"apps/workbench/src/ui/lab/inspect.jsx\", \"lines\": \"1-258\", \"note\": \"ported from KernelCardView, RouteView, LedgerView, StepperView, BatchView\"}, {\"path\": \"lab-workbench/src/components/organisms/views/ChartView/ChartView.tsx\", \"lines\": \"1-374\", \"note\": \"original\"}, {\"path\": \"lab-workbench/src/components/organisms/views/TimelineView/TimelineView.tsx\", \"lines\": \"1-308\", \"note\": \"original\"}, {\"path\": \"lab-workbench/src/components/organisms/views/MirrorView/MirrorView.tsx\", \"lines\": \"1-151\", \"note\": \"original\"}]",
+   "severity": "high",
+   "suggested_consolidation": "One board renderer package consumed by both apps, rendering the same @kiln/lab IR.",
+   "diary_step": 1
+  },
+  {
+   "title": "lab board frame: board-context and ViewRenderer vs ui/lab/board.jsx",
+   "description": "The board context, panel dispatch and parameter bar are written twice.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/lab/board.jsx\", \"lines\": \"1-156\", \"note\": \"Kiln\"}, {\"path\": \"lab-workbench/src/app/board-context.tsx\", \"lines\": \"1-77\", \"note\": \"Perf Lab\"}, {\"path\": \"lab-workbench/src/components/organisms/ViewRenderer/ViewRenderer.tsx\", \"lines\": \"1-120\", \"note\": \"Perf Lab\"}, {\"path\": \"apps/workbench/src/ui/lab/params.jsx\", \"lines\": \"1-103\", \"note\": \"Kiln ParamBar\"}, {\"path\": \"lab-workbench/src/components/organisms/ParamBar/ParamBar.tsx\", \"lines\": \"1-127\", \"note\": \"Perf Lab\"}, {\"path\": \"lab-workbench/src/lib/params.ts\", \"lines\": \"1-50\", \"note\": \"Perf Lab\"}]",
+   "severity": "high",
+   "suggested_consolidation": "Part of the shared board renderer.",
+   "diary_step": 1
+  },
+  {
+   "title": "lab cell formatting: lib/format.ts vs ui/lab/format.js",
+   "description": "Cell text rules for boards, ported.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/lab/format.js\", \"lines\": \"1-48\", \"note\": \"Kiln port\"}, {\"path\": \"lab-workbench/src/lib/format.ts\", \"lines\": \"1-93\", \"note\": \"original\"}]",
+   "severity": "low",
+   "suggested_consolidation": "Move into the shared board renderer.",
+   "diary_step": 1
+  },
+  {
+   "title": "lab program tabs: LabTab/PlanTab/RunsTab/InspectTab vs LabView/InspectView",
+   "description": "The Lab, Plan, Runs and Inspect surfaces of Perf Lab are re-done as two Kiln dock views.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/lab/LabView.jsx\", \"lines\": \"14-221\", \"note\": \"Kiln\"}, {\"path\": \"apps/workbench/src/ui/lab/InspectView.jsx\", \"lines\": \"1-81\", \"note\": \"Kiln\"}, {\"path\": \"lab-workbench/src/components/organisms/LabTab/LabTab.tsx\", \"lines\": \"1-208\", \"note\": \"Perf Lab\"}, {\"path\": \"lab-workbench/src/components/organisms/PlanTab/PlanTab.tsx\", \"lines\": \"1-161\", \"note\": \"Perf Lab\"}, {\"path\": \"lab-workbench/src/components/organisms/RunsTab/RunsTab.tsx\", \"lines\": \"1-75\", \"note\": \"Perf Lab\"}, {\"path\": \"lab-workbench/src/components/organisms/InspectTab/InspectTab.tsx\", \"lines\": \"1-103\", \"note\": \"Perf Lab\"}, {\"path\": \"lab-workbench/src/components/organisms/Inspector/Inspector.tsx\", \"lines\": \"1-61\", \"note\": \"Perf Lab\"}]",
+   "severity": "medium",
+   "suggested_consolidation": "Decide which app owns the lab program surfaces; the other embeds them.",
+   "diary_step": 1
+  },
+  {
+   "title": "page agent runtime: lab-workbench agent/runtime.ts vs apps/workbench/src/agent",
+   "description": "Two coding agents with different isolation and transport: Kiln evaluates in a sandboxed iframe worker with a page-side tool loop over the Kiln server relay or the claude.ai host bridge; Perf Lab evaluates with new AsyncFunction in the page (no sandbox) and drives turns from its own server via pi-ai.",
+   "locations": "[{\"path\": \"apps/workbench/src/agent/agent.js\", \"lines\": \"1-551\", \"note\": \"Kiln loop and scope\"}, {\"path\": \"apps/workbench/src/agent/sandbox.js\", \"lines\": \"1-62\", \"note\": \"Kiln sandbox\"}, {\"path\": \"apps/workbench/src/agent/gateway.js\", \"lines\": \"1-104\", \"note\": \"Kiln relay loop\"}, {\"path\": \"lab-workbench/src/features/agent/runtime.ts\", \"lines\": \"443\", \"note\": \"Perf Lab unsandboxed eval\"}, {\"path\": \"lab-workbench/src/features/agent/runtime.ts\", \"lines\": \"531-574\", \"note\": \"Perf Lab liveTurn, up to 6 calls\"}]",
+   "severity": "high",
+   "suggested_consolidation": "Keep one eval runtime (the sandboxed one) and one model transport; expose lab and Kiln scopes as namespaces.",
+   "diary_step": 1
+  },
+  {
+   "title": "agent chat UI: AgentRail and TranscriptLibrary vs Agent.jsx",
+   "description": "Two chat surfaces with history.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/Agent.jsx\", \"lines\": \"16-267\", \"note\": \"Kiln\"}, {\"path\": \"lab-workbench/src/components/organisms/AgentRail/AgentRail.tsx\", \"lines\": \"1-202\", \"note\": \"Perf Lab\"}, {\"path\": \"lab-workbench/src/components/organisms/TranscriptLibrary/TranscriptLibrary.tsx\", \"lines\": \"1-289\", \"note\": \"Perf Lab\"}]",
+   "severity": "medium",
+   "suggested_consolidation": "Follows the agent runtime decision.",
+   "diary_step": 1
+  },
+  {
+   "title": "client state store: Redux slices vs wb/labs singletons",
+   "description": "Perf Lab keeps state in Redux Toolkit slices; the Kiln page in two mutable singletons with named channels. The Kiln port of Perf Lab state (lab/state.js) re-implements what the slices and thunks do.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/wb.js\", \"lines\": \"26-505\", \"note\": \"Kiln Workbench\"}, {\"path\": \"apps/workbench/src/ui/lab/state.js\", \"lines\": \"16-210\", \"note\": \"Kiln Labs\"}, {\"path\": \"lab-workbench/src/app/store.ts\", \"lines\": \"1-94\", \"note\": \"Perf Lab store\"}, {\"path\": \"lab-workbench/src/features/params/paramsSlice.ts\", \"lines\": \"1-64\", \"note\": \"Perf Lab params slice\"}, {\"path\": \"lab-workbench/src/features/params/thunks.ts\", \"lines\": \"1-102\", \"note\": \"Perf Lab params thunks\"}]",
+   "severity": "medium",
+   "suggested_consolidation": "A shared board renderer needs a store interface both can satisfy.",
+   "diary_step": 1
+  },
+  {
+   "title": "design tokens: lab-workbench styles/tokens.css vs ui/tokens.css",
+   "description": "Two design systems: Kiln's Swiss monochrome (Arial, one red accent) and Perf Lab's Lattice Deck (paper/sheet, sig/warn/bad/ok, --d1..d4 data palette, Archivo/IBM Plex).",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/tokens.css\", \"lines\": \"1-44\", \"note\": \"Kiln\"}, {\"path\": \"lab-workbench/src/styles/tokens.css\", \"lines\": \"1-133\", \"note\": \"Perf Lab\"}]",
+   "severity": "medium",
+   "suggested_consolidation": "Pick one token set; the board renderer should read tokens, not hardcode either look.",
+   "diary_step": 1
+  },
+  {
+   "title": "hypothesis evaluation: @kiln/kiln std.evidence vs @kiln/lab lang/hypothesis",
+   "description": "Kiln projects and lab programs each have their own hypothesis evaluator and verdict model, shown in the same page.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/wb.js\", \"lines\": \"226-233\", \"note\": \"std.evidence.evaluateHypotheses for Kiln projects\"}, {\"path\": \"packages/lab/src/lang/hypothesis.ts\", \"lines\": \"58\", \"note\": \"evaluateHypothesis for lab programs\"}]",
+   "severity": "medium",
+   "suggested_consolidation": "One verdict vocabulary (supported/refuted/open/unqualified already matches); one evaluator interface.",
+   "diary_step": 1
+  },
+  {
+   "title": "hypothesis verdict display maps in the Kiln page",
+   "description": "The same four verdicts mapped to class and label three times, in three shapes.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/Hypotheses.jsx\", \"lines\": \"50-55\", \"note\": \"{cls,text}\"}, {\"path\": \"apps/workbench/src/ui/lab/LabView.jsx\", \"lines\": \"12\", \"note\": \"[cls,text] tuples\"}, {\"path\": \"apps/workbench/src/ui/lab/panels.jsx\", \"lines\": \"227-232\", \"note\": \"{cls,text,why}\"}]",
+   "severity": "low",
+   "suggested_consolidation": "One VERDICT export in marks.jsx.",
+   "diary_step": 1
+  },
+  {
+   "title": "hypothesis card components in the Kiln page",
+   "description": "HypothesisCard (Kiln projects) and HypothesisCardView (lab boards), each with its own Judged helper.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/Hypotheses.jsx\", \"lines\": \"58-145\", \"note\": \"HypothesisCard, Judged at 139\"}, {\"path\": \"apps/workbench/src/ui/lab/panels.jsx\", \"lines\": \"235-286\", \"note\": \"HypothesisCardView, Judged at 265\"}]",
+   "severity": "low",
+   "suggested_consolidation": "Follows the evaluator decision.",
+   "diary_step": 3
+  },
+  {
+   "title": "markdown rendering: ui/doc.js vs ui/md.js",
+   "description": "Two markdown renderers, each with its own inline and escape functions.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/doc.js\", \"lines\": \"1-114\", \"note\": \"notes and boards\"}, {\"path\": \"apps/workbench/src/ui/md.js\", \"lines\": \"1-45\", \"note\": \"agent answers\"}]",
+   "severity": "low",
+   "suggested_consolidation": "One renderer with an option for KaTeX and lab: links.",
+   "diary_step": 1
+  },
+  {
+   "title": "provenance value cell: marks.jsx Val vs lab/panels.jsx LabVal",
+   "description": "Two value-with-provenance cells.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/marks.jsx\", \"lines\": \"168-177\", \"note\": \"Val\"}, {\"path\": \"apps/workbench/src/ui/lab/panels.jsx\", \"lines\": \"12-23\", \"note\": \"LabVal\"}]",
+   "severity": "low",
+   "suggested_consolidation": "One cell taking provenance as data.",
+   "diary_step": 1
+  },
+  {
+   "title": "parameter control: Knobs.jsx ParamControl vs lab/params.jsx ParamControl",
+   "description": "Two components named ParamControl for Kiln params and lab board params.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/Knobs.jsx\", \"lines\": \"9-46\", \"note\": \"exported, used by Ide.jsx\"}, {\"path\": \"apps/workbench/src/ui/lab/params.jsx\", \"lines\": \"67-103\", \"note\": \"local\"}]",
+   "severity": "low",
+   "suggested_consolidation": "Rename or merge behind one control.",
+   "diary_step": 3
+  },
+  {
+   "title": "small UI helpers: plural, when and Empty",
+   "description": "One-line helpers redefined per file.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/Hypotheses.jsx\", \"lines\": \"7\", \"note\": \"plural\"}, {\"path\": \"apps/workbench/src/ui/Jobs.jsx\", \"lines\": \"6-7\", \"note\": \"plural, when\"}, {\"path\": \"apps/workbench/src/ui/Evidence.jsx\", \"lines\": \"10-11\", \"note\": \"when, plural\"}, {\"path\": \"apps/workbench/src/ui/marks.jsx\", \"lines\": \"12\", \"note\": \"plural\"}, {\"path\": \"apps/workbench/src/ui/lab/LabView.jsx\", \"lines\": \"95\", \"note\": \"plural\"}, {\"path\": \"apps/workbench/src/ui/common.jsx\", \"lines\": \"92\", \"note\": \"Empty (exported)\"}, {\"path\": \"apps/workbench/src/ui/lab/panels.jsx\", \"lines\": \"24\", \"note\": \"Empty (local)\"}, {\"path\": \"apps/workbench/src/ui/lab/inspect.jsx\", \"lines\": \"12\", \"note\": \"Empty (local)\"}]",
+   "severity": "low",
+   "suggested_consolidation": "Export once from common.jsx.",
+   "diary_step": 1
+  },
+  {
+   "title": "dry-run display: Jobs.jsx DryRun vs LabView LabDryRun",
+   "description": "Two dry-run panels composing the same Verdicts and PlanSteps.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/Jobs.jsx\", \"lines\": \"165-180\", \"note\": \"DryRun\"}, {\"path\": \"apps/workbench/src/ui/lab/LabView.jsx\", \"lines\": \"152-167\", \"note\": \"LabDryRun\"}]",
+   "severity": "low",
+   "suggested_consolidation": "One component.",
+   "diary_step": 1
+  },
+  {
+   "title": "download-or-clipboard save in the Kiln page",
+   "description": "saveText is exported from the Kernels view and imported by three views, while the top bar inlines the same logic twice.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/Kernels.jsx\", \"lines\": \"10-15\", \"note\": \"saveText\"}, {\"path\": \"apps/workbench/src/ui/App.jsx\", \"lines\": \"49-55\", \"note\": \"script download\"}, {\"path\": \"apps/workbench/src/ui/App.jsx\", \"lines\": \"109\", \"note\": \"notes download\"}]",
+   "severity": "low",
+   "suggested_consolidation": "Move saveText to common.jsx and use it in App.jsx.",
+   "diary_step": 2
+  },
+  {
+   "title": "project compile sequence: wb.compile vs compileScript",
+   "description": "The page writes compileScript's core sequence a second time (helpers are shared); the difference is live vs cloned params.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/wb.js\", \"lines\": \"157-181\", \"note\": \"page\"}, {\"path\": \"apps/workbench/src/compile.js\", \"lines\": \"22-36\", \"note\": \"agent frame\"}]",
+   "severity": "low",
+   "suggested_consolidation": "Let wb.compile call compileScript and apply its result.",
+   "diary_step": 2
+  },
+  {
+   "title": "dark theme token blocks in ui/tokens.css",
+   "description": "The dark palette is written twice (media query and data-theme); contrast.mjs checks only one.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/tokens.css\", \"lines\": \"24-31\", \"note\": \"prefers-color-scheme\"}, {\"path\": \"apps/workbench/src/ui/tokens.css\", \"lines\": \"32-39\", \"note\": \"data-theme\"}, {\"path\": \"scripts/contrast.mjs\", \"lines\": \"12\", \"note\": \"reads data-theme only\"}]",
+   "severity": "low",
+   "suggested_consolidation": "Generate one from the other, or check both.",
+   "diary_step": 1
+  },
+  {
+   "title": "CSS bundle file list: build.mjs vs specimen.mjs",
+   "description": "The stylesheet order is listed twice and has drifted (specimen omits jobs and lab/lab).",
+   "locations": "[{\"path\": \"apps/workbench/build.mjs\", \"lines\": \"55\", \"note\": \"8 files\"}, {\"path\": \"scripts/specimen.mjs\", \"lines\": \"10\", \"note\": \"6 files\"}]",
+   "severity": "low",
+   "suggested_consolidation": "One exported list.",
+   "diary_step": 1
+  },
+  {
+   "title": "browser test harness: Playwright ui.mjs vs CDP shoot.mjs",
+   "description": "Two ways to drive a browser in tests; the Playwright one hardcodes Linux container paths.",
+   "locations": "[{\"path\": \"apps/workbench/test/ui.mjs\", \"lines\": \"4,36\", \"note\": \"Playwright\"}, {\"path\": \"scripts/shoot.mjs\", \"lines\": \"1-133\", \"note\": \"CDP withPage\"}]",
+   "severity": "low",
+   "suggested_consolidation": "Port ui.mjs onto withPage.",
+   "diary_step": 1
+  },
+  {
+   "title": "hand-rolled SVG chart scaffolding in the Kiln page",
+   "description": "Five charts each with their own scales and ticks.",
+   "locations": "[{\"path\": \"apps/workbench/src/ui/Perf.jsx\", \"lines\": \"249-339\", \"note\": \"Roofline\"}, {\"path\": \"apps/workbench/src/ui/Perf.jsx\", \"lines\": \"375-399\", \"note\": \"TuneChart\"}, {\"path\": \"apps/workbench/src/ui/common.jsx\", \"lines\": \"63-77\", \"note\": \"Spark\"}, {\"path\": \"apps/workbench/src/ui/Evidence.jsx\", \"lines\": \"195-225\", \"note\": \"Strip\"}, {\"path\": \"apps/workbench/src/ui/lab/charts.jsx\", \"lines\": \"1-503\", \"note\": \"board charts\"}]",
+   "severity": "low",
+   "suggested_consolidation": "A small scale/axis helper shared by all five.",
+   "diary_step": 1
+  }
+ ],
+ "complexity_hotspots": [
+  {
+   "path": "apps/workbench/src/ui/wb.js",
+   "loc": 506,
+   "reason": "God object: script, compile, params, devices, evidence, hypotheses, measure, compare, tune, server, record sync, jobs, presets, layout and toasts in one class; every view and the agent scope reach into it.",
+   "metric": "LOC, fan-in",
+   "suggestion": "Split server/jobs (319-466), devices, and layout into modules behind the channel store.",
+   "diary_step": 1
+  },
+  {
+   "path": "apps/workbench/src/agent/agent.js",
+   "loc": 551,
+   "reason": "makeAgentScope (357-537) defines every namespace inline and wraps mutations one by one for read-only mode; AGENT_SCOPE (102-124) hand-documents the same surface and has drifted.",
+   "metric": "LOC, config surface",
+   "suggestion": "Generate the scope doc from the namespace definitions.",
+   "diary_step": 1
+  },
+  {
+   "path": "apps/workbench/src/ui/Perf.jsx",
+   "loc": 528,
+   "reason": "Three dock views (Perf, Tune, Devices) plus Roofline with label placement, compare panel and long single-line JSX rows.",
+   "metric": "LOC",
+   "suggestion": "One file per view; extract Roofline.",
+   "diary_step": 1
+  },
+  {
+   "path": "apps/workbench/src/ui/lab/charts.jsx",
+   "loc": 503,
+   "reason": "Three charts with their own scales, ticks, lanes and legends, written without a charting library.",
+   "metric": "LOC",
+   "suggestion": "Shared scale/axis helper; or share Perf Lab's d3 version.",
+   "diary_step": 1
+  },
+  {
+   "path": "apps/workbench/src/ui/Dock.jsx",
+   "loc": 309,
+   "reason": "Drag state, edge hit testing, drop preview, gutters and the phone fallback; untested.",
+   "metric": "state machine",
+   "suggestion": "Tests for drag/drop on dock.js operations.",
+   "diary_step": 1
+  },
+  {
+   "path": "apps/workbench/src/ui/Compiler.jsx",
+   "loc": 358,
+   "reason": "IR, Graph and Trace views plus a self-contained layered graph layout in one file.",
+   "metric": "LOC",
+   "suggestion": "Extract the layout.",
+   "diary_step": 1
+  },
+  {
+   "path": "apps/workbench/src/ui/App.jsx",
+   "loc": 134,
+   "reason": "Top bar with large inline handlers (App.jsx:109 notes download) duplicating saveText.",
+   "metric": "branches",
+   "suggestion": "Use saveText; move menu handlers out.",
+   "diary_step": 2
+  },
+  {
+   "path": "apps/workbench/src/ui/lab/state.js",
+   "loc": 210,
+   "reason": "Second singleton that borrows wb's channel and manipulates the dock tree directly.",
+   "metric": "fan-in",
+   "suggestion": "Give lab state its own channel and a dock API.",
+   "diary_step": 1
+  }
+ ],
+ "facts": [
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The page is React 18 with no router and no store library; state is one mutable Workbench singleton with named pub/sub channels, described in the source as the Octavo Lab pattern.",
+   "evidence_path": "apps/workbench/src/ui/wb.js",
+   "evidence_lines": "1-2,26,75-77",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "useLab(...channels) subscribes a component to named channels with useSyncExternalStore and returns the wb object.",
+   "evidence_path": "apps/workbench/src/ui/common.jsx",
+   "evidence_lines": "7-12",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "common.jsx and Dock.jsx import wb under the name lab, which collides with the labs store and the lab: link scheme.",
+   "evidence_path": "apps/workbench/src/ui/common.jsx",
+   "evidence_lines": "7-12",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "A second singleton, labs, holds Perf Lab program state and publishes on wb's lab channel instead of owning one.",
+   "evidence_path": "apps/workbench/src/ui/lab/state.js",
+   "evidence_lines": "9-16,210",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "window.__kiln exposes wb, k, P, std, agent and labs; scripts/shoot-views.mjs and the e2e tests drive the page through it rather than through DOM events.",
+   "evidence_path": "apps/workbench/src/main.jsx",
+   "evidence_lines": "15",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "All persisted page state lives in localStorage under the prefix kiln-wb:.",
+   "evidence_path": "apps/workbench/src/ui/wb.js",
+   "evidence_lines": "21-23",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Three one-shot migration flags insert the Notes, Evidence and Hypotheses views into layouts saved before those views existed.",
+   "evidence_path": "apps/workbench/src/ui/wb.js",
+   "evidence_lines": "51-70",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Editing the script recompiles after a 350 ms debounce; scripts the agent writes can be held for the user to run.",
+   "evidence_path": "apps/workbench/src/ui/wb.js",
+   "evidence_lines": "setScript, holdScript",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Hypotheses for Kiln projects are evaluated by std.evidence.evaluateHypotheses, cached on compile and store versions.",
+   "evidence_path": "apps/workbench/src/ui/wb.js",
+   "evidence_lines": "226-233",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The page's devices are the simulated GPU specs plus one WebGPU device, from @kiln/kiln makeDevices, plus one HostDevice per server host.",
+   "evidence_path": "packages/kiln/src/std/devices.js",
+   "evidence_lines": "306-308",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "HostDevice (id host:<id>, kind cuda) throws from runKernels, so Tune and Compare run only on browser devices; Measure on a host becomes a job proposal.",
+   "evidence_path": "apps/workbench/src/server-sync.js",
+   "evidence_lines": "81",
+   "category": "invariant",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The server section of wb (startServer through forgetOnServer) spans about 150 lines.",
+   "evidence_path": "apps/workbench/src/ui/wb.js",
+   "evidence_lines": "319-466",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The dock has 4 IDE views (notes, code, agent, reference), 14 system views and dynamic board:<id> views, and four preset layouts (default, compiler, perf, one).",
+   "evidence_path": "apps/workbench/src/ui/dock.js",
+   "evidence_lines": "6-22",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Dragging a tab onto the outer quarter of a tile splits it; the middle adds a tab. Under 640 px the dock becomes a single-column PhoneDock.",
+   "evidence_path": "apps/workbench/src/ui/Dock.jsx",
+   "evidence_lines": "11-12,298",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The view registry maps each id to title, about, column flag, element and optional badge; board:<id> views are resolved from the current lab program.",
+   "evidence_path": "apps/workbench/src/ui/views.jsx",
+   "evidence_lines": "23-50",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Global shortcuts: Cmd-\\ maximise, Cmd-B compile, Cmd-Enter measure; in the editor Cmd-S saves and Tab indents.",
+   "evidence_path": "apps/workbench/src/ui/App.jsx",
+   "evidence_lines": "11-18",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "build.mjs emits dist/index.html without a doctype for the artifact host and dist/kiln-workbench.html as a standalone page for the Kiln server.",
+   "evidence_path": "apps/workbench/build.mjs",
+   "evidence_lines": "67-69",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The CSS is concatenated in the order tokens, base, chrome, views, evidence, jobs, lab/lab, utilities.",
+   "evidence_path": "apps/workbench/build.mjs",
+   "evidence_lines": "55",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "build.mjs validates every lab program against PRESET_INFO imported from packages/lab/src/presets.ts by relative path; an unlisted program fails the build.",
+   "evidence_path": "apps/workbench/build.mjs",
+   "evidence_lines": "31-39",
+   "category": "invariant",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The agent worker is a separate esbuild IIFE bundle embedded in the page as the string WORKER_JS.",
+   "evidence_path": "apps/workbench/build.mjs",
+   "evidence_lines": "41-43",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Generated src/*.gen.js files are gitignored (repo-root .gitignore:6), as is dist/ (.gitignore:5).",
+   "evidence_path": ".gitignore",
+   "evidence_lines": "5-6",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 3
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "There are 27 W-NN presets, each a .js script with a .md notes file; W-27 is missing from the numbering.",
+   "evidence_path": "apps/workbench/presets",
+   "evidence_lines": "",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "W-26 (window similarity) and W-28 (redaction mask post-processing) are Playback real-work presets from KILN-002 Examples A and C.",
+   "evidence_path": "apps/workbench/presets",
+   "evidence_lines": "",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Only W-05, W-19 and W-25 declare hypotheses in their scripts.",
+   "evidence_path": "apps/workbench/presets",
+   "evidence_lines": "",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The server token is read from <meta name=\"kiln-token\"> and sent as x-kiln-token on every non-GET request.",
+   "evidence_path": "packages/kiln/src/std/devices.js",
+   "evidence_lines": "297",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "The server serves kiln-workbench.html and injects the session token as a meta tag.",
+   "evidence_path": "apps/server/src/app.ts",
+   "evidence_lines": "31-39",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 3
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The SSE client handles nine event types and reconnects with backoff from 1 s to 30 s.",
+   "evidence_path": "apps/workbench/src/server-client.js",
+   "evidence_lines": "10,102",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Record sync pushes after a 400 ms debounce in chunks of 250 and remembers records the server refused.",
+   "evidence_path": "apps/workbench/src/server-sync.js",
+   "evidence_lines": "19",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "jobSpec builds one kiln-kernels/1 capture per kernel with protocol defaults reps 7, warmup 3, launches 20, seed 1, and rerun true because a Measure is new evidence.",
+   "evidence_path": "apps/workbench/src/server-client.js",
+   "evidence_lines": "149-165",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "jobKernel ships the CUDA source, launch, input seeds, 384 sampled output indices and their reference values so the runner can check correctness.",
+   "evidence_path": "apps/workbench/src/server-client.js",
+   "evidence_lines": "136-147",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Lab bundles are fetched in batches of 64 hashes and media through /api/lab/media/:sha.",
+   "evidence_path": "apps/workbench/src/ui/lab/api.js",
+   "evidence_lines": "18-19",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The Kiln lab UI renders through @kiln/lab (labEnv, createMemoryLabData, hostReport), not through lab-workbench's own lang.",
+   "evidence_path": "apps/workbench/src/ui/lab/api.js",
+   "evidence_lines": "5",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "labs.runPlan turns the plan's missing captures into approved jobs, or records a dry run.",
+   "evidence_path": "apps/workbench/src/ui/lab/state.js",
+   "evidence_lines": "164-187",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The board renderer dispatches 21 panel kinds (table, chart, timeline, stat, manifest, manifestDiff, hypothesisCard, note, math, text, source, runList, control, mirror, gallery, detections, kernelCard, route, ledger, stepper, batchView).",
+   "evidence_path": "apps/workbench/src/ui/lab/board.jsx",
+   "evidence_lines": "62-66",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Seven files under src/ui/lab say in their first line that they are ports of Perf Lab components.",
+   "evidence_path": "apps/workbench/src/ui/lab/charts.jsx",
+   "evidence_lines": "1",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The Kiln lab UI is 2,468 lines including lab.css.",
+   "evidence_path": "apps/workbench/src/ui/lab",
+   "evidence_lines": "",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "lab/charts.jsx re-declares Perf Lab's chart constants (SHAPES, OUTCOME_SHAPE, TICK_CHAR_PX) instead of importing them.",
+   "evidence_path": "apps/workbench/src/ui/lab/charts.jsx",
+   "evidence_lines": "74-75,114",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The Graph view lays out IR graphs itself and draws at most 500 nodes.",
+   "evidence_path": "apps/workbench/src/ui/Compiler.jsx",
+   "evidence_lines": "198,230-253",
+   "category": "performance",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The Perf view's roofline places labels with its own collision-avoiding placeLabels.",
+   "evidence_path": "apps/workbench/src/ui/Perf.jsx",
+   "evidence_lines": "249-339",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The Tune and Devices views are defined in Perf.jsx, not in Knobs.jsx or Jobs.jsx; the Devices view composes ServerLine from Jobs.jsx with DevicesView from Perf.jsx.",
+   "evidence_path": "apps/workbench/src/ui/views.jsx",
+   "evidence_lines": "8,12,34,37",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 3
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The Reference view is the Reference component of Ide.jsx.",
+   "evidence_path": "apps/workbench/src/ui/Ide.jsx",
+   "evidence_lines": "141",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 3
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The paired compare panel computes its ratio through std.evidence.evidenceContext().ev.ratio.",
+   "evidence_path": "apps/workbench/src/ui/Perf.jsx",
+   "evidence_lines": "203-248",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "marks.jsx is the shared provenance vocabulary (METHOD, Val, StatusStamp, SvgDefs hatch) and reads wb.store and wb.run directly.",
+   "evidence_path": "apps/workbench/src/ui/marks.jsx",
+   "evidence_lines": "15-195",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "tokens.css is Swiss monochrome: Arial, greys and one red accent; the dark palette is written twice with identical values.",
+   "evidence_path": "apps/workbench/src/ui/tokens.css",
+   "evidence_lines": "24-39",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The agent has exactly one tool, eval, whose code runs against an agent scope of namespaces.",
+   "evidence_path": "apps/workbench/src/agent/agent.js",
+   "evidence_lines": "102-124",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Agent limits: at most 8 evals per turn, 16 history entries, 9000 output characters per result; transcript capped near 230 KB.",
+   "evidence_path": "apps/workbench/src/agent/agent.js",
+   "evidence_lines": "EVAL_CAP, HISTORY, OUT_MAX, turnsFor",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Agent settings: tier quick/default/complex (Fast/Balanced/Deep), effort, mode auto/ask/readonly, scripts hold/run.",
+   "evidence_path": "apps/workbench/src/agent/agent.js",
+   "evidence_lines": "settings",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Agent conversations are kept in localStorage, at most 30, trimmed at 300 KB.",
+   "evidence_path": "apps/workbench/src/agent/agent.js",
+   "evidence_lines": "convs",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The agent scope exposes wb, editor, notes, compile, forks, params, kernels, devices, measure, tune, evidence, checks, presets, jobs, chat and ref; it has no lab namespace, so the agent cannot drive Perf Lab programs or boards.",
+   "evidence_path": "apps/workbench/src/agent/agent.js",
+   "evidence_lines": "357-537",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Read-only mode wraps every mutating scope member and throws ReadOnlyError; a held script raises HeldScriptError.",
+   "evidence_path": "apps/workbench/src/agent/agent.js",
+   "evidence_lines": "357-537",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Each eval runs in a fresh iframe with sandbox=allow-scripts and CSP default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; worker-src blob:, hosting a Blob worker.",
+   "evidence_path": "apps/workbench/src/agent/sandbox.js",
+   "evidence_lines": "1-62",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Inside the frame, compile and check run locally with compileScript; other page calls are proxied over a MessageChannel and executed by the page with approval.",
+   "evidence_path": "apps/workbench/src/agent/frame.js",
+   "evidence_lines": "5-16,53",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "Mutating evals can be undone: runEval snapshots page state and can restore or revert from a step.",
+   "evidence_path": "apps/workbench/src/agent/agent.js",
+   "evidence_lines": "runEval",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The server relay loop sends conversation, messages and tools to POST /api/agent/sample and runs at most 12 model calls per turn.",
+   "evidence_path": "apps/workbench/src/agent/gateway.js",
+   "evidence_lines": "17-35",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "main.jsx installs the server relay only when GET /api/agent/usage answers ready; otherwise the page relies on the claude.ai host bridge.",
+   "evidence_path": "apps/workbench/src/main.jsx",
+   "evidence_lines": "24",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "gateway.js accepts modelTier and reports it back as modelTierApplied without sending it; effort is documented but not read. The Fast/Balanced/Deep control is inert on the relay path.",
+   "evidence_path": "apps/workbench/src/agent/gateway.js",
+   "evidence_lines": "5,19,33,90-97",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "@kiln/server",
+   "fact": "The agent relay answers 503 no_model without KILN_MODEL and 503 no_api_key without ANTHROPIC_API_KEY; KILN_MODEL_URL defaults to https://api.anthropic.com/v1/messages.",
+   "evidence_path": "apps/server/src/agent.ts",
+   "evidence_lines": "252-253",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench",
+   "fact": "Perf Lab's agent runs model-written code with new AsyncFunction in the page, with no sandbox.",
+   "evidence_path": "lab-workbench/src/features/agent/runtime.ts",
+   "evidence_lines": "443",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench",
+   "fact": "Perf Lab's live agent turn loops at most 6 times over server-driven tool calls.",
+   "evidence_path": "lab-workbench/src/features/agent/runtime.ts",
+   "evidence_lines": "531-574",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "wb.compile shares pipelineFor, hasKernels and endToEnd with src/compile.js but writes compileScript's core sequence again, mutating live params where compileScript clones them.",
+   "evidence_path": "apps/workbench/src/ui/wb.js",
+   "evidence_lines": "13,154-188",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "compileScript has exactly one caller, the agent frame.",
+   "evidence_path": "apps/workbench/src/agent/frame.js",
+   "evidence_lines": "15,53",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "agent/frame.js says compile runs 'by the same compileScript the page uses', which is not true of the page.",
+   "evidence_path": "apps/workbench/src/agent/frame.js",
+   "evidence_lines": "10",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "compile.js, server-client.js and server-sync.js sit in src/, beside main.jsx, not in src/ui/.",
+   "evidence_path": "apps/workbench/src",
+   "evidence_lines": "",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "saveText and copyText are exported from the Kernels view module and imported by the Evidence, Agent and Notes views.",
+   "evidence_path": "apps/workbench/src/ui/Kernels.jsx",
+   "evidence_lines": "10-16",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "useStateRef, useInterval, useFrame, stateLabel and isBad are exported from common.jsx and imported nowhere.",
+   "evidence_path": "apps/workbench/src/ui/common.jsx",
+   "evidence_lines": "94-107",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "stateLabel and isBad describe a worker status model (idle, busy, restarting, stopped) that this page does not have; they look inherited from the imported workbench.",
+   "evidence_path": "apps/workbench/src/ui/common.jsx",
+   "evidence_lines": "94-95",
+   "category": "history",
+   "confidence": "inferred",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "lab/params.jsx says the workbench does not run lab captures yet, but labs.runPlan runs them as jobs.",
+   "evidence_path": "apps/workbench/src/ui/lab/params.jsx",
+   "evidence_lines": "4",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The Jobs view note refers to a 'Runs view'; Runs is a section of the Lab view, not a view id.",
+   "evidence_path": "apps/workbench/src/ui/Jobs.jsx",
+   "evidence_lines": "229",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The agent scope doc lists device ids 'webgpu cuda', but CUDA devices are host:<id>.",
+   "evidence_path": "apps/workbench/src/agent/agent.js",
+   "evidence_lines": "114",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The agent scope doc's chat.show view list omits hypotheses, jobs, lab, inspect and board:<id>.",
+   "evidence_path": "apps/workbench/src/agent/agent.js",
+   "evidence_lines": "120",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "pnpm test runs only the five non-browser tests (gateway, notes, presets, sandbox, server-sync); eight tests are manual.",
+   "evidence_path": "apps/workbench/package.json",
+   "evidence_lines": "test",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "test/ui.mjs uses Playwright with hardcoded Linux container paths and cannot run on the dev Mac as is.",
+   "evidence_path": "apps/workbench/test/ui.mjs",
+   "evidence_lines": "4,36",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "No test covers dock.js tree operations, wb.compile, marks.jsx or the lab board renderer.",
+   "evidence_path": "apps/workbench/test",
+   "evidence_lines": "",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "lab-e2e imports a Perf Lab data directory (dino-pr1005) and checks the resulting store byte for byte.",
+   "evidence_path": "apps/workbench/test/lab-e2e.mjs",
+   "evidence_lines": "",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "agent-e2e runs the agent through the relay against a fake model upstream and checks that secrets do not leak.",
+   "evidence_path": "apps/workbench/test/agent-e2e.mjs",
+   "evidence_lines": "",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The workbench has no direct dependency on @kiln/evidence or @kiln/exec; evidence arrives through @kiln/kiln's std library.",
+   "evidence_path": "apps/workbench/package.json",
+   "evidence_lines": "dependencies",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "scripts",
+   "fact": "shoot.mjs launches Chrome with a throwaway profile and drives it over the DevTools protocol; withPage is reused by five workbench tests and shoot-views.mjs.",
+   "evidence_path": "scripts/shoot.mjs",
+   "evidence_lines": "1-133",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "scripts",
+   "fact": "shoot-views.mjs defines 15 named shots, each setting a layout, preset and view through window.__kiln.wb.",
+   "evidence_path": "scripts/shoot-views.mjs",
+   "evidence_lines": "1-51",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "scripts",
+   "fact": "specimen.mjs builds its CSS from six files and omits jobs and lab/lab, unlike build.mjs.",
+   "evidence_path": "scripts/specimen.mjs",
+   "evidence_lines": "10",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "scripts",
+   "fact": "contrast.mjs reads light tokens from :root and dark tokens only from the [data-theme=dark] block.",
+   "evidence_path": "scripts/contrast.mjs",
+   "evidence_lines": "10-12",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "scripts",
+   "fact": "run-node-tests.mjs runs each *.mjs in a directory as a plain node script; Kiln tests are scripts that set process.exitCode, not framework suites.",
+   "evidence_path": "scripts/run-node-tests.mjs",
+   "evidence_lines": "1-4",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "scripts",
+   "fact": "kiln-export.mjs imports packages/kiln/src by relative path and writes kiln-program/1, or kiln-program-set/1 for parameter lists.",
+   "evidence_path": "scripts/kiln-export.mjs",
+   "evidence_lines": "2-20",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 3
+  },
+  {
+   "subject": "kiln",
+   "fact": "The repository README tells the reader to run python3 runner/kiln_runner.py serve, but kiln_runner.py only has device and run subcommands.",
+   "evidence_path": "runner/kiln_runner.py",
+   "evidence_lines": "",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench",
+   "fact": "lab-workbench is React 19 with Redux Toolkit, react-router, d3-scale/d3-shape, MathJax and Archivo/IBM Plex fonts.",
+   "evidence_path": "lab-workbench/package.json",
+   "evidence_lines": "",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/lab",
+   "fact": "All 16 language files shared by lab-workbench/src/lang and packages/lab/src/lang differ (build.ts 1030 vs 1036 lines, 38 diff lines; values.ts 89 vs 113, 156; stats.ts 122 vs 168, 126; refs.ts 2); packages/lab adds hypothesis.ts.",
+   "evidence_path": "packages/lab/src/lang",
+   "evidence_lines": "",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "@kiln/workbench",
+   "fact": "The page uses KaTeX for maths; Perf Lab uses MathJax.",
+   "evidence_path": "apps/workbench/src/ui/doc.js",
+   "evidence_lines": "",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  }
+ ],
+ "dependencies": [
+  {
+   "package": "@kiln/workbench",
+   "name": "react-dom",
+   "version": "18.3.1",
+   "kind": "prod",
+   "purpose": "rendering (createRoot)",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "name": "@kiln/kiln",
+   "version": "workspace:*",
+   "kind": "prod",
+   "purpose": "compiler, std library, devices, tune, evidence context",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "name": "@kiln/lab",
+   "version": "workspace:*",
+   "kind": "prod",
+   "purpose": "lab language build/runtime for boards inside Kiln",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "name": "esbuild",
+   "version": "0.24.2",
+   "kind": "dev",
+   "purpose": "bundles the page and the agent worker",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "name": "Google Chrome",
+   "version": "system",
+   "kind": "system",
+   "purpose": "scripts/shoot.mjs and the browser tests (default /Applications/Google Chrome.app)",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "name": "playwright",
+   "version": "external (/opt/npm-tools)",
+   "kind": "system",
+   "purpose": "test/ui.mjs only, with container paths",
+   "diary_step": 1
+  },
+  {
+   "package": "@kiln/workbench",
+   "name": "CUDA NVRTC/ptxas",
+   "version": "system",
+   "kind": "system",
+   "purpose": "test/cuda_check.py",
+   "diary_step": 1
+  }
+ ],
+ "docs": [
+  {
+   "path": "apps/workbench/reference.txt",
+   "title": "Kiln API reference",
+   "summary": "API reference shown in the Reference view and given to the agent.",
+   "topic": "workbench-ui",
+   "kind": "reference",
+   "diary_step": 3
+  },
+  {
+   "path": "apps/workbench/agent-guidelines.txt",
+   "title": "Agent guidelines",
+   "summary": "Rules the workbench agent follows; appended to its instructions.",
+   "topic": "workbench-ui",
+   "kind": "reference",
+   "diary_step": 3
+  }
+ ],
+ "diagrams": [
+  {
+   "title": "Kiln workbench page architecture",
+   "format": "mermaid",
+   "source": "flowchart LR\n  subgraph page[@kiln/workbench page]\n    main[main.jsx] --> App[ui/App.jsx]\n    App --> Dock[ui/Dock.jsx + dock.js]\n    Dock --> Views[views.jsx VIEWS]\n    Views --> KilnViews[Notes Code IR Graph Trace Kernels Perf Knobs Tune Evidence Hypotheses Devices Jobs Events]\n    Views --> LabViews[Lab Inspect board:id]\n    KilnViews --> wb[(wb singleton\\nui/wb.js)]\n    LabViews --> labs[(labs singleton\\nui/lab/state.js)]\n    labs -- publishes on lab channel --> wb\n    Views --> AgentPanel[ui/Agent.jsx]\n    AgentPanel --> agent[agent/agent.js]\n    agent --> sandbox[agent/sandbox.js iframe + worker]\n  end\n  wb --> kiln[@kiln/kiln compiler, std, devices]\n  labs --> lab[@kiln/lab]\n  wb -- http + sse --> server[@kiln/server]\n  labs -- /api/lab/* --> server\n  agent -- /api/agent/sample --> server\n  agent -- host bridge --> host[claude.ai artifact host]\n  kiln -- WebGPU --> gpu[browser GPU]\n  server -- jobs --> runner[runner / kiln-perf]\n",
+   "related": "apps/workbench/src/ui/wb.js; apps/workbench/src/ui/lab/state.js; apps/workbench/src/ui/Dock.jsx; apps/workbench/src/agent/agent.js",
+   "diary_step": 3
+  },
+  {
+   "title": "Kiln workbench agent eval through the sandbox",
+   "format": "mermaid",
+   "source": "sequenceDiagram\n  participant M as model (relay or host bridge)\n  participant A as agent.js (page)\n  participant F as sandbox iframe + worker (frame.js)\n  participant W as wb (page state)\n  M->>A: tool_use eval(code)\n  A->>A: approval (mode ask/auto/readonly)\n  A->>F: runInFrame(code, context) over MessageChannel\n  F->>F: compile/check locally (compileScript)\n  F->>A: proxied scope call (e.g. params.set)\n  A->>W: apply (snapshot first, undoable)\n  W-->>A: result\n  A-->>F: result (toWire)\n  F-->>A: eval result (toWire)\n  A-->>M: tool_result (encoded summary, OUT_MAX 9000)\n",
+   "related": "apps/workbench/src/agent/agent.js; apps/workbench/src/agent/sandbox.js; apps/workbench/src/agent/frame.js; apps/workbench/src/agent/encode.js",
+   "diary_step": 3
+  }
+ ],
+ "formats": [
+  {
+   "name": "kiln-kernels/1",
+   "kind": "wire",
+   "producers": "apps/workbench/src/server-client.js jobSpec/jobKernel",
+   "consumers": "@kiln/server job planner; runner (kiln-perf image)",
+   "fields": "[{\"name\": \"kind\", \"type\": \"string\", \"note\": \"kiln-kernels/1\"}, {\"name\": \"mode\", \"type\": \"timing|counters|timeline\"}, {\"name\": \"rerun\", \"type\": \"bool\"}, {\"name\": \"pairId\", \"type\": \"string?\"}, {\"name\": \"input\", \"type\": \"object\", \"note\": \"codegen, name, symbol, identity, row, knobs, contentId, source (CUDA), launch, inputs [{shape, seed, dtype?}], output, samples, expect, activation?, context?\"}, {\"name\": \"protocol (job)\", \"type\": \"object\", \"note\": \"reps 7, warmup 3, launches 20, seed 1 by default\"}]",
+   "definition_path": "apps/workbench/src/server-client.js",
+   "definition_lines": "136-165",
+   "notes": "The page's side of the capture kind; the server and runner sides belong to areas C and A.",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-wb localStorage state",
+   "kind": "record",
+   "producers": "apps/workbench/src/ui/wb.js; apps/workbench/src/agent/agent.js; apps/workbench/src/ui/lab/state.js",
+   "consumers": "the same modules on reload",
+   "fields": "keys under prefix kiln-wb: mine, protocol:<kind>, device, evidence2 (legacy evidence), layout, evidenceView/jobsView/hypothesesView flags, theme, last, draft, draftNotes, lab, agentSettings, convs",
+   "definition_path": "apps/workbench/src/ui/wb.js",
+   "definition_lines": "21-23,51-70",
+   "notes": "Per-browser state; conversations capped at 30 and 300 KB.",
+   "diary_step": 1
+  },
+  {
+   "name": "workbench preset header",
+   "kind": "file",
+   "producers": "apps/workbench/presets/*.js (authors)",
+   "consumers": "apps/workbench/build.mjs parseHeader",
+   "fields": "/** W-NN Title * group G * about text * try prompt | prompt */ followed by the project script; optional sibling .md notes",
+   "definition_path": "apps/workbench/build.mjs",
+   "definition_lines": "16-30",
+   "notes": "User presets are U-NN in localStorage.",
+   "diary_step": 1
+  },
+  {
+   "name": "agent eval wire",
+   "kind": "protocol",
+   "producers": "apps/workbench/src/agent/encode.js toWire",
+   "consumers": "apps/workbench/src/agent/encode.js fromWire; apps/workbench/src/agent/frame.js; apps/workbench/src/agent/sandbox.js",
+   "fields": "structured-clone-safe encoding of values crossing the page/frame MessageChannel",
+   "definition_path": "apps/workbench/src/agent/encode.js",
+   "definition_lines": "1-95",
+   "notes": "",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln evidence export",
+   "kind": "file",
+   "producers": "apps/workbench/src/ui/Evidence.jsx (saveText kiln-evidence.json)",
+   "consumers": "apps/workbench/src/ui/Evidence.jsx import",
+   "fields": "JSON of wb.store.toJSON()",
+   "definition_path": "apps/workbench/src/ui/Evidence.jsx",
+   "definition_lines": "73",
+   "notes": "",
+   "diary_step": 3
+  }
+ ]
+}

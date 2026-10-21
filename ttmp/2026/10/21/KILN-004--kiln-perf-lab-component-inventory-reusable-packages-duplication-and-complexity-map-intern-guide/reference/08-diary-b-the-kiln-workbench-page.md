@@ -322,3 +322,148 @@ path there becomes a dead link in the site.
   `ui/` to `src/`; `main.jsx:24` now states the `ready` condition; the §3.2 compile paragraph rewritten; two §10.2
   rows (download logic, compile sequence) refined; two path fixes in §12; §13 gains three rows (frame.js stale
   comment, `saveText` home, gateway `modelTier` echo detail).
+
+## Step 3: The inventory database rows for area B
+
+The user asked, through the orchestrator, for every finding to land in a SQLite inventory database built from one JSON
+file per area plus the markdown diaries, so that a browsable site can be generated from it. This step wrote
+`various/inventory/workbench-ui.json` (86 facts, 75 modules, 61 functionalities, 22 duplications and the rest; counts
+below) and tagged each row with the diary step that found it. Turning the notes into one row per file forced a
+second, finer pass over where things live, and that pass found three more misplacements in the notes: the Tune and
+Devices views are in `apps/workbench/src/ui/Perf.jsx`, not in `Knobs.jsx` and `Jobs.jsx`; the reference text sits at
+`apps/workbench/reference.txt`, not under a `docs/` directory; and the Reference view is a component of `Ide.jsx`.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1 (which links the original request in `01-investigation-diary.md`).
+
+**User instruction relayed by the orchestrator (summary, not a verbatim quote):** record every finding in the
+KILN-004 SQLite inventory database too, including the diary, with crosslinks, so that a browsable site can be built
+from it. The orchestrator's assignment for area B: fill `various/inventory/workbench-ui.json` per
+`playbook/01-inventory-database-contract-json-rows-diaries-and-crosslinks.md` (packages `@kiln/workbench` and
+`scripts`; modules; every view, report and panel as a functionality; functionality_modules; reusable components;
+duplications against the lab-workbench UI; hotspots; 50-150 facts with evidence; dependencies; service calls;
+formats; diagrams), tag rows with `diary_step`, validate with `load_inventory.py --check`, and commit the three files
+by pathspec.
+
+**Assistant interpretation:** one row per thing the notes name, keyed exactly as the contract says, with repo-relative
+paths that join to other areas' rows.
+
+**Inferred user intent:** a site where a duplication or hotspot links to its modules, its evidence lines and the diary
+step that found it.
+
+**Commit (code):** none (inventory only).
+
+**Previous commit:** 0f960aa — "KILN-004 B: re-verified workbench line references; diary step 2".
+
+### What I did
+
+- Read the contract (`playbook/01-inventory-database-contract-json-rows-diaries-and-crosslinks.md`), `scripts/schema.sql`,
+  `scripts/schema-kiln.sql` and the key/section tables of `scripts/load_inventory.py` (`KEYS`, `MENTION_KEYS`,
+  `SECTIONS`, `parse_diary`).
+- Listed the tracked files instead of trusting the notes' file map:
+  `git ls-files apps/workbench | grep -v "^apps/workbench/presets/"` and `git ls-files scripts`, plus
+  `git check-ignore -v apps/workbench/src/presets.gen.js apps/workbench/dist/kiln-workbench.html`
+  (→ `.gitignore:6:apps/workbench/src/*.gen.js` and `.gitignore:5:dist/`).
+- Located every component definition: `grep -nE "^(export )?(async )?function [A-Z]\w*|^(export )?const [A-Z]\w* = "`
+  over the view files and over `apps/workbench/src/ui/lab/*`, and read the imports and `VIEWS` map of
+  `apps/workbench/src/ui/views.jsx` (lines 1-42).
+- Read `apps/workbench/src/server-client.js:136-165` (`jobKernel`, `jobSpec`) for the `kiln-kernels/1` row,
+  `scripts/kiln-export.mjs:1-20` for `kiln-program/1`, and `apps/server/src/app.ts:31-39` for how the page is served.
+- Wrote a generator in the scratchpad (`tools/gen_workbench_inventory.py`) rather than hand-writing JSON: it computes
+  every `loc` from the files, builds the rows, and drops rows tagged with a diary step higher than its third
+  argument so the JSON never names a step that is not written yet. Run:
+  `python3 -I gen_workbench_inventory.py /Volumes/SSD/code/kiln <ticket>/various/inventory/workbench-ui.json 3`.
+- Applied 17 more exact-once edits to the notes (16 location fixes, then one adding the `ParamControl` and `Judged`
+  duplicates), and appended §16 with the two mermaid diagrams that are also `diagrams` rows. Notes: 835 lines.
+
+### Why
+
+- Functionality names carry a `Workbench view:`, `Workbench board panel:` or `Workbench:` prefix: names are a global
+  natural key, and area D will describe Perf Lab's own chart, table and gallery views.
+- Endpoint rows were left to area C (it owns `@kiln/server`); the page's side is recorded as `service_calls`, one per
+  endpoint family, with the calling file as evidence.
+- The `lab-workbench/src/lang` vs `packages/lab/src/lang` fork is recorded as a fact, not a duplication row: area D
+  owns both sides, and the contract's own example title is that duplication.
+- Dependencies `react` and `katex` for `@kiln/workbench` are already in `orchestrator.json`; repeating them would only
+  produce collisions, so this file adds `react-dom`, `@kiln/kiln`, `@kiln/lab`, `esbuild` and the system tools.
+
+### What worked
+
+- Generator output: `{'packages': 2, 'modules': 75, 'functionalities': 61, 'functionality_modules': 131,
+  'service_calls': 14, 'reusable_components': 14, 'duplications': 22, 'complexity_hotspots': 8, 'facts': 86,
+  'dependencies': 7, 'docs': 2, 'diagrams': 2, 'formats': 6}` on the first run; `formats` is 5 after the
+  collision fix below.
+- The `views.jsx` imports settle view ownership in eight lines: `PerfView, TuneView, DevicesView` from `./Perf.jsx`
+  (l.8), `JobsView, ServerLine` from `./Jobs.jsx` (l.12), and the Devices entry renders
+  `<><ServerLine /><DevicesView /></>` (l.37).
+
+### What didn't work
+
+- The first `--check` reported a cross-area collision:
+
+  ```text
+  PROBLEM: workbench-ui.json:formats[4]: formats row 'kiln-program/1' also defined by area 'compiler-runtime'; this one wins
+  ```
+
+  Area A owns that format (the runtime launchers read it), and "this one wins" meant this file would have
+  overwritten A's row. Recovery: the generator no longer emits a `kiln-program/1` format row; the export script's
+  use of it stays as a fact and a module row.
+- The second `--check` crashed before reporting anything:
+
+  ```text
+  File ".../scripts/load_inventory.py", line 221, in build
+    explicit_links.append((area, int(s), table, rowid, key))
+  TypeError: int() argument must be a string, a bytes-like object or a real number, not 'list'
+  ```
+
+  A scan of every inventory JSON for a list-valued `diary_step` found it in another area's file
+  (`various/inventory/perf-lab.json`, functionalities 15 and 16, `"diary_step": [1, 2]`), not in this one. That
+  file is not this area's to edit. Recovery: validate in an isolated copy of the ticket in the scratchpad
+  (`check/ttmp/2026/10/21/KILN-004/` with `scripts/`, `reference/*.md` and every inventory JSON, `perf-lab.json`
+  replaced by `{}`), where `load_inventory.py --check` exits 0 with no problem for `workbench-ui.json`. Reported to
+  the orchestrator in the final message.
+- Otherwise the failures were in the notes: `| tune | TuneView (Knobs.jsx)`,
+  `| devices | DevicesView + ServerLine (Jobs.jsx)` and `docs/reference.txt` were wrong, found only because each module
+  row needed a real path and a computed `loc`.
+
+### What I learned
+
+- `apps/workbench/src/ui/Perf.jsx` holds three of the dock's views (Perf at l.30, Tune at l.340, Devices at l.481), which
+  makes it a bigger hotspot than its "perf view" label suggests; the hotspot row now says so.
+- `ParamControl` is defined twice under one name (`Knobs.jsx:9`, exported and used by `Ide.jsx:6`; `lab/params.jsx:67`,
+  local), and so is `Judged` (`Hypotheses.jsx:139`, `lab/panels.jsx:265`).
+- `apps/server/src/app.ts:31-39` is where the token meta the page reads is injected, which closes the loop on how
+  `sessionToken()` (`packages/kiln/src/std/devices.js:297`) gets a value.
+
+### What was tricky to build
+
+- Natural keys across areas. A module row's `path` is global, so a row for a Perf Lab file here would collide with
+  area D's. Duplication rows therefore cite Perf Lab files only inside `locations` (free JSON), never as module rows.
+- The loader's mention links match module paths in diary text. Diary paths are therefore written repo-relative
+  (`apps/workbench/src/ui/Perf.jsx`), while the notes keep the shorter `ui/Perf.jsx` style for readability.
+
+### What warrants a second pair of eyes
+
+- Functionality categories for views: views are `views` (or `agent` for the Agent view) and the domain sits in the
+  description; a reviewer may prefer the domain category (`measurement`, `jobs`) for views too.
+- `service_calls` to `claude.ai artifact host` use a `to_package` that is not in the shared package list; it is a real
+  call target but has no `packages` row.
+
+### What should be done in the future
+
+- Confirm the headline duplication rows with diffs (Step 4).
+- The orchestrator may want an `endpoints`-style table for page-side calls; `service_calls` with one row per endpoint
+  family is the closest fit in the current schema.
+
+### Code review instructions
+
+- `python3 <ticket>/scripts/load_inventory.py --check` must report no problem for `workbench-ui.json`.
+- Spot-check rows: `python3 -c "import json;d=json.load(open('<ticket>/various/inventory/workbench-ui.json'));print([f for f in d['facts'] if 'Perf.jsx' in f['evidence_path']])"`.
+
+### Technical details
+
+- Rows by step: everything found in Step 1 carries `diary_step: 1`; Step 2's corrections (relay opt-in, `modelTier`
+  echo, compile sequence, `saveText`, `src/` placement, frame.js comment) carry `2`; this step's finds (view placement,
+  `reference.txt`, `.gen.js` ignore rule, `ParamControl`/`Judged`, page serving, `kiln-program/1`, the export script,
+  evidence export, docs, diagrams) carry `3`.

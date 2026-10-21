@@ -72,7 +72,8 @@ Marking convention:
 
 ### 1.3 File map with sizes
 
-Source under `apps/workbench/src/` (generated `*.gen.js` excluded):
+Source under `apps/workbench/src/` (generated `*.gen.js` excluded; they are gitignored by the repo-root
+`.gitignore:6`, `apps/workbench/src/*.gen.js`):
 
 | File                         | LOC | Role                                                                  |
 | ---------------------------- | --- | --------------------------------------------------------------------- |
@@ -88,8 +89,8 @@ Source under `apps/workbench/src/` (generated `*.gen.js` excluded):
 | `ui/Notes.jsx`               | 58  | Notes view (markdown + KaTeX + hypothesis slots)                      |
 | `ui/Compiler.jsx`            | 358 | IR, graph, trace views                                                |
 | `ui/Kernels.jsx`             | 97  | Kernels table + source tabs                                           |
-| `ui/Perf.jsx`                | 528 | Performance view, roofline, compare panel                             |
-| `ui/Knobs.jsx`               | 179 | Forks/knobs table, params, tune view                                  |
+| `ui/Perf.jsx`                | 528 | Perf view (roofline, compare), **Tune view** (l.340) and **Devices view** (l.481) |
+| `ui/Knobs.jsx`               | 179 | Knobs view (forks table, `ForkDetail`), shared `ParamControl` (l.9)   |
 | `ui/Evidence.jsx`            | 225 | Evidence records browser                                              |
 | `ui/Hypotheses.jsx`          | 145 | Kiln-project hypotheses                                               |
 | `ui/Jobs.jsx`                | 256 | Server jobs, devices/hosts                                            |
@@ -128,8 +129,8 @@ Source under `apps/workbench/src/` (generated `*.gen.js` excluded):
 | `ui/jobs.css`                | 29  | Jobs                                                                  |
 | `ui/lab/lab.css`             | 221 | Lab boards                                                            |
 | `ui/utilities.css`           | 6   | Utility classes                                                       |
-| `docs/reference.txt`         | 198 | Reference text (shown in the Reference view, fed to the agent)        |
-| `docs/agent-guidelines.txt`  | 22  | Agent guidelines                                                      |
+| `../reference.txt`           | 198 | Reference text (`apps/workbench/reference.txt`; Reference view, agent) |
+| `../agent-guidelines.txt`    | 22  | Agent guidelines (`apps/workbench/agent-guidelines.txt`)              |
 
 Approximate totals [obs, summed]: UI JS/JSX ~7,000 LOC (of which the `lab/` subfolder is 2,468
 including `lab.css`), agent ~975 LOC, CSS ~1,080 LOC.
@@ -153,7 +154,7 @@ All observed in `apps/workbench/build.mjs`:
    `src/labs.gen.js` → `LAB_PROGRAMS`, each validated against `PRESET_INFO` imported from
    `../../packages/lab/src/presets.ts` **by relative path** (not through the package entry). An
    unlisted lab preset throws at build time.
-4. **Docs** (l.40). `docs/reference.txt` and `docs/agent-guidelines.txt` → `src/docs.gen.js`
+4. **Docs** (l.40). `apps/workbench/reference.txt` and `apps/workbench/agent-guidelines.txt` → `src/docs.gen.js`
    (`REFERENCE`, `GUIDELINES`).
 5. **Agent worker** (l.41-43). esbuild bundles `src/agent/worker-main.js` as an IIFE string into
    `src/frame.gen.js` → `WORKER_JS`; this is later turned into a Blob worker inside the sandbox
@@ -183,7 +184,7 @@ one HTML file [obs from build steps + dist size].
 | ----------------------- | --------------- | ------------------------------------- |
 | `src/presets.gen.js`    | `PRESETS`       | `presets/*.js` + `.md`                |
 | `src/labs.gen.js`       | `LAB_PROGRAMS`  | `packages/lab/presets/*.lab.js`       |
-| `src/docs.gen.js`       | `REFERENCE`, `GUIDELINES` | `docs/*.txt`                |
+| `src/docs.gen.js`       | `REFERENCE`, `GUIDELINES` | `reference.txt`, `agent-guidelines.txt` |
 | `src/frame.gen.js`      | `WORKER_JS`     | esbuild of `src/agent/worker-main.js` |
 
 ---
@@ -385,17 +386,17 @@ All view ids come from `dock.js:6-11` and are registered in `views.jsx:23-42` [o
 | `notes`      | `NotesView` (`Notes.jsx`)                | preset `.md` / `draftNotes`; `doc.js` markdown + KaTeX; `lab:` links; ```` ```hypothesis ```` blocks portaled as `NoteHypothesis` (evaluated hypotheses) |
 | `code`       | `CodePane` (`Ide.jsx`)                   | `wb.script`, diagnostics, `ParamControl` groups from params, `Checks` from `wb.e2e` / outputs          |
 | `agent`      | `AgentPanel` (`Agent.jsx`)               | agent conversations, settings, pending approvals                                                       |
-| `reference`  | (`views.jsx`)                            | `REFERENCE` + `GUIDELINES` from `docs.gen.js`                                                          |
+| `reference`  | `Reference` (`Ide.jsx:141`)              | `REFERENCE` + `GUIDELINES` from `docs.gen.js`                                                          |
 | `ir`         | `IrView` (`Compiler.jsx`)                | `wb.run` pipeline: `PipeMap`, `StepBanner`, `IrText` (clickable nodes), `NodeSide`                     |
 | `graph`      | `GraphView` (`Compiler.jsx`)             | IR graph; own layered layout in SVG; 500-node cap                                                      |
 | `trace`      | `TraceView` (`Compiler.jsx`)             | pass trace steps, `Diff` via `unifiedDiff`, per-pass stats, declined rewrites                          |
 | `kernels`    | `KernelsView` (`Kernels.jsx`)            | `wb.prog` kernels: model vs measured vs validity; `KernelIds` (content ids + activation); tabs CUDA / WGSL / Kernel IR / Tile / Loop / Launch |
 | `perf`       | `PerfView` (`Perf.jsx`)                  | `BigNumber` total, history `Spark`, per-kernel model/sim/hw `Val` cells, metrics, `Roofline` (SVG + `placeLabels`), "Across devices", titleblock, `KernelMetrics`, `ComparePanel` (paired ratio via `std.evidence.evidenceContext().ev.ratio`) |
 | `knobs`      | `KnobsView` (`Knobs.jsx`)                | forks table, `ForkDetail` options with evidence, param side panel; `paramGroups`, `STD_KNOBS`          |
-| `tune`       | `TuneView` (`Knobs.jsx`)                 | tune runs; `TuneChart` SVG                                                                             |
+| `tune`       | `TuneView` (`Perf.jsx:340`)              | tune runs; `TuneChart` SVG (`Perf.jsx:375`)                                                                             |
 | `evidence`   | `EvidenceView` (`Evidence.jsx`)          | evidence store records grouped by identity / row / device; import/export/forget; `RecordDetail`; `Strip` SVG |
 | `hypotheses` | `HypothesesView` (`Hypotheses.jsx`)      | `wb` hypotheses evaluated with `std.evidence.evaluateHypotheses`; `HypothesisCard`, `Predicate`, `Rows` |
-| `devices`    | `DevicesView` + `ServerLine` (`Jobs.jsx`)| devices list, server hosts (`HostBlock`, capabilities, probe), `ProtocolBlock`                         |
+| `devices`    | `ServerLine` (`Jobs.jsx:237`) + `DevicesView` (`Perf.jsx:481`) | devices list, server hosts (`HostBlock` `Perf.jsx:433`, capabilities, probe), `ProtocolBlock` (`Perf.jsx:406`)                         |
 | `jobs`       | `JobsView` (`Jobs.jsx`)                  | server jobs: `JobStamp`, `Verdicts`, `PlanSteps`, `DryRun`, `JobDetail`, archive links                 |
 | `events`     | `EventsView` (`Events.jsx`)              | workbench log and last compile events                                                                  |
 | `lab`        | `LabView` (`lab/LabView.jsx`)            | `labs`: program picker by group, boards list, hypotheses table, `Plan` (runPlan / dryRun), `LabDryRun`, `HostReports`, `Runs` |
@@ -473,7 +474,7 @@ Usage check in section 13.
 
 ### 6.3 Reference text
 
-`docs/reference.txt` (198 LOC) and `docs/agent-guidelines.txt` (22 LOC) [obs]. Both feed the
+`apps/workbench/reference.txt` (198 LOC) and `apps/workbench/agent-guidelines.txt` (22 LOC) [obs]. Both feed the
 Reference view and the agent's instructions [obs].
 
 ---
@@ -635,7 +636,7 @@ Other cross-app duplication:
 | Agent UI         | `ui/Agent.jsx` (267): `AgentPanel`, `History`                                                    | `organisms/AgentRail/AgentRail.tsx` (202), `TranscriptLibrary/TranscriptLibrary.tsx` (289)                                                       |
 | State            | `wb` + `labs` singletons, named channels, `useSyncExternalStore`                                 | Redux Toolkit `app/store.ts` + slices                                                                                                            |
 | Design tokens    | `ui/tokens.css` (44): Swiss monochrome, Arial, red accent only                                   | `styles/tokens.css` (133): "Lattice Deck" paper/sheet, `sig/warn/bad/ok`, `--d1..d4` data palette                                               |
-| Charts           | hand-rolled SVG (`charts.jsx`, `Perf.jsx` Roofline, `Knobs.jsx` TuneChart, `common.jsx` Spark, `Evidence.jsx` Strip) | d3-scale / d3-shape in `ChartView.tsx`                                                                                   |
+| Charts           | hand-rolled SVG (`charts.jsx`, `Perf.jsx` Roofline and TuneChart, `common.jsx` Spark, `Evidence.jsx` Strip) | d3-scale / d3-shape in `ChartView.tsx`                                                                                   |
 | Math rendering   | KaTeX (`doc.js`)                                                                                 | MathJax                                                                                                                                          |
 | Lab language     | consumes `@kiln/lab` (`lab/api.js:5`)                                                            | its own `lab-workbench/src/lang/*.ts` (does not import `@kiln/lab`)                                                                              |
 
@@ -659,12 +660,14 @@ determines whether the two UIs can show the same board identically.)
 | `plural` helper ×5                  | `Hypotheses.jsx:7`, `Jobs.jsx:6`, `Evidence.jsx:11`, `marks.jsx:12`, `lab/LabView.jsx:95` (identical one-liner) |
 | `when` date formatter ×2            | `Jobs.jsx:7`, `Evidence.jsx:10` (near-identical; Jobs adds a null guard)                                       |
 | `Empty` component ×3                | `common.jsx:92` (exported) vs local redefinitions `lab/panels.jsx:24`, `lab/inspect.jsx:12` (identical to each other, different markup from common) |
+| Two `ParamControl` components       | `Knobs.jsx:9` (exported, used by the Code view via `Ide.jsx:6`) and a local one at `lab/params.jsx:67`; same name, different param models |
+| Two `Judged` helpers                | `Hypotheses.jsx:139` (one check) and `lab/panels.jsx:265` (a list of checks), inside the two hypothesis cards |
 | Two dry-run UIs                     | `Jobs.jsx` `DryRun` and `lab/LabView.jsx` `LabDryRun`, both composing `Verdicts` / `PlanSteps`                 |
 | Download/save-text logic ×3         | `saveText` is exported from `Kernels.jsx:10-15` and imported by `Evidence.jsx:7`, `Agent.jsx:11`, `Notes.jsx:7`; `App.jsx:49-55` (script download) and `App.jsx:109` (notes download) inline the same downloads-or-clipboard logic instead |
 | Compile sequence ×2                 | `wb.js:157-181` and `src/compile.js:22-36` (`compileScript`); helpers are shared, the sequence is not           |
 | Dark tokens ×2                      | `tokens.css:24-31` and `tokens.css:32-39`                                                                      |
 | CSS file list ×2                    | `build.mjs:55` and `scripts/specimen.mjs:10` (already drifted)                                                 |
-| Hand-rolled SVG chart scaffolding ×5| `Perf.jsx` Roofline, `Knobs.jsx` TuneChart, `common.jsx` Spark, `Evidence.jsx` Strip, `lab/charts.jsx` [inf: no shared axis/scale helper found] |
+| Hand-rolled SVG chart scaffolding ×5| `Perf.jsx:249` Roofline, `Perf.jsx:375` TuneChart, `common.jsx` Spark, `Evidence.jsx` Strip, `lab/charts.jsx` [inf: no shared axis/scale helper found] |
 
 ---
 
@@ -683,7 +686,8 @@ Ranked by how much unrelated responsibility one unit carries (LOC as a proxy) [i
    section 13).
 3. **`ui/Perf.jsx` (528 LOC)**: totals, history, per-kernel model/sim/hw cells, metrics, the
    Roofline (SVG + `placeLabels` collision layout), cross-device table, titleblock and the
-   `ComparePanel` in one file. Long single-line JSX rows (e.g. `Perf.jsx:109`) combine formatting,
+   `ComparePanel` in one file, and also the Tune view (`Perf.jsx:340-399`) and the Devices view with
+   `ProtocolBlock` and `HostBlock` (`Perf.jsx:400-528`): three of the dock's views live in it. Long single-line JSX rows (e.g. `Perf.jsx:109`) combine formatting,
    provenance and layout.
 4. **`ui/lab/charts.jsx` (503 LOC)**: three charts (chart, timeline, mirror) with their own scale
    and tick logic, written without d3.
@@ -771,3 +775,61 @@ Exports that **are** used (checked, to bound the dead list): `Pill` (`App.jsx:98
 - Whether Example B of KILN-002 was intended to be W-27.
 - How much of `packages/lab/src/lang` divergence from `lab-workbench/src/lang` is intentional
   (owned by the packages inventory).
+
+---
+
+## 16. Diagrams
+
+Both diagrams are also rows in the inventory database (`diagrams`, area `workbench-ui`).
+
+### 16.1 Page architecture
+
+Two stores, one dock, one agent; arrows to the right leave the page.
+
+```mermaid
+flowchart LR
+  subgraph page[@kiln/workbench page]
+    main[main.jsx] --> App[ui/App.jsx]
+    App --> Dock[ui/Dock.jsx + dock.js]
+    Dock --> Views[views.jsx VIEWS]
+    Views --> KilnViews[Notes Code IR Graph Trace Kernels Perf Knobs Tune Evidence Hypotheses Devices Jobs Events]
+    Views --> LabViews[Lab Inspect board:id]
+    KilnViews --> wb[(wb singleton\nui/wb.js)]
+    LabViews --> labs[(labs singleton\nui/lab/state.js)]
+    labs -- publishes on lab channel --> wb
+    Views --> AgentPanel[ui/Agent.jsx]
+    AgentPanel --> agent[agent/agent.js]
+    agent --> sandbox[agent/sandbox.js iframe + worker]
+  end
+  wb --> kiln[@kiln/kiln compiler, std, devices]
+  labs --> lab[@kiln/lab]
+  wb -- http + sse --> server[@kiln/server]
+  labs -- /api/lab/* --> server
+  agent -- /api/agent/sample --> server
+  agent -- host bridge --> host[claude.ai artifact host]
+  kiln -- WebGPU --> gpu[browser GPU]
+  server -- jobs --> runner[runner / kiln-perf]
+```
+
+### 16.2 One agent eval through the sandbox
+
+The model never touches page state directly: code runs in a sandboxed worker, and every mutating call crosses back
+to the page, where it is approved (by mode) and snapshotted for undo.
+
+```mermaid
+sequenceDiagram
+  participant M as model (relay or host bridge)
+  participant A as agent.js (page)
+  participant F as sandbox iframe + worker (frame.js)
+  participant W as wb (page state)
+  M->>A: tool_use eval(code)
+  A->>A: approval (mode ask/auto/readonly)
+  A->>F: runInFrame(code, context) over MessageChannel
+  F->>F: compile/check locally (compileScript)
+  F->>A: proxied scope call (e.g. params.set)
+  A->>W: apply (snapshot first, undoable)
+  W-->>A: result
+  A-->>F: result (toWire)
+  F-->>A: eval result (toWire)
+  A-->>M: tool_result (encoded summary, OUT_MAX 9000)
+```
