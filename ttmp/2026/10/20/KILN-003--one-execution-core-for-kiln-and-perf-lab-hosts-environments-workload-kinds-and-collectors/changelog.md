@@ -33,3 +33,12 @@ P0/P1 server side: @kiln/exec (model, kinds, collectors, offers, planner, runs),
 - /Volumes/SSD/code/kiln/apps/server/src/exec/jobs.ts — The one job API
 - /Volumes/SSD/code/kiln/packages/exec/src/plan.ts — The planner
 - /Volumes/SSD/code/kiln/runner/kiln_driver.py — The driver
+
+## 2026-10-20
+
+Step 4: workbench on hosts — HostDevice, Jobs with verdicts/plan/dry run/reimport, Devices with capability documents; plan_steps column; device.updated after import; u8 dtype in kiln-kernels/1 (79ab40d)
+
+### Related Files
+
+- /Volumes/SSD/code/kiln/apps/workbench/src/server-sync.js — HostDevice
+- /Volumes/SSD/code/kiln/apps/workbench/src/ui/Jobs.jsx — Jobs view with plans and dry runs

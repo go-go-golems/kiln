@@ -491,3 +491,147 @@ The archive a driver returns: `plan.json`, `events.ndjson`, `execution.json` (`k
 `conditions/{before,after}.json`, `logs/<step>.{out,log}`, `out/<step>/…` (for kiln-kernels: `results.json`, and
 `gpu.csv` from the sampler). `steps.ndjson` stays in the driver's job directory; it exists only so that recovery can
 write `execution.json`.
+
+## Step 4: The workbench on hosts: host devices, Jobs with plans and dry runs, Devices with capability documents
+
+This step moves the page onto the API of Step 3. A server device used to be one executor; now it is one host, and
+its identity as evidence (the `cuda:<name>-<hash>` device id records carry) is not known until the host's first job
+has run, because that id comes from the runner's device report, not from the probe's `nvidia-smi` facts. The page
+therefore shows a host as its probed GPU until the first records arrive and then adopts the device those records
+name. The browser-side CUDA path (download the runner, export a bundle, import results) is deleted; CUDA runs only as
+a job on a host.
+
+The Jobs view now shows what the planner decided: every capture's verdict (execute, cached, blocked, with the
+reason), the job's `kiln-plan/1` steps (environment, argv with collector wraps, the capture repetitions each step
+serves, sidecars), the result archive as a download, and Reimport. Perf Lab's Plan tab lives here as Dry run, which
+plans the current program on the selected host and stores nothing. Devices shows one block per host with its
+capability document. The served end-to-end test (`test/server-e2e.mjs`) passes against a real driver.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 3. No new prompt; this step continues "Implement" with the agreed scope.
+
+**Assistant interpretation:** Make the page speak hosts, jobs and capability documents, with no adapter for the
+executor API, and keep the served end-to-end test as the gate.
+
+**Inferred user intent:** The rich Perf Lab planning views available in Kiln's own Jobs view, on real hosts.
+
+**Commit (code):** 79ab40d — "KILN-003 P1: the workbench on hosts and the one job API"
+
+### What I did
+
+- **`packages/kiln/src/std/devices.js`**: removed `CudaDevice`, `bundle` and `ingest`; `makeDevices()` returns the
+  simulators and WebGPU. `cudaTarget` stays (host devices use it).
+- **`apps/workbench/src/server-sync.js`**: `HostDevice` (id `host:<host>`) replaces `ServerDevice`. `adopt(hostView,
+  device)` takes `GET /hosts` and the device the host's records name (`GET /devices`, latest `cuda` device of that
+  host). Status words: `ready`, `not probed yet`, `not reachable: …`, `cannot run kernels: <blocked reason>`.
+  `hostDevices()` makes one device per host that offers kiln-kernels/1, is not probed yet, or has GPUs.
+- **`apps/workbench/src/ui/wb.js`**: `serverDevices()` reads hosts and devices, keeps `wb.hosts`; `host.updated`
+  refreshes them; new `openPlan(id)`, `dryRunJob(device)`, `closeDryRun()`, `probeHost(id)`; `proposeJob` and
+  `jobSettled` use `host`. The `RUNNER` export and the bundle/import code are gone.
+- **`apps/workbench/src/ui/Jobs.jsx`** (rewritten): the list shows host, capture count, kinds and protocol;
+  `importing` is a status; the side panel has Captures (verdict table), Plan (`PlanSteps`), Events, Records, the
+  archive link and Reimport; a Dry run block appears above the selected job.
+- **`apps/workbench/src/ui/Perf.jsx`**: the "A real CUDA GPU" block (runner download, bundle export, paste import) is
+  replaced by `HostBlock`: driver URL, hostname, driver hash and whether it is current, queue, probe time, machine
+  (arch, kernel, memory, free disk, docker), GPUs, the GPU-counter permission, an environment table (image ref and
+  id, whether the probe container ran, every command/module/tool found with its version), and the offers (kinds and
+  collectors, blocked ones struck through with the reason). A Probe button reprobes.
+- **`apps/workbench/src/agent/agent.js`**: `jobs.list()` reports host and captures; new `jobs.hosts()`;
+  `jobs.propose({ device })` accepts a host id. `reference.txt` describes `host:<id>` devices.
+- **Server** (`apps/server/src/exec/hosts.ts`, `jobs.ts`, `db.ts`):
+  - `HostView` gains `machine` (the probe's host facts) and `environmentFacts` (per environment: image ref and id,
+    ok/error, python, GPU visibility, and `found`: every command, module and tool with its version or null);
+  - the `jobs` table gains `plan_steps`, so list views (and `job.updated` events) carry the step count without reading
+    plan files;
+  - after an import that added records, the server emits `device.updated` for each device the job's records name.
+- **`packages/exec/src/kinds/kiln-kernels.ts`**: inputs accept an optional `dtype` (`f32` | `u8`), copied into the
+  runner bundle (`kiln_runner.py` already reads `i.get("dtype", "f32")`); the content id ignores it (the source names
+  the pointer type). `server-client.js` `jobKernel` sets `dtype: "u8"` from `kern.inDtypes`.
+- **`apps/server/test/support/serve-dev.ts`**: writes the fake runner's outputs for jobs announced `proposed` or
+  `approved`.
+- **Tests**: `server-sync.mjs` (host devices; a job kernel carries u8; no host devices without a server),
+  `server-e2e.mjs` (host device ids, evidence id adopted after the first job, captures and steps in the job view),
+  `exec.test.ts` (u8 reaches the bundle; `f16` is refused).
+
+### Why
+
+- A host is the unit the server plans for and the driver queues on; a page device per executor no longer exists.
+- The evidence id cannot be guessed before a job: the runner's `cudaGetDeviceProperties` report (SM count, shared
+  memory per block, driver integer, clocks) is what is fingerprinted, and `nvidia-smi` does not report all of it.
+- `plan_steps` as a column: `toView` used to read the plan file only for detailed views, so every `job.updated` said
+  `steps: 0`. Reading up to 200 plan files per list was the alternative.
+
+### What worked
+
+- `pnpm --filter @kiln/server test`: 80 passed. `pnpm --filter @kiln/exec test`: 12 passed. `pnpm --filter
+  @kiln/workbench test`: 5 files passed (`server-sync.mjs` 28 checks). `pnpm --filter @kiln/kiln test`: 13 passed.
+  Server `tsc --noEmit` clean.
+- `node test/server-e2e.mjs` (Chrome, dev server with a real `kiln_driver.py` and the fake runner): all passed —
+  job `on dev-fake: 1 captures, 7 steps; events proposed → approved → submitted → job.queued → driver.started →
+  lock.acquired → conditions → step.started → step.output → step.finished → result → done; statuses seen approved →
+  running → importing → done`; the record is valid, fresh, on `cuda:fake-gpu-development-2b7b53f8`; the compile then
+  decides "by evidence (confirms the model)".
+
+### What didn't work
+
+- First `pnpm --filter @kiln/workbench test`: `FAIL a token without the Kiln server behind it: no server, the runner
+  device stays` — the test expected the deleted runner device. Rewritten to expect no host devices.
+- First e2e: `Error: timed out waiting for (… j?.status === "done" && … wb.run.decisions.some((d) => d.by ===
+  "evidence") …)`. The diagnostic dump showed the job `done` with one record but decisions `["model"]`. Two causes,
+  found in turn:
+  1. The device had no evidence id: nothing told the page that the host now had a device. Fixed by `device.updated`
+     after import. The dump then showed `"ev": "cuda:fake-gpu-development-2b7b53f8"` matching the record, still
+     `"model"`.
+  2. The record was `invalid`: `serve-dev.ts` wrote the fake outputs only on `job.updated` with status `proposed`, but
+     a user's job is created `approved`, so the fake runner returned outputs that failed the check. Fixed by writing
+     them for `proposed` or `approved`.
+- Third e2e: three expectation failures — `the host device: CUDA Fake H100 · dev-fake · null`, `1 captures, 0 steps`,
+  `on null`. The first and third were the old assumption that the evidence id exists before a job (the test now
+  asserts it does not, and that the device adopts it after); the second was the `steps: 0` list view (fixed by
+  `plan_steps`).
+- A `Write` of `Jobs.jsx` was refused ("File has not been read yet") because the file had been read with `cat`; the
+  parallel `Bash` edits to `wb.js` and `jobs.css` did land. Re-read and wrote again.
+
+### What I learned
+
+- Before a host's first job its page device decides schedules against a target built from `nvidia-smi` facts (`cc`
+  9.0 → the H100 spec, 132 SMs); after it, against the runner's report. Both gave the same kernel here, but on a GPU
+  whose SM count or shared memory differ from the spec table, the first Measure can be of a different schedule than
+  the one compiled after it.
+- The serve-dev hook is the one place test data is injected; a status filter there silently invalidates records
+  rather than failing the job.
+
+### What was tricky to build
+
+- The order of `records.added` and `device.updated`: records arrive first, the page compiles (still without an
+  evidence id, so "model"), then the device update sets the id and `serverDevices()` recompiles because
+  `evidenceId !== was`. The e2e waits on the end state, not on the first compile after the records.
+
+### What warrants a second pair of eyes
+
+- `HostDevice.adopt` picks the host's *latest* `cuda` device. A host with two GPUs, or a driver/firmware change that
+  makes a new fingerprint, gives the page whichever device measured last.
+- `device.updated` from `importStored` also fires on Reimport; harmless (the page re-reads devices) but chatty.
+
+### What should be done in the future
+
+- The lab dock still sets no host reports (`setLocalReport(null, "host reports move to /api/hosts")`); Step 5 replaces
+  the synthetic `HOSTS` with reports derived from `/api/hosts`.
+- Screenshots of Jobs and Devices come with real hosts (Mac and bling), not the fake GPU.
+
+### Code review instructions
+
+- Start with `apps/workbench/src/server-sync.js` (`HostDevice`, `hostDevices`), then `wb.js` (`serverDevices`,
+  `openPlan`, `dryRunJob`, `probeHost`), then `Jobs.jsx` and `HostBlock` in `Perf.jsx`.
+- Validate: `pnpm --filter @kiln/workbench build && node apps/workbench/test/server-e2e.mjs`.
+
+### Technical details
+
+The diagnostic dump that found the invalid record (from the e2e's `catch`):
+
+```json
+"recDev": [["cuda:fake-gpu-development-2b7b53f8", "invalid", "f061c1b3…"]],
+"target": ["CUDA Fake GPU (development)", 132, 49152],
+"devs": ["host:dev-fake=cuda:fake-gpu-development-2b7b53f8"]
+```
