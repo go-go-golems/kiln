@@ -315,3 +315,86 @@ The main finding is that the history contains reversals made within hours. Four 
   - the golden matching test;
   - the vendored-launcher hash test;
   - `diff -rq`, run by hand.
+
+## Step 3: Turning the notes into history.json rows
+
+The orchestrator asked me to wrap up to save credits: no more source reading, build `history.json` from the committed notes, write one diary step, run `--check` and make one commit. I generated the rows with a scratchpad script (`gen_history.py`), which writes only `various/inventory/history.json`. Every row cites a path and lines that already appear in the notes.
+
+The file has 54 `docs`, 107 `facts`, 34 `functionalities`, 12 `duplications`, 7 `formats` and 3 `diagrams`. Playback paths carry the `playback:` prefix. Paths in the two satellite worktrees are absolute.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 1.
+
+**Orchestrator message (my summary, not a user quote):** wrap up now. Build the rows from the notes in this priority order: docs, glossary facts, decision facts, functionalities, formats, one mermaid timeline. Then write one diary step, run `--check`, make one pathspec commit and reply with a short summary.
+
+**Assistant interpretation:** turn the existing notes into rows. No new findings, apart from the identity check below.
+
+**Commit (code):** previous commit `0057524` ("KILN-004 E: history notes complete; diary step 2").
+
+### What I did
+
+**Rows written:**
+
+- **`docs`:** every index, tasks, changelog, design doc, diary and source-notes file of the six tickets, plus `README.md`, `imports/Untitled.md`, the Perf Lab README and these notes.
+- **`facts`:**
+
+  | Category | Rows |
+  | --- | --- |
+  | history | 14 |
+  | decision | 28 |
+  | gotcha | 22 |
+  | security | 5 |
+  | glossary terms (as `architecture` / `contract`) | 19 |
+  | metric | 18 |
+  | the capture-identity fact | 1 |
+- **`functionalities`:** named "Ticket claim (TICKET): …". Each one's status (built, partial, planned, abandoned, blocked or superseded) is in `notes`.
+- **`duplications`:** only those the docs admit, or that the notes' copy map lists.
+- **`formats`:** only ones no other area had written: `kiln-paired/1`, `kiln-probe/1`, `kiln-capture/1`, the cyrb53 lab hash, `detection-qualification/v1`, and two designed ML-PERF-003 formats.
+- **`diagrams`:** the timeline, the remote-execution reversal chain and the copy map.
+
+**One check before writing.** `packages/exec/src/identity.ts:6-18` and `apps/server/src/db.ts:248-252` show that KILN-003 does key captures by a SHA-256 `kiln-capture/1` id, and keeps cyrb53 only as `lab_hash`. I corrected notes §3.2 to say so.
+
+**Validation:** ran `python3 $T/scripts/load_inventory.py --check`; the result is recorded below.
+
+### Why
+
+- I kept the format names away from the ones the compiler-runtime and workbench-ui areas had already written, so there are no title collisions to reconcile.
+- The duplication title "lab language compiler: lab-workbench/src/lang vs packages/lab/src/lang" is the contract's own example. The perf-lab area will probably use the same title. That collision is intended: the orchestrator reconciles it.
+
+### What worked
+
+- The notes held every citation the rows needed, so I read no new sources apart from the identity check above.
+
+### What didn't work
+
+- `load_inventory.py --check` exited 0. It reported two collisions, both resolved in favour of perf-lab.json:
+  - `perf-lab.json:duplications[0]: duplications row 'lab language compiler: lab-workbench/src/lang vs packages/lab/src/lang' also defined by area 'history'; this one wins`
+  - `perf-lab.json:formats[5]: formats row 'detection-qualification/v1' also defined by area 'history'; this one wins`
+- The first was intended. The second exists because the perf-lab area also wrote `detection-qualification/v1`; the orchestrator reconciles both.
+- Totals after the load: 343 facts, 53 duplications, 32 formats, 56 docs, 9 diagrams, 18 diary entries and 1,384 diary links.
+
+### What I learned
+
+- The cyrb53 story is "two identities", not "cyrb53 instead of SHA-256". The SHA-256 key exists, and the cyrb53 name survives next to it for lab programs.
+
+### What was tricky to build
+
+- Mermaid `timeline` treats `:` as an event separator. I wrote times without colons (`1457-1912`).
+
+### What warrants a second pair of eyes
+
+- The functionality statuses. Each comes from a commit or a code check, but "merge state not recorded" for Example A means I could not see whether factory-videos merged it.
+
+### What should be done in the future
+
+- Reconcile the duplication rows with the perf-lab and server-exec-evidence areas once their JSON exists.
+
+### Code review instructions
+
+- `python3 /Volumes/SSD/code/kiln/ttmp/2026/10/21/KILN-004--kiln-perf-lab-component-inventory-reusable-packages-duplication-and-complexity-map-intern-guide/scripts/load_inventory.py --check`
+- Spot-check five facts against their `evidence_path:evidence_lines`.
+
+### Technical details
+
+- Row counts: docs 54, facts 107, functionalities 34, duplications 12, formats 7, diagrams 3. Every row carries `diary_step` 1, 2 or 3.

@@ -1,1 +1,2154 @@
-{}
+{
+ "docs": [
+  {
+   "path": "README.md",
+   "title": "kiln README",
+   "summary": "Repository purpose, layout and run commands; layout omits apps/server, packages/{evidence,lab,exec}, runtime/ and the driver; l.40 still documents kiln_runner.py serve, removed in 49f5156.",
+   "topic": "kiln",
+   "kind": "readme",
+   "diary_step": 2
+  },
+  {
+   "path": "imports/Untitled.md",
+   "title": "Kiln Workbench × Perf Lab (ML-PERF-001) comparison memo",
+   "summary": "2026-10-19 memo: the two projects are mirror images; the evidence contract; 13 ideas for Kiln ordered Now/Next/Later; suite ideas including one entity graph for all kernels.",
+   "topic": "history",
+   "kind": "memo",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/index.md",
+   "title": "KILN-001 index",
+   "summary": "Unified GPU kernel workbench ticket (2026-10-19).",
+   "topic": "KILN-001",
+   "kind": "index",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/tasks.md",
+   "title": "KILN-001 tasks",
+   "summary": "Phases 0–8c ticked; open: vault-report box (done in fact), 8d entity graph, lab follow-ups (l.22-24).",
+   "topic": "KILN-001",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/changelog.md",
+   "title": "KILN-001 changelog",
+   "summary": "Per-phase changelog of the unification day, including the W-05 paired WebGPU result (l.86).",
+   "topic": "KILN-001",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-x-perf-lab-intern-guide-to-the-unified-gpu-kernel-workbench.md",
+   "title": "KILN-001 intern guide: the unified GPU kernel workbench",
+   "summary": "Parts 0–VI: weaknesses K-1..K-18 and P-1..P-16, architecture §20, decisions D1–D13 (§34, l.1955-1973), phases §35, as-built Phase 8 (§33.1, l.1907-1953).",
+   "topic": "KILN-001",
+   "kind": "design-doc",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "title": "KILN-001 coordinator diary",
+   "summary": "Steps 1–20: import, analysis, Phases 0–8 as built, reviews and defects; 2,177 lines.",
+   "topic": "KILN-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/02-phase2-evidence-diary.md",
+   "title": "KILN-001 Phase 2 evidence diary",
+   "summary": "Worker diary building @kiln/evidence (values, stats, identity, record, verdict).",
+   "topic": "KILN-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/03-phase3-views-diary.md",
+   "title": "KILN-001 Phase 3 views diary",
+   "summary": "Worker diary porting Kiln views onto records and adding the Evidence view.",
+   "topic": "KILN-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/04-phase3-webgpu-diary.md",
+   "title": "KILN-001 Phase 3 WebGPU diary",
+   "summary": "Worker diary for the WebGPU repetition protocol; M1 Pro timer grid and clock-ladder measurements.",
+   "topic": "KILN-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/05-phase5-server-diary.md",
+   "title": "KILN-001 Phase 5 server diary",
+   "summary": "Worker diary for apps/server: Hono, node:sqlite, SSE, security, jobs, CUDA executors.",
+   "topic": "KILN-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/06-phase4-ui-diary.md",
+   "title": "KILN-001 Phase 4 UI diary",
+   "summary": "Worker diary for the Hypotheses view and notes cards.",
+   "topic": "KILN-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/07-phase5b-integration-diary.md",
+   "title": "KILN-001 Phase 5b integration diary",
+   "summary": "Worker diary for record sync, ServerDevice and the Jobs view.",
+   "topic": "KILN-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/08-phase7-gateway-diary.md",
+   "title": "KILN-001 Phase 7 gateway diary",
+   "summary": "Worker diary for the model gateway (POST /api/agent/sample) and usage accounting.",
+   "topic": "KILN-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/09-phase8a-lab-language-diary.md",
+   "title": "KILN-001 Phase 8a lab language diary",
+   "summary": "Worker diary porting Perf Lab's lab.js into @kiln/lab with check:pl fidelity checks.",
+   "topic": "KILN-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/10-phase8c-lab-server-diary.md",
+   "title": "KILN-001 Phase 8c lab server diary",
+   "summary": "Worker diary porting Perf Lab's data routes to /api/lab with lab:import; lab jobs 501.",
+   "topic": "KILN-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/sources/01-perf-lab-language-and-frontend-notes.md",
+   "title": "KILN-001 source notes 01: Perf Lab language and frontend",
+   "summary": "Reader notes on Perf Lab's lab.js compiler, Redux store, components and design.",
+   "topic": "KILN-001",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/sources/02-perf-lab-backend-notes.md",
+   "title": "KILN-001 source notes 02: Perf Lab backend",
+   "summary": "Reader notes on the Perf Lab server, runner, workloads, importers, assistant and the ML-PERF-003 design.",
+   "topic": "KILN-001",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/sources/03-kiln-compiler-runtime-notes.md",
+   "title": "KILN-001 source notes 03: Kiln compiler and runtime",
+   "summary": "Reader notes on kiln.js core, the six-IR std stack, codegen, simulator, cost model, tuning, runner.",
+   "topic": "KILN-001",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/sources/04-kiln-ui-and-design-system-notes.md",
+   "title": "KILN-001 source notes 04: Kiln UI and design system",
+   "summary": "Reader notes on Kiln's Swiss tokens, dock, views and contrast hazards.",
+   "topic": "KILN-001",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/index.md",
+   "title": "KILN-002 index",
+   "summary": "Real-work kernels ticket; status line 'guide written' is stale.",
+   "topic": "KILN-002",
+   "kind": "index",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/tasks.md",
+   "title": "KILN-002 tasks",
+   "summary": "P0, A, B1, C1–C4 (GB10), RG, RC done; open: B2–B5, C4 RTX PRO 6000, PE, C4.d, flaky test, SW (l.16-32).",
+   "topic": "KILN-002",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/changelog.md",
+   "title": "KILN-002 changelog",
+   "summary": "Example outcomes and the NVIDIA session results (l.73-81).",
+   "topic": "KILN-002",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-and-perf-lab-on-real-work-intern-guide-to-the-first-production-kernels.md",
+   "title": "KILN-002 intern guide: Kiln and Perf Lab on real work",
+   "summary": "Three examples (A similarity, B grey, C redaction mask post), the eight-step loop (§4), identity chain (§23), kiln-paired/1 (§25), phases (§26).",
+   "topic": "KILN-002",
+   "kind": "design-doc",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "title": "KILN-002 investigation diary",
+   "summary": "Steps 1–15 (2,401 lines): P0, examples A–C, first NVIDIA runs on GB10 hosts, run-on-gpu-host.sh, record context.",
+   "topic": "KILN-002",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/sources/01-factory-videos-research.md",
+   "title": "KILN-002 research: factory-videos",
+   "summary": "Read-only study of factory-videos: grey formula, similarity matrix, motion pipeline.",
+   "topic": "KILN-002",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/sources/02-kiln-and-perf-lab-research.md",
+   "title": "KILN-002 research: Kiln and Perf Lab after KILN-001",
+   "summary": "Kiln and Perf Lab as KILN-001 left them; four gaps (GPU unproven, no Python launcher, expressiveness, join unbuilt).",
+   "topic": "KILN-002",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/sources/03-playback-research.md",
+   "title": "KILN-002 research: Playback redaction and stream-engine",
+   "summary": "Where mask post-processing runs in Playback redaction; stale Playback docs.",
+   "topic": "KILN-002",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/index.md",
+   "title": "KILN-003 index",
+   "summary": "One execution core ticket; status line 'no phase implemented yet' is stale.",
+   "topic": "KILN-003",
+   "kind": "index",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/tasks.md",
+   "title": "KILN-003 tasks",
+   "summary": "P0 and P1 ticked (P1 names a kiln-probe/1 kind that does not exist); P2–P6 and the counters decision open (l.5-12).",
+   "topic": "KILN-003",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/changelog.md",
+   "title": "KILN-003 changelog",
+   "summary": "Guide v1, the HTTP-driver revision, P0/P1 build and deployment.",
+   "topic": "KILN-003",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+   "title": "KILN-003 intern guide: one execution core",
+   "summary": "Five concerns, nine nouns (§11), principles and removals (§12), driver API (§13), kinds, collectors, identity, planner, archives, jobs, ML-PERF-003 mapping (§26), security (§27), phases (§29).",
+   "topic": "KILN-003",
+   "kind": "design-doc",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/reference/01-investigation-diary.md",
+   "title": "KILN-003 investigation diary",
+   "summary": "Steps 1–6 (1,009 lines): guide, HTTP revision, P0/P1, workbench on hosts, perf-lab-sampler/1, deployment and identity bugs.",
+   "topic": "KILN-003",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "ttmp/2026/10/21/KILN-004--kiln-perf-lab-component-inventory-reusable-packages-duplication-and-complexity-map-intern-guide/reference/06-inventory-notes-e-design-history-of-kiln-and-ml-perf-tickets.md",
+   "title": "Inventory notes E: design history of KILN and ML-PERF tickets",
+   "summary": "Agent E's history notes: timeline, per-ticket digests, reversal chains, glossary, component status, copy map, open tasks, hosts, results, pain points, doc drift.",
+   "topic": "history",
+   "kind": "reference",
+   "diary_step": 2
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/index.md",
+   "title": "ML-PERF-001 index",
+   "summary": "DINO and embedding kernel profiling and visualization ticket (2026-10-12).",
+   "topic": "ML-PERF-001",
+   "kind": "index",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/tasks.md",
+   "title": "ML-PERF-001 tasks",
+   "summary": "Prototype, backend and rounds 2–3 done; open: DGX vertical slice, embedding/PMU/contention experiments, remote executor rtne (l.8, 9, 16).",
+   "topic": "ML-PERF-001",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/01-intern-guide-to-reproducible-profiling-and-execution-visualization.md",
+   "title": "ML-PERF-001 intern guide: reproducible profiling and execution visualization",
+   "summary": "Proposed run controller, collectors, artifact manifest and Python perf_lab package (l.721-740, never built); entity model.",
+   "topic": "ML-PERF-001",
+   "kind": "design-doc",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/02-lab-language-specification.md",
+   "title": "ML-PERF-001 lab language specification",
+   "summary": "lab.js: builders, IR, passes, lambda phases, parameter binding, hypotheses, boards, assistant handle API; decisions §11 (l.649-657).",
+   "topic": "ML-PERF-001",
+   "kind": "design-doc",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/03-workbench-ui-design.md",
+   "title": "ML-PERF-001 workbench UI design",
+   "summary": "Drafting-table workbench after Lattice Deck: provenance glyphs, view kinds, pending plans.",
+   "topic": "ML-PERF-001",
+   "kind": "design-doc",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/04-perf-lab-backend-end-to-end-design.md",
+   "title": "ML-PERF-001 Perf Lab backend end-to-end design",
+   "summary": "Hono + node:sqlite lab server, uv/PyTorch sampler on host local, importer, SSE, pi assistant; status §15 (l.375-427).",
+   "topic": "ML-PERF-001",
+   "kind": "design-doc",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/reference/01-research-and-delivery-diary.md",
+   "title": "ML-PERF-001 research and delivery diary",
+   "summary": "Research, source archiving (28 local + 17 web) and reMarkable delivery; no profiling run claimed.",
+   "topic": "ML-PERF-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/reference/02-visualization-capabilities-and-evidence-contract.md",
+   "title": "ML-PERF-001 visualization capabilities and evidence contract",
+   "summary": "Functional visualization handoff and the evidence contract (provenance classes).",
+   "topic": "ML-PERF-001",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/reference/03-workbench-prototype-diary.md",
+   "title": "ML-PERF-001 workbench prototype diary",
+   "summary": "Steps 1–14: language runtime, synthetic data, RTK store, components, assistant, MathJax, palette, headless checks.",
+   "topic": "ML-PERF-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/reference/04-perf-lab-backend-implementation-diary.md",
+   "title": "ML-PERF-001 Perf Lab backend implementation diary",
+   "summary": "Steps 1–8: server, workloads, live assistant, end-to-end defects, round 3.",
+   "topic": "ML-PERF-001",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/experiments/lab-workbench/README.md",
+   "title": "Perf Lab (lab-workbench) README",
+   "summary": "How to run Perf Lab; l.25-29 still says synthetic-only and l.100 says nine programs (there are 11).",
+   "topic": "ML-PERF-001",
+   "kind": "readme",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/index.md",
+   "title": "ML-PERF-002 index",
+   "summary": "Studying Grounding DINO PR 1005 in the Perf Lab ticket.",
+   "topic": "ML-PERF-002",
+   "kind": "index",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/tasks.md",
+   "title": "ML-PERF-002 tasks",
+   "summary": "Phases 0–6 done; open: DGX executor and prompt-sequence workload cevg (l.11).",
+   "topic": "ML-PERF-002",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/design/01-intern-guide-studying-grounding-dino-acceleration-in-the-perf-lab.md",
+   "title": "ML-PERF-002 intern guide: studying Grounding DINO acceleration in the Perf Lab",
+   "summary": "Evidence archives, datasets, detections, gallery; decision records; verdicts §12.1 (l.726-737).",
+   "topic": "ML-PERF-002",
+   "kind": "design-doc",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/reference/01-implementation-diary.md",
+   "title": "ML-PERF-002 implementation diary",
+   "summary": "Steps 1–7: migration 5, qualification importer, views, perf_lab_dino; golden-port and stale-server defects.",
+   "topic": "ML-PERF-002",
+   "kind": "diary",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/index.md",
+   "title": "ML-PERF-003 index",
+   "summary": "SSH executor for containerized GPU captures on the DGX; status superseded (banner l.21-24).",
+   "topic": "ML-PERF-003",
+   "kind": "index",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/tasks.md",
+   "title": "ML-PERF-003 tasks",
+   "summary": "Phases 0–5, all unchecked; moved to KILN-003 P4.",
+   "topic": "ML-PERF-003",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/changelog.md",
+   "title": "ML-PERF-003 changelog",
+   "summary": "Design written 2026-10-12; closed superseded by KILN-003 (l.19-21).",
+   "topic": "ML-PERF-003",
+   "kind": "reference",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/design/01-intern-guide-running-perf-lab-experiments-on-the-dgx.md",
+   "title": "ML-PERF-003 intern guide: running Perf Lab experiments on the DGX",
+   "summary": "Option B SSH container executor (§5, l.351-370), bundle/driver/recipes design, DGX inventory (§3.7), first experiments (§7). Never implemented.",
+   "topic": "ML-PERF-003",
+   "kind": "design-doc",
+   "diary_step": 1
+  },
+  {
+   "path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/reference/01-implementation-diary.md",
+   "title": "ML-PERF-003 implementation diary",
+   "summary": "One step: research, read-only DGX inventory, the guide, reMarkable upload; no implementation.",
+   "topic": "ML-PERF-003",
+   "kind": "diary",
+   "diary_step": 1
+  }
+ ],
+ "facts": [
+  {
+   "subject": "ML-PERF-001",
+   "fact": "Perf Lab (lab.js language, drafting-table UI, Hono + node:sqlite server, uv/PyTorch sampler on host local, pi assistant) was built in Playback's docs/ml-perf-001-perf-explorer worktree on 2026-10-12 between 14:57 and 19:12 (commits e0b4e9ece..d6274c408), in about six hours of commits.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/reference/03-workbench-prototype-diary.md",
+   "evidence_lines": "35-796",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "ML-PERF-002",
+   "fact": "Evidence archives, public datasets and media, the detection-qualification/v1 importer, detections/gallery views, the dino-pr1005 preset and the local perf_lab_dino workload were added on 2026-10-12 between 19:45 and 20:46 (58af2c81c..cdb84891c).",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/reference/01-implementation-diary.md",
+   "evidence_lines": "33-410",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "ML-PERF-003",
+   "fact": "The SSH container executor for playback@dgx was designed on 2026-10-12, never implemented, and closed as superseded by KILN-003 on 2026-10-20 20:16 EDT (docmgr close receipt 2026-10-21T00:16:51Z); its open tasks moved to KILN-003 phase P4.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/index.md",
+   "evidence_lines": "21-24",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab-workbench",
+   "fact": "Perf Lab entered the kiln repository on 2026-10-19 13:44 (92daa13) as a verbatim copy of Playback's ML-PERF-001 experiments/lab-workbench at Playback commit cdb84891c; diff -rq against the Playback copy prints nothing and no later Kiln commit touches lab-workbench.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "40-145",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-001",
+   "fact": "Kiln × Perf Lab unification Phases 0–8c were committed on 2026-10-19 between 14:27 and 18:12 (1b819d8..f077674) by a coordinator plus nine non-committing worker agents; Phase 8d (entity graph) was never started.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "310-2177",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-002",
+   "fact": "KILN-002 took three real workloads (factory-videos similarity matrix, zone-motion grey, Playback redaction mask post) through measure-decide-integrate and ran Kiln kernels on NVIDIA GB10 hosts for the first time, on 2026-10-20 between 11:32 and 17:30 (8044042..0857384).",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "36-2401",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-003",
+   "fact": "KILN-003's guide was written at 20:18 (e5d9e7f) with local and SSH transports, revised at 20:41 (e63e15c) to one unauthenticated HTTP driver API, and P0/P1 plus a deployment on the Mac and bling were built between 22:00 and 23:49 on 2026-10-20 (49f5156..4d9adc2).",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/reference/01-investigation-diary.md",
+   "evidence_lines": "30-1009",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-004",
+   "fact": "KILN-004 was opened on 2026-10-21 10:27 to inventory the merged system and decide how to separate it again into reusable pieces; the Kiln server it inventories had been running on 127.0.0.1:5380 (PID 22866, cwd apps/server) since 2026-10-20 23:46.",
+   "evidence_path": "ttmp/2026/10/21/KILN-004--kiln-perf-lab-component-inventory-reusable-packages-duplication-and-complexity-map-intern-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "31-60",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "playback-kiln-002 branch",
+   "fact": "Example C lives on Playback branch perf/kiln-002-redaction-mask-post in /Volumes/SSD/code/playback-kiln-002: cdfb0d8c9 (2026-10-20 13:31, 13 files, +4401/−28) adds REDACTION_MASK_POST=kiln and ac835daa9 (14:25) re-vendors the launcher; the docker-compose.yml default line (REDACTION_MASK_POST cpu) is uncommitted because pre-commit cannot pass on macOS.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/tasks.md",
+   "evidence_lines": "22",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "factory-videos-kiln branch",
+   "fact": "Example A lives on factory-videos branch FACTORY-KILN-001--gpu-kernels (/Volumes/SSD/code/factory-videos-kiln), one commit 3bc92785: the similarity matrix on the GPU from committed Kiln programs, incremental CPU update and an ImageData painter.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "375-543",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-004 agent E",
+   "fact": "Agent E (history) was stopped by a usage limit before its synthesis was written; the orchestrator committed its scratch notes unreviewed in 1d0c894 and agent E completed them afterwards.",
+   "evidence_path": "ttmp/2026/10/21/KILN-004--kiln-perf-lab-component-inventory-reusable-packages-duplication-and-complexity-map-intern-guide/reference/11-diary-e-design-history-of-kiln-and-ml-perf-tickets.md",
+   "evidence_lines": "Step 1",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-001 D10",
+   "fact": "KILN-001 decided that CUDA runs through the runner as a subprocess, locally or over SSH, not through the runner's HTTP server, because that 'removes a network-exposed code-execution endpoint; reuses SSH authentication for remote hosts'.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-x-perf-lab-intern-guide-to-the-unified-gpu-kernel-workbench.md",
+   "evidence_lines": "1970",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-001 D3",
+   "fact": "KILN-001 decided on SHA-256 everywhere instead of cyrb53 (weakness P-5: cyrb53 identities in fields named *_sha256); Phase 8 then kept cyrb53 bit-for-bit because Perf Lab's store and routes are keyed by it.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-x-perf-lab-intern-guide-to-the-unified-gpu-kernel-workbench.md",
+   "evidence_lines": "1928, 1955-1973",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-001 D1",
+   "fact": "KILN-001 based the unified workbench on Kiln's UI and compiler and turned Perf Lab's evidence model into a headless package (@kiln/evidence); Perf Lab's app stayed a read-only reference.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-x-perf-lab-intern-guide-to-the-unified-gpu-kernel-workbench.md",
+   "evidence_lines": "1955-1973",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-001 D6",
+   "fact": "KILN-001: hardware evidence overrides the cost model in compiler decisions only when confidence intervals separate (decide.evidence v2, minReps 3).",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-x-perf-lab-intern-guide-to-the-unified-gpu-kernel-workbench.md",
+   "evidence_lines": "1955-1973",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-001 record",
+   "fact": "KILN-001 chose the measurement record as the unification point between Kiln and Perf Lab: 'The cleanest unification point is the record'.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "283-284",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "KILN-001 protocol rules",
+   "fact": "KILN-001 moved repetitionOrder and the output check into @kiln/evidence/src/protocol.ts because 'Two copies held equal by a test is one rule with two chances to drift'.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1217-1220, 1252-1254",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "KILN-001 Phase 8 scope",
+   "fact": "KILN-001 left lab job execution out of Phase 8 (the done-condition needs only imported data): Kiln's /api/lab answers 501 to creating, approving or cancelling a lab job.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/10-phase8c-lab-server-diary.md",
+   "evidence_lines": "571-597",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "ML-PERF-003 §5",
+   "fact": "ML-PERF-003 chose option B, an SSH container executor run from the Mac, over A (lab on the DGX) and C (an agent service on the DGX); a job's lifetime is tied to its SSH connection on purpose because 'an orphaned GPU process on a shared host is worse than a cancelled job', with C kept as the better trade if jobs grow to hours.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/design/01-intern-guide-running-perf-lab-experiments-on-the-dgx.md",
+   "evidence_lines": "351-370, 997",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-003 driver API",
+   "fact": "KILN-003 v2 replaced the local and SSH transports with one HTTP driver API on every host, explicitly reversing ML-PERF-003 §5 ('this design takes the agent and drops SSH'), and states 'The API has no authentication, by decision (2026-10-20)'.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+   "evidence_lines": "675, 808",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-003 user direction",
+   "fact": "The user directed KILN-003 mid-guide to 'simplify, unify… losing functionality is fine', which produced the nine-noun model (§11) and the removal table (§12.2), and chose 'plain TCP… a local HTTP server too… leave authentication out' for the driver.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/reference/01-investigation-diary.md",
+   "evidence_lines": "65-67, 230-231",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "KILN-003 removals",
+   "fact": "KILN-003 §12.2 removes executors.json/CudaRunnerExecutor, install-runner-over-SSH, kiln_runner.py serve, runner --ncu, kiln-docker-python, Perf Lab's Mac process executor and uv env, synthetic hosts and seeding, the second job system, and cyrb53; 49f5156 deleted the executors, jobs.ts, lab probe.ts, lab seed/job/host/evidence routes, kiln-docker-python and fake-runner.mjs.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+   "evidence_lines": "685-705",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-003 principles",
+   "fact": "KILN-003's rules: the driver runs steps and never interprets them; a collector declares what it disturbs (ncu runs never contribute latencies); everything that can change a measurement is part of identity; conditions describe a run but never enter its identity.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+   "evidence_lines": "128-134",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-003 GPU lock",
+   "fact": "The KILN-003 GPU lock is an advisory flock in /run/lock (not /tmp, which systemd-tmpfiles ages), one per GPU UUID; CPU jobs on a GPU host also take it so GPU jobs cannot disturb their timing.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/reference/01-investigation-diary.md",
+   "evidence_lines": "136-138, 943-945",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "KILN-003 environments",
+   "fact": "KILN-003 has two environment kinds, container (pinned by image ID) and host, with 'deliberately no virtual-environment variant'; Perf Lab's uv venv became the perf-lab-cpu container.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+   "evidence_lines": "866",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "lab.js .agent()",
+   "fact": "Program-declared agents (.agent()) were removed from lab.js on 2026-10-12 by the second-consumer test in favour of one built-in assistant, because per-program agents 'added configuration without adding evidence'.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/reference/03-workbench-prototype-diary.md",
+   "evidence_lines": "543, 566",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Perf Lab runner",
+   "fact": "Perf Lab runs one job and one process at a time on host local 'because concurrent benchmark processes would measure each other', interleaves arms per repetition with a seeded order, and imports failed processes as invalid runs.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/04-perf-lab-backend-end-to-end-design.md",
+   "evidence_lines": "237",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Perf Lab offline capture",
+   "fact": "Offline, a Perf Lab local capture fails rather than being simulated, because simulating it would mint synthetic evidence for a host that measures for real.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/reference/04-perf-lab-backend-implementation-diary.md",
+   "evidence_lines": "265",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Perf Lab spec hash check",
+   "fact": "The Perf Lab server re-hashes every submitted capture spec and refuses a mismatch with 409 spec_hash_mismatch.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/reference/04-perf-lab-backend-implementation-diary.md",
+   "evidence_lines": "193",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "ML-PERF-002 public media",
+   "fact": "ML-PERF-002 admits only privacy 'public' media into the lab (column constraint plus a route re-check), making 'a private frame was served by the lab' impossible rather than discouraged.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/design/01-intern-guide-studying-grounding-dino-acceleration-in-the-perf-lab.md",
+   "evidence_lines": "496-503",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "ML-PERF-002 archives",
+   "fact": "ML-PERF-002 decided that evidence archives are captures, not uploads of runs: imports go through plan status import and approved jobs so hash identity and provenance hold.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/design/01-intern-guide-studying-grounding-dino-acceleration-in-the-perf-lab.md",
+   "evidence_lines": "518-525",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "ML-PERF-002 matching port",
+   "fact": "ML-PERF-002 computes detection matches at import in TypeScript and pins equivalence with the Python by a golden test: 'Two implementations must stay equal; the golden test is the enforcement seam'.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/design/01-intern-guide-studying-grounding-dino-acceleration-in-the-perf-lab.md",
+   "evidence_lines": "567-574",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-002 PE",
+   "fact": "KILN-002's kiln-paired/1 importer (task PE) is blocked because the importer belongs in Perf Lab's lab-workbench/server/runner.ts, which is 'imported verbatim; never edited in this repository'.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-and-perf-lab-on-real-work-intern-guide-to-the-first-production-kernels.md",
+   "evidence_lines": "76",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-002 lab execution",
+   "fact": "KILN-002 kept lab job execution out of scope ('three examples with different runtimes … would each need their own executor first') and routed results through kiln-paired/1 evidence archives instead — the gap KILN-003 took on.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-and-perf-lab-on-real-work-intern-guide-to-the-first-production-kernels.md",
+   "evidence_lines": "1187-1189",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-002 Example B",
+   "fact": "KILN-002 did not build B2–B5 (the W-27 motion-grey kernel) because B1 refuted gray-is-worth-a-kernel; the cost is in videoconvert NV12→RGB, which belongs to factory-videos.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/tasks.md",
+   "evidence_lines": "16-19",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-002 permission rule",
+   "fact": "KILN-002: reaching a GPU host over SSH requires explicit permission each time.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-and-perf-lab-on-real-work-intern-guide-to-the-first-production-kernels.md",
+   "evidence_lines": "1140",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "KILN-002 shipped schedules",
+   "fact": "KILN-002 kept Example C's shipped program set as exported (rtx5090 schedules) after finding they beat the schedules chosen under the measured gb10 spec (2,190 vs 4,734 µs over five W-28 kernels).",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1594-1598, 1753-1758",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "KILN-001 agent sandbox",
+   "fact": "KILN-001 moved agent eval from a sandboxed frame to a worker reached only through a MessagePort because 'Nothing in the CSP or the sandbox attribute stops a frame from navigating itself'; agent-written scripts are held until the user presses Run.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1779-1780, 1820-1828",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "KILN-001 model gateway",
+   "fact": "KILN-001's model gateway is a stateless relay (one upstream call per request, one llm_calls row); 'The page runs the tool loop, not the server'.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/08-phase7-gateway-diary.md",
+   "evidence_lines": "212-214",
+   "category": "decision",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "remote GPU execution",
+   "fact": "Remote execution changed shape four times in nine days: ML-PERF-003 SSH executor (designed 10-12), KILN-001 SSH runner executors (built 10-19), KILN-003 v1 local+ssh transports (10-20 20:18), KILN-003 v2 HTTP driver (20:41); the deployment then reaches bling's driver through an ssh -N -L tunnel on 127.0.0.1:5481, outside the core.",
+   "evidence_path": "ttmp/2026/10/21/KILN-004--kiln-perf-lab-component-inventory-reusable-packages-duplication-and-complexity-map-intern-guide/reference/06-inventory-notes-e-design-history-of-kiln-and-ml-perf-tickets.md",
+   "evidence_lines": "§3.1",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "remote GPU execution",
+   "fact": "The unauthenticated KILN-003 driver re-introduces the network-reachable code-execution endpoint that KILN-001 D10 removed; it is mitigated only by binding to 127.0.0.1 (default --listen 127.0.0.1:5281) or Tailscale.",
+   "evidence_path": "runner/kiln_driver.py",
+   "evidence_lines": "4, 1020, 1032",
+   "category": "security",
+   "confidence": "inferred",
+   "diary_step": 2
+  },
+  {
+   "subject": "capture identity",
+   "fact": "Every KILN-003 capture has two identities: a SHA-256 of kiln-capture/1 canonical JSON (packages/exec/src/identity.ts) that keys catalog rows, and a cyrb53 lab_hash that lab programs look up (apps/server/src/db.ts:248-252, packages/exec/src/lab-hash.ts).",
+   "evidence_path": "packages/exec/src/identity.ts",
+   "evidence_lines": "6-18",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 3
+  },
+  {
+   "subject": "cyrb53",
+   "fact": "KILN-003 §12.2 retires cyrb53, but 8276bf7 moved it into the new core as packages/exec/src/lab-hash.ts ('kept because it is the identity every existing Perf Lab artifact and program uses').",
+   "evidence_path": "packages/exec/src/lab-hash.ts",
+   "evidence_lines": "1-7, 43",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "synthetic hosts",
+   "fact": "Synthetic hosts were to be removed by KILN-003 (§12.2, task P4) but 8276bf7 keeps them as the fallback; packages/lab/src/data/capabilities.ts still holds 'NVIDIA GB10 (synthetic)' and 'RTX PRO 6000 Blackwell (synthetic)' reports.",
+   "evidence_path": "packages/lab/src/data/capabilities.ts",
+   "evidence_lines": "11-24",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "CPU lab runs on the Mac",
+   "fact": "KILN-003 §12.2 listed CPU-only lab runs on the Mac as a deliberate loss, but 8276bf7 restored them the same evening as kind perf-lab-sampler/1 in a perf-lab-cpu container behind a Mac driver on 127.0.0.1:5381; the guide was not updated.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/reference/01-investigation-diary.md",
+   "evidence_lines": "669-700, 818-821",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "kiln-probe/1",
+   "fact": "KILN-003 task P1 is ticked and names a kiln-probe/1 kind, but packages/exec/src/kinds/ holds only kiln-kernels.ts and perf-lab-sampler.ts; the string kiln-probe/1 appears only as the probe binary's output format in runner/docker/kiln-probe.cu:174.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/tasks.md",
+   "evidence_lines": "6",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "ncu and nsys collectors",
+   "fact": "KILN-003 P2 (ncu and nsys collectors) is open, yet packages/exec/src/collectors/ncu.ts, nsys.ts and apps/server/src/exec/nsys-sqlite.ts exist; no host has run them because GPU counters need NVreg_RestrictProfilingToAdminUsers=0 and a reboot on bling.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/tasks.md",
+   "evidence_lines": "7, 12",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "corresponds_to",
+   "fact": "The entity-graph edge corresponds_to, proposed by the memo and planned as KILN-001 Phase 8d (still unticked), is emitted by KILN-003 code for kernel captures (packages/exec/src/runs.ts:57) and nsys kernels (packages/exec/src/collectors/nsys.ts:42); no board reads kernel captures' runs yet.",
+   "evidence_path": "packages/exec/src/runs.ts",
+   "evidence_lines": "57",
+   "category": "history",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "runner/test/test_driver.py",
+   "fact": "KILN-003 §33.2 planned runner/test/test_driver.py; it does not exist, and the driver is exercised through apps/server/test with a fake docker and nvidia-smi.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+   "evidence_lines": "§33.2",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "README.md",
+   "fact": "README.md l.40 still documents 'python3 runner/kiln_runner.py serve', removed in 49f5156; its layout block omits apps/server (present since KILN-001 Phase 5a), packages/evidence, packages/lab, packages/exec, runtime/ and runner/kiln_driver.py; last touched in 3c71c0d.",
+   "evidence_path": "README.md",
+   "evidence_lines": "17-30, 40",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "KILN-001 tasks",
+   "fact": "KILN-001's 'Vault report after major milestones' box is unchecked although three vault reports were pushed (534ff7f, 43572ed, 4fc3320).",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/tasks.md",
+   "evidence_lines": "22",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "ticket frontmatter",
+   "fact": "Frontmatter LastUpdated values in KILN-001's diaries are unreliable (e.g. 01 says 13:37 but was edited until 18:12); git commit times are the only trustworthy dates for this history.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1-20",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "KILN-003 guide",
+   "fact": "The KILN-003 guide predates what was built: it has no perf-lab-sampler/1, says cyrb53 is replaced (l.703) and Mac CPU runs are lost (l.697), and shows bling's driver on the LAN at 5281 (l.2157-2158).",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+   "evidence_lines": "697, 703, 2157-2158",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "KILN-003 scripts",
+   "fact": "KILN-003's P1 acceptance script 01-verify-measure-context.mjs still selects device server:spark on port 5280, both deleted in KILN-003 Steps 3–4.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/scripts/01-verify-measure-context.mjs",
+   "evidence_lines": "7-8",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "ML-PERF-003 guide",
+   "fact": "ML-PERF-003's guide calls the capture hash 'a SHA-256 hash'; Perf Lab's code uses cyrb53 (src/lang/util.ts:1).",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/design/01-intern-guide-running-perf-lab-experiments-on-the-dgx.md",
+   "evidence_lines": "122",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Perf Lab README",
+   "fact": "Perf Lab's README still says the workbench runs 'entirely on synthetic data' (l.25-29), contradicting l.126-135, and says nine programs where there are 11.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/experiments/lab-workbench/README.md",
+   "evidence_lines": "25-29, 100",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Perf Lab backend design",
+   "fact": "ML-PERF-001's backend design says 'three migrations'; Perf Lab has five by the end of ML-PERF-002.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/04-perf-lab-backend-end-to-end-design.md",
+   "evidence_lines": "383",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "sqlite readOnly",
+   "fact": "Opening Perf Lab's WAL SQLite store with {readOnly: true} rebuilds -shm in place when no writer is attached; Kiln's readers open a temporary copy of the db and -wal instead ('readOnly describes what SQL may do, not what happens to the files').",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "2011-2027",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "lab capture hash normal form",
+   "fact": "877c273: stableStringify writes undefined as null while JSON.stringify drops the key, so imported runs were stored under 1c2ee7b51bf704 while the page looked for 21477f7f5fa54; the fix hashes the lowered JSON normal form, asserted for every preset capture.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/reference/01-investigation-diary.md",
+   "evidence_lines": "907-913",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Evidence Forget",
+   "fact": "The Kiln Evidence view's Forget deleted 9 of 11 jobs' records on bling, unrecoverably (KILN-002 Step 15).",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "2289-2292",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "run-on-gpu-host.sh",
+   "fact": "run-on-gpu-host.sh's KNOWN-FLAKY verdict (every revision failure also fails at least once at baseline) cannot detect a test that fails more often at the revision.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1905-1909, 2141-2143",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "docker group",
+   "fact": "Supplementary groups are fixed when a process starts, so a user added to the docker group must re-login or use sg docker; learned in KILN-002 and hit again in KILN-003.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "2245-2248",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Perf Lab assistant",
+   "fact": "Perf Lab's assistant system prompt never arrived through lunaroute because pi-ai sends a developer role, which the gateway drops (the model answered with 48 input tokens); fixed with compat.supportsDeveloperRole = false.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/reference/04-perf-lab-backend-implementation-diary.md",
+   "evidence_lines": "314, 328",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Perf Lab run identity",
+   "fact": "Perf Lab runs keyed by experiment/arm/mode#rep re-pointed the 2,048-query rows when the plan ran at 1,024 queries; migration 3 keyed runs by (capture hash, rep). 'The end-to-end test found the most serious defect of the day, invisible to the unit tests'.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/reference/04-perf-lab-backend-implementation-diary.md",
+   "evidence_lines": "385, 399, 428",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "ML-PERF-002 golden port",
+   "fact": "The TypeScript port of PR 1005's matching first failed 26 of 28 golden cases because Python's compare_ground_truth pops matched_gt_ids as a side effect.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/reference/01-implementation-diary.md",
+   "evidence_lines": "182, 217",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Perf Lab stale server",
+   "fact": "A stale Perf Lab server ran evidence captures as synthetic and minted 28 synthetic artifacts, deleted by hand with SQL; the /health features handshake was added so a stale server blocks evidence captures. 'A long-running server is part of the system under test'.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/reference/01-implementation-diary.md",
+   "evidence_lines": "252, 290, 299",
+   "category": "gotcha",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Perf Lab lab.js eval",
+   "fact": "Perf Lab evaluates lab programs and assistant code with unsandboxed new Function, which its author calls 'not acceptable for a shared deployment'.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/reference/03-workbench-prototype-diary.md",
+   "evidence_lines": "280",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "X-Kiln-Proposer",
+   "fact": "Kiln's X-Kiln-Proposer header is self-declared: any holder of the session token can approve a job; it becomes enforceable only with the agent's own credential.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1286-1288",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "model gateway",
+   "fact": "Kiln's model gateway has no upstream timeout and no concurrency cap (recorded as a follow-up in KILN-001).",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1898-1900, 1906-1907",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "POST /api/lab/evidence",
+   "fact": "Kiln's POST /api/lab/evidence {path} reveals the contents of a tar archive the user names on the server's filesystem.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/10-phase8c-lab-server-diary.md",
+   "evidence_lines": "284-286",
+   "category": "security",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "glossary: lab.js program",
+   "fact": "A plain-JS fluent builder returning lab(title), evaluated with new Function and compiled through expand, resolve, trace, validate, lower and plan passes into a serializable IR of experiments, arms, captures, imports, derives, params, hypotheses and boards.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/02-lab-language-specification.md",
+   "evidence_lines": "31-114, 123",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: capture (Perf Lab)",
+   "fact": "One experiment × arm × mode with a lowered spec and a cyrb53 hash; modes timing, trace, kernels, memory, cpu, sanitizer, later stages, predictions and tests.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/02-lab-language-specification.md",
+   "evidence_lines": "171-178",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: capture (KILN-003)",
+   "fact": "Workload variant × mode × collectors × protocol × host; its identity kiln-capture/1 excludes the host's name so renaming a host does not change what was measured.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+   "evidence_lines": "§21.1",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: parameter binding",
+   "fact": "A lab.js parameter's phase (plan, data or view) is inferred from its strongest reader; plan-bound values enter the content hash and their changes produce a pending plan that never executes by itself.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/02-lab-language-specification.md",
+   "evidence_lines": "367-377",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: provenance classes",
+   "fact": "observed | derived | heuristic | illustrative | unknown; missing is never zero; observed values are import-only and sealed (ProvenanceError).",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/02-lab-language-specification.md",
+   "evidence_lines": "215-219",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: verdict",
+   "fact": "Hypothesis verdicts are supported | refuted | open | unqualified; open while any predicted row is missing, unqualified when a supporting run failed validity; KILN-001 moved the function into @kiln/evidence (D12).",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/02-lab-language-specification.md",
+   "evidence_lines": "257-266",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: content id",
+   "fact": "Kiln's content id hashes canonical kernel source (entry symbol replaced), launch, input seeds and shapes; made independent of kernel names in Phase 4b; kiln-codegen/N is part of it, so a bump makes every older record stale.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "744, 994-998, 1148-1150",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "glossary: evidenceId and cudaDevice",
+   "fact": "Kiln records key on a device's evidenceId (fingerprint-derived); cudaDevice derives one id per GPU from hostname and GPU UUID because 'The route is not a property of the GPU'.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "794-796, 1335-1347",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "glossary: measurePaired",
+   "fact": "Compiles one kernel under two pinned rows and measures both in one protocol run so both sides see the same clock state; records share a pairId and ev.ratio zips them per repetition.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1397-1426",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "glossary: eight-step loop",
+   "fact": "KILN-002's loop: measure, decide with a written hypothesis, write the program, check against the consumer's reference, integrate behind a switch, paired compare, consumer quality gate, record with identity.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-and-perf-lab-on-real-work-intern-guide-to-the-first-production-kernels.md",
+   "evidence_lines": "308-366",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: identity suffix",
+   "fact": "Kiln kernels exported to consumers carry their identity in the emitted symbol k_<name>__<identity>, which lets a trace kernel be linked to its Kiln kernel by a corresponds_to edge (method symbol-suffix).",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-and-perf-lab-on-real-work-intern-guide-to-the-first-production-kernels.md",
+   "evidence_lines": "1088-1135",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: workload kind",
+   "fact": "A @kiln/exec module that knows one way of running code: validate, contentId, stage, lower (per repetition) and import.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+   "evidence_lines": "§19.1",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: collector",
+   "fact": "A KILN-003 module that observes runs, with a shape (wrapper, in-process or sidecar) and a disturbs list; a run contributes samples of a quantity only if no collector in its set disturbs it.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+   "evidence_lines": "§20.2-20.3, 1302-1315",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: facts and offers",
+   "fact": "KILN-003 probes host facts and derives offers with blocked reasons into kiln-capabilities/1 documents ('facts are probed, offers are derived').",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+   "evidence_lines": "§15-18",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: conditions",
+   "fact": "Run context such as co-tenants and utilisation, attached to every run but never part of its identity or validity (KILN-003 §22.5, from ML-PERF-003).",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/design/01-intern-guide-running-perf-lab-experiments-on-the-dgx.md",
+   "evidence_lines": "802-814",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "glossary: HostDevice",
+   "fact": "The Kiln page's device host:<id> for a driver host; it adopts the evidence device that the host's records name.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/reference/01-investigation-diary.md",
+   "evidence_lines": "525-528",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "glossary: record context",
+   "fact": "{preset, project, params, script} stored on kiln-measure/1 records at compile time so records travel with what produced them (KILN-002 task RC).",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "2316-2344",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "glossary: held script",
+   "fact": "An agent-written script in Kiln waits in wb.pending until the user presses Run; a call made while one is held throws HeldScriptError.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1803-1822",
+   "category": "architecture",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "glossary: evidence archive",
+   "fact": "A .tar.gz registered by SHA-256 under .data/evidence and imported through plan status import by a lab program that names it (ML-PERF-002).",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/reference/01-implementation-diary.md",
+   "evidence_lines": "126-129, 176",
+   "category": "contract",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Perf Lab sampler (M1 Pro CPU)",
+   "fact": "torch.compile of the deformable-attention sampler is slower than eager on the M1 Pro CPU: paired median ratio 2.58× (CI 2.18–2.69) on the first run, 2.50× (2.37–2.72) after the run-identity fix at 2,048 queries and 2.29× (1.88–2.52) at 1,024; compile-removes-intermediate refuted.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/design/04-perf-lab-backend-end-to-end-design.md",
+   "evidence_lines": "391-393",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "PR 1005 on dgx",
+   "fact": "Imported dgx archive verdicts for Grounding DINO PR 1005: outputs-exact supported (512/512), latency-halved refuted (reduction 0.303, CI [0.301, 0.306]), memory-within-20 refuted (warm cgroup +25.5 % / +23.2 %), prompt-reuse and fusion-active supported.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/design/01-intern-guide-studying-grounding-dino-acceleration-in-the-perf-lab.md",
+   "evidence_lines": "726-737",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "PR 1005 local CPU",
+   "fact": "The real DINO backend at both revisions on the M1 Pro CPU (FP32, 16 images, 32 paired requests, all outputs bitwise identical): 1,665 ms vs 1,654 ms medians; cpu-parts-preserve supported.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/reference/01-implementation-diary.md",
+   "evidence_lines": "327, 358",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "W-05 paired WebGPU",
+   "fact": "KILN-001's Phase 6 done-condition on the M1 Pro: W-05 thread vs row ratio 0.0079 [0.0072, 0.0083], n=7, 6.2 s; W-05 moved from open to supported.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/changelog.md",
+   "evidence_lines": "86",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "WebGPU timer on M1 Pro",
+   "fact": "Chrome's WebGPU timestamps on the M1 Pro are quantised to 65.536 µs without --enable-unsafe-webgpu (1 ns with it), and GPU clock levels make unpaired runs differ up to ~3× for the same code.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/04-phase3-webgpu-diary.md",
+   "evidence_lines": "262-265, 310-325",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "check:pl",
+   "fact": "@kiln/lab reproduces Perf Lab's local-sampler speedup bit-for-bit (2.4964× [2.3744, 2.7211], n=4) and every hash, lint, number and verdict; all 37 differing leaves are additions or relabels.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/09-phase8a-lab-language-diary.md",
+   "evidence_lines": "334-346, 676-681",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "lab:import",
+   "fact": "lab:import moved Perf Lab's store (1 dataset, 1 archive, 128 media, 70 artifacts, 80 runs, 12 jobs) into Kiln in 0.38 s; 157 of 158 /api/lab responses were identical to Perf Lab's server.",
+   "evidence_path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/10-phase8c-lab-server-diary.md",
+   "evidence_lines": "156-158, 228-250",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Example A",
+   "fact": "Example A on the M1 Pro: GPU/CPU 0.029 [0.024, 0.031] at 1,385×768; GPU plus ImageData paint 75.9 ms at 2,297×768; gpu-rebuild-1385 and cap-lift-interactive supported; quality gate max |Δ| 2.2e-6.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "456-477",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Example B1",
+   "fact": "B1 on the M1 Pro: grey conversion is 9.3 % of the session against a 20 % bar; single-threaded videoconvert NV12→RGB costs 4.4–4.94 ms/frame against 0.49 ms VideoToolbox decode; gray-is-worth-a-kernel refuted.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "546-552, 600-624",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "W-28 exactness",
+   "fact": "W-28 mask post-processing is bit-exact with Playback's CPU loop: 0 of 67,272,192 reference pixels on three platforms and 0 of 269,352,960 kernel pixels over 120 runs.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "787, 795",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "W-28 on dgx",
+   "fact": "On dgx (GB10) the Kiln mask path is 6.8× faster than the CPU loop for 100 masks at 768×416 (3.340 vs 22.626 ms); CUDA init 0.257 s, load() 1.687 s.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1155-1168",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "C4 on bling",
+   "fact": "With REDACTION_MASK_POST=kiln on bling every correctness gate passes but whole-service throughput is 0.974 / 0.971 / 0.968 of baseline at concurrency 1/4/8 (repeat 0.987 / 0.958 / 0.964); infer_preprocess rises ~3.1 ms/frame; gb10-unchanged-or-better refuted; the ground-truth gate does not exercise the GPU path.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1665-1685, 2040-2056",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "Kiln cost model on GB10",
+   "fact": "Kiln's analytic model over-predicts W-28 on the GB10 by 6.6–115× because a gather whose stride is not constant is billed as uncoalesced (129 MB charged where 13.5 MB is essential).",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1505-1513",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "kiln-probe on bling",
+   "fact": "kiln-probe on an idle DGX Spark (bling): 258–259 GB/s read, 28.92 TFLOP/s FMA, 2.37–2.40 µs launch; on dgx with co-tenants read bandwidth is 19 % lower (205.6–209.4 GB/s).",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1315-1327, 1383-1384",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "perf-lab-sampler/1 on two hosts",
+   "fact": "KILN-003 sampler compiled ÷ eager: Mac 1.43× (1.26–1.60), bling 1.08× (1.07–1.12); the Mac's ratio drifted 1.57 / 1.68 / 1.43 / 1.45 across sessions ('A within-session interval does not cover the next session').",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/reference/01-investigation-diary.md",
+   "evidence_lines": "858-900, 933-938",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "KILN-003 job latency",
+   "fact": "A KILN-003 kernel job takes 13–18 s from Measure to records; four jobs on two hosts finished in 65 s.",
+   "evidence_path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/reference/01-investigation-diary.md",
+   "evidence_lines": "858-900",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  },
+  {
+   "subject": "dgx host",
+   "fact": "dgx (playback@dgx, gx10-b2d2, ASUS GX10): NVIDIA GB10, CC 12.1, driver 580.159.03, Ubuntu 24.04.4 aarch64, Docker 29.2.1; shared with the factory-live stack (6 resident CUDA processes, 13 containers); reachable only over Tailscale 100.103.58.32.",
+   "evidence_path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/design/01-intern-guide-running-perf-lab-experiments-on-the-dgx.md",
+   "evidence_lines": "318-334",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 1
+  },
+  {
+   "subject": "bling host",
+   "fact": "bling (manuel@bling.local, DGX Spark): GB10, driver 580.178.04, freshly installed and idle; host of KILN-002's C4/PN runs, the KILN-002 Kiln server (executor spark) and the KILN-003 driver.",
+   "evidence_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+   "evidence_lines": "1002-1004, 2180-2276",
+   "category": "metric",
+   "confidence": "observed",
+   "diary_step": 2
+  }
+ ],
+ "functionalities": [
+  {
+   "name": "Ticket claim (ML-PERF-001): lab.js experiment language",
+   "category": "lab-language",
+   "description": "Programs declaring experiments, arms, captures, derives, parameters, hypotheses and boards, compiled to a content-addressed IR.",
+   "surface": "library",
+   "user_facing": 0,
+   "notes": "status: built — lab-workbench/src/lang (Perf Lab) and ported to packages/lab/src/lang (KILN-001 8a). Sources: MP1 design/02; K1D09:169-173.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (ML-PERF-001): Perf Lab drafting-table workbench",
+   "category": "views",
+   "description": "React/Redux workbench with boards, parameter bar, pending plans and provenance glyphs.",
+   "surface": "ui",
+   "user_facing": 1,
+   "notes": "status: built in lab-workbench only; its boards were re-implemented as Kiln dock views (KILN-001 8b). Source: MP1 design/03.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (ML-PERF-001): approved lab jobs on host local",
+   "category": "jobs",
+   "description": "Perf Lab server runs approved captures as paired, interleaved uv/PyTorch processes, one at a time, and imports their output.",
+   "surface": "api",
+   "user_facing": 0,
+   "notes": "status: superseded in Kiln — lab-workbench still has it; Kiln answered 501 (KILN-001) then ran the sampler as perf-lab-sampler/1 through the KILN-003 driver. Source: MP1 design/04 §15.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (ML-PERF-001): synthetic GPU hosts",
+   "category": "hosts",
+   "description": "Synthetic capability reports and executor for playback@dgx and playback@rtx-dev producing origin=synthetic artifacts.",
+   "surface": "background",
+   "user_facing": 0,
+   "notes": "status: partial/superseded — KILN-003 §12.2 and P4 remove them; 8276bf7 keeps them as fallback; packages/lab/src/data/capabilities.ts:11-24 still holds the reports.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (ML-PERF-001): built-in lab assistant with transcripts",
+   "category": "agent",
+   "description": "One assistant through pi/lunaroute that reads evidence, edits programs and proposes runs within a 30 GPU-minute budget; transcripts and token accounting in SQLite.",
+   "surface": "agent",
+   "user_facing": 1,
+   "notes": "status: built in lab-workbench only; not imported into Kiln (assistant routes and transcripts skipped, K1D10:525-527, 566-569).",
+   "diary_step": 2
+  },
+  {
+   "name": "Ticket claim (ML-PERF-001): Python performance-lab package",
+   "category": "measurement",
+   "description": "spikes/performance-lab/perf_lab with cli, runner, recording, adapters, collectors, importers, analysis and export.",
+   "surface": "cli",
+   "user_facing": 0,
+   "notes": "status: planned, superseded by the browser/Node prototype; never built. Source: MP1 design/01 l.721-740.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (ML-PERF-001): DGX profiling, embedding, CPU PMU and contention experiments",
+   "category": "measurement",
+   "description": "Qualify DGX tools for the DINO vertical slice; embedding PR 1008, memory, CPU PMU and contention experiments.",
+   "surface": "background",
+   "user_facing": 0,
+   "notes": "status: planned, open — MP1 tasks l.8-9; embedding PR 1008 only ever existed as synthetic Scenario B.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (ML-PERF-002): evidence archives as captures",
+   "category": "import",
+   "description": "Register .tar.gz archives by SHA-256 and import detection-qualification/v1 reports through plan status import.",
+   "surface": "api",
+   "user_facing": 0,
+   "notes": "status: built in lab-workbench; ported to Kiln /api/lab (KILN-001 8c) and folded into KILN-003 archives.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (ML-PERF-002): public datasets and media store",
+   "category": "datasets",
+   "description": "COCO selections keyed by manifest hash; media fetched, verified and served only if privacy is public.",
+   "surface": "api",
+   "user_facing": 1,
+   "notes": "status: built in lab-workbench; ported to apps/server/src/lab/datasets.ts (KILN-001 8c); materialize answers 501 in Kiln.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (ML-PERF-002): local Grounding DINO workload at two revisions",
+   "category": "measurement",
+   "description": "workloads/perf_lab_dino runs Playback's real detector source at two revisions via git show.",
+   "surface": "background",
+   "user_facing": 0,
+   "notes": "status: built in lab-workbench only; Kiln's equivalent kind playback-dino/1 is planned (KILN-003 P4).",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (ML-PERF-003): SSH container executor on playback@dgx",
+   "category": "hosts",
+   "description": "Stage a bundle over SSH, run a stdlib driver that takes a GPU lock and runs fully specified docker steps, fetch and import a result archive.",
+   "surface": "background",
+   "user_facing": 0,
+   "notes": "status: superseded — designed 2026-10-12, never built, closed 2026-10-20 in favour of the KILN-003 HTTP driver.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-001): headless evidence package",
+   "category": "evidence",
+   "description": "@kiln/evidence: provenance values, sealing, statistics, identity, kiln-measure/1 records, verdicts and protocol rules.",
+   "surface": "library",
+   "user_facing": 0,
+   "notes": "status: built (6f01ff0, protocol.ts after b0b3bc6).",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-001): evidence-driven compiler decisions",
+   "category": "evidence",
+   "description": "EvidenceStore of records with content ids and validity; decide.evidence v2 overrides the cost model only on separated intervals.",
+   "surface": "library",
+   "user_facing": 0,
+   "notes": "status: built (a62ae31, 46cf8c0).",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-001): Kiln hypotheses with live verdicts",
+   "category": "evidence",
+   "description": "Project.hypothesis and evaluateHypotheses over records, with a Hypotheses view.",
+   "surface": "ui",
+   "user_facing": 1,
+   "notes": "status: built (8d97886, d112fd9).",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-001): CUDA executors over SSH",
+   "category": "jobs",
+   "description": "apps/server job queue running kiln_runner.py run locally or over SSH (CudaRunnerExecutor).",
+   "surface": "api",
+   "user_facing": 0,
+   "notes": "status: superseded — built in b0b3bc6, deleted in 49f5156 by KILN-003.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-001): Perf Lab inside Kiln",
+   "category": "lab-language",
+   "description": "@kiln/lab port, /api/lab routes on lab_* tables, lab:import from Perf Lab's store, boards as dock views.",
+   "surface": "ui",
+   "user_facing": 1,
+   "notes": "status: built (b020aa6, aa2dcc2, 1d31e9d); lab job execution left out until KILN-003; catalog.changed refresh open.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-001): entity graph of corresponding kernels",
+   "category": "evidence",
+   "description": "corresponds_to edges between Perf Lab trace kernels and Kiln kernels (Phase 8d).",
+   "surface": "library",
+   "user_facing": 0,
+   "notes": "status: partial — edges emitted by packages/exec/src/runs.ts:57 and collectors/nsys.ts:42; no board; KILN-001 task l.23 still open.",
+   "diary_step": 2
+  },
+  {
+   "name": "Ticket claim (KILN-002): kiln-program/1 export and launchers",
+   "category": "launch",
+   "description": "Export compiled programs with identities; TypeScript WebGPU launcher and Python launcher (wgpu and CUDA via ctypes NVRTC/driver).",
+   "surface": "library",
+   "user_facing": 0,
+   "notes": "status: built (f272c11, aa0f0b4; context fix 7bcfc06); vendored into Playback and factory-videos.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-002): GPU similarity matrix in factory-videos",
+   "category": "launch",
+   "description": "Example A: the window similarity matrix on WebGPU from committed Kiln programs, with an incremental CPU path.",
+   "surface": "ui",
+   "user_facing": 1,
+   "notes": "status: built on branch FACTORY-KILN-001--gpu-kernels (3bc92785); merge state not recorded in the tickets.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-002): grey-conversion kernel for zone motion",
+   "category": "codegen",
+   "description": "Example B: W-27 motion-grey program for the factory runtime.",
+   "surface": "background",
+   "user_facing": 0,
+   "notes": "status: abandoned — B1 refuted gray-is-worth-a-kernel; B2–B5 not started (KT2 tasks l.16-19).",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-002): GPU mask post-processing in Playback redaction",
+   "category": "launch",
+   "description": "Example C: REDACTION_MASK_POST=kiln runs W-28 on the GPU, bit-exact with the CPU loop, with a load-time self-check.",
+   "surface": "background",
+   "user_facing": 0,
+   "notes": "status: built on Playback branch perf/kiln-002-redaction-mask-post (cdfb0d8c9, ac835daa9), opt-in, default cpu; whole service 2.6–3.2 % slower on GB10; RTX PRO 6000 run open.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-002): kiln-perf image and device probe",
+   "category": "measurement",
+   "description": "CUDA image with nvcc, NVRTC, runner, launcher, kiln-probe and fixtures; a measured gb10 target spec.",
+   "surface": "cli",
+   "user_facing": 0,
+   "notes": "status: built (3c71c0d) on bling and dgx; amd64 untested, image not published.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-002): run-on-gpu-host.sh",
+   "category": "tooling",
+   "description": "Every GPU stage of KILN-002 from the Mac (--host) or on the host (--local), with per-stage verdicts in summary.md.",
+   "surface": "cli",
+   "user_facing": 0,
+   "notes": "status: built (450fbd0..9d409d1).",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-002): kiln-paired/1 import into Perf Lab",
+   "category": "import",
+   "description": "Import paired-run evidence archives from consumer repos as lab runs with kernel entities.",
+   "surface": "api",
+   "user_facing": 0,
+   "notes": "status: blocked (PE, KT2 tasks l.25); records wait in KT2/various/a4/records/; overtaken by KILN-003's single import pipeline.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-002): sweep as a job",
+   "category": "tuning",
+   "description": "A knob/parameter grid compiled in the page and sent as one job of up to 64 kernels, with a time-against-parameter view.",
+   "surface": "ui",
+   "user_facing": 1,
+   "notes": "status: planned (SW, udht); folded into KILN-003 P1's job body but no view built.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-003): HTTP driver on every host",
+   "category": "hosts",
+   "description": "runner/kiln_driver.py: /v1/info, probe, blobs, jobs, long-poll events, cancel, archives, self-update; owns its jobs across server restarts.",
+   "surface": "api",
+   "user_facing": 0,
+   "notes": "status: built (49f5156); unauthenticated by decision; default --listen 127.0.0.1:5281.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-003): planner, offers and capability documents",
+   "category": "hosts",
+   "description": "@kiln/exec plans each capture as execute, cached or blocked against probed facts and derived offers.",
+   "surface": "library",
+   "user_facing": 0,
+   "notes": "status: built (49f5156).",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-003): one job API with archive import",
+   "category": "jobs",
+   "description": "One job API with dry run, per-host driver queues and one agent budget; result archives imported into one catalog.",
+   "surface": "api",
+   "user_facing": 0,
+   "notes": "status: built (49f5156); Perf Lab job history not imported.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-003): Perf Lab sampler on driver hosts",
+   "category": "measurement",
+   "description": "perf-lab-sampler/1 kind running Perf Lab's sampler in a perf-lab-cpu container on CPU hosts.",
+   "surface": "background",
+   "user_facing": 0,
+   "notes": "status: built (8276bf7), reversing §12.2's planned loss of CPU lab runs on the Mac.",
+   "diary_step": 2
+  },
+  {
+   "name": "Ticket claim (KILN-003): kiln-probe/1 kind",
+   "category": "hosts",
+   "description": "The kiln-probe run as a capture whose output is a device spec.",
+   "surface": "background",
+   "user_facing": 0,
+   "notes": "status: not built although P1 is ticked; only the probe binary's output format exists (runner/docker/kiln-probe.cu:174).",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-003): ncu and nsys collectors",
+   "category": "measurement",
+   "description": "Counter and timeline collectors with counters and timeline panels.",
+   "surface": "background",
+   "user_facing": 0,
+   "notes": "status: partial — code in packages/exec/src/collectors/{ncu,nsys}.ts and apps/server/src/exec/nsys-sqlite.ts; P2 open; counters blocked on bling pending NVreg change.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-003): in-program bench records",
+   "category": "measurement",
+   "description": "kiln_launch.py bench with CUDA events and NVTX, producing in-program records (P3).",
+   "surface": "cli",
+   "user_facing": 0,
+   "notes": "status: planned (KT3 tasks l.8).",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-003): Playback service kinds",
+   "category": "measurement",
+   "description": "playback-dino/1 (P4) and playback-redaction/1 with stage timers (P5), plus removal of synthetic hosts and the table migration.",
+   "surface": "background",
+   "user_facing": 0,
+   "notes": "status: planned (KT3 tasks l.9-10); P5 answers KILN-002 task 3nev.",
+   "diary_step": 1
+  },
+  {
+   "name": "Ticket claim (KILN-003): torch-function/1 kind",
+   "category": "measurement",
+   "description": "A kind measuring a single torch function (P6).",
+   "surface": "background",
+   "user_facing": 0,
+   "notes": "status: planned (KT3 tasks l.11).",
+   "diary_step": 1
+  }
+ ],
+ "duplications": [
+  {
+   "title": "Perf Lab app: kiln lab-workbench vs Playback ML-PERF-001 experiments/lab-workbench",
+   "description": "The whole Perf Lab tree exists in two repositories, byte-identical (diff -rq empty); Kiln's copy is a frozen reference never edited after 92daa13, and KILN-002 treats it as untouchable, which is why PE is blocked.",
+   "locations": [
+    {
+     "path": "lab-workbench",
+     "lines": "",
+     "note": "copy in kiln, 92daa13"
+    },
+    {
+     "path": "playback:ttmp/2026/10/12/ML-PERF-001--dino-and-embedding-kernel-profiling-and-visualization/experiments/lab-workbench",
+     "lines": "",
+     "note": "original in Playback at cdb84891c"
+    },
+    {
+     "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+     "lines": "42-46, 99-104",
+     "note": "copy admitted"
+    }
+   ],
+   "severity": "medium",
+   "suggested_consolidation": "Pick one home. Once @kiln/lab, /api/lab and the KILN-003 kinds cover what Kiln needs, delete Kiln's copy or replace it with a pinned reference (git submodule or recorded revision).",
+   "diary_step": 1
+  },
+  {
+   "title": "lab language compiler: lab-workbench/src/lang vs packages/lab/src/lang",
+   "description": "KILN-001 Phase 8a ported Perf Lab's language into @kiln/lab: three files rewritten on @kiln/evidence, 'everything else was edited in place', differing 'only mechanically'; check:pl proves equivalence against Perf Lab's own code.",
+   "locations": [
+    {
+     "path": "lab-workbench/src/lang",
+     "lines": "",
+     "note": "Perf Lab original (build.ts 1,030 lines)"
+    },
+    {
+     "path": "packages/lab/src/lang",
+     "lines": "",
+     "note": "port"
+    },
+    {
+     "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/09-phase8a-lab-language-diary.md",
+     "lines": "169-173, 302-304",
+     "note": "port admitted"
+    },
+    {
+     "path": "packages/lab/scripts/check-pl.ts",
+     "lines": "",
+     "note": "fidelity check"
+    }
+   ],
+   "severity": "high",
+   "suggested_consolidation": "Retire lab-workbench/src/lang once nothing builds from it; keep check:pl only while both exist.",
+   "diary_step": 2
+  },
+  {
+   "title": "lab capture hash cyrb53: lab-workbench, packages/lab and packages/exec",
+   "description": "Perf Lab's cyrb53 capture hash has bodies in three lab-related places (plus Kiln's own cyrb53 hash in packages/kiln/src/core/util.js for unrelated keys); KILN-001 D3 and KILN-003 §12.2 both planned to retire it, 8276bf7 moved it into @kiln/exec instead; a normal-form mismatch between copies caused 877c273.",
+   "locations": [
+    {
+     "path": "lab-workbench/src/lang/util.ts",
+     "lines": "1",
+     "note": "Perf Lab original"
+    },
+    {
+     "path": "packages/lab/src/lang/util.ts",
+     "lines": "10",
+     "note": "hash, ported"
+    },
+    {
+     "path": "packages/exec/src/lab-hash.ts",
+     "lines": "7, 43",
+     "note": "cyrb53 and labCaptureHash"
+    },
+    {
+     "path": "packages/kiln/src/core/util.js",
+     "lines": "3",
+     "note": "Kiln's own cyrb53 hash, base-36"
+    }
+   ],
+   "severity": "medium",
+   "suggested_consolidation": "Make packages/exec/src/lab-hash.ts the only lab-hash implementation and import it from @kiln/lab; separately decide whether lab_hash survives at all next to the SHA-256 kiln-capture/1 id.",
+   "diary_step": 2
+  },
+  {
+   "title": "Perf Lab server modules: lab-workbench/server vs apps/server/src/lab",
+   "description": "KILN-001 Phase 8c ported Perf Lab's tar reader 'unchanged except for noUncheckedIndexedAccess' and its store, datasets and evidence modules onto lab_* tables in Kiln's server.",
+   "locations": [
+    {
+     "path": "lab-workbench/server",
+     "lines": "",
+     "note": "tar.ts, store.ts, datasets.ts, evidence.ts"
+    },
+    {
+     "path": "apps/server/src/lab",
+     "lines": "",
+     "note": "tar.ts, store.ts, datasets.ts, evidence.ts, importer.ts"
+    },
+    {
+     "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/10-phase8c-lab-server-diary.md",
+     "lines": "181-184",
+     "note": "port admitted"
+    }
+   ],
+   "severity": "medium",
+   "suggested_consolidation": "Same as the language: once Kiln's server is the only lab server, delete the lab-workbench server or keep it only as an import source.",
+   "diary_step": 2
+  },
+  {
+   "title": "Perf Lab data: lab-workbench/.data/perf-lab.sqlite vs Kiln lab tables",
+   "description": "lab:import copies Perf Lab's store into Kiln's database and data dir (1 dataset, 1 archive, 128 media, 70 artifacts, 80 runs, 12 jobs) from a temporary copy of db + WAL; both stores then hold the same evidence.",
+   "locations": [
+    {
+     "path": "lab-workbench/.data/perf-lab.sqlite",
+     "lines": "",
+     "note": "Perf Lab store, gitignored"
+    },
+    {
+     "path": "apps/server/src/lab/import.ts",
+     "lines": "",
+     "note": "lab:import"
+    },
+    {
+     "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/reference/10-phase8c-lab-server-diary.md",
+     "lines": "156-158, 544-564",
+     "note": "import admitted"
+    }
+   ],
+   "severity": "low",
+   "suggested_consolidation": "Treat the import as one-way and freeze the Perf Lab store (immutable copy, as K1D09:485-486 suggests).",
+   "diary_step": 2
+  },
+  {
+   "title": "synthetic host capability reports: lab-workbench/src/data vs packages/lab/src/data",
+   "description": "The synthetic GB10 and RTX PRO 6000 capability reports and the synthetic run generator exist in both the Perf Lab copy and @kiln/lab, though KILN-003 plans their removal (P4).",
+   "locations": [
+    {
+     "path": "lab-workbench/src/data/capabilities.ts",
+     "lines": "11-24",
+     "note": "original"
+    },
+    {
+     "path": "packages/lab/src/data/capabilities.ts",
+     "lines": "11-24",
+     "note": "copy"
+    },
+    {
+     "path": "packages/lab/src/data/generate.ts",
+     "lines": "1-731",
+     "note": "synthetic runs"
+    }
+   ],
+   "severity": "medium",
+   "suggested_consolidation": "Do KILN-003 P4: remove synthetic hosts and seeding from @kiln/lab.",
+   "diary_step": 2
+  },
+  {
+   "title": "kiln_launch.py vendored into Playback redaction",
+   "description": "Playback's redaction service vendors Kiln's Python launcher byte-identical below a three-line header (sha256 94a0f717… at Kiln 7bcfc06), excluded from ruff/mypy and guarded by a hash test; it was re-vendored once (ac835daa9) after a launcher fix.",
+   "locations": [
+    {
+     "path": "runtime/python/kiln_launch.py",
+     "lines": "",
+     "note": "Kiln original"
+    },
+    {
+     "path": "/Volumes/SSD/code/playback-kiln-002/services/redaction/src/kiln/kiln_launch.py",
+     "lines": "",
+     "note": "vendored copy"
+    },
+    {
+     "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+     "lines": "734, 751-758, 1144-1145",
+     "note": "vendoring admitted"
+    }
+   ],
+   "severity": "low",
+   "suggested_consolidation": "Keep vendoring (the consumer must not depend on Kiln at runtime) but publish the launcher as a versioned artifact so re-vendoring is a version bump.",
+   "diary_step": 1
+  },
+  {
+   "title": "Kiln launcher and program sets vendored into factory-videos",
+   "description": "factory-videos vendors kiln/launch.ts and the program-set JSON for Example A.",
+   "locations": [
+    {
+     "path": "runtime/webgpu",
+     "lines": "",
+     "note": "Kiln original"
+    },
+    {
+     "path": "/Volumes/SSD/code/factory-videos-kiln/web/live/views/similarity/kiln",
+     "lines": "",
+     "note": "vendored copy (3bc92785)"
+    },
+    {
+     "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+     "lines": "414",
+     "note": "vendoring admitted"
+    }
+   ],
+   "severity": "low",
+   "suggested_consolidation": "Same as the Python launcher: one published launcher package.",
+   "diary_step": 1
+  },
+  {
+   "title": "detection matching: Playback compare_ground_truth vs Perf Lab detections.ts",
+   "description": "ML-PERF-002 ported PR 1005's Python matching rules to TypeScript and pins equivalence by a golden test ('the golden test is the enforcement seam').",
+   "locations": [
+    {
+     "path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/design/01-intern-guide-studying-grounding-dino-acceleration-in-the-perf-lab.md",
+     "lines": "567-574",
+     "note": "decision"
+    },
+    {
+     "path": "lab-workbench/src/lang/detections.ts",
+     "lines": "",
+     "note": "TypeScript port"
+    },
+    {
+     "path": "packages/lab/src/lang/detections.ts",
+     "lines": "",
+     "note": "second copy via the 8a port"
+    }
+   ],
+   "severity": "low",
+   "suggested_consolidation": "Keep the golden test; drop the lab-workbench copy with the rest of the language.",
+   "diary_step": 2
+  },
+  {
+   "title": "lab preset metadata: LAB_META vs PRESET_INFO",
+   "description": "The workbench kept its own LAB_META list of lab presets beside @kiln/lab's PRESET_INFO until 31b769f made PRESET_INFO the one registry.",
+   "locations": [
+    {
+     "path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/reference/01-investigation-diary.md",
+     "lines": "923-926",
+     "note": "fixed in 31b769f"
+    }
+   ],
+   "severity": "low",
+   "suggested_consolidation": "Resolved; listed because it shows the copy pattern recurring.",
+   "diary_step": 2
+  },
+  {
+   "title": "KILN-002 C4 scripts restate validate_on_host start_arm",
+   "description": "c4-diag.sh re-states validate_on_host.sh's start_arm mounts and environment; the fallback target spec is constructed in both cuda-runner-smoke.mjs and gb10-spec-check.mjs.",
+   "locations": [
+    {
+     "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/c4-diag.sh",
+     "lines": "2-3",
+     "note": "'Same image, mounts and env as validate_on_host.sh's start_arm'"
+    },
+    {
+     "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/cuda-runner-smoke.mjs",
+     "lines": "48-50",
+     "note": "fallback spec"
+    },
+    {
+     "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/scripts/gb10-spec-check.mjs",
+     "lines": "",
+     "note": "fallback spec"
+    },
+    {
+     "path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/reference/01-investigation-diary.md",
+     "lines": "1674-1676, 1794",
+     "note": "admitted"
+    }
+   ],
+   "severity": "low",
+   "suggested_consolidation": "Ticket scripts; fold into KILN-003 P5 (playback-redaction/1) rather than fix in place.",
+   "diary_step": 2
+  },
+  {
+   "title": "remote GPU execution: ML-PERF-003 design, KILN-001 executors, KILN-003 driver",
+   "description": "Three successive designs of the same mechanism, each superseding the last within days; KILN-003 says 'keeping every existing path would mean keeping three mechanisms behind one interface' and deleted the executors. Only the driver is built now, but SSH reappears as a tunnel outside the core.",
+   "locations": [
+    {
+     "path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/design/01-intern-guide-running-perf-lab-experiments-on-the-dgx.md",
+     "lines": "351-370",
+     "note": "SSH container executor (designed)"
+    },
+    {
+     "path": "ttmp/2026/10/19/KILN-001--kiln-x-perf-lab-unified-gpu-kernel-workbench-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-x-perf-lab-intern-guide-to-the-unified-gpu-kernel-workbench.md",
+     "lines": "1970",
+     "note": "D10 SSH subprocess executors (built, deleted)"
+    },
+    {
+     "path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/design-doc/01-intern-guide-one-execution-core-for-kiln-and-perf-lab.md",
+     "lines": "675, 685-705, 808",
+     "note": "HTTP driver (built)"
+    },
+    {
+     "path": "ttmp/2026/10/20/KILN-003--one-execution-core-for-kiln-and-perf-lab-hosts-environments-workload-kinds-and-collectors/reference/01-investigation-diary.md",
+     "lines": "822-823",
+     "note": "ssh -N -L tunnel in deployment"
+    }
+   ],
+   "severity": "medium",
+   "suggested_consolidation": "Make the tunnel (or Tailscale) part of the host profile so remote reachability has one documented mechanism.",
+   "diary_step": 2
+  }
+ ],
+ "formats": [
+  {
+   "name": "kiln-paired/1",
+   "kind": "archive",
+   "producers": "KILN-002 Example A scripts (various/a4/records)",
+   "consumers": "planned Perf Lab importer (PE, blocked)",
+   "fields": [
+    {
+     "name": "format",
+     "type": "string"
+    },
+    {
+     "name": "experiment",
+     "type": "string"
+    },
+    {
+     "name": "host",
+     "type": "object",
+     "note": "name, gpu, browser, coTenants"
+    },
+    {
+     "name": "consumer",
+     "type": "object",
+     "note": "repo, revision"
+    },
+    {
+     "name": "order",
+     "type": "object",
+     "note": "seed, sequence"
+    },
+    {
+     "name": "arms",
+     "type": "object",
+     "note": "baseline/candidate impl and kernels with identity, row, codegen"
+    },
+    {
+     "name": "params",
+     "type": "object"
+    },
+    {
+     "name": "repetitions",
+     "type": "list",
+     "note": "rep, arm, samplesMs"
+    },
+    {
+     "name": "quality",
+     "type": "object",
+     "note": "maxAbsDiff, binAgreement"
+    }
+   ],
+   "definition_path": "ttmp/2026/10/20/KILN-002--kiln-and-perf-lab-on-real-work-concrete-kernels-from-factory-videos-and-playback-intern-analysis-design-and-implementation-guide/design-doc/01-kiln-and-perf-lab-on-real-work-intern-guide-to-the-first-production-kernels.md",
+   "definition_lines": "1160-1186",
+   "notes": "Generic paired-run evidence archive designed so consumer repos could feed Perf Lab; twelve records written for Example A; the importer was never built.",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-probe/1",
+   "kind": "record",
+   "producers": "runner/docker/kiln-probe.cu (kiln-perf image)",
+   "consumers": "KILN-002 gb10 spec construction; planned KILN-003 kind",
+   "fields": "name, cc, sms, clockMHz, memClockMHz, busBits, l2MB, memGB, smem sizes, thread/block limits, runtime, driver, reps, bufferMiB, plus measured read bandwidth, FMA rate and launch latency",
+   "definition_path": "runner/docker/kiln-probe.cu",
+   "definition_lines": "174-180",
+   "notes": "Exists as the probe binary's output; the KILN-003 kind of the same name (K3G:1189-1195) is not built although P1 is ticked.",
+   "diary_step": 1
+  },
+  {
+   "name": "kiln-capture/1",
+   "kind": "manifest",
+   "producers": "@kiln/exec captureId",
+   "consumers": "apps/server catalog (capture rows)",
+   "fields": "format, kind, content, collectors (sorted), protocol {reps, launches, warmup, seed}, device, environment; host name deliberately absent",
+   "definition_path": "packages/exec/src/identity.ts",
+   "definition_lines": "6-18",
+   "notes": "SHA-256 capture identity introduced by KILN-003 (§21.1); coexists with the cyrb53 lab_hash name.",
+   "diary_step": 3
+  },
+  {
+   "name": "lab capture hash (cyrb53 lab_hash)",
+   "kind": "manifest",
+   "producers": "packages/exec/src/lab-hash.ts labCaptureHash; packages/lab/src/lang/util.ts hash",
+   "consumers": "lab programs, /api/lab, migration-3 catalog lab_hash column",
+   "fields": "cyrb53(stableStringify(lowered spec)) rendered as 13–14 hex digits; undefined serialized as null",
+   "definition_path": "packages/exec/src/lab-hash.ts",
+   "definition_lines": "1-43",
+   "notes": "Perf Lab's capture identity, kept through three tickets that planned to retire it; normal-form bug fixed in 877c273.",
+   "diary_step": 2
+  },
+  {
+   "name": "detection-qualification/v1",
+   "kind": "archive",
+   "producers": "hand-run DINO qualification on dgx; lab-workbench workloads/perf_lab_dino",
+   "consumers": "lab-workbench/server/qualification.ts; apps/server lab importer",
+   "fields": "report layout prescribed by Playback services/detection/GPU.md; mode → report mapping in the ML-PERF-002 guide",
+   "definition_path": "playback:ttmp/2026/10/12/ML-PERF-002--studying-grounding-dino-pr-1005-in-the-perf-lab-evidence-import-images-detections-and-datasets/design/01-intern-guide-studying-grounding-dino-acceleration-in-the-perf-lab.md",
+   "definition_lines": "527-538",
+   "notes": "ML-PERF-002's archive format, used both for the imported PR 1005 dgx archive and for local runs.",
+   "diary_step": 1
+  },
+  {
+   "name": "ML-PERF-003 host profile (.data/hosts.json)",
+   "kind": "file",
+   "producers": "operator (hand-written)",
+   "consumers": "designed SshContainerHost",
+   "fields": "ssh, root, image, python, docker limits, threads, lockWaitSeconds, idleWindowSeconds",
+   "definition_path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/design/01-intern-guide-running-perf-lab-experiments-on-the-dgx.md",
+   "definition_lines": "431-453",
+   "notes": "Designed, never built; superseded by KILN-003's kiln-hosts/1 hosts.json with driver URLs.",
+   "diary_step": 1
+  },
+  {
+   "name": "ML-PERF-003 staged bundle",
+   "kind": "archive",
+   "producers": "designed lab server recipes (server/remote/recipes.ts)",
+   "consumers": "designed driver.py on the DGX",
+   "fields": "plan.json, driver.py, workload, git archive trees per revision, capture specs, image lists under .data/remote/<jobId>/bundle/",
+   "definition_path": "playback:ttmp/2026/10/12/ML-PERF-003--running-perf-lab-experiments-on-the-dgx-an-ssh-executor-for-containerized-gpu-captures/design/01-intern-guide-running-perf-lab-experiments-on-the-dgx.md",
+   "definition_lines": "555-577",
+   "notes": "Designed, never built; KILN-003 replaced it with content-addressed blobs and driver jobs.",
+   "diary_step": 1
+  }
+ ],
+ "diagrams": [
+  {
+   "title": "Kiln × Perf Lab design history timeline (2026-10-12 to 2026-10-21)",
+   "format": "mermaid",
+   "diary_step": 3,
+   "related": "ttmp/2026/10/21/KILN-004--kiln-perf-lab-component-inventory-reusable-packages-duplication-and-complexity-map-intern-guide/reference/06-inventory-notes-e-design-history-of-kiln-and-ml-perf-tickets.md §1",
+   "source": "timeline\n  title Kiln x Perf Lab design history\n  section 2026-10-12 Playback\n    ML-PERF-001 1457-1912 : lab.js language and workbench UI : Hono and SQLite lab server, sampler on host local : pi assistant\n    ML-PERF-002 1945-2046 : evidence archives, datasets, detections : dino-pr1005 preset, local DINO at two revisions\n    ML-PERF-003 evening : SSH container executor for dgx designed, never built\n  section 2026-10-19 Kiln\n    1344 import : Perf Lab copied verbatim from Playback cdb84891c : Kiln zip imported\n    KILN-001 1419-1812 : evidence package, records, hypotheses : server with SSH CUDA executors : agent sandbox and gateway : Perf Lab ported as lab package and lab routes\n  section 2026-10-20 Kiln\n    KILN-002 1132-1730 : examples A B C : first NVIDIA runs on GB10 hosts : C4 refutes gb10-unchanged-or-better\n    KILN-003 2018 : guide v1 with local and ssh transports\n    KILN-003 2041 : guide v2 one unauthenticated HTTP driver : ML-PERF-003 closed as superseded\n    KILN-003 2200-2349 : exec core built, executors deleted : perf-lab-sampler on CPU hosts : deployed on Mac and bling\n  section 2026-10-21 Kiln\n    KILN-004 1027 : component inventory to separate the pieces again"
+  },
+  {
+   "title": "Remote GPU execution: the reversal chain",
+   "format": "mermaid",
+   "diary_step": 3,
+   "related": "ttmp/2026/10/21/KILN-004--kiln-perf-lab-component-inventory-reusable-packages-duplication-and-complexity-map-intern-guide/reference/06-inventory-notes-e-design-history-of-kiln-and-ml-perf-tickets.md §3.1",
+   "source": "flowchart TD\n  A[\"ML-PERF-003 option B, 2026-10-12: SSH container executor, job tied to the SSH connection\"] --> B\n  B[\"KILN-001 D10, 2026-10-19: runner as subprocess locally or over SSH, no runner HTTP server\"] --> C\n  C[\"KILN-002 Step 14: Kiln server on bling reached through an SSH tunnel\"] --> D\n  D[\"KILN-003 v1, 20:18: transports local and ssh, nothing listens on a GPU host\"] --> E\n  E[\"KILN-003 v2, 20:41: one HTTP driver API, no authentication by decision\"] --> F\n  F[\"49f5156: kiln_driver.py on 127.0.0.1:5281, executors and runner serve deleted\"] --> G\n  G[\"Deployment: bling driver via ssh -N -L on 127.0.0.1:5481, dgx planned via Tailscale\"]"
+  },
+  {
+   "title": "Copies and ports between Perf Lab, Kiln and consumer repos",
+   "format": "mermaid",
+   "diary_step": 3,
+   "related": "ttmp/2026/10/21/KILN-004--kiln-perf-lab-component-inventory-reusable-packages-duplication-and-complexity-map-intern-guide/reference/06-inventory-notes-e-design-history-of-kiln-and-ml-perf-tickets.md §6",
+   "source": "flowchart LR\n  PB[\"Playback ML-PERF-001 experiments/lab-workbench\"] -- \"verbatim copy 92daa13\" --> LW[\"kiln lab-workbench\"]\n  LW -- \"8a port\" --> PL[\"packages/lab\"]\n  LW -- \"8c port\" --> SL[\"apps/server/src/lab\"]\n  LW -- \"lab:import of .data store\" --> DB[(\"Kiln SQLite lab tables\")]\n  LW -- \"sampler wrapped as perf-lab-sampler/1\" --> EX[\"packages/exec kinds\"]\n  ZIP[\"kiln-workbench-src.zip\"] -- \"cp -R core and std\" --> KK[\"packages/kiln\"]\n  RT[\"runtime/python kiln_launch.py\"] -- \"vendored, hash test\" --> RED[\"Playback redaction src/kiln\"]\n  RW[\"runtime/webgpu launcher\"] -- \"vendored\" --> FV[\"factory-videos similarity/kiln\"]\n  PL -. \"cyrb53 lab hash\" .- EX"
+  }
+ ]
+}
