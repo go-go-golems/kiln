@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Isolated diagnostic: bypass only Kiln's internal reference check at export.
-# PassBench's original matching, correctness, and timing gates remain enabled.
+# Existing declared FX pattern canonicalization remains enabled; PassBench's
+# original numerical correctness and timing checks remain enabled.
 set -euo pipefail
 
 source_root=/home/manuel/passnet-kiln/KILN-005/sources/parallel-port-delta-qualification-v1

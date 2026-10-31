@@ -2758,3 +2758,53 @@ Read script607, reference30, `sources/task195-no-check-diagnostic-v1/benchmark.l
 
 ### Technical details
 Only the export-time internal check was disabled. The original PassBench matching, numerical checks, reverse-order behavior, and scoring code were unchanged. The measured score is diagnostic evidence, not a silently added normal-coverage result.
+
+## Step 215: Batch the reference-gate question, correct matcher provenance, and return to optimization
+
+The seven remaining internal-check failures were replayed as complete tasks under the pinned PassBench numerical and scoring path. Four tasks and57 of85 graphs passed exact match, execution and t=-5 correctness after Kiln export used `--no-check`; three tasks remained incomplete. A final mixed-snapshot replay of two pad-match failures showed the newer central matcher selects all25 replacements, with task146 fully accepted and task110 passing20 of21 graphs. These diagnostics separate compiler-reference false rejections, true numerical failures and stale matcher code. They do not change the normal53-task/505-graph coverage ledger.
+
+The user asked, verbatim, "are we back into too detailed testing? or are we still looking forward and taking more ambitious steps". I agreed that the diagnostic branch had become too detailed and closed it after the already-running matcher replay. The next work is to connect the existing reusable transformation-program compiler to the PassBench corpus compilation boundary and measure compiler policies on a declared larger population, rather than continue one task at a time.
+
+### Prompt Context
+**User prompt (verbatim):** "are we back into too detailed testing? or are we still looking forward and taking more ambitious steps"
+**Assistant interpretation:** Finish the active batch, then stop adding narrow diagnostic loops and advance the reusable compiler experiment.
+**Inferred user intent:** See measured self-optimization progress without a growing collection of task-specific infrastructure.
+
+### What I did
+- Script608 copied seven frozen complete-task corpora into an isolated remote root, compiled all85 variants with the original target and contraction settings plus `--no-check`, and ran the existing normalized-matcher integration with the original PassBench numerical checker and scorer. The run used tmux on bling; `run.json` preserves each phase and compiler source snapshot.
+- Script609 used `pass_bench.analysis_util` to check task membership, one replacement, process success and t=-5 correctness per graph. The complete run is archived in `sources/seven-family-no-check-diagnostic-v1.tar.gz`; the machine-readable audit and run receipt are directly readable beside it, while raw task logs remain in the archive.
+- Script612 reused those compiled artifacts with the newer pinned matcher source for tasks110 and146; script613 audited all25 resulting graphs. The mixed-snapshot run is archived separately in `sources/pad-matcher-replay-v1.tar.gz`.
+- Corrected reference30 and script607's wording after reading `evaluate_normalized.py`: the integration uses declared FX argument normalization, so its matching protocol is modified even though PassBench's numerical code and scorer are retained. The executed script608 and original receipt text remain preserved; reference31 and the corrected audit explicitly supersede the inaccurate scope sentence.
+- Wrote reference31 with the batch results, limitations and decision to return to the existing transformation-program architecture. Removed an unused target-inspection script before commit to avoid retaining an unnecessary diagnostic path.
+
+### Why
+The local reference evaluator, FX matcher and external numerical acceptance are independent gates. One complete batch establishes their failure categories more efficiently than repeated isolated probes. The user wants the broader research question answered, and existing staged-fusion and agent infrastructure already supports it.
+
+### What worked
+- Seven-task replay: task17714/14, task1881/4, task1100/21, task369/9, task3121/21, task4712/12 and task1460/4 accepted; total4 complete tasks and57 graphs under the bypassed-export diagnostic.
+- Task110 and146 failures in the old snapshot were pad target mismatches during compiled warmup. The newer matcher selected21/21 and4/4 respectively. Task110 passed20 strict numerical checks; task146 passed4.
+- The original scorer outputs are retained for every task; all evaluator and scorer processes completed. The archive contains exact executed script and compiler artifacts; the materialized audit identifies accepted graphs.
+
+### What didn't work
+- Task188 executed and matched all four graphs but failed t=-5 on three. Task110 under the newer matcher failed t=-5 on graph index3. These are real remaining numerical acceptance failures, not resolved by `--no-check` or matcher normalization.
+- The raw script608 receipt used the inaccurate phrase "original PassBench evaluator unchanged". It was corrected in the tracked script and superseded in a new audit/document; the executed bytes remain archived for provenance.
+- The mixed-snapshot replay proves a matcher hypothesis but cannot be counted as a uniform release qualification. No result from this step enters `kiln-coverage.json`.
+
+### What I learned
+The older source snapshots omitted pad target normalization already implemented in current Kiln. PassBench's parser calls the compiled-warmup no-match condition `eager_fail`; the logs show that the exception is `PassMgrBackend: No passes modified the graph`, so it must not be described as an eager PyTorch failure.
+
+### What was tricky to build
+Generated passes embed `/work/results/task-XXX/corpus`; the isolated diagnostic root had to be mounted at `/work`. Old compiler snapshots were verified against their original run receipts, while the later matcher-only replay deliberately crossed a snapshot boundary and was labeled accordingly. The strict t=-5 result required the upstream parser; successful process exit or `status: success` alone was insufficient.
+
+### What warrants a second pair of eyes
+Check the reference31 distinctions among internal-reference bypass, current matcher effect and strict numerical failure. Review the executed-versus-corrected script608 prose difference and ensure no mixed-snapshot result is added to uniform coverage.
+
+### What should be done in the future
+- Connect existing `transformation_program.mjs` preparation to the PassBench corpus export path and use a single declared train/held-out experiment to compare reusable compiler policies.
+- Retain task188 and task110 numerical failures as future compiler work; no further per-task probes are required before the optimization experiment.
+
+### Code review instructions
+Start with reference31 and the two audits. Inspect `evaluate_normalized.py`, `fx_normalize.py`, scripts608–609 and612–613, then the full archives if raw logs or compiled programs are needed. Compare existing staged-fusion and pointwise reports (references26–27) before interpreting new optimization results.
+
+### Technical details
+Seven-task pinned image `sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba`, NVIDIA GB10, A100 scheduling proxy, separate contraction,20 warmups,100 trials. The two-task replay changes only the matcher source snapshot while reusing the earlier `--no-check` artifacts. Both runs use the declared modified FX matching protocol and original PassBench t=-5 numerical and scoring code.
