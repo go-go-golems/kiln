@@ -659,3 +659,56 @@ See Step 168 for the verbatim six-lane request and Step 169 for research-first d
 ### Technical details
 - Six concurrent inference processes, independent six-proposal ledgers; no simultaneous GPU benchmarks.
 - Existing development corpus and prior timing feedback; no fresh held-out claim.
+
+## Step 173: Find a positive selective-fusion policy in the six-lane GPU experiment
+
+The six-lane search produced a positive development result: glm-28 achieved a family-balanced synchronized end-to-end speedup of 1.285583430086401 across twelve training graphs. All policies remained eligible with no selector failures. The winner originated from selective-consumer attempt six and combines aggregate threshold 1.02 with consumer threshold 2.0. It changes six training graphs, increasing their kernel counts by one. Repetition and generalization remain untested.
+
+### Prompt Context
+**User prompt (verbatim):** "you can experiment with thinking lvels btw as well"
+See Steps 168–169 for concurrent-lane and research-first instructions.
+**Assistant interpretation:** Measure the running batch and make thinking level an explicit variable for subsequent experiments.
+**Inferred user intent:** Improve research throughput and investigate how reasoning affects optimization proposals.
+**Previous commit:** 321e619 — Run six concurrent GLM hypothesis lanes with measured feedback.
+
+### What I did
+- Polled the original compilation job to completion: 35 policies across twenty graphs qualified.
+- Staged and executed the existing isolated GPU evaluator on the twelve training graphs.
+- Collected measurement and terminal receipts and ran the existing selector.
+- Made Pi thinking level configurable, recording requested and effective levels in session_ready. Syntax validation passed; new levels have not yet been exercised.
+
+### Why
+- The positive result must come from measured executable performance, not proposal count or structural novelty.
+- Recording effective thinking settings will make SDK clamping visible in future comparisons.
+
+### What worked
+- GPU evaluation completed all twelve graphs. glm-28 ranked first at 1.285583430086401; no other candidate exceeded baseline in the aggregate.
+- The winning policy is small and interpretable: selective consumer threshold 2.0, aggregate threshold 1.02.
+- The run used fresh baseline timings and shared exact aliases as intended.
+
+### What didn't work
+- Many candidates were aliases or substantial regressions; the lowest aggregate was approximately 0.2134.
+- Earlier commentary attributed broad graph changes to region policies before checking their kinds. Several such changes actually came from selective policies; policy artifacts are authoritative.
+- No repeated-run or unseen-family confirmation has been performed for the winner.
+
+### What I learned
+- More kernels can accompany faster execution. The winner increases kernel counts on six training graphs, motivating examination of the fusion boundaries and resulting schedules.
+- The first blind batch's negative result did not imply the existing selective grammar lacked useful policies.
+
+### What was tricky to build
+- The running measurement bundle retained its original source snapshot before the thinking-level configuration edit, preserving the interpretation of this run.
+
+### What warrants a second pair of eyes
+- Check per-graph contributions and repeat the winner. The 33-candidate development search can select noise and population-specific effects.
+- Explain the source-level mechanism before promoting this policy into the compiler default.
+
+### What should be done in the future
+- Repeat baseline versus glm-28, inspect the changed kernels, and test additional graph families.
+- Publish this substantive milestone in the vault. Explore two hypotheses at low/medium/high thinking as a separate six-lane batch after the measured result is understood.
+
+### Code review instructions
+- Read pi-six-lane-results-v1/selection.json and measurement.json, then pi-six-lane-study-v1/corpus/policies/glm-28.json and origins.json.
+
+### Technical details
+- Development result under the modified explicit FP32 protocol; not native PassBench score or fresh held-out evidence.
+- Thinking-level configuration defaults to off for existing configurations; new requests can specify thinkingLevel explicitly.

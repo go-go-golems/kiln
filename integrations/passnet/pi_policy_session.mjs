@@ -31,7 +31,7 @@ export async function createPolicySession(config, call, record) {
   await resourceLoader.reload();
   const { session } = await sdk.createAgentSession({
     cwd: config.cwd, agentDir: config.agentDir, resourceLoader, settingsManager,
-    thinkingLevel: 'off', tools: names,
+    thinkingLevel: config.thinkingLevel ?? 'off', tools: names,
     customTools: names.map(name => ({ name, label: name,
       description: ({ inspect_training: 'Inspect training-only compiler decision features.',
         submit_policy: 'Submit a policy JSON string for validation. Each submission consumes one slot.',
@@ -53,7 +53,7 @@ export async function createPolicySession(config, call, record) {
     });
     session.agent.streamFunction = gate.invoke;
     session.subscribe(event => record('session_event', event));
-    record('session_ready', { provider: model.provider, model: model.id, api: model.api, tools: active });
+    record('session_ready', { provider: model.provider, model: model.id, api: model.api, requestedThinkingLevel: config.thinkingLevel ?? 'off', effectiveThinkingLevel: session.thinkingLevel, tools: active });
     return { session, boundary, gate };
   } catch (error) {
     session.dispose();
