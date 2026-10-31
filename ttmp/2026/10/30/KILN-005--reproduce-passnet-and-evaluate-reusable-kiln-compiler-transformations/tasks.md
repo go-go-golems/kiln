@@ -24,3 +24,4 @@
 - [ ] Fuse round_tf32 into tiled matmul operand loads (two extra elementwise launches today). <!-- t:tf32f -->
 - [ ] Collect cost-gate-held-out-v1 (3 arms, 20 families, 237 graphs) with script 669 and analyze against declaration.json; report gated vs always vs baseline. <!-- t:vxqa -->
 - [ ] GPU probe of cuDNN TF32 convolution operand rounding (RN vs RZ vs FP32) after the cost-gate study; explain families 72 and 133 and the remaining TF32 linear failures 88, 118, 157. <!-- t:rgkk -->
+- [ ] Re-qualify families 32, 75 and 107 (row-mapped launches past the 32-bit thread count; guard fixed in 88c2ad1) and the P0-repaired families on the next uniform snapshot. <!-- t:puyg -->
