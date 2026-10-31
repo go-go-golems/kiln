@@ -1581,3 +1581,44 @@ Original genuine-task coverage requirement; prior launch failure in Step 36.
 
 ### Technical details
 - Source-derived graph shape and exact dtype output verified on GB10. No source code copied; full task support not yet claimed.
+
+## Step 38: Launch complete first-task dtype dispatch evaluation
+
+Saved dtype-dispatch pass generation and six-variant evaluation procedures. First batch attempt revealed process-local protocol setup was lost in evaluator child processes. Corrected driver explicitly invokes harness once per graph; confirmed first attempt terminal before relaunch.
+
+### Prompt Context
+Original all-variant correctness/scoring requirement and intermediate script preservation.
+**Assistant interpretation:** Evaluate complete first task with all required dtype artifacts.
+**Inferred user intent:** Advance from isolated graph tests to task coverage.
+
+### What I did
+- Added scripts/17-write-task-pass.py and 18-run-first-task.sh.
+- Generated stable module-level callable dispatching by input dtype, retaining runtime shape/type validation.
+- Corrected batch subprocess handling and launched tmux passnet-first-task-v2.
+
+### Why
+- Each graph must execute matching normalization and metadata policy, not only its batch parent.
+
+### What worked
+- First driver completed; corrected driver now launches one explicit protocol process per graph.
+
+### What didn't work
+- Initial --allow-list invocation spawned original test_compiler children without harness setup; original pattern mismatch reappeared. Exact log retained remotely as first-task-all-variants.log; no original evaluator modifications made.
+
+### What I learned
+- Process-local integration modifications do not propagate to subprocess module entrypoints.
+
+### What was tricky to build
+- Complete task iteration must retain identical protocol identity in every child, with each graph separately initialized.
+
+### What warrants a second pair of eyes
+- Corrected run results and score still pending; performance remains exploratory and non-isolated.
+
+### What should be done in the future
+- Inspect corrected run per-graph numerical/dtype results, archive logs and official full-task score.
+
+### Code review instructions
+- Review scripts 17/18 and process-local setup in evaluate_normalized.py.
+
+### Technical details
+- Six variants, four FP16/one FP32/one BF16; fixed compatible [1000,128] activation and [128] channel vectors.
