@@ -28,3 +28,11 @@ Published detailed current-state technical report to go-go-parc, committed and p
 ### Related Files
 
 - /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/reference/06-project-report-passnet-kiln-integration-and-the-path-to-self-optimization.md — Comprehensive published project analysis
+
+## 2026-10-30
+
+Completed first reusable fusion-policy pilot: training-selected 1.25, held-out family-balanced e2e 1.0186x vs unchanged Kiln, 60/60 stress checks; published vault report 2383314 and delivered guide Progress 03.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/reference/07-milestone-report-first-measured-reusable-fusion-policy-improvement.md — Measured policy transfer and limits

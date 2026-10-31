@@ -21,7 +21,7 @@ WhenToUse: ""
 
 This project has two independent experimental tracks. The reference track runs the pinned PassNet implementation without Kiln changes. The integration track lowers the same workloads through Kiln and submits their results to PassBench. Keeping the reference evaluator unchanged makes the effects of compiler and runtime changes identifiable.
 
-The checked-in paper is arXiv:2605.29357v1. Reference source revision is `61c64709f6d324216ae8252cec3cdc35b2dd5da5`; dataset revision is `4f7dd9211178327c2718f1b828d83ea126186f9e`. Source inventory, revision API responses, paper, and preliminary research are under `../sources/`. The guide is being developed against these sources; an API described as proposed below is not implemented yet. GPU benchmark results do not yet exist.
+The checked-in paper is arXiv:2605.29357v1. Reference source revision is `61c64709f6d324216ae8252cec3cdc35b2dd5da5`; dataset revision is `4f7dd9211178327c2718f1b828d83ea126186f9e`. Source inventory, revision API responses, paper, and preliminary research are under `../sources/`. Current exact PassBench integration coverage is five complete tasks and 73 graph variants under explicitly recorded modified protocols. The separate import audit finds 804 translatable graphs and 24 fully translatable tasks. A direct FP32 compiler-policy study has also completed training selection and held-out evaluation; its metrics are relative to unchanged Kiln, not official PassBench scores. Sections 11–21 preserve earlier historical checkpoints; this section and Section 22 give the current state.
 
 The requested end state includes baseline reproduction, an end-to-end Kiln round-trip, reusable pass experiments with held-out evaluation, documented compiler extensions, reMarkable delivery, and milestone reports in the Obsidian vault. A small FP32 example is an integration gate, not completion of corpus support.
 
@@ -47,7 +47,7 @@ The first function expresses the computation to match. The second maps captured 
 flowchart TD
   D[Pinned dataset and task list] --> F[PyTorch FX and metadata]
   F --> R[Untouched PassNet reference execution]
-  F --> X[Typed FX interchange: proposed]
+  F --> X[Typed FX interchange: kiln-fx/1]
   X --> T[Kiln tensor IR]
   T --> L[Loop IR and fusion]
   L --> S[Scheduling and tile/kernel lowering]
@@ -103,9 +103,9 @@ The checker also verifies output dtype; numerically close FP32 output is not an 
 
 Timing records both end-to-end and GPU-only latency. Preserve raw trial values, warmup count, synchronization policy, compile time, and stability decisions. Allocation and Python dispatch can dominate small computations; report these costs separately rather than attributing all changes to kernel code.
 
-## 6. Proposed FX interchange and importer
+## 6. Typed FX interchange and importer contract
 
-The interchange must use explicit node identities, operator overload names, typed tensor specifications, scalar constants and output structure. Start with static shapes and make unsupported features explicit diagnostics. Every restriction is a coverage limitation to remove or measure, not a silent fallback.
+The implemented kiln-fx/1 interchange uses explicit node identities, operator targets, typed tensor specifications, scalar constants and complete output structure. fx_export.py owns serialization; fx_import.py and fx_indexing.py own supported semantic lowering. Current inputs are positive static contiguous FP32/FP16/BF16 tensors. The pseudocode below states the complete importer contract; individual operations still require expanded promotion/layout/alias coverage or explicit rejection. Consult the coverage and import-audit ledgers for measured capability rather than assuming every contract obligation is complete.
 
 ```text
 import_graph(graph):
@@ -132,11 +132,11 @@ The launcher uses a live non-primary CUDA context if one is already current. The
 
 ## 8. Reusable fusion experiment
 
-`packages/kiln/src/std/loop.js` currently defines `mergeLoopOps`; its profitability guard is `now <= was * 1.02`. This confirms the preliminary proposal's threshold. A first policy experiment can vary this guard, but legality must remain enforced independently.
+`packages/kiln/src/std/loop.js` defines createFusionRule({maxWorkGrowth=1.02, decide=null, onDecision=null}); mergeLoopOps is its unchanged default instance. pipeline.replaceRule installs a policy variant while preserving the existing matcher and inlining mutation. WorkOf uses weighted memory traffic and arithmetic, not elapsed time. A first study selected threshold 1.25 on training graphs and measured 1.0186x family-balanced held-out e2e speedup; see Section 22 and design document 06 for exact scope and limitations.
 
 Split workloads by graph family before policy selection. Shape variants of the same pattern must not leak across training and held-out sets. Compare the unchanged compiler, manual policy, agent-selected parameters, agent-composed passes, and new agent-generated passes under the same measurement budget. Report compiler time and failures as well as latency.
 
-An exploratory selection objective is mean log baseline/candidate latency minus a compile-cost penalty. This does not replace the official PassBench score. The pinned README describes squared slowdowns while the preliminary research says executable scoring defaults to p=0; inspect the scorer before implementing aggregation. Record its parameters with every result.
+An exploratory selection objective is mean log baseline/candidate latency minus a compile-cost penalty. This does not replace the official PassBench score. The pinned README describes squared slowdowns while executable scoring defaults to p=0. Original task scores record p=0 and fpdb=0.1. The direct policy study uses its own family-balanced latency objective and does not replace that official metric.
 
 ## 9. Provenance for compiler extensions
 
@@ -150,13 +150,13 @@ User authorization includes implementing missing Kiln capabilities, consulting P
 2. Run untouched eager and Inductor evaluation, recording all failures and software/hardware differences.
 3. Lower one genuine task through Kiln; pass the original numerical and dtype checker.
 4. Exercise original pass matching, integrity defenses and score aggregation. If a sanctioned integration requires evaluator changes, label the protocol modified and preserve the untouched reference.
-5. Expand full operation/dtype/layout coverage and report unsupported cases in the declared denominator.
-6. Evaluate reusable policies on fixed held-out families and preserve raw evidence and compiler identities.
+5. Evaluate reusable policies on fixed held-out families and preserve raw evidence and compiler identities; this is the immediate critical path.
+6. Expand full operation/dtype/layout coverage in parallel and retain every unsupported case in the declared denominator.
 7. Finish and visually validate intern documentation, upload to reMarkable, write milestone textbook-style vault reports, and commit/push the vault.
 
-Current work has reached source acquisition and environment inspection. The remainder of these gates is pending.
+Source acquisition and selected round-trips are verified. Complete benchmark coverage, exact reference reproduction, PassAgent runs and richer generated transformations remain unfinished. The first small FP32 scalar-policy study has passed its declared gates, with all source evidence retained.
 
-## 11. First verified reference task and importer target
+## 11. Historical checkpoint: First verified reference task and importer target
 
 The first pinned evaluation task is hash `6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8`. Its six variants completed with six success statuses and no failed statuses in the original evaluator. Archived raw output is in `sources/reference-smoke/000-inductor.log`, with exact command and process duration in `execution-receipt.json`. This establishes one task on DGX Spark, not full reproduction.
 
@@ -164,13 +164,13 @@ Its GraphModule.forward accepts running mean, running variance, bias, weight, an
 
 Inference batch normalization requires channel-aware broadcasting: output = (relu(input)-running_mean)/sqrt(running_variance+eps)*weight+bias. Confirm channel axis, precision and intermediate rounding against PyTorch before lowering. Disabled dropout is an identity in this graph, but general training dropout requires random-number semantics and must not be silently removed. Preserve the tuple output and FP16/BF16 rounding behavior. These requirements motivate extending the importer beyond a synthetic add/ReLU demonstration.
 
-## 12. Implemented serialization and first importer
+## 12. Historical checkpoint: Implemented serialization and first importer
 
 `integrations/passnet/fx_export.py` uses FX ShapeProp to serialize trusted graph execution metadata into kiln-fx/1. It preserves argument/container structure and exact ATen overload strings. `fx_import.py` resolves references, validates static contiguous FP32 inputs, and emits a Kiln project script for a currently limited elementwise operation set. It returns an output-structure manifest so tuple/list/dictionary structure can be restored after flat program execution.
 
 Run CPU boundary tests with `python3 -m unittest discover -s integrations/passnet -p 'test_*.py'`. These tests establish structure and explicit rejection behavior, not Kiln compilation or GPU equivalence. Next validation must compile the emitted script and compare its output against the source graph before integrating it into the original evaluator. Remaining operators and dtype/layout support must be implemented rather than omitted from the full benchmark denominator.
 
-## 13. Verified GPU milestone and integrity boundary
+## 13. Historical checkpoint: Verified GPU milestone and integrity boundary
 
 The integration now compiles an actual first-task FP32 graph into two CUDA kernels and executes it with PyTorch-owned inputs/outputs and per-invocation scratch. A CUDA test with nontrivial running mean, positive variance, weight and bias passed rtol 1.3e-6 and atol 1e-5, with maximum absolute error 9.5367431640625e-07. Reproduce its generation with scripts/04-export-first-task.py, compile the emitted project with the existing export CLI, and run integrations/passnet/smoke_batch_norm.py against the artifact. This verifies a genuine task's operation structure and shape under independent inputs; it does not establish PassBench acceptance or full task coverage.
 
@@ -180,7 +180,7 @@ The first pass module used the documented pattern/replacement_args/replacement_f
 
 Explicit Graph/GraphModule construction can express that structure, but the original AST validator rejects these calls. sources/kiln-match-v2.log preserves its exact diagnostics. Do not hide constructor calls in another module or alter validation to present this as original-protocol success. There are two legitimate research directions: find a pattern form accepted by the original interface, or add a separately labeled trusted integration protocol that admits compiler-produced pattern artifacts with a documented integrity contract. Either direction must retain numerical and dtype checks, reverse-order evaluation and replacement restrictions. The untouched reference environment remains authoritative for paper reproduction.
 
-## 14. Corpus completion and remaining work
+## 14. Historical checkpoint: Corpus completion and remaining work
 
 All 14 Parquet shards were size/SHA256 verified and materialized into 2,067,810 file-content records, with zero duplicate records. sources/materialization-summary.json gives the compact receipt; the full manifest is under sources/materialized. The pinned repository independently contains all 200 evaluation tasks and 2,060 graph directories.
 
@@ -188,7 +188,7 @@ The full reference run is exploratory: synthetic GPU checks and integration test
 
 This edition documents an ongoing implementation. It does not claim completion of FP16/BF16 support, full corpus operation/layout coverage, original pass matching/scoring, fine-tuning reproduction, compiler meta-optimization or final performance comparisons. Those remain explicit project requirements. The delivered progress edition is useful for an intern to inspect the current boundaries and continue from reproducible scripts; a later edition must replace this status with verified results.
 
-## 15. Measured static corpus requirements
+## 15. Historical checkpoint: Measured static corpus requirements
 
 scripts/09-inventory-operators.py parses all 2,060 source graphs without importing or executing them. It normalizes tensor method receiver names and counts Python arithmetic/subscript syntax as well as calls. Full per-graph records are in sources/operator-inventory.json. This is a static occurrence census; it does not measure dynamic invocation counts or prove compiler coverage.
 
@@ -198,7 +198,7 @@ Static counts include 686 conv2d calls, 666 cat calls, 455 view calls, 346 mean 
 
 A full implementation needs typed storage and arithmetic conversion rules, channel/spatial indexing, integer gather/embedding, layout views/copies, concatenation, convolution and reductions. Each extension must define reference evaluation, shape/type inference, lowering, emission/runtime representation and numerical tests. Preserve rejected tasks in the declared benchmark denominator while these capabilities are developed.
 
-## 16. Integration protocol: functional argument normalization
+## 16. Historical checkpoint: Integration protocol: functional argument normalization
 
 `integrations/passnet/fx_normalize.py` provides a narrowly scoped graph transformation for ReLU, batch_norm and dropout. It binds each public Python signature, fills defaults and emits ordered positional arguments. Both target and pattern graphs must undergo the same normalization before structural matching. This is explicitly a modified integration protocol; it is not a result under unchanged PassBench matching.
 
@@ -206,31 +206,31 @@ The transformation changes call syntax rather than tensor arithmetic. It neither
 
 Original AST source validation remains applicable to generated pass modules. They should contain ordinary functional patterns, not explicit graph construction. Integration setup owns normalization outside generated code and must record module identity and changed-node receipts. Numerical, dtype, dispatch and reverse-order checks must remain active. A successful unit test of normalization does not establish that the rest of PassBench accepts the CUDA launcher; that still requires execution evidence.
 
-## 17. First complete task result
+## 17. Historical checkpoint: First complete task result
 
 All six variants of task 6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8 now pass numerical, dtype and stability checks under the declared normalized/record-stream integration protocol. The original scorer parsed six results and reported aggregate 0.8495327431059172. This is slower than eager in this run and is not a full-benchmark result. Earlier overlapping run failed BF16 stability; both attempts are retained.
 
 Reproduce using scripts 16–20 and review sources/first-task-isolated.log plus first-task-score.json. Script 21 generates complete denominator accounting: one of 200 tasks, six of 2,060 graphs verified; the remaining 199 tasks are not yet verified. The task uses dtype-dispatched artifacts and runtime metadata validation. This is execution support for one fixed task family, not demonstrated generalization of a learned compiler policy.
 
-## 18. Convolution task acceptance and limitations
+## 18. Historical checkpoint: Convolution task acceptance and limitations
 
 The first three tasks now have original checker acceptance under the declared modified protocol: 19 graphs across three of 200 tasks. Exact per-graph evidence is maintained in sources/kiln-coverage.json. The third task's FP16 convolution/in-place-ReLU/residual/identity-resize chain passes on original replay inputs after correcting low-precision bias addition order. Official aggregate is 0.043470409529710305, a severe slowdown versus eager.
 
 A separate unit-scale random stress test still fails 67/73728 elements after the bias fix. Keep that limitation distinct from benchmark acceptance; the source's smaller replay distributions are not proof that larger values are invalid. The initial convolution uses safe clamped reads and explicit padding masks, nested indexed reductions and FP32 internal arithmetic. These are correctness foundations, not a high-performance convolution design. Profiling, precision robustness and reusable pass/schedule improvement remain required work.
 
-## 19. Static layout and cast import
+## 19. Historical checkpoint: Static layout and cast import
 
 The importer now accepts tensor methods reshape/view, flatten, permute, contiguous, and explicit floating conversions. Reshape uses the static output shape recorded by FX propagation after verifying literal shape operands. Permutation composes pairwise Kiln transposes. Contiguous materializes the logical tensor value through reshape. Casts use N.cast so FP16/BF16 rounding remains explicit through fusion.
 
 This is value-semantic graph import. External noncontiguous inputs and mutation-dependent alias behavior remain unsupported. Device transfers and dynamic shape operands fail explicitly. Scripts 44/45 export and run a four-output chain; all outputs matched PyTorch CUDA exactly on GB10. These probes do not increase the verified PassBench task count.
 
-## 20. Shared corpus execution and explicit pattern support
+## 20. Historical checkpoint: Shared corpus execution and explicit pattern support
 
 Use `integrations/passnet/corpus.py` for task export and compilation, and `check_corpus_cuda.py` for source-model comparisons. The manifest records ordered inputs, graph identity and complete output structure. The recursive checker validates every output, including tuple/list/dict structure, shape and dtype. Design document 04 explains the ownership boundaries and commands. The original numbered scripts remain historical evidence rather than separate production implementations.
 
 Two additional integration protocol components address patterns with explicit in-place operators and multiple outputs. `kiln-pattern-autowrap/1` preserves directly imported operator.iadd during pattern tracing. `kiln-pattern-multi-output/1` reuses the pinned upstream direct backend's tuple-destructuring helper with the standard backend's guarded callable. Neither changes graph arithmetic or removes source/dispatch/numerical checks. These changes must be reported alongside the existing argument-normalization and record_stream policies whenever presenting integration results.
 
-## 21. Corpus audit and basic indexing checkpoint
+## 21. Historical checkpoint: Corpus audit and basic indexing checkpoint
 
 Verified benchmark coverage is 4/200 tasks and 49/2,060 graphs under explicitly recorded integration protocols. The 30-variant residual-plus-mean task scored 1.0032945157872568 with the original aggregate scorer, approximately eager parity on GB10. This is not evidence of a robust speedup or a reproduction on the paper's A30 environment.
 
@@ -239,3 +239,27 @@ The shared corpus runner now supports FakeTensorMode metadata propagation with f
 Basic indexing lives in `fx_indexing.py`: normalize ellipsis, None axes, negative integers and unit-step slices; lower selections to N.slice; then reshape away selected unit axes and insert requested dimensions. Computed result shape must agree with FX metadata. Strided and empty slices require additional compiler work and fail explicitly. Independent three-output probes passed CUDA comparisons for FP32, FP16 and BF16.
 
 Concatenation is now the first blocker in 531 graphs. Other first blockers include integer inputs, linear/matmul, softmax and activation functions. Counts refer only to each graph's first encountered blocker; implementing one feature can reveal another. Local CUDA availability also prevents tracing some trusted source graphs and is recorded separately. Use sources/import-audit-summary.json for prioritization and sources/kiln-coverage.json for verified execution evidence.
+
+## 22. Current compiler-policy API and first measured transfer result
+
+The first direct compiler-policy experiment is implemented by compile_policy.mjs, measure_policy.py, select_policy.py, summarize_policy.py and stress_policy.py under integrations/passnet. The frozen corpus and plan are in sources/policy-corpus-v2; compilation artifacts are in sources/policy-artifacts-v2; complete training, selection, held-out and stress evidence is in sources/policy-measurements-v1. Scripts 69–79 reproduce construction, qualification, GPU isolation, selection and verification.
+
+Given a fixed target, create an explicit policy variant:
+
+```javascript
+const baseline = std.emmy.pipeline({ target });
+const selected = baseline.replaceRule(
+  "loop/fusion", "merge_loop_ops",
+  std.loop.createFusionRule({ maxWorkGrowth: 1.25 })
+);
+```
+
+The factory also accepts decide(features) and onDecision(event), using immutable weighted-work, consumer-count and producer-size features. Profitability is replaceable; the original matcher and transformation remain intact. The default mergeLoopOps still uses 1.02. A decision callback must return a Boolean or rejection reason.
+
+Training used three FP32 graphs from two task families; held-out evaluation used seven graphs from four distinct families. The six candidate controls were compiled across all ten graphs. Actual default executable bodies matched unchanged Kiln. Source-model identities are disjoint between training and held-out membership. The corpus is a curated development set drawn from evaluation tasks, not an untouched paper benchmark. Version 2 was frozen after structural preflight and before any candidate timing.
+
+Training selected 1.25 with family-balanced synchronized e2e score 1.1174679569686872 relative to unchanged Kiln. Selection commit 575effd precedes held-out timing. The selected policy qualified on all seven held-out graphs and scored 1.0186065904267643. Only one held-out RepViT graph changes: three kernels become two, e2e median 0.0362335 ms becomes 0.031265 ms, ratio 1.158915720454182. The other six executables are identical and share baseline measurement evidence.
+
+The fixed plan uses 20 warmups, 100 trials and three repeats, seeded order, IQR <=20% and at most two retries. End-to-end includes allocation/launch/final synchronization; CUDA stream elapsed includes dispatch gaps. Neither is a pure device-kernel-only claim. Post-selection numerical stress passed 60/60 comparisons across both compilers, ten graphs and three seeds, max error 3.814697265625e-06. These tests use nontrivial random values and source-derived positive variance domains without retuning the policy.
+
+This is a completed scalar-policy tuning pilot. Generated feature-dependent programs, new rewrite algorithms, independent broader confirmation and PassAgent comparisons remain future work. It does not add complete PassBench tasks: that ledger remains five tasks / 73 variants. Read reference report 07 and design document 06 before extending the study or changing the global default.

@@ -3301,3 +3301,50 @@ See the self-optimization priority in Step 71 and frozen experiment in Steps 74â
 
 ### Technical details
 - Direct compiler-policy study, not official PassBench scoring. Verified PassBench coverage remains 5 tasks / 73 graphs; these selected FP32 experiments do not add complete benchmark tasks. Default 1.02 is unchanged and the selected 1.25 policy is explicit through createFusionRule.
+
+## Step 77: Publish the first policy-result report and refresh the intern guide
+
+Published a roughly 2,200-word technical article explaining the measured scalar-policy transfer result, its train/held-out boundary and its limits. Updated the intern guide's opening status and marked older sections as historical checkpoints so import counts and accepted coverage are not confused with current facts. Delivered a new reMarkable progress edition containing the current guide and experiment design.
+
+### Prompt Context
+See the standing milestone-report and reMarkable delivery requirements, and the user's clarification questions about coverage in the preceding project-report turn.
+**Assistant interpretation:** Publish the positive result at its actual scope and keep the primary onboarding document current.
+**Inferred user intent:** Make research progress reviewable without overstating corpus support or generality.
+**Commit (result evidence):** 7ce40f6.
+**Commit (vault):** 2383314.
+
+### What I did
+- Authored reference/07-milestone-report-first-measured-reusable-fusion-policy-improvement.md and a matching new vault ARTICLE note.
+- Explained weighted work, candidate controls, structural preflight, training-only selection, identity aliases, repeat variability and seeded numerical checks.
+- Added a concrete RepViT dataflow and actual weighted-work ratios from decision traces.
+- Updated guide Section 1 and Section 10 to current evidence; marked Sections 11â€“21 as historical; added current API/result Section 22.
+- Committed/pushed only the new vault note and uploaded a distinct Progress 03 edition to preserve earlier annotations.
+
+### Why
+- The result is useful evidence of reusable policy tuning but is narrow: FP32, one GPU, a curated development split and one changed held-out executable.
+
+### What worked
+- Vault push completed `d081b7a..2383314 main -> main`.
+- Delivery evidence: `OK: uploaded KILN-005 PassNet Intern Guide Progress 03.pdf -> /ai/2026/10/30/KILN-005`.
+- Ticket and vault report bodies match; artifact and numerical facts verified with script 79; Git whitespace check passed.
+
+### What didn't work
+- No publication/delivery failure. Broader coverage, richer generated policies and independent confirmation remain unfinished.
+
+### What I learned
+- A current status section plus explicitly historical checkpoints prevents older progress numbers from looking like regressions or stronger present support.
+
+### What was tricky to build
+- Explain 1.1589x speedup on one changed graph alongside 1.0186x family-balanced aggregate without treating unchanged artifact aliases as independent gains.
+
+### What warrants a second pair of eyes
+- Curated applicability selection, single-device warm timings, default preservation and the distinction between direct compiler metrics and official PassBench scores.
+
+### What should be done in the future
+- Continue toward feature-dependent generated policies on a fresh reserved confirmation set, with fixed search budgets; keep full reproduction/support as an active separate track.
+
+### Code review instructions
+- Read report 07 and guide Section 22, then inspect verified-facts.json and raw heldout/stress receipts. Global fusion default remains 1.02.
+
+### Technical details
+- Native policy result is relative to unchanged Kiln and does not change verified PassBench coverage of five tasks / 73 graphs. ReMarkable success proves cloud delivery, not physical synchronization. The overall project goal remains active.
