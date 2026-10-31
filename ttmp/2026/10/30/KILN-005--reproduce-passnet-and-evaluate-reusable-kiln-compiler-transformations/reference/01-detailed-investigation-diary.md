@@ -4491,3 +4491,47 @@ See Step 99 for the self-optimization request. The user additionally asked, verb
 
 ### Technical details
 - Source/artifact compilation revision b4a4102; membership f3df1ddadef41f31d9b88ab9953c7c7a2a6cd3bffa75bb830159205b40848ad0. Fixed contraction separate; existing correctness tolerances and 20/100/3 timing budget unchanged. Native TF32 precision remains untouched in the original evaluator.
+
+## Step 101: Commit training-only selection before confirmation timing
+
+The explicitly modified FP32 research run completes all twelve training graphs with every candidate qualified. The frozen objective selects scalar105 with family-balanced end-to-end ratio 1.0013193438356627. This tiny observed training difference is insufficient to claim a reliable compiler improvement; confirmation remains necessary. Remote source verification exactly matches the compilation snapshot, with no changed, missing or additional files.
+
+### Prompt Context
+See Steps 99–100 for the self-optimization request and the explicitly separated reference protocols.
+**Assistant interpretation:** Complete the declared selection/confirmation sequence without adapting to confirmation results.
+**Inferred user intent:** Establish measured, generalizable compiler-policy evidence.
+
+### What I did
+- Ran the committed script 179 full-precision wrapper on bling and archived completed training and its driver log.
+- Used unmodified select_policy.py to choose scalar105 from all twelve declared policies; saved selection.json before any confirmation GPU timing.
+- Added script 181 source verification and script 182 baseline/selected-only confirmation execution.
+- Consolidated the protocol clarification into the existing design 10; an accidentally created similarly named fragment was removed.
+
+### Why
+- Commitment before confirmation timing preserves the declared separation between selection and evaluation.
+
+### What worked
+- All training baselines and candidates qualify under the explicit highest-precision reference; the original native study remains failed.
+- Remote and compilation source snapshot SHA256 both equal 30aba36209d93331d0da726af45bbdc390a144a4b0cfc4f43d732db6a6dac29a.
+- Disabled fusion scores 0.174909153323853; scalar100 scores 0.9880459122670643; selected scalar105 scores 1.0013193438356627. These are training measurements relative to unchanged Kiln.
+
+### What didn't work
+- No meaningful optimization gain is established by a 0.13% training difference. No native PassBench numerical failure is repaired by this modified protocol.
+
+### What I learned
+- Reduction-rich workloads expose a large cost for disabling fusion, while threshold adjustments can have only small aggregate effects.
+
+### What was tricky to build
+- Artifacts are reused byte-identically from the qualified compilation; only the separately declared reference precision changes. Source verification and the wrapper freeze keep those facts independently auditable.
+
+### What warrants a second pair of eyes
+- Review executable alias sharing and the tiny selection margin; avoid interpreting a maximum over twelve training candidates as a statistically established benefit.
+
+### What should be done in the future
+- Time all eight confirmation graphs using only baseline and scalar105, retain any failures, then report the complete study with its modified-reference limitation.
+
+### Code review instructions
+- Start with policy-measurements-v5-r2/selection.json and train.json, rich-remote-source-verification.json, and scripts 179/182.
+
+### Technical details
+- Declaration revision 3838348. Twelve training graphs, eight confirmation graphs, same f3df1dd... membership and 240 qualified artifacts. Confirmation execution requires the committed training selection file.
