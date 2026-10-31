@@ -6945,3 +6945,81 @@ See earlier entries for the standing implementation, consolidation, self-optimiz
 ### Technical details
 - Local targeta100/contraction separate; export comparison atol1e-4, rtol1e-3. Native image222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba, PyTorch2.12.0a0+5aff3928d8.nv26.05, NVIDIA GB10.
 - Remote diagnostic directory: /home/manuel/passnet-kiln/KILN-005/sources/singleton-precision-diagnostic-v1. Compiler and benchmark source trees remain unchanged throughout.
+
+## Step 149: Reassess the full project and preserve contradictory full-shape precision evidence
+
+The original128-batch convolution probe completes and changes the interpretation of the smaller witness. Native CUDA differs from frontend at33 outputs with three failures, and from loop at12 outputs with one failure. Compensated scalar summation can reproduce frontend on this input, but that does not reproduce the full native result. No production numerical change is made.
+
+The user then asks for a study-informed assessment and a detailed report after switching the coding-session model. The resulting roughly6,300-word report reviews the implementation chronology, design series, actual code, current denominators, policy results, fixed-compiler confirmation and original-agent failures. It identifies the missing external-LLM comparison as the next research milestone, while retaining full200 support, native precision, reference reproduction and delivery requirements. Publication follows the reviewed source/evidence commit.
+
+### Prompt Context
+**User prompt (verbatim):** "How would studying @~/Downloads/kiln_meta_compiler_study.md influence your design and work from here?"
+**User prompt (verbatim):** "what would you do? how do you things are going so far?"
+**User prompt (verbatim text, line breaks retained):**
+> in fact we just switched to a higher model, assess all we have been doing and  write a detailed project report for the obsidian vault as a deep dive technical analysis blog post using a textbook writing style (no analogies, see skill).
+> Commit and push the bsidian vault when done (go-go-parc vault).
+>
+> Read diary and design doc and all that
+**User prompt (verbatim):** "how would you run llm agents btw, what framework woudl you use?"
+**Assistant interpretation:** Reassess the actual system and evidence, explain the study's consequences and concrete agent framework, then deliver a new append-only report with verified commit/push.
+**Inferred user intent:** Obtain a technically candid assessment and a shorter credible route to autonomous reusable compiler improvement, without discarding the original scope.
+**Starting revision:**78ca571d75a1d53e1ed7e70605e13e1923ee9a5c.
+
+### What I did
+- Added scripts420/421 to retain the exact full input geometry and native CUDA output. Original witness buffers are retained under sources locally/remotely, with deterministic regeneration, sizes and SHA256; bulk binary files are excluded from Git.
+- Compared sequential, pairwise, Kahan and Neumaier arithmetic through diagnostic frontend substitutions. These are not new compiler lowerings.
+- Read the entire supplied1315-line study and archived its exact bytes. SHA256650d2750bd958c1dc1404b07d1d5941b9c5c31588b71404bda4bdc7eaee4395c identifies it.
+- Indexed and read all148 diary introductions/lessons, revisited critical full failure/design sections, read the design series and inspected policy, source/effect, runtime, identity, fusion, confirmation and original-agent code.
+- Added scripts422/423 for retained review inputs and independent count/raw-output checks. Recomputed31 complete tasks,358 accepted graphs,289 within complete tasks,1251 imports/76 families and the1.0537461946178859 confirmation aggregate.
+- Authored design20 and reference22, updated the roadmap/index, and appended the full-shape correction to design19 without changing the earlier batch1 evidence.
+- Answered the framework question: reuse pinned R2E-Gym infrastructure, preserve original reference configuration, and implement a separate native task with bounded JSON tools and authoritative structured evaluation. This is proposed work, not an executed native agent study.
+- Used textbook-authoring, obsidian-vault-writing, diary and docmgr instructions. Publication uses the existing parameterized append-only publisher387.
+
+### Why
+- The study's recommendations fit existing policy/evaluation machinery, but its initial-snapshot assumptions must not be mistaken for the current implementation.
+- A framework migration or another round of operator expansion would not itself establish that an external model can improve a reusable compiler artifact.
+- The new full-shape evidence prevents a superficially plausible internal-oracle repair from being presented as native compatibility.
+
+### What worked
+- Native128-batch probe completed in the pinned image with TF32 explicitly disabled and input hashes checked before execution. Both native bias forms have identical6144 outputs.
+- Scalar pairwise summation still leaves two final failures; Kahan matches every final frontend output; Neumaier also matches every intermediate convolution result. The latter results remain diagnostic-only.
+- Reporting script423 checks every current graph-result acceptance predicate and exact import membership, recomputes the20-family aggregate, checks all retained full-input byte hashes, and recomputes every native full-shape numerical count from raw outputs.
+- The report contains16 numbered sections and two explanatory Mermaid figures. It explains negative results, the strongest positive result, cumulative-versus-release coverage and concrete agent/task boundaries.
+- The supplied study, numbered procedures, review packets, fact receipt and report source remain in the ticket. No unrelated root sources or vault changes are included.
+
+### What didn't work
+- The full native result contradicts generalizing the batch1/frontend equality. Neither internal reference matches full native output within the export threshold everywhere. No exact native algorithm attribution is established.
+- Read-only inspection initially used nonexistent gpu.js/cuda.js/wgsl.js/gpu-emit.js paths and an incorrect confirmation receipt name; actual emission is std/emit.js and the confirmation summary/design identify the real evidence. These failed reads caused no source or measurement change.
+- Report review discovers no completed equal-budget external-LLM native-policy experiment. Historical template studies and the current coding-session model change cannot supply that missing evidence.
+- No production repair, new accepted task, new historical speedup or full reproduction completion is claimed.
+- The first staged diff check reports a blank line at EOF in the byte-preserved supplied study and trailing whitespace in the archived upstream README, plus generated digest EOF blanks. Digest output is normalized; the two original-source files retain their exact bytes/hashes. The authored-change diff check explicitly excludes those two raw references rather than editing their contents or suppressing all source checks.
+
+### What I learned
+- Semantic agreement can change with native full geometry even when a complete row is preserved. The smaller probe is useful but insufficient as an oracle choice.
+- The most consequential positive result so far is a shared representation improvement exposing existing tiling, while many policy studies establish weak headroom, aliases or regressions.
+- The native agent comparison can reuse current infrastructure; its missing components are explicit task/tools, artifact identity/budget enforcement and a genuinely reserved confirmation, not a new compiler backend.
+
+### What was tricky to build
+- Report facts must distinguish cumulative accepted replay, import eligibility, independent fixtures, direct research-protocol measurements and original-agent operational results.
+- The supplied study describes an older uploaded source snapshot and proposed package/API names. Each recommendation is checked against current implementations before being retained as new work.
+- Original R2E-Gym infrastructure is reusable, but PassAgent's score regex, Python-pass snapshots and placeholder reward are not acceptable native-policy authorities.
+
+### What warrants a second pair of eyes
+- Review the full-shape numerical table and its different comparison anchors before implementing any accumulation strategy.
+- Check the fairness and novelty limits of the proposed agent comparison, including equal budgets, previously observed confirmation sets and task/evaluator isolation.
+- Review the report's candid sequencing/sprawl assessment against actual source ownership rather than treating file or commit volume as scientific progress.
+
+### What should be done in the future
+- Publish reference22 append-only, verify the pushed vault commit and exact body identity, then preserve that receipt in the next diary checkpoint.
+- Execute the proposed bounded native agent study and begin a small checked transformation language only as its measured requirements become clear.
+- Continue full200-task support, native numerical repairs, reference matching/runtime resolution and uniform current-release regression. Updated reMarkable delivery remains pending the earlier explicit approval request.
+
+### Code review instructions
+- Start with reference22, design20 and project-reassessment-facts-v1.json. Compare design19's appended full-shape section with its preserved smaller-probe section.
+- Reproduce script423 against retained inputs/outputs; script424 checks source/report body consistency and structure. Scripts420/421 regenerate original geometry and rerun the authorized native probe.
+- Read actual createFusionRule, prepareFusionPolicy, propose_policy.py, TorchProgram, summarize_task_run.py and original PassAgent scoring before assessing the next architecture.
+
+### Technical details
+- Report scope is technical reassessment, not a new performance study. All148 indexed entries refer to the source diary before this new entry; the source manifest records that checkpoint explicitly.
+- Raw input v0 is14942208 bytes; its SHA2568199f5d8d6d0f81fc07bfffe317776c0f33b02dbb1cffde64ea3a39f7a383c23 is retained in the full-input manifest.
+- No compiler production file, original evaluator or tolerance changes in this checkpoint. Shared DGX compiler sources remain unchanged.

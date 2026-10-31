@@ -1,0 +1,177 @@
+{
+  "format": "kiln-project-reassessment-facts/1",
+  "coverage": {
+    "tasks_total": 200,
+    "graphs_total": 2060,
+    "tasks_verified": 31,
+    "graphs_verified": 358,
+    "graphs_in_complete_tasks": 289,
+    "coverage_scope": "Cumulative original replay evidence across recorded compiler snapshots; not a uniform full-corpus release evaluation"
+  },
+  "imports": {
+    "graphs": 1251,
+    "complete_families": 76
+  },
+  "confirmation": {
+    "graphs": 20,
+    "e2e_ratio_recomputed": 1.0537461946178859,
+    "faster": 9,
+    "slower": 10,
+    "aliases": 1,
+    "worst_e2e_ratio": 0.973412890847372
+  },
+  "full_shape_precision": {
+    "shapes": [
+      [
+        128,
+        608,
+        8,
+        6
+      ],
+      [
+        1,
+        608,
+        1,
+        1
+      ],
+      [
+        1
+      ]
+    ],
+    "records": [
+      {
+        "mode": "native-bias",
+        "against_frontend": {
+          "different": 33,
+          "failed": 3,
+          "max_abs": 0.0010986328125,
+          "examples": [
+            {
+              "index": 1506,
+              "actual": 0.09759521484375,
+              "reference": 0.0982666015625
+            },
+            {
+              "index": 1685,
+              "actual": 0.361572265625,
+              "reference": 0.361083984375
+            },
+            {
+              "index": 1696,
+              "actual": 0.157958984375,
+              "reference": 0.1590576171875
+            }
+          ]
+        },
+        "against_loop": {
+          "different": 12,
+          "failed": 1,
+          "max_abs": 0.00067138671875,
+          "examples": [
+            {
+              "index": 1506,
+              "actual": 0.09759521484375,
+              "reference": 0.0982666015625
+            }
+          ]
+        }
+      },
+      {
+        "mode": "explicit-half-bias-boundary",
+        "against_frontend": {
+          "different": 33,
+          "failed": 3,
+          "max_abs": 0.0010986328125,
+          "examples": [
+            {
+              "index": 1506,
+              "actual": 0.09759521484375,
+              "reference": 0.0982666015625
+            },
+            {
+              "index": 1685,
+              "actual": 0.361572265625,
+              "reference": 0.361083984375
+            },
+            {
+              "index": 1696,
+              "actual": 0.157958984375,
+              "reference": 0.1590576171875
+            }
+          ]
+        },
+        "against_loop": {
+          "different": 12,
+          "failed": 1,
+          "max_abs": 0.00067138671875,
+          "examples": [
+            {
+              "index": 1506,
+              "actual": 0.09759521484375,
+              "reference": 0.0982666015625
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "scalar_algorithm_diagnostics": [
+    {
+      "mode": "sequential",
+      "convolution_against_double_reference": {
+        "different": 5670,
+        "failed": 0,
+        "max_abs": 3.62396240234375e-05
+      },
+      "output_against_frontend": {
+        "different": 21,
+        "failed": 2,
+        "max_abs": 0.0010986328125
+      }
+    },
+    {
+      "mode": "pairwise",
+      "convolution_against_double_reference": {
+        "different": 4207,
+        "failed": 0,
+        "max_abs": 3.814697265625e-06
+      },
+      "output_against_frontend": {
+        "different": 21,
+        "failed": 2,
+        "max_abs": 0.0010986328125
+      }
+    },
+    {
+      "mode": "kahan",
+      "convolution_against_double_reference": {
+        "different": 2197,
+        "failed": 0,
+        "max_abs": 1.9073486328125e-06
+      },
+      "output_against_frontend": {
+        "different": 0,
+        "failed": 0,
+        "max_abs": 0
+      }
+    },
+    {
+      "mode": "neumaier",
+      "convolution_against_double_reference": {
+        "different": 0,
+        "failed": 0,
+        "max_abs": 0
+      },
+      "output_against_frontend": {
+        "different": 0,
+        "failed": 0,
+        "max_abs": 0
+      }
+    }
+  ],
+  "limitations": [
+    "Raw graph-result fields are checked; historical experiment verifiers are not all rerun in this reporting pass.",
+    "Full-shape native probes do not execute a Kiln GPU artifact.",
+    "Current release uniform acceptance and external LLM-native policy comparison remain unproven."
+  ]
+}

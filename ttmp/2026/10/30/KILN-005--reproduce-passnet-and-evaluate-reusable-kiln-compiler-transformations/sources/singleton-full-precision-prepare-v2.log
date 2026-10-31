@@ -1,0 +1,88 @@
+{
+  "input_files": {
+    "v0": {
+      "file": "v0.f32",
+      "shape": [
+        128,
+        608,
+        8,
+        6
+      ],
+      "bytes": 14942208,
+      "sha256": "8199f5d8d6d0f81fc07bfffe317776c0f33b02dbb1cffde64ea3a39f7a383c23"
+    },
+    "v1": {
+      "file": "v1.f32",
+      "shape": [
+        1,
+        608,
+        1,
+        1
+      ],
+      "bytes": 2432,
+      "sha256": "b4850068eb5ee0e260dc9dc065fe8d97df8c0cfd66a09d4b4fee067ce5e574cb"
+    },
+    "v2": {
+      "file": "v2.f32",
+      "shape": [
+        1
+      ],
+      "bytes": 4,
+      "sha256": "461f365cb607296e993a9b8f4f57c50989cd1c9e308f3ae5ff9d9c3367ff753e"
+    }
+  },
+  "algorithms": [
+    {
+      "mode": "sequential",
+      "convolution_against_double_reference": {
+        "different": 5670,
+        "failed": 0,
+        "max_abs": 0.0000362396240234375
+      },
+      "output_against_frontend": {
+        "different": 21,
+        "failed": 2,
+        "max_abs": 0.0010986328125
+      }
+    },
+    {
+      "mode": "pairwise",
+      "convolution_against_double_reference": {
+        "different": 4207,
+        "failed": 0,
+        "max_abs": 0.000003814697265625
+      },
+      "output_against_frontend": {
+        "different": 21,
+        "failed": 2,
+        "max_abs": 0.0010986328125
+      }
+    },
+    {
+      "mode": "kahan",
+      "convolution_against_double_reference": {
+        "different": 2197,
+        "failed": 0,
+        "max_abs": 0.0000019073486328125
+      },
+      "output_against_frontend": {
+        "different": 0,
+        "failed": 0,
+        "max_abs": 0
+      }
+    },
+    {
+      "mode": "neumaier",
+      "convolution_against_double_reference": {
+        "different": 0,
+        "failed": 0,
+        "max_abs": 0
+      },
+      "output_against_frontend": {
+        "different": 0,
+        "failed": 0,
+        "max_abs": 0
+      }
+    }
+  ]
+}

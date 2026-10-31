@@ -87,3 +87,13 @@ This is a useful object for later self-optimization: the agent may select among 
 ## Evidence and provenance
 
 The primary evidence files are `singleton-export-check-diagnostic-v1.json`, `singleton-accumulation-counterfactual-v1.json`, `singleton-precision-witness-v1.json` and `singleton-native-precision-v1.json`, with raw logs alongside them. Scripts415–418 reproduce acquisition and measurement. Their diagnostic code is authored in this project; no PyTorch or PassNet implementation is ported in this checkpoint. Existing pinned PyTorch and PassNet sources provide the execution environment and task context. Diary Step148 records failures and review instructions.
+
+## Full original geometry changes the interpretation
+
+Scripts420/421 now preserve and execute the original128-batch input, with shape [128,608,8,6]. Hash-verified little-endian FP32 witness buffers remain in sources/singleton-full-precision-v2 locally and on the DGX; the binaries are excluded from Git, while their generator, exact byte counts and hashes are committed. The manifest also retains all6144 frontend and loop outputs.
+
+At full geometry, native CUDA FP16 differs from the frontend at33 outputs, three exceeding the export criterion. Against loop it differs at12, one exceeding that criterion. Native conv2d with bias and explicit bias-free convolution followed by half bias addition produce identical outputs. This contrasts with the earlier batch1 witness, which matched frontend exactly. The observed shape dependence invalidates any claim that the batch1 result selects the correct full-shape oracle. An exact cuDNN algorithm attribution is not established.
+
+The independent scalar comparison is also complete. Sequential FP32 and adjacent-pair summation both leave21 final differences/two failures against frontend. Kahan compensation removes final differences but still differs from the double reference at2197 intermediate convolution values. Neumaier compensation matches every intermediate and final frontend value on this input. These are diagnostic substitutions, not implemented compiler algorithms or independently accepted native results. In particular, matching frontend with compensation would still leave the measured full-shape native discrepancy.
+
+No production change follows from these probes. The next numerical design must declare the intended accumulation/narrowing semantics and separately test native compatibility. Full-family support remains unqualified. Design20 explains why this investigation should not indefinitely block the smaller, already-correct reusable-policy research track.

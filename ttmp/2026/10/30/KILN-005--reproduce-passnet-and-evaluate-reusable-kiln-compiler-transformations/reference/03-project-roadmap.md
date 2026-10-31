@@ -34,6 +34,12 @@ Teacher trajectory generation/student fine-tuning remains a separate expensive r
 
 ## Priority change: start reusable-policy optimization before full corpus support
 
+### Project reassessment and next research deliverable
+
+Reference22 and design20 reassess the complete work through diary148 against the supplied meta-compiler study. Existing bounded policy, selective-fusion, region-planning and measurement machinery should be reused for the first externally generated native policy comparison. The next research sequence is: freeze an already-correct policy-sensitive training population; add a minimal optimization-artifact envelope and separate R2E-Gym task/tools; compare LLM proposals with threshold and random search under fixed budgets; freeze the winner before fresh confirmation; then add only the checked transformation-language constructs required by observed experiments. These are proposed next steps, not a completed LLM study.
+
+Full200 support and native precision remain active engineering tracks. New full-shape convolution evidence (design19, scripts420/421) differs from the earlier batch1 witness and does not select either internal reference as the universal oracle. No compensated-sum compiler repair or acceptance increment follows from the scalar substitutions. Current coverage remains31/358, cumulative across snapshots; uniform current-release qualification remains pending.
+
 The user explicitly requested streamlining toward self-optimization. Full200-task compiler support remains an active track, not a prerequisite for the first reusable-policy experiment. Current cumulative nominal replay acceptance is31 complete tasks containing289 graphs, with358 individually passing graphs including partial tasks. Import eligibility is1251 graphs/76 complete families. Reference21 and singleton-view-source-cohort-v1-verified-facts.json own the newest qualification; kernel correctness and complete task acceptance remain separate gates.
 
 
