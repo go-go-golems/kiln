@@ -132,6 +132,25 @@ export function broadcastMap(from, to) {
   const off = to.length - from.length;
   return IX.map(to.length, (a) => from.map((d, j) => (d === 1 && to[j + off] !== 1 ? IX.C(0) : a[j + off])));
 }
+function expandShape(from, requested) {
+  if (!Array.isArray(requested) || requested.length < from.length || !requested.every(Number.isSafeInteger))
+    throw new KilnError("ShapeError", "expand requires a static shape with at least the input rank");
+  const off=requested.length-from.length;
+  return requested.map((size,i)=>{
+    const input=i<off?1:from[i-off];
+    if(size===-1){if(i<off)throw new KilnError("ShapeError","expand cannot infer a leading dimension");return input;}
+    if(size<=0 || (input!==1 && size!==input))throw new KilnError("ShapeError","invalid expand dimension");
+    return size;
+  });
+}
+function unfoldShape(from, axis, size, step) {
+  if (!Number.isSafeInteger(axis) || !Number.isSafeInteger(size) || !Number.isSafeInteger(step) || size<=0 || step<=0 || axis < -from.length || axis >= from.length)
+    throw new KilnError("ShapeError", "unfold requires a valid static axis, size and step");
+  const a=(axis+from.length)%from.length;
+  if(size>from[a])throw new KilnError("ShapeError","unfold window exceeds input dimension");
+  const shape=from.slice();shape[a]=Math.floor((from[a]-size)/step)+1;shape.push(size);
+  return {shape,axis:a};
+}
 
 // ----------------------------------------------------------------------------- dialects
 function weakScalar(value) {
@@ -182,6 +201,12 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
   .op("roll", {args:["x"],attrs:{shifts:0,dims:null},
     infer:({x,shifts,dims})=>k.tensor(rollSpec(x.type.shape,shifts,dims).shape,x.type.dtype),
     eval:({x,shifts,dims})=>rollReference(x,shifts,dims),print:"roll({x})"})
+  .op("expand", {args:["x"],attrs:{shape:[]},traits:["pure"],
+    infer:({x,shape})=>k.tensor(expandShape(x.type.shape,shape),x.type.dtype),
+    eval:({x,type})=>viewRef(x,type.shape,broadcastMap(x.shape,type.shape)),print:"expand({x})"})
+  .op("unfold", {args:["x"],attrs:{axis:0,size:1,step:1},traits:["pure"],
+    infer:({x,axis,size,step})=>k.tensor(unfoldShape(x.type.shape,axis,size,step).shape,x.type.dtype),
+    eval:({x,axis,size,step,type})=>{const a=unfoldShape(x.shape,axis,size,step).axis;return viewRef(x,type.shape,IX.map(type.shape.length,c=>c.slice(0,-1).map((v,i)=>i===a?v.mul(step).add(c.at(-1)):v)));},print:"unfold({x})"})
   .op("conv2d", { args: ["x", "w", "b"], attrs: { stride: 1, padding: 0, dilation: 1, groups: 1 }, infer: ({ x,w,b,stride,padding,dilation,groups }) => {
     if ([x,w,b].some(v=>v.type.dtype!=="f32")) throw new KilnError("TypeError", "conv2d lowering currently requires FP32");
     const shape=conv2dSpec(x.type.shape,w.type.shape,{stride,padding,dilation,groups}).shape;
@@ -262,6 +287,8 @@ export const N = {
     ? N.cast(nn.max_pool2d(N.cast(x,"f32"),options),x.type.dtype) : nn.max_pool2d(x,options),
   pad:(x,pad,mode="constant",value=0)=>nn.pad(x,{pad,mode,value}),
   roll:(x,shifts,dims=null)=>nn.roll(x,{shifts,dims}),
+  expand:(x,shape)=>nn.expand(x,{shape}),
+  unfold:(x,axis,size,step)=>nn.unfold(x,{axis,size,step}),
   concat: (xs, axis=0) => nn.concat(xs,{axis}),
   resizeBilinear: (x,size) => ["f16","bf16"].includes(x.type.dtype)
     ? N.cast(nn.bilinear(N.cast(x,"f32"),{size}),x.type.dtype) : nn.bilinear(x,{size}),
@@ -324,6 +351,8 @@ export const decompositions = [
   decompose("nn.max_pool2d", ({x,...options}) => lowerMaxPool2d(T,x,options)),
   decompose("nn.pad", ({x,pad,mode,value}) => lowerPad(T,x,pad,mode,value,tensor)),
   decompose("nn.roll", ({x,shifts,dims}) => lowerRoll(T,x,shifts,dims)),
+  decompose("nn.expand", ({x,shape}) => T.bc(x,expandShape(x.type.shape,shape))),
+  decompose("nn.unfold", ({x,axis,size,step}) => {const spec=unfoldShape(x.type.shape,axis,size,step);return T.view(x,spec.shape,c=>c.slice(0,-1).map((v,i)=>i===spec.axis?v.mul(step).add(c.at(-1)):v));}),
   decompose("nn.concat", ({xs,axis,out}) => lowerConcat(T,tensor,xs,axis,out.type.dtype)),
   decompose("nn.bilinear", ({x,size}) => lowerBilinear(T,x,size)),
   decompose("nn.conv2d", ({x,w,b,stride,padding,dilation,groups}) => lowerConv2d(T,x,w,b,{stride,padding,dilation,groups})),

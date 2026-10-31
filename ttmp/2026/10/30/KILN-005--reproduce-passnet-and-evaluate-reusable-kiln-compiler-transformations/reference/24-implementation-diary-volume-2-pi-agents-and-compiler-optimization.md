@@ -2249,3 +2249,56 @@ Review parallel-port-task-plan-v1.json, parallel-port-task-staging-v1.json and s
 
 ### Technical details
 The pinned GPU image is sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba. The evaluation uses the existing modified integration protocol and nominal t=-5 numerical acceptance.
+
+## Step 204: Close second import blockers with views and scalar bindings
+
+The follow-up corpus audit now imports191/201 graphs across23/24 complete affected task families. Ten graphs remain blocked by in-place hardtanh on a placeholder; that is a real mutation and alias contract, so the importer still rejects it. The original16-family replay remains live on bling from its earlier immutable source snapshot.
+
+### Prompt Context
+The user authorized broad, parallel coverage work and requested measured outcomes rather than piecemeal qualification.
+**Assistant interpretation:** Use the new first-failure audit to address common second blockers while the existing GPU cohort continues.
+**Inferred user intent:** Keep the compiler moving toward more complete task support without weakening correctness checks.
+
+### What I did
+- Added direct torch.rsqrt and torch.tanh bindings to existing Kiln unary operations.
+- Decode explicit cuda/cuda:0 device arguments and treat a device-only `.to` as a value-preserving operation when metadata matches. Other devices remain unsupported.
+- Added static `expand` and `unfold` frontend ops with view-based lowering and metadata-checked FX method bindings.
+- Added `type_as` dtype binding using the referenced tensor's static dtype.
+- Reaudited the original24 complete family lists after each follow-up. Scripts580,582,584 preserve each stage; v4 records191 imported graphs and10 remaining failures.
+- Generated12 PyTorch CPU oracles and verified frontend evaluation, decomposition, and compiler export for expand/unfold.
+
+### Why
+These operations are common graph-level view and scalar semantics. They unlock the same task families already selected by the initial batch without adding kernels or changing benchmark rules.
+
+### What worked
+- Initial batch:158/201 imported,16 complete families. Follow-up:187/201 after rsqrt/tanh/expand/device,188/201 after type_as,191/201 after unfold;23 complete families.
+-12 expand/unfold oracle cases pass across FP32, FP16 and BF16. Nine prior FX tests and both prior Node suites still pass after shared importer changes.
+- The older16-family PassBench run was observed live with12 task records at the latest check.
+
+### What didn't work
+- Ten in-place hardtanh cases still require mutation/alias semantics. They are explicitly blocked rather than copied into new storage and counted as accepted.
+- The23-family cohort is only import-qualified; no full PassBench acceptance or performance result is claimed from v4.
+
+### What I learned
+The second blockers were largely metadata-preserving views and direct scalar operations; each can be implemented with existing tensor IR views and primitive math. A genuine in-place placeholder mutation is a different semantic problem.
+
+### What was tricky to build
+- `expand` may use -1 only for existing axes and must reject incompatible dimensions.
+- `unfold` appends a window axis; each output coordinate maps to input_axis = output_axis * step + window_coordinate.
+- `type_as` must take its target dtype from a second tensor without changing the input shape.
+- A CUDA device-only conversion can be elided only in the GPU PassBench runtime and when tensor metadata is unchanged.
+
+### What warrants a second pair of eyes
+- Verify native GPU numerical behavior for the newly imported graph families before adding them to coverage.
+- Review `to(device)` and `type_as` semantics if this bridge is reused outside the current all-CUDA evaluator.
+
+### What should be done in the future
+- Collect the live16-family replay when terminal and diagnose failures.
+- Freeze and replay all23 newly importable families from a committed source snapshot; do not overlap GPU benchmark jobs.
+- Design alias/mutation handling for the remaining hardtanh family.
+
+### Code review instructions
+Read the v1–v4 parallel-port-family-import audits and the original graph_list membership. Run scripts581/view-batch.mjs, the FX tests and prior Node suites.
+
+### Technical details
+The v4 audit covers exactly201 graphs across24 task families. It is importer evidence only. Static views preserve dtype and do not gain fresh ownership; ten mutated placeholder graphs remain unsupported.

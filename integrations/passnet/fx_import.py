@@ -42,6 +42,10 @@ def import_graph(graph):
                 return slice(*(literal(decode(x)) for x in v['slice']))
             if set(v) == {'dtype'}:
                 return json.dumps(v['dtype'])
+            if set(v) == {'device'}:
+                if v['device'] not in ('cuda','cuda:0'):
+                    raise ValueError(f'Unsupported device conversion: {v["device"]}')
+                return json.dumps(v['device'])
             if set(v) == {'ref'}:
                 if v['ref'] not in values:
                     raise ValueError(f'Unknown or forward reference: {v["ref"]}')
@@ -93,7 +97,9 @@ def import_graph(graph):
             raise ValueError(f'{name}: unsupported node kind {node["kind"]}')
         target = node['target']
         unary = {'torch.relu':'relu', 'torch.nn.functional.relu':'relu', 'aten.relu.default':'relu',
-                 'torch.exp':'exp', 'aten.exp.default':'exp', 'torch.sqrt':'sqrt'}
+                 'torch.exp':'exp', 'aten.exp.default':'exp', 'torch.sqrt':'sqrt',
+                 'torch.rsqrt':'rsqrt','aten.rsqrt.default':'rsqrt',
+                 'torch.tanh':'tanh','aten.tanh.default':'tanh'}
         binary = {'_operator.add':'add', 'torch.add':'add', 'aten.add.Tensor':'add',
                   '_operator.mul':'mul', 'torch.mul':'mul', 'aten.mul.Tensor':'mul',
                   '_operator.sub':'sub', '_operator.truediv':'div'}
@@ -260,6 +266,33 @@ def import_graph(graph):
             if len(args)!=2 or kwargs or metadata[source]!=meta:
                 raise ValueError(f'{name}: unsupported in-place arithmetic arguments')
             expr=f'N.{target[:-1]}({args[0]}, {args[1]})'
+        elif node['kind']=='call_method' and target=='expand':
+            if not args or kwargs:raise ValueError(f'{name}: unsupported expand arguments')
+            requested=literal(args[1]) if len(args)==2 and isinstance(args[1],(tuple,list)) else [literal(x) for x in args[1:]]
+            source=operand_spec(args[0]);original=source['shape']
+            if not isinstance(requested,list) or len(requested)<len(original) or any(type(d) is not int for d in requested):
+                raise ValueError(f'{name}: static expand dimensions required')
+            offset=len(requested)-len(original);shape=[]
+            for axis,size in enumerate(requested):
+                prior=1 if axis<offset else original[axis-offset]
+                if size==-1 and axis>=offset:size=prior
+                if size<=0 or (prior!=1 and size!=prior):raise ValueError(f'{name}: invalid expand dimension')
+                shape.append(size)
+            if meta['shape']!=shape or meta['dtype']!=source['dtype']:
+                raise ValueError(f'{name}: expand output metadata mismatch')
+            expr=f'N.expand({args[0]}, {json.dumps(requested)})'
+        elif node['kind']=='call_method' and target=='unfold':
+            if len(args)!=4 or kwargs:raise ValueError(f'{name}: unfold requires dimension, size and step')
+            source=operand_spec(args[0]);shape=source['shape'];rank=len(shape)
+            axis,size,step=(literal(v) for v in args[1:])
+            if any(type(v) is not int for v in (axis,size,step)) or not -rank<=axis<rank or size<=0 or step<=0:
+                raise ValueError(f'{name}: static unfold parameters required')
+            axis%=rank
+            if size>shape[axis]:raise ValueError(f'{name}: unfold window exceeds input')
+            expected=shape.copy();expected[axis]=(shape[axis]-size)//step+1;expected.append(size)
+            if meta['shape']!=expected or meta['dtype']!=source['dtype']:
+                raise ValueError(f'{name}: unfold output metadata mismatch')
+            expr=f'N.unfold({args[0]}, {axis}, {size}, {step})'
         elif node['kind'] == 'call_method':
             if target == 'contiguous':
                 if len(args)!=1 or kwargs: raise ValueError(f'{name}: unsupported contiguous format')
@@ -278,18 +311,30 @@ def import_graph(graph):
                     if other!=axis:
                         expr=f'N.transpose({expr}, {axis}, {other})'
                         current[axis],current[other]=current[other],current[axis]
+            elif target=='type_as':
+                if len(args)!=2 or kwargs:raise ValueError(f'{name}: type_as requires self and tensor')
+                source=operand_spec(args[0]);other=operand_spec(args[1])
+                if meta['shape']!=source['shape'] or meta['dtype']!=other['dtype'] or other['dtype'] not in dtype_names:
+                    raise ValueError(f'{name}: type_as result metadata mismatch')
+                expr=f'N.cast({args[0]}, {json.dumps(dtype_names[other["dtype"]])})'
             elif target in ('to','float','half','bfloat16'):
                 if target=='to':
-                    if len(args)>2 or set(kwargs)-{'dtype'}: raise ValueError(f'{name}: device/layout conversion unsupported')
-                    if (len(args)==2)==('dtype' in kwargs):
-                        raise ValueError(f'{name}: exactly one explicit dtype required')
-                    dtype=literal(args[1] if len(args)==2 else kwargs['dtype'])
-                    if dtype not in dtype_names: raise ValueError(f'{name}: unsupported cast dtype {dtype}')
-                    dtype=dtype_names[dtype]
+                    if len(args)==2 and not kwargs and args[1] in ('"cuda"','"cuda:0"'):
+                        source=next((key for key,val in values.items() if val==args[0]),None)
+                        if source is None or metadata[source]!=meta:
+                            raise ValueError(f'{name}: device-only conversion must preserve tensor metadata')
+                        expr=args[0]
+                    else:
+                        if len(args)>2 or set(kwargs)-{'dtype'}: raise ValueError(f'{name}: device/layout conversion unsupported')
+                        if (len(args)==2)==('dtype' in kwargs):
+                            raise ValueError(f'{name}: exactly one explicit dtype required')
+                        dtype=literal(args[1] if len(args)==2 else kwargs['dtype'])
+                        if dtype not in dtype_names: raise ValueError(f'{name}: unsupported cast dtype {dtype}')
+                        expr=f'N.cast({args[0]}, {json.dumps(dtype_names[dtype])})'
                 else:
                     if len(args)!=1 or kwargs: raise ValueError(f'{name}: invalid floating conversion')
                     dtype={'float':'f32','half':'f16','bfloat16':'bf16'}[target]
-                expr=f'N.cast({args[0]}, {json.dumps(dtype)})'
+                    expr=f'N.cast({args[0]}, {json.dumps(dtype)})'
             else:
                 raise ValueError(f'{name}: unsupported tensor method {target}')
         elif target == 'torch.conv2d':
