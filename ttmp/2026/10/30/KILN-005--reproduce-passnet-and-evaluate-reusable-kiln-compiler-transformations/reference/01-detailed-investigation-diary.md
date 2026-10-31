@@ -1876,3 +1876,44 @@ Original full corpus accounting and integrity requirements.
 
 ### Technical details
 - No original evaluator/scorer file edits; matching/stream metadata policy remains explicitly declared. Remaining 198 tasks and final controlled comparisons are incomplete.
+
+## Step 45: Implement convolution shape and reference foundation
+
+Started the next major missing primitive required by the third task. Added independent grouped NCHW cross-correlation reference and validated deterministic cases against PyTorch CPU. No convolution lowering or benchmark support is claimed yet.
+
+### Prompt Context
+User authorizes missing Kiln implementation and detailed source provenance.
+**Assistant interpretation:** Build concrete operator dependencies with independent reference evidence.
+**Inferred user intent:** Progress toward complete corpus support.
+
+### What I did
+- Added std/conv2d.js shape/group validation and reference evaluation.
+- Added script 28 generating PyTorch oracle fixtures; tested grouped/depthwise, stride, padding, dilation, bias and invalid cases.
+- Added design-doc/03-convolution-lowering.md with indexing and safe-load requirements.
+
+### Why
+- Third task requires convolution plus interpolation; emitter kernels must have a trustworthy semantic reference first.
+
+### What worked
+- Local Node 26 conv2d test passed against all three PyTorch CPU cases at FP32 baseline tolerance.
+
+### What didn't work
+- No test failures; lowering, scheduling, GPU execution and benchmark integration remain absent.
+
+### What I learned
+- Boundary padding requires conditional safe loads or explicit padded tensors; a select after an unsafe load is insufficient.
+
+### What was tricky to build
+- Separate per-group input-channel index from output-channel grouping and spatial dilation.
+
+### What warrants a second pair of eyes
+- Reference accumulation differs in order/precision from native PyTorch; fixture agreement does not establish broad numerical equivalence.
+
+### What should be done in the future
+- Implement masked-load IR or padded-tensor lowering, expose frontend convolution, test GPU and original task variants; implement remaining interpolation/mutation semantics.
+
+### Code review instructions
+- Run test/conv2d.mjs and regenerate fixture using script 28; inspect design-doc/03.
+
+### Technical details
+- Independent mathematical implementation; PyTorch is differential oracle only, version recorded in fixture. No upstream code copied.
