@@ -1,0 +1,82 @@
+{
+  "format": "kiln-stage-numerical-diagnostic/1",
+  "scope": "Task195 fixed random reference inputs, frontend versus each evaluable IR stage",
+  "rows": [
+    {
+      "stage": "frontend",
+      "checks": {
+        "out0": {
+          "count": 0,
+          "maxAbs": 0,
+          "first": null
+        },
+        "out1": {
+          "count": 0,
+          "maxAbs": 0,
+          "first": null
+        }
+      }
+    },
+    {
+      "stage": "torch",
+      "checks": {
+        "out0": {
+          "count": 0,
+          "maxAbs": 0,
+          "first": null
+        },
+        "out1": {
+          "count": 0,
+          "maxAbs": 0,
+          "first": null
+        }
+      }
+    },
+    {
+      "stage": "tensor",
+      "checks": {
+        "out0": {
+          "count": 0,
+          "maxAbs": 0,
+          "first": null
+        },
+        "out1": {
+          "count": 0,
+          "maxAbs": 0,
+          "first": null
+        }
+      }
+    },
+    {
+      "stage": "loop",
+      "checks": {
+        "out0": {
+          "count": 0,
+          "maxAbs": 0,
+          "first": null
+        },
+        "out1": {
+          "count": 3,
+          "maxAbs": 0.0078125,
+          "first": {
+            "index": 2849,
+            "reference": -1.5,
+            "actual": -1.5078125
+          }
+        }
+      }
+    },
+    {
+      "stage": "tile",
+      "error": "tile.kernel (n51) has no eval: it can be compiled but not interpreted"
+    },
+    {
+      "stage": "kernel",
+      "error": "kernel.kernel (n51) has no eval: it can be compiled but not interpreted"
+    },
+    {
+      "stage": "gpu",
+      "error": "gpu.kernel (n51) has no eval: it can be compiled but not interpreted"
+    }
+  ]
+}

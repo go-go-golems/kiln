@@ -2665,3 +2665,48 @@ Compare ticket reference29 with the vault article at commit e7652b7. Inspect the
 
 ### Technical details
 Only the intended report file was staged in the vault. Existing unrelated vault changes remain outside the publication commit.
+
+## Step 213: Localize eight compiler reference failures to numerical stage differences
+
+Eight complete task attempts stopped in Kiln's own end-to-end compiler reference check, before original PassBench evaluation. Replaying their failed artifacts locally shows all eight compile successfully but differ between frontend and loop evaluation on selected low-precision outputs. In task195, the first disagreement occurs at an FP32 reduction after lowering to loop IR; a roughly2.8e-8 reduction difference later crosses a BF16 rounding boundary and creates three one-ULP output differences. This is a localized numerical mechanism, not proof that all eight cases share one root cause.
+
+### Prompt Context
+The user asked to advance broad benchmark support, document ported semantics, and preserve intermediate scripts and diary evidence.
+**Assistant interpretation:** Diagnose internal compiler-check failures as numerical, structural or resource errors before changing the gate.
+**Inferred user intent:** Reach more real PassBench tasks without weakening the original correctness standard.
+
+### What I did
+- Script604 recompiled the first failed artifact of each of eight blocked families using the same A100 proxy target and separate-contraction setting, then recorded frontend-versus-loop output checks, maximum errors and first mismatches.
+- Script605 evaluated task195 at frontend, torch, tensor and loop stages on fixed project reference inputs. Frontend, torch and tensor agree exactly; loop differs on out1.
+- Script606 exposed task195 intermediates as temporary outputs to localize the first divergence to v6, its FP32 mean-reduction result. The traced difference is2.7939677238464355e-8; v13 BF16 differs at three elements by up to0.0078125.
+
+### Why
+The CLI log reports only `end-to-end check FAILED`. That label cannot distinguish unsupported operations from low-precision numerical order effects. Locating the first divergent IR stage narrows any future compiler change.
+
+### What worked
+- All eight historical failed artifacts recompile. Each reproduces a non-passing end-to-end comparison, with per-output errors retained in compiler-reference-failure-diagnostic-v1.json.
+- Task195's first difference is at tensor-to-loop lowering/evaluation, not in FX import or frontend decomposition.
+
+### What didn't work
+- No arithmetic change has yet restored equality. An FP32 difference this small may be caused by reduction association, scheduling or fused expression order; that precise cause still needs inspection.
+- No task from this group has been claimed accepted through PassBench. The current ledger remains53/200 tasks and505/2060 graphs.
+
+### What I learned
+A low-precision output can differ by one BF16 ULP after an FP32 intermediate changes by only a few times10^-8. The internal reference check is detecting a real downstream value change rather than a missing operator.
+
+### What was tricky to build
+Exposing intermediates as outputs changes the optimization graph, so script606 is a localization diagnostic. The unmodified task195 program was also compared stage by stage in script605, which places the divergence at loop IR.
+
+### What warrants a second pair of eyes
+- Compare the exact tensor reduction evaluator and loop reduction expression/order, including the rounding point and fused schedule.
+- Do not generalize task195's mechanism to convolution and matmul failures without analogous stage traces.
+
+### What should be done in the future
+- Run one isolated diagnostic through original PassBench with the supported CLI `--no-check` only to determine whether the strict external numerical comparator rejects the same program. Label that run as a diagnostic modified export gate and keep it out of accepted coverage until evidence is reviewed.
+- Test a numerical-order correction, then rerun the full internal check and original evaluator from a committed source snapshot.
+
+### Code review instructions
+Inspect scripts604–606 and their JSON outputs, task195/corpus/000.kiln.js, apps/workbench/src/compile.js endToEnd, and loop.js reduction lowering/fusion. Compare the fixed input sample and first mismatch values.
+
+### Technical details
+The internal compiler check compares frontend and last evaluable IR with rtol1e-3,atol1e-4; original PassBench uses its separate t=-5 curve. Neither check was changed in this step.
