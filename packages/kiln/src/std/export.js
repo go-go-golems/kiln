@@ -67,7 +67,14 @@ export function exportProgram(run, prog, { name, params = {}, target = null, sou
     });
   }
   for (const b of buffers) if (b.elements > INT32_INDEX_LIMIT) throw new KilnError("ExportError", `buffer ${b.id} has ${b.elements} elements: CUDA index arithmetic is 32-bit (limit ${INT32_INDEX_LIMIT})`);
-  for (const kn of kernels) if (kn.grid * kn.block > INT32_INDEX_LIMIT) throw new KilnError("ExportError", `kernel ${kn.name} launches ${kn.grid * kn.block} threads: CUDA thread ids are 32-bit (limit ${INT32_INDEX_LIMIT})`);
+  for (const kn of kernels) {
+    // CUDA's x grid dimension is itself limited to 2^31 - 1 blocks
+    if (kn.grid > INT32_INDEX_LIMIT) throw new KilnError("ExportError", `kernel ${kn.name} launches ${kn.grid} blocks: CUDA grids are limited to ${INT32_INDEX_LIMIT}`);
+    // only thread-mapped kernels form a global thread id (bid * block + tid); row and tiled kernels
+    // derive offsets from bid, bounded by the buffer extents checked above
+    const threadMapped = !/(^|,)MAP=(row|tiled)(,|$)/.test(kn.row);
+    if (threadMapped && kn.grid * kn.block > INT32_INDEX_LIMIT) throw new KilnError("ExportError", `kernel ${kn.name} launches ${kn.grid * kn.block} threads: CUDA thread ids are 32-bit (limit ${INT32_INDEX_LIMIT})`);
+  }
   const outputs = g.outputs.map((o) => {
     if (!byNode.has(o.id)) throw new KilnError("ExportError", `output ${o.name} is ${g.nodes.get(o.id)?.name || "missing"}: an exported output must be a kernel's or an input's buffer`);
     return { name: o.name, buffer: byNode.get(o.id), shape: g.nodes.get(o.id).type.shape, dtype: buffers[byNode.get(o.id)].dtype };

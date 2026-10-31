@@ -69,4 +69,17 @@ const exp = (g, opts) => { const r = pipe.run(g); return exportProgram(r, progra
   check(/32-bit/.test(msg || ""), `a 2^31-element buffer is refused: ${msg}`);
 }
 
+// a row-mapped kernel derives offsets from blockIdx only: more than 2^31 launched threads is legal
+// (PassBench task 32's 1x1 convolution: 2^26 output rows x 32 lanes ran correctly on the GPU)
+{
+  const a100 = pipeline({ target: target(SPECS.a100) });
+  const g = k.trace("rows", ({ x, w, b }) => N.reshape(N.conv2d(x, w, b, { stride: [1, 1], padding: [0, 0], dilation: [1, 1], groups: 1 }), [64, 256, 4096]),
+    { x: k.tensor([64, 512, 64, 64], "bf16"), w: k.tensor([256, 512, 1, 1], "bf16"), b: k.tensor([256], "bf16") });
+  const r = a100.run(g);
+  let p = null, msg = null;
+  try { p = exportProgram(r, programOf(r.graph)); } catch (e) { msg = e.message; }
+  const wide = p?.kernels.find((kn) => kn.grid * kn.block > 2 ** 31 - 1);
+  check(!!wide && /MAP=(row|tiled)/.test(wide.row), `a row-mapped launch past 2^31 threads is exported: ${msg || wide?.row}`);
+}
+
 if (failed) { console.log(`${failed} failed`); process.exitCode = 1; }
