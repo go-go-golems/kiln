@@ -2509,3 +2509,48 @@ Original benchmark reproduction, complete accounting and truthful measurement re
 
 ### Technical details
 - Third task has one FP16 graph; benchmark-supported coverage does not assert broad convolution robustness. Remaining 197 tasks are unverified.
+
+## Step 60: Import static sum/mean reductions with explicit precision
+
+Added sum/mean functional/method import for static axes, keepdim and supported floating output metadata. Lowering widens input to FP32, reduces while preserving axes, applies mean scaling, reconstructs output shape and narrows to declared result dtype. Broader reduction/promotion coverage remains incomplete.
+
+### Prompt Context
+Original full operator coverage and precision requirements.
+**Assistant interpretation:** Implement common normalization/attention prerequisites with explicit accumulation.
+**Inferred user intent:** Expand reusable graph import beyond task-specific patterns.
+
+### What I did
+- Added axis binding, negative-axis normalization, duplicate/out-of-range diagnostics and Boolean keepdim validation.
+- Added importer test and saved script 43 for source-derived multi-axis mean probes.
+- Added GPU comparison driver with complete-artifact preconditions.
+
+### Why
+- Elementwise precision policy must not become per-add low-precision reduction rounding accidentally.
+
+### What worked
+- Fourteen integration CPU tests passed.
+- FP32/FP16/BF16 probes compiled with loop-level reference checks passed.
+
+### What didn't work
+- No new failures at checkpoint; GPU result is still being observed. dtype override kwargs and dynamic axes remain explicitly unsupported.
+
+### What I learned
+- Keeping reduced axes as unit dimensions until final reshape avoids axis renumbering when reducing multiple dimensions.
+
+### What was tricky to build
+- Empty dimension list has reduce-all semantics; duplicate dimensions must fail rather than double-reduce silently.
+
+### What warrants a second pair of eyes
+- FP32 accumulation order, empty/zero-size inputs, scalar reductions and native dtype promotion require broader tests.
+
+### What should be done in the future
+- Observe GPU results, archive artifacts, validate real reduction tasks and retain full benchmark denominators.
+
+### Code review instructions
+- Review fx_import.py reduction branch, script 43 and check_reductions_cuda.py.
+
+### Technical details
+- Independent lowering to existing Kiln sum/cast/reshape operations. No upstream code copied; task coverage remains 3/200.
+
+### Completed GPU outcome
+FP32, FP16 and BF16 multi-axis mean probes passed PyTorch CUDA comparisons, including output shape/dtype. This is a small reduction probe, not complete real-task acceptance or broad accumulation proof.

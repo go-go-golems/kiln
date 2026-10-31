@@ -59,6 +59,14 @@ class ImportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'fresh single-use'):
             import_graph(graph)
 
+    def test_reduction_axes_and_dtype(self):
+        class Model(torch.nn.Module):
+            def forward(self,x): return x.mean(dim=(-1,0),keepdim=False)
+        for dtype in [torch.float32,torch.float16,torch.bfloat16]:
+            result=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3,4).to(dtype),)))
+            self.assertIn('N.sum',result['script']);self.assertIn('N.reshape',result['script'])
+            self.assertIn('0.125',result['script'])
+
     def test_dtype_and_layout_rejected(self):
         class Model(torch.nn.Module):
             def forward(self, x):

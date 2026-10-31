@@ -78,7 +78,35 @@ def import_graph(graph):
         binary = {'_operator.add':'add', 'torch.add':'add', 'aten.add.Tensor':'add',
                   '_operator.mul':'mul', 'torch.mul':'mul', 'aten.mul.Tensor':'mul',
                   '_operator.sub':'sub', '_operator.truediv':'div'}
-        if node['kind'] == 'call_method':
+        reduction = target in ('torch.sum','torch.mean','aten.sum.dim_IntList','aten.mean.dim') or (node['kind']=='call_method' and target in ('sum','mean'))
+        if reduction:
+            fields=['input','dim','keepdim']
+            if len(args)>3 or set(kwargs)-{'dim','keepdim'}:
+                raise ValueError(f'{name}: unsupported reduction arguments')
+            bound=dict(zip(fields,args))
+            if set(bound)&set(kwargs): raise ValueError(f'{name}: duplicate reduction argument')
+            bound.update(kwargs)
+            source=node['args']['tuple'][0]['ref']
+            shape=metadata[source]['shape'];rank=len(shape)
+            dims=literal(bound.get('dim','null'))
+            dims=list(range(rank)) if dims is None or dims==[] else [dims] if isinstance(dims,int) else dims
+            if not isinstance(dims,list) or any(type(d) is not int or d < -rank or d>=rank for d in dims):
+                raise ValueError(f'{name}: invalid reduction axes')
+            axes=[d+rank if d<0 else d for d in dims]
+            if len(set(axes))!=len(axes): raise ValueError(f'{name}: duplicate reduction axes')
+            keep=literal(bound.get('keepdim','false'))
+            if type(keep) is not bool: raise ValueError(f'{name}: keepdim must be Boolean')
+            expr=f'N.cast({bound["input"]}, "f32")'
+            for axis in sorted(axes): expr=f'N.sum({expr}, {axis}, true)'
+            if 'mean' in target:
+                count=1
+                for axis in axes: count*=shape[axis]
+                expr=f'N.mul({expr}, {1/count!r})'
+            if not keep:
+                output_shape=[dim for axis,dim in enumerate(shape) if axis not in axes]
+                expr=f'N.reshape({expr}, {json.dumps(output_shape)})'
+            expr=f'N.cast({expr}, {json.dumps(dtype_names[meta["dtype"]])})'
+        elif node['kind'] == 'call_method':
             if target != 'transpose' or len(args) != 3 or kwargs:
                 raise ValueError(f'{name}: unsupported tensor method {target}')
             dims = [json.loads(value) for value in args[1:]]
