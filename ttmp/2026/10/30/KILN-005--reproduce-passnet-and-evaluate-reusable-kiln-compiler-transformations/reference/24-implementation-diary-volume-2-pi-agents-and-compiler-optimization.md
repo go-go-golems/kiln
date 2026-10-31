@@ -3882,3 +3882,70 @@ While the regression band holds the GPU, I also collected the terminal large ban
 ### Technical details
 - Evidence files: `sources/pattern-identity-simulation-v1/fixed-generator.json` (SHA256 `e0810f56…51f9`) and `control-previous-generator.json` (`4b7158b6…84b6`).
 - Large-band files: `pending-large-{audit,collection,failure-summary}.json` and `pending-large-raw.tar.gz`. The raw directory is left untracked, as for the ordinary band.
+
+## Step 241: Name and fix the ordinary-band matcher failures (tasks 79 and 128)
+
+This step takes P1's matcher half. I extended the CPU rule-selection simulation (script 658) to capture target graphs with TorchDynamo on meta tensors, which is what the evaluator's `torch.compile` backend receives. With that, both matcher failures in the ordinary band have exact causes.
+
+Task 79 (21 graphs, "No passes modified the graph") is a spelling mismatch. TorchDynamo records `torch.nn.functional.sigmoid` as a `call_function`, while symbolic tracing of the generated pattern records `Tensor.sigmoid` as a `call_method`. `fx_normalize` now canonicalizes the sigmoid and tanh spellings on both sides, and the simulation goes from 0/21 to 21/21.
+
+Task 128 (2 graphs, "pattern with dead code") has a source graph that computes a dead `conv2d → interpolate` branch. I made dead source code leave both the pattern and the compiled program. TorchDynamo, however, keeps that dead branch, which is structurally identical to the live pattern, so the rule now matches twice. Task 128 is therefore diagnosed but not yet fixed.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 239 (and Step 240 for the no-backwards-compatibility instruction).
+**Assistant interpretation:** Continue the reference 45 plan into P1 while the GPU is busy, with focused commits and full diary entries.
+**Inferred user intent:** Turn the remaining ordinary-band failures into named causes and shared fixes.
+**Commit (code):** 8ee076e — "Canonicalize sigmoid/tanh spellings and drop dead source code from passes"
+
+### What I did
+- Script 658:
+  - `rule_errors` per rule (catches matcher-construction exceptions).
+  - `--trace dynamo|symbolic`, defaulting to `dynamo`. `dynamo_graph()` loads metadata, creates `device='meta'` tensors and runs `torch.compile(model, backend=capture, dynamic=False, fullgraph=True)` after `torch._dynamo.reset()`.
+  - The symbolic mode now applies `eliminate_dead_code`.
+- Read `pending-ordinary/task-079/benchmark.log`. Every graph block shows `[PassMgrBackend] Pass KilnPatternNNNN failed to match.` for all 17 rules, and `target normalization []`.
+- Captured the Dynamo graph for `APCNet_R101_start396_end400_6`: `call_function[target=torch.nn.functional.sigmoid]`. The symbolic trace of the same source gives `call_method[target=sigmoid]`.
+- `integrations/passnet/fx_normalize.py`: `ALIASES` and `FUNCTION_ALIASES`, plus `canonicalize_spellings()`, called first in `normalize_arguments`. One-argument, no-kwargs `sigmoid`/`tanh` methods and functional calls become `call_function torch.sigmoid/torch.tanh`, and the receipt lists each changed node.
+- `integrations/passnet/generate_pass.py`: `inplace_call()` and `drop_dead_statements()`, which remove statements not reaching the return as well as `x = None` cleanups. A source argument without a live use is no longer an error; it is excluded from the pattern, and `order` selects the live source arguments. Records gain `source_arity`.
+- `integrations/passnet/corpus.py`:
+  - `eliminate_dead_code(graph)` runs after tracing in `translate_graph`, which now accepts a selection `input_order` and refuses to omit a live argument.
+  - `read_manifest` validates selections.
+  - `source_order_inputs` is removed (no compatibility shim, per the user's instruction).
+  - `check_corpus_cuda.py` now calls the source model with its full source inputs.
+- Tests: `SpellingAliasTests` (unmatched before normalization, one match after, value equal to `torch.sigmoid`), `test_dead_source_code_is_not_part_of_the_pattern` (including a dead `y += x` refused as observable), and `test_dead_source_code_and_arguments_leave_the_program` (selection `[0, 2]`; `[0]` is refused as omitting a live argument).
+
+### Why
+- `fx_normalize` is already the declared modified-protocol boundary, and it is applied to both patterns and targets. Canonicalizing spellings there keeps the computation unchanged and does not touch PassBench's matcher.
+- Dead source computation is not part of a graph's semantics, and compiling it wastes GPU work. Dead code inside a pattern is categorically refused by `SubgraphMatcher`, so the pattern must be the live computation.
+
+### What worked
+- Dynamo simulation with the fix: task 79 `21/21`, 6 `66/66`, 24 `4/4`, 185 `5/5`. Control with `git show HEAD:integrations/passnet/fx_normalize.py` in place: task 79 `0/21`, which reproduces the GPU result exactly. The new file was restored and checked with `git diff --stat` (21+/1−).
+- Full suite: `Ran 162 tests ... OK`.
+
+### What didn't work
+- Task 128 with dead-code elimination: `applied: 0, matches: 2` for both variants. The Dynamo graph keeps `%tmp_16 : [num_users=0] = call_function[target=torch.nn.functional.interpolate]`. The live pattern `conv2d → interpolate` matches both the live branch (`in_10, in_8, in_7`) and the dead one (`to, in_1, in_0`). The second replacement would call dispatch with metadata that has no compiled program.
+- A pattern returning the dead value as well would trip PassBench's `assert user_nodes, "The returning_nodes should have at least one user node"` (`custom_replacement.py:132-134`). A filter on matches would modify the original matcher.
+
+### What I learned
+- TorchDynamo does not eliminate a dead `interpolate` call (it is not known to be pure), so "Dynamo captures only live nodes" is false in general. My first symbolic-mode comment said otherwise. The Dynamo mode is the authority, and the symbolic-mode DCE remains an approximation.
+- Both ordinary matcher clusters were integration-boundary issues, not compiler defects. That confirms reference 44's caution that they say nothing about CUDA quality.
+
+### What was tricky to build
+- The pattern AST and the traced graph must agree. I remove dead statements at the AST level before tracing, so the emitted pattern text, its traced graph and its argument list describe the same live computation. `order` is then derived from first use, as before.
+- Selection input orders change an invariant several helpers assumed (full permutations). `canonical_order_inputs` still works by indexing source inputs. The inverse mapping cannot exist when arguments are dropped, which is why `source_order_inputs` was removed rather than patched.
+
+### What warrants a second pair of eyes
+- Task 128 options: (1) compile a program for every match instance of a rule in a graph (the second match is the dead branch's own shapes), accepting two replacements per graph, which needs an auditor rule change declared as protocol; (2) leave the family unsupported with this named cause. I prefer (2) until a second family shows the same structure.
+- Whether `canonicalize_spellings` should cover more Python-wrapper functionals. Only sigmoid and tanh are observed; others should be added only when a census shows them.
+
+### What should be done in the future
+- Run the Dynamo simulation as a CPU **matcher census** over every import-eligible family before the next GPU queue, so matcher and dispatch failures never consume GPU time.
+- GPU replay of tasks 6, 24, 185 and 79 after the bling queues finish.
+- The P1 numerical half: the task 73 bf16 conv-bias hypothesis and the 43 ordinary-band numerical failures.
+
+### Code review instructions
+- `fx_normalize.py` (`canonicalize_spellings`), `generate_pass.py` (`drop_dead_statements`), `corpus.py` (`eliminate_dead_code`, the `translate_graph` selection checks).
+- Validate with `python3 -m unittest test_fx_normalize test_pass_generation` from `integrations/passnet`, and `658-... --task 79 --task 128 --trace dynamo` against the ordinary plan.
+
+### Technical details
+- Evidence: `sources/pattern-identity-simulation-v1/dynamo-ordinary-matcher-tasks.json` (tasks 79, 128, 6, 24, 185 with the fixes) and `dynamo-control-task79-previous-normalization.json`.
+- The Dynamo capture uses `fullgraph=True`. A graph break raises `expected one captured graph`, which is itself a useful census category.
