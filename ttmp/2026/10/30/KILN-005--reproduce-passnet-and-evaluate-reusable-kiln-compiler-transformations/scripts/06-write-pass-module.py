@@ -14,6 +14,19 @@ PROGRAM = TorchProgram(ARTIFACT)
 def pattern(mean, variance, bias, weight, x):
     return torch.nn.functional.dropout(torch.nn.functional.batch_norm(torch.nn.functional.relu(x, inplace=False), mean, variance, weight, bias, False, 0.1, 1e-5), p=0.0, training=False)
 
+# Build exact FX argument structure; symbolic_trace canonicalizes functional
+# defaults differently from Dynamo in the installed PyTorch version.
+import inspect
+_signature = inspect.signature(pattern)
+_graph = torch.fx.Graph()
+_mean, _var, _bias, _weight, _x = [_graph.placeholder(n) for n in ['mean','variance','bias','weight','x']]
+_relu = _graph.call_function(torch.nn.functional.relu, (_x,), {'inplace': False})
+_bn = _graph.call_function(torch.nn.functional.batch_norm, (_relu,_mean,_var,_weight,_bias,False,0.1,1e-5), {})
+_drop = _graph.call_function(torch.nn.functional.dropout, (_bn,), {'p':0.0,'training':False})
+_graph.output(_drop)
+pattern = torch.fx.GraphModule({}, _graph)
+pattern.__signature__ = _signature
+
 def replacement_args(mean, variance, bias, weight, x):
     return (mean, variance, bias, weight, x)
 

@@ -1,0 +1,39 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 592, in <module>
+    main(args=args)
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 529, in main
+    test_single_model(args)
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 241, in test_single_model
+[PassMgrBackend] Detected hacking behavior, forbidden torch API usage in replacement_func
+[PassMgrBackend] Pass source validation failed for /work/kiln-pass/KilnBatchNorm.py:
+  - Line 12: blocked call 'torch.fx.Graph' (resolves to 'torch.fx.Graph')
+  - Line 18: blocked call 'torch.fx.GraphModule' (resolves to 'torch.fx.GraphModule')
+[PassMgrBackend] Skipping loading of /work/kiln-pass/KilnBatchNorm.py due to validation failures.
+    compiler = get_compiler_backend(args)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 106, in get_compiler_backend
+    return backend_class(config)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 168, in __init__
+    self.pass_manager = self.make_pass_manager()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 241, in make_pass_manager
+    return PassManager(passes=self.get_passes())
+                              ^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 249, in get_passes
+    for pass_name, pass_rule in self._get_named_pass_rules()
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 260, in _get_named_pass_rules
+    for rule in self._get_output_pass_rules()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 292, in _get_output_pass_rules
+    rules = self._bound_by_replacement_func_limit(rules)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 297, in _bound_by_replacement_func_limit
+    allowed_replacement_funcs = self._get_allowed_replacement_funcs(rules)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 327, in _get_allowed_replacement_funcs
+    raise RuntimeError(
+RuntimeError: No replacement functions available after filtering 0 rules.

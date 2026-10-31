@@ -586,3 +586,46 @@ See Step 11 for intermediate-script preservation.
 
 ### Technical details
 - Independent diagnostic uses public FX SubgraphMatcher and torch.compile backend callback. No upstream code modified or copied.
+
+## Step 14: Preserve original integrity rejection and complete corpus extraction
+
+Explicit FX pattern construction was rejected by the untouched evaluator AST validator before matching. No rejection was bypassed. Completed materialization now reports 2,067,810 file-content records from 14 verified shards and zero duplicate records; committed a compact summary while retaining full per-file manifest in sources/materialized.
+
+### Prompt Context
+See Step 11 for intermediate-script and evidence preservation.
+**Assistant interpretation:** Determine legal integration boundaries and retain untouched reference behavior.
+**Inferred user intent:** Produce trustworthy reproducible evaluation.
+
+### What I did
+- Updated scripts/06 to construct exact observed FX argument structure and retain original pattern argument signature.
+- Ran original evaluator retry in tmux passnet-kiln-match-v2 and archived sources/kiln-match-v2.log.
+- Recorded complete materialization summary.
+
+### Why
+- Exact structural graph construction resolves trace normalization conceptually but must also satisfy benchmark integrity policy.
+
+### What worked
+- Corpus materialization completed all 14 shards without conflicts.
+
+### What didn't work
+- Original validator: Line 12 blocked call torch.fx.Graph; Line 18 blocked call torch.fx.GraphModule.
+- Evaluator then raised RuntimeError: No replacement functions available after filtering 0 rules.
+
+### What I learned
+- Explicit pattern objects supported by matcher internals are forbidden by source-level validation in generated passes. This is a protocol limitation, not numerical failure.
+
+### What was tricky to build
+- Pattern construction and replacement execution need separate integrity policies if the integration uses trusted compiler tooling. Hiding constructors behind imports would not establish legitimate compliance.
+
+### What warrants a second pair of eyes
+- Any integration-specific evaluator changes need explicit scope and must remain labeled a modified evaluation protocol, with original reference checks preserved.
+
+### What should be done in the future
+- Investigate sanctioned normalized pattern interfaces; if necessary design a separate audited integration mode without weakening numerical, dispatch or reverse-order checks.
+- Complete remaining intern guide, reMarkable delivery and milestone vault reports alongside implementation.
+
+### Code review instructions
+- Inspect scripts/06 and sources/kiln-match-v2.log against pinned pass_bench/ast_util/validate_pass_source.py.
+
+### Technical details
+- No upstream evaluator mutation or AST bypass performed. Existing generated pass remains rejected and cannot support a benchmark-success claim.
