@@ -3692,3 +3692,47 @@ Run script657 against the archived ordinary band, then compare task6 `KilnPatter
 
 ### Technical details
 The result is an analysis of sixteen already failed graph variants; accepted counts remain32 complete tasks and479 graphs for this frozen ordinary band. The output-order relation is visible in the paired pattern return expressions; it is not a proof that a proposed repair would pass numerical checks.
+
+## Step 237: Independent architecture review, takeover direction and intern system guide
+
+A new reviewer took over from the step-234 handoff. I read the end-to-end path against the handoff guide (reference 43) at `73bc1fc`, checked the upstream PassBench replacement semantics, ran both test suites and two small compiler probes. The output is an expert review with a direction plan (reference 45) and a self-contained intern guide (design 22). No code or frozen experiment was changed.
+
+### Prompt Context
+**User prompt:** Analyze the codebase using reference 43, write the review doc, then a vault deep-dive article and an intern guide stored in the ticket and uploaded to reMarkable. "The goal is to pass the torch to you to continue in order to avoid being lost in the weeds, and make some decent project."
+**Assistant interpretation:** Perform the requested resident-expert review, classify the findings as defect, structural or optional, and turn them into a focused plan the next work can follow.
+**Inferred user intent:** Leave a clear project direction and onboarding material, not another isolated coverage increment.
+
+### What I did
+- Read `corpus.py`, `fx_trace.py`, `fx_export.py`, `fx_import.py` and the `fx_*` helpers, `generate_pass.py`, `dispatch.py`, `runtime.py`, `kiln-export.mjs`, `export.js`, `emmy.js`, `tensor.js`, `loop.js`, `fusion.js`, `emit.js`, `transformation_program.mjs` and `fusion_policy.mjs`, plus upstream `pass_bench/torch/custom_replacement.py` and `backend/pass_mgr_direct.py`.
+- Ran `node scripts/run-node-tests.mjs packages/kiln/test`: all 41 passed (Node 26.13.0).
+- Ran `python3 -m unittest discover -s integrations/passnet -p 'test_*.py'`: 155 run, 1 failure (`test_fx_trace...test_input_mutation_and_alias_observer_rejected`; the `Input` case is now intentionally accepted).
+- Probed `a*b+c` with three f16[64] inputs: with `--contraction allow` the internal check FAILED, and with `--no-check` the emitted code is `fmaf` plus a single f16 rounding. With `separate` the intermediate rounding is preserved.
+- Probed `x_f16[2,3] * s_f32[]`: PyTorch gives f16, the Kiln artifact gives an f32 output, and no diagnostic is raised.
+- Sampled bling: the three qualification tmux sessions exist, the GPU was at 0 % when sampled, and 15 stale `passnet-*` sessions from 2026-10-30 remain.
+
+### Why
+The handoff asked for (a) defects, (b) structural problems and (c) cleanups, each with an owning module and migration boundary. The user asked for a direction that stops the project drifting into per-operator increments.
+
+### What worked
+The upstream code settles the step-236 question. `SubgraphMatcher(match_output=False)` maps replacement outputs to the applied pattern's `returning_nodes`, so the repair is one pattern class per body-modulo-output-order plus a per-variant output permutation (review A1). A bare metadata fallback would swap outputs.
+
+### What didn't work
+Running the Python suite on the local machine works (torch 2.11.0+cu130), but the remote tmux panes captured empty, so the band status could not be read from the panes. Terminal `run.json` files remain the authority.
+
+### What I learned
+The importer validates output metadata in only some branches, and nothing checks Kiln's inferred dtype against FX `tensor_meta` per node. The internal check compares Kiln against Kiln and cannot catch that drift. The fusion-policy features are all derived from `workOf`, which explains the fixed-policy transfer loss.
+
+### What was tricky to build
+Line references: several files were read in concatenated listings. Every cited line was re-verified with `grep -n` before the review was finalized.
+
+### What warrants a second pair of eyes
+Whether `nn.expect` (review A4) should be a frontend op or a check performed in the export CLI against a sidecar metadata table. Both avoid code-generation changes.
+
+### What should be done in the future
+Execute review §7. P0: A1–A3, A6 and A7 fixes plus replays of tasks 6, 24 and 185. P1: diagnose tasks 79 and 128 and the 43 numerical failures. P2: importer registry with a byte-identical census gate. P3a/P3b: typed wave and cost-model calibration in parallel.
+
+### Code review instructions
+Read reference 45 sections 3 and 7 first, then check A1 against `custom_replacement.py:81-86,132-162` and `generate_pass.py:57-109`.
+
+### Technical details
+Review revision `73bc1fc29bf3e0a76609ae215fbbf25e2bd5108b`. The probe scripts are reproduced inline in reference 45 §2. No GPU work was launched.

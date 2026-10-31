@@ -13,3 +13,9 @@
 - [x] Run the bounded Kiln-native external-LLM policy comparison against equal-budget threshold and seeded-random search, with trusted proposal tools, isolated timing and newly frozen confirmation; proposal-boundary implementation alone does not complete this task. <!-- t:f5d9 -->
 - [ ] Implement pooling semantics and FX import, starting with avg_pool2d; verify padding/divisor/ceil behavior, qualify real graphs on CUDA, then expand max/adaptive pooling and optimization workloads. <!-- t:kiok -->
 - [x] Evaluate fixed agent7 on every eligible fresh pointwise confirmation model; retain population shortfall, aliases, numerical failures and timing results before any promotion. <!-- t:vkgt -->
+- [x] Independent architecture review at 73bc1fc with direction plan (reference 45) and intern system guide (design 22); uploaded to reMarkable /ai/2026/10/31/KILN-005. <!-- t:rv45 -->
+- [ ] P0: replace output-order-sensitive pattern identity with body classes plus per-variant output permutation (review A1); replay tasks 6, 24 and 185 on fresh copies through the original checker. <!-- t:p0a1 -->
+- [ ] P0: split stale test_fx_trace mutation test (A2); restrict contractFma to FP32 (A3); record internal-check status in artifacts (A6); add 32-bit index overflow export guard (A7). <!-- t:p0fx -->
+- [ ] P1: name a cause for tasks 79 and 128 matcher failures and cluster the 43 nominal numerical failures of the ordinary band by operation and dtype. <!-- t:p1dg -->
+- [ ] P2: OpSpec importer registry plus per-node dtype/shape postcondition (A4), gated by a byte-identical import census hash. <!-- t:p2rg -->
+- [ ] P3b: calibrate workOf against GPU-only timings, add structural policy features and a GB10 target spec before further agent policy search. <!-- t:p3cm -->

@@ -183,3 +183,12 @@ Prepared four-slot threshold/random/LLM search comparison with independent train
 ### Related Files
 
 - /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/policy_search.py — Shared search declaration and method-specific selections
+
+## 2026-10-31
+
+Independent architecture review at 73bc1fc (reference 45): verified output-order pattern collision root cause, stale mutation test, low-precision FMA contraction, missing per-node dtype postcondition, f32-only constant export, unrecorded check bypass; phased direction P0–P3. Added intern system guide (design 22) and diary Step 237.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/design-doc/22-kiln-passnet-system-guide-for-new-interns.md — Intern guide
+- /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/reference/45-resident-expert-architecture-review-and-direction.md — Review and direction
