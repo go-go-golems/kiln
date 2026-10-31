@@ -36,6 +36,7 @@ Reproduce the original PassNet experiment independently, then evaluate Kiln-gene
 - [Audited uniform ordinary-band PassBench result](reference/44-uniform-ordinary-band-passbench-result.md)
 - [Resident expert architecture review and direction](reference/45-resident-expert-architecture-review-and-direction.md) — verified defects, structural recommendations and the P0–P3 plan
 - [Kiln PassNet system guide for new interns](design-doc/22-kiln-passnet-system-guide-for-new-interns.md)
+- [Uniform 111-family PassBench qualification result](reference/46-uniform-111-family-passbench-qualification-result.md) — 86/111 complete families on one frozen snapshot, every failure named
 - [Intern architecture and implementation guide](design-doc/01-passnet-reproduction-and-kiln-integration-intern-guide.md)
 - [Detailed chronological diary](reference/01-detailed-investigation-diary.md)
 - [Latest qualification and original-agent audit report](reference/21-singleton-view-qualification-and-audited-original-agent-failure.md)
