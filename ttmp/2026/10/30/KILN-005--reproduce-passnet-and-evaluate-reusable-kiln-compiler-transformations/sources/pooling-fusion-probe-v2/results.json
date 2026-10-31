@@ -1,0 +1,58 @@
+[
+  {
+    "name": "baseline",
+    "compile_ms": 51.525108999999986,
+    "loop": [
+      {
+        "shape": [
+          128,
+          256,
+          24,
+          24
+        ],
+        "contraction": false
+      }
+    ],
+    "kernels": [
+      {
+        "shape": [
+          128,
+          256,
+          24,
+          24
+        ],
+        "row": "MAP=row,TPB=32",
+        "grid": 18874368,
+        "block": 32
+      }
+    ]
+  },
+  {
+    "name": "staged",
+    "compile_ms": 26.100926999999984,
+    "loop": [
+      {
+        "shape": [
+          128,
+          256,
+          24,
+          24
+        ],
+        "contraction": false
+      }
+    ],
+    "kernels": [
+      {
+        "shape": [
+          128,
+          256,
+          24,
+          24
+        ],
+        "row": "MAP=row,TPB=32",
+        "grid": 18874368,
+        "block": 32
+      }
+    ]
+  }
+]

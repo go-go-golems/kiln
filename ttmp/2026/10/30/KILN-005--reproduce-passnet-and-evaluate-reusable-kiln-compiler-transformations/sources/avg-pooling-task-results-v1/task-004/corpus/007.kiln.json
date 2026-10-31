@@ -1,0 +1,339 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-004/corpus/007.kiln.js",
+  "sha256": "8a183223dcdef664322b812eebb9f9e437bed8fc0d9ae3ed81369084695d09a7",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    128,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    128,
+    128,
+    3,
+    3
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v6",
+   "buffer": 6,
+   "shape": [
+    1,
+    64,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 8,
+   "shape": [
+    1,
+    64,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 11,
+   "shape": [
+    1,
+    128,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 100352,
+   "bytes": 401408
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 147456,
+   "bytes": 589824
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 200704,
+   "bytes": 802816
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 784,
+   "bytes": 3136,
+   "name": null,
+   "data": "AACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQA=="
+  },
+  {
+   "id": 8,
+   "dtype": "f32",
+   "elements": 50176,
+   "bytes": 200704
+  },
+  {
+   "id": 9,
+   "dtype": "f32",
+   "elements": 900,
+   "bytes": 3600,
+   "name": null,
+   "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  },
+  {
+   "id": 10,
+   "dtype": "f32",
+   "elements": 115200,
+   "bytes": 460800
+  },
+  {
+   "id": 11,
+   "dtype": "f32",
+   "elements": 100352,
+   "bytes": 401408
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__gb1r691gbf",
+   "identity": "gb1r691gbf",
+   "row": "TPB=128",
+   "reads": [
+    7,
+    6
+   ],
+   "writes": 8,
+   "grid": 392,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    392,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    64,
+    28,
+    28
+   ],
+   "inShapes": [
+    [
+     1,
+     1,
+     28,
+     28
+    ],
+    [
+     1,
+     64,
+     56,
+     56
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 392i) { return; }\n    var v_acc1: f32 = 0.0;\n    var v_acc0: f32 = 0.0;\n    var v_in0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((128i * bid) + tid);\n    if (n_e < 50176i) {\n        v_acc1 = 0.0;\n        for (var n_r0: i32 = 0i; n_r0 < 2i; n_r0 = n_r0 + 1i) {\n            v_acc0 = 0.0;\n            for (var n_r1: i32 = 0i; n_r1 < 2i; n_r1 = n_r1 + 1i) {\n                v_in0 = b1[(((((112i * ((n_e / 28i) % 28i)) + (2i * (n_e % 28i))) + (3136i * (n_e / 784i))) + (56i * n_r0)) + n_r1)];\n                v_acc0 = (v_acc0 + v_in0);\n            }\n            v_acc1 = (v_acc1 + v_acc0);\n        }\n        v_in1 = b0[((28i * ((n_e / 28i) % 28i)) + (n_e % 28i))];\n        v_v0 = (v_acc1 / v_in1);\n        bout[(((28i * ((n_e / 28i) % 28i)) + (n_e % 28i)) + (784i * (n_e / 784i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out0__gb1r691gbf(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc1 = 0.0f, acc0 = 0.0f, in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 50176)) {\n        acc1 = 0.0f;\n        for (int r0 = 0; r0 < 2; r0 += 1) {\n            acc0 = 0.0f;\n            for (int r1 = 0; r1 < 2; r1 += 1) {\n                in0 = src1[(((((112 * ((e / 28) % 28)) + (2 * (e % 28))) + (3136 * (e / 784))) + (56 * r0)) + r1)];\n                acc0 = (acc0 + in0);\n            }\n            acc1 = (acc1 + acc0);\n        }\n        in1 = src0[((28 * ((e / 28) % 28)) + (e % 28))];\n        v0 = (acc1 / in1);\n        dst[(((28 * ((e / 28) % 28)) + (e % 28)) + (784 * (e / 784)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_conv2d__454f48n2z7",
+   "identity": "454f48n2z7",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    9
+   ],
+   "writes": 10,
+   "grid": 1800,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    1800,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    128,
+    30,
+    30
+   ],
+   "inShapes": [
+    [
+     1,
+     128,
+     28,
+     28
+    ],
+    [
+     1,
+     1,
+     30,
+     30
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1800i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 115200i) {\n        v_in0 = b1[((30i * ((n_e / 30i) % 30i)) + (n_e % 30i))];\n        v_in1 = b0[(((28i * min(max((((n_e / 30i) % 30i) + -1i), 0i), 27i)) + min(max(((n_e % 30i) + -1i), 0i), 27i)) + (784i * (n_e / 900i)))];\n        v_v0 = select(0.0, v_in1, (v_in0) > 0.0);\n        bout[(((30i * ((n_e / 30i) % 30i)) + (n_e % 30i)) + (900i * (n_e / 900i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_conv2d__454f48n2z7(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 115200)) {\n        in0 = src1[((30 * ((e / 30) % 30)) + (e % 30))];\n        in1 = src0[(((28 * min(max((((e / 30) % 30) + (-1)), 0), 27)) + min(max(((e % 30) + (-1)), 0), 27)) + (784 * (e / 900)))];\n        v0 = ((in0) > 0.0f ? (in1) : (0.0f));\n        dst[(((30 * ((e / 30) % 30)) + (e % 30)) + (900 * (e / 900)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_out1__1dk237s93zy",
+   "identity": "1dk237s93zy",
+   "row": "TPB=64",
+   "reads": [
+    5,
+    4,
+    3,
+    2,
+    1,
+    10
+   ],
+   "writes": 11,
+   "grid": 1568,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    1568,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    128,
+    28,
+    28
+   ],
+   "inShapes": [
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128,
+     128,
+     3,
+     3
+    ],
+    [
+     1,
+     128,
+     30,
+     30
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out1__1dk237s93zy(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, const float* __restrict__ src4, const float* __restrict__ src5, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in2 = 0.0f, v3 = 0.0f, in3 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f, in4 = 0.0f, v9 = 0.0f, in5 = 0.0f, v11 = 0.0f, acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v4 = 0.0f, v8 = 0.0f, v10 = 0.0f, v12 = 0.0f, v13 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 100352)) {\n        in2 = src3[(e / 784)];\n        v3 = in2;\n        in3 = src2[(e / 784)];\n        v5 = in3;\n        v6 = __fadd_rn(v5, 0.00001f);\n        v7 = sqrtf(v6);\n        in4 = src1[(e / 784)];\n        v9 = in4;\n        in5 = src0[(e / 784)];\n        v11 = in5;\n        acc2 = 0.0f;\n        for (int r0 = 0; r0 < 128; r0 += 1) {\n            acc1 = 0.0f;\n            for (int r1 = 0; r1 < 3; r1 += 1) {\n                acc0 = 0.0f;\n                for (int r2 = 0; r2 < 3; r2 += 1) {\n                    in0 = src5[((((((30 * ((e / 28) % 28)) + (115200 * ((e / 784) / 128))) + (e % 28)) + (900 * r0)) + (30 * r1)) + r2)];\n                    in1 = src4[((((1152 * (e / 784)) + (9 * r0)) + (3 * r1)) + r2)];\n                    v0 = __fmul_rn(in0, in1);\n                    acc0 = (acc0 + v0);\n                }\n                acc1 = (acc1 + acc0);\n            }\n            acc2 = (acc2 + acc1);\n        }\n        v1 = __fadd_rn(acc2, 0.0f);\n        v2 = v1;\n        v4 = __fsub_rn(v2, v3);\n        v8 = (v4 / v7);\n        v10 = __fmul_rn(v8, v9);\n        v12 = __fadd_rn(v10, v11);\n        v13 = v12;\n        dst[(((28 * ((e / 28) % 28)) + (e % 28)) + (784 * (e / 784)))] = v13;\n    }\n}"
+  }
+ ]
+}

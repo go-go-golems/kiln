@@ -1,0 +1,2638 @@
+[kiln-task-runner/1] process receipts are not correctness claims
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/1] preserve explicit operator.iadd in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "relu", "target": "torch.nn.functional.relu"}]
+[kiln-pattern-multi-output/1] upstream tuple destructuring 2
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0
+graph-net-test-compiler-log [Config] model: hf-tiny-model-private/tiny-random-EfficientFormerForImageClassificationWithTeacher
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization [{"node": "tmp_2", "target": "torch.nn.functional.relu"}]
+[PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=1.02162 ms, gpu=0.97837 ms
+Trial 2: e2e=0.98443 ms, gpu=0.96784 ms
+Trial 3: e2e=0.98038 ms, gpu=0.96653 ms
+Trial 4: e2e=0.98085 ms, gpu=0.96803 ms
+Trial 5: e2e=0.99754 ms, gpu=0.98413 ms
+Trial 6: e2e=0.97466 ms, gpu=0.93446 ms
+Trial 7: e2e=1.11938 ms, gpu=1.10534 ms
+Trial 8: e2e=1.09386 ms, gpu=1.08035 ms
+Trial 9: e2e=0.97346 ms, gpu=0.96022 ms
+Trial 10: e2e=0.97489 ms, gpu=0.96182 ms
+Trial 11: e2e=0.98038 ms, gpu=0.96752 ms
+Trial 12: e2e=1.11747 ms, gpu=1.10435 ms
+Trial 13: e2e=0.96893 ms, gpu=0.95517 ms
+Trial 14: e2e=1.02305 ms, gpu=1.01014 ms
+Trial 15: e2e=0.97203 ms, gpu=0.95789 ms
+Trial 16: e2e=0.97036 ms, gpu=0.95741 ms
+Trial 17: e2e=0.97489 ms, gpu=0.96195 ms
+Trial 18: e2e=0.96703 ms, gpu=0.95392 ms
+Trial 19: e2e=0.96917 ms, gpu=0.95645 ms
+Trial 20: e2e=0.96774 ms, gpu=0.95485 ms
+Trial 21: e2e=0.97060 ms, gpu=0.95754 ms
+Trial 22: e2e=0.96607 ms, gpu=0.95331 ms
+Trial 23: e2e=0.96941 ms, gpu=0.95626 ms
+Trial 24: e2e=0.96917 ms, gpu=0.95626 ms
+Trial 25: e2e=0.96440 ms, gpu=0.95174 ms
+Trial 26: e2e=0.97203 ms, gpu=0.95933 ms
+Trial 27: e2e=0.96679 ms, gpu=0.95357 ms
+Trial 28: e2e=0.96941 ms, gpu=0.95613 ms
+Trial 29: e2e=0.97060 ms, gpu=0.95738 ms
+Trial 30: e2e=0.96560 ms, gpu=0.95277 ms
+Trial 31: e2e=0.96846 ms, gpu=0.95555 ms
+Trial 32: e2e=0.96703 ms, gpu=0.95440 ms
+Trial 33: e2e=0.96631 ms, gpu=0.95363 ms
+Trial 34: e2e=0.97132 ms, gpu=0.95869 ms
+Trial 35: e2e=0.97537 ms, gpu=0.96243 ms
+Trial 36: e2e=0.97036 ms, gpu=0.95776 ms
+Trial 37: e2e=0.97322 ms, gpu=0.96070 ms
+Trial 38: e2e=0.97036 ms, gpu=0.95741 ms
+Trial 39: e2e=0.96560 ms, gpu=0.95283 ms
+Trial 40: e2e=0.97060 ms, gpu=0.95795 ms
+Trial 41: e2e=0.96488 ms, gpu=0.95219 ms
+Trial 42: e2e=0.96607 ms, gpu=0.95318 ms
+Trial 43: e2e=0.96631 ms, gpu=0.95434 ms
+Trial 44: e2e=0.96250 ms, gpu=0.95072 ms
+Trial 45: e2e=0.96917 ms, gpu=0.95654 ms
+Trial 46: e2e=1.00875 ms, gpu=0.99587 ms
+Trial 47: e2e=1.07360 ms, gpu=1.05498 ms
+Trial 48: e2e=1.09291 ms, gpu=1.07760 ms
+Trial 49: e2e=0.97799 ms, gpu=0.96531 ms
+Trial 50: e2e=0.97179 ms, gpu=0.95917 ms
+Trial 51: e2e=0.97179 ms, gpu=0.95645 ms
+Trial 52: e2e=1.14155 ms, gpu=1.12874 ms
+Trial 53: e2e=0.97299 ms, gpu=0.95936 ms
+Trial 54: e2e=1.01566 ms, gpu=1.00240 ms
+Trial 55: e2e=0.97203 ms, gpu=0.95869 ms
+Trial 56: e2e=0.97752 ms, gpu=0.96486 ms
+Trial 57: e2e=0.98014 ms, gpu=0.96730 ms
+Trial 58: e2e=0.96655 ms, gpu=0.95414 ms
+Trial 59: e2e=0.97179 ms, gpu=0.95898 ms
+Trial 60: e2e=0.96917 ms, gpu=0.95642 ms
+Trial 61: e2e=0.96822 ms, gpu=0.95565 ms
+Trial 62: e2e=0.97013 ms, gpu=0.95744 ms
+Trial 63: e2e=0.97013 ms, gpu=0.95722 ms
+Trial 64: e2e=0.97060 ms, gpu=0.95760 ms
+Trial 65: e2e=0.96941 ms, gpu=0.95667 ms
+Trial 66: e2e=0.96703 ms, gpu=0.95395 ms
+Trial 67: e2e=0.97132 ms, gpu=0.95878 ms
+Trial 68: e2e=0.96536 ms, gpu=0.95274 ms
+Trial 69: e2e=0.96846 ms, gpu=0.95587 ms
+Trial 70: e2e=0.96560 ms, gpu=0.95293 ms
+Trial 71: e2e=0.96631 ms, gpu=0.95334 ms
+Trial 72: e2e=0.96822 ms, gpu=0.95549 ms
+Trial 73: e2e=0.96655 ms, gpu=0.95370 ms
+Trial 74: e2e=0.96440 ms, gpu=0.95158 ms
+Trial 75: e2e=0.96750 ms, gpu=0.95475 ms
+Trial 76: e2e=0.97179 ms, gpu=0.95898 ms
+Trial 77: e2e=0.96846 ms, gpu=0.95552 ms
+Trial 78: e2e=0.96607 ms, gpu=0.95360 ms
+Trial 79: e2e=0.96774 ms, gpu=0.95456 ms
+Trial 80: e2e=0.97013 ms, gpu=0.95750 ms
+Trial 81: e2e=0.96703 ms, gpu=0.95398 ms
+Trial 82: e2e=0.96345 ms, gpu=0.95075 ms
+Trial 83: e2e=0.96846 ms, gpu=0.95587 ms
+Trial 84: e2e=0.96846 ms, gpu=0.95574 ms
+Trial 85: e2e=0.96726 ms, gpu=0.95466 ms
+Trial 86: e2e=0.96750 ms, gpu=0.95450 ms
+Trial 87: e2e=0.96750 ms, gpu=0.95482 ms
+Trial 88: e2e=0.96607 ms, gpu=0.95341 ms
+Trial 89: e2e=0.96726 ms, gpu=0.95450 ms
+Trial 90: e2e=0.96536 ms, gpu=0.95283 ms
+Trial 91: e2e=0.96726 ms, gpu=0.95466 ms
+Trial 92: e2e=0.96726 ms, gpu=0.95478 ms
+Trial 93: e2e=0.97036 ms, gpu=0.95776 ms
+Trial 94: e2e=0.96869 ms, gpu=0.95590 ms
+Trial 95: e2e=0.96631 ms, gpu=0.95363 ms
+Trial 96: e2e=0.96631 ms, gpu=0.95370 ms
+Trial 97: e2e=0.97346 ms, gpu=0.96077 ms
+Trial 98: e2e=0.96607 ms, gpu=0.95363 ms
+Trial 99: e2e=0.96869 ms, gpu=0.95603 ms
+Trial 100: e2e=0.96822 ms, gpu=0.95552 ms
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=2.23589 ms, gpu=2.21798 ms
+Trial 2: e2e=2.22850 ms, gpu=2.21450 ms
+Trial 3: e2e=2.22540 ms, gpu=2.21194 ms
+Trial 4: e2e=2.22135 ms, gpu=2.20778 ms
+Trial 5: e2e=2.22325 ms, gpu=2.21037 ms
+Trial 6: e2e=2.22039 ms, gpu=2.20704 ms
+Trial 7: e2e=2.22325 ms, gpu=2.21021 ms
+Trial 8: e2e=2.22874 ms, gpu=2.21597 ms
+Trial 9: e2e=2.22397 ms, gpu=2.21094 ms
+Trial 10: e2e=2.22158 ms, gpu=2.20826 ms
+Trial 11: e2e=2.22278 ms, gpu=2.20960 ms
+Trial 12: e2e=2.22421 ms, gpu=2.21152 ms
+Trial 13: e2e=2.21944 ms, gpu=2.20630 ms
+Trial 14: e2e=2.22516 ms, gpu=2.21200 ms
+Trial 15: e2e=2.22373 ms, gpu=2.21098 ms
+Trial 16: e2e=2.22254 ms, gpu=2.20928 ms
+Trial 17: e2e=2.23112 ms, gpu=2.21830 ms
+Trial 18: e2e=2.22278 ms, gpu=2.21014 ms
+Trial 19: e2e=2.22015 ms, gpu=2.20707 ms
+Trial 20: e2e=2.21801 ms, gpu=2.20467 ms
+Trial 21: e2e=2.22230 ms, gpu=2.20902 ms
+Trial 22: e2e=2.22683 ms, gpu=2.21402 ms
+Trial 23: e2e=2.21682 ms, gpu=2.20403 ms
+Trial 24: e2e=2.21968 ms, gpu=2.20685 ms
+Trial 25: e2e=2.22373 ms, gpu=2.21104 ms
+Trial 26: e2e=2.22397 ms, gpu=2.21130 ms
+Trial 27: e2e=2.21872 ms, gpu=2.20566 ms
+Trial 28: e2e=2.22468 ms, gpu=2.21072 ms
+Trial 29: e2e=2.22540 ms, gpu=2.21197 ms
+Trial 30: e2e=2.21825 ms, gpu=2.20518 ms
+Trial 31: e2e=2.22111 ms, gpu=2.20784 ms
+Trial 32: e2e=2.22087 ms, gpu=2.20835 ms
+Trial 33: e2e=2.21896 ms, gpu=2.20566 ms
+Trial 34: e2e=2.22063 ms, gpu=2.20778 ms
+Trial 35: e2e=2.22516 ms, gpu=2.21229 ms
+Trial 36: e2e=2.22397 ms, gpu=2.21082 ms
+Trial 37: e2e=2.21562 ms, gpu=2.20314 ms
+Trial 38: e2e=2.22087 ms, gpu=2.20787 ms
+Trial 39: e2e=2.21801 ms, gpu=2.20496 ms
+Trial 40: e2e=2.22206 ms, gpu=2.20941 ms
+Trial 41: e2e=2.22135 ms, gpu=2.20826 ms
+Trial 42: e2e=2.21753 ms, gpu=2.20470 ms
+Trial 43: e2e=2.21992 ms, gpu=2.20662 ms
+Trial 44: e2e=2.22802 ms, gpu=2.21466 ms
+Trial 45: e2e=2.21872 ms, gpu=2.20602 ms
+Trial 46: e2e=2.22254 ms, gpu=2.21024 ms
+Trial 47: e2e=2.21944 ms, gpu=2.20672 ms
+Trial 48: e2e=2.21896 ms, gpu=2.20586 ms
+Trial 49: e2e=2.21992 ms, gpu=2.20707 ms
+Trial 50: e2e=2.22039 ms, gpu=2.20765 ms
+Trial 51: e2e=2.22063 ms, gpu=2.20768 ms
+Trial 52: e2e=2.22230 ms, gpu=2.20925 ms
+Trial 53: e2e=2.22707 ms, gpu=2.21418 ms
+Trial 54: e2e=2.21992 ms, gpu=2.20653 ms
+Trial 55: e2e=2.22564 ms, gpu=2.21306 ms
+Trial 56: e2e=2.25568 ms, gpu=2.20198 ms
+Trial 57: e2e=2.23112 ms, gpu=2.21789 ms
+Trial 58: e2e=2.22301 ms, gpu=2.21027 ms
+Trial 59: e2e=2.22039 ms, gpu=2.20755 ms
+Trial 60: e2e=2.22087 ms, gpu=2.20778 ms
+Trial 61: e2e=2.22707 ms, gpu=2.21434 ms
+Trial 62: e2e=2.22969 ms, gpu=2.21677 ms
+Trial 63: e2e=2.21848 ms, gpu=2.20525 ms
+Trial 64: e2e=2.21992 ms, gpu=2.20704 ms
+Trial 65: e2e=2.21896 ms, gpu=2.20592 ms
+Trial 66: e2e=2.21872 ms, gpu=2.20595 ms
+Trial 67: e2e=2.22135 ms, gpu=2.20835 ms
+Trial 68: e2e=2.22063 ms, gpu=2.20790 ms
+Trial 69: e2e=2.22301 ms, gpu=2.21018 ms
+Trial 70: e2e=2.21920 ms, gpu=2.20602 ms
+Trial 71: e2e=2.22611 ms, gpu=2.21328 ms
+Trial 72: e2e=2.21801 ms, gpu=2.20502 ms
+Trial 73: e2e=2.21658 ms, gpu=2.20374 ms
+Trial 74: e2e=2.21920 ms, gpu=2.20643 ms
+Trial 75: e2e=2.22063 ms, gpu=2.20790 ms
+Trial 76: e2e=2.21992 ms, gpu=2.20701 ms
+Trial 77: e2e=2.22492 ms, gpu=2.21206 ms
+Trial 78: e2e=2.22182 ms, gpu=2.20858 ms
+Trial 79: e2e=2.22063 ms, gpu=2.20790 ms
+Trial 80: e2e=2.23064 ms, gpu=2.21773 ms
+Trial 81: e2e=2.22373 ms, gpu=2.21101 ms
+Trial 82: e2e=2.22063 ms, gpu=2.20813 ms
+Trial 83: e2e=2.22421 ms, gpu=2.21142 ms
+Trial 84: e2e=2.22087 ms, gpu=2.20822 ms
+Trial 85: e2e=2.21777 ms, gpu=2.20499 ms
+Trial 86: e2e=2.22278 ms, gpu=2.21014 ms
+Trial 87: e2e=2.21586 ms, gpu=2.20288 ms
+Trial 88: e2e=2.21777 ms, gpu=2.20512 ms
+Trial 89: e2e=2.22230 ms, gpu=2.20944 ms
+Trial 90: e2e=2.22182 ms, gpu=2.20858 ms
+Trial 91: e2e=2.21872 ms, gpu=2.20496 ms
+Trial 92: e2e=2.21896 ms, gpu=2.20605 ms
+Trial 93: e2e=2.22111 ms, gpu=2.20787 ms
+Trial 94: e2e=2.22373 ms, gpu=2.21107 ms
+Trial 95: e2e=2.22182 ms, gpu=2.20864 ms
+Trial 96: e2e=2.21443 ms, gpu=2.20131 ms
+Trial 97: e2e=2.22254 ms, gpu=2.20982 ms
+Trial 98: e2e=2.22325 ms, gpu=2.21046 ms
+Trial 99: e2e=2.21992 ms, gpu=2.20704 ms
+Trial 100: e2e=2.21944 ms, gpu=2.20691 ms
+graph-net-test-compiler-log [Datatype][eager]: float32 float32
+graph-net-test-compiler-log [Datatype][compiled]: float32 float32
+graph-net-test-compiler-log [DataType] eager:['float32', 'float32'] compiled:['float32', 'float32'] match:True
+graph-net-test-compiler-log [Correctness][equal]: 0 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.00E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_2.56E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.69E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-14_rtol_1.00E-14]: 0 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_3.98E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_5.85E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_2.54E-11]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-13_rtol_2.51E-13]: 0 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.58E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.34E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_3.82E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-12_rtol_6.31E-12]: 0 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_3.06E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_5.75E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-10_rtol_1.58E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_2.51E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_7.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_8.65E-08]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-09_rtol_3.98E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.60E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.30E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_1.00E-07]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.98E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.66E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_1.96E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-06_rtol_2.51E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_1.58E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_8.36E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_2.94E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-05_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_6.31E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_1.91E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_4.42E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-03_rtol_1.58E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_2.51E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_4.37E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_6.65E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-02_rtol_3.98E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_3.98E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_2.29E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_1.50E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E+01_rtol_2.51E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_1.58E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_5.23E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_2.26E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E+02_rtol_6.31E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_6.31E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_1.20E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_3.40E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E+04_rtol_1.58E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.51E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.73E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_5.11E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E+05_rtol_3.98E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_1.00E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_6.25E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_7.69E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+07_rtol_1.00E+07]: 1 1
+graph-net-test-compiler-log [Correctness][max_diff]: 2.9103830456733704e-11 0.0
+graph-net-test-compiler-log [Correctness][mean_diff]: 2.6025524055751806e-17 0.0
+graph-net-test-compiler-log [Result] status: success
+graph-net-test-compiler-log [Performance][eager]: {"e2e": {"median": 2.22135, "iqr": 0.00435114, "mean": 2.2223, "std": 0.00494774, "min": 2.21443, "max": 2.25568}, "gpu": {"median": 2.20824, "iqr": 0.00444794, "mean": 2.20888, "std": 0.00353773, "min": 2.20131, "max": 2.2183}}
+graph-net-test-compiler-log [Performance][compiled]: {"e2e": {"median": 0.969172, "iqr": 0.00602007, "mean": 0.980024, "std": 0.0340554, "min": 0.962496, "max": 1.14155}, "gpu": {"median": 0.956256, "iqr": 0.00523199, "mean": 0.966449, "std": 0.033626, "min": 0.934464, "max": 1.12874}}
+graph-net-test-compiler-log [Speedup][e2e]: 2.29201
+graph-net-test-compiler-log [Speedup][gpu]: 2.30926
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/1] preserve explicit operator.iadd in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "relu", "target": "torch.nn.functional.relu"}]
+[kiln-pattern-multi-output/1] upstream tuple destructuring 2
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0
+graph-net-test-compiler-log [Config] model: hf-tiny-model-private/tiny-random-EfficientFormerForImageClassificationWithTeacher
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization [{"node": "tmp_2", "target": "torch.nn.functional.relu"}]
+[PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.46229 ms, gpu=0.42378 ms
+Trial 2: e2e=0.42558 ms, gpu=0.40925 ms
+Trial 3: e2e=0.41819 ms, gpu=0.40365 ms
+Trial 4: e2e=0.42033 ms, gpu=0.40672 ms
+Trial 5: e2e=0.41842 ms, gpu=0.40454 ms
+Trial 6: e2e=0.41676 ms, gpu=0.40346 ms
+Trial 7: e2e=0.41389 ms, gpu=0.40032 ms
+Trial 8: e2e=0.41556 ms, gpu=0.40218 ms
+Trial 9: e2e=0.41533 ms, gpu=0.40250 ms
+Trial 10: e2e=0.41175 ms, gpu=0.39859 ms
+Trial 11: e2e=0.41199 ms, gpu=0.39882 ms
+Trial 12: e2e=0.41342 ms, gpu=0.40048 ms
+Trial 13: e2e=0.41080 ms, gpu=0.39798 ms
+Trial 14: e2e=0.41223 ms, gpu=0.39939 ms
+Trial 15: e2e=0.41246 ms, gpu=0.39981 ms
+Trial 16: e2e=0.41533 ms, gpu=0.40294 ms
+Trial 17: e2e=0.41413 ms, gpu=0.40138 ms
+Trial 18: e2e=0.41676 ms, gpu=0.40384 ms
+Trial 19: e2e=0.41413 ms, gpu=0.40125 ms
+Trial 20: e2e=0.41437 ms, gpu=0.40096 ms
+Trial 21: e2e=0.41461 ms, gpu=0.40195 ms
+Trial 22: e2e=0.41223 ms, gpu=0.39930 ms
+Trial 23: e2e=0.41437 ms, gpu=0.40122 ms
+Trial 24: e2e=0.41175 ms, gpu=0.39910 ms
+Trial 25: e2e=0.41509 ms, gpu=0.40208 ms
+Trial 26: e2e=0.41199 ms, gpu=0.39920 ms
+Trial 27: e2e=0.41151 ms, gpu=0.39891 ms
+Trial 28: e2e=0.41342 ms, gpu=0.40013 ms
+Trial 29: e2e=0.40960 ms, gpu=0.39683 ms
+Trial 30: e2e=0.40960 ms, gpu=0.39683 ms
+Trial 31: e2e=0.41080 ms, gpu=0.39798 ms
+Trial 32: e2e=0.41175 ms, gpu=0.39901 ms
+Trial 33: e2e=0.41533 ms, gpu=0.40253 ms
+Trial 34: e2e=0.43249 ms, gpu=0.39923 ms
+Trial 35: e2e=0.41461 ms, gpu=0.40122 ms
+Trial 36: e2e=0.41366 ms, gpu=0.40106 ms
+Trial 37: e2e=0.41819 ms, gpu=0.40544 ms
+Trial 38: e2e=0.41199 ms, gpu=0.39952 ms
+Trial 39: e2e=0.41008 ms, gpu=0.39696 ms
+Trial 40: e2e=0.41127 ms, gpu=0.39859 ms
+Trial 41: e2e=0.41056 ms, gpu=0.39821 ms
+Trial 42: e2e=0.40984 ms, gpu=0.39741 ms
+Trial 43: e2e=0.41294 ms, gpu=0.40003 ms
+Trial 44: e2e=0.41294 ms, gpu=0.40029 ms
+Trial 45: e2e=0.41199 ms, gpu=0.39914 ms
+Trial 46: e2e=0.41270 ms, gpu=0.40010 ms
+Trial 47: e2e=0.41342 ms, gpu=0.40051 ms
+Trial 48: e2e=0.40984 ms, gpu=0.39712 ms
+Trial 49: e2e=0.41246 ms, gpu=0.39952 ms
+Trial 50: e2e=0.41008 ms, gpu=0.39760 ms
+Trial 51: e2e=0.40841 ms, gpu=0.39613 ms
+Trial 52: e2e=0.41056 ms, gpu=0.39792 ms
+Trial 53: e2e=0.40913 ms, gpu=0.39638 ms
+Trial 54: e2e=0.41080 ms, gpu=0.39830 ms
+Trial 55: e2e=0.41127 ms, gpu=0.39811 ms
+Trial 56: e2e=0.41151 ms, gpu=0.39910 ms
+Trial 57: e2e=0.41270 ms, gpu=0.39952 ms
+Trial 58: e2e=0.41103 ms, gpu=0.39798 ms
+Trial 59: e2e=0.41199 ms, gpu=0.39920 ms
+Trial 60: e2e=0.41294 ms, gpu=0.39997 ms
+Trial 61: e2e=0.41461 ms, gpu=0.40147 ms
+Trial 62: e2e=0.41103 ms, gpu=0.39843 ms
+Trial 63: e2e=0.41485 ms, gpu=0.40202 ms
+Trial 64: e2e=0.41151 ms, gpu=0.39843 ms
+Trial 65: e2e=0.40984 ms, gpu=0.39718 ms
+Trial 66: e2e=0.41223 ms, gpu=0.39939 ms
+Trial 67: e2e=0.41318 ms, gpu=0.40042 ms
+Trial 68: e2e=0.41246 ms, gpu=0.39990 ms
+Trial 69: e2e=0.41032 ms, gpu=0.39798 ms
+Trial 70: e2e=0.41223 ms, gpu=0.40019 ms
+Trial 71: e2e=0.41342 ms, gpu=0.40067 ms
+Trial 72: e2e=0.41032 ms, gpu=0.39786 ms
+Trial 73: e2e=0.40913 ms, gpu=0.39715 ms
+Trial 74: e2e=0.41175 ms, gpu=0.39987 ms
+Trial 75: e2e=0.41723 ms, gpu=0.40470 ms
+Trial 76: e2e=0.41103 ms, gpu=0.39920 ms
+Trial 77: e2e=0.41008 ms, gpu=0.39789 ms
+Trial 78: e2e=0.40984 ms, gpu=0.39786 ms
+Trial 79: e2e=0.40960 ms, gpu=0.39776 ms
+Trial 80: e2e=0.40936 ms, gpu=0.39677 ms
+Trial 81: e2e=0.41056 ms, gpu=0.39773 ms
+Trial 82: e2e=0.43750 ms, gpu=0.42333 ms
+Trial 83: e2e=0.41723 ms, gpu=0.40422 ms
+Trial 84: e2e=0.61274 ms, gpu=0.58918 ms
+Trial 85: e2e=0.59414 ms, gpu=0.57686 ms
+Trial 86: e2e=0.41938 ms, gpu=0.40637 ms
+Trial 87: e2e=0.40913 ms, gpu=0.39622 ms
+Trial 88: e2e=0.41628 ms, gpu=0.40310 ms
+Trial 89: e2e=0.41032 ms, gpu=0.39750 ms
+Trial 90: e2e=0.48542 ms, gpu=0.45562 ms
+Trial 91: e2e=0.48423 ms, gpu=0.43789 ms
+Trial 92: e2e=0.41199 ms, gpu=0.39856 ms
+Trial 93: e2e=0.41747 ms, gpu=0.40486 ms
+Trial 94: e2e=0.46253 ms, gpu=0.45066 ms
+Trial 95: e2e=0.41747 ms, gpu=0.40477 ms
+Trial 96: e2e=0.41223 ms, gpu=0.39952 ms
+Trial 97: e2e=0.40793 ms, gpu=0.39523 ms
+Trial 98: e2e=0.42033 ms, gpu=0.40765 ms
+Trial 99: e2e=0.41199 ms, gpu=0.39933 ms
+Trial 100: e2e=0.41080 ms, gpu=0.39850 ms
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.69261 ms, gpu=0.66176 ms
+Trial 2: e2e=0.56386 ms, gpu=0.54858 ms
+Trial 3: e2e=0.61011 ms, gpu=0.59661 ms
+Trial 4: e2e=0.56124 ms, gpu=0.54800 ms
+Trial 5: e2e=0.55814 ms, gpu=0.54518 ms
+Trial 6: e2e=0.55623 ms, gpu=0.54326 ms
+Trial 7: e2e=0.55909 ms, gpu=0.54634 ms
+Trial 8: e2e=0.55623 ms, gpu=0.54352 ms
+Trial 9: e2e=0.55742 ms, gpu=0.54474 ms
+Trial 10: e2e=0.55528 ms, gpu=0.54208 ms
+Trial 11: e2e=0.55718 ms, gpu=0.54416 ms
+Trial 12: e2e=0.55623 ms, gpu=0.54352 ms
+Trial 13: e2e=0.55790 ms, gpu=0.54477 ms
+Trial 14: e2e=0.55885 ms, gpu=0.54602 ms
+Trial 15: e2e=0.55838 ms, gpu=0.54557 ms
+Trial 16: e2e=0.55838 ms, gpu=0.54544 ms
+Trial 17: e2e=0.55861 ms, gpu=0.54547 ms
+Trial 18: e2e=0.55671 ms, gpu=0.54390 ms
+Trial 19: e2e=0.55432 ms, gpu=0.54234 ms
+Trial 20: e2e=0.55599 ms, gpu=0.54250 ms
+Trial 21: e2e=0.55981 ms, gpu=0.54643 ms
+Trial 22: e2e=0.55695 ms, gpu=0.54406 ms
+Trial 23: e2e=0.55647 ms, gpu=0.54451 ms
+Trial 24: e2e=0.55242 ms, gpu=0.54013 ms
+Trial 25: e2e=0.55575 ms, gpu=0.54346 ms
+Trial 26: e2e=0.55718 ms, gpu=0.54464 ms
+Trial 27: e2e=0.55695 ms, gpu=0.54480 ms
+Trial 28: e2e=0.55599 ms, gpu=0.54310 ms
+Trial 29: e2e=0.60105 ms, gpu=0.58803 ms
+Trial 30: e2e=0.60081 ms, gpu=0.57747 ms
+Trial 31: e2e=0.66948 ms, gpu=0.65632 ms
+Trial 32: e2e=0.60439 ms, gpu=0.56790 ms
+Trial 33: e2e=0.55814 ms, gpu=0.54518 ms
+Trial 34: e2e=0.55671 ms, gpu=0.54358 ms
+Trial 35: e2e=0.72026 ms, gpu=0.70733 ms
+Trial 36: e2e=0.55957 ms, gpu=0.53862 ms
+Trial 37: e2e=0.59724 ms, gpu=0.58400 ms
+Trial 38: e2e=0.56028 ms, gpu=0.54771 ms
+Trial 39: e2e=0.56076 ms, gpu=0.54771 ms
+Trial 40: e2e=0.55432 ms, gpu=0.54170 ms
+Trial 41: e2e=0.55552 ms, gpu=0.54221 ms
+Trial 42: e2e=0.55647 ms, gpu=0.54355 ms
+Trial 43: e2e=0.55742 ms, gpu=0.54416 ms
+Trial 44: e2e=0.55408 ms, gpu=0.54141 ms
+Trial 45: e2e=0.55552 ms, gpu=0.54278 ms
+Trial 46: e2e=0.55695 ms, gpu=0.54390 ms
+Trial 47: e2e=0.55814 ms, gpu=0.54518 ms
+Trial 48: e2e=0.55408 ms, gpu=0.54134 ms
+Trial 49: e2e=0.55838 ms, gpu=0.54560 ms
+Trial 50: e2e=0.55552 ms, gpu=0.54269 ms
+Trial 51: e2e=0.55671 ms, gpu=0.54390 ms
+Trial 52: e2e=0.55337 ms, gpu=0.54061 ms
+Trial 53: e2e=0.55814 ms, gpu=0.54506 ms
+Trial 54: e2e=0.55647 ms, gpu=0.54320 ms
+Trial 55: e2e=0.55671 ms, gpu=0.54387 ms
+Trial 56: e2e=0.55575 ms, gpu=0.54275 ms
+Trial 57: e2e=0.55575 ms, gpu=0.54250 ms
+Trial 58: e2e=0.55575 ms, gpu=0.54282 ms
+Trial 59: e2e=0.55528 ms, gpu=0.54253 ms
+Trial 60: e2e=0.55766 ms, gpu=0.54432 ms
+Trial 61: e2e=0.55957 ms, gpu=0.54662 ms
+Trial 62: e2e=0.55432 ms, gpu=0.54128 ms
+Trial 63: e2e=0.55671 ms, gpu=0.54381 ms
+Trial 64: e2e=0.55408 ms, gpu=0.54141 ms
+Trial 65: e2e=0.55981 ms, gpu=0.54701 ms
+Trial 66: e2e=0.55480 ms, gpu=0.54195 ms
+Trial 67: e2e=0.55814 ms, gpu=0.54474 ms
+Trial 68: e2e=0.55647 ms, gpu=0.54346 ms
+Trial 69: e2e=0.56100 ms, gpu=0.54797 ms
+Trial 70: e2e=0.55718 ms, gpu=0.54432 ms
+Trial 71: e2e=0.55861 ms, gpu=0.54582 ms
+Trial 72: e2e=0.55718 ms, gpu=0.54410 ms
+Trial 73: e2e=0.55695 ms, gpu=0.54419 ms
+Trial 74: e2e=0.55885 ms, gpu=0.54605 ms
+Trial 75: e2e=0.55623 ms, gpu=0.54346 ms
+Trial 76: e2e=0.55623 ms, gpu=0.54339 ms
+Trial 77: e2e=0.55599 ms, gpu=0.54326 ms
+Trial 78: e2e=0.55790 ms, gpu=0.54493 ms
+Trial 79: e2e=0.55289 ms, gpu=0.54016 ms
+Trial 80: e2e=0.55766 ms, gpu=0.54422 ms
+Trial 81: e2e=0.55575 ms, gpu=0.54298 ms
+Trial 82: e2e=0.55432 ms, gpu=0.54160 ms
+Trial 83: e2e=0.55647 ms, gpu=0.54326 ms
+Trial 84: e2e=0.55647 ms, gpu=0.54355 ms
+Trial 85: e2e=0.55885 ms, gpu=0.54589 ms
+Trial 86: e2e=0.55766 ms, gpu=0.54461 ms
+Trial 87: e2e=0.55528 ms, gpu=0.54256 ms
+Trial 88: e2e=0.55504 ms, gpu=0.54160 ms
+Trial 89: e2e=0.55528 ms, gpu=0.54253 ms
+Trial 90: e2e=0.55504 ms, gpu=0.54221 ms
+Trial 91: e2e=0.55766 ms, gpu=0.54464 ms
+Trial 92: e2e=0.57435 ms, gpu=0.56147 ms
+Trial 93: e2e=0.60081 ms, gpu=0.58790 ms
+Trial 94: e2e=0.56410 ms, gpu=0.55094 ms
+Trial 95: e2e=0.55575 ms, gpu=0.54285 ms
+Trial 96: e2e=0.55957 ms, gpu=0.54685 ms
+Trial 97: e2e=0.55575 ms, gpu=0.54266 ms
+Trial 98: e2e=0.55790 ms, gpu=0.54461 ms
+Trial 99: e2e=0.55766 ms, gpu=0.54496 ms
+Trial 100: e2e=0.55718 ms, gpu=0.54422 ms
+graph-net-test-compiler-log [Datatype][eager]: float16 float16
+graph-net-test-compiler-log [Datatype][compiled]: float16 float16
+graph-net-test-compiler-log [DataType] eager:['float16', 'float16'] compiled:['float16', 'float16'] match:True
+graph-net-test-compiler-log [Correctness][equal]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.00E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_2.56E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.69E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-14_rtol_1.00E-14]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_3.98E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_5.85E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_2.54E-11]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-13_rtol_2.51E-13]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.58E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.34E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_3.82E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-12_rtol_6.31E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_3.06E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_5.75E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-10_rtol_1.58E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_2.51E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_7.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_8.65E-08]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-09_rtol_3.98E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.60E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.30E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_1.00E-07]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.98E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.66E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_1.96E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-06_rtol_2.51E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_1.58E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_8.36E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_2.94E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-05_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_6.31E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_1.91E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_4.42E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-03_rtol_1.58E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_2.51E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_4.37E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_6.65E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-02_rtol_3.98E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_3.98E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_2.29E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_1.50E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E+01_rtol_2.51E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_1.58E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_5.23E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_2.26E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E+02_rtol_6.31E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_6.31E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_1.20E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_3.40E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E+04_rtol_1.58E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.51E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.73E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_5.11E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E+05_rtol_3.98E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_1.00E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_6.25E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_7.69E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+07_rtol_1.00E+07]: 1 1
+graph-net-test-compiler-log [Correctness][max_diff]: 0.0 0.0
+graph-net-test-compiler-log [Correctness][mean_diff]: 0.0 0.0
+graph-net-test-compiler-log [Result] status: success
+graph-net-test-compiler-log [Performance][eager]: {"e2e": {"median": 0.557065, "iqr": 0.00292063, "mean": 0.564024, "std": 0.0256734, "min": 0.552416, "max": 0.720263}, "gpu": {"median": 0.54416, "iqr": 0.00284801, "mean": 0.550489, "std": 0.0244005, "min": 0.538624, "max": 0.707328}}
+graph-net-test-compiler-log [Performance][compiled]: {"e2e": {"median": 0.412345, "iqr": 0.00452995, "mean": 0.419588, "std": 0.0292239, "min": 0.407934, "max": 0.612736}, "gpu": {"median": 0.39952, "iqr": 0.00392, "mean": 0.405637, "std": 0.0269797, "min": 0.395232, "max": 0.589184}}
+graph-net-test-compiler-log [Speedup][e2e]: 1.35097
+graph-net-test-compiler-log [Speedup][gpu]: 1.36203
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/1] preserve explicit operator.iadd in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "relu", "target": "torch.nn.functional.relu"}]
+[kiln-pattern-multi-output/1] upstream tuple destructuring 2
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0
+graph-net-test-compiler-log [Config] model: hf-tiny-model-private/tiny-random-EfficientFormerForImageClassificationWithTeacher
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization [{"node": "tmp_2", "target": "torch.nn.functional.relu"}]
+[PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.76509 ms, gpu=0.72125 ms
+Trial 2: e2e=0.71430 ms, gpu=0.69725 ms
+Trial 3: e2e=0.70739 ms, gpu=0.69229 ms
+Trial 4: e2e=0.71287 ms, gpu=0.69898 ms
+Trial 5: e2e=0.70882 ms, gpu=0.69510 ms
+Trial 6: e2e=0.70214 ms, gpu=0.68842 ms
+Trial 7: e2e=0.70620 ms, gpu=0.69261 ms
+Trial 8: e2e=0.70453 ms, gpu=0.69146 ms
+Trial 9: e2e=0.70190 ms, gpu=0.68845 ms
+Trial 10: e2e=0.70214 ms, gpu=0.68912 ms
+Trial 11: e2e=0.70000 ms, gpu=0.68659 ms
+Trial 12: e2e=0.70214 ms, gpu=0.68918 ms
+Trial 13: e2e=0.69785 ms, gpu=0.68499 ms
+Trial 14: e2e=0.70286 ms, gpu=0.68995 ms
+Trial 15: e2e=0.70095 ms, gpu=0.68803 ms
+Trial 16: e2e=0.70548 ms, gpu=0.69251 ms
+Trial 17: e2e=0.69785 ms, gpu=0.68483 ms
+Trial 18: e2e=0.69976 ms, gpu=0.68678 ms
+Trial 19: e2e=0.70453 ms, gpu=0.69178 ms
+Trial 20: e2e=0.69952 ms, gpu=0.68723 ms
+Trial 21: e2e=0.70167 ms, gpu=0.68912 ms
+Trial 22: e2e=0.70000 ms, gpu=0.68685 ms
+Trial 23: e2e=0.69833 ms, gpu=0.68624 ms
+Trial 24: e2e=0.70405 ms, gpu=0.69136 ms
+Trial 25: e2e=0.70143 ms, gpu=0.68934 ms
+Trial 26: e2e=0.70214 ms, gpu=0.68928 ms
+Trial 27: e2e=0.72670 ms, gpu=0.71395 ms
+Trial 28: e2e=0.70500 ms, gpu=0.69123 ms
+Trial 29: e2e=0.83137 ms, gpu=0.81254 ms
+Trial 30: e2e=0.81587 ms, gpu=0.80150 ms
+Trial 31: e2e=0.71025 ms, gpu=0.66550 ms
+Trial 32: e2e=0.70500 ms, gpu=0.69187 ms
+Trial 33: e2e=0.71073 ms, gpu=0.69792 ms
+Trial 34: e2e=0.72169 ms, gpu=0.70413 ms
+Trial 35: e2e=0.80705 ms, gpu=0.77757 ms
+Trial 36: e2e=0.70238 ms, gpu=0.68902 ms
+Trial 37: e2e=0.75746 ms, gpu=0.74490 ms
+Trial 38: e2e=0.71454 ms, gpu=0.70195 ms
+Trial 39: e2e=0.69594 ms, gpu=0.68307 ms
+Trial 40: e2e=0.70214 ms, gpu=0.68573 ms
+Trial 41: e2e=0.69976 ms, gpu=0.68726 ms
+Trial 42: e2e=0.69833 ms, gpu=0.68506 ms
+Trial 43: e2e=0.69571 ms, gpu=0.68291 ms
+Trial 44: e2e=0.69785 ms, gpu=0.68496 ms
+Trial 45: e2e=0.70381 ms, gpu=0.69040 ms
+Trial 46: e2e=0.70238 ms, gpu=0.68931 ms
+Trial 47: e2e=0.70310 ms, gpu=0.68934 ms
+Trial 48: e2e=0.70024 ms, gpu=0.68733 ms
+Trial 49: e2e=0.69451 ms, gpu=0.68246 ms
+Trial 50: e2e=0.69571 ms, gpu=0.68384 ms
+Trial 51: e2e=0.69833 ms, gpu=0.68589 ms
+Trial 52: e2e=0.69547 ms, gpu=0.68342 ms
+Trial 53: e2e=0.69737 ms, gpu=0.68467 ms
+Trial 54: e2e=0.69976 ms, gpu=0.68666 ms
+Trial 55: e2e=0.71216 ms, gpu=0.69907 ms
+Trial 56: e2e=0.81587 ms, gpu=0.80278 ms
+Trial 57: e2e=0.78106 ms, gpu=0.76512 ms
+Trial 58: e2e=0.70739 ms, gpu=0.68493 ms
+Trial 59: e2e=0.70596 ms, gpu=0.69315 ms
+Trial 60: e2e=0.70667 ms, gpu=0.69357 ms
+Trial 61: e2e=0.70143 ms, gpu=0.68819 ms
+Trial 62: e2e=0.87094 ms, gpu=0.85760 ms
+Trial 63: e2e=0.70262 ms, gpu=0.68944 ms
+Trial 64: e2e=0.75412 ms, gpu=0.74099 ms
+Trial 65: e2e=0.73290 ms, gpu=0.72032 ms
+Trial 66: e2e=0.69904 ms, gpu=0.68595 ms
+Trial 67: e2e=0.70143 ms, gpu=0.68886 ms
+Trial 68: e2e=0.70000 ms, gpu=0.68701 ms
+Trial 69: e2e=0.69928 ms, gpu=0.68634 ms
+Trial 70: e2e=0.69880 ms, gpu=0.68598 ms
+Trial 71: e2e=0.69666 ms, gpu=0.68403 ms
+Trial 72: e2e=0.69833 ms, gpu=0.68538 ms
+Trial 73: e2e=0.70119 ms, gpu=0.68835 ms
+Trial 74: e2e=0.69785 ms, gpu=0.68531 ms
+Trial 75: e2e=0.70310 ms, gpu=0.69136 ms
+Trial 76: e2e=0.69880 ms, gpu=0.68611 ms
+Trial 77: e2e=0.69618 ms, gpu=0.68304 ms
+Trial 78: e2e=0.69904 ms, gpu=0.68634 ms
+Trial 79: e2e=0.69571 ms, gpu=0.68330 ms
+Trial 80: e2e=0.69594 ms, gpu=0.68400 ms
+Trial 81: e2e=0.69928 ms, gpu=0.68771 ms
+Trial 82: e2e=0.70000 ms, gpu=0.68835 ms
+Trial 83: e2e=0.72408 ms, gpu=0.71117 ms
+Trial 84: e2e=0.70620 ms, gpu=0.69014 ms
+Trial 85: e2e=0.86999 ms, gpu=0.85677 ms
+Trial 86: e2e=0.84996 ms, gpu=0.83677 ms
+Trial 87: e2e=0.70763 ms, gpu=0.69443 ms
+Trial 88: e2e=0.69809 ms, gpu=0.68512 ms
+Trial 89: e2e=0.71406 ms, gpu=0.70125 ms
+Trial 90: e2e=0.89765 ms, gpu=0.88458 ms
+Trial 91: e2e=0.70190 ms, gpu=0.68877 ms
+Trial 92: e2e=0.70691 ms, gpu=0.69386 ms
+Trial 93: e2e=0.79060 ms, gpu=0.77248 ms
+Trial 94: e2e=0.70739 ms, gpu=0.68176 ms
+Trial 95: e2e=0.70858 ms, gpu=0.69568 ms
+Trial 96: e2e=0.69714 ms, gpu=0.68454 ms
+Trial 97: e2e=0.69475 ms, gpu=0.68170 ms
+Trial 98: e2e=0.69618 ms, gpu=0.68342 ms
+Trial 99: e2e=0.70000 ms, gpu=0.68704 ms
+Trial 100: e2e=0.69952 ms, gpu=0.68656 ms
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=1.34158 ms, gpu=1.31949 ms
+Trial 2: e2e=1.32895 ms, gpu=1.31450 ms
+Trial 3: e2e=1.32513 ms, gpu=1.31178 ms
+Trial 4: e2e=1.32322 ms, gpu=1.31018 ms
+Trial 5: e2e=1.32942 ms, gpu=1.31677 ms
+Trial 6: e2e=1.32036 ms, gpu=1.30755 ms
+Trial 7: e2e=1.32084 ms, gpu=1.30816 ms
+Trial 8: e2e=1.32394 ms, gpu=1.31123 ms
+Trial 9: e2e=1.32370 ms, gpu=1.31104 ms
+Trial 10: e2e=1.31941 ms, gpu=1.30659 ms
+Trial 11: e2e=1.32275 ms, gpu=1.31078 ms
+Trial 12: e2e=1.32370 ms, gpu=1.31139 ms
+Trial 13: e2e=1.38235 ms, gpu=1.36950 ms
+Trial 14: e2e=1.52826 ms, gpu=1.50272 ms
+Trial 15: e2e=1.36518 ms, gpu=1.33590 ms
+Trial 16: e2e=1.43862 ms, gpu=1.42573 ms
+Trial 17: e2e=1.33252 ms, gpu=1.28806 ms
+Trial 18: e2e=1.39594 ms, gpu=1.38374 ms
+Trial 19: e2e=1.32179 ms, gpu=1.30902 ms
+Trial 20: e2e=1.32084 ms, gpu=1.30790 ms
+Trial 21: e2e=1.32179 ms, gpu=1.30851 ms
+Trial 22: e2e=1.32132 ms, gpu=1.30819 ms
+Trial 23: e2e=1.32203 ms, gpu=1.30826 ms
+Trial 24: e2e=1.31965 ms, gpu=1.30682 ms
+Trial 25: e2e=1.32251 ms, gpu=1.30973 ms
+Trial 26: e2e=1.31869 ms, gpu=1.30595 ms
+Trial 27: e2e=1.32346 ms, gpu=1.31024 ms
+Trial 28: e2e=1.31869 ms, gpu=1.30579 ms
+Trial 29: e2e=1.32275 ms, gpu=1.30960 ms
+Trial 30: e2e=1.31917 ms, gpu=1.30640 ms
+Trial 31: e2e=1.32203 ms, gpu=1.30870 ms
+Trial 32: e2e=1.32084 ms, gpu=1.30816 ms
+Trial 33: e2e=1.32370 ms, gpu=1.31091 ms
+Trial 34: e2e=1.32394 ms, gpu=1.31104 ms
+Trial 35: e2e=1.32227 ms, gpu=1.30938 ms
+Trial 36: e2e=1.32298 ms, gpu=1.31002 ms
+Trial 37: e2e=1.32251 ms, gpu=1.30963 ms
+Trial 38: e2e=1.32275 ms, gpu=1.31011 ms
+Trial 39: e2e=1.32847 ms, gpu=1.31562 ms
+Trial 40: e2e=1.32155 ms, gpu=1.30787 ms
+Trial 41: e2e=1.32203 ms, gpu=1.30893 ms
+Trial 42: e2e=1.32775 ms, gpu=1.31520 ms
+Trial 43: e2e=1.32203 ms, gpu=1.30880 ms
+Trial 44: e2e=1.32561 ms, gpu=1.31254 ms
+Trial 45: e2e=1.32203 ms, gpu=1.30912 ms
+Trial 46: e2e=1.32084 ms, gpu=1.30790 ms
+Trial 47: e2e=1.32322 ms, gpu=1.31027 ms
+Trial 48: e2e=1.32489 ms, gpu=1.31168 ms
+Trial 49: e2e=1.32275 ms, gpu=1.30995 ms
+Trial 50: e2e=1.32418 ms, gpu=1.31162 ms
+Trial 51: e2e=1.32608 ms, gpu=1.31299 ms
+Trial 52: e2e=1.32298 ms, gpu=1.31011 ms
+Trial 53: e2e=1.32012 ms, gpu=1.30694 ms
+Trial 54: e2e=1.32036 ms, gpu=1.30752 ms
+Trial 55: e2e=1.32108 ms, gpu=1.30829 ms
+Trial 56: e2e=1.31917 ms, gpu=1.30611 ms
+Trial 57: e2e=1.32465 ms, gpu=1.31206 ms
+Trial 58: e2e=1.32012 ms, gpu=1.30730 ms
+Trial 59: e2e=1.32465 ms, gpu=1.31222 ms
+Trial 60: e2e=1.32346 ms, gpu=1.31062 ms
+Trial 61: e2e=1.31989 ms, gpu=1.30691 ms
+Trial 62: e2e=1.32203 ms, gpu=1.30918 ms
+Trial 63: e2e=1.33133 ms, gpu=1.31840 ms
+Trial 64: e2e=1.31989 ms, gpu=1.30691 ms
+Trial 65: e2e=1.32608 ms, gpu=1.31309 ms
+Trial 66: e2e=1.31869 ms, gpu=1.30582 ms
+Trial 67: e2e=1.32442 ms, gpu=1.31190 ms
+Trial 68: e2e=1.32179 ms, gpu=1.30870 ms
+Trial 69: e2e=1.32418 ms, gpu=1.31126 ms
+Trial 70: e2e=1.32084 ms, gpu=1.30813 ms
+Trial 71: e2e=1.32298 ms, gpu=1.31027 ms
+Trial 72: e2e=1.32108 ms, gpu=1.30810 ms
+Trial 73: e2e=1.32203 ms, gpu=1.30915 ms
+Trial 74: e2e=1.31869 ms, gpu=1.30608 ms
+Trial 75: e2e=1.32108 ms, gpu=1.30829 ms
+Trial 76: e2e=1.32179 ms, gpu=1.30880 ms
+Trial 77: e2e=1.31989 ms, gpu=1.30733 ms
+Trial 78: e2e=1.32155 ms, gpu=1.30864 ms
+Trial 79: e2e=1.32108 ms, gpu=1.30816 ms
+Trial 80: e2e=1.31917 ms, gpu=1.30598 ms
+Trial 81: e2e=1.32179 ms, gpu=1.30861 ms
+Trial 82: e2e=1.32155 ms, gpu=1.30912 ms
+Trial 83: e2e=1.32513 ms, gpu=1.31242 ms
+Trial 84: e2e=1.32227 ms, gpu=1.30957 ms
+Trial 85: e2e=1.32203 ms, gpu=1.30877 ms
+Trial 86: e2e=1.32275 ms, gpu=1.30995 ms
+Trial 87: e2e=1.32346 ms, gpu=1.31059 ms
+Trial 88: e2e=1.32394 ms, gpu=1.31104 ms
+Trial 89: e2e=1.32108 ms, gpu=1.30822 ms
+Trial 90: e2e=1.32298 ms, gpu=1.31005 ms
+Trial 91: e2e=1.32394 ms, gpu=1.31101 ms
+Trial 92: e2e=1.31989 ms, gpu=1.30704 ms
+Trial 93: e2e=1.32394 ms, gpu=1.31094 ms
+Trial 94: e2e=1.32847 ms, gpu=1.31571 ms
+Trial 95: e2e=1.32108 ms, gpu=1.30826 ms
+Trial 96: e2e=1.32203 ms, gpu=1.30918 ms
+Trial 97: e2e=1.32561 ms, gpu=1.31235 ms
+Trial 98: e2e=1.32966 ms, gpu=1.31648 ms
+Trial 99: e2e=1.31869 ms, gpu=1.30582 ms
+Trial 100: e2e=1.32513 ms, gpu=1.31216 ms
+graph-net-test-compiler-log [Datatype][eager]: bfloat16 bfloat16
+graph-net-test-compiler-log [Datatype][compiled]: bfloat16 bfloat16
+graph-net-test-compiler-log [DataType] eager:['bfloat16', 'bfloat16'] compiled:['bfloat16', 'bfloat16'] match:True
+graph-net-test-compiler-log [Correctness][equal]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.00E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_2.56E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.69E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-14_rtol_1.00E-14]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_3.98E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_5.85E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_2.54E-11]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-13_rtol_2.51E-13]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.58E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.34E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_3.82E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-12_rtol_6.31E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_3.06E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_5.75E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-10_rtol_1.58E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_2.51E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_7.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_8.65E-08]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-09_rtol_3.98E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.60E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.30E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_1.00E-07]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.98E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.66E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_1.96E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-06_rtol_2.51E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_1.58E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_8.36E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_2.94E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-05_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_6.31E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_1.91E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_4.42E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-03_rtol_1.58E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_2.51E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_4.37E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_6.65E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-02_rtol_3.98E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_3.98E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_2.29E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_1.50E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E+01_rtol_2.51E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_1.58E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_5.23E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_2.26E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E+02_rtol_6.31E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_6.31E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_1.20E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_3.40E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E+04_rtol_1.58E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.51E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.73E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_5.11E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E+05_rtol_3.98E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_1.00E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_6.25E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_7.69E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+07_rtol_1.00E+07]: 1 1
+graph-net-test-compiler-log [Correctness][max_diff]: 0.0 0.0
+graph-net-test-compiler-log [Correctness][mean_diff]: 0.0 0.0
+graph-net-test-compiler-log [Result] status: success
+graph-net-test-compiler-log [Performance][eager]: {"e2e": {"median": 1.32251, "iqr": 0.00315905, "mean": 1.32792, "std": 0.0254528, "min": 1.31869, "max": 1.52826}, "gpu": {"median": 1.30958, "iqr": 0.003288, "mean": 1.31432, "std": 0.0243969, "min": 1.28806, "max": 1.50272}}
+graph-net-test-compiler-log [Performance][compiled]: {"e2e": {"median": 0.702143, "iqr": 0.00959635, "mean": 0.717747, "std": 0.0417201, "min": 0.694513, "max": 0.897646}, "gpu": {"median": 0.688944, "iqr": 0.00866401, "mean": 0.70352, "std": 0.0410386, "min": 0.665504, "max": 0.884576}}
+graph-net-test-compiler-log [Speedup][e2e]: 1.88353
+graph-net-test-compiler-log [Speedup][gpu]: 1.90085
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/1] preserve explicit operator.iadd in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "relu", "target": "torch.nn.functional.relu"}]
+[kiln-pattern-multi-output/1] upstream tuple destructuring 2
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0
+graph-net-test-compiler-log [Config] model: hf-tiny-model-private/tiny-random-EfficientFormerForImageClassificationWithTeacher
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization [{"node": "tmp_2", "target": "torch.nn.functional.relu"}]
+[PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.19121 ms, gpu=0.15110 ms
+Trial 2: e2e=0.15354 ms, gpu=0.13626 ms
+Trial 3: e2e=0.14758 ms, gpu=0.13251 ms
+Trial 4: e2e=0.14353 ms, gpu=0.12950 ms
+Trial 5: e2e=0.14257 ms, gpu=0.12835 ms
+Trial 6: e2e=0.14520 ms, gpu=0.13165 ms
+Trial 7: e2e=0.14353 ms, gpu=0.12970 ms
+Trial 8: e2e=0.14043 ms, gpu=0.12714 ms
+Trial 9: e2e=0.14257 ms, gpu=0.12922 ms
+Trial 10: e2e=0.14114 ms, gpu=0.12794 ms
+Trial 11: e2e=0.14043 ms, gpu=0.12685 ms
+Trial 12: e2e=0.14043 ms, gpu=0.12768 ms
+Trial 13: e2e=0.13900 ms, gpu=0.12598 ms
+Trial 14: e2e=0.14114 ms, gpu=0.12813 ms
+Trial 15: e2e=0.13900 ms, gpu=0.12598 ms
+Trial 16: e2e=0.13804 ms, gpu=0.12541 ms
+Trial 17: e2e=0.13614 ms, gpu=0.12342 ms
+Trial 18: e2e=0.13828 ms, gpu=0.12502 ms
+Trial 19: e2e=0.14114 ms, gpu=0.12810 ms
+Trial 20: e2e=0.13876 ms, gpu=0.12586 ms
+Trial 21: e2e=0.14019 ms, gpu=0.12726 ms
+Trial 22: e2e=0.13733 ms, gpu=0.12451 ms
+Trial 23: e2e=0.13924 ms, gpu=0.12611 ms
+Trial 24: e2e=0.13804 ms, gpu=0.12464 ms
+Trial 25: e2e=0.13852 ms, gpu=0.12570 ms
+Trial 26: e2e=0.13995 ms, gpu=0.12723 ms
+Trial 27: e2e=0.13828 ms, gpu=0.12480 ms
+Trial 28: e2e=0.13924 ms, gpu=0.12602 ms
+Trial 29: e2e=0.13781 ms, gpu=0.12474 ms
+Trial 30: e2e=0.13876 ms, gpu=0.12538 ms
+Trial 31: e2e=0.13781 ms, gpu=0.12470 ms
+Trial 32: e2e=0.13852 ms, gpu=0.12550 ms
+Trial 33: e2e=0.14162 ms, gpu=0.12851 ms
+Trial 34: e2e=0.13804 ms, gpu=0.12493 ms
+Trial 35: e2e=0.13733 ms, gpu=0.12480 ms
+Trial 36: e2e=0.13733 ms, gpu=0.12426 ms
+Trial 37: e2e=0.13757 ms, gpu=0.12451 ms
+Trial 38: e2e=0.13733 ms, gpu=0.12429 ms
+Trial 39: e2e=0.13661 ms, gpu=0.12374 ms
+Trial 40: e2e=0.13876 ms, gpu=0.12614 ms
+Trial 41: e2e=0.13709 ms, gpu=0.12410 ms
+Trial 42: e2e=0.13709 ms, gpu=0.12448 ms
+Trial 43: e2e=0.13733 ms, gpu=0.12435 ms
+Trial 44: e2e=0.13733 ms, gpu=0.12451 ms
+Trial 45: e2e=0.13828 ms, gpu=0.12506 ms
+Trial 46: e2e=0.13924 ms, gpu=0.12627 ms
+Trial 47: e2e=0.13971 ms, gpu=0.12694 ms
+Trial 48: e2e=0.13685 ms, gpu=0.12362 ms
+Trial 49: e2e=0.13614 ms, gpu=0.12323 ms
+Trial 50: e2e=0.13733 ms, gpu=0.12416 ms
+Trial 51: e2e=0.13685 ms, gpu=0.12352 ms
+Trial 52: e2e=0.13638 ms, gpu=0.12358 ms
+Trial 53: e2e=0.13638 ms, gpu=0.12378 ms
+Trial 54: e2e=0.13852 ms, gpu=0.12557 ms
+Trial 55: e2e=0.13685 ms, gpu=0.12400 ms
+Trial 56: e2e=0.13590 ms, gpu=0.12320 ms
+Trial 57: e2e=0.13614 ms, gpu=0.12314 ms
+Trial 58: e2e=0.13590 ms, gpu=0.12307 ms
+Trial 59: e2e=0.13757 ms, gpu=0.12483 ms
+Trial 60: e2e=0.13685 ms, gpu=0.12400 ms
+Trial 61: e2e=0.14114 ms, gpu=0.12608 ms
+Trial 62: e2e=0.13828 ms, gpu=0.12563 ms
+Trial 63: e2e=0.13900 ms, gpu=0.12618 ms
+Trial 64: e2e=0.13781 ms, gpu=0.12531 ms
+Trial 65: e2e=0.13709 ms, gpu=0.12429 ms
+Trial 66: e2e=0.13804 ms, gpu=0.12509 ms
+Trial 67: e2e=0.13924 ms, gpu=0.12413 ms
+Trial 68: e2e=0.13852 ms, gpu=0.12554 ms
+Trial 69: e2e=0.13661 ms, gpu=0.12342 ms
+Trial 70: e2e=0.13685 ms, gpu=0.12400 ms
+Trial 71: e2e=0.13638 ms, gpu=0.12352 ms
+Trial 72: e2e=0.13685 ms, gpu=0.12403 ms
+Trial 73: e2e=0.13804 ms, gpu=0.12474 ms
+Trial 74: e2e=0.13924 ms, gpu=0.12650 ms
+Trial 75: e2e=0.13781 ms, gpu=0.12502 ms
+Trial 76: e2e=0.13852 ms, gpu=0.12554 ms
+Trial 77: e2e=0.13590 ms, gpu=0.12320 ms
+Trial 78: e2e=0.13709 ms, gpu=0.12397 ms
+Trial 79: e2e=0.13709 ms, gpu=0.12422 ms
+Trial 80: e2e=0.13614 ms, gpu=0.12342 ms
+Trial 81: e2e=0.13804 ms, gpu=0.12531 ms
+Trial 82: e2e=0.13661 ms, gpu=0.12390 ms
+Trial 83: e2e=0.13614 ms, gpu=0.12320 ms
+Trial 84: e2e=0.13614 ms, gpu=0.12320 ms
+Trial 85: e2e=0.13614 ms, gpu=0.12349 ms
+Trial 86: e2e=0.13566 ms, gpu=0.12259 ms
+Trial 87: e2e=0.13614 ms, gpu=0.12326 ms
+Trial 88: e2e=0.13828 ms, gpu=0.12538 ms
+Trial 89: e2e=0.13638 ms, gpu=0.12362 ms
+Trial 90: e2e=0.13566 ms, gpu=0.12285 ms
+Trial 91: e2e=0.13614 ms, gpu=0.12330 ms
+Trial 92: e2e=0.13638 ms, gpu=0.12339 ms
+Trial 93: e2e=0.13590 ms, gpu=0.12298 ms
+Trial 94: e2e=0.13542 ms, gpu=0.12246 ms
+Trial 95: e2e=0.13733 ms, gpu=0.12448 ms
+Trial 96: e2e=0.13709 ms, gpu=0.12381 ms
+Trial 97: e2e=0.13590 ms, gpu=0.12282 ms
+Trial 98: e2e=0.13566 ms, gpu=0.12285 ms
+Trial 99: e2e=0.13590 ms, gpu=0.12336 ms
+Trial 100: e2e=0.13685 ms, gpu=0.12400 ms
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.13971 ms, gpu=0.12013 ms
+Trial 2: e2e=0.12803 ms, gpu=0.11373 ms
+Trial 3: e2e=0.12207 ms, gpu=0.10922 ms
+Trial 4: e2e=0.12112 ms, gpu=0.10816 ms
+Trial 5: e2e=0.12016 ms, gpu=0.10726 ms
+Trial 6: e2e=0.12016 ms, gpu=0.10733 ms
+Trial 7: e2e=0.12112 ms, gpu=0.10806 ms
+Trial 8: e2e=0.12088 ms, gpu=0.10803 ms
+Trial 9: e2e=0.11826 ms, gpu=0.10550 ms
+Trial 10: e2e=0.11730 ms, gpu=0.10454 ms
+Trial 11: e2e=0.11826 ms, gpu=0.10557 ms
+Trial 12: e2e=0.11826 ms, gpu=0.10570 ms
+Trial 13: e2e=0.11730 ms, gpu=0.10483 ms
+Trial 14: e2e=0.11683 ms, gpu=0.10419 ms
+Trial 15: e2e=0.11778 ms, gpu=0.10518 ms
+Trial 16: e2e=0.11897 ms, gpu=0.10637 ms
+Trial 17: e2e=0.11826 ms, gpu=0.10538 ms
+Trial 18: e2e=0.11778 ms, gpu=0.10499 ms
+Trial 19: e2e=0.11754 ms, gpu=0.10474 ms
+Trial 20: e2e=0.11683 ms, gpu=0.10451 ms
+Trial 21: e2e=0.11802 ms, gpu=0.10496 ms
+Trial 22: e2e=0.11802 ms, gpu=0.10518 ms
+Trial 23: e2e=0.11635 ms, gpu=0.10374 ms
+Trial 24: e2e=0.12016 ms, gpu=0.10717 ms
+Trial 25: e2e=0.11754 ms, gpu=0.10480 ms
+Trial 26: e2e=0.11778 ms, gpu=0.10512 ms
+Trial 27: e2e=0.11778 ms, gpu=0.10518 ms
+Trial 28: e2e=0.11730 ms, gpu=0.10499 ms
+Trial 29: e2e=0.11683 ms, gpu=0.10448 ms
+Trial 30: e2e=0.11730 ms, gpu=0.10442 ms
+Trial 31: e2e=0.11754 ms, gpu=0.10515 ms
+Trial 32: e2e=0.11921 ms, gpu=0.10640 ms
+Trial 33: e2e=0.11802 ms, gpu=0.10525 ms
+Trial 34: e2e=0.11826 ms, gpu=0.10531 ms
+Trial 35: e2e=0.11706 ms, gpu=0.10451 ms
+Trial 36: e2e=0.11730 ms, gpu=0.10480 ms
+Trial 37: e2e=0.11706 ms, gpu=0.10467 ms
+Trial 38: e2e=0.11849 ms, gpu=0.10627 ms
+Trial 39: e2e=0.11706 ms, gpu=0.10480 ms
+Trial 40: e2e=0.11873 ms, gpu=0.10602 ms
+Trial 41: e2e=0.11706 ms, gpu=0.10442 ms
+Trial 42: e2e=0.11754 ms, gpu=0.10528 ms
+Trial 43: e2e=0.11754 ms, gpu=0.10499 ms
+Trial 44: e2e=0.11730 ms, gpu=0.10490 ms
+Trial 45: e2e=0.11730 ms, gpu=0.10454 ms
+Trial 46: e2e=0.11659 ms, gpu=0.10419 ms
+Trial 47: e2e=0.11706 ms, gpu=0.10435 ms
+Trial 48: e2e=0.11921 ms, gpu=0.10682 ms
+Trial 49: e2e=0.11754 ms, gpu=0.10493 ms
+Trial 50: e2e=0.11802 ms, gpu=0.10512 ms
+Trial 51: e2e=0.11754 ms, gpu=0.10502 ms
+Trial 52: e2e=0.11659 ms, gpu=0.10432 ms
+Trial 53: e2e=0.11706 ms, gpu=0.10435 ms
+Trial 54: e2e=0.11778 ms, gpu=0.10522 ms
+Trial 55: e2e=0.11778 ms, gpu=0.10518 ms
+Trial 56: e2e=0.11873 ms, gpu=0.10464 ms
+Trial 57: e2e=0.11659 ms, gpu=0.10438 ms
+Trial 58: e2e=0.11730 ms, gpu=0.10470 ms
+Trial 59: e2e=0.11826 ms, gpu=0.10592 ms
+Trial 60: e2e=0.11802 ms, gpu=0.10518 ms
+Trial 61: e2e=0.11754 ms, gpu=0.10490 ms
+Trial 62: e2e=0.11969 ms, gpu=0.10685 ms
+Trial 63: e2e=0.11992 ms, gpu=0.10698 ms
+Trial 64: e2e=0.11873 ms, gpu=0.10477 ms
+Trial 65: e2e=0.11849 ms, gpu=0.10602 ms
+Trial 66: e2e=0.11945 ms, gpu=0.10653 ms
+Trial 67: e2e=0.11826 ms, gpu=0.10554 ms
+Trial 68: e2e=0.11754 ms, gpu=0.10486 ms
+Trial 69: e2e=0.11826 ms, gpu=0.10566 ms
+Trial 70: e2e=0.11849 ms, gpu=0.10592 ms
+Trial 71: e2e=0.11802 ms, gpu=0.10525 ms
+Trial 72: e2e=0.12136 ms, gpu=0.10826 ms
+Trial 73: e2e=0.11992 ms, gpu=0.10701 ms
+Trial 74: e2e=0.11706 ms, gpu=0.10410 ms
+Trial 75: e2e=0.11754 ms, gpu=0.10480 ms
+Trial 76: e2e=0.11730 ms, gpu=0.10464 ms
+Trial 77: e2e=0.11706 ms, gpu=0.10550 ms
+Trial 78: e2e=0.11802 ms, gpu=0.10528 ms
+Trial 79: e2e=0.11778 ms, gpu=0.10611 ms
+Trial 80: e2e=0.11921 ms, gpu=0.10496 ms
+Trial 81: e2e=0.11897 ms, gpu=0.10634 ms
+Trial 82: e2e=0.11778 ms, gpu=0.10506 ms
+Trial 83: e2e=0.11730 ms, gpu=0.10458 ms
+Trial 84: e2e=0.11849 ms, gpu=0.10586 ms
+Trial 85: e2e=0.11778 ms, gpu=0.10538 ms
+Trial 86: e2e=0.11802 ms, gpu=0.10531 ms
+Trial 87: e2e=0.11826 ms, gpu=0.10582 ms
+Trial 88: e2e=0.11897 ms, gpu=0.10470 ms
+Trial 89: e2e=0.11778 ms, gpu=0.10496 ms
+Trial 90: e2e=0.11778 ms, gpu=0.10518 ms
+Trial 91: e2e=0.11802 ms, gpu=0.10531 ms
+Trial 92: e2e=0.11754 ms, gpu=0.10464 ms
+Trial 93: e2e=0.11802 ms, gpu=0.10547 ms
+Trial 94: e2e=0.11730 ms, gpu=0.10474 ms
+Trial 95: e2e=0.11706 ms, gpu=0.10448 ms
+Trial 96: e2e=0.11921 ms, gpu=0.10550 ms
+Trial 97: e2e=0.11849 ms, gpu=0.10582 ms
+Trial 98: e2e=0.11802 ms, gpu=0.10518 ms
+Trial 99: e2e=0.11730 ms, gpu=0.10525 ms
+Trial 100: e2e=0.11754 ms, gpu=0.10502 ms
+graph-net-test-compiler-log [Datatype][eager]: bfloat16 bfloat16
+graph-net-test-compiler-log [Datatype][compiled]: bfloat16 bfloat16
+graph-net-test-compiler-log [DataType] eager:['bfloat16', 'bfloat16'] compiled:['bfloat16', 'bfloat16'] match:True
+graph-net-test-compiler-log [Correctness][equal]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.00E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_2.56E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.69E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-14_rtol_1.00E-14]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_3.98E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_5.85E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_2.54E-11]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-13_rtol_2.51E-13]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.58E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.34E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_3.82E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-12_rtol_6.31E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_3.06E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_5.75E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-10_rtol_1.58E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_2.51E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_7.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_8.65E-08]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-09_rtol_3.98E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.60E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.30E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_1.00E-07]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.98E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.66E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_1.96E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-06_rtol_2.51E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_1.58E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_8.36E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_2.94E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-05_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_6.31E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_1.91E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_4.42E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-03_rtol_1.58E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_2.51E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_4.37E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_6.65E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-02_rtol_3.98E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_3.98E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_2.29E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_1.50E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E+01_rtol_2.51E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_1.58E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_5.23E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_2.26E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E+02_rtol_6.31E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_6.31E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_1.20E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_3.40E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E+04_rtol_1.58E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.51E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.73E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_5.11E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E+05_rtol_3.98E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_1.00E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_6.25E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_7.69E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+07_rtol_1.00E+07]: 1 1
+graph-net-test-compiler-log [Correctness][max_diff]: 0.0 0.0
+graph-net-test-compiler-log [Correctness][mean_diff]: 0.0 0.0
+graph-net-test-compiler-log [Result] status: success
+graph-net-test-compiler-log [Performance][eager]: {"e2e": {"median": 0.117779, "iqr": 0.00119209, "mean": 0.118425, "std": 0.00260331, "min": 0.116348, "max": 0.139713}, "gpu": {"median": 0.105184, "iqr": 0.001072, "mean": 0.105636, "std": 0.00195082, "min": 0.103744, "max": 0.120128}}
+graph-net-test-compiler-log [Performance][compiled]: {"e2e": {"median": 0.137687, "iqr": 0.00238419, "mean": 0.138791, "std": 0.00589166, "min": 0.135422, "max": 0.191212}, "gpu": {"median": 0.124672, "iqr": 0.002376, "mean": 0.12543, "std": 0.00339022, "min": 0.122464, "max": 0.151104}}
+graph-net-test-compiler-log [Speedup][e2e]: 0.85541
+graph-net-test-compiler-log [Speedup][gpu]: 0.84369
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/1] preserve explicit operator.iadd in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "relu", "target": "torch.nn.functional.relu"}]
+[kiln-pattern-multi-output/1] upstream tuple destructuring 2
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0
+graph-net-test-compiler-log [Config] model: hf-tiny-model-private/tiny-random-EfficientFormerForImageClassificationWithTeacher
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization [{"node": "tmp_2", "target": "torch.nn.functional.relu"}]
+[PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.19550 ms, gpu=0.15542 ms
+Trial 2: e2e=0.15640 ms, gpu=0.13824 ms
+Trial 3: e2e=0.14973 ms, gpu=0.13379 ms
+Trial 4: e2e=0.14615 ms, gpu=0.13162 ms
+Trial 5: e2e=0.14472 ms, gpu=0.13069 ms
+Trial 6: e2e=0.14877 ms, gpu=0.13507 ms
+Trial 7: e2e=0.14567 ms, gpu=0.13168 ms
+Trial 8: e2e=0.14305 ms, gpu=0.12966 ms
+Trial 9: e2e=0.14067 ms, gpu=0.12714 ms
+Trial 10: e2e=0.14162 ms, gpu=0.12797 ms
+Trial 11: e2e=0.14114 ms, gpu=0.12758 ms
+Trial 12: e2e=0.14329 ms, gpu=0.12762 ms
+Trial 13: e2e=0.14305 ms, gpu=0.12947 ms
+Trial 14: e2e=0.14496 ms, gpu=0.13171 ms
+Trial 15: e2e=0.14067 ms, gpu=0.12736 ms
+Trial 16: e2e=0.14138 ms, gpu=0.12851 ms
+Trial 17: e2e=0.13995 ms, gpu=0.12698 ms
+Trial 18: e2e=0.14067 ms, gpu=0.12752 ms
+Trial 19: e2e=0.14353 ms, gpu=0.13018 ms
+Trial 20: e2e=0.13995 ms, gpu=0.12694 ms
+Trial 21: e2e=0.13995 ms, gpu=0.12707 ms
+Trial 22: e2e=0.13924 ms, gpu=0.12630 ms
+Trial 23: e2e=0.13876 ms, gpu=0.12586 ms
+Trial 24: e2e=0.13924 ms, gpu=0.12630 ms
+Trial 25: e2e=0.13971 ms, gpu=0.12650 ms
+Trial 26: e2e=0.14400 ms, gpu=0.13114 ms
+Trial 27: e2e=0.14329 ms, gpu=0.12976 ms
+Trial 28: e2e=0.14043 ms, gpu=0.12710 ms
+Trial 29: e2e=0.14019 ms, gpu=0.12730 ms
+Trial 30: e2e=0.13876 ms, gpu=0.12560 ms
+Trial 31: e2e=0.13900 ms, gpu=0.12563 ms
+Trial 32: e2e=0.13804 ms, gpu=0.12512 ms
+Trial 33: e2e=0.14138 ms, gpu=0.12845 ms
+Trial 34: e2e=0.13876 ms, gpu=0.12608 ms
+Trial 35: e2e=0.13804 ms, gpu=0.12541 ms
+Trial 36: e2e=0.13852 ms, gpu=0.12534 ms
+Trial 37: e2e=0.14186 ms, gpu=0.12883 ms
+Trial 38: e2e=0.14019 ms, gpu=0.12749 ms
+Trial 39: e2e=0.13852 ms, gpu=0.12445 ms
+Trial 40: e2e=0.14377 ms, gpu=0.12554 ms
+Trial 41: e2e=0.13947 ms, gpu=0.12675 ms
+Trial 42: e2e=0.13876 ms, gpu=0.12592 ms
+Trial 43: e2e=0.13947 ms, gpu=0.12656 ms
+Trial 44: e2e=0.14091 ms, gpu=0.12867 ms
+Trial 45: e2e=0.13947 ms, gpu=0.12019 ms
+Trial 46: e2e=0.14114 ms, gpu=0.12707 ms
+Trial 47: e2e=0.13924 ms, gpu=0.12608 ms
+Trial 48: e2e=0.13995 ms, gpu=0.12675 ms
+Trial 49: e2e=0.14639 ms, gpu=0.13466 ms
+Trial 50: e2e=0.13971 ms, gpu=0.12714 ms
+Trial 51: e2e=0.13757 ms, gpu=0.12435 ms
+Trial 52: e2e=0.13804 ms, gpu=0.12525 ms
+Trial 53: e2e=0.13971 ms, gpu=0.12659 ms
+Trial 54: e2e=0.14019 ms, gpu=0.12704 ms
+Trial 55: e2e=0.13781 ms, gpu=0.12499 ms
+Trial 56: e2e=0.13781 ms, gpu=0.12515 ms
+Trial 57: e2e=0.13852 ms, gpu=0.12573 ms
+Trial 58: e2e=0.13924 ms, gpu=0.12586 ms
+Trial 59: e2e=0.13924 ms, gpu=0.12611 ms
+Trial 60: e2e=0.14234 ms, gpu=0.12915 ms
+Trial 61: e2e=0.13900 ms, gpu=0.12602 ms
+Trial 62: e2e=0.13828 ms, gpu=0.12534 ms
+Trial 63: e2e=0.13900 ms, gpu=0.12605 ms
+Trial 64: e2e=0.13924 ms, gpu=0.12662 ms
+Trial 65: e2e=0.13876 ms, gpu=0.12595 ms
+Trial 66: e2e=0.13900 ms, gpu=0.12586 ms
+Trial 67: e2e=0.14091 ms, gpu=0.12816 ms
+Trial 68: e2e=0.13876 ms, gpu=0.12573 ms
+Trial 69: e2e=0.13804 ms, gpu=0.12541 ms
+Trial 70: e2e=0.13947 ms, gpu=0.12646 ms
+Trial 71: e2e=0.13781 ms, gpu=0.12467 ms
+Trial 72: e2e=0.13828 ms, gpu=0.12512 ms
+Trial 73: e2e=0.13852 ms, gpu=0.12566 ms
+Trial 74: e2e=0.14138 ms, gpu=0.12870 ms
+Trial 75: e2e=0.13781 ms, gpu=0.12474 ms
+Trial 76: e2e=0.13804 ms, gpu=0.12499 ms
+Trial 77: e2e=0.13804 ms, gpu=0.12525 ms
+Trial 78: e2e=0.13828 ms, gpu=0.12512 ms
+Trial 79: e2e=0.13828 ms, gpu=0.12490 ms
+Trial 80: e2e=0.13733 ms, gpu=0.12400 ms
+Trial 81: e2e=0.13947 ms, gpu=0.12502 ms
+Trial 82: e2e=0.13685 ms, gpu=0.12397 ms
+Trial 83: e2e=0.13661 ms, gpu=0.12394 ms
+Trial 84: e2e=0.13661 ms, gpu=0.12374 ms
+Trial 85: e2e=0.13804 ms, gpu=0.12522 ms
+Trial 86: e2e=0.13685 ms, gpu=0.12390 ms
+Trial 87: e2e=0.13900 ms, gpu=0.12394 ms
+Trial 88: e2e=0.13828 ms, gpu=0.12525 ms
+Trial 89: e2e=0.13709 ms, gpu=0.12416 ms
+Trial 90: e2e=0.13638 ms, gpu=0.12378 ms
+Trial 91: e2e=0.13685 ms, gpu=0.12358 ms
+Trial 92: e2e=0.13685 ms, gpu=0.12394 ms
+Trial 93: e2e=0.13661 ms, gpu=0.12378 ms
+Trial 94: e2e=0.14138 ms, gpu=0.12822 ms
+Trial 95: e2e=0.13852 ms, gpu=0.12554 ms
+Trial 96: e2e=0.13757 ms, gpu=0.12461 ms
+Trial 97: e2e=0.13757 ms, gpu=0.12458 ms
+Trial 98: e2e=0.14544 ms, gpu=0.13219 ms
+Trial 99: e2e=0.13781 ms, gpu=0.12454 ms
+Trial 100: e2e=0.13971 ms, gpu=0.12387 ms
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.14424 ms, gpu=0.12166 ms
+Trial 2: e2e=0.12732 ms, gpu=0.11318 ms
+Trial 3: e2e=0.12255 ms, gpu=0.10938 ms
+Trial 4: e2e=0.12159 ms, gpu=0.10851 ms
+Trial 5: e2e=0.12422 ms, gpu=0.11114 ms
+Trial 6: e2e=0.12231 ms, gpu=0.10906 ms
+Trial 7: e2e=0.12040 ms, gpu=0.10758 ms
+Trial 8: e2e=0.12016 ms, gpu=0.10733 ms
+Trial 9: e2e=0.11992 ms, gpu=0.10710 ms
+Trial 10: e2e=0.12112 ms, gpu=0.10822 ms
+Trial 11: e2e=0.12088 ms, gpu=0.10771 ms
+Trial 12: e2e=0.12350 ms, gpu=0.10813 ms
+Trial 13: e2e=0.12112 ms, gpu=0.10851 ms
+Trial 14: e2e=0.11945 ms, gpu=0.10672 ms
+Trial 15: e2e=0.11921 ms, gpu=0.10669 ms
+Trial 16: e2e=0.12016 ms, gpu=0.10701 ms
+Trial 17: e2e=0.12088 ms, gpu=0.10784 ms
+Trial 18: e2e=0.12040 ms, gpu=0.10771 ms
+Trial 19: e2e=0.11945 ms, gpu=0.10640 ms
+Trial 20: e2e=0.12159 ms, gpu=0.10826 ms
+Trial 21: e2e=0.12016 ms, gpu=0.10701 ms
+Trial 22: e2e=0.12016 ms, gpu=0.10723 ms
+Trial 23: e2e=0.11873 ms, gpu=0.10608 ms
+Trial 24: e2e=0.11969 ms, gpu=0.10646 ms
+Trial 25: e2e=0.11873 ms, gpu=0.10614 ms
+Trial 26: e2e=0.12040 ms, gpu=0.10691 ms
+Trial 27: e2e=0.11945 ms, gpu=0.10701 ms
+Trial 28: e2e=0.12136 ms, gpu=0.10870 ms
+Trial 29: e2e=0.11969 ms, gpu=0.10672 ms
+Trial 30: e2e=0.11802 ms, gpu=0.10538 ms
+Trial 31: e2e=0.11945 ms, gpu=0.10669 ms
+Trial 32: e2e=0.11873 ms, gpu=0.10605 ms
+Trial 33: e2e=0.11897 ms, gpu=0.10656 ms
+Trial 34: e2e=0.11802 ms, gpu=0.10528 ms
+Trial 35: e2e=0.11921 ms, gpu=0.10666 ms
+Trial 36: e2e=0.12207 ms, gpu=0.10918 ms
+Trial 37: e2e=0.12016 ms, gpu=0.10758 ms
+Trial 38: e2e=0.12016 ms, gpu=0.10685 ms
+Trial 39: e2e=0.11921 ms, gpu=0.10666 ms
+Trial 40: e2e=0.11921 ms, gpu=0.10733 ms
+Trial 41: e2e=0.11969 ms, gpu=0.10691 ms
+Trial 42: e2e=0.11897 ms, gpu=0.10646 ms
+Trial 43: e2e=0.11897 ms, gpu=0.10650 ms
+Trial 44: e2e=0.12183 ms, gpu=0.10925 ms
+Trial 45: e2e=0.11969 ms, gpu=0.10704 ms
+Trial 46: e2e=0.11873 ms, gpu=0.10573 ms
+Trial 47: e2e=0.11873 ms, gpu=0.10627 ms
+Trial 48: e2e=0.11969 ms, gpu=0.10688 ms
+Trial 49: e2e=0.11945 ms, gpu=0.10634 ms
+Trial 50: e2e=0.11897 ms, gpu=0.10666 ms
+Trial 51: e2e=0.11921 ms, gpu=0.10669 ms
+Trial 52: e2e=0.12040 ms, gpu=0.10749 ms
+Trial 53: e2e=0.11992 ms, gpu=0.10675 ms
+Trial 54: e2e=0.11969 ms, gpu=0.10688 ms
+Trial 55: e2e=0.11873 ms, gpu=0.10566 ms
+Trial 56: e2e=0.11921 ms, gpu=0.10650 ms
+Trial 57: e2e=0.11945 ms, gpu=0.10656 ms
+Trial 58: e2e=0.12016 ms, gpu=0.10720 ms
+Trial 59: e2e=0.11969 ms, gpu=0.10675 ms
+Trial 60: e2e=0.12207 ms, gpu=0.10912 ms
+Trial 61: e2e=0.11921 ms, gpu=0.10659 ms
+Trial 62: e2e=0.12040 ms, gpu=0.10736 ms
+Trial 63: e2e=0.11921 ms, gpu=0.10640 ms
+Trial 64: e2e=0.11849 ms, gpu=0.10563 ms
+Trial 65: e2e=0.11897 ms, gpu=0.10634 ms
+Trial 66: e2e=0.11921 ms, gpu=0.10662 ms
+Trial 67: e2e=0.11897 ms, gpu=0.10592 ms
+Trial 68: e2e=0.12136 ms, gpu=0.10848 ms
+Trial 69: e2e=0.11921 ms, gpu=0.10675 ms
+Trial 70: e2e=0.12040 ms, gpu=0.10717 ms
+Trial 71: e2e=0.11945 ms, gpu=0.10659 ms
+Trial 72: e2e=0.11849 ms, gpu=0.10547 ms
+Trial 73: e2e=0.11849 ms, gpu=0.10589 ms
+Trial 74: e2e=0.11921 ms, gpu=0.10637 ms
+Trial 75: e2e=0.11945 ms, gpu=0.10656 ms
+Trial 76: e2e=0.12136 ms, gpu=0.10861 ms
+Trial 77: e2e=0.11849 ms, gpu=0.10582 ms
+Trial 78: e2e=0.11897 ms, gpu=0.10630 ms
+Trial 79: e2e=0.11873 ms, gpu=0.10573 ms
+Trial 80: e2e=0.11897 ms, gpu=0.10595 ms
+Trial 81: e2e=0.11992 ms, gpu=0.10720 ms
+Trial 82: e2e=0.11897 ms, gpu=0.10656 ms
+Trial 83: e2e=0.11945 ms, gpu=0.10602 ms
+Trial 84: e2e=0.12064 ms, gpu=0.10611 ms
+Trial 85: e2e=0.11849 ms, gpu=0.10566 ms
+Trial 86: e2e=0.11826 ms, gpu=0.10547 ms
+Trial 87: e2e=0.11945 ms, gpu=0.10669 ms
+Trial 88: e2e=0.11826 ms, gpu=0.10560 ms
+Trial 89: e2e=0.11849 ms, gpu=0.10557 ms
+Trial 90: e2e=0.11897 ms, gpu=0.10605 ms
+Trial 91: e2e=0.11897 ms, gpu=0.10602 ms
+Trial 92: e2e=0.11849 ms, gpu=0.10538 ms
+Trial 93: e2e=0.11969 ms, gpu=0.10701 ms
+Trial 94: e2e=0.11849 ms, gpu=0.10611 ms
+Trial 95: e2e=0.11849 ms, gpu=0.10541 ms
+Trial 96: e2e=0.11945 ms, gpu=0.10656 ms
+Trial 97: e2e=0.11921 ms, gpu=0.10614 ms
+Trial 98: e2e=0.11921 ms, gpu=0.10646 ms
+Trial 99: e2e=0.11992 ms, gpu=0.10557 ms
+Trial 100: e2e=0.11897 ms, gpu=0.10650 ms
+graph-net-test-compiler-log [Datatype][eager]: float32 float32
+graph-net-test-compiler-log [Datatype][compiled]: float32 float32
+graph-net-test-compiler-log [DataType] eager:['float32', 'float32'] compiled:['float32', 'float32'] match:True
+graph-net-test-compiler-log [Correctness][equal]: 0 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.00E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_2.56E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.69E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-14_rtol_1.00E-14]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_3.98E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_5.85E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_2.54E-11]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-13_rtol_2.51E-13]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.58E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.34E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_3.82E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-12_rtol_6.31E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_3.06E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_5.75E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-10_rtol_1.58E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_2.51E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_7.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_8.65E-08]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-09_rtol_3.98E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.60E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.30E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_1.00E-07]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.98E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.66E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_1.96E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-06_rtol_2.51E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_1.58E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_8.36E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_2.94E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-05_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_6.31E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_1.91E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_4.42E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-03_rtol_1.58E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_2.51E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_4.37E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_6.65E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-02_rtol_3.98E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_3.98E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_2.29E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_1.50E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E+01_rtol_2.51E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_1.58E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_5.23E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_2.26E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E+02_rtol_6.31E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_6.31E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_1.20E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_3.40E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E+04_rtol_1.58E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.51E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.73E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_5.11E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E+05_rtol_3.98E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_1.00E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_6.25E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_7.69E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+07_rtol_1.00E+07]: 1 1
+graph-net-test-compiler-log [Correctness][max_diff]: 4.440892098500626e-16 0.0
+graph-net-test-compiler-log [Correctness][mean_diff]: 5.621037196613258e-18 0.0
+graph-net-test-compiler-log [Result] status: success
+graph-net-test-compiler-log [Performance][eager]: {"e2e": {"median": 0.119448, "iqr": 0.0012517, "mean": 0.120041, "std": 0.00279581, "min": 0.118017, "max": 0.144243}, "gpu": {"median": 0.106656, "iqr": 0.00111999, "mean": 0.107049, "std": 0.00190794, "min": 0.10528, "max": 0.121664}}
+graph-net-test-compiler-log [Performance][compiled]: {"e2e": {"median": 0.139236, "iqr": 0.00292063, "mean": 0.140653, "std": 0.00631695, "min": 0.136375, "max": 0.195503}, "gpu": {"median": 0.126064, "iqr": 0.002472, "mean": 0.127029, "std": 0.00395665, "min": 0.120192, "max": 0.155424}}
+graph-net-test-compiler-log [Speedup][e2e]: 0.85788
+graph-net-test-compiler-log [Speedup][gpu]: 0.84605
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/1] preserve explicit operator.iadd in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "relu", "target": "torch.nn.functional.relu"}]
+[kiln-pattern-multi-output/1] upstream tuple destructuring 2
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/8/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0
+graph-net-test-compiler-log [Config] model: hf-tiny-model-private/tiny-random-EfficientFormerForImageClassificationWithTeacher
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization [{"node": "tmp_2", "target": "torch.nn.functional.relu"}]
+[PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=5.18990 ms, gpu=5.14259 ms
+Trial 2: e2e=5.22566 ms, gpu=5.19754 ms
+Trial 3: e2e=5.59831 ms, gpu=5.58298 ms
+Trial 4: e2e=5.34487 ms, gpu=5.32624 ms
+Trial 5: e2e=5.15652 ms, gpu=5.13773 ms
+Trial 6: e2e=4.97746 ms, gpu=4.96384 ms
+Trial 7: e2e=4.98343 ms, gpu=4.97002 ms
+Trial 8: e2e=4.98724 ms, gpu=4.97302 ms
+Trial 9: e2e=4.98772 ms, gpu=4.97386 ms
+Trial 10: e2e=4.99249 ms, gpu=4.97901 ms
+Trial 11: e2e=4.98176 ms, gpu=4.96858 ms
+Trial 12: e2e=4.99010 ms, gpu=4.97699 ms
+Trial 13: e2e=4.99392 ms, gpu=4.98077 ms
+Trial 14: e2e=4.98080 ms, gpu=4.96758 ms
+Trial 15: e2e=4.98271 ms, gpu=4.96986 ms
+Trial 16: e2e=4.98366 ms, gpu=4.97126 ms
+Trial 17: e2e=4.99010 ms, gpu=4.97741 ms
+Trial 18: e2e=4.98581 ms, gpu=4.97229 ms
+Trial 19: e2e=4.97746 ms, gpu=4.96451 ms
+Trial 20: e2e=4.97866 ms, gpu=4.96566 ms
+Trial 21: e2e=4.98629 ms, gpu=4.97270 ms
+Trial 22: e2e=4.98176 ms, gpu=4.96934 ms
+Trial 23: e2e=4.97341 ms, gpu=4.96019 ms
+Trial 24: e2e=4.99105 ms, gpu=4.97779 ms
+Trial 25: e2e=4.98915 ms, gpu=4.97645 ms
+Trial 26: e2e=4.97699 ms, gpu=4.96438 ms
+Trial 27: e2e=4.98152 ms, gpu=4.96832 ms
+Trial 28: e2e=4.99129 ms, gpu=4.97776 ms
+Trial 29: e2e=4.98152 ms, gpu=4.96816 ms
+Trial 30: e2e=4.97866 ms, gpu=4.96592 ms
+Trial 31: e2e=4.97770 ms, gpu=4.96474 ms
+Trial 32: e2e=5.00345 ms, gpu=4.99094 ms
+Trial 33: e2e=4.98104 ms, gpu=4.96822 ms
+Trial 34: e2e=4.97627 ms, gpu=4.96339 ms
+Trial 35: e2e=4.98605 ms, gpu=4.97334 ms
+Trial 36: e2e=4.98414 ms, gpu=4.97142 ms
+Trial 37: e2e=4.99654 ms, gpu=4.98493 ms
+Trial 38: e2e=5.47791 ms, gpu=5.46576 ms
+Trial 39: e2e=5.28455 ms, gpu=5.26995 ms
+Trial 40: e2e=5.03635 ms, gpu=5.02349 ms
+Trial 41: e2e=5.13792 ms, gpu=5.12518 ms
+Trial 42: e2e=4.99487 ms, gpu=4.98195 ms
+Trial 43: e2e=4.97890 ms, gpu=4.96621 ms
+Trial 44: e2e=4.96984 ms, gpu=4.95738 ms
+Trial 45: e2e=4.98366 ms, gpu=4.97075 ms
+Trial 46: e2e=4.98724 ms, gpu=4.97434 ms
+Trial 47: e2e=4.98700 ms, gpu=4.97373 ms
+Trial 48: e2e=4.98533 ms, gpu=4.97213 ms
+Trial 49: e2e=4.98796 ms, gpu=4.97504 ms
+Trial 50: e2e=5.48697 ms, gpu=5.47382 ms
+Trial 51: e2e=5.25165 ms, gpu=5.23427 ms
+Trial 52: e2e=5.08404 ms, gpu=5.06221 ms
+Trial 53: e2e=4.98438 ms, gpu=4.97030 ms
+Trial 54: e2e=4.99845 ms, gpu=4.98528 ms
+Trial 55: e2e=4.97794 ms, gpu=4.96477 ms
+Trial 56: e2e=4.99129 ms, gpu=4.97859 ms
+Trial 57: e2e=4.97699 ms, gpu=4.96451 ms
+Trial 58: e2e=4.98652 ms, gpu=4.97344 ms
+Trial 59: e2e=4.98343 ms, gpu=4.97053 ms
+Trial 60: e2e=4.98104 ms, gpu=4.96810 ms
+Trial 61: e2e=4.97913 ms, gpu=4.96627 ms
+Trial 62: e2e=4.98557 ms, gpu=4.97242 ms
+Trial 63: e2e=4.98509 ms, gpu=4.97235 ms
+Trial 64: e2e=4.98652 ms, gpu=4.97392 ms
+Trial 65: e2e=4.98724 ms, gpu=4.97469 ms
+Trial 66: e2e=4.97627 ms, gpu=4.96352 ms
+Trial 67: e2e=4.98128 ms, gpu=4.96867 ms
+Trial 68: e2e=4.98962 ms, gpu=4.97690 ms
+Trial 69: e2e=4.97890 ms, gpu=4.96586 ms
+Trial 70: e2e=4.98629 ms, gpu=4.97338 ms
+Trial 71: e2e=4.98319 ms, gpu=4.97046 ms
+Trial 72: e2e=4.98939 ms, gpu=4.97683 ms
+Trial 73: e2e=4.98486 ms, gpu=4.97200 ms
+Trial 74: e2e=4.99368 ms, gpu=4.98045 ms
+Trial 75: e2e=4.98581 ms, gpu=4.97299 ms
+Trial 76: e2e=4.99320 ms, gpu=4.98077 ms
+Trial 77: e2e=4.98343 ms, gpu=4.97066 ms
+Trial 78: e2e=4.98819 ms, gpu=4.97571 ms
+Trial 79: e2e=4.98033 ms, gpu=4.96762 ms
+Trial 80: e2e=4.98772 ms, gpu=4.97456 ms
+Trial 81: e2e=4.98056 ms, gpu=4.96765 ms
+Trial 82: e2e=4.97150 ms, gpu=4.95859 ms
+Trial 83: e2e=4.98199 ms, gpu=4.96957 ms
+Trial 84: e2e=4.98986 ms, gpu=4.97741 ms
+Trial 85: e2e=4.98557 ms, gpu=4.97302 ms
+Trial 86: e2e=4.98247 ms, gpu=4.96947 ms
+Trial 87: e2e=4.98009 ms, gpu=4.96643 ms
+Trial 88: e2e=4.99058 ms, gpu=4.97606 ms
+Trial 89: e2e=4.98366 ms, gpu=4.97104 ms
+Trial 90: e2e=4.98033 ms, gpu=4.96746 ms
+Trial 91: e2e=4.98199 ms, gpu=4.96938 ms
+Trial 92: e2e=4.99678 ms, gpu=4.98394 ms
+Trial 93: e2e=4.98366 ms, gpu=4.97098 ms
+Trial 94: e2e=4.98700 ms, gpu=4.97395 ms
+Trial 95: e2e=4.98152 ms, gpu=4.96851 ms
+Trial 96: e2e=4.98748 ms, gpu=4.97459 ms
+Trial 97: e2e=4.98652 ms, gpu=4.97408 ms
+Trial 98: e2e=4.97746 ms, gpu=4.96464 ms
+Trial 99: e2e=4.98676 ms, gpu=4.97398 ms
+Trial 100: e2e=5.00154 ms, gpu=4.98861 ms
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=10.22339 ms, gpu=10.20000 ms
+Trial 2: e2e=10.86760 ms, gpu=10.85392 ms
+Trial 3: e2e=10.19073 ms, gpu=10.17728 ms
+Trial 4: e2e=10.20670 ms, gpu=10.19402 ms
+Trial 5: e2e=10.20026 ms, gpu=10.18752 ms
+Trial 6: e2e=10.19120 ms, gpu=10.17789 ms
+Trial 7: e2e=10.18953 ms, gpu=10.17693 ms
+Trial 8: e2e=10.19430 ms, gpu=10.18186 ms
+Trial 9: e2e=10.19144 ms, gpu=10.17920 ms
+Trial 10: e2e=10.18906 ms, gpu=10.17702 ms
+Trial 11: e2e=10.18620 ms, gpu=10.17366 ms
+Trial 12: e2e=10.18929 ms, gpu=10.17654 ms
+Trial 13: e2e=10.18167 ms, gpu=10.16880 ms
+Trial 14: e2e=10.19526 ms, gpu=10.18253 ms
+Trial 15: e2e=10.18214 ms, gpu=10.16989 ms
+Trial 16: e2e=10.19669 ms, gpu=10.18413 ms
+Trial 17: e2e=10.18929 ms, gpu=10.17690 ms
+Trial 18: e2e=10.19192 ms, gpu=10.17965 ms
+Trial 19: e2e=10.19168 ms, gpu=10.17942 ms
+Trial 20: e2e=10.19621 ms, gpu=10.18410 ms
+Trial 21: e2e=10.18906 ms, gpu=10.17632 ms
+Trial 22: e2e=10.19692 ms, gpu=10.18400 ms
+Trial 23: e2e=10.19239 ms, gpu=10.17936 ms
+Trial 24: e2e=10.19478 ms, gpu=10.18192 ms
+Trial 25: e2e=10.34045 ms, gpu=10.32272 ms
+Trial 26: e2e=10.64110 ms, gpu=10.62474 ms
+Trial 27: e2e=10.39577 ms, gpu=10.38262 ms
+Trial 28: e2e=10.68425 ms, gpu=10.66947 ms
+Trial 29: e2e=10.66613 ms, gpu=10.65338 ms
+Trial 30: e2e=10.25105 ms, gpu=10.23834 ms
+Trial 31: e2e=10.18476 ms, gpu=10.17222 ms
+Trial 32: e2e=10.19287 ms, gpu=10.18019 ms
+Trial 33: e2e=10.18190 ms, gpu=10.16864 ms
+Trial 34: e2e=10.20026 ms, gpu=10.18672 ms
+Trial 35: e2e=10.19406 ms, gpu=10.18163 ms
+Trial 36: e2e=10.19669 ms, gpu=10.18397 ms
+Trial 37: e2e=10.17714 ms, gpu=10.16461 ms
+Trial 38: e2e=10.20169 ms, gpu=10.18890 ms
+Trial 39: e2e=10.18715 ms, gpu=10.17434 ms
+Trial 40: e2e=10.19645 ms, gpu=10.18384 ms
+Trial 41: e2e=10.18548 ms, gpu=10.17338 ms
+Trial 42: e2e=10.18834 ms, gpu=10.17603 ms
+Trial 43: e2e=10.19120 ms, gpu=10.17885 ms
+Trial 44: e2e=10.20408 ms, gpu=10.19104 ms
+Trial 45: e2e=10.18739 ms, gpu=10.17504 ms
+Trial 46: e2e=10.19335 ms, gpu=10.18106 ms
+Trial 47: e2e=10.19120 ms, gpu=10.17917 ms
+Trial 48: e2e=10.20002 ms, gpu=10.18758 ms
+Trial 49: e2e=10.20360 ms, gpu=10.19110 ms
+Trial 50: e2e=10.19597 ms, gpu=10.18362 ms
+Trial 51: e2e=10.18882 ms, gpu=10.17645 ms
+Trial 52: e2e=10.18238 ms, gpu=10.16989 ms
+Trial 53: e2e=10.19311 ms, gpu=10.18061 ms
+Trial 54: e2e=10.19692 ms, gpu=10.18384 ms
+Trial 55: e2e=10.18333 ms, gpu=10.17098 ms
+Trial 56: e2e=10.18977 ms, gpu=10.17693 ms
+Trial 57: e2e=10.20241 ms, gpu=10.19008 ms
+Trial 58: e2e=10.18786 ms, gpu=10.17530 ms
+Trial 59: e2e=10.20861 ms, gpu=10.19635 ms
+Trial 60: e2e=10.19740 ms, gpu=10.18579 ms
+Trial 61: e2e=10.19120 ms, gpu=10.17802 ms
+Trial 62: e2e=10.18715 ms, gpu=10.17466 ms
+Trial 63: e2e=10.19835 ms, gpu=10.18557 ms
+Trial 64: e2e=10.18929 ms, gpu=10.17677 ms
+Trial 65: e2e=10.20670 ms, gpu=10.19421 ms
+Trial 66: e2e=10.18596 ms, gpu=10.17421 ms
+Trial 67: e2e=10.19335 ms, gpu=10.18035 ms
+Trial 68: e2e=10.19049 ms, gpu=10.17818 ms
+Trial 69: e2e=10.19382 ms, gpu=10.18122 ms
+Trial 70: e2e=10.17904 ms, gpu=10.16650 ms
+Trial 71: e2e=10.19478 ms, gpu=10.18208 ms
+Trial 72: e2e=10.18739 ms, gpu=10.17485 ms
+Trial 73: e2e=10.19192 ms, gpu=10.17888 ms
+Trial 74: e2e=10.18500 ms, gpu=10.17229 ms
+Trial 75: e2e=10.19955 ms, gpu=10.18675 ms
+Trial 76: e2e=10.48207 ms, gpu=10.46358 ms
+Trial 77: e2e=10.48756 ms, gpu=10.43587 ms
+Trial 78: e2e=10.72240 ms, gpu=10.70950 ms
+Trial 79: e2e=10.25295 ms, gpu=10.24038 ms
+Trial 80: e2e=10.19216 ms, gpu=10.17981 ms
+Trial 81: e2e=10.19239 ms, gpu=10.18006 ms
+Trial 82: e2e=10.19096 ms, gpu=10.17818 ms
+Trial 83: e2e=10.19192 ms, gpu=10.17917 ms
+Trial 84: e2e=10.18834 ms, gpu=10.17571 ms
+Trial 85: e2e=10.18643 ms, gpu=10.17389 ms
+Trial 86: e2e=10.19025 ms, gpu=10.17779 ms
+Trial 87: e2e=10.19454 ms, gpu=10.18227 ms
+Trial 88: e2e=10.18810 ms, gpu=10.17542 ms
+Trial 89: e2e=10.19335 ms, gpu=10.18112 ms
+Trial 90: e2e=10.19096 ms, gpu=10.17840 ms
+Trial 91: e2e=10.18715 ms, gpu=10.17488 ms
+Trial 92: e2e=10.18715 ms, gpu=10.17382 ms
+Trial 93: e2e=10.19382 ms, gpu=10.18099 ms
+Trial 94: e2e=10.19096 ms, gpu=10.17853 ms
+Trial 95: e2e=10.23483 ms, gpu=10.22243 ms
+Trial 96: e2e=10.81491 ms, gpu=10.80272 ms
+Trial 97: e2e=10.18381 ms, gpu=10.17162 ms
+Trial 98: e2e=10.19216 ms, gpu=10.17978 ms
+Trial 99: e2e=10.19263 ms, gpu=10.17994 ms
+Trial 100: e2e=10.18786 ms, gpu=10.17517 ms
+graph-net-test-compiler-log [Datatype][eager]: bfloat16 bfloat16
+graph-net-test-compiler-log [Datatype][compiled]: bfloat16 bfloat16
+graph-net-test-compiler-log [DataType] eager:['bfloat16', 'bfloat16'] compiled:['bfloat16', 'bfloat16'] match:True
+graph-net-test-compiler-log [Correctness][equal]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.00E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_2.56E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.69E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-14_rtol_1.00E-14]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_3.98E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_5.85E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_2.54E-11]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-13_rtol_2.51E-13]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.58E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.34E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_3.82E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-12_rtol_6.31E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_3.06E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_5.75E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-10_rtol_1.58E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_2.51E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_7.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_8.65E-08]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-09_rtol_3.98E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.60E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.30E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_1.00E-07]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.98E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.66E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_1.96E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-06_rtol_2.51E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_1.58E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_8.36E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_2.94E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-05_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_6.31E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_1.91E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_4.42E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-03_rtol_1.58E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_2.51E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_4.37E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_6.65E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-02_rtol_3.98E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_3.98E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_2.29E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_1.50E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E+01_rtol_2.51E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_1.58E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_5.23E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_2.26E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E+02_rtol_6.31E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_6.31E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_1.20E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_3.40E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E+04_rtol_1.58E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.51E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.73E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_5.11E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E+05_rtol_3.98E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_1.00E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_6.25E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_7.69E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+07_rtol_1.00E+07]: 1 1
+graph-net-test-compiler-log [Correctness][max_diff]: 0.0 0.0
+graph-net-test-compiler-log [Correctness][mean_diff]: 0.0 0.0
+graph-net-test-compiler-log [Result] status: success
+graph-net-test-compiler-log [Performance][eager]: {"e2e": {"median": 10.1923, "iqr": 0.00995398, "mean": 10.2356, "std": 0.136101, "min": 10.1771, "max": 10.8676}, "gpu": {"median": 10.1798, "iqr": 0.00977588, "mean": 10.2224, "std": 0.135054, "min": 10.1646, "max": 10.8539}}
+graph-net-test-compiler-log [Performance][compiled]: {"e2e": {"median": 4.98581, "iqr": 0.00923872, "mean": 5.01943, "std": 0.110063, "min": 4.96984, "max": 5.59831}, "gpu": {"median": 4.97285, "iqr": 0.00919998, "mean": 5.00571, "std": 0.108784, "min": 4.95738, "max": 5.58298}}
+graph-net-test-compiler-log [Speedup][e2e]: 2.04426
+graph-net-test-compiler-log [Speedup][gpu]: 2.04708
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/1] preserve explicit operator.iadd in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "relu", "target": "torch.nn.functional.relu"}]
+[kiln-pattern-multi-output/1] upstream tuple destructuring 2
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0
+graph-net-test-compiler-log [Config] model: hf-tiny-model-private/tiny-random-EfficientFormerForImageClassificationWithTeacher
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization [{"node": "tmp_2", "target": "torch.nn.functional.relu"}]
+[PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.20289 ms, gpu=0.16403 ms
+Trial 2: e2e=0.16618 ms, gpu=0.14998 ms
+Trial 3: e2e=0.16236 ms, gpu=0.14794 ms
+Trial 4: e2e=0.16356 ms, gpu=0.15008 ms
+Trial 5: e2e=0.15616 ms, gpu=0.14266 ms
+Trial 6: e2e=0.15712 ms, gpu=0.14362 ms
+Trial 7: e2e=0.15783 ms, gpu=0.14438 ms
+Trial 8: e2e=0.15473 ms, gpu=0.14186 ms
+Trial 9: e2e=0.15569 ms, gpu=0.14294 ms
+Trial 10: e2e=0.16093 ms, gpu=0.14819 ms
+Trial 11: e2e=0.15688 ms, gpu=0.14410 ms
+Trial 12: e2e=0.15545 ms, gpu=0.14272 ms
+Trial 13: e2e=0.15497 ms, gpu=0.14250 ms
+Trial 14: e2e=0.15378 ms, gpu=0.14131 ms
+Trial 15: e2e=0.15903 ms, gpu=0.14618 ms
+Trial 16: e2e=0.15783 ms, gpu=0.14550 ms
+Trial 17: e2e=0.15569 ms, gpu=0.14314 ms
+Trial 18: e2e=0.15545 ms, gpu=0.14285 ms
+Trial 19: e2e=0.15497 ms, gpu=0.14240 ms
+Trial 20: e2e=0.15521 ms, gpu=0.14250 ms
+Trial 21: e2e=0.15473 ms, gpu=0.14211 ms
+Trial 22: e2e=0.15807 ms, gpu=0.14541 ms
+Trial 23: e2e=0.15497 ms, gpu=0.14272 ms
+Trial 24: e2e=0.15521 ms, gpu=0.14259 ms
+Trial 25: e2e=0.15593 ms, gpu=0.14336 ms
+Trial 26: e2e=0.15473 ms, gpu=0.14221 ms
+Trial 27: e2e=0.15402 ms, gpu=0.14154 ms
+Trial 28: e2e=0.15402 ms, gpu=0.14106 ms
+Trial 29: e2e=0.15640 ms, gpu=0.14368 ms
+Trial 30: e2e=0.15497 ms, gpu=0.14211 ms
+Trial 31: e2e=0.15545 ms, gpu=0.14243 ms
+Trial 32: e2e=0.15473 ms, gpu=0.14256 ms
+Trial 33: e2e=0.15473 ms, gpu=0.14186 ms
+Trial 34: e2e=0.15450 ms, gpu=0.14224 ms
+Trial 35: e2e=0.15616 ms, gpu=0.14192 ms
+Trial 36: e2e=0.15330 ms, gpu=0.14054 ms
+Trial 37: e2e=0.15497 ms, gpu=0.14230 ms
+Trial 38: e2e=0.15402 ms, gpu=0.14134 ms
+Trial 39: e2e=0.15426 ms, gpu=0.14122 ms
+Trial 40: e2e=0.15402 ms, gpu=0.14141 ms
+Trial 41: e2e=0.15640 ms, gpu=0.14355 ms
+Trial 42: e2e=0.15521 ms, gpu=0.14214 ms
+Trial 43: e2e=0.15426 ms, gpu=0.14144 ms
+Trial 44: e2e=0.15378 ms, gpu=0.14122 ms
+Trial 45: e2e=0.15426 ms, gpu=0.14150 ms
+Trial 46: e2e=0.15283 ms, gpu=0.14026 ms
+Trial 47: e2e=0.15879 ms, gpu=0.14602 ms
+Trial 48: e2e=0.15450 ms, gpu=0.14186 ms
+Trial 49: e2e=0.15402 ms, gpu=0.14118 ms
+Trial 50: e2e=0.15593 ms, gpu=0.14336 ms
+Trial 51: e2e=0.15521 ms, gpu=0.14266 ms
+Trial 52: e2e=0.15402 ms, gpu=0.14134 ms
+Trial 53: e2e=0.16046 ms, gpu=0.14749 ms
+Trial 54: e2e=0.15616 ms, gpu=0.14333 ms
+Trial 55: e2e=0.15593 ms, gpu=0.14330 ms
+Trial 56: e2e=0.15473 ms, gpu=0.14237 ms
+Trial 57: e2e=0.15402 ms, gpu=0.14147 ms
+Trial 58: e2e=0.15521 ms, gpu=0.14202 ms
+Trial 59: e2e=0.15616 ms, gpu=0.14349 ms
+Trial 60: e2e=0.15330 ms, gpu=0.14067 ms
+Trial 61: e2e=0.15426 ms, gpu=0.14138 ms
+Trial 62: e2e=0.15426 ms, gpu=0.14160 ms
+Trial 63: e2e=0.15426 ms, gpu=0.14166 ms
+Trial 64: e2e=0.15330 ms, gpu=0.14070 ms
+Trial 65: e2e=0.15426 ms, gpu=0.14147 ms
+Trial 66: e2e=0.15306 ms, gpu=0.14064 ms
+Trial 67: e2e=0.15402 ms, gpu=0.14150 ms
+Trial 68: e2e=0.15426 ms, gpu=0.14157 ms
+Trial 69: e2e=0.15187 ms, gpu=0.13939 ms
+Trial 70: e2e=0.15306 ms, gpu=0.14061 ms
+Trial 71: e2e=0.15521 ms, gpu=0.14237 ms
+Trial 72: e2e=0.15616 ms, gpu=0.14349 ms
+Trial 73: e2e=0.15521 ms, gpu=0.14282 ms
+Trial 74: e2e=0.15402 ms, gpu=0.14131 ms
+Trial 75: e2e=0.15426 ms, gpu=0.14166 ms
+Trial 76: e2e=0.15330 ms, gpu=0.14061 ms
+Trial 77: e2e=0.15306 ms, gpu=0.14048 ms
+Trial 78: e2e=0.15688 ms, gpu=0.14400 ms
+Trial 79: e2e=0.15450 ms, gpu=0.14147 ms
+Trial 80: e2e=0.15330 ms, gpu=0.14058 ms
+Trial 81: e2e=0.15187 ms, gpu=0.13926 ms
+Trial 82: e2e=0.15211 ms, gpu=0.13965 ms
+Trial 83: e2e=0.15330 ms, gpu=0.14080 ms
+Trial 84: e2e=0.15616 ms, gpu=0.14381 ms
+Trial 85: e2e=0.15426 ms, gpu=0.14170 ms
+Trial 86: e2e=0.15283 ms, gpu=0.14022 ms
+Trial 87: e2e=0.15330 ms, gpu=0.14067 ms
+Trial 88: e2e=0.15378 ms, gpu=0.14141 ms
+Trial 89: e2e=0.15235 ms, gpu=0.13968 ms
+Trial 90: e2e=0.15211 ms, gpu=0.13955 ms
+Trial 91: e2e=0.15306 ms, gpu=0.14064 ms
+Trial 92: e2e=0.15354 ms, gpu=0.14109 ms
+Trial 93: e2e=0.15450 ms, gpu=0.14157 ms
+Trial 94: e2e=0.15283 ms, gpu=0.14032 ms
+Trial 95: e2e=0.15306 ms, gpu=0.14051 ms
+Trial 96: e2e=0.15306 ms, gpu=0.14064 ms
+Trial 97: e2e=0.15616 ms, gpu=0.14096 ms
+Trial 98: e2e=0.15473 ms, gpu=0.14214 ms
+Trial 99: e2e=0.15402 ms, gpu=0.14122 ms
+Trial 100: e2e=0.15402 ms, gpu=0.14154 ms
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.18859 ms, gpu=0.17133 ms
+Trial 2: e2e=0.17738 ms, gpu=0.16384 ms
+Trial 3: e2e=0.17643 ms, gpu=0.16349 ms
+Trial 4: e2e=0.17595 ms, gpu=0.16323 ms
+Trial 5: e2e=0.17309 ms, gpu=0.16074 ms
+Trial 6: e2e=0.17571 ms, gpu=0.16224 ms
+Trial 7: e2e=0.17571 ms, gpu=0.16269 ms
+Trial 8: e2e=0.17405 ms, gpu=0.16182 ms
+Trial 9: e2e=0.17118 ms, gpu=0.15894 ms
+Trial 10: e2e=0.17118 ms, gpu=0.15869 ms
+Trial 11: e2e=0.17333 ms, gpu=0.16038 ms
+Trial 12: e2e=0.17619 ms, gpu=0.16371 ms
+Trial 13: e2e=0.17190 ms, gpu=0.15936 ms
+Trial 14: e2e=0.17452 ms, gpu=0.16208 ms
+Trial 15: e2e=0.17047 ms, gpu=0.15805 ms
+Trial 16: e2e=0.17118 ms, gpu=0.15882 ms
+Trial 17: e2e=0.17405 ms, gpu=0.16141 ms
+Trial 18: e2e=0.17500 ms, gpu=0.16211 ms
+Trial 19: e2e=0.17238 ms, gpu=0.15974 ms
+Trial 20: e2e=0.17166 ms, gpu=0.15910 ms
+Trial 21: e2e=0.17452 ms, gpu=0.16179 ms
+Trial 22: e2e=0.17476 ms, gpu=0.16208 ms
+Trial 23: e2e=0.17548 ms, gpu=0.16294 ms
+Trial 24: e2e=0.17405 ms, gpu=0.16109 ms
+Trial 25: e2e=0.17357 ms, gpu=0.16125 ms
+Trial 26: e2e=0.17214 ms, gpu=0.15978 ms
+Trial 27: e2e=0.17381 ms, gpu=0.16112 ms
+Trial 28: e2e=0.17262 ms, gpu=0.15994 ms
+Trial 29: e2e=0.17309 ms, gpu=0.16058 ms
+Trial 30: e2e=0.17452 ms, gpu=0.16202 ms
+Trial 31: e2e=0.17357 ms, gpu=0.16099 ms
+Trial 32: e2e=0.17262 ms, gpu=0.15990 ms
+Trial 33: e2e=0.17476 ms, gpu=0.16179 ms
+Trial 34: e2e=0.17667 ms, gpu=0.16400 ms
+Trial 35: e2e=0.17214 ms, gpu=0.15968 ms
+Trial 36: e2e=0.17262 ms, gpu=0.15997 ms
+Trial 37: e2e=0.17262 ms, gpu=0.15987 ms
+Trial 38: e2e=0.17285 ms, gpu=0.16016 ms
+Trial 39: e2e=0.17262 ms, gpu=0.16006 ms
+Trial 40: e2e=0.17476 ms, gpu=0.16253 ms
+Trial 41: e2e=0.17381 ms, gpu=0.16070 ms
+Trial 42: e2e=0.17428 ms, gpu=0.16186 ms
+Trial 43: e2e=0.17452 ms, gpu=0.16195 ms
+Trial 44: e2e=0.17381 ms, gpu=0.16138 ms
+Trial 45: e2e=0.17357 ms, gpu=0.16106 ms
+Trial 46: e2e=0.17405 ms, gpu=0.16102 ms
+Trial 47: e2e=0.17166 ms, gpu=0.15910 ms
+Trial 48: e2e=0.17381 ms, gpu=0.16106 ms
+Trial 49: e2e=0.17452 ms, gpu=0.16186 ms
+Trial 50: e2e=0.17262 ms, gpu=0.16019 ms
+Trial 51: e2e=0.17309 ms, gpu=0.16003 ms
+Trial 52: e2e=0.17357 ms, gpu=0.16109 ms
+Trial 53: e2e=0.17285 ms, gpu=0.16016 ms
+Trial 54: e2e=0.17405 ms, gpu=0.16144 ms
+Trial 55: e2e=0.17357 ms, gpu=0.16128 ms
+Trial 56: e2e=0.17476 ms, gpu=0.16227 ms
+Trial 57: e2e=0.17285 ms, gpu=0.16054 ms
+Trial 58: e2e=0.17262 ms, gpu=0.16000 ms
+Trial 59: e2e=0.17190 ms, gpu=0.15926 ms
+Trial 60: e2e=0.17262 ms, gpu=0.15990 ms
+Trial 61: e2e=0.17285 ms, gpu=0.16045 ms
+Trial 62: e2e=0.17595 ms, gpu=0.16115 ms
+Trial 63: e2e=0.17214 ms, gpu=0.15946 ms
+Trial 64: e2e=0.17357 ms, gpu=0.16109 ms
+Trial 65: e2e=0.17262 ms, gpu=0.16016 ms
+Trial 66: e2e=0.17214 ms, gpu=0.15981 ms
+Trial 67: e2e=0.17405 ms, gpu=0.16138 ms
+Trial 68: e2e=0.17476 ms, gpu=0.16224 ms
+Trial 69: e2e=0.17262 ms, gpu=0.16003 ms
+Trial 70: e2e=0.17238 ms, gpu=0.15981 ms
+Trial 71: e2e=0.17476 ms, gpu=0.16198 ms
+Trial 72: e2e=0.17381 ms, gpu=0.16102 ms
+Trial 73: e2e=0.17548 ms, gpu=0.16256 ms
+Trial 74: e2e=0.17238 ms, gpu=0.15965 ms
+Trial 75: e2e=0.17357 ms, gpu=0.16064 ms
+Trial 76: e2e=0.17405 ms, gpu=0.16106 ms
+Trial 77: e2e=0.17285 ms, gpu=0.16006 ms
+Trial 78: e2e=0.17238 ms, gpu=0.15958 ms
+Trial 79: e2e=0.17405 ms, gpu=0.16189 ms
+Trial 80: e2e=0.17452 ms, gpu=0.16218 ms
+Trial 81: e2e=0.17190 ms, gpu=0.15910 ms
+Trial 82: e2e=0.17357 ms, gpu=0.16102 ms
+Trial 83: e2e=0.17190 ms, gpu=0.15910 ms
+Trial 84: e2e=0.17548 ms, gpu=0.16307 ms
+Trial 85: e2e=0.17238 ms, gpu=0.15974 ms
+Trial 86: e2e=0.17357 ms, gpu=0.16115 ms
+Trial 87: e2e=0.17142 ms, gpu=0.15917 ms
+Trial 88: e2e=0.17357 ms, gpu=0.16125 ms
+Trial 89: e2e=0.17381 ms, gpu=0.16112 ms
+Trial 90: e2e=0.17405 ms, gpu=0.16141 ms
+Trial 91: e2e=0.17262 ms, gpu=0.16006 ms
+Trial 92: e2e=0.17452 ms, gpu=0.16205 ms
+Trial 93: e2e=0.17357 ms, gpu=0.16102 ms
+Trial 94: e2e=0.17357 ms, gpu=0.16096 ms
+Trial 95: e2e=0.17476 ms, gpu=0.16243 ms
+Trial 96: e2e=0.17238 ms, gpu=0.15955 ms
+Trial 97: e2e=0.17190 ms, gpu=0.15930 ms
+Trial 98: e2e=0.17285 ms, gpu=0.16000 ms
+Trial 99: e2e=0.17357 ms, gpu=0.16106 ms
+Trial 100: e2e=0.17500 ms, gpu=0.16211 ms
+graph-net-test-compiler-log [Datatype][eager]: float16 float16
+graph-net-test-compiler-log [Datatype][compiled]: float16 float16
+graph-net-test-compiler-log [DataType] eager:['float16', 'float16'] compiled:['float16', 'float16'] match:True
+graph-net-test-compiler-log [Correctness][equal]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.00E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_2.56E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.69E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-14_rtol_1.00E-14]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_3.98E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_5.85E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_2.54E-11]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-13_rtol_2.51E-13]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.58E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.34E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_3.82E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-12_rtol_6.31E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_3.06E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_5.75E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-10_rtol_1.58E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_2.51E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_7.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_8.65E-08]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-09_rtol_3.98E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.60E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.30E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_1.00E-07]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.98E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.66E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_1.96E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-06_rtol_2.51E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_1.58E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_8.36E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_2.94E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-05_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_6.31E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_1.91E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_4.42E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-03_rtol_1.58E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_2.51E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_4.37E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_6.65E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-02_rtol_3.98E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_3.98E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_2.29E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_1.50E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E+01_rtol_2.51E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_1.58E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_5.23E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_2.26E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E+02_rtol_6.31E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_6.31E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_1.20E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_3.40E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E+04_rtol_1.58E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.51E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.73E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_5.11E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E+05_rtol_3.98E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_1.00E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_6.25E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_7.69E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+07_rtol_1.00E+07]: 1 1
+graph-net-test-compiler-log [Correctness][max_diff]: 0.0 0.0
+graph-net-test-compiler-log [Correctness][mean_diff]: 0.0 0.0
+graph-net-test-compiler-log [Result] status: success
+graph-net-test-compiler-log [Performance][eager]: {"e2e": {"median": 0.173569, "iqr": 0.00190735, "mean": 0.173695, "std": 0.00200256, "min": 0.170469, "max": 0.188589}, "gpu": {"median": 0.161024, "iqr": 0.001936, "mean": 0.161004, "std": 0.00162374, "min": 0.158048, "max": 0.171328}}
+graph-net-test-compiler-log [Performance][compiled]: {"e2e": {"median": 0.154614, "iqr": 0.00196695, "mean": 0.155547, "std": 0.00528301, "min": 0.151873, "max": 0.202894}, "gpu": {"median": 0.141856, "iqr": 0.001664, "mean": 0.142508, "std": 0.0029499, "min": 0.139264, "max": 0.164032}}
+graph-net-test-compiler-log [Speedup][e2e]: 1.12260
+graph-net-test-compiler-log [Speedup][gpu]: 1.13512
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/1] preserve explicit operator.iadd in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "relu", "target": "torch.nn.functional.relu"}]
+[kiln-pattern-multi-output/1] upstream tuple destructuring 2
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0
+graph-net-test-compiler-log [Config] model: hf-tiny-model-private/tiny-random-EfficientFormerForImageClassificationWithTeacher
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization [{"node": "tmp_2", "target": "torch.nn.functional.relu"}]
+[PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=5.07951 ms, gpu=5.03517 ms
+Trial 2: e2e=5.01466 ms, gpu=4.99731 ms
+Trial 3: e2e=5.00250 ms, gpu=4.98707 ms
+Trial 4: e2e=4.99129 ms, gpu=4.97702 ms
+Trial 5: e2e=5.00727 ms, gpu=4.99370 ms
+Trial 6: e2e=5.21374 ms, gpu=5.20099 ms
+Trial 7: e2e=5.00917 ms, gpu=4.99568 ms
+Trial 8: e2e=4.99821 ms, gpu=4.98490 ms
+Trial 9: e2e=5.03445 ms, gpu=5.02122 ms
+Trial 10: e2e=5.02872 ms, gpu=5.01562 ms
+Trial 11: e2e=4.99988 ms, gpu=4.98605 ms
+Trial 12: e2e=4.99916 ms, gpu=4.98630 ms
+Trial 13: e2e=5.07092 ms, gpu=5.05805 ms
+Trial 14: e2e=5.15175 ms, gpu=5.13866 ms
+Trial 15: e2e=5.44834 ms, gpu=5.43482 ms
+Trial 16: e2e=5.37038 ms, gpu=5.35770 ms
+Trial 17: e2e=5.00417 ms, gpu=4.99126 ms
+Trial 18: e2e=4.99344 ms, gpu=4.98058 ms
+Trial 19: e2e=5.00441 ms, gpu=4.99130 ms
+Trial 20: e2e=4.99964 ms, gpu=4.98685 ms
+Trial 21: e2e=5.00059 ms, gpu=4.98845 ms
+Trial 22: e2e=4.99439 ms, gpu=4.98138 ms
+Trial 23: e2e=4.98867 ms, gpu=4.97555 ms
+Trial 24: e2e=4.99725 ms, gpu=4.98429 ms
+Trial 25: e2e=5.00226 ms, gpu=4.99011 ms
+Trial 26: e2e=5.09691 ms, gpu=5.08470 ms
+Trial 27: e2e=5.33676 ms, gpu=5.32384 ms
+Trial 28: e2e=5.43237 ms, gpu=5.41949 ms
+Trial 29: e2e=5.63097 ms, gpu=5.61440 ms
+Trial 30: e2e=5.41425 ms, gpu=5.40214 ms
+Trial 31: e2e=5.23925 ms, gpu=5.22602 ms
+Trial 32: e2e=5.13601 ms, gpu=5.12272 ms
+Trial 33: e2e=4.99177 ms, gpu=4.97869 ms
+Trial 34: e2e=4.98867 ms, gpu=4.97578 ms
+Trial 35: e2e=4.98605 ms, gpu=4.97360 ms
+Trial 36: e2e=5.00917 ms, gpu=4.99651 ms
+Trial 37: e2e=4.99678 ms, gpu=4.98400 ms
+Trial 38: e2e=4.99749 ms, gpu=4.98445 ms
+Trial 39: e2e=4.99582 ms, gpu=4.98291 ms
+Trial 40: e2e=4.99678 ms, gpu=4.98384 ms
+Trial 41: e2e=4.99129 ms, gpu=4.97840 ms
+Trial 42: e2e=4.99249 ms, gpu=4.97952 ms
+Trial 43: e2e=4.99582 ms, gpu=4.98253 ms
+Trial 44: e2e=5.00679 ms, gpu=4.99395 ms
+Trial 45: e2e=5.16820 ms, gpu=5.15523 ms
+Trial 46: e2e=4.99249 ms, gpu=4.97990 ms
+Trial 47: e2e=4.98915 ms, gpu=4.97645 ms
+Trial 48: e2e=4.99392 ms, gpu=4.98090 ms
+Trial 49: e2e=5.00369 ms, gpu=4.99094 ms
+Trial 50: e2e=4.99630 ms, gpu=4.98387 ms
+Trial 51: e2e=4.99392 ms, gpu=4.98118 ms
+Trial 52: e2e=5.01251 ms, gpu=4.99946 ms
+Trial 53: e2e=4.99749 ms, gpu=4.98474 ms
+Trial 54: e2e=4.99105 ms, gpu=4.97850 ms
+Trial 55: e2e=4.99153 ms, gpu=4.97869 ms
+Trial 56: e2e=4.99511 ms, gpu=4.98234 ms
+Trial 57: e2e=4.99725 ms, gpu=4.98451 ms
+Trial 58: e2e=4.98962 ms, gpu=4.97664 ms
+Trial 59: e2e=4.98772 ms, gpu=4.97494 ms
+Trial 60: e2e=5.00321 ms, gpu=4.99002 ms
+Trial 61: e2e=4.98629 ms, gpu=4.97370 ms
+Trial 62: e2e=4.98891 ms, gpu=4.97581 ms
+Trial 63: e2e=4.98486 ms, gpu=4.97168 ms
+Trial 64: e2e=4.98843 ms, gpu=4.97520 ms
+Trial 65: e2e=4.98867 ms, gpu=4.97581 ms
+Trial 66: e2e=4.98509 ms, gpu=4.97210 ms
+Trial 67: e2e=4.98891 ms, gpu=4.97578 ms
+Trial 68: e2e=5.01180 ms, gpu=4.99920 ms
+Trial 69: e2e=4.99058 ms, gpu=4.97782 ms
+Trial 70: e2e=4.98652 ms, gpu=4.97366 ms
+Trial 71: e2e=4.99892 ms, gpu=4.98595 ms
+Trial 72: e2e=4.99463 ms, gpu=4.98195 ms
+Trial 73: e2e=4.99678 ms, gpu=4.98378 ms
+Trial 74: e2e=4.98652 ms, gpu=4.97379 ms
+Trial 75: e2e=4.98772 ms, gpu=4.97472 ms
+Trial 76: e2e=4.99511 ms, gpu=4.98221 ms
+Trial 77: e2e=4.98748 ms, gpu=4.97427 ms
+Trial 78: e2e=4.98199 ms, gpu=4.96915 ms
+Trial 79: e2e=4.98867 ms, gpu=4.97562 ms
+Trial 80: e2e=4.99892 ms, gpu=4.98624 ms
+Trial 81: e2e=4.98939 ms, gpu=4.97658 ms
+Trial 82: e2e=4.98557 ms, gpu=4.97293 ms
+Trial 83: e2e=4.98486 ms, gpu=4.97158 ms
+Trial 84: e2e=4.99678 ms, gpu=4.98362 ms
+Trial 85: e2e=5.00464 ms, gpu=4.99187 ms
+Trial 86: e2e=4.98867 ms, gpu=4.97600 ms
+Trial 87: e2e=4.99249 ms, gpu=4.97981 ms
+Trial 88: e2e=4.99511 ms, gpu=4.98208 ms
+Trial 89: e2e=4.98509 ms, gpu=4.97219 ms
+Trial 90: e2e=4.99272 ms, gpu=4.97990 ms
+Trial 91: e2e=4.98509 ms, gpu=4.97232 ms
+Trial 92: e2e=4.99177 ms, gpu=4.97891 ms
+Trial 93: e2e=4.99392 ms, gpu=4.98118 ms
+Trial 94: e2e=4.97270 ms, gpu=4.95952 ms
+Trial 95: e2e=4.99153 ms, gpu=4.97859 ms
+Trial 96: e2e=4.99940 ms, gpu=4.98624 ms
+Trial 97: e2e=4.99058 ms, gpu=4.97786 ms
+Trial 98: e2e=4.99392 ms, gpu=4.98086 ms
+Trial 99: e2e=4.98462 ms, gpu=4.97194 ms
+Trial 100: e2e=4.99487 ms, gpu=4.98189 ms
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=10.16545 ms, gpu=10.14080 ms
+Trial 2: e2e=10.15806 ms, gpu=10.14234 ms
+Trial 3: e2e=10.15353 ms, gpu=10.14035 ms
+Trial 4: e2e=10.75578 ms, gpu=10.74384 ms
+Trial 5: e2e=10.14757 ms, gpu=10.13475 ms
+Trial 6: e2e=10.14304 ms, gpu=10.12986 ms
+Trial 7: e2e=10.14233 ms, gpu=10.12893 ms
+Trial 8: e2e=10.14090 ms, gpu=10.12803 ms
+Trial 9: e2e=10.14519 ms, gpu=10.13248 ms
+Trial 10: e2e=10.14900 ms, gpu=10.13638 ms
+Trial 11: e2e=10.15234 ms, gpu=10.13802 ms
+Trial 12: e2e=10.76627 ms, gpu=10.75376 ms
+Trial 13: e2e=10.14256 ms, gpu=10.13034 ms
+Trial 14: e2e=10.54454 ms, gpu=10.47418 ms
+Trial 15: e2e=10.25343 ms, gpu=10.23866 ms
+Trial 16: e2e=10.71048 ms, gpu=10.69680 ms
+Trial 17: e2e=10.14781 ms, gpu=10.13488 ms
+Trial 18: e2e=10.16378 ms, gpu=10.15059 ms
+Trial 19: e2e=10.14614 ms, gpu=10.13290 ms
+Trial 20: e2e=10.15663 ms, gpu=10.14317 ms
+Trial 21: e2e=10.15377 ms, gpu=10.14090 ms
+Trial 22: e2e=10.14590 ms, gpu=10.13309 ms
+Trial 23: e2e=10.34355 ms, gpu=10.33174 ms
+Trial 24: e2e=10.55717 ms, gpu=10.54384 ms
+Trial 25: e2e=10.15711 ms, gpu=10.14470 ms
+Trial 26: e2e=10.14662 ms, gpu=10.13341 ms
+Trial 27: e2e=10.14996 ms, gpu=10.13702 ms
+Trial 28: e2e=10.15925 ms, gpu=10.14643 ms
+Trial 29: e2e=10.14853 ms, gpu=10.13523 ms
+Trial 30: e2e=10.15067 ms, gpu=10.13760 ms
+Trial 31: e2e=10.14352 ms, gpu=10.13011 ms
+Trial 32: e2e=10.15425 ms, gpu=10.14128 ms
+Trial 33: e2e=10.46300 ms, gpu=10.44986 ms
+Trial 34: e2e=10.43081 ms, gpu=10.41808 ms
+Trial 35: e2e=10.14423 ms, gpu=10.13142 ms
+Trial 36: e2e=10.14185 ms, gpu=10.12909 ms
+Trial 37: e2e=10.14113 ms, gpu=10.12800 ms
+Trial 38: e2e=10.15520 ms, gpu=10.14198 ms
+Trial 39: e2e=10.15258 ms, gpu=10.13942 ms
+Trial 40: e2e=10.14400 ms, gpu=10.13072 ms
+Trial 41: e2e=10.13756 ms, gpu=10.12458 ms
+Trial 42: e2e=10.64897 ms, gpu=10.63597 ms
+Trial 43: e2e=10.14423 ms, gpu=10.13110 ms
+Trial 44: e2e=10.14495 ms, gpu=10.13194 ms
+Trial 45: e2e=10.14042 ms, gpu=10.12746 ms
+Trial 46: e2e=10.15902 ms, gpu=10.14650 ms
+Trial 47: e2e=10.13160 ms, gpu=10.11869 ms
+Trial 48: e2e=10.14256 ms, gpu=10.12957 ms
+Trial 49: e2e=10.13923 ms, gpu=10.12624 ms
+Trial 50: e2e=10.15210 ms, gpu=10.13923 ms
+Trial 51: e2e=10.73551 ms, gpu=10.72198 ms
+Trial 52: e2e=10.14137 ms, gpu=10.12861 ms
+Trial 53: e2e=10.14113 ms, gpu=10.12845 ms
+Trial 54: e2e=10.14018 ms, gpu=10.12739 ms
+Trial 55: e2e=10.15449 ms, gpu=10.14189 ms
+Trial 56: e2e=10.14566 ms, gpu=10.13248 ms
+Trial 57: e2e=10.14948 ms, gpu=10.13699 ms
+Trial 58: e2e=10.14829 ms, gpu=10.13546 ms
+Trial 59: e2e=10.16927 ms, gpu=10.15594 ms
+Trial 60: e2e=10.14376 ms, gpu=10.13053 ms
+Trial 61: e2e=10.14853 ms, gpu=10.13526 ms
+Trial 62: e2e=10.14471 ms, gpu=10.13222 ms
+Trial 63: e2e=10.16450 ms, gpu=10.15174 ms
+Trial 64: e2e=10.14233 ms, gpu=10.12998 ms
+Trial 65: e2e=10.14733 ms, gpu=10.13450 ms
+Trial 66: e2e=10.13446 ms, gpu=10.12214 ms
+Trial 67: e2e=10.15186 ms, gpu=10.13914 ms
+Trial 68: e2e=10.14113 ms, gpu=10.12778 ms
+Trial 69: e2e=10.15306 ms, gpu=10.13968 ms
+Trial 70: e2e=10.14948 ms, gpu=10.13610 ms
+Trial 71: e2e=10.15782 ms, gpu=10.14525 ms
+Trial 72: e2e=10.14113 ms, gpu=10.12858 ms
+Trial 73: e2e=10.14900 ms, gpu=10.13616 ms
+Trial 74: e2e=10.14876 ms, gpu=10.13597 ms
+Trial 75: e2e=10.14328 ms, gpu=10.13043 ms
+Trial 76: e2e=10.14018 ms, gpu=10.12771 ms
+Trial 77: e2e=10.15282 ms, gpu=10.13997 ms
+Trial 78: e2e=10.14686 ms, gpu=10.13421 ms
+Trial 79: e2e=10.15043 ms, gpu=10.13722 ms
+Trial 80: e2e=10.13589 ms, gpu=10.12259 ms
+Trial 81: e2e=10.15162 ms, gpu=10.13878 ms
+Trial 82: e2e=10.14853 ms, gpu=10.13594 ms
+Trial 83: e2e=10.13899 ms, gpu=10.12605 ms
+Trial 84: e2e=10.48255 ms, gpu=10.46950 ms
+Trial 85: e2e=10.42700 ms, gpu=10.41309 ms
+Trial 86: e2e=10.13827 ms, gpu=10.12528 ms
+Trial 87: e2e=10.15067 ms, gpu=10.13789 ms
+Trial 88: e2e=10.13756 ms, gpu=10.12483 ms
+Trial 89: e2e=10.21957 ms, gpu=10.20656 ms
+Trial 90: e2e=10.13780 ms, gpu=10.12480 ms
+Trial 91: e2e=10.62679 ms, gpu=10.61360 ms
+Trial 92: e2e=10.14161 ms, gpu=10.12838 ms
+Trial 93: e2e=10.14566 ms, gpu=10.13258 ms
+Trial 94: e2e=10.13899 ms, gpu=10.12608 ms
+Trial 95: e2e=10.16092 ms, gpu=10.14845 ms
+Trial 96: e2e=10.14948 ms, gpu=10.13667 ms
+Trial 97: e2e=10.14757 ms, gpu=10.13466 ms
+Trial 98: e2e=10.13541 ms, gpu=10.12291 ms
+Trial 99: e2e=10.16641 ms, gpu=10.15299 ms
+Trial 100: e2e=10.14256 ms, gpu=10.12992 ms
+graph-net-test-compiler-log [Datatype][eager]: float16 float16
+graph-net-test-compiler-log [Datatype][compiled]: float16 float16
+graph-net-test-compiler-log [DataType] eager:['float16', 'float16'] compiled:['float16', 'float16'] match:True
+graph-net-test-compiler-log [Correctness][equal]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.00E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_2.56E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.69E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-14_rtol_1.00E-14]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_3.98E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_5.85E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_2.54E-11]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-13_rtol_2.51E-13]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.58E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.34E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_3.82E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-12_rtol_6.31E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_3.06E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_5.75E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-10_rtol_1.58E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_2.51E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_7.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_8.65E-08]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-09_rtol_3.98E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.60E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.30E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_1.00E-07]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.98E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.66E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_1.96E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-06_rtol_2.51E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_1.58E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_8.36E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_2.94E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-05_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_6.31E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_1.91E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_4.42E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-03_rtol_1.58E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_2.51E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_4.37E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_6.65E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-02_rtol_3.98E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_3.98E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_2.29E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_1.50E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E+01_rtol_2.51E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_1.58E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_5.23E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_2.26E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E+02_rtol_6.31E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_6.31E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_1.20E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_3.40E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E+04_rtol_1.58E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.51E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.73E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_5.11E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E+05_rtol_3.98E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_1.00E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_6.25E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_7.69E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+07_rtol_1.00E+07]: 1 1
+graph-net-test-compiler-log [Correctness][max_diff]: 0.0 0.0
+graph-net-test-compiler-log [Correctness][mean_diff]: 0.0 0.0
+graph-net-test-compiler-log [Result] status: success
+graph-net-test-compiler-log [Performance][eager]: {"e2e": {"median": 10.1485, "iqr": 0.0147223, "mean": 10.2051, "std": 0.152336, "min": 10.1316, "max": 10.7663}, "gpu": {"median": 10.1357, "iqr": 0.01264, "mean": 10.1914, "std": 0.151176, "min": 10.1187, "max": 10.7538}}
+graph-net-test-compiler-log [Performance][compiled]: {"e2e": {"median": 4.99511, "iqr": 0.0149012, "mean": 5.03374, "std": 0.113903, "min": 4.9727, "max": 5.63097}, "gpu": {"median": 4.98227, "iqr": 0.014728, "mean": 5.0204, "std": 0.113652, "min": 4.95952, "max": 5.6144}}
+graph-net-test-compiler-log [Speedup][e2e]: 2.03169
+graph-net-test-compiler-log [Speedup][gpu]: 2.03435
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/1] preserve explicit operator.iadd in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "relu", "target": "torch.nn.functional.relu"}]
+[kiln-pattern-multi-output/1] upstream tuple destructuring 2
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0
+graph-net-test-compiler-log [Config] model: hf-tiny-model-private/tiny-random-EfficientFormerForImageClassificationWithTeacher
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization [{"node": "tmp_2", "target": "torch.nn.functional.relu"}]
+[PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=7.55024 ms, gpu=7.50650 ms
+Trial 2: e2e=7.35974 ms, gpu=7.34227 ms
+Trial 3: e2e=7.18045 ms, gpu=7.16045 ms
+Trial 4: e2e=7.03621 ms, gpu=7.02253 ms
+Trial 5: e2e=7.04098 ms, gpu=7.02771 ms
+Trial 6: e2e=7.14946 ms, gpu=7.13555 ms
+Trial 7: e2e=7.32923 ms, gpu=7.29232 ms
+Trial 8: e2e=7.33447 ms, gpu=7.32147 ms
+Trial 9: e2e=7.02667 ms, gpu=7.01341 ms
+Trial 10: e2e=7.04527 ms, gpu=7.03203 ms
+Trial 11: e2e=7.04789 ms, gpu=7.03485 ms
+Trial 12: e2e=7.02524 ms, gpu=7.01222 ms
+Trial 13: e2e=7.02477 ms, gpu=7.01162 ms
+Trial 14: e2e=7.03049 ms, gpu=7.01789 ms
+Trial 15: e2e=7.02977 ms, gpu=7.01658 ms
+Trial 16: e2e=7.03168 ms, gpu=7.01904 ms
+Trial 17: e2e=7.03073 ms, gpu=7.01805 ms
+Trial 18: e2e=7.03073 ms, gpu=7.01795 ms
+Trial 19: e2e=7.64632 ms, gpu=7.63322 ms
+Trial 20: e2e=7.10273 ms, gpu=7.08982 ms
+Trial 21: e2e=7.03049 ms, gpu=7.01821 ms
+Trial 22: e2e=7.02477 ms, gpu=7.01213 ms
+Trial 23: e2e=7.01952 ms, gpu=7.00653 ms
+Trial 24: e2e=7.01857 ms, gpu=7.00579 ms
+Trial 25: e2e=7.04193 ms, gpu=7.02893 ms
+Trial 26: e2e=7.03120 ms, gpu=7.01834 ms
+Trial 27: e2e=7.03764 ms, gpu=7.02512 ms
+Trial 28: e2e=7.03192 ms, gpu=7.01978 ms
+Trial 29: e2e=7.03406 ms, gpu=7.02122 ms
+Trial 30: e2e=7.03382 ms, gpu=7.02112 ms
+Trial 31: e2e=7.04527 ms, gpu=7.03210 ms
+Trial 32: e2e=7.02524 ms, gpu=7.01283 ms
+Trial 33: e2e=7.03001 ms, gpu=7.01757 ms
+Trial 34: e2e=7.02310 ms, gpu=7.01018 ms
+Trial 35: e2e=7.03526 ms, gpu=7.02246 ms
+Trial 36: e2e=7.03120 ms, gpu=7.01837 ms
+Trial 37: e2e=7.03096 ms, gpu=7.01834 ms
+Trial 38: e2e=7.02906 ms, gpu=7.01597 ms
+Trial 39: e2e=7.02024 ms, gpu=7.00762 ms
+Trial 40: e2e=7.03669 ms, gpu=7.02406 ms
+Trial 41: e2e=7.02500 ms, gpu=7.01229 ms
+Trial 42: e2e=7.03025 ms, gpu=7.01747 ms
+Trial 43: e2e=7.04145 ms, gpu=7.02861 ms
+Trial 44: e2e=7.03120 ms, gpu=7.01834 ms
+Trial 45: e2e=7.03335 ms, gpu=7.02038 ms
+Trial 46: e2e=7.03430 ms, gpu=7.02128 ms
+Trial 47: e2e=7.03287 ms, gpu=7.01974 ms
+Trial 48: e2e=7.02739 ms, gpu=7.01517 ms
+Trial 49: e2e=7.02310 ms, gpu=7.01034 ms
+Trial 50: e2e=7.04336 ms, gpu=7.03075 ms
+Trial 51: e2e=7.03311 ms, gpu=7.02070 ms
+Trial 52: e2e=7.02834 ms, gpu=7.01552 ms
+Trial 53: e2e=7.02739 ms, gpu=7.01437 ms
+Trial 54: e2e=7.03001 ms, gpu=7.01728 ms
+Trial 55: e2e=7.04670 ms, gpu=7.03354 ms
+Trial 56: e2e=7.02858 ms, gpu=7.01597 ms
+Trial 57: e2e=7.03764 ms, gpu=7.02525 ms
+Trial 58: e2e=7.02810 ms, gpu=7.01542 ms
+Trial 59: e2e=7.03764 ms, gpu=7.02502 ms
+Trial 60: e2e=7.28703 ms, gpu=7.27450 ms
+Trial 61: e2e=7.31635 ms, gpu=7.27610 ms
+Trial 62: e2e=7.17664 ms, gpu=7.16429 ms
+Trial 63: e2e=7.02548 ms, gpu=7.01254 ms
+Trial 64: e2e=7.02882 ms, gpu=7.01571 ms
+Trial 65: e2e=7.03883 ms, gpu=7.02643 ms
+Trial 66: e2e=7.03287 ms, gpu=7.01997 ms
+Trial 67: e2e=7.02763 ms, gpu=7.01462 ms
+Trial 68: e2e=7.03454 ms, gpu=7.02182 ms
+Trial 69: e2e=7.01666 ms, gpu=7.00413 ms
+Trial 70: e2e=7.03239 ms, gpu=7.01955 ms
+Trial 71: e2e=7.02691 ms, gpu=7.01443 ms
+Trial 72: e2e=7.03335 ms, gpu=7.02086 ms
+Trial 73: e2e=7.05719 ms, gpu=7.04394 ms
+Trial 74: e2e=7.01404 ms, gpu=7.00115 ms
+Trial 75: e2e=7.03025 ms, gpu=7.01786 ms
+Trial 76: e2e=7.04074 ms, gpu=7.02797 ms
+Trial 77: e2e=7.02810 ms, gpu=7.01571 ms
+Trial 78: e2e=7.01499 ms, gpu=7.00234 ms
+Trial 79: e2e=7.03549 ms, gpu=7.02317 ms
+Trial 80: e2e=7.02333 ms, gpu=7.01072 ms
+Trial 81: e2e=7.03669 ms, gpu=7.02349 ms
+Trial 82: e2e=7.04122 ms, gpu=7.02842 ms
+Trial 83: e2e=7.02882 ms, gpu=7.01622 ms
+Trial 84: e2e=7.02643 ms, gpu=7.01370 ms
+Trial 85: e2e=7.03859 ms, gpu=7.02582 ms
+Trial 86: e2e=7.01690 ms, gpu=7.00458 ms
+Trial 87: e2e=7.03669 ms, gpu=7.02394 ms
+Trial 88: e2e=7.11560 ms, gpu=7.10262 ms
+Trial 89: e2e=7.02620 ms, gpu=7.01354 ms
+Trial 90: e2e=7.59172 ms, gpu=7.57891 ms
+Trial 91: e2e=7.09295 ms, gpu=7.08010 ms
+Trial 92: e2e=7.02071 ms, gpu=7.00781 ms
+Trial 93: e2e=7.02524 ms, gpu=7.01261 ms
+Trial 94: e2e=7.03287 ms, gpu=7.02022 ms
+Trial 95: e2e=7.02834 ms, gpu=7.01552 ms
+Trial 96: e2e=7.02929 ms, gpu=7.01642 ms
+Trial 97: e2e=7.02620 ms, gpu=7.01344 ms
+Trial 98: e2e=7.03669 ms, gpu=7.02416 ms
+Trial 99: e2e=7.06172 ms, gpu=7.04867 ms
+Trial 100: e2e=7.41243 ms, gpu=7.39341 ms
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=17.54642 ms, gpu=17.52352 ms
+Trial 2: e2e=17.53044 ms, gpu=17.51664 ms
+Trial 3: e2e=17.51661 ms, gpu=17.50422 ms
+Trial 4: e2e=18.15629 ms, gpu=18.14362 ms
+Trial 5: e2e=17.53283 ms, gpu=17.52035 ms
+Trial 6: e2e=17.53712 ms, gpu=17.52422 ms
+Trial 7: e2e=17.52949 ms, gpu=17.51741 ms
+Trial 8: e2e=17.54260 ms, gpu=17.53011 ms
+Trial 9: e2e=17.53283 ms, gpu=17.52029 ms
+Trial 10: e2e=17.84635 ms, gpu=17.83357 ms
+Trial 11: e2e=17.87806 ms, gpu=17.86557 ms
+Trial 12: e2e=17.72356 ms, gpu=17.71069 ms
+Trial 13: e2e=17.94815 ms, gpu=17.92714 ms
+Trial 14: e2e=17.51852 ms, gpu=17.50634 ms
+Trial 15: e2e=17.54928 ms, gpu=17.53661 ms
+Trial 16: e2e=17.53712 ms, gpu=17.52438 ms
+Trial 17: e2e=18.21470 ms, gpu=18.20192 ms
+Trial 18: e2e=17.88855 ms, gpu=17.87619 ms
+Trial 19: e2e=18.19777 ms, gpu=18.18522 ms
+Trial 20: e2e=17.87663 ms, gpu=17.86390 ms
+Trial 21: e2e=17.52639 ms, gpu=17.51366 ms
+Trial 22: e2e=17.53283 ms, gpu=17.52061 ms
+Trial 23: e2e=17.54022 ms, gpu=17.52653 ms
+Trial 24: e2e=18.24164 ms, gpu=18.22541 ms
+Trial 25: e2e=17.52782 ms, gpu=17.51581 ms
+Trial 26: e2e=18.27860 ms, gpu=18.26704 ms
+Trial 27: e2e=17.52424 ms, gpu=17.51197 ms
+Trial 28: e2e=17.51757 ms, gpu=17.50630 ms
+Trial 29: e2e=17.51709 ms, gpu=17.50435 ms
+Trial 30: e2e=17.51876 ms, gpu=17.50611 ms
+Trial 31: e2e=17.66396 ms, gpu=17.65178 ms
+Trial 32: e2e=18.78238 ms, gpu=18.76992 ms
+Trial 33: e2e=18.28623 ms, gpu=18.27459 ms
+Trial 34: e2e=17.52710 ms, gpu=17.51446 ms
+Trial 35: e2e=17.52734 ms, gpu=17.51482 ms
+Trial 36: e2e=17.52782 ms, gpu=17.51526 ms
+Trial 37: e2e=17.52520 ms, gpu=17.51322 ms
+Trial 38: e2e=17.84301 ms, gpu=17.83075 ms
+Trial 39: e2e=18.17942 ms, gpu=18.15827 ms
+Trial 40: e2e=17.86470 ms, gpu=17.85242 ms
+Trial 41: e2e=17.51566 ms, gpu=17.50304 ms
+Trial 42: e2e=17.53139 ms, gpu=17.51936 ms
+Trial 43: e2e=17.52377 ms, gpu=17.51110 ms
+Trial 44: e2e=17.52830 ms, gpu=17.51587 ms
+Trial 45: e2e=17.89474 ms, gpu=17.88256 ms
+Trial 46: e2e=18.17822 ms, gpu=18.16563 ms
+Trial 47: e2e=17.85541 ms, gpu=17.84304 ms
+Trial 48: e2e=17.53116 ms, gpu=17.51859 ms
+Trial 49: e2e=17.52400 ms, gpu=17.51130 ms
+Trial 50: e2e=17.52186 ms, gpu=17.50966 ms
+Trial 51: e2e=17.53759 ms, gpu=17.52502 ms
+Trial 52: e2e=18.30268 ms, gpu=18.29110 ms
+Trial 53: e2e=18.23878 ms, gpu=18.22672 ms
+Trial 54: e2e=17.90929 ms, gpu=17.89805 ms
+Trial 55: e2e=17.86923 ms, gpu=17.85715 ms
+Trial 56: e2e=17.52520 ms, gpu=17.51315 ms
+Trial 57: e2e=17.52472 ms, gpu=17.51210 ms
+Trial 58: e2e=17.55881 ms, gpu=17.54646 ms
+Trial 59: e2e=18.20016 ms, gpu=18.18858 ms
+Trial 60: e2e=18.95165 ms, gpu=18.92371 ms
+Trial 61: e2e=18.35465 ms, gpu=18.34282 ms
+Trial 62: e2e=17.51590 ms, gpu=17.50397 ms
+Trial 63: e2e=17.53998 ms, gpu=17.52758 ms
+Trial 64: e2e=17.52877 ms, gpu=17.51635 ms
+Trial 65: e2e=17.52925 ms, gpu=17.51702 ms
+Trial 66: e2e=17.83133 ms, gpu=17.81859 ms
+Trial 67: e2e=17.90762 ms, gpu=17.89558 ms
+Trial 68: e2e=17.59052 ms, gpu=17.57802 ms
+Trial 69: e2e=18.24522 ms, gpu=18.23258 ms
+Trial 70: e2e=17.52305 ms, gpu=17.51101 ms
+Trial 71: e2e=17.52853 ms, gpu=17.51616 ms
+Trial 72: e2e=17.53283 ms, gpu=17.52086 ms
+Trial 73: e2e=17.90905 ms, gpu=17.89683 ms
+Trial 74: e2e=18.23664 ms, gpu=18.22410 ms
+Trial 75: e2e=17.91120 ms, gpu=17.89869 ms
+Trial 76: e2e=17.55571 ms, gpu=17.54333 ms
+Trial 77: e2e=17.52639 ms, gpu=17.51408 ms
+Trial 78: e2e=17.53426 ms, gpu=17.52195 ms
+Trial 79: e2e=17.53306 ms, gpu=17.52109 ms
+Trial 80: e2e=18.27717 ms, gpu=18.26576 ms
+Trial 81: e2e=18.22329 ms, gpu=18.20883 ms
+Trial 82: e2e=17.51351 ms, gpu=17.48198 ms
+Trial 83: e2e=17.53139 ms, gpu=17.51894 ms
+Trial 84: e2e=17.52925 ms, gpu=17.51661 ms
+Trial 85: e2e=17.52162 ms, gpu=17.50915 ms
+Trial 86: e2e=17.58623 ms, gpu=17.57395 ms
+Trial 87: e2e=18.36371 ms, gpu=18.35210 ms
+Trial 88: e2e=18.91279 ms, gpu=18.90106 ms
+Trial 89: e2e=17.59028 ms, gpu=17.57837 ms
+Trial 90: e2e=17.53616 ms, gpu=17.52362 ms
+Trial 91: e2e=17.53330 ms, gpu=17.52029 ms
+Trial 92: e2e=17.51590 ms, gpu=17.50323 ms
+Trial 93: e2e=17.53902 ms, gpu=17.52653 ms
+Trial 94: e2e=17.56811 ms, gpu=17.55578 ms
+Trial 95: e2e=18.21852 ms, gpu=18.20595 ms
+Trial 96: e2e=18.20779 ms, gpu=18.19574 ms
+Trial 97: e2e=17.51971 ms, gpu=17.50714 ms
+Trial 98: e2e=17.52305 ms, gpu=17.51091 ms
+Trial 99: e2e=17.52329 ms, gpu=17.51062 ms
+Trial 100: e2e=17.51804 ms, gpu=17.50598 ms
+graph-net-test-compiler-log [Datatype][eager]: float32 float32
+graph-net-test-compiler-log [Datatype][compiled]: float32 float32
+graph-net-test-compiler-log [DataType] eager:['float32', 'float32'] compiled:['float32', 'float32'] match:True
+graph-net-test-compiler-log [Correctness][equal]: 0 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.00E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_2.56E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-10_rtol_1.69E-12]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-14_rtol_1.00E-14]: 0 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_3.98E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_5.85E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-09_rtol_2.54E-11]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-13_rtol_2.51E-13]: 0 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.58E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_1.34E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-08_rtol_3.82E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-12_rtol_6.31E-12]: 0 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_3.06E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_5.75E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-10_rtol_1.58E-10]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_2.51E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_7.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-06_rtol_8.65E-08]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-09_rtol_3.98E-09]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.00E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.60E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-05_rtol_1.30E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-07_rtol_1.00E-07]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.98E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_3.66E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-04_rtol_1.96E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E-06_rtol_2.51E-06]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_1.58E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_8.36E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-03_rtol_2.94E-04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E-05_rtol_6.31E-05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_6.31E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_1.91E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-02_rtol_4.42E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E-03_rtol_1.58E-03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_2.51E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_4.37E-01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E-01_rtol_6.65E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E-02_rtol_3.98E-02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+00_rtol_1.00E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_3.98E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_2.29E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+01_rtol_1.50E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_2.51E+01_rtol_2.51E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_1.58E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_5.23E+00]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+02_rtol_2.26E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_6.31E+02_rtol_6.31E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_6.31E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_1.20E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+03_rtol_3.40E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.58E+04_rtol_1.58E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.51E+02]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_2.73E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+04_rtol_5.11E+04]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_3.98E+05_rtol_3.98E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_1.00E+03]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_6.25E+01]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+05_rtol_7.69E+05]: 1 1
+graph-net-test-compiler-log [Correctness][all_close_atol_1.00E+07_rtol_1.00E+07]: 1 1
+graph-net-test-compiler-log [Correctness][max_diff]: 2.9103830456733704e-11 0.0
+graph-net-test-compiler-log [Correctness][mean_diff]: 1.5546819908264753e-17 0.0
+graph-net-test-compiler-log [Result] status: success
+graph-net-test-compiler-log [Performance][eager]: {"e2e": {"median": 17.5395, "iqr": 0.381827, "mean": 17.7636, "std": 0.341831, "min": 17.5135, "max": 18.9517}, "gpu": {"median": 17.5258, "iqr": 0.382408, "mean": 17.7506, "std": 0.34139, "min": 17.482, "max": 18.9237}}
+graph-net-test-compiler-log [Performance][compiled]: {"e2e": {"median": 7.03216, "iqr": 0.0134706, "mean": 7.07331, "std": 0.1202, "min": 7.01404, "max": 7.64632}, "gpu": {"median": 7.01965, "iqr": 0.0130478, "mean": 7.05951, "std": 0.11759, "min": 7.00115, "max": 7.63322}}
+graph-net-test-compiler-log [Speedup][e2e]: 2.49418
+graph-net-test-compiler-log [Speedup][gpu]: 2.49668

@@ -22,7 +22,7 @@ assert compilation['status']=='qualified' and len(compilation['records'])==18
 for row in compilation['records']:
  receipt=read('pi-transformation-artifacts-v1/'+row['policy']+'/compile-receipt.json')
  assert len(receipt['records'])==20 and all(r['status']=='compiled' for r in receipt['records'])
-coverage=read('kiln-coverage.json')
+coverage=read('coverage-before-average-pooling.json')
 assert (coverage['tasks_verified'],coverage['graphs_verified'],coverage['graphs_in_complete_tasks'])==(31,358,289)
 report=T/'reference/26-staged-fusion-generalization-and-agent-composition.md'
 body=report.read_text();assert body.count('```')%2==0 and '```mermaid' in body

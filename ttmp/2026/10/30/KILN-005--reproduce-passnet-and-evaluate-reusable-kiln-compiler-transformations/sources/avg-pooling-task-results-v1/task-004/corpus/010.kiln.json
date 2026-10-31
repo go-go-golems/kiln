@@ -1,0 +1,341 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-004/corpus/010.kiln.js",
+  "sha256": "ff0cefc31be29ecf2b2dba2c6ca341e038f7836401b5098b52290fd7bd6b6892",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    32,
+    256,
+    24,
+    24
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    256,
+    256,
+    3,
+    3
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    256
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    256
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    256
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    256
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v6",
+   "buffer": 6,
+   "shape": [
+    32,
+    128,
+    48,
+    48
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 8,
+   "shape": [
+    32,
+    128,
+    24,
+    24
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "out1",
+   "buffer": 11,
+   "shape": [
+    32,
+    256,
+    24,
+    24
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 4718592,
+   "bytes": 9437184
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 589824,
+   "bytes": 1179648
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 256,
+   "bytes": 512
+  },
+  {
+   "id": 3,
+   "dtype": "f16",
+   "elements": 256,
+   "bytes": 512
+  },
+  {
+   "id": 4,
+   "dtype": "f16",
+   "elements": 256,
+   "bytes": 512
+  },
+  {
+   "id": 5,
+   "dtype": "f16",
+   "elements": 256,
+   "bytes": 512
+  },
+  {
+   "id": 6,
+   "dtype": "f16",
+   "elements": 9437184,
+   "bytes": 18874368
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 576,
+   "bytes": 2304,
+   "name": null,
+   "data": "AACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBAAACAQAAAgEAAAIBA"
+  },
+  {
+   "id": 8,
+   "dtype": "f16",
+   "elements": 2359296,
+   "bytes": 4718592
+  },
+  {
+   "id": 9,
+   "dtype": "f32",
+   "elements": 676,
+   "bytes": 2704,
+   "name": null,
+   "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+  },
+  {
+   "id": 10,
+   "dtype": "f32",
+   "elements": 5537792,
+   "bytes": 22151168
+  },
+  {
+   "id": 11,
+   "dtype": "f16",
+   "elements": 4718592,
+   "bytes": 9437184
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__2d529zp0ol2",
+   "identity": "2d529zp0ol2",
+   "row": "TPB=128",
+   "reads": [
+    7,
+    6
+   ],
+   "writes": 8,
+   "grid": 18432,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    18432,
+    1,
+    1
+   ],
+   "shape": [
+    32,
+    128,
+    24,
+    24
+   ],
+   "inShapes": [
+    [
+     1,
+     1,
+     24,
+     24
+    ],
+    [
+     32,
+     128,
+     48,
+     48
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_out0__2d529zp0ol2(const float* __restrict__ src0, const __half* __restrict__ src1, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc1 = 0.0f, acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 2359296)) {\n        acc1 = 0.0f;\n        for (int r0 = 0; r0 < 2; r0 += 1) {\n            acc0 = 0.0f;\n            for (int r1 = 0; r1 < 2; r1 += 1) {\n                in0 = __half2float(src1[((((((96 * ((e / 24) % 24)) + (2304 * ((e / 576) % 128))) + (2 * (e % 24))) + (294912 * (e / 73728))) + (48 * r0)) + r1)]);\n                v0 = in0;\n                acc0 = (acc0 + v0);\n            }\n            acc1 = (acc1 + acc0);\n        }\n        in1 = src0[((24 * ((e / 24) % 24)) + (e % 24))];\n        v1 = (acc1 / in1);\n        v2 = __half2float(__float2half_rn(v1));\n        v3 = __half2float(__float2half_rn(v2));\n        dst[((((24 * ((e / 24) % 24)) + (576 * ((e / 576) % 128))) + (e % 24)) + (73728 * (e / 73728)))] = __float2half_rn(v3);\n    }\n}"
+  },
+  {
+   "name": "k_conv2d_cast__bbtpror7so",
+   "identity": "bbtpror7so",
+   "row": "TPB=64,COARSEN=2",
+   "reads": [
+    0,
+    9
+   ],
+   "writes": 10,
+   "grid": 43264,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    43264,
+    1,
+    1
+   ],
+   "shape": [
+    32,
+    256,
+    26,
+    26
+   ],
+   "inShapes": [
+    [
+     32,
+     256,
+     24,
+     24
+    ],
+    [
+     1,
+     1,
+     26,
+     26
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_conv2d_cast__bbtpror7so(const __half* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((128 * bid) + (64 * j)) + tid);\n        if ((e < 5537792)) {\n            in0 = src1[((26 * ((e / 26) % 26)) + (e % 26))];\n            in1 = __half2float(src0[((((24 * min(max((((e / 26) % 26) + (-1)), 0), 23)) + min(max(((e % 26) + (-1)), 0), 23)) + (576 * ((e / 676) % 256))) + (147456 * (e / 173056)))]);\n            v0 = in1;\n            v1 = ((in0) > 0.0f ? (v0) : (0.0f));\n            dst[((((26 * ((e / 26) % 26)) + (676 * ((e / 676) % 256))) + (e % 26)) + (173056 * (e / 173056)))] = v1;\n        }\n    }\n}"
+  },
+  {
+   "name": "k_out1__2dhhl6fccjc",
+   "identity": "2dhhl6fccjc",
+   "row": "TPB=64",
+   "reads": [
+    5,
+    4,
+    3,
+    2,
+    1,
+    10
+   ],
+   "writes": 11,
+   "grid": 73728,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65535,
+    2,
+    1
+   ],
+   "shape": [
+    32,
+    256,
+    24,
+    24
+   ],
+   "inShapes": [
+    [
+     256
+    ],
+    [
+     256
+    ],
+    [
+     256
+    ],
+    [
+     256
+    ],
+    [
+     256,
+     256,
+     3,
+     3
+    ],
+    [
+     32,
+     256,
+     26,
+     26
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f16",
+    "f16",
+    "f16",
+    "f16",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out1__2dhhl6fccjc(const __half* __restrict__ src0, const __half* __restrict__ src1, const __half* __restrict__ src2, const __half* __restrict__ src3, const __half* __restrict__ src4, const float* __restrict__ src5, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in2 = 0.0f, v6 = 0.0f, in3 = 0.0f, v8 = 0.0f, v9 = 0.0f, v10 = 0.0f, in4 = 0.0f, v12 = 0.0f, in5 = 0.0f, v14 = 0.0f, acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v7 = 0.0f, v11 = 0.0f, v13 = 0.0f, v15 = 0.0f, v16 = 0.0f, v17 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4718592)) {\n        in2 = __half2float(src3[((e / 576) % 256)]);\n        v6 = in2;\n        in3 = __half2float(src2[((e / 576) % 256)]);\n        v8 = in3;\n        v9 = __fadd_rn(v8, 0.00001f);\n        v10 = sqrtf(v9);\n        in4 = __half2float(src1[((e / 576) % 256)]);\n        v12 = in4;\n        in5 = __half2float(src0[((e / 576) % 256)]);\n        v14 = in5;\n        acc2 = 0.0f;\n        for (int r0 = 0; r0 < 256; r0 += 1) {\n            acc1 = 0.0f;\n            for (int r1 = 0; r1 < 3; r1 += 1) {\n                acc0 = 0.0f;\n                for (int r2 = 0; r2 < 3; r2 += 1) {\n                    in0 = src5[(((((((173056 * (((e / 576) % 256) / 256)) + (26 * ((e / 24) % 24))) + (e % 24)) + (173056 * (e / 147456))) + (676 * r0)) + (26 * r1)) + r2)];\n                    in1 = __half2float(src4[((((2304 * ((e / 576) % 256)) + (9 * r0)) + (3 * r1)) + r2)]);\n                    v0 = in1;\n                    v1 = __fmul_rn(in0, v0);\n                    acc0 = (acc0 + v1);\n                }\n                acc1 = (acc1 + acc0);\n            }\n            acc2 = (acc2 + acc1);\n        }\n        v2 = __fadd_rn(acc2, 0.0f);\n        v3 = __half2float(__float2half_rn(v2));\n        v4 = __half2float(__float2half_rn(v3));\n        v5 = v4;\n        v7 = __fsub_rn(v5, v6);\n        v11 = (v7 / v10);\n        v13 = __fmul_rn(v11, v12);\n        v15 = __fadd_rn(v13, v14);\n        v16 = __half2float(__float2half_rn(v15));\n        v17 = __half2float(__float2half_rn(v16));\n        dst[((((24 * ((e / 24) % 24)) + (576 * ((e / 576) % 256))) + (e % 24)) + (147456 * (e / 147456)))] = __float2half_rn(v17);\n    }\n}"
+  }
+ ]
+}

@@ -1,0 +1,78 @@
+{
+  "source": "avg-pooling-import-v1/011.kiln.js",
+  "e2e": {
+    "level": "loop",
+    "checks": [
+      {
+        "name": "out0",
+        "ok": true,
+        "maxAbs": 0,
+        "maxRel": 0,
+        "bad": 0,
+        "n": 9408,
+        "first": -1,
+        "message": "max abs diff 0.00e+0"
+      },
+      {
+        "name": "out1",
+        "ok": false,
+        "maxAbs": 0.0009765625,
+        "maxRel": 0.1433518005279925,
+        "bad": 1,
+        "n": 37632,
+        "first": 11063,
+        "message": "1 of 37632 values differ (first at 11063: 0.006298065185546875 vs 0.0055084228515625), max abs diff 9.77e-4"
+      }
+    ],
+    "custom": [],
+    "ok": false
+  },
+  "outputs": [
+    {
+      "output": "out0",
+      "length": 9408,
+      "differences": 0,
+      "max_abs_error": 0,
+      "first": []
+    },
+    {
+      "output": "out1",
+      "length": 37632,
+      "differences": 6,
+      "max_abs_error": 0.0009765625,
+      "first": [
+        {
+          "index": 11063,
+          "loop": 0.006298065185546875,
+          "frontend": 0.0055084228515625
+        },
+        {
+          "index": 22142,
+          "loop": -1.322265625,
+          "frontend": -1.3232421875
+        },
+        {
+          "index": 25678,
+          "loop": -0.255615234375,
+          "frontend": -0.25537109375
+        },
+        {
+          "index": 30286,
+          "loop": 0.541015625,
+          "frontend": 0.54052734375
+        },
+        {
+          "index": 31490,
+          "loop": 0.255615234375,
+          "frontend": 0.25537109375
+        },
+        {
+          "index": 31514,
+          "loop": -0.58642578125,
+          "frontend": -0.5869140625
+        }
+      ]
+    }
+  ],
+  "scope": "Compiler frontend versus lowered loop reference; not CUDA or original evaluator."
+}

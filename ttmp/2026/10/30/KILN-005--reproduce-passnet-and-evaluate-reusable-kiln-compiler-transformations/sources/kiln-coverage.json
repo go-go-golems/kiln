@@ -4,10 +4,10 @@
   "coverage_scope": "Cumulative original replay evidence across recorded compiler snapshots; not a uniform full-corpus release evaluation",
   "tasks_total": 200,
   "graphs_total": 2060,
-  "tasks_verified": 31,
-  "graphs_verified": 358,
-  "graphs_in_complete_tasks": 289,
-  "tasks_remaining": 169,
+  "tasks_verified": 34,
+  "graphs_verified": 375,
+  "graphs_in_complete_tasks": 306,
+  "tasks_remaining": 166,
   "records": [
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/62/91/6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8",
@@ -581,12 +581,36 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/7c/c1/7cc1531edf05e6bbc0dbf1747c246118a65e0fa5518227743c4f87749c25deb8",
       "graphs": 2,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 2,
+      "evidence": "avg-pooling-task-results-v1/task-012/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/timm/eca_botnext26ts_256/_decomposed/eca_botnext26ts_256_start198_end202_15": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/timm/eca_botnext26ts_256/_decomposed/eca_botnext26ts_256_start198_end202_15": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "9ae5eb616c70b7ab5e32edae62f242f710c69e1e0fd612195616635c832919b6"
+      },
       "limitations": []
     },
     {
@@ -625,12 +649,93 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/71/48/7148bb3833ccbc65c1f27d6b8f717c91ba9cc38ecfc937634475497af5d0ece2",
       "graphs": 9,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 9,
+      "evidence": "avg-pooling-task-results-v1/task-016/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/8/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start5_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1",
+        "kiln-pattern-multi-output/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "9ae5eb616c70b7ab5e32edae62f242f710c69e1e0fd612195616635c832919b6"
+      },
       "limitations": []
     },
     {
@@ -3045,12 +3150,68 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/8d/2c/8d2c45f7fccede2b20c0c0d7359a2d3c5be984a1824eaf258dca9af51c4151f9",
       "graphs": 6,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 6,
+      "evidence": "avg-pooling-task-results-v1/task-101/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "9ae5eb616c70b7ab5e32edae62f242f710c69e1e0fd612195616635c832919b6"
+      },
       "limitations": []
     },
     {

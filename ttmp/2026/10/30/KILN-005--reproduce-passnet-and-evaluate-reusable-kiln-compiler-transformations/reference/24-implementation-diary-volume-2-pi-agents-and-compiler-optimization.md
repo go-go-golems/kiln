@@ -1439,3 +1439,61 @@ See Step 182 and Step 187 for the active implementation and measurement directio
 ### Technical details
 - NVIDIA GB10; scheduling proxy a100; separate contraction; container sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba.
 - sources/avg-pooling-cuda-fixtures-v3/manifest.json records the compiler revision and every fixture. Sources and intermediate scripts remain in the ticket.
+
+## Step 189: Qualify three complete pooling families and identify a severe scheduling bottleneck
+
+The complete four-family/41-graph average-pooling cohort is terminal and independently audited. Three families, containing seventeen graphs, pass original-evaluator matching and nominal t=-5 numerical acceptance under the declared modified integration. Task4 stops at a protected compiler reference failure; its twenty-four graphs remain unexecuted. Cumulative acceptance rises to34/200 complete tasks and375/2060 graphs, with306 graphs inside complete tasks.
+
+The slowest accepted family exposes a concrete optimization opportunity. Its largest FP16 convolution-plus-pooling graph becomes one row-mapped kernel with18,874,368 blocks and32 threads per block. Observed timing was approximately749 ms per trial, and the six-graph family score is0.012277. The existing staged-fusion transformation produces the same kernel structure and does not recognize a contraction in its final loop expression.
+
+### Prompt Context
+See Step182 for the authored implementation direction and Step188 for pending complete-task qualification.
+**Assistant interpretation:** Establish actual family acceptance and use measured failures/performance to choose compiler work.
+**Inferred user intent:** Advance full support while returning to meaningful reusable optimization opportunities.
+**Compiler revision:** 091d594ac9d49902110d44dd870218f9fe568317.
+
+### What I did
+- Script480 froze all four newly importable families, indices4/12/16/101 with24/2/9/6 graphs, without shape/dtype filtering.
+- Scripts481–482 staged an isolated compiler checkout, using local workspace package links and only shared third-party acorn, and ran existing evaluate_tasks.py.
+- Script484 checked terminal state and unchanged source snapshots, collected results and invoked summarize_task_run.py.
+- Added the completed cohort to the existing coverage builder. Preserved the prior coverage file for the already published report's numerical checker.
+- Script483 isolated task4's reference mismatch by output. Script485 inspected the slowest graph under baseline and the existing staged transformation.
+
+### Why
+- Import eligibility and fixture correctness do not establish complete task support. Original evaluator matching, numerical curves and membership accounting remain required.
+- A very slow but correct graph is a useful target for reusable compiler optimization; it should not be hidden by reporting only newly accepted task counts.
+
+### What worked
+- Task12:2/2 graphs accepted, score0.9064328265. Task16:9/9 accepted, score1.5436667808. Task101:6/6 accepted, score0.0122771155.
+- Every accepted graph has exactly one replacement and passes the declared original numerical acceptance audit.
+- Final source snapshot matches staging:9ae5eb616c70b7ab5e32edae62f242f710c69e1e0fd612195616635c832919b6.
+- Task4's pooling output matches frontend exactly across9408 values in the diagnostic. The separate convolution/normalization output differs at six of37632 values; one fails the existing export criterion.
+
+### What didn't work
+- Task4 corpus/011.kiln.compile.log reports ': end-to-end check FAILED'. No export check was disabled or tolerance relaxed. The family remains unqualified.
+- The first script485 diagnostic treated raw Node argument IDs as Value objects and raised TypeError: Cannot read properties of undefined (reading shape). The failure is preserved; v2 resolves each argument through graph.node(id).
+- Existing staged fusion does not improve this slow graph structurally: both versions use one MAP=row,TPB=32 kernel, and neither final loop kernel has a recognized contraction.
+
+### What I learned
+- Average pooling broadens verified coverage, but also exposes the interaction between pointwise convolution layout, reduction recognition and fusion. Current fusion heuristics alone do not address this case.
+- Historical convolution precision work in design19 remains relevant; this new mismatch is not evidence that the pooling operation is incorrect.
+
+### What was tricky to build
+- Isolated staging must keep @kiln/kiln and @kiln/evidence imports inside the staged source tree. Sharing an entire old node_modules tree could silently resolve workspace imports to older compiler code; only acorn was shared.
+- A process-complete run is not full acceptance. The audit separately retains24 unexecuted graphs and does not infer success from task process exit codes.
+
+### What warrants a second pair of eyes
+- Scores use the modified integration and native replay protocol, not the original paper environment. Cumulative coverage spans compiler snapshots.
+- Task4's mismatch is localized to the convolution/normalization branch, but this diagnostic alone does not establish its precise arithmetic cause or a correct repair.
+
+### What should be done in the future
+- Test a reusable pointwise-convolution lowering into batched matrix multiplication so existing contraction scheduling can see the channel reduction, then evaluate its interaction with staged fusion. Preserve cast/bias boundaries and correctness gates.
+- Continue max/adaptive pooling and native numerical fixes; do not mark the overall reproduction complete.
+
+### Code review instructions
+- Read avg-pooling-task-audit-v1.json, task-004/corpus/011.kiln.compile.log, avg-pooling-task-reference-diagnostic-v1.json and pooling-fusion-probe-v2/results.json.
+- Run script21 for cumulative accounting and script471 for the historical report, which now reads the frozen pre-pooling coverage snapshot.
+
+### Technical details
+- Large accepted example input:[128,512,48,48] FP16; weight:[256,512,1,1]; output:[128,256,24,24].
+- Nominal criterion t=-5;20 warmups,100 timed trials; separate contraction; NVIDIA GB10 and A100 scheduling proxy. All seventeen accepted graphs retain original scorer evidence.
