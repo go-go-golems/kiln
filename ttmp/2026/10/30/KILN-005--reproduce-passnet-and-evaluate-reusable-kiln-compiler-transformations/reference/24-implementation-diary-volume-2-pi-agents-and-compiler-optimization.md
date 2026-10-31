@@ -3065,3 +3065,44 @@ Read `fx_scalar_ops.py`, the new `expand_as` branch in `fx_import.py`, `test_fx_
 
 ### Technical details
 The downloaded PyTorch source pages are version2.9 generated API HTML preserved in `sources/pytorch-2-9-scalar-docs-v1.tar.gz` (SHA256 `925588016c675c43f23d965324af8bcff559068fc677efe577bd3be4b4ffa2c8`), with page hashes and URLs in the adjacent archive receipt; no source code was copied. Local compilation artifacts are archived at `sources/scalar-layout-batch-local-compile-v1.tar.gz` (SHA256 `1cafa51adc66abd4e7f60ffa4997db0d9dc3d3f67aa77471d9deb2629e7433ba`). The ongoing broad GPU run uses the earlier frozen source snapshot and cannot observe these uncommitted local changes.
+
+## Step 222: Plan broad coverage and strategy experiments
+
+The user asked for a written plan that favors broad progress on corpus coverage and expands the kinds of compiler passes we can study. I updated the roadmap's snapshot warning and wrote reference38 as an execution plan with explicit phase exits, parallel optimization experiments and accounting rules. The five-family scalar/layout batch is committed as `696d69f`; its GPU acceptance remains pending.
+
+### Prompt Context
+**User prompt (verbatim):** "can we write doiwn a plan on how to proceed to make broad progress (and handle details later on?) for coverage and thus also the breadth of optimization strategies and compiler passes we can target / design"
+**Assistant interpretation:** Make the coverage roadmap operational, keep broad batches as the unit of work, and link each compiler capability to optimization research.
+**Inferred user intent:** See how the project will reach useful self-optimization results while moving toward full 200-task support.
+
+### What I did
+- Checked the committed scalar batch and current roadmap. Wrote `reference/38-broad-coverage-and-optimization-execution-plan.md` with P0–P5 capability phases, O1–O4 strategy experiments, exit evidence and next actions.
+- Added a snapshot warning to reference34 so its initial 111-task import counts are not mistaken for current source coverage.
+- Tried a read-only remote status check of the frozen bling run; the sandbox returned `socket: Operation not permitted` before SSH connected. The remote run's state is therefore unverified at this checkpoint; no result is inferred from the failed check.
+
+### Why
+The current source can import 116 complete tasks, but the only uniform GPU qualification in progress uses an earlier frozen 111-task snapshot. A plan that reports these as the same coverage state would misdirect both implementation and policy training. The fixed fusion experiment also shows the need to diversify policies before further global tuning.
+
+### What worked
+The plan retains all 200 tasks in the eventual ledger, defines complete-family replay after each broad wave, and identifies structural/effect, typed-index/constant, reduction/contraction and attention work as distinct capability groups. It starts selective fusion and reduction/contraction experiments from already correct families without waiting for complete corpus support.
+
+### What didn't work
+The read-only SSH status command failed with `socket: Operation not permitted`; the sandbox did not permit a connection. No GPU result was collected during this planning step.
+
+### What I learned
+Current import eligibility, local compilation and external acceptance have different denominators and must remain distinct in the plan. The frozen 111-task run cannot include the newly committed five-family batch.
+
+### What was tricky to build
+The phase sequence needs a decision point after the uniform failure census: P2 structural/effect work may unlock more accepted families than P3 typed indexing, but the 119 nonfloating-placeholder failures require exact integer storage and dynamic gather, so they cannot be handled as a set of trivial FX bindings.
+
+### What warrants a second pair of eyes
+Review the proposed P2/P3 ordering after the uniform-run failure census and the whole-family split for O1/O2. Check that every accepted task is measured under a single declared source revision before using it to train a policy.
+
+### What should be done in the future
+Finish P0, replay the five new families after its timed GPU work, and select P2 versus P3 using common failure causes. Run O1 and O2 with frozen whole-family held-out sets.
+
+### Code review instructions
+Read reference38, the reference34 snapshot warning, reference37 and the frozen qualification protocol in reference36. Check the latest scalar batch commit and the three-band manifest before interpreting any new acceptance number.
+
+### Technical details
+The plan keeps phase gates at imported, compiled, GPU-correct and fully accepted task levels. It explicitly separates the earlier frozen 111-task/1,514-graph study from the current 116-task/1,559-graph import census and the cumulative 53-task/505-graph acceptance ledger. The remote SSH command failed before reading `owner.log`.

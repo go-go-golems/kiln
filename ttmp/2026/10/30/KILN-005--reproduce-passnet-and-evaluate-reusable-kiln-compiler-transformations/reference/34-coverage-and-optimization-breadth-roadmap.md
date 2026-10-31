@@ -13,6 +13,8 @@ Summary: Broad coverage waves and compiler strategy portfolio after the 92-graph
 
 # Coverage and optimization breadth roadmap
 
+> This document records the initial 111-task planning snapshot. The scalar/layout batch subsequently raised current-source import eligibility to 116 complete tasks and 1,559 graphs. See reference37 for its evidence and reference38 for the current execution plan. The frozen 111-task GPU qualification remains a separate earlier snapshot.
+
 ## Decision
 
 Work on two connected tracks: qualify the already importable PassBench tasks, and expand the compiler semantics that block the remaining tasks. Use the growing set of correct tasks to evaluate several *reusable* optimization strategies. Do not make full 200-task coverage a prerequisite for self-optimization, and do not claim complete support from importer success alone. The end target remains all 200 tasks and 2,060 graphs, with every failure visible in the denominator.
