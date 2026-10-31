@@ -67,6 +67,36 @@ class ImportTests(unittest.TestCase):
             self.assertIn('N.sum',result['script']);self.assertIn('N.reshape',result['script'])
             self.assertIn('0.125',result['script'])
 
+    def test_layout_and_cast_chain(self):
+        class Model(torch.nn.Module):
+            def forward(self,x):
+                return x.permute(0,2,1).contiguous().reshape(2,12).half().float()
+        result=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3,4),)))
+        self.assertIn('N.transpose',result['script']);self.assertIn('N.reshape',result['script']);self.assertIn('N.cast',result['script'])
+
+    def test_explicit_dtype_cast(self):
+        class Model(torch.nn.Module):
+            def forward(self,x): return x.to(dtype=torch.float16)
+        result=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
+        self.assertIn('N.cast(v0, "f16")',result['script'])
+
+    def test_dynamic_reshape_rejected(self):
+        class Model(torch.nn.Module):
+            def forward(self,x): return x.reshape(6,4)
+        graph=export_graph(symbolic_trace(Model()),(torch.randn(2,3,4),))
+        # Import must not silently substitute recorded metadata for a runtime shape.
+        node=next(n for n in graph['nodes'] if n.get('target')=='reshape')
+        node['args']['tuple'][1]={'ref':graph['nodes'][0]['id']}
+        with self.assertRaises(ValueError): import_graph(graph)
+
+    def test_cast_without_dtype_rejected(self):
+        class Model(torch.nn.Module):
+            def forward(self,x): return x.to(dtype=torch.float16)
+        graph=export_graph(symbolic_trace(Model()),(torch.randn(2,3),))
+        node=next(n for n in graph['nodes'] if n.get('target')=='to')
+        node['kwargs']={'dict':{}}
+        with self.assertRaisesRegex(ValueError,'explicit dtype'): import_graph(graph)
+
     def test_dtype_and_layout_rejected(self):
         class Model(torch.nn.Module):
             def forward(self, x):

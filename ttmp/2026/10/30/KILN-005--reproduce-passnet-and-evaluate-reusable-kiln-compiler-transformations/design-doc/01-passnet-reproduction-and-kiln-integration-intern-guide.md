@@ -217,3 +217,9 @@ Reproduce using scripts 16–20 and review sources/first-task-isolated.log plus 
 The first three tasks now have original checker acceptance under the declared modified protocol: 19 graphs across three of 200 tasks. Exact per-graph evidence is maintained in sources/kiln-coverage.json. The third task's FP16 convolution/in-place-ReLU/residual/identity-resize chain passes on original replay inputs after correcting low-precision bias addition order. Official aggregate is 0.043470409529710305, a severe slowdown versus eager.
 
 A separate unit-scale random stress test still fails 67/73728 elements after the bias fix. Keep that limitation distinct from benchmark acceptance; the source's smaller replay distributions are not proof that larger values are invalid. The initial convolution uses safe clamped reads and explicit padding masks, nested indexed reductions and FP32 internal arithmetic. These are correctness foundations, not a high-performance convolution design. Profiling, precision robustness and reusable pass/schedule improvement remain required work.
+
+## 19. Static layout and cast import
+
+The importer now accepts tensor methods reshape/view, flatten, permute, contiguous, and explicit floating conversions. Reshape uses the static output shape recorded by FX propagation after verifying literal shape operands. Permutation composes pairwise Kiln transposes. Contiguous materializes the logical tensor value through reshape. Casts use N.cast so FP16/BF16 rounding remains explicit through fusion.
+
+This is value-semantic graph import. External noncontiguous inputs and mutation-dependent alias behavior remain unsupported. Device transfers and dynamic shape operands fail explicitly. Scripts 44/45 export and run a four-output chain; all outputs matched PyTorch CUDA exactly on GB10. These probes do not increase the verified PassBench task count.

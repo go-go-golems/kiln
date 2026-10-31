@@ -2554,3 +2554,48 @@ Original full operator coverage and precision requirements.
 
 ### Completed GPU outcome
 FP32, FP16 and BF16 multi-axis mean probes passed PyTorch CUDA comparisons, including output shape/dtype. This is a small reduction probe, not complete real-task acceptance or broad accumulation proof.
+
+## Step 61: Import static layout methods and explicit floating casts
+
+Extended graph import with reshape/view, flatten, permutation, contiguous materialization and explicit floating casts. A source-derived multi-output chain compiled through Kiln and matched PyTorch CUDA exactly, including output shape and dtype. This extends primitives; verified task coverage remains 3/200.
+
+### Prompt Context
+See the original full-corpus implementation request and provenance requirements in earlier entries.
+**Assistant interpretation:** Implement common layout dependencies while retaining explicit rejection of unsupported dynamic/device semantics.
+**Inferred user intent:** Progress toward all 200 tasks rather than selecting only easy existing operations.
+
+### What I did
+- Extended fx_import.py method dispatch and tagged dtype decoding.
+- Validated permutation rank, integer shape arguments and explicit cast dtype binding; rejected dynamic shape references and ambiguous casts.
+- Saved scripts 44 (source export) and 45 (remote compilation/CUDA check).
+- Added check_layouts_cuda.py with four shape/dtype/exact-value comparisons.
+
+### Why
+- Layout and floating conversions recur throughout the corpus and are prerequisites for normalization and attention paths.
+
+### What worked
+- Eighteen CPU integration tests passed with `python3 -m unittest discover -s integrations/passnet -p 'test_*.py'`.
+- DGX compilation reported `end-to-end check ok at loop`.
+- CUDA probe outputs 0/1/2 had shape (2,12), output 3 had shape (6,4); all four passed rtol=0, atol=0 against PyTorch.
+- Reference benchmark container remained running and unpaused, with progress at 75/200. Per-task exit status is not yet a correctness summary.
+
+### What didn't work
+- No probe failures observed. Device conversion, noncontiguous external inputs and dynamic shape arguments remain unsupported.
+
+### What I learned
+- Composing pairwise transposes expresses arbitrary static permutations while preserving logical reshape order through the existing compiler.
+
+### What was tricky to build
+- Inferred output shapes alone must not silently replace runtime shape operands; those operands are validated as static integers before using metadata.
+
+### What warrants a second pair of eyes
+- View aliasing under mutation is not generally modeled. Accepted in-place operations remain restricted to fresh single-use convolution outputs.
+
+### What should be done in the future
+- Validate real layout/reduction tasks and implement the remaining normalization/attention dependencies based on the corpus inventory.
+
+### Code review instructions
+- Review fx_import.py call_method dispatch, test_fx_import.py and scripts 44/45; check sources/layouts/probe.json.
+
+### Technical details
+- Independent lowering to existing N.reshape/N.transpose/N.cast APIs; no PyTorch or PassNet implementation copied. The CUDA check uses the existing exploratory GB10 environment, with no timing claims.

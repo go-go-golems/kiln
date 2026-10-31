@@ -29,6 +29,8 @@ def import_graph(graph):
 
     def decode(v):
         if isinstance(v, dict):
+            if set(v) == {'dtype'}:
+                return json.dumps(v['dtype'])
             if set(v) == {'ref'}:
                 if v['ref'] not in values:
                     raise ValueError(f'Unknown or forward reference: {v["ref"]}')
@@ -107,12 +109,59 @@ def import_graph(graph):
                 expr=f'N.reshape({expr}, {json.dumps(output_shape)})'
             expr=f'N.cast({expr}, {json.dumps(dtype_names[meta["dtype"]])})'
         elif node['kind'] == 'call_method':
-            if target != 'transpose' or len(args) != 3 or kwargs:
+            if target == 'transpose':
+                if len(args)!=3 or kwargs: raise ValueError(f'{name}: invalid transpose arguments')
+                dims=[literal(value) for value in args[1:]]
+                rank=len(metadata[node['args']['tuple'][0]['ref']]['shape'])
+                if any(type(d) is not int or d < -rank or d>=rank for d in dims):
+                    raise ValueError(f'{name}: invalid transpose dimensions')
+                expr=f'N.transpose({args[0]}, {dims[0]}, {dims[1]})'
+            elif target in ('reshape','view','flatten'):
+                if kwargs and (target!='flatten' or set(kwargs)-{'start_dim','end_dim'}):
+                    raise ValueError(f'{name}: unsupported layout keyword arguments')
+                if target in ('reshape','view'):
+                    shape_args=literal(args[1]) if len(args)==2 and isinstance(args[1],(tuple,list)) else [literal(x) for x in args[1:]]
+                    if any(type(d) is not int for d in shape_args):
+                        raise ValueError(f'{name}: static integer shape required')
+                else:
+                    if len(args)>3: raise ValueError(f'{name}: invalid flatten arguments')
+                    bound=dict(zip(('start_dim','end_dim'),args[1:]))
+                    if set(bound)&set(kwargs): raise ValueError(f'{name}: duplicate flatten argument')
+                    bound.update(kwargs)
+                    if any(type(literal(d)) is not int for d in bound.values()):
+                        raise ValueError(f'{name}: static flatten axes required')
+                expr=f'N.reshape({args[0]}, {json.dumps(meta["shape"])})'
+            elif target == 'contiguous':
+                if len(args)!=1 or kwargs: raise ValueError(f'{name}: unsupported contiguous format')
+                expr=f'N.reshape({args[0]}, {json.dumps(meta["shape"])})'
+            elif target == 'permute':
+                if kwargs: raise ValueError(f'{name}: unsupported permutation keywords')
+                dims=literal(args[1]) if len(args)==2 and isinstance(args[1],(tuple,list)) else [literal(x) for x in args[1:]]
+                rank=len(metadata[node['args']['tuple'][0]['ref']]['shape'])
+                if len(dims)!=rank or any(type(d) is not int for d in dims):
+                    raise ValueError(f'{name}: permutation must specify every axis')
+                dims=[d+rank if d<0 else d for d in dims]
+                if sorted(dims)!=list(range(rank)): raise ValueError(f'{name}: invalid permutation')
+                current=list(range(rank));expr=args[0]
+                for axis,wanted in enumerate(dims):
+                    other=current.index(wanted)
+                    if other!=axis:
+                        expr=f'N.transpose({expr}, {axis}, {other})'
+                        current[axis],current[other]=current[other],current[axis]
+            elif target in ('to','float','half','bfloat16'):
+                if target=='to':
+                    if len(args)>2 or set(kwargs)-{'dtype'}: raise ValueError(f'{name}: device/layout conversion unsupported')
+                    if (len(args)==2)==('dtype' in kwargs):
+                        raise ValueError(f'{name}: exactly one explicit dtype required')
+                    dtype=literal(args[1] if len(args)==2 else kwargs['dtype'])
+                    if dtype not in dtype_names: raise ValueError(f'{name}: unsupported cast dtype {dtype}')
+                    dtype=dtype_names[dtype]
+                else:
+                    if len(args)!=1 or kwargs: raise ValueError(f'{name}: invalid floating conversion')
+                    dtype={'float':'f32','half':'f16','bfloat16':'bf16'}[target]
+                expr=f'N.cast({args[0]}, {json.dumps(dtype)})'
+            else:
                 raise ValueError(f'{name}: unsupported tensor method {target}')
-            dims = [json.loads(value) for value in args[1:]]
-            if any(type(d) is not int for d in dims):
-                raise ValueError(f'{name}: transpose dimensions must be integers')
-            expr = f'N.transpose({args[0]}, {dims[0]}, {dims[1]})'
         elif target == 'torch.conv2d':
             fields=['input','weight','bias','stride','padding','dilation','groups']
             if len(args)>7 or set(kwargs)-set(fields): raise ValueError(f'{name}: unsupported conv2d arguments')
