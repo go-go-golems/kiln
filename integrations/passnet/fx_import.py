@@ -3,7 +3,7 @@
 Independent lowering against Kiln N APIs. No upstream implementation copied.
 """
 import json
-from fx_indexing import lower_index
+from fx_indexing import lower_index,lower_transpose
 from fx_linalg import FUNCTIONS as LINALG_FUNCTIONS, METHODS as LINALG_METHODS, lower_linalg
 from fx_norm_ops import LAYER_NORM,lower_layer_norm
 
@@ -88,6 +88,7 @@ def import_graph(graph):
                   '_operator.mul':'mul', 'torch.mul':'mul', 'aten.mul.Tensor':'mul',
                   '_operator.sub':'sub', '_operator.truediv':'div'}
         reduction = target in ('torch.sum','torch.mean','aten.sum.dim_IntList','aten.mean.dim') or (node['kind']=='call_method' and target in ('sum','mean'))
+        transpose = target in ('torch.transpose','aten.transpose.int') or (node['kind']=='call_method' and target=='transpose')
         activation = {'torch.sigmoid':'sigmoid', 'torch.nn.functional.sigmoid':'sigmoid',
                       'aten.sigmoid.default':'sigmoid', 'torch.nn.functional.silu':'silu',
                       'aten.silu.default':'silu'}.get(target)
@@ -184,15 +185,19 @@ def import_graph(graph):
                 output_shape=[dim for axis,dim in enumerate(shape) if axis not in axes]
                 expr=f'N.reshape({expr}, {json.dumps(output_shape)})'
             expr=f'N.cast({expr}, {json.dumps(dtype_names[meta["dtype"]])})'
+        elif transpose:
+            input_name='self' if target=='aten.transpose.int' else 'input'
+            fields=[input_name,'dim0','dim1']
+            if len(args)>3 or set(kwargs)-set(fields):raise ValueError(f'{name}: invalid transpose arguments')
+            bound=dict(zip(fields,args))
+            if set(bound)&set(kwargs):raise ValueError(f'{name}: duplicate transpose argument')
+            bound.update(kwargs)
+            if set(bound)!=set(fields):raise ValueError(f'{name}: transpose requires input and two dimensions')
+            source=next((key for key,value in values.items() if value==bound[input_name]),None)
+            if source is None:raise ValueError(f'{name}: transpose input must reference a tensor')
+            expr=lower_transpose(bound[input_name],literal(bound['dim0']),literal(bound['dim1']),metadata[source],meta)
         elif node['kind'] == 'call_method':
-            if target == 'transpose':
-                if len(args)!=3 or kwargs: raise ValueError(f'{name}: invalid transpose arguments')
-                dims=[literal(value) for value in args[1:]]
-                rank=len(metadata[node['args']['tuple'][0]['ref']]['shape'])
-                if any(type(d) is not int or d < -rank or d>=rank for d in dims):
-                    raise ValueError(f'{name}: invalid transpose dimensions')
-                expr=f'N.transpose({args[0]}, {dims[0]}, {dims[1]})'
-            elif target in ('reshape','view','flatten'):
+            if target in ('reshape','view','flatten'):
                 if kwargs and (target!='flatten' or set(kwargs)-{'start_dim','end_dim'}):
                     raise ValueError(f'{name}: unsupported layout keyword arguments')
                 if target in ('reshape','view'):

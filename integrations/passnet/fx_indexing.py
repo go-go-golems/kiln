@@ -6,6 +6,21 @@ require additional compiler support. No PyTorch implementation copied.
 import json
 
 
+def lower_transpose(value, dim0, dim1, source, output):
+    """One value-semantic binding for method, torch and ATen transpose."""
+    if not isinstance(source,dict) or not isinstance(output,dict) or source.get('dtype')!=output.get('dtype'):
+        raise ValueError('transpose: dtype-preserving tensor metadata required')
+    shape=source['shape'];rank=len(shape);effective_rank=max(1,rank)
+    if any(type(axis) is not int or axis < -effective_rank or axis >= effective_rank for axis in [dim0,dim1]):
+        raise ValueError('transpose: invalid transpose dimensions')
+    axes=[axis+effective_rank if axis<0 else axis for axis in [dim0,dim1]]
+    expected=list(shape)
+    if rank:expected[axes[0]],expected[axes[1]]=expected[axes[1]],expected[axes[0]]
+    if output['shape']!=expected:raise ValueError('transpose: output shape disagrees with axis exchange')
+    if not rank:return f'N.reshape({value}, [])'
+    return f'N.transpose({value}, {axes[0]}, {axes[1]})'
+
+
 def lower_index(value, key, shape, output_shape):
     keys = list(key) if isinstance(key, tuple) else [key]
     if sum(k is Ellipsis for k in keys) > 1:

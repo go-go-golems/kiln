@@ -7,7 +7,17 @@ Topics:
 DocType: design-doc
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://packages/kiln/src/std/kernel.js
+      Note: Structural canonical binding before emitted source
+    - Path: repo://packages/kiln/src/std/records.js
+      Note: Explicit codegen/3 evidence invalidation
+    - Path: repo://packages/kiln/test/canonical-emission.mjs
+      Note: Fresh-process equivalence and semantic-change separation
+    - Path: repo://scripts/run-node-tests.mjs
+      Note: Fail closed on child spawn errors
+    - Path: repo://ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/canonicalization-v7-replay-verification.json
+      Note: Observed failure-population replay without regex or timing changes
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-10-31T04:33:27.879581074-04:00
@@ -81,3 +91,10 @@ The independent three-structure/three-dtype fixture corpus is recompiled under f
 Scripts 217–222 preserve replay, verification, full validation/fixture compilation, staging, GPU execution and the subprocess capability probe. Primary implementation files are kernel.js, records.js and the corrected run-node-tests.mjs. Tests include canonical-emission.mjs with its isolated worker and node-test-runner.mjs fault injection.
 
 This milestone repairs identity consistency and a validation gate. It does not claim a speedup, add original benchmark acceptance, invoke the original PassAgent, or finish full corpus support. A new optimization study must use a fresh declaration and /3 artifacts; historical v7 timing remains archived under its original protocol and source revisions.
+
+
+## Completed CUDA validation and next population
+
+All108 canonical-emission CUDA comparisons pass on GB10. The original v8 source attempt and a quota-preserving retry after binding torch.transpose both stop with ten reduction/five matrix graphs. Both partial attempts remain archived. A new explicit source declaration scans all4476 official training tasks and allows up to64M matrix scalar products, retaining other bounds, quotas and exact-model exclusions. It fills twenty sources after2438 tasks; membership c40f81bf05839042fd845dc797a6ddb3b8665d1f3d7b27f83cc5fb4d9cc27ca5. No policy timing or confirmation compilation is used to revise that source population.
+
+The transpose binding is unified across method/function/ATen forms with metadata and alias checks. Thirty-nine independent fixtures compile after fixing input-only export detection: no-op scalar/vector views can be complete programs with zero kernels. Their CUDA execution remains pending at this checkpoint. The full import audit stays1029 graphs/51 families; original acceptance remains eleven tasks/206 graphs. Documented provider settings are absent locally and on bling, and the model/endpoint question is pending while independent compiler work continues.

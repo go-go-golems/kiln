@@ -1,0 +1,89 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/transpose-fixtures/000.kiln.js",
+  "sha256": "47d2811fb883e12aa22187d35bb71a7b7901d6b28192bdc51e0d924c7f7d90e3",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    3,
+    4
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    4,
+    3,
+    2
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 24,
+   "bytes": 96
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 24,
+   "bytes": 96
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_transpose__12xyqk5sf8v",
+   "identity": "12xyqk5sf8v",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    3,
+    2
+   ],
+   "inShapes": [
+    [
+     2,
+     3,
+     4
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 24i) {\n        v_in0 = b0[(((4i * ((n_e / 2i) % 3i)) + (12i * (n_e % 2i))) + (n_e / 6i))];\n        bout[(((2i * ((n_e / 2i) % 3i)) + (n_e % 2i)) + (6i * (n_e / 6i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_transpose__12xyqk5sf8v(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 24)) {\n        in0 = src0[(((4 * ((e / 2) % 3)) + (12 * (e % 2))) + (e / 6))];\n        dst[(((2 * ((e / 2) % 3)) + (e % 2)) + (6 * (e / 6)))] = in0;\n    }\n}"
+  }
+ ]
+}

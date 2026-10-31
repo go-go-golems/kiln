@@ -1,0 +1,90 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/transpose-fixtures/029.kiln.js",
+  "sha256": "24cc63c33fbeee5599ad04801aadf9c8e6e4783f6ccb198cfd45428acc7e04cc",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    3,
+    4
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    4,
+    3,
+    2
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 24,
+   "bytes": 48
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 24,
+   "bytes": 48
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_transpose__28l391xm01h",
+   "identity": "28l391xm01h",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    3,
+    2
+   ],
+   "inShapes": [
+    [
+     2,
+     3,
+     4
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_transpose__28l391xm01h(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 24)) {\n        in0 = __bfloat162float(src0[(((4 * ((e / 2) % 3)) + (12 * (e % 2))) + (e / 6))]);\n        dst[(((2 * ((e / 2) % 3)) + (e % 2)) + (6 * (e / 6)))] = __float2bfloat16_rn(in0);\n    }\n}"
+  }
+ ]
+}

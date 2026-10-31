@@ -5,6 +5,46 @@ from fx_export import export_graph
 from fx_import import import_graph
 
 class ImportTests(unittest.TestCase):
+    def test_transpose_bindings_share_static_semantics(self):
+        class Model(torch.nn.Module):
+            def __init__(self,mode):super().__init__();self.mode=mode
+            def forward(self,x):
+                if self.mode=='function':return torch.transpose(x,-1,0)
+                if self.mode=='keywords':return torch.transpose(input=x,dim0=-1,dim1=0)
+                if self.mode=='method':return x.transpose(dim0=-1,dim1=0)
+                return torch.ops.aten.transpose.int(x,-1,0)
+        for shape in [(2,3,4),(5,),()]:
+            for dtype in [torch.float32,torch.float16,torch.bfloat16]:
+                scripts=[]
+                for mode in ['function','keywords','method','aten']:
+                    result=import_graph(export_graph(symbolic_trace(Model(mode)),(torch.randn(shape).to(dtype),)))
+                    scripts.append(result['script'])
+                self.assertTrue(all(script==scripts[0] for script in scripts))
+                self.assertIn('N.transpose' if shape else 'N.reshape',scripts[0])
+
+    def test_transpose_argument_and_metadata_errors(self):
+        import copy
+        class Model(torch.nn.Module):
+            def forward(self,x):return torch.transpose(x,0,1)
+        graph=export_graph(symbolic_trace(Model()),(torch.randn(2,3),))
+        def edited(change):
+            value=copy.deepcopy(graph);node=next(n for n in value['nodes'] if n['target']=='torch.transpose');change(node);return value
+        for axis in [True,2,-3]:
+            with self.assertRaisesRegex(ValueError,'transpose dimensions'):
+                import_graph(edited(lambda n:n['args']['tuple'].__setitem__(1,axis)))
+        with self.assertRaisesRegex(ValueError,'duplicate transpose'):
+            import_graph(edited(lambda n:n['kwargs']['dict'].update(dim0=0)))
+        with self.assertRaisesRegex(ValueError,'output shape'):
+            import_graph(edited(lambda n:n['tensor_meta'].update(shape=[2,3])))
+        with self.assertRaisesRegex(ValueError,'dtype-preserving'):
+            import_graph(edited(lambda n:n['tensor_meta'].update(dtype='torch.float16')))
+
+    def test_transpose_does_not_grant_mutation_ownership(self):
+        class Model(torch.nn.Module):
+            def forward(self,x):return torch.nn.functional.relu(torch.transpose(x,0,1),inplace=True)
+        graph=export_graph(symbolic_trace(Model()),(torch.randn(2,3),))
+        with self.assertRaisesRegex(ValueError,'fresh single-use'):import_graph(graph)
+
     def test_relu_add_roundtrip_structure(self):
         class Model(torch.nn.Module):
             def forward(self, x, y):

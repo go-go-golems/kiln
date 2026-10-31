@@ -5228,3 +5228,56 @@ See the user's requirements to implement missing pieces, reassess architecture a
 
 ### Technical details
 - No compatibility alias, source regex rewrite or retrospective timing/ranking update is introduced. Old experiments remain pinned. Mathematical kernel identities and program schema are unchanged; evidence/codegen version advances explicitly.
+
+## Step 117: Preserve failed fresh selection and close transpose/export gaps
+
+Canonical-emission CUDA validation completes108/108. The next source selector fails its matrix quota; both the original and a quota-preserving retry after a missing transpose binding remain archived. A separately declared broader matrix population fills all quotas without changing numerical checks or exact-model exclusions. No optimization timing or confirmation compilation has occurred for that population.
+
+Transpose fixtures also expose a complete-program detection defect: no-op vector/scalar views become input aliases with zero kernels, which the export caller incorrectly treated as compilation failure. Input-only programs now export through the existing program/runtime contract instead of dropping those cases.
+
+### Prompt Context
+See the user's instruction to implement missing Kiln pieces and preserve intermediate scripts/provenance. The user's environment instruction requires notice before environment reads; the provider presence probe was announced before reading only documented-setting presence flags.
+**Assistant interpretation:** Complete repair validation and remove genuine source/export gaps without filtering a failed declared population.
+**Inferred user intent:** Move toward trustworthy self-optimization and original PassAgent reproduction while retaining failed attempts.
+**Commit (canonical core):**e0f64dc — fix(kiln): canonicalize reduction emission and reject failed test spawns.
+
+### What I did
+- Collected canonical-emission-cuda.json/log:108 comparisons pass and the tmux pane reports EXIT_CODE=0.
+- Preserved v8 and v8-r1 failures (4096 tasks, ten reduction/five matrix graphs). Added v8-r2: all4476 source tasks and64M matrix-product bound, with unchanged remaining limits/quotas/exclusions.
+- Unified torch.transpose, tensor method and aten.transpose.int lowering, including positional/keyword/static-axis/scalar metadata and conservative view ownership.
+- Added25-test importer boundary coverage including36 valid shape/dtype/binding combinations, invalid args/metadata and in-place ownership rejection.
+- Archived the initial transpose compile failure and pre-fix compile.js. Fixed complete input-only program detection and added scalar/vector alias-export tests across three dtypes.
+- Compiled all39 transpose fixtures with normal reference checks; their CUDA validation is next. Full200 import audit remains1029/51.
+- Probed documented PassAgent provider flags locally and on bling after notice; all are absent. Asked the model/endpoint question asynchronously, retaining no credential values.
+
+### Why
+- Identity outputs are valid programs, and source-population failures cannot be repaired by silently removing examples or weakening acceptance.
+
+### What worked
+- Canonical-emission108/108 GPU comparisons pass. Transpose importer25 tests and input-only export tests pass;39 fixtures compile.
+- Broader declaration selects twenty fresh exact models after2438 tasks: twelve training/eight confirmation, membership c40f81bf05839042fd845dc797a6ddb3b8665d1f3d7b27f83cc5fb4d9cc27ca5.
+- No original numerical/matching acceptance is added by import or fixture evidence.
+
+### What didn't work
+- Both initial source attempts raise `ValueError: Selection incomplete; preserve partial audit`. New transpose binding reduces unsupported attempts but does not fill the old matrix quota.
+- The initial vector identity fixture stops at001.kiln.js with `: compile failed`; the preserved artifact/script shows N.transpose(v0,0,0). The pipeline was successful but compileScript.prog was null solely because no GPU kernel remained.
+- Original PassAgent inference cannot start without a model/provider configuration; the question is pending, while compiler work remains possible.
+
+### What I learned
+- Complete-program existence is distinct from nonzero kernel count. The existing exporter and pointer bridge already represent input aliases correctly.
+
+### What was tricky to build
+- Functional transpose must retain view alias restrictions and validate exact output shape/dtype. Scalar transpose permits only scalar-valid axes and lowers to an identity reshape.
+- Repeated exact-model exclusions can exhaust a bounded small-matrix development population; a broader declaration must be explicit and separate from failed attempts.
+
+### What warrants a second pair of eyes
+- Review input-only graph detection, view ownership, broader resource envelope and separation between import eligibility and native benchmark acceptance.
+
+### What should be done in the future
+- Validate117 transpose GPU comparisons, freeze/evaluate the new /3 source population, and run original PassAgent once the requested provider is configured.
+
+### Code review instructions
+- Read fx_indexing.lower_transpose, fx_import binding, compileScript inputOnly condition and their tests; inspect both failed audits, the broadened declaration and unchanged full import totals.
+
+### Technical details
+- No upstream algorithm copied. Transpose uses existing Kiln primitives and independent axis semantics. The new source declaration is before timing; old measurements/rankings remain intact. No renewed reMarkable export is attempted.

@@ -31,7 +31,13 @@ export function compileScript(text, { params, kernelPins = {}, target, deviceId,
   try { g = project.graph((p) => ps.get(p)); }
   catch (e) { return { ok: false, diags: [...res.diags, { level: "error", line: lineOf(e), message: "tracing the program: " + e.message }] }; }
   const run = pipe.run(g, { params: ps, target, ctx: { deviceId, store } });
-  const prog = hasKernels(run) ? programOf(run.graph) : null;
+  // Identity views can optimize to an input alias with no GPU kernel. This is
+  // still a complete exportable program, distinct from a failed/incomplete run.
+  const inputs = new Set(run.graph.inputs.map((input) => input.id));
+  const inputOnly = run.ok && run.graph.outputs.length > 0
+    && [...run.graph.nodes.keys()].every((id) => inputs.has(id))
+    && run.graph.outputs.every((output) => inputs.has(output.id));
+  const prog = hasKernels(run) || inputOnly ? programOf(run.graph) : null;
   const diags = [...res.diags, ...(run.ok ? [] : [{ level: "error", line: lineOf(run.error.cause || run.error), message: `${run.error.kind}: ${run.error.message}` }]), ...run.warnings.map((w) => ({ level: "warn", message: w }))];
   return { ok: run.ok, diags, project, graph: g, run, prog, pipe, params: ps };
 }
