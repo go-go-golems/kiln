@@ -2532,3 +2532,46 @@ Read max-pool-match-task-audit-v1.json, task107/benchmark.log, normalized-matche
 
 ### Technical details
 Task107 GPU replay source revision06aacce, separate from the eight-family source revisiondd73529. Both use the pinned original evaluator image and nominal t=-5 acceptance. The coverage ledger combines explicitly recorded source snapshots.
+
+## Step 210: Consolidate the matcher design and separate numerical work
+
+The new ticket design note `28-fx-pattern-canonicalization-and-qualification-design.md` records the source-pattern/Dynamo-target boundary, exact canonicalization contracts, evidence levels and current failure categories. It keeps matcher work in one module instead of adding generated-pass-specific patches. The eight-family GPU replay remains active, observed with six task records.
+
+### Prompt Context
+The user explicitly asked to reassess architecture sprawl, consolidate it, and document ported semantics and implementation decisions in the diary and design docs.
+**Assistant interpretation:** Record the narrow matcher architecture after finding several equivalent call-form mismatches.
+**Inferred user intent:** Maintain a clear research system that a later contributor can inspect and extend.
+
+### What I did
+- Wrote a focused technical design note in the ticket's reference directory, with API/file references, a task107 before/after example, canonicalization rules, qualification gates and source evidence.
+- Inspected task52's failing graph: its generated Kiln program widens inputs and bias to FP32 for `N.linear`, narrows to BF16, then only reshapes/slices/transposes. The device-only forwarded output is exact; arithmetic-derived outputs fail the strict numerical curve on at least one BF16 case. No arithmetic change was made without a pinned-reference comparison.
+
+### Why
+Matcher success, compiler numerical behavior, and benchmark scoring are separate. Keeping their contracts explicit prevents another operator port from being credited for a pattern mismatch fix or a numerical regression.
+
+### What worked
+- The design note identifies the central `fx_normalize.py` boundary and a repeatable first-graph diagnostic process.
+- The task52 inspection narrows the numerical investigation to low-precision linear arithmetic rather than the device-only conversion or downstream views.
+
+### What didn't work
+- A precise causal explanation for task52's arithmetic difference is still missing. No tolerance change or speculative kernel patch was applied.
+- The eight-family cohort is not terminal at this checkpoint.
+
+### What I learned
+Task52 demonstrates why one exact output can coexist with a failed complete task: output structure and view operations may be correct while a shared upstream arithmetic result differs from PyTorch.
+
+### What was tricky to build
+The design document must distinguish local Torch2.11 structural diagnostics from pinned Torch2.12 GPU evaluation, and cumulative coverage across snapshots from a uniform compiler release run.
+
+### What warrants a second pair of eyes
+Review the stated equivalence of functional and C padding call forms under the pinned PyTorch build, and the task52 linear numerical hypothesis before choosing an arithmetic change.
+
+### What should be done in the future
+- Collect and audit the active eight-family replay when terminal.
+- Build an output-wise numerical diagnostic for task52 that compares PyTorch's linear result before the view chain against Kiln's intermediate result under the pinned image.
+
+### Code review instructions
+Read reference/28 and the linked source/audit files. Inspect task52/corpus/000.kiln.js and its benchmark log alongside the strict correctness curve.
+
+### Technical details
+The new design note is a ticket document, not a benchmark result. Accepted coverage remains45/200 complete tasks and454/2060 graphs pending the active cohort.
