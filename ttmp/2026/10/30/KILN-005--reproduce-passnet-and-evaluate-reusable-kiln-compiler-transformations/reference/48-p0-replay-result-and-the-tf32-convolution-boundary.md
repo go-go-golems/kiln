@@ -64,7 +64,7 @@ Here are the FP32 graphs of the TF32 group, classified by their contraction oper
 
 Kiln's TF32 emulation rounds operands to nearest (`cvt.rna.tf32.f32`) and then accumulates in FP32. That reproduces cuBLAS TF32 matrix products: every failing linear graph in families 27, 52 and 93 now passes, and none broke. It does not reproduce cuDNN's TF32 convolutions, which got worse. cuDNN chooses its convolution algorithms per shape (implicit GEMM, Winograd, FFT), and its TF32 kernels need not round operands the same way. The remaining 3 linear failures show that operand rounding is not the whole story for linear layers either, but there it does no harm.
 
-**Change (7e40d54):** `tf32Pass` now rounds only `nn.linear` and `nn.matmul`. Convolutions keep FP32 operands under `matmulPrecision: "tf32"`. With that change, family 133 returns to its pre-replay state (16/20) and 72 stays where it was.
+**Change (7e40d54):** `tf32Pass` now rounds only `nn.linear` and `nn.matmul`. Convolutions keep FP32 operands under `matmulPrecision: "tf32"`. This should restore family 133 to its pre-replay state (16/20) and leave 72 unchanged. That is a prediction from the uniform run, which used FP32 convolutions, and has not been re-measured.
 
 ## What remains open
 
