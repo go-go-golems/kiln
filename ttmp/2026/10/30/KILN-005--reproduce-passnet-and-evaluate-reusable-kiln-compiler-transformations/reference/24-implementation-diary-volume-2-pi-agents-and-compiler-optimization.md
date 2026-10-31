@@ -2896,3 +2896,48 @@ Read `evaluate_tasks.py`, scripts615–617, reference33, and both frozen plans. 
 
 ### Technical details
 The host runner compiles with separate contraction, target A100, and a policy SHA256 recorded in `run.json`. Its Docker invocation requests20 warmups and100 trials. The internal Kiln synthetic reference check is disabled for both arms, while PassBench's nominal `t=-5` numerical check and scoring remain active. This is a modified integration protocol.
+
+## Step 218: Complete the paired policy result and turn coverage into broad waves
+
+### Prompt Context
+The user asked for a written plan that makes broad progress on coverage and the breadth of compiler passes and optimization strategies, leaving narrow details until they are justified. The ongoing 92-graph comparison finished during this turn.
+**Assistant interpretation:** Audit the completed experiment, refresh current import eligibility across all 200 tasks, and write a capability-wave roadmap grounded in both results.
+**Inferred user intent:** Expand Kiln's supported task population while using that population to study reusable compiler improvements, without returning to one-graph-at-a-time debugging.
+
+### What I did
+- Collected both arms from bling with script618 and ran the shared `summarize_task_run.py` acceptance audit. Script619 parsed original logs, official scores, median GPU/end-to-end timings and executable identity.
+- Preserved all1,157 raw evidence members in `sources/fixed-policy-passbench-v1/raw-evidence.tar.gz` using script622, with a SHA256 receipt. Wrote reference35 with the complete 12-task table and limitations.
+- Ran a current-source full2,060-graph FX import audit using script620, then joined it to the cumulative external acceptance ledger using script621. Saved the full audit and compact census in ticket `sources/`.
+- Wrote reference34 as the next broad coverage and optimization roadmap. It separates qualification of currently importable tasks from new semantic ports and from reusable compiler-strategy search.
+
+### Why
+The fixed transformation program had only local smoke evidence at Step217. A complete-task external comparison determines whether it transfers. The old importer count of1,251/76 was stale after parallel operator ports; a current census is needed to choose broad work rather than continue isolated failures.
+
+### What worked
+- Both arms completed all12 task phases. The shared numerical/matching auditor accepted12/12 complete tasks and92/92 graphs in each arm at `t=-5`.
+- The candidate changed49 executable artifacts. Transfer mean task score fell0.848880 to0.822873; family-balanced common-correct end-to-end ratio was0.976551×. Task101, a development control, improved32.782×; task83 improved2.780×; task25 regressed to0.32960×.
+- Current-source import eligibility is1,526/2,060 graphs and111/200 complete tasks. All53 historically accepted tasks are among those111. The58 fully importable but not yet verified tasks contain1,083 graphs, including two very large tasks with522 graphs together.
+- The current audit finds534 blocked graphs by first error. The dominant first-error groups are nonfloating inputs119, mutation/alias135, other operation bindings142, and59 local no-driver shape-propagation errors. These are diagnostic first errors, not independent predicted unlock counts.
+
+### What didn't work
+The fixed pointwise program does not transfer as a global optimization across the declared11 transfer tasks. It preserves correctness but lowers mean score because several task families regress. The current import census runs on a CPU host; its59 driver errors need GPU-host reclassification. The cumulative accepted ledger spans compiler snapshots and remains distinct from a uniform current-release replay.
+
+### What I learned
+The immediate coverage opportunity is larger than the number of missing operations suggests:58 fully importable complete tasks await uniform qualification. One policy can produce large wins and large losses across correct task families, so the next optimization experiment needs workload-conditioned selection and other pass classes, not a global application of the current program.
+
+### What was tricky to build
+The comparison must keep score failures visible while reporting latency only for common-correct graphs. Task101 is a prior development example and must be separated from transfer evidence. The archived raw output was60 MB before compression, so the ticket materializes compact audits and preserves raw evidence in a1.38 MB archive.
+
+### What warrants a second pair of eyes
+Review the task-family-balanced statistic and the claim that the fixed program should not be globally adopted. The sequential control-then-candidate order permits drift, but the task25 loss and task83 gain are large. Review whether the next uniform111-task run should bypass Kiln's synthetic reference gate under the same explicit external PassBench acceptance protocol.
+
+### What should be done in the future
+- Freeze and run all111 currently fully importable task families on one current source snapshot, with the58 unverified tasks split only for scheduling; preserve every graph and failure.
+- Reclassify the59 local driver errors on bling; batch typed inputs, constants, views and mutation semantics by shared compiler capability.
+- Search selective policies on complete training task families and compare with reduction/contraction strategies on held-out families using the original score.
+
+### Code review instructions
+Read scripts618–622, `sources/fixed-policy-passbench-v1/{baseline-audit,candidate-audit,comparison,archive-receipt}.json`, `sources/coverage-roadmap-census-v1.json`, reference35, and reference34. Inspect raw CUDA and PassBench logs in the evidence archive for any individual task claim.
+
+### Technical details
+Both GPU arms used source snapshot `7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740`; the fixed program SHA256 was `de482bd2b23ee1296ca97336a8ff8a7214492782e147b8118f4c0bd826e149b5`. The raw archive SHA256 is `efbe9a10d0738a0b7635c947a07592f83039ef6e7138869a5174172fd967fed4`. Scores are from the original scorer with `p=0`; FX normalization and bypass of Kiln's internal synthetic check are declared integration modifications.

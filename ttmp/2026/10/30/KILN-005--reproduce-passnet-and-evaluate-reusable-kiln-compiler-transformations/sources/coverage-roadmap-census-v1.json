@@ -1,0 +1,288 @@
+{
+  "format": "kiln-coverage-roadmap-census/1",
+  "scope": "Current-source CPU fake-metadata import census; historical cumulative external acceptance ledger",
+  "tasks": 200,
+  "graphs": 2060,
+  "graphs_imported": 1526,
+  "tasks_fully_imported": 111,
+  "tasks_verified_cumulative": 53,
+  "verified_tasks_still_importable": 53,
+  "fully_importable_unverified_tasks": 58,
+  "fully_importable_unverified_graphs": 1083,
+  "top_two_pending_graphs": 522,
+  "first_error_counts": {
+    "in_0: only supported floating tensor inputs accepted": 119,
+    "scaled_dot_product_attention: unsupported target torch._C._nn.scaled_dot_product_attention; implement semantic lowering": 23,
+    "itruediv: in-place arithmetic requires fresh single-use producer": 3,
+    "interpolate: only explicit-size bilinear align_corners=False supported": 8,
+    "Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx": 59,
+    "iadd: in-place arithmetic requires fresh single-use producer": 35,
+    "conv3d: unsupported target torch.conv3d; implement semantic lowering": 2,
+    "normalize: unsupported target torch.nn.functional.normalize; implement semantic lowering": 6,
+    "ShapeProp error for: node=%add : [num_users=1] = call_function[target=operator.add](args = (%transpose, %to), kwargs = {}) with meta={}\n\nWhile executing %add : [num_users=1] = call_function[target=operator.add](args = (%transpose, %to), kwargs = {})\nOriginal traceback:\nNone\nUse tlparse to see full graph. (https://github.com/pytorch/tlparse?tab=readme-ov-file#tlparse-parse-structured-pt2-logs)": 5,
+    "unfold: unsupported target torch.nn.functional.unfold; implement semantic lowering": 10,
+    "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise": 45,
+    "max_1: unsupported target torch.max; implement semantic lowering": 6,
+    "conv1d: unsupported target torch.conv1d; implement semantic lowering": 5,
+    "hardtanh: inplace scalar operation requires fresh single-use producer": 10,
+    "relu: inplace operation requires fresh single-use producer": 42,
+    "norm: unsupported tensor method norm": 5,
+    "einsum: unsupported target torch.functional.einsum; implement semantic lowering": 12,
+    "_tensor_constant0: unsupported FX node kind get_attr; decompose or export constants explicitly": 17,
+    "relu_: unsupported target torch.relu_; implement semantic lowering": 2,
+    "unbind: unsupported target torch.unbind; implement semantic lowering": 9,
+    "square: unsupported target torch.square; implement semantic lowering": 9,
+    "getattr_1: unsupported target builtins.getattr; implement semantic lowering": 3,
+    "cond must be a bool, but got <class 'fx_trace.MutationProxy'>": 2,
+    "prelu: unsupported target torch.prelu; implement semantic lowering": 6,
+    "unbind: unsupported tensor method unbind": 6,
+    "dropout2d: unsupported target torch.nn.functional.dropout2d; implement semantic lowering": 6,
+    "Unsupported FX value: float: inf": 4,
+    "t: unsupported tensor method t": 3,
+    "ShapeProp error for: node=%embedding : [num_users=1] = call_function[target=torch.nn.functional.embedding](args = (%to, %in_0), kwargs = {padding_idx: None, max_norm: None, norm_type: 2.0, scale_grad_by_freq: False, sparse: False}) with meta={}\n\nWhile executing %embedding : [num_users=1] = call_function[target=torch.nn.functional.embedding](args = (%to, %in_0), kwargs = {padding_idx: None, max_norm: None, norm_type: 2.0, scale_grad_by_freq: False, sparse: False})\nOriginal traceback:\nNone\nUse tlparse to see full graph. (https://github.com/pytorch/tlparse?tab=readme-ov-file#tlparse-parse-structured-pt2-logs)": 5,
+    "leaky_relu: unsupported target torch.nn.functional.leaky_relu; implement semantic lowering": 6,
+    "relu_: unsupported tensor method relu_": 6,
+    "stack: unsupported target torch.stack; implement semantic lowering": 10,
+    "ShapeProp error for: node=%add_1 : [num_users=1] = call_function[target=operator.add](args = (%in_0, %to_2), kwargs = {}) with meta={}\n\nWhile executing %add_1 : [num_users=1] = call_function[target=operator.add](args = (%in_0, %to_2), kwargs = {})\nOriginal traceback:\nNone\nUse tlparse to see full graph. (https://github.com/pytorch/tlparse?tab=readme-ov-file#tlparse-parse-structured-pt2-logs)": 6,
+    "hardsigmoid: unsupported target torch.nn.functional.hardsigmoid; implement semantic lowering": 6,
+    "Strided tensor slices require compiler lowering": 9,
+    "hardswish: unsupported target torch.nn.functional.hardswish; implement semantic lowering": 6,
+    "multi_head_attention_forward: unsupported target torch.nn.functional.multi_head_attention_forward; implement semantic lowering": 3,
+    "expand_as: unsupported tensor method expand_as": 6,
+    "mul: unsupported tensor method mul": 9
+  },
+  "pending_tasks": [
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/be/50/be501661ff0211b35a09e2fd7597fdc1264f626818409f385e3a32dcdb1174c7",
+      "graphs": 396
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/fc/eb/fceb1600153dcb28ce3fb4d8812e404b6579be489695fc65dce3d6f49c588815",
+      "graphs": 126
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a7/7f/a77f381a28468c0a3d212b37f44e6d0c628c4b33e9036208205f6046a4a822d8",
+      "graphs": 66
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/0c/a9/0ca90416a4565ea3552c9f12d25bf0e964005c284c070a80376d1a8ec1730a63",
+      "graphs": 36
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/11/76/1176b0b68d5bfc2747b6b08bd8e463e7c32ca3a45c667360b067bf8eab7a21ae",
+      "graphs": 33
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e5/ee/e5ee8a1f26f8522fa0926b1353a6916a368840f0fc444220d959f5588e0265b3",
+      "graphs": 33
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e6/1a/e61aff3bffb4771543f1b3c774df284ebda01f3890597e1e2a667fd9ef7c0f10",
+      "graphs": 33
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/77/e5/77e543584c465945ca353b5aee81fac16f8538964924608419fea61dae69cdd2",
+      "graphs": 24
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c0/0b/c00bacc65a4b426d8d9235771377df8f1c68e54330540f8375521322b152dede",
+      "graphs": 24
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/44/77/4477d50fb26d0e3f5924a3114a2a5e26a2d27ea3d38e24900c3d3b4205ef6651",
+      "graphs": 21
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/b5/54/b5546fe7d0dee72d2e68b5c511014e4932a056574bf6a28d4d17b576a6eb9ee2",
+      "graphs": 21
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/fa/63/fa63fe7c4c5155f6a9cf0e5fd55ae3a510e5222c4a1ade2e206547ead0eb99c7",
+      "graphs": 21
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/f3/4a/f34ab32ce39797b10e66e8e046b776b54a4ba629efc60047c64678cc83aabeeb",
+      "graphs": 20
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/08/b8/08b8a5e223a87d4e2871a8dd7d77a8629dda33725a5a0fa4db2a967ea3d3ef89",
+      "graphs": 14
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/3e/84/3e84742c98318a73be5d72d6fbff853fee17943c6cb8893ef34c855c5ffe9c1d",
+      "graphs": 14
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/59/59/5959fe860920bef1d7ccda358efaedcd40109d28b45c70660a7939b0d889294d",
+      "graphs": 12
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/29/91/299158a00f835a0d5c5947f232f093efd116958328572b16310dcc426b106176",
+      "graphs": 9
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a9/83/a983b1af910c31795c87bff72b8876dcc5d96a8cd9d9355528f5ebde5895076c",
+      "graphs": 9
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c4/f4/c4f4baceed0eed457d338798e78817bd018b4cfe4a762fc95022e94a742dd3f1",
+      "graphs": 9
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d6/71/d671362ecd1fc02b99cbed7120d702ae6fa801c30ef2baf8d7b705a40be31ac0",
+      "graphs": 9
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/f6/4e/f64e7849504225df53c4490f7cda03a07f754ad56f59135afab81925be241e88",
+      "graphs": 9
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/18/d5/18d5920276a3af9850fac5e4a2e52dd8ed64d2671c82bf9dada1b82827d2c44c",
+      "graphs": 6
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/19/94/19948d3f914afc0da7938eec71c4da1cbaf6a21636b1bc08b96cf09658cf2aa4",
+      "graphs": 6
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/2c/93/2c9342dd2e3ee784ac984620c2d81b7a80be58f53ba0aa109d97467a5e613d28",
+      "graphs": 6
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/57/ce/57cefd942138dbaa5984bb1549e782fb21980682ab46bc4008db5237d70fb8a0",
+      "graphs": 6
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/65/7a/657ac1d85821d77edd1b469df6b813d94c421fd0cd665e3e5ff12d3a444297f6",
+      "graphs": 6
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/76/17/7617c74713c4e93cb460752c9361916023087a0c20f2d84a3d133648e0bc2ddc",
+      "graphs": 6
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/76/d6/76d670e131b2017638849e085be26b6a36300e154ab845b68592cf5732094bc9",
+      "graphs": 6
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8b/34/8b34aac6a4300e240bfe953e8de1df6a58e990e43c8ed28905054f7e67ed8773",
+      "graphs": 6
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a2/00/a2005550c46f555aad0618049b08cf11ae6a817217af724668c76ea8bb333c00",
+      "graphs": 6
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d7/ad/d7ad0d2d634451a6b6fac042293936d43c8b785a92f5aa282d5441f5d802a2af",
+      "graphs": 6
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e0/33/e033e1d95e1e24804cf7caef66c4b838c2efb8f300faf631aada9b7771f8c7f2",
+      "graphs": 6
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/17/73/1773ae3993ff0e6c58b2923b5758642e0ff9625aacbe1e0712d43abc3887f3f9",
+      "graphs": 5
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a0/66/a0661812bbf394f717f33dfb71e98d07de89e8929ad003a25de61de79fc8c43c",
+      "graphs": 5
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/da/90/da90513afc8c67a587415ece7324f554b38d379a7e5430773d1cdca4211030ed",
+      "graphs": 5
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/38/57/3857ddff58f9c66b29665bfde662570c575f6b64402d3e57f38f3ee464e23796",
+      "graphs": 4
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/4d/cf/4dcf365b8779cf45b6b93412ccdb8288e30fb5b574a8d7030d4ee49dd0633837",
+      "graphs": 4
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/99/86/99861c8f92ed8f744bc6b49fa2771d2e1d1b0c21b468c00f483958ea5307c1fb",
+      "graphs": 4
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a6/35/a63502eab939781f00a1b9f08cf180559a88b80c353c7e961c08bbfb588ac0ee",
+      "graphs": 4
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ee/26/ee26783c6c9dfabc1d3bf50258a97211f849046e6b235b9c0cb58a93ea68d54b",
+      "graphs": 4
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/34/ea/34ea6e2615b6e6d95e3b228c59bacbec70e1df8e241249794b1ff33f42d97776",
+      "graphs": 3
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/37/f8/37f8becb8e4fe9b7da67e3ca1a02e40a68e9aec77abef064586ff641b8d52f94",
+      "graphs": 3
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/54/98/549871c8114118599544d1f6d4291c6fcaef64fb70cdd8c256264789b64c28f1",
+      "graphs": 3
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6f/d9/6fd9ed69c9a416c15df581860dfc1a8be371a355d62c3d9fef7a0297ce983575",
+      "graphs": 3
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/84/8d/848deaf3114c95f7fcc6f65ec7fc84694a085d75d2911c8590e79a16a09daf0b",
+      "graphs": 3
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/58/8a586520e1bb88066353e657ab7cb1ed73f8d699968ab0dc3122e974911a193d",
+      "graphs": 3
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/93/47/93471a9f4ab37518cc956cede1feba365e1693fcd23e7fe0a3877d5d69c66413",
+      "graphs": 3
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d9/c1/d9c1f63611716b510c8fe57e6a239241c8456418893841d10165b14635272ba8",
+      "graphs": 3
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/0a/b3/0ab35bc412896f4ee91c86b4e71d6c6286b528b09e6f24cc45aaceb1bfb75647",
+      "graphs": 2
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/0b/c4/0bc4f377d7411fb2af0a07e27c89e8f3e1a6896814c872081c61a6077d8d6ac0",
+      "graphs": 2
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/10/45/10451060da491918b6c3ff502a829090d873ed0dcbcd4486c5b855c07c52735e",
+      "graphs": 2
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/49/d4/49d4e2624f48714f4f3a39617852a8f671f3af5f861d1a162f568edc978f19ec",
+      "graphs": 2
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/70/e0/70e0d8181b3eeb7d69c61e5f8dcee754e0f743f4574dee8cee0a203f6d929eca",
+      "graphs": 2
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/a7/8aa7f93279ff596ed09c76f4c4341bcc48a0e8b818b1e8c9af2561c9162c594a",
+      "graphs": 2
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ca/08/ca08efb660870daf3366b91600d0495f3b53cdf4b1974a87d1ced5b07d8c3b85",
+      "graphs": 2
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/cb/71/cb71858f2fa51294906a1fcd9f1b547d102025d1c89f25883f65d74d05f76fc9",
+      "graphs": 2
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ff/10/ff107870729964bc38311c303cf4394ef340b4b85b614f479379c04134d8cbad",
+      "graphs": 2
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e4/e1/e4e1cf6c08dff06a35815cc27cbf442509e5f36f2bdd67aa4e272906954ef740",
+      "graphs": 1
+    }
+  ]
+}
