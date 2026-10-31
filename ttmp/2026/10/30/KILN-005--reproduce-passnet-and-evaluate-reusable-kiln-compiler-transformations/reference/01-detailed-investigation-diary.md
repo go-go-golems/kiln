@@ -1750,3 +1750,44 @@ Original complete-corpus target; preserve scripts and source provenance.
 
 ### Technical details
 - Source task c2737b2dfa6d0ea43a5e6c03a1ce62e33c08403e044afdf09977b864ccbde68d at pinned upstream revision; no code copied.
+
+## Step 42: Preserve all-variant second-task compilation and GPU validation drivers
+
+Added compilation and source-based GPU comparison drivers for all twelve second-task variants. Remote staging/launch tool handles remain live during observation; no completed compilation or GPU validation result is claimed yet.
+
+### Prompt Context
+Original corpus-wide implementation and reproducible script requirements.
+**Assistant interpretation:** Validate all variants before incrementing verified task coverage.
+**Inferred user intent:** Complete measured task support with explicit denominators.
+
+### What I did
+- Saved scripts/23-compile-second-task.py with per-variant export logs and cumulative compile receipt.
+- Added check_second_task_cuda.py loading original pinned GraphModule and comparing output dtype/values for each manifest entry.
+- GPU validator requires a complete successful compile receipt before executing any variant.
+
+### Why
+- Prior missing-artifact failure showed dependent execution must be explicitly gated.
+
+### What worked
+- Scripts are preserved and remote staging handles are being observed.
+
+### What didn't work
+- No new terminal failures; staging/remote observation is slow. Existing live handles have not been restarted.
+
+### What I learned
+- A cumulative receipt can prove dependency completeness without inferring success from existing filenames.
+
+### What was tricky to build
+- Load each original graph rather than duplicate its scalar/transpose formula in the validator; retain graph identity per result.
+
+### What warrants a second pair of eyes
+- Shape/output-layout and original matcher/score checks remain separate gates after GPU value checks.
+
+### What should be done in the future
+- Poll staging/compiler handles, inspect complete compile receipt, then run GPU validator and original full-task evaluator.
+
+### Code review instructions
+- Inspect script 23 and check_second_task_cuda.py alongside sources/second-task/manifest.json.
+
+### Technical details
+- All twelve variants retained; verified coverage remains 1/200. No low-coverage filtering or new performance claims.
