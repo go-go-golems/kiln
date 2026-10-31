@@ -281,6 +281,17 @@ def import_graph(graph):
             if meta['shape']!=shape or meta['dtype']!=source['dtype']:
                 raise ValueError(f'{name}: expand output metadata mismatch')
             expr=f'N.expand({args[0]}, {json.dumps(requested)})'
+        elif node['kind']=='call_method' and target=='expand_as':
+            if len(args)!=2 or kwargs:
+                raise ValueError(f'{name}: expand_as requires self and other tensor')
+            source=operand_spec(args[0]);other=operand_spec(args[1])
+            requested=other['shape']
+            offset=len(requested)-len(source['shape'])
+            if offset<0 or any(a!=1 and a!=b for a,b in zip(source['shape'],requested[offset:])):
+                raise ValueError(f'{name}: invalid expand_as shape')
+            if meta['shape']!=requested or meta['dtype']!=source['dtype']:
+                raise ValueError(f'{name}: expand_as output metadata mismatch')
+            expr=f'N.expand({args[0]}, {json.dumps(requested)})'
         elif node['kind']=='call_method' and target=='unfold':
             if len(args)!=4 or kwargs:raise ValueError(f'{name}: unfold requires dimension, size and step')
             source=operand_spec(args[0]);shape=source['shape'];rank=len(shape)

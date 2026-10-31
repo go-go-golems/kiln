@@ -19,12 +19,15 @@ class ScalarTests(unittest.TestCase):
         self.assertTrue(self.lower('clamp_', ['x', '-1', '1'], kind='call_method')[2])
         self.assertFalse(self.lower('torch.nn.functional.hardtanh', ['x'])[2])
         self.assertTrue(self.lower('torch.nn.functional.hardtanh', ['x', '-1', '1', 'true'])[2])
+        self.assertTrue(self.lower('torch.nn.functional.hardswish', ['x', 'true'])[2])
         for target,args,kw in [
             ('torch.clamp',['x'],{}), ('torch.pow',['x','y'],{}),
             ('torch.pow',['x','true'],{}), ('torch.pow',['x','0.5'],{}), ('torch.cos',['x'],{'out':'x'}),
             ('torch.nn.functional.hardtanh',['x','2','1'],{}),
             ('torch.nn.functional.hardtanh',['x'],{'inplace':'1'}),
             ('torch.clamp',['x','0'],{'min':'1'}),
+            ('torch.nn.functional.leaky_relu',['x','null'],{}),
+            ('torch.nn.functional.hardsigmoid',['x'],{'inplace':'1'}),
         ]:
             with self.assertRaises(ValueError): self.lower(target,args,kw)
 
@@ -37,7 +40,12 @@ class ScalarTests(unittest.TestCase):
                         ('torch.clamp',['-0.3333','0.3333'],lambda x:torch.clamp(x,-.3333,.3333)),
                         ('torch.clamp',['1','-1'],lambda x:torch.clamp(x,1,-1)),
                         ('torch.clamp',['null','0'],lambda x:torch.clamp(x,max=0)),
-                        ('torch.cos',[],torch.cos),('torch.sin',[],torch.sin)]
+                        ('torch.cos',[],torch.cos),('torch.sin',[],torch.sin),
+                        ('torch.square',[],torch.square),
+                        ('torch.nn.functional.leaky_relu',[],lambda x:torch.nn.functional.leaky_relu(x)),
+                        ('torch.nn.functional.leaky_relu',['0.2'],lambda x:torch.nn.functional.leaky_relu(x,0.2)),
+                        ('torch.nn.functional.hardsigmoid',[],lambda x:torch.nn.functional.hardsigmoid(x)),
+                        ('torch.nn.functional.hardswish',[],lambda x:torch.nn.functional.hardswish(x))]
             operations += [('torch.pow',[str(e)],lambda x,e=e:x.pow(e)) for e in [0,1,2,3,-1,-2]]
             for target,args,fn in operations:
                 expr,_,_=self.lower(target,['x',*args],dtype=str(dtype))

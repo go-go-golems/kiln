@@ -3021,3 +3021,47 @@ Read the vault article at the path above, compare its measurements with referenc
 
 ### Technical details
 The vault article is1,899 words, append-only, with YAML metadata and a Mermaid diagram. Vault commit `d4b7cc3` was pushed to `origin/main`. The Kiln research branch was at `173ea63` when the article was published.
+
+## Step 221: Batch scalar and layout bindings while the broad GPU run continues
+
+### Prompt Context
+Reference34 calls for broad operation batches while the uniform importable-task run executes from a frozen source snapshot. The user requested that PyTorch/PassNet source provenance be documented in the diary and relevant materials saved in ticket `sources/`.
+**Assistant interpretation:** Port a shared batch of still-missing source operations through existing Kiln primitives, measure full-corpus import gain once, and preserve exact source/API evidence.
+**Inferred user intent:** Raise coverage quickly without confusing import, compilation and external PassBench correctness.
+
+### What I did
+- Added source lowering for `torch.square`, functional `leaky_relu`, `hardsigmoid`, `hardswish` and tensor `expand_as`. The scalar functions reuse `fx_scalar_ops.py`; `expand_as` reuses the existing `N.expand` representation. In-place functional calls retain the importer's fresh single-use permission check.
+- Extended the shared scalar oracle with the new operations across FP32, FP16 and BF16, plus finite values, zeros, infinities and NaN. Ran the current full2,060-graph importer census with script627, froze the exact delta and complete task plan with script628, and locally exported/compiled all33 newly importable variants using script629.
+- Inspected the119 nonfloating-input and17 captured-constant first failures using script626. Read the official PyTorch2.9 API pages for the five new bindings, downloaded their exact HTML with URL/SHA256 manifest using script630, and archived the pages with script632. Archived the121 local compile evidence members with script631. Wrote reference37 with the semantics, measured gain and next typed-compiler boundary.
+
+### Why
+The remaining scalar and expansion bindings fit existing compiler operations and can be implemented together. Integer inputs and captured tensor constants have a different cross-layer requirement; their first-error counts alone do not justify an unsafe import-only mapping.
+
+### What worked
+- The scalar oracle passed51 PyTorch CPU/reference/decomposition/CUDA-emission cases on local PyTorch2.11.0+cu130 and Node26.13.0. No broad compiler suite was added for a set of simple bindings.
+- The full census moved from1,526 to1,559 imported graphs and111 to116 fully importable tasks, with33 newly imported graphs and zero import regressions. The new complete task indices are85,135,167,192,197, totaling33 variants.
+- All five new families exported and all33 source programs compiled locally with target A100, separate contraction and the explicitly bypassed internal synthetic reference check. Their external GPU correctness remains pending.
+- The typed frontier census finds119 graphs across18 families with nonfloating placeholders,230 `torch.int64` input declarations and one Boolean declaration. The17 get-attribute failures capture tensors ranging from49 to1,050,625 elements, which rules out a scalar-only constant scheme.
+
+### What didn't work
+- The first scalar test invocation from the repository root failed to import `fx_scalar_ops`; rerunning from `integrations/passnet/` used the repository's established test path.
+- The first hard-swish lowering selected zero for negative infinity, whereas local PyTorch produced NaN. The shared oracle caught it. Rewriting the expression as multiplication by a clamped factor preserved the observed nonfinite behavior and made all51 cases pass.
+- No pinned-PyTorch2.9 CUDA numerical comparison or original PassBench replay has been completed for the new five families. Import and local compilation are not external acceptance.
+
+### What I learned
+The official hard-swish piecewise formula describes finite-value behavior but does not settle the negative-infinity result of the actual tensor kernel. The local oracle must cover exceptional inputs, and the pinned runtime remains the final benchmark authority. The typed-input frontier requires exact integer storage and data-dependent indexing; the current loop expression IR loads at static coordinate expressions and represents scalar arithmetic as FP32.
+
+### What was tricky to build
+`expand_as` uses the other tensor's *shape* while preserving the source tensor's dtype and broadcast legality; treating it as an ordinary binary elementwise op would be wrong. Hard-swish must preserve multiplication by zero on negative infinity to retain NaN. In-place variants cannot be accepted by translating them to fresh outputs unless the source value is proven unaliased and single-use.
+
+### What warrants a second pair of eyes
+Review the hard activation lowering against pinned PyTorch2.9 CUDA, especially signed-zero and reduced-precision behavior. Review task85/135/167/192/197 original-evaluator results before updating coverage. For the next typed capability, review whether an integer-specific scalar/index IR should be introduced rather than casting indices through FP32.
+
+### What should be done in the future
+Stage the frozen five-family batch for GPU replay after the active111-task run, then audit all33 variants at `t=-5`. Design exact integer tensor loads, data-dependent gather, captured tensor asset storage and runtime lifetime as one coherent B1 capability. Use the broad run's failure census to adjust order if another shared blocker dominates.
+
+### Code review instructions
+Read `fx_scalar_ops.py`, the new `expand_as` branch in `fx_import.py`, `test_fx_scalar_ops.py`, scripts626–631, reference37 and `sources/scalar-layout-batch-delta-v1.json`. Compare the official PyTorch2.9 pages and the materialized PassNet model calls recorded in the frontier/source audit before changing formulas.
+
+### Technical details
+The downloaded PyTorch source pages are version2.9 generated API HTML preserved in `sources/pytorch-2-9-scalar-docs-v1.tar.gz` (SHA256 `925588016c675c43f23d965324af8bcff559068fc677efe577bd3be4b4ffa2c8`), with page hashes and URLs in the adjacent archive receipt; no source code was copied. Local compilation artifacts are archived at `sources/scalar-layout-batch-local-compile-v1.tar.gz` (SHA256 `1cafa51adc66abd4e7f60ffa4997db0d9dc3d3f67aa77471d9deb2629e7433ba`). The ongoing broad GPU run uses the earlier frozen source snapshot and cannot observe these uncommitted local changes.

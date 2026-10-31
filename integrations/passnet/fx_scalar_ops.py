@@ -10,9 +10,13 @@ FUNCTIONS = {
     'torch.pow': 'pow', '_operator.pow': 'pow', 'aten.pow.Tensor_Scalar': 'pow',
     'torch.cos': 'cos', 'aten.cos.default': 'cos',
     'torch.sin': 'sin', 'aten.sin.default': 'sin',
+    'torch.square': 'square', 'aten.square.default': 'square',
+    'torch.nn.functional.leaky_relu': 'leaky_relu',
+    'torch.nn.functional.hardsigmoid': 'hardsigmoid',
+    'torch.nn.functional.hardswish': 'hardswish',
 }
 METHODS = {'clamp': 'clamp', 'clamp_': 'clamp_', 'clip': 'clamp', 'clip_': 'clamp_',
-           'pow': 'pow', 'cos': 'cos', 'sin': 'sin'}
+           'pow': 'pow', 'cos': 'cos', 'sin': 'sin', 'square': 'square'}
 DTYPES = {'torch.float32': 'f32', 'torch.float16': 'f16', 'torch.bfloat16': 'bf16'}
 
 
@@ -30,6 +34,8 @@ def lower_scalar(target, kind, args, kwargs, meta, resolve, literal):
         if target == 'torch.nn.functional.hardtanh': fields += ['inplace']
     elif op.startswith('clamp'): fields += ['min', 'max']
     elif op == 'pow': fields += ['exponent']
+    elif op == 'leaky_relu': fields += ['negative_slope', 'inplace']
+    elif op in ('hardsigmoid', 'hardswish'): fields += ['inplace']
     if len(args) > len(fields) or set(kwargs) - set(fields):
         raise ValueError(f'{op}: unsupported arguments')
     bound = dict(zip(fields, args))
@@ -74,6 +80,16 @@ def lower_scalar(target, kind, args, kwargs, meta, resolve, literal):
         # on WGSL, whose builtin pow otherwise has a nonnegative-base domain.
         special = {2: 'square'}
         x = f'N.{special[exponent]}({x})' if exponent in special else f'N.pow({x}, {json.dumps(exponent)})'
+    elif op == 'leaky_relu':
+        slope = scalar('negative_slope', '0.01')
+        if slope is None: raise ValueError('leaky_relu: finite negative_slope required')
+        x = f'N.select(N.gt({x}, 0), {x}, N.mul({x}, {json.dumps(slope)}))'
+    elif op == 'hardsigmoid':
+        middle = f'N.add(N.div({x}, 6), 0.5)'
+        x = f'N.select(N.lt({x}, -3), 0, N.select(N.gt({x}, 3), 1, {middle}))'
+    elif op == 'hardswish':
+        clipped = f'N.select(N.lt({x}, -3), 0, N.select(N.gt({x}, 3), 6, N.add({x}, 3)))'
+        x = f'N.mul({x}, N.div({clipped}, 6))'
     else:
         x = f'N.{op}({x})'
     return f'N.cast({x}, {dtype})', value, inplace
