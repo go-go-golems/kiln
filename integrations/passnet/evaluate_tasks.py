@@ -52,7 +52,7 @@ def main():
         phases=[('export',docker(['-c',stage])),
                 ('compile',['python3','integrations/passnet/corpus.py','compile','--directory',str(corpus),'--kiln',str(kiln),'--target','a100']),
                 ('evaluate',docker(['run_task.py','--directory',str(mounted/'corpus'),'--upstream','/work/upstream','--pass-directory',str(mounted/'passes'),'--log',str(mounted/'benchmark.log'),'--warmup','20','--trials','100'],gpu=True)),
-                ('score',docker(['-m','pass_bench.aggregate_es_scores','--benchmark-path',str(mounted/'benchmark.log'),'--sample-id',str(case['index']+1),'--disable-aggregation-mode','--negative-speedup-penalty','0','--fpdb','0.1','--output-json-file-path',str(mounted/'score.json')],work='/work/upstream'))]
+                ('score',docker(['score_task.py','--log',str(mounted/'benchmark.log'),'--sample-id',str(case['index']+1),'--upstream','/work/upstream','--output',str(mounted/'score.json')]))]
         row={'index':case['index'],'sample':case['sample'],'graphs_expected':case['graphs'],'directory':directory.name,'status':'running','phases':[]};result['records'].append(row);save(path,result)
         for phase,command in phases:
             row['current_phase']=phase;save(path,result);started=time.monotonic()

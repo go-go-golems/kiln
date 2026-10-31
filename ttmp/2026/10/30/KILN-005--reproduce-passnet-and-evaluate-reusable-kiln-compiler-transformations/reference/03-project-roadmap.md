@@ -34,7 +34,7 @@ Teacher trajectory generation/student fine-tuning remains a separate expensive r
 
 ## Priority change: start reusable-policy optimization before full corpus support
 
-The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance is six tasks / 76 graphs. Translation succeeds for 912 graphs and 36 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
+The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is six complete tasks containing 76 graphs, plus two passing variants of an incomplete task (78 individually passing graphs). Translation succeeds for 984 graphs and 43 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
 
 The immediate critical path is:
 
@@ -51,8 +51,15 @@ The existing default is fused work <= 1.02 × original work. An initial scalar-t
 
 The second direct policy study is complete: eight bounded policies compiled on 20 fresh official-training-source graphs (12 train, eight held-out). Every candidate aliases baseline on training, so selection retained unchanged Kiln; all 20 replay checks and stable timing runs qualified. This is a negative optimization result, not full PassBench acceptance. Design 07 and policy-measurements-v2/verified-facts.json own details.
 
-Original-source Inductor reference attempts are complete for all 200 tasks / 2,060 variants. The upstream tolerance-one audit accepts 2,039 variants and 191 complete tasks. Historical timing overlap and different hardware/software prevent a final paper-comparable performance claim. Controlled baseline reruns, original PassAgent evaluation and remaining Kiln task support remain open.
+Original-source Inductor reference attempts are complete for all 200 tasks / 2,060 variants. The nominal t=-5 audit accepts 1,748 variants and 140 complete tasks. The previously reported tolerance-one audit accepts 2,039/191 at a relaxed numerical point and must not be described as nominal correctness. Historical timing overlap and different hardware/software prevent a final paper-comparable performance claim. Controlled baseline reruns, original PassAgent evaluation and remaining Kiln task support remain open.
 
 ### Activation and ownership checkpoint
 
-SiLU/sigmoid lowering and conservative fresh-single-use functionalization increased import eligibility to 912 graphs / 36 complete tasks. Evaluation task 143 passed all three dtypes through modified-protocol matching, numerical checks and original scoring, increasing verified Kiln coverage to six tasks / 76 graphs. The coverage ledger now requires upstream tolerance-one numerical acceptance explicitly. Detailed contracts are in design 02 and guide Section 24.
+SiLU/sigmoid lowering and conservative fresh-single-use functionalization increased import eligibility to 912 graphs / 36 complete tasks. Evaluation task 143 passed all three dtypes through modified-protocol matching, numerical checks and original scoring, increasing verified Kiln coverage to six tasks / 76 graphs. Historical checkpoint: this used upstream tolerance-one acceptance. The subsequent numerical audit corrected the ledger to nominal t=-5; see the checkpoint below. Detailed contracts are in design 02 and guide Section 24.
+
+
+### Matrix and numerical-audit checkpoint
+
+Matrix semantics, faithful in-place tracing and source-derived canonical matchers are implemented. Independent CUDA fixtures pass 126/126 comparisons. Source-role binding and matcher specificity fixes restore the complete 30-variant residual task under t=-5. The current six complete tasks / 78 individually passing graphs are the corrected nominal coverage; 984 graphs / 43 complete families are import eligibility only.
+
+The shared runner has frozen all newly complete families relative to the activation audit: 14 tasks / 151 variants. Its execution is in progress on bling.local; source and membership hashes are checked at phase boundaries. Original PassAgent, the remaining compiler semantics, controlled full-corpus comparisons and broader transformation synthesis remain open. The full scope has not been reduced to this cohort.

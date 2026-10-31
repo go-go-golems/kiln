@@ -3961,3 +3961,57 @@ See the user's architectural consolidation, saved-script and detailed-diary inst
 ### Technical details
 - Nominal criterion: t=-5, one replacement, successful original evaluation; original scorer p=0, fpdb=0.1 retained independently.
 - Frozen cohort membership is derived before this cohort's execution and does not depend on its numerical or timing outcomes.
+
+
+## Step 91: Publish the matrix milestone and repair scorer input naming
+
+The matrix/binding/numerical-audit report is published as an append-only vault article, committed and pushed as 72db096. Updated guide Progress 06 is uploaded to reMarkable. The complete 14-task cohort is running under its frozen remote source snapshot; scoring failed on completed tasks because the upstream scorer requires a curve named validation. A shared local repair now scores the preserved residual and linear logs successfully, without rerunning their GPU measurements.
+
+### Prompt Context
+See the earlier user instructions to publish milestone reports, commit/push the vault, deliver the intern guide and preserve intermediate scripts.
+**Assistant interpretation:** Publish the substantive matrix milestone, including the reporting correction and unresolved failures.
+**Inferred user intent:** Maintain a technical record that explains implementation and scientific limits, rather than only reporting successes.
+**Commit (code):** ce01a6a — canonical binding, nominal audit and initial complete-task runner.
+
+### What I did
+- Wrote reference report 10 (about 2,500 words), updated guide Section 25 and corrected current roadmap claims.
+- Used docmgr to relate the report to matrix semantics, pattern generation and shared orchestration.
+- Saved append-only vault publication script 137 and committed/pushed only the new article; unrelated vault changes remain untouched.
+- Uploaded the guide and matrix design as Progress 06 to `/ai/2026/10/31/KILN-005`.
+- Added shared `score_task.py` and script 138 for post-run scoring recovery from unchanged log bytes. Script 139 scores the two previously completed GPU logs locally.
+
+### Why
+- The original scorer names its curve from the input filename and explicitly accesses validation. Copying the identical bytes under that name repairs orchestration without modifying the evaluator/scorer or consuming another GPU measurement.
+- The numerical-audit correction belongs in a new dated article while historical reports remain preserved.
+
+### What worked
+- Original scorer: canonical residual task id 12 score 1.068320661082182; incomplete linear task id 122 score 0.5472383608700027. These are aggregate original-curve scores, not nominal task acceptance.
+- Vault push: `9f2e915..72db096 main -> main`.
+- Delivery: `OK: uploaded KILN-005 PassNet Intern Guide Progress 06.pdf -> /ai/2026/10/31/KILN-005`.
+- The cohort's first tasks export, compile and evaluate; remaining work is tracked by run.json and tmux passnet-matrix-cohort.
+
+### What didn't work
+- Initial script 136 assumed remote nvm at `/home/manuel/.nvm/nvm.sh`; the exact launch diagnostic was `No such file or directory`. It failed before creating run.json. Remote Node is already `/usr/local/bin/node`, version v26.8.1; the corrected launcher uses that installation. The failed log is preserved.
+- Original scorer with benchmark.log raised `KeyError: 'validation'`. Initial score.log and failed phase records are preserved.
+- The first reMarkable command used an incorrect design filename and failed before uploading; the command was corrected to the actual saved design file.
+- Cohort tasks 51,60,82 have compilation failures. Task 51 and 82 logs include end-to-end check FAILED; task 60 compiled its first variant before a later variant failed. Negative synthetic batch-normalization variance is a suspected shared cause; this is not yet proven or fixed.
+
+### What I learned
+- A correct command-line flag set can still violate an undocumented naming dependency in the original evaluator stack. The shared scoring wrapper now makes that requirement explicit.
+
+### What was tricky to build
+- The live remote compiler snapshot is kept unchanged. The local scoring repair is not staged remotely until the cohort becomes terminal; otherwise the source-integrity guard would correctly stop it.
+
+### What warrants a second pair of eyes
+- Review numerical criteria, exact log copies and original score semantics separately. Higher-precision mathematical agreement does not erase nominal replay failure.
+
+### What should be done in the future
+- Wait for the existing cohort, recover its scores from preserved logs, audit all 151 declared variants and investigate common compilation failures.
+- Use one shared source-domain mechanism rather than adding ad hoc per-task compiler bypasses.
+
+### Code review instructions
+- Review `score_task.py`, scripts 138–139, score receipts and reference report 10. The original scoring implementation is unchanged.
+
+### Technical details
+- Scorer configuration: p=0, fpdb=0.1, original sample identity; input and score SHA256 are recorded by the wrapper.
+- Publication body matches the ticket report at the publication checkpoint; later cohort results will receive their own dated update.
