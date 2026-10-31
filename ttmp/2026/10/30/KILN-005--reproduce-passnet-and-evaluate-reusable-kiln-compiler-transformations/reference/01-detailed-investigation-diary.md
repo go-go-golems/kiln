@@ -1038,3 +1038,47 @@ Installed Node v26.13.0 with nvm after user authorization. Added CUDA emitter su
 
 ### Technical details
 - Independent emitter implementation using standard CUDA half/bfloat16 type/intrinsic names; no upstream source copied. No end-to-end reduced-precision execution claim.
+
+## Step 25: Validate typed CUDA storage on GB10 and explicit header configuration
+
+Emitter-generated half and bfloat16 copy kernels compiled through NVRTC and executed on GB10 with exact finite storage roundtrips. Added explicit include_paths configuration to the CUDA launcher after actual missing-header failure. This remains a standalone emitter/runtime test, not full typed graph lowering.
+
+### Prompt Context
+Original implementation scope and explicit environment-read notification constraint.
+**Assistant interpretation:** Test emitted CUDA rather than relying on source string assertions.
+**Inferred user intent:** Verify real hardware behavior and preserve diagnostics.
+
+### What I did
+- Saved scripts/13-generate-typed-kernels.mjs and generated CUDA sources.
+- Added check_typed_cuda.py with PyTorch half/BF16 pointers, infinity/NaN and exact finite-bit checks.
+- Added explicit include_paths argument to CudaProgram/NVRTC compilation; test supplies /usr/local/cuda/include without new environment reads.
+
+### Why
+- NVRTC does not automatically search toolkit header directories.
+
+### What worked
+- Both GPU tests printed PASS: f16/bf16 NVRTC compile and typed load/store on NVIDIA GB10.
+- All 15 compiler test files passed on remote Node 26.
+- All seven Python launcher tests passed after updating FakeCuda.compile signature.
+
+### What didn't work
+- Initial NVRTC error: could not open source file cuda_fp16.h (no directories in search list), for sm_121 and compute_121.
+- Initial launcher unit run failed seven tests because FakeCuda.compile lacked include_paths keyword; updated test double to the new API, rerun passed.
+
+### What I learned
+- Explicit compilation configuration belongs in launcher arguments, not implicit environment assumptions.
+
+### What was tricky to build
+- Fixtures construct artifacts directly to isolate emitter/runtime support from still-missing typed graph propagation.
+
+### What warrants a second pair of eyes
+- Include path configuration and GPU test coverage must extend to full lowered programs; host packing remains FP32-oriented.
+
+### What should be done in the future
+- Propagate result dtype and observable rounding boundaries, backend capability handling and typed artifact sizes before enabling FP16/BF16 importer inputs.
+
+### Code review instructions
+- Review emitted sources, script 13, check_typed_cuda.py, launcher compile options and test double update.
+
+### Technical details
+- Independent generated-copy fixture; original graph benchmark precision support remains incomplete. No upstream code copied.

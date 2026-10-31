@@ -77,7 +77,7 @@ class FakeCuda:
         if r != 0:
             raise RuntimeError(f"{what}: {r}")
 
-    def compile(self, source, entry, arch):
+    def compile(self, source, entry, arch, include_paths=()):
         return b"image", "cubin"
 
 
