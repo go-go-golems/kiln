@@ -1,6 +1,6 @@
 // matmulPrecision "tf32": FP32 contraction operands are rounded to TF32 (round to nearest, ties away)
-// to match a reference backend with PyTorch allow_tf32; bias, grouped convolutions and the default
-// "highest" policy are unchanged.
+// to match a reference backend with PyTorch allow_tf32 for matrix products; bias, convolutions and
+// the default "highest" policy are unchanged.
 import assert from "node:assert/strict";
 import { k } from "../src/core/kiln.js";
 import { Tensor } from "../src/core/util.js";
@@ -47,11 +47,11 @@ assert.ok(fpKernels.every((kn) => !kn.cuda.includes("tf32")), "highest emits no 
 const wgslKernels = programOf(pipeline({ target: hardware, matmulPrecision: "tf32" }).run(g).graph).kernels;
 assert.ok(wgslKernels.some((kn) => kn.wgsl && kn.wgsl.includes("fn kiln_round_tf32")), "WGSL carries the same rounding");
 
-// grouped convolution keeps FP32 operands; an ungrouped one is rounded
+// convolutions keep FP32 operands (cuDNN's TF32 convolution is not matched by operand rounding)
 const conv = (groups) => k.trace("tf32-conv-" + groups, ({ x, w }) => ({ out: N.conv2d(x, w, null, { groups }) }),
   { x: k.tensor([1, 2, 4, 4]), w: k.tensor([2, 2 / groups, 3, 3]) });
 const convCuda = (groups) => programOf(pipeline({ target: hardware, matmulPrecision: "tf32" }).run(conv(groups)).graph).kernels.map((kn) => kn.cuda).join("\n");
-assert.ok(convCuda(1).includes("cvt.rna.tf32.f32"));
+assert.ok(!convCuda(1).includes("tf32"));
 assert.ok(!convCuda(2).includes("tf32"));
 assert.throws(() => pipeline({ matmulPrecision: "medium" }), /matmulPrecision/);
 console.log("tf32 matmul precision rounds FP32 contraction operands and nothing else");

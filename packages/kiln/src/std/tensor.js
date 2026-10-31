@@ -446,10 +446,10 @@ export const tf32Linear = k.rule("tf32_linear").match(P.op("nn.linear").as("n").
   .rewrite(({ n }) => nn.linear(tf32(n.arg("x")), tf32(n.arg("w"))));
 export const tf32Matmul = k.rule("tf32_matmul").match(P.op("nn.matmul").as("n").where(({ n }) => fp32Operands(n.arg("a"), n.arg("b"))))
   .rewrite(({ n }) => nn.matmul(tf32(n.arg("a")), tf32(n.arg("b"))));
-export const tf32Conv2d = k.rule("tf32_conv2d").match(P.op("nn.conv2d").as("n").where(({ n }) => n.attrs.groups === 1 && fp32Operands(n.arg("x"), n.arg("w"))))
-  .rewrite(({ n }) => nn.conv2d(tf32(n.arg("x")), tf32(n.arg("w")), n.arg("b"), { stride: n.attrs.stride, padding: n.attrs.padding, dilation: n.attrs.dilation, groups: n.attrs.groups }));
-export const tf32Pass = k.pass("frontend/tf32-contraction-inputs").rules(tf32Linear, tf32Matmul, tf32Conv2d)
-  .describe("round FP32 contraction operands to TF32 to match a TF32 reference backend");
+export const tf32Pass = k.pass("frontend/tf32-contraction-inputs").rules(tf32Linear, tf32Matmul)
+  .describe("round FP32 matrix-product operands to TF32 to match a cuBLAS TF32 reference");
+// Convolutions keep FP32 operands: under the same rounding, the P0 replay matched cuDNN's TF32
+// convolutions worse than FP32 did (1 graph fixed, 4 broken), while linear layers matched (8 fixed, 0 broken).
 export const optimization = k.pass("frontend/optimization").short("o").rules(composeViews, foldSplatView, dropIdentityView, foldSplatEw, contractFma)
   .describe("compose index-map chains, fold constant views and constant arithmetic, contract multiply-add into fma");
 
