@@ -34,3 +34,25 @@ export function conv2dReference(input,weight,bias=null,options={}){
  }
  return out;
 }
+
+// Correctness-first decomposition. Static spatial mask avoids unsafe OOB reads;
+// it is an explicit constant operand, not a hidden host-side kernel implementation.
+export function lowerConv2d(T, x, w, b, options) {
+ const spec=conv2dSpec(x.type.shape,w.type.shape,options);
+ const [n,c,h,width]=x.type.shape,[oc,ic,kh,kw]=w.type.shape,[,,oh,ow]=spec.shape;
+ const [ph,pw]=spec.padding,hp=h+2*ph,wp=width+2*pw;
+ let padded=x;
+ if(ph||pw){
+  const mask=new Tensor([1,1,hp,wp]);
+  for(let y=ph;y<ph+h;y++)for(let z=pw;z<pw+width;z++)mask.data[y*wp+z]=1;
+  const safe=T.view(x,[n,c,hp,wp],a=>[a[0],a[1],a[2].sub(ph).max(0).min(h-1),a[3].sub(pw).max(0).min(width-1)]);
+  padded=T.select(mask,safe,0);
+ }
+ const shape=[n,oc,oh,ow,ic,kh,kw],ocGroup=oc/spec.groups;
+ const input=T.view(padded,shape,a=>[a[0],a[1].div(ocGroup).mul(ic).add(a[4]),a[2].mul(spec.stride[0]).add(a[5].mul(spec.dilation[0])),a[3].mul(spec.stride[1]).add(a[6].mul(spec.dilation[1]))]);
+ const weight=T.view(w,shape,a=>[a[1],a[4],a[5],a[6]]);
+ let result=T.mul(input,weight);
+ for(const axis of [6,5,4])result=T.sum(result,axis);
+ result=T.reshape(result,spec.shape);
+ return T.add(result,T.reshape(b,[1,oc,1,1]));
+}

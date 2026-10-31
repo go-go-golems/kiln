@@ -1,3 +1,4 @@
+import {conv2dSpec,conv2dReference,lowerConv2d} from "./conv2d.js";
 import { roundToDtype } from "../core/dtypes.js";
 // The frontend ("Torch IR", dialect nn) and the canonical primitive set ("Tensor IR", dialect tensor),
 // with reference semantics for both and the decomposition and optimization passes between them.
@@ -152,6 +153,12 @@ const T_ = (shape, dtype = "f32") => k.tensor(shape, dtype);
 const sameAs = ({ x }) => x.type;
 
 export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like op set, each with reference semantics")
+  .op("conv2d", { args: ["x", "w", "b"], attrs: { stride: 1, padding: 0, dilation: 1, groups: 1 }, infer: ({ x,w,b,stride,padding,dilation,groups }) => {
+    if ([x,w,b].some(v=>v.type.dtype!=="f32")) throw new KilnError("TypeError", "conv2d lowering currently requires FP32");
+    const shape=conv2dSpec(x.type.shape,w.type.shape,{stride,padding,dilation,groups}).shape;
+    if(b.type.shape.length!==1||b.type.shape[0]!==shape[1])throw new KilnError("ShapeError","conv2d bias shape mismatch");
+    return k.tensor(shape);
+  }, eval: ({ x,w,b,stride,padding,dilation,groups }) => conv2dReference(x,w,b,{stride,padding,dilation,groups}), print: "conv2d({x}, {w}, {b})" })
   .op("cast", { args: ["x"], attrs: { dtype: "f32" }, traits: ["pure"], infer: ({ x, dtype }) => {
     if (!["f32", "f16", "bf16"].includes(dtype)) throw new KilnError("TypeError", `unsupported floating cast: ${dtype}`);
     return k.tensor(x.type.shape, dtype);
@@ -193,7 +200,7 @@ export function weight(name, shape, { seed = null, scale = null, init = "normal"
 // ----------------------------------------------------------------------------- helpers over Tensor IR
 // broadcast-aware: T.add(a, b) inserts the views elementwise ops need
 const cnst = (v) => tensor.const({ value: v, shape: [] });
-const toV = (x) => (x instanceof Value ? x : cnst(x));
+const toV = (x) => (x instanceof Value ? x : x instanceof Tensor ? tensor.const({ data: x, shape: x.shape }) : cnst(x));
 export const T = {
   c: cnst,
   bc(x, shape) { x = toV(x); const s = x.type.shape; if (s.join() === shape.join()) return x; return tensor.view(x, { shape, map: broadcastMap(s, shape) }); },
@@ -213,6 +220,7 @@ T.maximum = (a, b) => T.ew("max", a, b);
 // nn-level conveniences for writing programs: x.add(y), x.matmul(w), x.softmax()
 const nv = (x) => (x instanceof Value ? x : tensor.const({ value: x, shape: [] }));
 export const N = {
+  conv2d: (x,w,b,options={}) => nn.conv2d(x,w,b || tensor.const({value:0,shape:[w.type.shape[0]]}),options),
   cast: (x, dtype) => nn.cast(x, { dtype }),
   ew: (f, ...xs) => nn.ew(xs.map(nv), { fn: f }),
   add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b), div: (a, b) => N.ew("div", a, b),
@@ -259,6 +267,7 @@ export function decompose(opName, build, name = "decompose:" + opName) {
 }
 const lastAxis = (x, a) => (a < 0 ? x.type.shape.length + a : a);
 export const decompositions = [
+  decompose("nn.conv2d", ({x,w,b,stride,padding,dilation,groups}) => lowerConv2d(T,x,w,b,{stride,padding,dilation,groups})),
   decompose("nn.cast", ({ x, dtype }) => tensor.ew([x], { fn: dtype === "f32" ? "copy" : "round_" + dtype, dtype })),
   decompose("nn.ew", ({ xs, fn }) => T.ew(fn, ...xs)),
   decompose("nn.linear", ({ x, w, out }) => {

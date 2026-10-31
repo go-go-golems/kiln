@@ -1917,3 +1917,44 @@ User authorizes missing Kiln implementation and detailed source provenance.
 
 ### Technical details
 - Independent mathematical implementation; PyTorch is differential oracle only, version recorded in fixture. No upstream code copied.
+
+## Step 46: Decompose FP32 convolution into existing tensor primitives
+
+Added N.conv2d/frontend operation and correctness-first decomposition into indexed views, multiplication and reductions. Padding uses safe clamped input views and explicit spatial mask/select, preventing out-of-bounds reads. All three PyTorch fixtures now pass both reference and decomposed evaluation; GPU lowering remains pending.
+
+### Prompt Context
+Original missing compiler capabilities authorization and provenance requirements.
+**Assistant interpretation:** Implement safe convolution lowering before scheduling optimization.
+**Inferred user intent:** Extend real corpus support with independently checked semantics.
+
+### What I did
+- Added lowerConv2d grouping/spatial maps and nested reductions; FP32 frontend validation and optional zero bias.
+- Extended conv2d.mjs to run actual decomposition and compare all outputs with PyTorch fixtures.
+- Fixed primitive helper toV to recognize Tensor-valued constants used by the padding mask.
+
+### Why
+- Selecting zero after an invalid read is unsafe; clamped reads guarantee validity even when selection evaluates both operands.
+
+### What worked
+- Node 26 reference and decomposed grouped/strided/dilated fixture comparisons passed.
+
+### What didn't work
+- First decomposition test: tensor.const EvalError f is not a function. Cause: Tensor mask was treated as scalar splat value. Explicit Tensor-data constant handling in toV fixed it; rerun passed.
+
+### What I learned
+- Primitive helper accepted Value/scalar but not Tensor data, unlike frontend lifting. Actual decomposition tests exposed this missing case.
+
+### What was tricky to build
+- Group-channel indexing, padded coordinate clamps and reduction-axis preservation must agree across seven-dimensional indexed views.
+
+### What warrants a second pair of eyes
+- Static spatial mask memory overhead, nested reduction scheduling and NaN padding selection require GPU validation. Reduced-precision convolution remains explicitly rejected.
+
+### What should be done in the future
+- Compile/export fixtures, run GPU comparisons, optimize padding representation, implement interpolation and mutation legality for real task.
+
+### Code review instructions
+- Inspect conv2d.js lowerConv2d, tensor.js frontend/decomposition and conv2d.mjs.
+
+### Technical details
+- Independent primitive-based implementation, no upstream source copied. Static mask is a visible constant operand; no hidden host execution or benchmark fallback.
