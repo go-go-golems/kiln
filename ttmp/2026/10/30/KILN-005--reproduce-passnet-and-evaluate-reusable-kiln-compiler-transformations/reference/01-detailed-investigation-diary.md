@@ -3348,3 +3348,50 @@ See the standing milestone-report and reMarkable delivery requirements, and the 
 
 ### Technical details
 - Native policy result is relative to unchanged Kiln and does not change verified PassBench coverage of five tasks / 73 graphs. ReMarkable success proves cloud delivery, not physical synchronization. The overall project goal remains active.
+
+## Step 78: Compile bounded feature programs on a fresh frozen corpus
+
+Extended the policy intervention from scalar thresholds to validated decision trees over compiler features. Froze 20 previously unused FP32 source programs from the official training list, with 12 training and eight held-out graphs from distinct exact models. All eight declared candidates compiled on all 20 graphs. Structural qualification shows that the proposed trees change no executables; the broad 1.25 scalar changes one held-out executable only. This is evidence of an ineffective proposal set on the training corpus, not a reason to revise the frozen experiment after inspection.
+
+### Prompt Context
+See Step 71 for the user's streamlining request and the standing implementation/diary instructions. The subsequent coverage clarification prompted explicit separation of importer, PassBench acceptance and direct policy-study counts.
+**Assistant interpretation:** Advance from scalar tuning toward generated reusable compiler policies while retaining independent evidence.
+**Inferred user intent:** Reach self-optimization without conflating a small experiment with full benchmark support.
+
+### What I did
+- Added fusion_policy.mjs: bounded decision-tree interpreter over originalWork, fusedWork, consumerCount and producerElements; integrated it with compile_policy.mjs and the existing createFusionRule callback.
+- Added immutable-closure, validation and real-compiler numerical tests. Added reference_domains.py and qualify_policies.py to replace duplicated experiment-specific helpers for new studies.
+- Preserved scripts 80–83. Script 80 deterministically scanned 516 task directories (920 audit records), excluded previously observed source models/program hashes, and selected one graph per model/task. Script 81 froze candidate programs, domains, tensor-volume audit and timing plan before performance measurement.
+- Archived all 160 compiled artifacts and structural qualification under sources/policy-artifacts-v3.
+
+### Why
+- Generated programs should make reusable decisions from compiler metadata, with the existing compiler retaining transformation legality and mutation. Fresh official-training sources avoid reusing the prior study's held-out graphs as new confirmation evidence.
+
+### What worked
+- Node 26 test_fusion_policy.mjs passed, including actual fusion-boundary changes and preserved evaluated values.
+- Python integration suite: 34 tests passed.
+- All 160 programs compiled; default and unchanged executable bodies match on all graphs; no cross-split baseline executable aliases were found.
+- Frozen membership SHA256: 3012570a49bd83e072278df39e3d7f30478ad7990156a371242ae739c4ffde8e.
+- Original reference log reached 200/200 attempted tasks. Correctness and timing validity require a separate audit.
+
+### What didn't work
+- An initial Boolean-leaf test failed with `AssertionError: validated Boolean leaf must not retain a mutable JSON reference`: actual `policy boolean: profitability rejected`, expected true. Capturing the validated Boolean value rather than retaining node.accept fixed the mutation leak.
+- All proposed feature trees and scalar108 alias the unchanged compiler across the fresh corpus. scalar125 changes only the held-out upernet-convnext-tiny graph from two kernels to one. Training-only selection therefore cannot justify choosing it based on performance in this experiment.
+
+### What I learned
+- More expressive policy syntax does not imply useful interventions. Structural sensitivity is a necessary diagnostic before interpreting timing differences; identical programs must share evidence rather than yield noise-driven winners.
+
+### What was tricky to build
+- Validation must compile immutable scalar closures, not retain mutable JSON leaves. Both threshold and Boolean branches require snapshots. Hard limits apply even to unconditional acceptance leaves.
+
+### What warrants a second pair of eyes
+- Exact-model separation is weaker than architecture-family separation. Deterministic eligibility excludes heavy unsupported operators and is not representative full-corpus sampling. Proposal authorship is the current Codex session; no separately identified serving snapshot or upstream PassAgent reproduction is claimed.
+
+### What should be done in the future
+- Complete the registered training/confirmation protocol without changing proposals; then use training decision traces to create a new explicitly versioned synthesis experiment. Audit the completed reference logs independently.
+
+### Code review instructions
+- Start with fusion_policy.mjs and its real-compiler test, then scripts 80–81, manifest/measurement plan and sensitivity.json. Reproduce qualification with qualify_policies.py; confirm no fresh GPU timing was used to alter membership or candidates.
+
+### Technical details
+- Maximum 31 decision nodes, depth six, finite nonnegative features/cutoffs, thresholds in [0,2], hard fusedWork/originalWork cap two. No eval, imports or tensor values are exposed. Global default remains 1.02. This study adds no verified complete PassBench tasks; accepted coverage remains five tasks / 73 graphs under modified protocols.

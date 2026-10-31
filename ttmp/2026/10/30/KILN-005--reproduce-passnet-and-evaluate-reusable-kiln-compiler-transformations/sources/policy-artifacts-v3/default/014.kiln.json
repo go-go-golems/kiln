@@ -1,0 +1,124 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "014.kiln.js",
+  "sha256": "7136d9f5791a21ca53eab222b24ef4081c7c520e05d4ab6a8fc7eef91c27b567"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    256,
+    768
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    256,
+    768
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    1,
+    768,
+    16,
+    16
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 196608,
+   "bytes": 786432
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 196608,
+   "bytes": 786432
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 196608,
+   "bytes": 786432
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_reshape__1yromrvxtpl",
+   "identity": "1yromrvxtpl",
+   "row": "TPB=64",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 3072,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    3072,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    768,
+    16,
+    16
+   ],
+   "inShapes": [
+    [
+     1,
+     256,
+     768
+    ],
+    [
+     1,
+     256,
+     768
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 3072i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 196608i) {\n        v_in0 = b0[((((((16i * ((n_e / 16i) % 16i)) + (n_e % 16i)) + (256i * (n_e / 256i))) / 256i) % 768i) + (768i * (((16i * ((n_e / 16i) % 16i)) + (n_e % 16i)) % 256i)))];\n        v_in1 = b1[((((((16i * ((n_e / 16i) % 16i)) + (n_e % 16i)) + (256i * (n_e / 256i))) / 256i) % 768i) + (768i * (((16i * ((n_e / 16i) % 16i)) + (n_e % 16i)) % 256i)))];\n        v_v0 = (v_in0 + v_in1);\n        bout[(((16i * ((n_e / 16i) % 16i)) + (n_e % 16i)) + (256i * (n_e / 256i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew_reshape__1yromrvxtpl(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 196608)) {\n        in0 = src0[((((((16 * ((e / 16) % 16)) + (e % 16)) + (256 * (e / 256))) / 256) % 768) + (768 * (((16 * ((e / 16) % 16)) + (e % 16)) % 256)))];\n        in1 = src1[((((((16 * ((e / 16) % 16)) + (e % 16)) + (256 * (e / 256))) / 256) % 768) + (768 * (((16 * ((e / 16) % 16)) + (e % 16)) % 256)))];\n        v0 = (in0 + in1);\n        dst[(((16 * ((e / 16) % 16)) + (e % 16)) + (256 * (e / 256)))] = v0;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "default",
+  "kind": "threshold",
+  "provenance": {
+   "author": "Codex session; exact serving snapshot not recorded",
+   "method": "LLM-authored fixed hypotheses informed by prior development pilot; no fresh timing feedback; not upstream PassAgent inference",
+   "budget": "31 nodes, depth 6, hard work-growth cap 2; immutable compiler features only"
+  },
+  "max_work_growth": 1.02
+ }
+}

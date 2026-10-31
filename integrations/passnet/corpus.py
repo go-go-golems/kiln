@@ -61,7 +61,9 @@ def translate_graph(upstream, graph, metadata_mode):
     else:
         values = [torch.randn(c.shape).to(getattr(torch, c.dtype.split('.')[-1])) for c in metadata]
         exported = export_graph(traced, values)
-    return import_graph(exported)
+    result = import_graph(exported)
+    result["tensor_nodes"] = {node["id"]: node["tensor_meta"] for node in exported["nodes"] if isinstance(node.get("tensor_meta"), dict)}
+    return result
 
 
 def export_task(upstream, sample, directory, metadata_mode="fake"):

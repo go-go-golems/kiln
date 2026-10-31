@@ -1,0 +1,249 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "012.kiln.js",
+  "sha256": "9f6d6be7eea97cfd2592ed97acd3cd815c73c4d6bc68985c7685ef971ef1eb4c"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    1,
+    128,
+    64,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    1,
+    296,
+    64,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 6,
+   "shape": [
+    1,
+    128,
+    64,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 7,
+   "shape": [
+    1,
+    40,
+    64,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 524288,
+   "bytes": 2097152
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 1212416,
+   "bytes": 4849664
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 524288,
+   "bytes": 2097152
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 163840,
+   "bytes": 655360
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__1y4va1yfn1x",
+   "identity": "1y4va1yfn1x",
+   "row": "TPB=64,COARSEN=4",
+   "reads": [
+    2,
+    3,
+    1,
+    0,
+    4
+   ],
+   "writes": 6,
+   "grid": 2048,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    2048,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    128,
+    64,
+    64
+   ],
+   "inShapes": [
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     1,
+     128,
+     64,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read> b2: array<f32>;\n@group(0) @binding(3) var<storage, read> b3: array<f32>;\n@group(0) @binding(4) var<storage, read> b4: array<f32>;\n@group(0) @binding(5) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 2048i) { return; }\n    var v_in1: f32 = 0.0;\n    var v_v1: f32 = 0.0;\n    var v_in2: f32 = 0.0;\n    var v_v3: f32 = 0.0;\n    var v_v4: f32 = 0.0;\n    var v_v5: f32 = 0.0;\n    var v_in3: f32 = 0.0;\n    var v_v7: f32 = 0.0;\n    var v_in4: f32 = 0.0;\n    var v_v8: f32 = 0.0;\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var v_v2: f32 = 0.0;\n    var v_v6: f32 = 0.0;\n    var v_v9: f32 = 0.0;\n    var v_v10: f32 = 0.0;\n    var n_e: i32 = 0i;\n    for (var n_j: i32 = 0i; n_j < 4i; n_j = n_j + 1i) {\n        n_e = (((256i * bid) + (64i * n_j)) + tid);\n        if (n_e < 524288i) {\n            v_in1 = b3[((n_e / 4096i) % 128i)];\n            v_v1 = v_in1;\n            v_in2 = b2[((n_e / 4096i) % 128i)];\n            v_v3 = v_in2;\n            v_v4 = (0.001 + v_v3);\n            v_v5 = sqrt(v_v4);\n            v_in3 = b1[((n_e / 4096i) % 128i)];\n            v_v7 = v_in3;\n            v_in4 = b0[((n_e / 4096i) % 128i)];\n            v_v8 = v_in4;\n            v_in0 = b4[(((64i * ((n_e / 64i) % 64i)) + (n_e % 64i)) + (4096i * (n_e / 4096i)))];\n            v_v0 = v_in0;\n            v_v2 = (v_v0 - v_v1);\n            v_v6 = (v_v2 / v_v5);\n            v_v9 = fma(v_v6, v_v7, v_v8);\n            v_v10 = v_v9;\n            bout[(((64i * ((n_e / 64i) % 64i)) + (n_e % 64i)) + (4096i * (n_e / 4096i)))] = v_v10;\n        }\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out0__1y4va1yfn1x(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, const float* __restrict__ src4, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in1 = 0.0f, v1 = 0.0f, in2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, in3 = 0.0f, v7 = 0.0f, in4 = 0.0f, v8 = 0.0f, in0 = 0.0f, v0 = 0.0f, v2 = 0.0f, v6 = 0.0f, v9 = 0.0f, v10 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 4; j += 1) {\n        e = (((256 * bid) + (64 * j)) + tid);\n        if ((e < 524288)) {\n            in1 = src3[((e / 4096) % 128)];\n            v1 = in1;\n            in2 = src2[((e / 4096) % 128)];\n            v3 = in2;\n            v4 = (0.001f + v3);\n            v5 = sqrtf(v4);\n            in3 = src1[((e / 4096) % 128)];\n            v7 = in3;\n            in4 = src0[((e / 4096) % 128)];\n            v8 = in4;\n            in0 = src4[(((64 * ((e / 64) % 64)) + (e % 64)) + (4096 * (e / 4096)))];\n            v0 = in0;\n            v2 = (v0 - v1);\n            v6 = (v2 / v5);\n            v9 = fmaf(v6, v7, v8);\n            v10 = v9;\n            dst[(((64 * ((e / 64) % 64)) + (e % 64)) + (4096 * (e / 4096)))] = v10;\n        }\n    }\n}"
+  },
+  {
+   "name": "k_out1__2de2kbdx80o",
+   "identity": "2de2kbdx80o",
+   "row": "TPB=128",
+   "reads": [
+    5
+   ],
+   "writes": 7,
+   "grid": 1280,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1280,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    40,
+    64,
+    64
+   ],
+   "inShapes": [
+    [
+     1,
+     296,
+     64,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1280i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((128i * bid) + tid);\n    if (n_e < 163840i) {\n        v_in0 = b0[((((4096i * (((((64i * ((n_e / 64i) % 64i)) + (n_e % 64i)) + (4096i * (n_e / 4096i))) / 4096i) % 40i)) + (64i * (((((64i * ((n_e / 64i) % 64i)) + (n_e % 64i)) + (4096i * (n_e / 4096i))) / 64i) % 64i))) + ((n_e % 64i) % 64i)) + 1048576i)];\n        bout[(((64i * ((n_e / 64i) % 64i)) + (n_e % 64i)) + (4096i * (n_e / 4096i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out1__2de2kbdx80o(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 163840)) {\n        in0 = src0[((((4096 * (((((64 * ((e / 64) % 64)) + (e % 64)) + (4096 * (e / 4096))) / 4096) % 40)) + (64 * (((((64 * ((e / 64) % 64)) + (e % 64)) + (4096 * (e / 4096))) / 64) % 64))) + ((e % 64) % 64)) + 1048576)];\n        dst[(((64 * ((e / 64) % 64)) + (e % 64)) + (4096 * (e / 4096)))] = in0;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "scalar108",
+  "kind": "threshold",
+  "provenance": {
+   "author": "Codex session; exact serving snapshot not recorded",
+   "method": "LLM-authored fixed hypotheses informed by prior development pilot; no fresh timing feedback; not upstream PassAgent inference",
+   "budget": "31 nodes, depth 6, hard work-growth cap 2; immutable compiler features only"
+  },
+  "max_work_growth": 1.08
+ }
+}

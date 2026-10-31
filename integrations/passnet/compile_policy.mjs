@@ -6,6 +6,7 @@ import {runScript} from '../../packages/kiln/src/core/script.js';
 import {std} from '../../packages/kiln/src/std/index.js';
 import {exportProgram} from '../../packages/kiln/src/std/export.js';
 import {endToEnd} from '../../apps/workbench/src/compile.js';
+import {prepareFusionPolicy} from './fusion_policy.mjs';
 const args={};
 for(let i=2;i<process.argv.length;i+=2){
  const key=process.argv[i];if(!['--directory','--output','--policy','--target'].includes(key)||!process.argv[i+1])throw new Error('Expected --directory --output --policy --target');
@@ -16,8 +17,7 @@ const directory=resolve(args.directory),output=resolve(args.output);
 const manifest=JSON.parse(readFileSync(join(directory,'manifest.json'),'utf8'));
 if(manifest.format!=='kiln-passnet-corpus/1')throw new Error('Invalid corpus manifest');
 const policy=JSON.parse(readFileSync(args.policy,'utf8'));
-if(policy.format!=='kiln-fusion-policy/1'||!['unchanged','threshold'].includes(policy.kind)||!/^[a-z0-9-]+$/.test(policy.id))throw new Error('Invalid fusion policy');
-if(policy.kind==='threshold'&&(!Number.isFinite(policy.max_work_growth)||policy.max_work_growth<0))throw new Error('Explicit finite threshold required');
+const preparedPolicy=prepareFusionPolicy(policy);
 const referenceDomainsText=readFileSync(join(directory,'reference-domains.json'),'utf8');
 const referenceDomains=JSON.parse(referenceDomainsText);
 if(referenceDomains.membership_sha256!==manifest.membership_sha256)throw new Error('Reference domain membership mismatch');
@@ -43,7 +43,7 @@ for(const record of manifest.variants){
   }
   project.data(referenceInputs);
   let pipe=std.emmy.pipeline({target});
-  if(policy.kind==='threshold')pipe=pipe.replaceRule('loop/fusion','merge_loop_ops',std.loop.createFusionRule({maxWorkGrowth:policy.max_work_growth,onDecision:event=>decisions.push(event)}));
+  if(preparedPolicy.apply)pipe=pipe.replaceRule('loop/fusion','merge_loop_ops',std.loop.createFusionRule({decide:preparedPolicy.decide,onDecision:event=>decisions.push(event)}));
   const run=pipe.run(graph);if(!run.ok)throw new Error(run.error?.message||'Compilation failed');
   const check=endToEnd(run,graph,project).e2e;
   if(check.error||(!check.skipped&&!check.ok))throw new Error('Reference check failed: '+JSON.stringify(check));
@@ -55,7 +55,7 @@ for(const record of manifest.variants){
   result={...result,status:'compiled',artifact:artifactName,fingerprint:hash(fingerprint),kernel_count:artifact.kernels.length,
     kernel_identities:artifact.kernels.map(k=>k.identity),reference_check:check,decisions,compile_ms:performance.now()-started};
  }catch(error){result={...result,status:'failed',error:String(error.stack||error),decisions,compile_ms:performance.now()-started};}
- records.push(result);writeFileSync(join(output,'compile-receipt.json'),JSON.stringify({format:'kiln-policy-compilation/1',membership_sha256:manifest.membership_sha256,reference_domain_sha256:hash(referenceDomainsText),policy,target:args.target,records},null,2)+'\n');
+ records.push(result);writeFileSync(join(output,'compile-receipt.json'),JSON.stringify({format:'kiln-policy-compilation/1',membership_sha256:manifest.membership_sha256,reference_domain_sha256:hash(referenceDomainsText),policy,policy_node_count:preparedPolicy.nodeCount,target:args.target,records},null,2)+'\n');
  console.log(policy.id,record.script,result.status,result.kernel_count??result.error);
 }
 if(records.some(r=>r.status!=='compiled'))process.exitCode=1;

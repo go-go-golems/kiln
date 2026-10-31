@@ -1,0 +1,30 @@
+{
+  "format": "kiln-policy-measurement-plan/1",
+  "membership_sha256": "3012570a49bd83e072278df39e3d7f30478ad7990156a371242ae739c4ffde8e",
+  "candidate_ids": [
+    "baseline",
+    "default",
+    "scalar108",
+    "tree-tiny-single",
+    "tree-small-single",
+    "tree-single-consumer",
+    "tree-small-work",
+    "scalar125"
+  ],
+  "seed": 42,
+  "warmup": 20,
+  "trials": 100,
+  "repeats": 3,
+  "max_iqr_fraction": 0.2,
+  "max_retries": 2,
+  "inputs": "Original source replay; exact tensor metadata and output comparisons; domain-valid synthetic references",
+  "order": "Seeded shuffle of distinct fingerprints; identical artifacts share measurements",
+  "metrics": [
+    "synchronized end-to-end ms",
+    "CUDA event stream elapsed ms including dispatch gaps"
+  ],
+  "selection": "Training-only family-balanced geometric mean e2e speedup; exact ties preserve declared order, baseline then conservative scalar108 before richer trees; compile-cost coefficient 0",
+  "heldout": "Only unchanged compiler plus fixed training selection; no timing-based corpus alteration",
+  "scope": "Fresh exact source models/program source hashes from official training sources; custom policy confirmation study, not paper benchmark score",
+  "proposal_provenance": "Codex-authored programs; no independent external model inference or upstream PassAgent reproduction claimed"
+}

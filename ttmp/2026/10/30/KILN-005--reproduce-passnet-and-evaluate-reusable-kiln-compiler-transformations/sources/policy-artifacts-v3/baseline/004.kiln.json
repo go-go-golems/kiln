@@ -1,0 +1,104 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "004.kiln.js",
+  "sha256": "3f6e6aba1c41ffa39c433f5e2a559d597b63431c8c73b282f4aa4f2ae83c52d8"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    5,
+    7,
+    4,
+    7,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    1,
+    768,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 62720,
+   "bytes": 250880
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 49152,
+   "bytes": 196608
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_reshape__18ript6f7yj",
+   "identity": "18ript6f7yj",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 384,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    384,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    768,
+    64
+   ],
+   "inShapes": [
+    [
+     1,
+     5,
+     7,
+     4,
+     7,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 384i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((128i * bid) + tid);\n    if (n_e < 49152i) {\n        v_in0 = b0[(((((12544i * ((((((1792i * (((((1536i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 1536i) % 32i)) + (64i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 64i) % 24i))) + ((n_e % 64i) % 64i)) / 1536i) % 32i)) + (64i * (((((1536i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 1536i) % 32i)) + (64i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 64i) % 24i))) + ((n_e % 64i) % 64i)) / 64i) % 24i))) + (((n_e % 64i) % 64i) % 64i)) + 1920i) / 12544i) % 5i)) + (1792i * ((((((1792i * (((((1536i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 1536i) % 32i)) + (64i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 64i) % 24i))) + ((n_e % 64i) % 64i)) / 1536i) % 32i)) + (64i * (((((1536i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 1536i) % 32i)) + (64i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 64i) % 24i))) + ((n_e % 64i) % 64i)) / 64i) % 24i))) + (((n_e % 64i) % 64i) % 64i)) + 1920i) / 1792i) % 7i))) + (448i * ((((((1792i * (((((1536i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 1536i) % 32i)) + (64i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 64i) % 24i))) + ((n_e % 64i) % 64i)) / 1536i) % 32i)) + (64i * (((((1536i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 1536i) % 32i)) + (64i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 64i) % 24i))) + ((n_e % 64i) % 64i)) / 64i) % 24i))) + (((n_e % 64i) % 64i) % 64i)) + 1920i) / 448i) % 4i))) + (64i * ((((((1792i * (((((1536i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 1536i) % 32i)) + (64i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 64i) % 24i))) + ((n_e % 64i) % 64i)) / 1536i) % 32i)) + (64i * (((((1536i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 1536i) % 32i)) + (64i * ((((n_e % 64i) + (64i * (n_e / 64i))) / 64i) % 24i))) + ((n_e % 64i) % 64i)) / 64i) % 24i))) + (((n_e % 64i) % 64i) % 64i)) + 1920i) / 64i) % 7i))) + ((((n_e % 64i) % 64i) % 64i) % 64i))];\n        bout[((n_e % 64i) + (64i * (n_e / 64i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_reshape__18ript6f7yj(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 49152)) {\n        in0 = src0[(((((12544 * ((((((1792 * (((((1536 * ((((e % 64) + (64 * (e / 64))) / 1536) % 32)) + (64 * ((((e % 64) + (64 * (e / 64))) / 64) % 24))) + ((e % 64) % 64)) / 1536) % 32)) + (64 * (((((1536 * ((((e % 64) + (64 * (e / 64))) / 1536) % 32)) + (64 * ((((e % 64) + (64 * (e / 64))) / 64) % 24))) + ((e % 64) % 64)) / 64) % 24))) + (((e % 64) % 64) % 64)) + 1920) / 12544) % 5)) + (1792 * ((((((1792 * (((((1536 * ((((e % 64) + (64 * (e / 64))) / 1536) % 32)) + (64 * ((((e % 64) + (64 * (e / 64))) / 64) % 24))) + ((e % 64) % 64)) / 1536) % 32)) + (64 * (((((1536 * ((((e % 64) + (64 * (e / 64))) / 1536) % 32)) + (64 * ((((e % 64) + (64 * (e / 64))) / 64) % 24))) + ((e % 64) % 64)) / 64) % 24))) + (((e % 64) % 64) % 64)) + 1920) / 1792) % 7))) + (448 * ((((((1792 * (((((1536 * ((((e % 64) + (64 * (e / 64))) / 1536) % 32)) + (64 * ((((e % 64) + (64 * (e / 64))) / 64) % 24))) + ((e % 64) % 64)) / 1536) % 32)) + (64 * (((((1536 * ((((e % 64) + (64 * (e / 64))) / 1536) % 32)) + (64 * ((((e % 64) + (64 * (e / 64))) / 64) % 24))) + ((e % 64) % 64)) / 64) % 24))) + (((e % 64) % 64) % 64)) + 1920) / 448) % 4))) + (64 * ((((((1792 * (((((1536 * ((((e % 64) + (64 * (e / 64))) / 1536) % 32)) + (64 * ((((e % 64) + (64 * (e / 64))) / 64) % 24))) + ((e % 64) % 64)) / 1536) % 32)) + (64 * (((((1536 * ((((e % 64) + (64 * (e / 64))) / 1536) % 32)) + (64 * ((((e % 64) + (64 * (e / 64))) / 64) % 24))) + ((e % 64) % 64)) / 64) % 24))) + (((e % 64) % 64) % 64)) + 1920) / 64) % 7))) + ((((e % 64) % 64) % 64) % 64))];\n        dst[((e % 64) + (64 * (e / 64)))] = in0;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "baseline",
+  "kind": "unchanged",
+  "provenance": {
+   "author": "Codex session; exact serving snapshot not recorded",
+   "method": "LLM-authored fixed hypotheses informed by prior development pilot; no fresh timing feedback; not upstream PassAgent inference",
+   "budget": "31 nodes, depth 6, hard work-growth cap 2; immutable compiler features only"
+  }
+ }
+}

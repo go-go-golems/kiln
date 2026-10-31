@@ -1,0 +1,785 @@
+{
+  "format": "kiln-passnet-corpus/1",
+  "sample": "fresh-policy-corpus-v3",
+  "membership_sha256": "3012570a49bd83e072278df39e3d7f30478ad7990156a371242ae739c4ffde8e",
+  "selection": "Official train list sorted by SHA256(task); first eligible FP32 graph per task/model; source-model hash assigns confirmation 2/5; 12 train +8 confirmation; <=2M inputs; no prior models/program hashes; no timing feedback",
+  "source_sample_list": "sample_lists/train/hf_fusible_train_samples_v2.txt",
+  "source_sample_list_sha256": "60611747144ea8f861646e9d1302d6981ef635a1a94311a143fcf3a3095df86a",
+  "prior_models_excluded": [
+    "timm/ghostnet_100.in1k",
+    "timm/mobileone_s4.apple_in1k",
+    "timm/repghostnet_050.in1k",
+    "timm/repvgg_d2se.rvgg_in1k",
+    "timm/repvit_m0_9.dist_300e_in1k",
+    "torchgeometric/LINKX",
+    "transformers-auto-model/apple_DepthPro-hf",
+    "transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification",
+    "transformers-auto-model/ogoshi2000_stance-nystromformer"
+  ],
+  "scope": "Policy confirmation drawn from official training sources; not an untouched paper evaluation benchmark",
+  "variants": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start146_end150_4",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/2c/a0/2ca080b6647be62d74c1cc5e80c2662b19c27a2200bc6240452521af4a7eeae0",
+      "split": "train",
+      "model": "timm/hgnetv2_b0.ssld_stage1_in22k_in1k",
+      "script": "000.kiln.js",
+      "source_sha256": "760664600ec675b11e24aae30d5ab90f64deb41eaef6042a6c8f87e4918ee744",
+      "input_elements": 262146,
+      "inputs": {
+        "v0": [
+          1
+        ],
+        "v1": [
+          1
+        ],
+        "v2": [
+          1,
+          512,
+          16,
+          16
+        ],
+        "v3": [
+          1,
+          512,
+          16,
+          16
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/rexnet_150.nav_in1k/_decomposed/rexnet_150.nav_in1k_start59_end62_1",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/7a/e5/7ae56f3c04cd08434e5c86bf43483b48748c52c2b63a5d145dd2b3aa1b529fc3",
+      "split": "train",
+      "model": "timm/rexnet_150.nav_in1k",
+      "script": "001.kiln.js",
+      "source_sha256": "93ea71527c223df9ee7a256d88ba48c4f1ce62c6cb90fbba7c9bf98156a06ba5",
+      "input_elements": 189728,
+      "inputs": {
+        "v0": [
+          1,
+          75,
+          28,
+          28
+        ],
+        "v1": [
+          1,
+          75,
+          28,
+          28
+        ],
+        "v2": [
+          1,
+          92,
+          28,
+          28
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start292_end294_57",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e1/cb/e1cb0eca5c06baee6d6b310ed507a93de749f07981e900e028abeaa85253d0f8",
+      "split": "train",
+      "model": "transformers-auto-model/nvidia_mit-b0",
+      "script": "002.kiln.js",
+      "source_sha256": "86605cb3f8ca57ad0a2b6b4c92695719c5939b073d4aa4b9972ac1ed11a84dd5",
+      "input_elements": 262144,
+      "inputs": {
+        "v0": [
+          1,
+          256,
+          1024
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/apple_mobilevit-small/_decomposed/apple_mobilevit-small_start372_end375_53",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/7e/ae/7eae5ee8cba9bd791f032b26dccec3f446b9a9f24cac20cef34ddfc89592e606",
+      "split": "heldout",
+      "model": "transformers-auto-model/apple_mobilevit-small",
+      "script": "003.kiln.js",
+      "source_sha256": "4454382964afa0e5c998a01486755bf9de35761b95c7d97528a9a4551777be50",
+      "input_elements": 15360,
+      "inputs": {
+        "v0": [
+          1,
+          240,
+          16,
+          4
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start232_end235_40",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/92/40/924080842ffdba11f7f83b1444f25dd4b308689da005b93121d9c72b84084b83",
+      "split": "train",
+      "model": "mmpose/pose_hrformer_small",
+      "script": "004.kiln.js",
+      "source_sha256": "3f6e6aba1c41ffa39c433f5e2a559d597b63431c8c73b282f4aa4f2ae83c52d8",
+      "input_elements": 62720,
+      "inputs": {
+        "v0": [
+          1,
+          5,
+          7,
+          4,
+          7,
+          64
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmpose/pose_hrnetv2_w18_dark/_decomposed/pose_hrnetv2_w18_dark_start1108_end1110_3",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/b7/1a/b71add9c4d658c16e924ddf9b40b33d3dc00239cdd95896da326a885dddbe48f",
+      "split": "train",
+      "model": "mmpose/pose_hrnetv2_w18_dark",
+      "script": "005.kiln.js",
+      "source_sha256": "326879f8ad394db5c9bc95aa0142cdf2c380736c99a10e42caa2094dc34f5183",
+      "input_elements": 525312,
+      "inputs": {
+        "v0": [
+          1,
+          18,
+          64,
+          64
+        ],
+        "v1": [
+          1,
+          36,
+          64,
+          64
+        ],
+        "v2": [
+          1,
+          72,
+          64,
+          64
+        ],
+        "v3": [
+          1,
+          144,
+          8,
+          8
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/microsoft_layoutlm-base-uncased/_decomposed/microsoft_layoutlm-base-uncased_start55_end58_7",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/bb/cc/bbcc111297521e2522547c5cb4aa92df5814f6a6c9f118f2a6ab90748807c76d",
+      "split": "heldout",
+      "model": "transformers-auto-model/microsoft_layoutlm-base-uncased",
+      "script": "006.kiln.js",
+      "source_sha256": "4c9dba28bee5a4d8ed22d9d9e475c248f685e1e20662eb3b1b64be6830f63581",
+      "input_elements": 1572864,
+      "inputs": {
+        "v0": [
+          8,
+          256,
+          12,
+          64
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/hgnet_base.ssld_in1k/_decomposed/hgnet_base.ssld_in1k_start246_end248_8",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/2d/08/2d08a3360732ec001a7a1d17fca6940fdb35bf7cc43bc744c1069878bf0056de",
+      "split": "heldout",
+      "model": "timm/hgnet_base.ssld_in1k",
+      "script": "007.kiln.js",
+      "source_sha256": "148f5c050ff2bfd892d008b128ff8cad548d5a4da4e51ad32cb55504fa51212f",
+      "input_elements": 81920,
+      "inputs": {
+        "v0": [
+          1,
+          1280,
+          8,
+          8
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/mmpose/2xrsn_50/_decomposed/2xrsn_50_start1488_end1492_9",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c5/3b/c53bc757f629dca2b1fa60c1073ce0f7f68db215ad1a63927775d1328bb011bb",
+      "split": "train",
+      "model": "mmpose/2xrsn_50",
+      "script": "008.kiln.js",
+      "source_sha256": "bf40572049c2b08ed3a239841c532a2d3611f67925c75acdfc9c786e24536036",
+      "input_elements": 1572864,
+      "inputs": {
+        "v0": [
+          8,
+          256,
+          16,
+          12
+        ],
+        "v1": [
+          8,
+          256,
+          16,
+          12
+        ],
+        "v2": [
+          8,
+          256,
+          16,
+          12
+        ],
+        "v3": [
+          8,
+          256,
+          16,
+          12
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/OttoYu_Tree-ConditionHK/_decomposed/OttoYu_Tree-ConditionHK_start1403_end1405_51",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/46/5d/465d84b3857a527c755b3d815c094544ed485da372e0e1bfbea3255bde99834e",
+      "split": "heldout",
+      "model": "transformers-auto-model/OttoYu_Tree-ConditionHK",
+      "script": "009.kiln.js",
+      "source_sha256": "f63b02acc5805bbd25af2b0764eafceb86b53cdd91724cd9b874484b1ac1fd9c",
+      "input_elements": 100352,
+      "inputs": {
+        "v0": [
+          1,
+          7,
+          7,
+          512
+        ],
+        "v1": [
+          1,
+          7,
+          7,
+          512
+        ],
+        "v2": [
+          1,
+          7,
+          7,
+          512
+        ],
+        "v3": [
+          1,
+          7,
+          7,
+          512
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/AkshatSurolia_BEiT-FaceMask-Finetuned/_decomposed/AkshatSurolia_BEiT-FaceMask-Finetuned_start664_end669_29",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/46/80/46808216185ecd527ae22486a9a704b09306c432875846d036c16ce16cb10b58",
+      "split": "train",
+      "model": "transformers-auto-model/AkshatSurolia_BEiT-FaceMask-Finetuned",
+      "script": "010.kiln.js",
+      "source_sha256": "ab07cb1f17224a6983e01b796a2e6a4d0c0059f5bc0c452352f6f2b5e25cf8b4",
+      "input_elements": 312144,
+      "inputs": {
+        "v0": [
+          768
+        ],
+        "v1": [
+          732,
+          12
+        ],
+        "v2": [
+          1,
+          197,
+          768
+        ],
+        "v3": [
+          1,
+          197,
+          768
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ase-sv/_decomposed/opus-mt-ase-sv_start15_end17_2",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/38/4e/384eebd47b06ad2acc2e13156672267c6197d656e94a4a779038682d932991ac",
+      "split": "train",
+      "model": "transformers-auto-model/opus-mt-ase-sv",
+      "script": "011.kiln.js",
+      "source_sha256": "d353f814f864a91cba8e8f8c4c5d420f0b3439e6a2fe3693981e8f77e4dd31c7",
+      "input_elements": 11264,
+      "inputs": {
+        "v0": [
+          1,
+          22,
+          512
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start8_end10_2",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c8/b7/c8b7ab42644a98199f6862b3db437d0aca497c21edcaf4c9498515d21a6ab1c4",
+      "split": "train",
+      "model": "timm/dpn107.mx_in1k",
+      "script": "012.kiln.js",
+      "source_sha256": "9f6d6be7eea97cfd2592ed97acd3cd815c73c4d6bc68985c7685ef971ef1eb4c",
+      "input_elements": 1737216,
+      "inputs": {
+        "v0": [
+          128
+        ],
+        "v1": [
+          128
+        ],
+        "v2": [
+          128
+        ],
+        "v3": [
+          128
+        ],
+        "v4": [
+          1,
+          128,
+          64,
+          64
+        ],
+        "v5": [
+          1,
+          296,
+          64,
+          64
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32",
+        "v5": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/gagan3012_swin_arocr_tiny/_decomposed/gagan3012_swin_arocr_tiny_start474_end477_18",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/41/63/41635e6b3aea6bb88068cc6586c6340b8178339af8f3257cd795043c8a24d23b",
+      "split": "heldout",
+      "model": "transformers-auto-model/gagan3012_swin_arocr_tiny",
+      "script": "013.kiln.js",
+      "source_sha256": "13f1e67738094f28c50b1ee602d29a95d22469b5e36139480b5c53bf3a38239a",
+      "input_elements": 1572864,
+      "inputs": {
+        "v0": [
+          1,
+          8,
+          8,
+          8,
+          8,
+          384
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmseg/Twins_svt-b_fpn/_decomposed/Twins_svt-b_fpn_start914_end917_16",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/af/41/af41f7edfd3e9145addb66c201d24195f27a40387358628e174dca9e7b9087d7",
+      "split": "train",
+      "model": "mmseg/Twins_svt-b_fpn",
+      "script": "014.kiln.js",
+      "source_sha256": "7136d9f5791a21ca53eab222b24ef4081c7c520e05d4ab6a8fc7eef91c27b567",
+      "input_elements": 393216,
+      "inputs": {
+        "v0": [
+          1,
+          256,
+          768
+        ],
+        "v1": [
+          1,
+          256,
+          768
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/yujiepan_tiny-random-swin-patch4-window7-224/_decomposed/yujiepan_tiny-random-swin-patch4-window7-224_start172_end174_35",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a2/08/a2087430162bf0b8c18221f1f2276282e6dda3b9b4135dacc835a58f0f31d26b",
+      "split": "train",
+      "model": "transformers-auto-model/yujiepan_tiny-random-swin-patch4-window7-224",
+      "script": "015.kiln.js",
+      "source_sha256": "fd29ed098d5d6f81db2c35a5974f85295b45520fce88c214b9107359f03cb130",
+      "input_elements": 6272,
+      "inputs": {
+        "v0": [
+          1,
+          7,
+          7,
+          32
+        ],
+        "v1": [
+          1,
+          7,
+          7,
+          32
+        ],
+        "v2": [
+          1,
+          7,
+          7,
+          32
+        ],
+        "v3": [
+          1,
+          7,
+          7,
+          32
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/timm/rexnet_130.nav_in1k/_decomposed/rexnet_130.nav_in1k_start222_end225_8",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/43/20/43204ba876a8a74e20a78ab9f07e69690c34a1c34909451e9094c44a29d31cf0",
+      "split": "train",
+      "model": "timm/rexnet_130.nav_in1k",
+      "script": "016.kiln.js",
+      "source_sha256": "5db69c41656c36334d03d78dc00ede110489d058a5f71ef242d7cc19af50ca09",
+      "input_elements": 1234944,
+      "inputs": {
+        "v0": [
+          32,
+          196,
+          8,
+          8
+        ],
+        "v1": [
+          32,
+          196,
+          8,
+          8
+        ],
+        "v2": [
+          32,
+          211,
+          8,
+          8
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/google_mobilebert-uncased/_decomposed/google_mobilebert-uncased_start138_end140_27",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d9/02/d902ffb02696f29d9f12398126ed774b184d84f6fcd741435ef15111f23a06be",
+      "split": "heldout",
+      "model": "transformers-auto-model/google_mobilebert-uncased",
+      "script": "017.kiln.js",
+      "source_sha256": "bde38ea68a95bb1e0c12e1ed4cbb03861eab546db02936569d5c29bfc2066c55",
+      "input_elements": 262400,
+      "inputs": {
+        "v0": [
+          128
+        ],
+        "v1": [
+          128
+        ],
+        "v2": [
+          8,
+          256,
+          128
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/upernet-convnext-tiny/_decomposed/upernet-convnext-tiny_start28_end30_7",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/67/65/6765a9211e1f2891916999501d13db397348d6308c094066a1fbec33fd90d4db",
+      "split": "heldout",
+      "model": "transformers-auto-model/upernet-convnext-tiny",
+      "script": "018.kiln.js",
+      "source_sha256": "9e9d03598f02ba9385c2ee65ee7460368c8472201271ee1664f1cb69788c48d6",
+      "input_elements": 608256,
+      "inputs": {
+        "v0": [
+          1,
+          768,
+          16,
+          16
+        ],
+        "v1": [
+          1,
+          512,
+          6,
+          6
+        ],
+        "v2": [
+          1,
+          512,
+          16,
+          16
+        ],
+        "v3": [
+          1,
+          512,
+          16,
+          16
+        ],
+        "v4": [
+          1,
+          512,
+          16,
+          16
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/coat_mini/_decomposed/coat_mini_start392_end397_67",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/15/99/15996380097e3501974d56cd6486ee7e17f1f0335e85873535a66a30e2b040cc",
+      "split": "heldout",
+      "model": "timm/coat_mini",
+      "script": "019.kiln.js",
+      "source_sha256": "7ba3e5860f6cc1f9358c74c61ea5f590e28328dbb0ad76d4fd395b2e8eaf11fe",
+      "input_elements": 21600,
+      "inputs": {
+        "v0": [
+          1,
+          50,
+          216
+        ],
+        "v1": [
+          1,
+          50,
+          216
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1829 @@
+{
+  "format": "kiln-policy-compilation/1",
+  "membership_sha256": "3012570a49bd83e072278df39e3d7f30478ad7990156a371242ae739c4ffde8e",
+  "reference_domain_sha256": "1da5382dd27e8d108f492e50a5bceed4a91ce70fc6596a709f72d370651a7f65",
+  "policy": {
+    "format": "kiln-fusion-policy/1",
+    "id": "tree-tiny-single",
+    "kind": "decision-tree",
+    "provenance": {
+      "author": "Codex session; exact serving snapshot not recorded",
+      "method": "LLM-authored fixed hypotheses informed by prior development pilot; no fresh timing feedback; not upstream PassAgent inference",
+      "budget": "31 nodes, depth 6, hard work-growth cap 2; immutable compiler features only"
+    },
+    "tree": {
+      "if": {
+        "feature": "producerElements",
+        "op": "le",
+        "value": 512
+      },
+      "then": {
+        "if": {
+          "feature": "consumerCount",
+          "op": "eq",
+          "value": 1
+        },
+        "then": {
+          "threshold": 1.08
+        },
+        "else": {
+          "threshold": 1.02
+        }
+      },
+      "else": {
+        "threshold": 1.02
+      }
+    }
+  },
+  "policy_node_count": 5,
+  "target": "a100",
+  "records": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start146_end150_4",
+      "split": "train",
+      "script": "000.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "000.kiln.json",
+      "fingerprint": "22c160aacef0cafd123e4e2d93a9073df4e84ffbe46503e4b340f2f549b336f6",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1q6d8i6p0tj"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 1.1920928955078125e-7,
+            "maxRel": 1.1920053630681457e-7,
+            "bad": 0,
+            "n": 131072,
+            "first": -1,
+            "message": "max abs diff 1.19e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 11403264,
+          "fusedWork": 8257536,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9830412,
+          "fusedWork": 6684684,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9961484,
+          "fusedWork": 6815756,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8388632,
+          "fusedWork": 5242904,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 30.508306999999988
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/rexnet_150.nav_in1k/_decomposed/rexnet_150.nav_in1k_start59_end62_1",
+      "split": "train",
+      "script": "001.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "001.kiln.json",
+      "fingerprint": "5c54c4069bf11dbc579d525147615ea33d2cd96da7d395a9215896bb165ecb64",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "sxozqw5ynu"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 72128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 5265344,
+          "fusedWork": 3534272,
+          "consumerCount": 1,
+          "producerElements": 72128,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 5709872,
+          "fusedWork": 4471936,
+          "consumerCount": 1,
+          "producerElements": 58800,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 6203008,
+          "fusedWork": 4471936,
+          "consumerCount": 1,
+          "producerElements": 72128,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 5338576,
+          "fusedWork": 3607504,
+          "consumerCount": 1,
+          "producerElements": 72128,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 9.80147199999999
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start292_end294_57",
+      "split": "train",
+      "script": "002.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "002.kiln.json",
+      "fingerprint": "3698f4cd7cbcc1f6a638fc408cc60349f25ee1c2f5874ac88fef58f1b42c845e",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "18ksau3xsp"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 262144,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 12.672132999999988
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/apple_mobilevit-small/_decomposed/apple_mobilevit-small_start372_end375_53",
+      "split": "heldout",
+      "script": "003.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "003.kiln.json",
+      "fingerprint": "0d94f341c2d7dd1e93a49f41d741b123bd4a34367302eeeb7a7c9b04a871f752",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1t2c50jvyk1"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 15360,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 4.798172999999991
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start232_end235_40",
+      "split": "train",
+      "script": "004.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "004.kiln.json",
+      "fingerprint": "51ef161f8f3e924b3b80030040be36287ffb031f1fff02016c3c095704df0a8e",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "18ript6f7yj"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 49152,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 9.368691999999996
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmpose/pose_hrnetv2_w18_dark/_decomposed/pose_hrnetv2_w18_dark_start1108_end1110_3",
+      "split": "train",
+      "script": "005.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "005.kiln.json",
+      "fingerprint": "fe0b44bae586637729177453b1e8aae06bb14e17b2b839e8aebd79c32d6470c8",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "mhnl8p7q6l"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1105920,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 108380160,
+          "fusedWork": 81838080,
+          "consumerCount": 1,
+          "producerElements": 1105920,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 136028160,
+          "fusedWork": 109486080,
+          "consumerCount": 1,
+          "producerElements": 1105920,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 136028160,
+          "fusedWork": 109486080,
+          "consumerCount": 1,
+          "producerElements": 1105920,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 136028160,
+          "fusedWork": 109486080,
+          "consumerCount": 1,
+          "producerElements": 1105920,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 122760360,
+          "fusedWork": 96218280,
+          "consumerCount": 1,
+          "producerElements": 1105920,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 122760360,
+          "fusedWork": 96218280,
+          "consumerCount": 1,
+          "producerElements": 1105920,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 109492560,
+          "fusedWork": 82950480,
+          "consumerCount": 1,
+          "producerElements": 1105920,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 109492560,
+          "fusedWork": 82950480,
+          "consumerCount": 1,
+          "producerElements": 1105920,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 112441680,
+          "fusedWork": 111704400,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 133527888,
+          "fusedWork": 126081360,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 155572560,
+          "fusedWork": 154835280,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 176658768,
+          "fusedWork": 169212240,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 183368016,
+          "fusedWork": 169212240,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 183368016,
+          "fusedWork": 169212240,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 183368016,
+          "fusedWork": 169212240,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 183368016,
+          "fusedWork": 169212240,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 169314640,
+          "fusedWork": 170318160,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 184473936,
+          "fusedWork": 170318160,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 199809360,
+          "fusedWork": 199072080,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 220895568,
+          "fusedWork": 213449040,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 227604816,
+          "fusedWork": 213449040,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 227604816,
+          "fusedWork": 213449040,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 227604816,
+          "fusedWork": 213449040,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 227604816,
+          "fusedWork": 213449040,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 213551440,
+          "fusedWork": 214554960,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 228710736,
+          "fusedWork": 214554960,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 214657360,
+          "fusedWork": 215660880,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 228935160,
+          "fusedWork": 202393080,
+          "consumerCount": 1,
+          "producerElements": 1105920,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 52.252354999999994
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/microsoft_layoutlm-base-uncased/_decomposed/microsoft_layoutlm-base-uncased_start55_end58_7",
+      "split": "heldout",
+      "script": "006.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "006.kiln.json",
+      "fingerprint": "2a27d1c1d148aae6fb41fc1197e60ebea15c8717f9b0e8a790725d063f71273a",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "xfqnnamfo2"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1572864,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 67.88476700000001
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/hgnet_base.ssld_in1k/_decomposed/hgnet_base.ssld_in1k_start246_end248_8",
+      "split": "heldout",
+      "script": "007.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "007.kiln.json",
+      "fingerprint": "6166f90694d229defc6bbd8036c57509fffd6e9eeb00a5ad979c66f5e6c86de0",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "y0yjgubftn",
+        "1f2dezttk83"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 81920,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 2.9802322387695312e-8,
+            "maxRel": 1.1728500690586607e-7,
+            "bad": 0,
+            "n": 1280,
+            "first": -1,
+            "message": "max abs diff 2.98e-8"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 62720,
+          "fusedWork": 32000,
+          "consumerCount": 1,
+          "producerElements": 1280,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 180480,
+          "fusedWork": 149760,
+          "consumerCount": 1,
+          "producerElements": 1280,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1337600,
+          "fusedWork": 1091840,
+          "consumerCount": 1,
+          "producerElements": 10240,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 3057920,
+          "fusedWork": 1091840,
+          "consumerCount": 1,
+          "producerElements": 81920,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 10.306112000000013
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/mmpose/2xrsn_50/_decomposed/2xrsn_50_start1488_end1492_9",
+      "split": "train",
+      "script": "008.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "008.kiln.json",
+      "fingerprint": "7a0dc292dec6e3b96db3ea701da29365c0f64ae6988c8314fa2214f5afcd4002",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1typavhfteo"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 393216,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 29097984,
+          "fusedWork": 19660800,
+          "consumerCount": 1,
+          "producerElements": 393216,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 29491200,
+          "fusedWork": 20054016,
+          "consumerCount": 1,
+          "producerElements": 393216,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 34603008,
+          "fusedWork": 25165824,
+          "consumerCount": 1,
+          "producerElements": 393216,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 31.052129999999977
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/OttoYu_Tree-ConditionHK/_decomposed/OttoYu_Tree-ConditionHK_start1403_end1405_51",
+      "split": "heldout",
+      "script": "009.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "009.kiln.json",
+      "fingerprint": "0fc125194d1b27baea2d4503b0418d217f0a8fefd04739a8512b4612eb541f4d",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "2g9asp9fidl"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 100352,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 7325696,
+          "fusedWork": 4917248,
+          "consumerCount": 1,
+          "producerElements": 100352,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9834496,
+          "fusedWork": 7426048,
+          "consumerCount": 1,
+          "producerElements": 100352,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12343296,
+          "fusedWork": 9934848,
+          "consumerCount": 1,
+          "producerElements": 100352,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12343296,
+          "fusedWork": 9934848,
+          "consumerCount": 1,
+          "producerElements": 100352,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12343296,
+          "fusedWork": 9934848,
+          "consumerCount": 1,
+          "producerElements": 100352,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12343296,
+          "fusedWork": 9934848,
+          "consumerCount": 1,
+          "producerElements": 100352,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12343296,
+          "fusedWork": 9934848,
+          "consumerCount": 1,
+          "producerElements": 100352,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12343296,
+          "fusedWork": 9934848,
+          "consumerCount": 1,
+          "producerElements": 100352,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12343296,
+          "fusedWork": 9934848,
+          "consumerCount": 1,
+          "producerElements": 100352,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12343296,
+          "fusedWork": 9934848,
+          "consumerCount": 1,
+          "producerElements": 100352,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 12.844875000000002
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/AkshatSurolia_BEiT-FaceMask-Finetuned/_decomposed/AkshatSurolia_BEiT-FaceMask-Finetuned_start664_end669_29",
+      "split": "train",
+      "script": "010.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "010.kiln.json",
+      "fingerprint": "4886af34d67e8c809867ac63fbd4cdebc351efe8ad6cbf2a6e0bd88dd4820038",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "2dhvcmp3srg",
+        "14v565ckbna"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 1.1920928955078125e-7,
+            "maxRel": 0.00006680253590702592,
+            "bad": 0,
+            "n": 151296,
+            "first": -1,
+            "message": "max abs diff 1.19e-7"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 8748,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 11195904,
+          "fusedWork": 7564800,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 13.139058999999975
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ase-sv/_decomposed/opus-mt-ase-sv_start15_end17_2",
+      "split": "train",
+      "script": "011.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "011.kiln.json",
+      "fingerprint": "7ec222c93e1d4faed6ebcd230b33486f7c5fd12f0249150f01b4f4cb40ace4b9",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "mfarby9c82"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 11264,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 2.299059999999997
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start8_end10_2",
+      "split": "train",
+      "script": "012.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "012.kiln.json",
+      "fingerprint": "55b7875e291144a95f22493671f0fbebe412615c20d7ff37a83023f615b7c002",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "1y4va1yfn1x",
+        "2de2kbdx80o"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 4.76837158203125e-7,
+            "maxRel": 0.00582624672277089,
+            "bad": 0,
+            "n": 524288,
+            "first": -1,
+            "message": "max abs diff 4.77e-7"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 163840,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 38797312,
+          "fusedWork": 26214400,
+          "consumerCount": 1,
+          "producerElements": 524288,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 32507392,
+          "fusedWork": 19924480,
+          "consumerCount": 1,
+          "producerElements": 524288,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19927552,
+          "fusedWork": 19924480,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 26217472,
+          "fusedWork": 13634560,
+          "consumerCount": 1,
+          "producerElements": 524288,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13637632,
+          "fusedWork": 13634560,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 34606080,
+          "fusedWork": 22023168,
+          "consumerCount": 1,
+          "producerElements": 524288,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 28316160,
+          "fusedWork": 15733248,
+          "consumerCount": 1,
+          "producerElements": 524288,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15736832,
+          "fusedWork": 15733760,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15736960,
+          "fusedWork": 15733888,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15736960,
+          "fusedWork": 15733888,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15736960,
+          "fusedWork": 15733888,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 35132544,
+          "fusedWork": 22549632,
+          "consumerCount": 1,
+          "producerElements": 524288,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 28842624,
+          "fusedWork": 16259712,
+          "consumerCount": 1,
+          "producerElements": 524288,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 16262784,
+          "fusedWork": 16259712,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 28842624,
+          "fusedWork": 16259712,
+          "consumerCount": 1,
+          "producerElements": 524288,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 64.10844800000001
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/gagan3012_swin_arocr_tiny/_decomposed/gagan3012_swin_arocr_tiny_start474_end477_18",
+      "split": "heldout",
+      "script": "013.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "013.kiln.json",
+      "fingerprint": "f1882f15594ade9ff19fd23c4e67a5b89b735e6bd654e3dfcff9339df5bdcf5f",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "b9koej7yp"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1572864,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 103.64441299999999
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmseg/Twins_svt-b_fpn/_decomposed/Twins_svt-b_fpn_start914_end917_16",
+      "split": "train",
+      "script": "014.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "014.kiln.json",
+      "fingerprint": "ce906e218d1a7292f24f5d09d7d248506a6fa9e43273b5a6becf70e6de295b49",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1yromrvxtpl"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 196608,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 11993088,
+          "fusedWork": 7274496,
+          "consumerCount": 1,
+          "producerElements": 196608,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 9.423798000000033
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/yujiepan_tiny-random-swin-patch4-window7-224/_decomposed/yujiepan_tiny-random-swin-patch4-window7-224_start172_end174_35",
+      "split": "train",
+      "script": "015.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "015.kiln.json",
+      "fingerprint": "4dc2325046f39df8ad25763f74120861704656850a57d943adeef131381248eb",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "34ute6g13c"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 6272,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 457856,
+          "fusedWork": 307328,
+          "consumerCount": 1,
+          "producerElements": 6272,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 614656,
+          "fusedWork": 464128,
+          "consumerCount": 1,
+          "producerElements": 6272,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 771456,
+          "fusedWork": 620928,
+          "consumerCount": 1,
+          "producerElements": 6272,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 771456,
+          "fusedWork": 620928,
+          "consumerCount": 1,
+          "producerElements": 6272,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 771456,
+          "fusedWork": 620928,
+          "consumerCount": 1,
+          "producerElements": 6272,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 771456,
+          "fusedWork": 620928,
+          "consumerCount": 1,
+          "producerElements": 6272,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 771456,
+          "fusedWork": 620928,
+          "consumerCount": 1,
+          "producerElements": 6272,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 771456,
+          "fusedWork": 620928,
+          "consumerCount": 1,
+          "producerElements": 6272,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 771456,
+          "fusedWork": 620928,
+          "consumerCount": 1,
+          "producerElements": 6272,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 771456,
+          "fusedWork": 620928,
+          "consumerCount": 1,
+          "producerElements": 6272,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 6.774550999999974
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/timm/rexnet_130.nav_in1k/_decomposed/rexnet_130.nav_in1k_start222_end225_8",
+      "split": "train",
+      "script": "016.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "016.kiln.json",
+      "fingerprint": "78f9a489b5b187b5e9f9011401297224fe97d36e38eb60b227555825aabdb936",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1000rmkq945"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 432128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 31545344,
+          "fusedWork": 21174272,
+          "consumerCount": 1,
+          "producerElements": 432128,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 36026368,
+          "fusedWork": 26791936,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 37163008,
+          "fusedWork": 26791936,
+          "consumerCount": 1,
+          "producerElements": 432128,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 32058496,
+          "fusedWork": 21687424,
+          "consumerCount": 1,
+          "producerElements": 432128,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 19.54359999999997
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/google_mobilebert-uncased/_decomposed/google_mobilebert-uncased_start138_end140_27",
+      "split": "heldout",
+      "script": "017.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "017.kiln.json",
+      "fingerprint": "07d248eec313093a67d04ebf3c86cb394f1ee35135e8ffd52339c3222cc4cbc5",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1v0bo2sbedi"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 1.1920928955078125e-7,
+            "maxRel": 0.026914532050343224,
+            "bad": 0,
+            "n": 262144,
+            "first": -1,
+            "message": "max abs diff 1.19e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 19398656,
+          "fusedWork": 13107200,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19398656,
+          "fusedWork": 13107200,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 18.481504000000086
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/upernet-convnext-tiny/_decomposed/upernet-convnext-tiny_start28_end30_7",
+      "split": "heldout",
+      "script": "018.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "018.kiln.json",
+      "fingerprint": "fea6668e8aab0a536015b1fa763fc9ff08d3081104e8b30352d45c315308e9e0",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "fixu66wxm4",
+        "xhfltgl48"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 720896,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 70647808,
+          "fusedWork": 53346304,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 88670208,
+          "fusedWork": 71368704,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 106692608,
+          "fusedWork": 89391104,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 106692608,
+          "fusedWork": 89391104,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 106692608,
+          "fusedWork": 89391104,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 98075648,
+          "fusedWork": 80774144,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 98075648,
+          "fusedWork": 80774144,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 89458688,
+          "fusedWork": 72157184,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 89458688,
+          "fusedWork": 72157184,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 80841728,
+          "fusedWork": 63540224,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 80841728,
+          "fusedWork": 63540224,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 70093824,
+          "fusedWork": 82283520,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 11403264,
+          "fusedWork": 8257536,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 71797760,
+          "fusedWork": 91655168,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 14811136,
+          "fusedWork": 11665408,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 75205632,
+          "fusedWork": 110398464,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 16515072,
+          "fusedWork": 13369344,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 76909568,
+          "fusedWork": 119770112,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 16515072,
+          "fusedWork": 13369344,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 76909568,
+          "fusedWork": 119770112,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 16515072,
+          "fusedWork": 13369344,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 76909568,
+          "fusedWork": 119770112,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 16515072,
+          "fusedWork": 13369344,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 76909568,
+          "fusedWork": 119770112,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 16515072,
+          "fusedWork": 13369344,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 76909568,
+          "fusedWork": 119770112,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 13375744,
+          "fusedWork": 13500416,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 77040640,
+          "fusedWork": 120491008,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 16646144,
+          "fusedWork": 13500416,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 77040640,
+          "fusedWork": 120491008,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 20054016,
+          "fusedWork": 16908288,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 80448512,
+          "fusedWork": 139234304,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 21757952,
+          "fusedWork": 18612224,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 82152448,
+          "fusedWork": 148605952,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 21757952,
+          "fusedWork": 18612224,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 82152448,
+          "fusedWork": 148605952,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 21757952,
+          "fusedWork": 18612224,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 82152448,
+          "fusedWork": 148605952,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 21757952,
+          "fusedWork": 18612224,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 82152448,
+          "fusedWork": 148605952,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 21757952,
+          "fusedWork": 18612224,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 82152448,
+          "fusedWork": 148605952,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 18618624,
+          "fusedWork": 18743296,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 82283520,
+          "fusedWork": 149326848,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 21889024,
+          "fusedWork": 18743296,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 82283520,
+          "fusedWork": 149326848,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 18749696,
+          "fusedWork": 18874368,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 82414592,
+          "fusedWork": 150047744,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy tree-tiny-single: profitability rejected"
+        },
+        {
+          "originalWork": 72224768,
+          "fusedWork": 54923264,
+          "consumerCount": 1,
+          "producerElements": 720896,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 40.01980199999991
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/coat_mini/_decomposed/coat_mini_start392_end397_67",
+      "split": "heldout",
+      "script": "019.kiln.js",
+      "policy": "tree-tiny-single",
+      "status": "compiled",
+      "artifact": "019.kiln.json",
+      "fingerprint": "b0d78715d697bbd037d1b713dd23517fb813bf1aeef5b3f3c5a44882fcebc86b",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "2vjh1quw2k",
+        "680c2lcfma"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 216,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 10584,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 658800,
+          "fusedWork": 399600,
+          "consumerCount": 2,
+          "producerElements": 10800,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 4.621240000000057
+    }
+  ]
+}

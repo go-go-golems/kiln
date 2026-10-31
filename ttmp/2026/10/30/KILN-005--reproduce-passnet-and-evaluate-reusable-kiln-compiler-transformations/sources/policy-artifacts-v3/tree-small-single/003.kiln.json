@@ -1,0 +1,125 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "003.kiln.js",
+  "sha256": "4454382964afa0e5c998a01486755bf9de35761b95c7d97528a9a4551777be50"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    240,
+    16,
+    4
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    1,
+    240,
+    8,
+    8
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 15360,
+   "bytes": 61440
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 15360,
+   "bytes": 61440
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_reshape__1t2c50jvyk1",
+   "identity": "1t2c50jvyk1",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 240,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    240,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    240,
+    8,
+    8
+   ],
+   "inShapes": [
+    [
+     1,
+     240,
+     16,
+     4
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 240i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 15360i) {\n        v_in0 = b0[(((4i * ((((((16i * (((((8i * ((n_e / 8i) % 8i)) + (n_e % 8i)) + (64i * (n_e / 64i))) / 16i) % 960i)) + (4i * (((((8i * ((n_e / 8i) % 8i)) + (n_e % 8i)) + (64i * (n_e / 64i))) / 2i) % 4i))) + (2i * (((((8i * ((n_e / 8i) % 8i)) + (n_e % 8i)) + (64i * (n_e / 64i))) / 8i) % 2i))) + ((n_e % 8i) % 2i)) / 4i) % 16i)) + (64i * ((((((16i * (((((8i * ((n_e / 8i) % 8i)) + (n_e % 8i)) + (64i * (n_e / 64i))) / 16i) % 960i)) + (4i * (((((8i * ((n_e / 8i) % 8i)) + (n_e % 8i)) + (64i * (n_e / 64i))) / 2i) % 4i))) + (2i * (((((8i * ((n_e / 8i) % 8i)) + (n_e % 8i)) + (64i * (n_e / 64i))) / 8i) % 2i))) + ((n_e % 8i) % 2i)) / 64i) % 240i))) + (((2i * (((((8i * ((n_e / 8i) % 8i)) + (n_e % 8i)) + (64i * (n_e / 64i))) / 8i) % 2i)) + ((n_e % 8i) % 2i)) % 4i))];\n        bout[(((8i * ((n_e / 8i) % 8i)) + (n_e % 8i)) + (64i * (n_e / 64i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_reshape__1t2c50jvyk1(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 15360)) {\n        in0 = src0[(((4 * ((((((16 * (((((8 * ((e / 8) % 8)) + (e % 8)) + (64 * (e / 64))) / 16) % 960)) + (4 * (((((8 * ((e / 8) % 8)) + (e % 8)) + (64 * (e / 64))) / 2) % 4))) + (2 * (((((8 * ((e / 8) % 8)) + (e % 8)) + (64 * (e / 64))) / 8) % 2))) + ((e % 8) % 2)) / 4) % 16)) + (64 * ((((((16 * (((((8 * ((e / 8) % 8)) + (e % 8)) + (64 * (e / 64))) / 16) % 960)) + (4 * (((((8 * ((e / 8) % 8)) + (e % 8)) + (64 * (e / 64))) / 2) % 4))) + (2 * (((((8 * ((e / 8) % 8)) + (e % 8)) + (64 * (e / 64))) / 8) % 2))) + ((e % 8) % 2)) / 64) % 240))) + (((2 * (((((8 * ((e / 8) % 8)) + (e % 8)) + (64 * (e / 64))) / 8) % 2)) + ((e % 8) % 2)) % 4))];\n        dst[(((8 * ((e / 8) % 8)) + (e % 8)) + (64 * (e / 64)))] = in0;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "tree-small-single",
+  "kind": "decision-tree",
+  "provenance": {
+   "author": "Codex session; exact serving snapshot not recorded",
+   "method": "LLM-authored fixed hypotheses informed by prior development pilot; no fresh timing feedback; not upstream PassAgent inference",
+   "budget": "31 nodes, depth 6, hard work-growth cap 2; immutable compiler features only"
+  },
+  "tree": {
+   "if": {
+    "feature": "producerElements",
+    "op": "le",
+    "value": 2048
+   },
+   "then": {
+    "if": {
+     "feature": "consumerCount",
+     "op": "eq",
+     "value": 1
+    },
+    "then": {
+     "threshold": 1.25
+    },
+    "else": {
+     "threshold": 1.02
+    }
+   },
+   "else": {
+    "threshold": 1.02
+   }
+  }
+ }
+}
