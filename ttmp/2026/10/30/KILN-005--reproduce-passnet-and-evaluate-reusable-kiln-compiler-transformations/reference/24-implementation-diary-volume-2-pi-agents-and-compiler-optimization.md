@@ -512,3 +512,49 @@ The user also corrected the work's direction: research results should take prior
 - Provider lunaroute/model glm-5.3-flash; development corpus only.
 - The gate reserved 16384 completion tokens. This is not actual usage and is not an inference-cost estimate.
 - evaluationStatus remains not_run. No new performance result or task coverage is claimed.
+
+## Step 170: Compile GLM proposals and identify four new executable cases
+
+Compiled all three accepted GLM policies across the twelve development training graphs. All 36 policy–graph compilations passed their reference checks. Attempts two and three changed five and three executables respectively; attempt four reproduced baseline throughout. Comparing fingerprints with the earlier search identifies four previously unseen executable cases, all from attempt two.
+
+### Prompt Context
+See Steps 168–169 for the user's research-first direction, six-lane preference and explicit provider approval.
+**Assistant interpretation:** Move actual model proposals into compiler evaluation.
+**Inferred user intent:** Obtain measurable compiler findings rather than more infrastructure.
+**Previous commit:** 63f307d — Run approved GLM policy batch and retain three accepted candidates.
+
+### What I did
+- Added script 450 to extract accepted policy programs, invoke the existing compile_policy.mjs and compare training fingerprints.
+- Ran the compilation in tmux kiln-glm-compile-v1 and retained artifacts, logs and summary.json.
+- Compared graph/fingerprint pairs against native-policy-search-artifacts-v1 receipts.
+
+### Why
+- Valid policies can collapse to identical executables. Compilation identifies which proposals deserve measurement.
+
+### What worked
+- All three policies compiled all twelve graphs successfully.
+- Attempt two changed five baseline executables and has four graph/executable pairs absent from the earlier search.
+- Attempt three changed three baseline executables, but all twelve pairs occurred in the earlier search. Attempt four matched baseline on all twelve.
+
+### What didn't work
+- Attempt four yielded no executable change. This is an observed candidate outcome, not a compiler failure.
+- GPU measurement has not yet been performed for the four new cases.
+
+### What I learned
+- The GLM batch produced executable novelty despite the mostly saturated default fusion decisions. Whether that novelty improves performance remains unknown.
+
+### What was tricky to build
+- Policy identity is not executable identity: comparison uses per-graph fingerprints, not policy names or artifact file hashes.
+
+### What warrants a second pair of eyes
+- Review numerical/reference assumptions inherited from the development corpus. Successful local reference checks do not establish native PassBench GPU acceptance.
+
+### What should be done in the future
+- Benchmark the new attempt-two executables on bling with the existing correctness and timing path, then decide which hypotheses merit six-lane expansion.
+
+### Code review instructions
+- Inspect script 450 and sources/pi-policy-compile-v1/summary.json, then the candidate receipts and generated kernels.
+
+### Technical details
+- Target a100 remains the scheduling proxy; the experimental hardware is GB10.
+- Training-only compilation, separate contraction. No held-out performance claim or full-corpus coverage promotion.

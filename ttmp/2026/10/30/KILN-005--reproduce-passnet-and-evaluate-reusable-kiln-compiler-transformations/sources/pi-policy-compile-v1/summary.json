@@ -1,0 +1,314 @@
+[
+  {
+    "candidate": "attempt-0002",
+    "policy": {
+      "format": "kiln-fusion-policy/1",
+      "id": "attempt-0002",
+      "kind": "decision-tree",
+      "tree": {
+        "else": {
+          "else": {
+            "threshold": 1.02
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "lt",
+            "value": 500000
+          },
+          "then": {
+            "threshold": 1.02
+          }
+        },
+        "if": {
+          "feature": "producerElements",
+          "op": "lt",
+          "value": 4096
+        },
+        "then": {
+          "threshold": 0.999
+        }
+      }
+    },
+    "returncode": 0,
+    "records": [
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_swin-base-patch4-window12-384-in22k/_decomposed/microsoft_swin-base-patch4-window12-384-in22k_start1502_end1505_66",
+        "status": "compiled",
+        "changed": true,
+        "kernels": 4,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/torchaudio/wav2vec2_large/_decomposed/wav2vec2_large_start27_end29_4",
+        "status": "compiled",
+        "changed": true,
+        "kernels": 3,
+        "baseline_kernels": 1
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_beit-large-patch16-384/_decomposed/microsoft_beit-large-patch16-384_start664_end667_26",
+        "status": "compiled",
+        "changed": true,
+        "kernels": 5,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/mesolitica_ner-t5-small-standard-bahasa-cased/_decomposed/mesolitica_ner-t5-small-standard-bahasa-cased_start769_end775_3",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 2,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/owkin_phikon/_decomposed/owkin_phikon_start318_end321_2",
+        "status": "compiled",
+        "changed": true,
+        "kernels": 4,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-Swinv2Model/_decomposed/hf-tiny-model-private_tiny-random-Swinv2Model_start286_end290_10",
+        "status": "compiled",
+        "changed": true,
+        "kernels": 3,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/facebook_wav2vec2-base-960h/_decomposed/facebook_wav2vec2-base-960h_start36_end41_7",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 3,
+        "baseline_kernels": 3
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MBartForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-MBartForSequenceClassification_start101_end107_20",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 3,
+        "baseline_kernels": 3
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ar-eo/_decomposed/opus-mt-ar-eo_start235_end242_20",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 4,
+        "baseline_kernels": 4
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-DPTModel/_decomposed/hf-tiny-model-private_tiny-random-DPTModel_start34_end36_7",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 2,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/GKLMIP_electra-khmer-small-uncased-tokenized/_decomposed/GKLMIP_electra-khmer-small-uncased-tokenized_start103_end106_10",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 1,
+        "baseline_kernels": 1
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/breadlicker45_autotrain-blender-50601120822/_decomposed/breadlicker45_autotrain-blender-50601120822_start122_end125_26",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 1,
+        "baseline_kernels": 1
+      }
+    ]
+  },
+  {
+    "candidate": "attempt-0003",
+    "policy": {
+      "format": "kiln-fusion-policy/1",
+      "id": "attempt-0003",
+      "kind": "threshold",
+      "max_work_growth": 1
+    },
+    "returncode": 0,
+    "records": [
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_swin-base-patch4-window12-384-in22k/_decomposed/microsoft_swin-base-patch4-window12-384-in22k_start1502_end1505_66",
+        "status": "compiled",
+        "changed": true,
+        "kernels": 3,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/torchaudio/wav2vec2_large/_decomposed/wav2vec2_large_start27_end29_4",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 1,
+        "baseline_kernels": 1
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_beit-large-patch16-384/_decomposed/microsoft_beit-large-patch16-384_start664_end667_26",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 2,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/mesolitica_ner-t5-small-standard-bahasa-cased/_decomposed/mesolitica_ner-t5-small-standard-bahasa-cased_start769_end775_3",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 2,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/owkin_phikon/_decomposed/owkin_phikon_start318_end321_2",
+        "status": "compiled",
+        "changed": true,
+        "kernels": 3,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-Swinv2Model/_decomposed/hf-tiny-model-private_tiny-random-Swinv2Model_start286_end290_10",
+        "status": "compiled",
+        "changed": true,
+        "kernels": 3,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/facebook_wav2vec2-base-960h/_decomposed/facebook_wav2vec2-base-960h_start36_end41_7",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 3,
+        "baseline_kernels": 3
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MBartForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-MBartForSequenceClassification_start101_end107_20",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 3,
+        "baseline_kernels": 3
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ar-eo/_decomposed/opus-mt-ar-eo_start235_end242_20",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 4,
+        "baseline_kernels": 4
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-DPTModel/_decomposed/hf-tiny-model-private_tiny-random-DPTModel_start34_end36_7",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 2,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/GKLMIP_electra-khmer-small-uncased-tokenized/_decomposed/GKLMIP_electra-khmer-small-uncased-tokenized_start103_end106_10",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 1,
+        "baseline_kernels": 1
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/breadlicker45_autotrain-blender-50601120822/_decomposed/breadlicker45_autotrain-blender-50601120822_start122_end125_26",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 1,
+        "baseline_kernels": 1
+      }
+    ]
+  },
+  {
+    "candidate": "attempt-0004",
+    "policy": {
+      "format": "kiln-fusion-policy/1",
+      "id": "attempt-0004",
+      "kind": "region",
+      "launch_work": 2048,
+      "materialization_work": 16,
+      "max_work_growth": 1.02
+    },
+    "returncode": 0,
+    "records": [
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_swin-base-patch4-window12-384-in22k/_decomposed/microsoft_swin-base-patch4-window12-384-in22k_start1502_end1505_66",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 2,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/torchaudio/wav2vec2_large/_decomposed/wav2vec2_large_start27_end29_4",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 1,
+        "baseline_kernels": 1
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_beit-large-patch16-384/_decomposed/microsoft_beit-large-patch16-384_start664_end667_26",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 2,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/mesolitica_ner-t5-small-standard-bahasa-cased/_decomposed/mesolitica_ner-t5-small-standard-bahasa-cased_start769_end775_3",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 2,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/owkin_phikon/_decomposed/owkin_phikon_start318_end321_2",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 2,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-Swinv2Model/_decomposed/hf-tiny-model-private_tiny-random-Swinv2Model_start286_end290_10",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 2,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/facebook_wav2vec2-base-960h/_decomposed/facebook_wav2vec2-base-960h_start36_end41_7",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 3,
+        "baseline_kernels": 3
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MBartForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-MBartForSequenceClassification_start101_end107_20",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 3,
+        "baseline_kernels": 3
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ar-eo/_decomposed/opus-mt-ar-eo_start235_end242_20",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 4,
+        "baseline_kernels": 4
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-DPTModel/_decomposed/hf-tiny-model-private_tiny-random-DPTModel_start34_end36_7",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 2,
+        "baseline_kernels": 2
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/GKLMIP_electra-khmer-small-uncased-tokenized/_decomposed/GKLMIP_electra-khmer-small-uncased-tokenized_start103_end106_10",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 1,
+        "baseline_kernels": 1
+      },
+      {
+        "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/breadlicker45_autotrain-blender-50601120822/_decomposed/breadlicker45_autotrain-blender-50601120822_start122_end125_26",
+        "status": "compiled",
+        "changed": false,
+        "kernels": 1,
+        "baseline_kernels": 1
+      }
+    ]
+  }
+]
