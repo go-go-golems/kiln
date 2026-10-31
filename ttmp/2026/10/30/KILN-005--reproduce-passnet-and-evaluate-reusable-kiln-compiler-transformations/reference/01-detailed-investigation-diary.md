@@ -995,3 +995,46 @@ Saved reproducible reference-vector generation and validation scripts. Kiln conv
 
 ### Technical details
 - Fixed seed 42; independent implementation, PyTorch used as CPU differential oracle only. No source code ported.
+
+## Step 24: Install supported local Node and implement typed CUDA storage emission
+
+Installed Node v26.13.0 with nvm after user authorization. Added CUDA emitter support for half and bfloat16 input/output storage, explicit FP32 load conversions and round-to-nearest output conversions. This is emitter-level support only; typed graph lowering and export remain incomplete.
+
+### Prompt Context
+**User prompt (verbatim):** "you should be able to use `nvm use v26` locally. you are allowed to install it if it makes development easier"
+**Assistant interpretation:** Use/install supported local runtime.
+**Inferred user intent:** Reduce remote-only development friction.
+
+### What I did
+- nvm install v26 downloaded/checksummed Node v26.13.0 successfully.
+- Modified std/emit.js to recognize f16/bf16 storage and include CUDA headers only as needed.
+- Added cuda-dtypes.mjs for typed pointer/load/store emission and unknown-dtype rejection.
+
+### Why
+- Reduced-precision pointers cannot be treated as float pointers; output rounding must be explicit.
+
+### What worked
+- Node installation success; focused emitter test passed after correcting test index representation.
+
+### What didn't work
+- Initial nvm use v26: version not installed; resolved by installation.
+- pnpm install failed ERR_PNPM_NO_MATCHING_VERSION for @pnpm/linux-x64@12.4.1. Project package-manager pin unchanged; local dependencies remain unavailable.
+- First emitter fixture used floating expression shape for integer index, causing TypeError reading t in ix.js. Corrected fixture to index constant {t:c,v:0}; emitter then passed.
+
+### What I learned
+- CUDA storage recognition and graph-level precision semantics are separate completion gates.
+
+### What was tricky to build
+- Preserve unchanged FP32 code emission while inserting only necessary CUDA conversion headers/intrinsics.
+
+### What warrants a second pair of eyes
+- NVRTC include resolution, actual GPU conversion behavior and unsupported WGSL types require integration tests.
+
+### What should be done in the future
+- Compile typed kernels on GB10, run regressions, propagate output dtype/rounding boundaries and resolve local package manager setup without pin changes.
+
+### Code review instructions
+- Inspect std/emit.js and test/cuda-dtypes.mjs; run focused test with Node 26.
+
+### Technical details
+- Independent emitter implementation using standard CUDA half/bfloat16 type/intrinsic names; no upstream source copied. No end-to-end reduced-precision execution claim.

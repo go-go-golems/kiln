@@ -18,8 +18,19 @@ export function toCuda(K) {
   const fx = (e) => (e.k === "num" ? flit(e.v, "c") : e.k === "var" ? e.n : fill(FNS[e.fn].c, e.a.map(fx)));
   const ins = K.params.filter((p) => p.role === "in");
   const lines = [];
-  const ctype = (p) => (p.dtype === "u8" ? "unsigned char" : "float");
-  lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `const ${ctype(p)}* __restrict__ src${i}`), "float* __restrict__ dst"].join(", ")}) {`);
+  const storage = { f32: "float", u8: "unsigned char", f16: "__half", bf16: "__nv_bfloat16" };
+  const ctype = (p) => {
+    const dtype = p.dtype || "f32";
+    if (!Object.hasOwn(storage, dtype)) throw new TypeError(`CUDA storage dtype unsupported: ${dtype}`);
+    return storage[dtype];
+  };
+  const out = K.params.find((p) => p.role === "out") || {};
+  const types = [...ins, out].map((p) => p.dtype || "f32");
+  if (types.includes("f16")) lines.push("#include <cuda_fp16.h>");
+  if (types.includes("bf16")) lines.push("#include <cuda_bf16.h>");
+  const load = (dtype, expr) => dtype === "f16" ? `__half2float(${expr})` : dtype === "bf16" ? `__bfloat162float(${expr})` : dtype === "u8" ? `(float)${expr}` : expr;
+  const store = (expr) => out.dtype === "f16" ? `__float2half_rn(${expr})` : out.dtype === "bf16" ? `__float2bfloat16_rn(${expr})` : expr;
+  lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `const ${ctype(p)}* __restrict__ src${i}`), `${ctype(out)}* __restrict__ dst`].join(", ")}) {`);
   lines.push(`    const int tid = threadIdx.x;`, `    const int bid = blockIdx.x;`);
   for (const s of K.smem) lines.push(`    __shared__ float ${s.name}[${s.size}];`);
   if (K.floats.length) lines.push(`    float ${K.floats.map((f) => `${f} = 0.0f`).join(", ")};`);
@@ -29,8 +40,8 @@ export function toCuda(K) {
       switch (s.s) {
         case "let": lines.push(`${pad}${s.n} = ${fx(s.e)};`); break;
         case "iset": lines.push(`${pad}${s.n} = ${ix(s.e)};`); break;
-        case "load": lines.push(`${pad}${s.n} = ${ins[s.buf]?.dtype === "u8" ? "(float)" : ""}${bufName(s.buf)}[${ix(s.idx)}];`); break;
-        case "store": lines.push(`${pad}${bufName(s.buf)}[${ix(s.idx)}] = ${fx(s.e)};`); break;
+        case "load": lines.push(`${pad}${s.n} = ${load(ins[s.buf]?.dtype, `${bufName(s.buf)}[${ix(s.idx)}]`)};`); break;
+        case "store": lines.push(`${pad}${bufName(s.buf)}[${ix(s.idx)}] = ${store(fx(s.e))};`); break;
         case "sload": lines.push(`${pad}${s.n} = ${s.arr}[${ix(s.idx)}];`); break;
         case "sstore": lines.push(`${pad}${s.arr}[${ix(s.idx)}] = ${fx(s.e)};`); break;
         case "sync": lines.push(`${pad}__syncthreads();`); break;
