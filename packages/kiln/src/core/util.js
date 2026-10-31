@@ -47,7 +47,7 @@ export const numel = (shape) => shape.reduce((a, b) => a * b, 1);
 // an input's part of a kernel identity: its shape, and its dtype only when it is not f32 (f32 identities predate dtypes)
 export const inKey = (shape, dtype = "f32") => shape.join("x") + (dtype === "f32" ? "" : ":" + dtype);
 /** Bytes per element of a kernel input dtype. */
-export const dtypeBytes = (dtype = "f32") => (dtype === "u8" ? 1 : 4);
+export { dtypeBytes } from "./dtypes.js";
 export function strides(shape) { const s = new Array(shape.length); let m = 1; for (let i = shape.length - 1; i >= 0; i--) { s[i] = m; m *= shape[i]; } return s; }
 
 // runtime tensors: float32, row-major

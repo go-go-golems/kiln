@@ -913,3 +913,44 @@ User authorizes implementing missing Kiln capabilities with design docs and sour
 
 ### Technical details
 - No upstream implementation copied and no claimed low-precision support in this checkpoint.
+
+## Step 22: Implement dtype storage widths and reference rounding
+
+Added the first shared compiler dtype component: explicit storage widths and FP32-to-FP16/BF16 reference conversions. This does not enable reduced-precision emitted programs yet. Replaced util.js's permissive non-u8-is-four-bytes fallback with the explicit table.
+
+### Prompt Context
+User authorizes missing Kiln compiler implementation with design/provenance records.
+**Assistant interpretation:** Implement reference storage/rounding foundation before typed codegen.
+**Inferred user intent:** Preserve precision semantics across all compiler layers.
+
+### What I did
+- Added core/dtypes.js: width table, unknown-type rejection, FP16/BF16 bit encode/decode and roundToDtype.
+- Added tests exhausting every finite 16-bit encoding, midpoint ties, subnormals, overflow, NaN and signed zero.
+- Re-exported dtypeBytes from core/util.js so existing compiler consumers use the authoritative widths.
+
+### Why
+- Correct artifact sizes and typed reference evaluation require an explicit storage contract.
+
+### What worked
+- node --test packages/kiln/test/dtypes.test.js exited 0; all finite encoding roundtrips and boundary assertions passed.
+
+### What didn't work
+- No failures in targeted validation. Existing full compiler suite and PyTorch cross-reference vectors remain pending.
+
+### What I learned
+- Integer/Boolean storage widths are needed by corpus indexing even though floating arithmetic is the immediate target.
+
+### What was tricky to build
+- FP16 subnormal rounding must include midpoint ties and carry into minimum normal. BF16 rounding needs NaN handling before integer bias addition.
+
+### What warrants a second pair of eyes
+- Conversion entry rounds JavaScript numbers through FP32 before reduced precision; this is an explicit FP32 conversion contract, not arbitrary double-to-half semantics.
+
+### What should be done in the future
+- Cross-check reference vectors with PyTorch, run supported-Node compiler tests and propagate typed outputs/precision boundaries through lowerings.
+
+### Code review instructions
+- Inspect core/dtypes.js and test/dtypes.test.js, then run the targeted Node test.
+
+### Technical details
+- Independent bit-format implementation; no upstream code copied. Backend capability support is separate from storage-width recognition.
