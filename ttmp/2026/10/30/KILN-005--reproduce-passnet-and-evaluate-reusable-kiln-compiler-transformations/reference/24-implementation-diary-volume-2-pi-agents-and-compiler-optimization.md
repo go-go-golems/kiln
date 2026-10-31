@@ -2874,9 +2874,10 @@ The shared export path from Step216 needs a complete-task numerical and scoring 
 ### What worked
 - The frozen population script found all92 materialized graph directories and wrote both arm plans; the fixed policy SHA256 is `de482bd2b23ee1296ca97336a8ff8a7214492782e147b8118f4c0bd826e149b5`.
 - SSH confirmed bling is reachable, has an NVIDIA GB10 GPU, and the remote study directory was unused before staging.
+- Committed and pushed the setup as `2ac3960`. Script617 staged the exact committed source snapshot (`7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740`) and launched `kiln-fixed-policy-passbench-v1` in tmux. The staging receipt is saved with the frozen study inputs. The control arm has completed task indices7,25,74,83,89 and is evaluating task101 at this checkpoint.
 
 ### What didn't work
-No new GPU or scorer outcome exists at this diary checkpoint. The transfer cases are not untouched tasks: prior Kiln coverage work had examined some of them. The study must report this provenance and keep task101 separate.
+No candidate GPU or scorer outcome exists at this diary checkpoint. The transfer cases are not untouched tasks: prior Kiln coverage work had examined some of them. The study must report this provenance and keep task101 separate.
 
 ### What I learned
 The existing task runner can carry the optimization program through the normal corpus compile path with a small extension. A second benchmark harness would add no value for this comparison.
