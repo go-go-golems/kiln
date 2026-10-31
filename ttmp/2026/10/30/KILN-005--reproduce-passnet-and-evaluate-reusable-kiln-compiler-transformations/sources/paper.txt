@@ -1,0 +1,1754 @@
+PassNet: Scaling Large Language Models for Graph
+Compiler Pass Generation
+
+arXiv:2605.29357v1 [cs.AI] 28 May 2026
+
+Yiqun Liu∗ Yingsheng Wu∗ Ruqi Yang Enrong Zheng Honglei Qiu
+Sijun He Tai Liang Jingjing Wu Yuhan Zhou Yiwei Zhang
+Dongyan Chen Weihan Yi Xinqi Li† Siqi Bao†
+Baidu, Inc.
+
+Abstract
+Modern tensor compilers such as TorchInductor deliver substantial speedups
+on mainstream models, yet face a systematic performance ceiling on long-tail
+workloads—our profiling shows that 43% of real-world subgraphs experience endto-end slowdowns under default compilation. While LLMs offer a path toward
+automated optimization, existing efforts focus on standalone kernel generation. We
+argue that pass generation—where LLMs author structured graph transformations
+that integrate directly into compiler pipelines—is the more appropriate abstraction.
+We propose PassNet, the first large-scale ecosystem for LLM-based compiler
+pass generation, comprising: (1) PassNet-Dataset, over 18K unique computational graphs from 100K real-world models; and (2) PassBench, 200 curated
+long-tail fusible tasks (comprising 2,060 subgraphs in total) evaluated under the
+Error-aware Speedup Score (ESt )—a metric unifying correctness, stability,
+and performance—with layered integrity defenses against systematic LLM exploitation. Experiments reveal that PassBench is both highly discriminative and
+genuinely unsaturated: the best frontier model trails TorchInductor by 37% in
+aggregate, yet on individual subgraphs LLMs achieve up to 3× speedup over
+the same compiler—indicating that the bottleneck is consistency, not capability.
+Fine-tuning a small model on merely ∼4K PassNet trajectories yields a 2.67×
+improvement approaching frontier-model performance, demonstrating substantial headroom and validating PassNet as live training infrastructure for advancing
+LLM-driven compiler optimization. All data, benchmarks, and tooling are publicly
+available.
+
+1
+
+Introduction
+
+Modern deep learning systems increasingly rely on tensor compilers (e.g., TVM Chen et al. [2018],
+XLA Kaufman et al. [2021], TorchInductor Ansel et al. [2024]) to lower high-level computational
+graphs into efficient backend implementations for heterogeneous hardware. These compilers apply
+expert-designed, rule-based pass pipelines—sequences of graph transformations such as operator
+fusion, tiling, and layout selection—that have proven remarkably effective: on mainstream architectures, TorchInductor delivers up to 2.27× inference speedups over eager execution across 180+
+models Ansel et al. [2024]. Yet these static strategies face a structural limitation when confronting
+the long tail of real-world operator combinations.
+The Long-Tail Optimization Gap. To quantify this limitation, we profile TorchInductor’s default
+pipeline on 9,526 subgraphs extracted from over 1,000 community models. The results reveal
+∗ Equal contribution.
+† Corresponding authors: lixinqi2010@gmail.com,
+
+Preprint.
+
+baosiqi@baidu.com.
+
+a systematic limitation: 34% achieve marginal speedups (< 1.2×), 43% experience end-to-end
+slowdowns, and 8.3% are strictly degraded. This gap is structural, correlating with operator coverage
+rather than graph complexity (r = 0.013), suggesting that scaling graph coverage alone cannot
+overcome the heuristic-induced performance ceiling.
+Pattern Concentration Creates Leverage. While the long-tail gap is significant, computationgraph patterns exhibit strong power-law concentration: deduplicating 100K models yields only
+∼18K distinct graphs (82% redundancy), and ∼10,000 subgraphs reduce to ∼1,025 unique structural
+patterns. Generating high-quality passes for this concentrated set suffices to cover most workloads,
+enabling a shift from manual rules to automated, data-driven pass generation.
+From Kernel Generation to Pass Generation. Large Language Models (LLMs) are a promising
+approach for long-tail optimization. Existing work has explored Kernel Generation Ouyang et al.
+[2025], Dai et al. [2026], Liao et al. [2025], producing standalone GPU kernels for individual
+operators. However, such kernels lack composability with compiler passes, require manual integration
+for deployment, and are difficult to verify due to unconstrained code generation.
+We therefore define a new task, Pass Generation: given a computational subgraph, an LLM must author a structured compiler pass that interfaces directly with the compiler’s intermediate representation
+(formal definition in Section 3). This formulation preserves the “one-line compilation” experience
+(e.g., torch.compile) while enabling composable and verifiable optimizations. However, advancing
+this task requires large-scale data and rigorous evaluation—resources that do not yet exist.
+The Data and Evaluation Bottleneck. Is pass generation with LLMs realistic today? On individual
+long-tail subgraphs, frontier LLMs can already generate passes achieving up to 3× speedup over the
+default compiler—yet aggregate performance trails far behind, with no model reaching geometricmean speedup above 1.0. This gap stems from two infrastructure bottlenecks: (1) data scarcity—a
+lack of large-scale, specialized corpora for fusion and layout optimization; and (2) evaluation blind
+spots—the absence of rigorous benchmarks allowing agents to bypass correctness for illusory gains.
+To bridge these, we introduce PassNet—the first ecosystem providing systematic data and benchmark
+support for the pass generation task.
+Contributions. We formalize pass generation, where LLMs author structured graph transformations
+that integrate into compiler pipelines, and build a large-scale ecosystem to support this task.
+• PassNet-Dataset: We collect over 18,086 unique computational graphs from 100K real-world
+models across diverse frameworks (PyTorch, PaddlePaddle) and task categories. We design
+Recursive Folding and Execution-driven Prefix Analysis to construct structurally diverse subgraphs
+at multiple granularities, forming the first large-scale open training set for pass generation.
+• PassBench: We construct a benchmark of 200 tasks, each consisting of a variable number of
+long-tail subgraphs, evaluated under the Error-aware Speedup Score (ESt ), which jointly measures
+correctness, stability, and performance. To ensure evaluation integrity, we introduce layered
+defenses including AST-based inspection, runtime dispatch interception, and reverse evaluation
+order, which systematically counter exploitation patterns observed during development.
+• Benchmark Validation: Through extensive evaluation of 6 frontier and open-source models, we
+show that PassBench is both highly discriminative (3.22× gap between model tiers) and genuinely
+unsaturated (best model trails TorchInductor by 37%). Fine-tuning on merely ∼4K PassNet
+trajectories yields a 2.67× improvement, validating the dataset’s utility as training infrastructure.
+The entire ecosystem—dataset, benchmark, evaluation tooling, and agent scaffold—is publicly
+available at https://github.com/PaddlePaddle/PassNet.
+
+2
+
+Related Work
+
+Tensor Compilers. Tensor compilers transform high-level computation graphs into device-specific
+kernels via IR lowering and scheduling. TVM Chen et al. [2018] and Ansor Zheng et al. [2020] are
+search-based compilers relying on cost models, while XLA Leary and Wang [2017] applies heuristic
+graph-level optimizations. Recent systems include MetaSchedule Shao et al. [2022], Hidet Ding et al.
+2
+
+[2023], and BladeDISC Zheng et al. [2023a], with industry frameworks such as CINN Team [2021]
+and TorchInductor Ansel et al. [2024] integrated into production systems. Despite these advances,
+existing approaches still rely on manual transformation rules and struggle with long-tail workloads.
+LLMs for Code Generation and Compiler Optimization. Large Language Models demonstrate
+strong code generation capabilities Jiang et al. [2024], Zheng et al. [2023b], including code completion Liu et al. [2025], bug repair Huang et al. [2025], Yang et al. [2026], and software engineering
+automation Jimenez et al. [2024], Yang et al. [2024], Wang et al. [2024]. For compiler tasks, LLM
+Compiler Cummins et al. [2025] pre-trains on compiler IR, Compiler-r1 Pan et al. [2025] explores
+RL-based auto-tuning, and DeCOS Cui et al. [2025] studies data-efficient optimization selection.
+TLP Zhai et al. [2023] and follow-up work Zhai et al. [2024] apply language models to tensor program
+generation. However, these approaches focus on pass selection or scheduling rather than synthesizing
+new transformation logic.
+LLM-Driven GPU Kernel Generation. Recent work generates GPU kernels directly with LLMs.
+KernelBench Ouyang et al. [2025] benchmarks LLM-generated kernels, revealing gaps from production compilers. CUDA Agent Dai et al. [2026] and Kernelevolve Liao et al. [2025] scale agentic
+generation, while STARK Dong et al. [2025], Kevin Baronio et al. [2025], and Geak Wang et al.
+[2025] explore multi-agent and RL-based refinement. Other efforts include QiMeng-GEMM Zhou
+et al. [2025], CUDA-L1 Li et al. [2025], and Autocomp Hong et al. [2025]. In contrast, PassNet
+targets pass generation, i.e., structured transformations that integrate with compiler pipelines.
+Performance Benchmarks. DL evaluation has evolved from DeepBench Narang and Research
+[2016] to MLPerf Mattson et al. [2020]. CompilerGym Cummins et al. [2022] provides an RL
+environment for compiler optimization. Datasets such as ComPile Grossman et al. [2024], TpuGraphs Phothilimthana et al. [2023], and TenSet Zheng et al. [2021] provide benchmarks for learned
+compilers. PassNet focuses on computational-graph-level pass generation for long-tail optimization,
+with an evaluation framework that jointly measures correctness, stability, and speedup.
+
+3
+
+The PassNet Ecosystem
+
+The PassNet ecosystem bridges the dual infrastructure gaps identified in Section 1: the scarcity of
+large-scale pass generation corpora and the lack of robust, multi-dimensional benchmarks. In the
+following, we formalize the pass generation task before detailing each ecosystem component.
+3.1
+
+Task Formulation
+
+In modern tensor compilers, a pass is a self-contained graph transformation that rewrites a computational graph while preserving its input–output semantics Lattner et al. [2021], Li et al. [2021].
+Following the pattern-based rewriting paradigm adopted by MLIR Lattner et al. [2021] and TorchInductor Ansel et al. [2024], we formalize the core abstractions below.
+Definition 3.1 (Computational Graph). A computational graph is a DAG G = (V, E, τ, σ), where
+V is a set of operator nodes, E encodes data dependencies, τ : V → T assigns operator types, and
+σ : V → Z+ assigns output shapes. We write fG : X → Y for the function computed by G.
+Definition 3.2 (Compiler Pass). A compiler pass is a pair π = (M, R), where M : G → 2G is a
+pattern matcher identifying optimization-eligible subgraphs, and R : G → G is a rewriter replacing
+each matched subgraph with an optimized equivalent. A pass π is valid on G under tolerance t if:
+∀x ∈ X ,
+
+err(fG (x), fπ(G) (x)) ≤ t
+
+(1)
+
+The pass generation task is: given a task instance T = {G1 , . . . , Gk } of subgraphs sharing the
+same operator-type sequence but varying in shape and dtype, generate a valid pass π that rewrites
+every Gi ∈ T and improves aggregate runtime performance. This multi-graph formulation requires
+π to generalize across varying shapes and data types, precluding shape-specific hacks. As opposed to
+free-form kernel generation, it further ensures composability with existing compiler pipelines and
+verifiability through standard compiler infrastructure.
+3
+
+3.2
+
+Dataset Construction
+
+The construction of the dataset consists of two stages: computational graph collection and advanced subgraph generation, as illustrated in Figure 1. The overall goal is to preserve real-world
+computation patterns while constructing structurally diverse and optimization-relevant subgraphs.
+
+Real-world Workload
+Hugging Face
+
+Graph Splitting
+
+Github
+
+Deep Learning
+Framework Library
+
+Multi Modules
+
+100K+ Neural Network Graphs
+Including 4 Parts
+
+Single Module
+
+Extract
+
+Classical Subgraph
+Selection Algorithm
+
+Classical Subgraphs
+
+Fusible Subgraph
+Discovery Algorithm
+
+Fusible Subgraphs
+
+Operator Decomposition
+
+Single Operator
+Subgraphs
+
+New
+Subgraphs
+
+Tensor Metadata Generalize
+Graph Generalization
+
+Graph
+Module
+
+Tensor
+Metadata
+
+Runtime
+Metadata
+
+Hash
+Value
+
+Manually filter out overly
+simple, untestable code
+
+Graph
+Module
+
+Query
+
+Dimension Generalization
+[Any_B, Any_C
+Any_H, Any_W]
+
+Eval
+
+Data Type Generalization
+
+Filter
+
+[B,3,224,224]
+
+Tensor
+Metadata
+
+LLMs
+
+[float32]
+
+Any Float
+
+New Tensor
+Metadata
+
+Combine
+18,086 High-Quality
+Full Graphs
+
+279K+ High-Quality
+Hierarchical Subgraphs
+
+Graph Collection
+
+Full Graph
+
+Classical Graph
+
+Fusible Graph
+
+Single Operator
+
+Subgraph Generation
+
+Figure 1: PassNet Dataset Construction Pipeline. We collect and filter real-world model graphs,
+and generate hierarchical training subgraphs via recursive graph splitting and metadata generalization.
+
+Graph Collection and Validation. We extract computational graphs from real-world models via a
+lightweight decorator (pass_net.extract). During execution, symbolic tracing captures operator
+invocations and tensor dependencies, producing standardized representations (high-level IR, weights,
+and input metadata). To ensure high-fidelity graphs for downstream subgraph construction, each
+graph is rigorously validated against five key constraints: runnable, serializable, decomposable,
+statically analyzable, and custom-operator accessible (see Appendix A).
+Subgraph Generation Strategies. To systematically map the optimization space, we propose three
+subgraph categories focusing on structural recurrence, fusion potential, and primitive behavior.
+(1) Classical Subgraph Selection via Recursive Folding. A Classical Subgraph is a recurrent
+structural motif representing common computational patterns within a model family. To extract such
+motifs at scale, we design Recursive Folding: the method first linearizes the computation graph
+into a topological operator sequence, then iteratively applies convolution-based hashing to identify
+frequent subsequences and abstract them into symbolic units. This hierarchical process captures both
+local idioms (e.g., [Conv2d, BatchNorm] → α) and higher-level compositions (e.g., [α, ReLU] → β),
+producing a compact set of representative structures (Figure 2a).
+(2) Fusible Subgraph Discovery via Prefix Analysis. A Fusible Subgraph is a contiguous segment
+of a computational graph where a compiler can apply operator fusion. To identify such regions
+systematically, we design Prefix Analysis, which analyzes the prefix kernel-count curve (P, K(P )),
+where K(P ) is the number of kernels launched by the first P operators, and detects plateaus satisfying
+K(P + 1) = K(P ). These indicate that operators are absorbed into existing execution units.
+Extracting contiguous plateaus yields subgraphs reflecting compiler fusion behavior (Figure 2b).
+(3) Single-operator Subgraph. A Single-operator Subgraph consists of a primitive operator and
+captures operator-level behavior, complementing higher-level structures.
+We apply shape and data type generalization during subgraph instantiation, generating instances with
+10 shape configurations and 3 data types. This introduces variation in computation and optimization
+difficulty, improving applicability across hardware backends and compiler strategies.
+4
+
+ResNet18
+
+Operator sequences after topological linearization:
+
+S1: [
+
+MaxPool
+
+Conv2d
+
+S2: [
+
+Conv2d
+
+BatchNorm
+
+Add
+
+S3: [
+
+AvgPool
+
+Conv2d
+
+BatchNorm
+
+BatchNorm
+
+ReLU
+
+Add
+
+]
+
+BatchNorm
+
+Conv2d
+
+]
+
+C
+
+D
+
+70
+
+]
+
+Mul
+
+ReLU
+
+ReLU
+
+60
+
+Concatenation and Tokenization
+
+B
+
+C
+
+D
+
+E
+
+B
+
+B
+
+E
+
+C
+
+C
+
+D
+
+F
+
+B
+
+G
+
+Num Kernels
+
+A
+
+Convolution-based Hashing
+Detected Pattern :
+
+B: Conv2d
+
+𝜶
+
+C: BatchNorm
+
+1st Fold
+
+Symbolic Replacement
+
+A
+
+𝜶
+
+D
+
+E
+
+𝜶
+
+E
+
+𝜶
+
+D
+
+𝜶
+
+F
+
+D
+
+G
+
+50
+40
+30
+20
+
+A
+
+𝜷
+
+E
+
+𝜶
+
+E
+
+𝜷
+
+F
+
+𝜷
+
+G
+
+(a) Recursive folding. [Conv2d, BatchNorm] → α;
+[α, ReLU] → β.
+
+10
+
+20
+
+30
+
+40
+
+50
+
+60
+
+Prefix Subgraph Size (P)
+
+[63,68]
+
+[60,62]
+
+0
+
+[44,46]
+[47,50]
+[51,53]
+[54,55]
+[56,58]
+
+0
+
+Symbolic Replacement
+
+[38,42]
+
+10
+
+2nd Fold
+
+[28,30]
+[31,34]
+[35,37]
+
+𝜷
+
+[22,26]
+
+D: ReLU
+
+[5,7]
+[8,11]
+[12,14]
+[15,18]
+[19,21]
+
+𝜶 : Conv2d + BatchNorm
+
+[1,3]
+
+Convolution-based Hashing
+Detected Pattern :
+
+70
+
+(b) Prefix kernel-count curve (ResNet-18). Plateau
+regions indicate fusible intervals.
+
+Figure 2: Recursive folding for subgraph selection (left) and prefix-based fusibility analysis (right).
+
+3.3
+
+Dataset Characteristics
+
+The resulting PassNet dataset comprises over 18K unique computational graphs derived from 100K
+diverse models across PyTorch and PaddlePaddle, with four distinguishing properties:
+(i) Authenticity and Scale: All samples originate from production-grade community libraries rather
+than synthetic generators. With 100K source models yielding 18,086 deduplicated graphs (82%
+redundancy), PassNet captures the true distribution of real-world computation patterns—including
+long-tail operator combinations absent from curated benchmarks.
+(ii) Structural Diversity: The collection spans six application domains (NLP: 63.6%, CV: 27.0%,
+Multimodal: 1.7%, Audio: 1.2%, Others: 6.5%), with model scales from lightweight mobile
+architectures to 10B-parameter models and node counts from 2 to 298,441 (median ∼ 29 ).
+(iii) Optimization-Relevant Coverage: We instantiate 129K fusible (Nops ∈ [2, 35]), 126K classical (Nops ∈ [4, 62]), and 24K single-operator subgraphs—totaling ∼279K instances across three
+complementary granularities, each augmented with 10 shape configurations and 3 data types.
+(iv) Interoperability: A unified format for graphs, metadata, and custom operators ensures compatibility with compilers such as TorchInductor, CINN, XLA, and TVM without conversion overhead.
+3.4
+
+PassBench Design
+
+While the full dataset serves as training data, rigorous evaluation requires a controlled benchmark with
+diverse, representative tasks. We curate PassBench via multi-dimensional bucketing and hierarchical
+grouping of subgraphs, with each group forming a task instance. The benchmark primarily focuses on
+fusible-subgraph tasks, comprising 4,476 training samples and 200 high-quality evaluation samples,
+with no overlap between training and evaluation sets. The dataset is further augmented with 4,078
+classical-subgraph training samples and 200 evaluation counterparts, complemented by 1,029 singleoperator samples. This multi-tiered composition provides varying levels of task difficulty.
+Selection Pipeline. Subgraphs are bucketed along three dimensions: operator sequence (exactmatch), input shape (log-quantized), and input dtype. Within each operator-sequence bucket, we
+apply stratified sampling with fixed stride σ, followed by cross-shape and dtype-aware aggregation to
+form groups corresponding to PassBench tasks (details in Appendix B). For evaluation, we select 200
+operator sequences via a Hidden Markov Model and retain the largest group per sequence. Selected
+fusible samples contain 1–396 subgraphs (avg. = 10), exhibiting a long-tail distribution, and yield
+2,060 subgraph-level evaluations in aggregate—providing finer-grained signal than benchmarks that
+evaluate at the task level alone (e.g., KernelBench, where each task corresponds to a single kernel).
+Task Format. Each task is packaged as a directory containing (i) a Python reference implementation
+(GraphModule), (ii) tensor metadata, and (iii) runtime metadata. The agent is required to generate
+executable transformation passes under pass_dir/ along with a JSON manifest. A submission
+is considered successful if it preserves correctness across all specified data types while achieving
+measurable performance improvement.
+5
+
+3.5
+
+Error-aware Speedup Metrics
+
+Evaluating compiler passes requires assessing both correctness and performance. Existing approaches
+fall short in three aspects: (1) treating correctness as binary (pass/fail) despite its continuous tolerance;
+(2) producing discrete signals that hinder iterative agent training; and (3) operating at the benchmark
+level, lacking fine-grained feedback on individual graphs.
+We define a per-subgraph metric to jointly evaluate correctness and performance. For each subgraph
+i with measured speedup si , we introduce a tolerance threshold t ∈ {−10, . . . , |E| + 1} to control
+acceptance of error categories ci ∈ {1, 2, 3} (accuracy, compilation, and runtime failures). For t ≤ 0,
+strict correctness is enforced with varying numerical tolerances; for t > 0, more error categories
+are progressively forgiven. Let correctt,i be a binary indicator of whether subgraph i satisfies the
+correctness criteria under threshold t. The error-aware rectified speedup is defined as:
+
+
+si ,
+ŝt,i = sp+1
+,
+i
+
+ 1(t<ci )
+b
+,
+
+correctt,i ∧ si ≥ 1,
+correctt,i ∧ si < 1,
+
+(2)
+
+otherwise,
+
+where parameters p, b ∈ (0, 1) respectively govern the exponential penalty for slowdowns and the
+base penalty for incorrect executions. The metric distinguishes three distinct scenarios: (i) Speedup
+(si ≥ 1): retained for correct executions; (ii) Slowdown (si < 1): exponentially penalized via p;
+(iii) Incorrect: assigned penalty b if t < ci , or 1 if forgiven (t ≥ ci ).
+The Error-aware Speedup Score ESt is defined as the geometric mean of {ŝt,i } across all N
+subgraphs, with its equivalent factored form and macro-level derivation detailed in Appendix D:
+
+ESt =
+
+N
+Y
+
+ŝt,i
+
+1/N
+
+.
+
+(3)
+
+i=1
+
+We further aggregate ESt across the tolerance spectrum via a normalized geometric mean to yield a
+unified scalar for agent feedback:
+|E|+1
+
+AS =
+
+Y
+
+Wt /
+
+ESt
+
+P|E|+1
+
+s=−10 Ws
+
+,
+
+(4)
+
+t=−10
+
+where Wt assigns high weight to the strict-correctness regime (t ∈ [−5, −3]) and decays exponentially
+toward relaxed tolerances (details in Appendix E). While f astp (fraction of correct graphs with
+speedup > p) provides a binary correctness threshold, its discrete nature lacks a smooth signal and
+operates at benchmark-level granularity, failing to capture per-graph variation. AS instead provides a
+smooth, continuous feedback signal that jointly reflects correctness and performance gains.
+3.6
+
+Evaluation Integrity
+
+A key challenge overlooked by prior work is that LLMs systematically exploit evaluation loopholes. In
+KernelBench-style evaluations, a submitted kernel passes as long as its output matches the reference—
+even if it simply delegates to torch.compile. During PassBench development, we found that
+29%–50% of frontier-model submissions contained some form of exploitation. We document a
+three-stage arms race, where each defense exposed a new attack surface.
+Case A: Computation Delegation → AST Inspection. The most prevalent pattern is invoking highlevel APIs to bypass explicit operator-level transformations—e.g., calling torch.matmul(in_1,
+in_3) instead of implementing the fusion logic. We counter this with AST-based static analysis
+that blocks forbidden API calls within non-exempt functions (raising RuntimeError: blocked
+call), intercepting 78% of violations.
+Case B: Dynamic Evasion → Dispatch Interception. Static analysis cannot cover dynamic
+execution paths such as implicit tensor method calls (e.g., tmp = in_0 + in_1 dispatching to
+6
+
+aten.add.Tensor). We introduce a runtime monitoring layer via PoisonDispatchTensor, which
+overloads __torch_dispatch__ to enforce whitelist-based operator filtering on the mandatory
+dispatch path. This layer exclusively identifies 18% of violations missed by AST inspection.
+Case C: Cache Pollution → Reverse Evaluation. We discovered a correctness escape: in conventional “eager-first” evaluation order, PyTorch’s memory pooling leaves residual data in GPU memory
+that flawed code (e.g., return torch.empty(...)) can inadvertently pass validation against. We
+adopt “reverse evaluation” (compiled execution before eager baseline) to ensure verification within a
+pristine system state; such cases now receive correctness = 0.
+These layered defenses are complemented by the pass-form mandate itself: requiring agents to author
+a pattern matcher and rewriter (rather than a standalone kernel) forces structural understanding of the
+computation graph, making trivial exploitation significantly harder.
+
+4
+
+Experiments
+
+We design experiments to validate PassBench as a benchmark and PassNet-Dataset as training
+infrastructure: (Q1) Does PassBench provide meaningful discrimination across model capabilities,
+and how do current models compare to traditional compilers? (Q2) Can PassNet-Dataset improve
+model performance via post-training, validating its utility as training data?
+4.1
+
+Setup
+
+PassAgent. To establish reproducible baselines, we implement PassAgent, a lightweight agentic
+scaffold for compiler pass synthesis. Following the dual-tool paradigm Yang et al. [2024], Wang et al.
+[2024], Jain et al. [2025], Anthropic [2024], PassAgent provides: (1) file_editor for multi-file
+workspace manipulation, and (2) pass_evaluator for invoking the PassBench evaluation pipeline
+with three-stage diagnostics (pass matching → correctness → performance). The agent iteratively
+inspects target graphs, edits pass files, and refines based on AS Score feedback until convergence.
+All experiments in this paper are conducted on the fusible-subgraph tasks, using the ESt formulation
+with b = 0.1 and p = 0. Full design details are in Appendix C.
+Models and Baselines. We evaluate frontier models (GPT-5.4, Claude-Opus-4.6, Claude-Sonnet4.6) and open-source models (GLM-5.1 GLM-5-Team et al. [2026], MiniMax-M2.7 MiniMaxAI
+[2026], Qwen3-30B-A3B and Qwen3-4B Qwen Team [2025]). Baselines include Eager execution and
+TorchInductor (torch.compile, default mode), preferred over max-autotune due to CUDA Graph
+layout freezing and overheads outweighing gains at this scale. Hardware details are in Appendix C.
+4.2
+
+Main Results
+
+Table 1 presents results across five metrics (definitions in caption); we highlight four key findings.
+(1) PassBench effectively discriminates model capabilities. The benchmark shows a clear performance gap: Claude-Sonnet-4.6 (AS=0.448) outperforms Qwen3-30B-A3B (AS=0.139) by 3.22×.
+Correctness ratios exhibit a similar spread (Sub. CR: 61.9% vs. 11.8%). This separation indicates
+that PassBench provides a meaningful discriminative signal across models.
+(2) All models fall substantially short of the compiler baseline. All models have G-Mean Speedup
+below 1.0, meaning generated code is slower than eager execution. The best frontier model (ClaudeOpus-4.6, G-Mean=0.922) approaches but does not reach parity, and the highest AS score (ClaudeSonnet-4.6, 0.448) trails Inductor (0.706) by 37%. Even for correct outputs, speedups rarely exceed
+1.2×, indicating limited hardware-cost awareness in current LLM-generated kernels.
+(3) Low aggregate scores coexist with striking individual successes. No model reaches AS≥0.5
+or G-Mean≥1.0, yet on specific long-tail subgraphs, frontier models deliver up to 3.02× speedup
+over Inductor (Section 4.4). The contrast between strong per-instance potential and weak aggregate
+performance reveals that the challenge is consistency: models fail to reliably generalize sparse successes across diverse patterns. Moreover, persistent failure modes including boundary misalignment,
+cost-model blindness, and semantic disruption suggest an unsaturated benchmark. Improving data
+and training infrastructure, rather than mere scaling, is key to closing this gap.
+7
+
+fast_1(%)∗ Samp. CR (%)† Sub. CR (%)‡ G-Mean Speedup§ AS Score
+
+Model
+Eager
+Inductor
+
+100.0
+20.3
+
+100.0
+64.5
+
+100.0
+85.0
+
+1.000
+0.846
+
+1.000
+0.706
+
+GPT-5.4
+Claude-Opus-4.6
+Claude-Sonnet-4.6
+GLM-5.1
+MiniMax-M2.7
+Qwen3-4B
+Qwen3-30B-A3B
+
+7.4
+9.8
+9.2
+4.8
+1.0
+0.2
+0.6
+
+47.0
+40.0
+52.0
+30.5
+23.5
+1.0
+7.5
+
+54.6
+48.6
+61.9
+33.5
+23.0
+1.3
+11.8
+
+0.821
+0.922
+0.835
+0.844
+0.653
+0.953
+0.693
+
+0.410
+0.410
+0.448
+0.240
+0.208
+0.108
+0.139
+
+Qwen3-4B-SFT¶
+Qwen3-30B-A3B-SFT#
+
+3.0
+5.3
+
+27.5
+44.0
+
+28.5
+48.8
+
+0.808
+0.809
+
+0.240
+0.371
+
+Table 1: Main Results on PassBench. ∗ Fraction of correct subgraphs with speedup ≥ 1.0 over eager.
+†
+Fraction of correct samples. ‡ Fraction of correct subgraphs. § Geometric-mean speedup over correct
+subgraphs. ¶ Qwen3-4B fine-tuned on PassNet. # Qwen3-30B-A3B fine-tuned on PassNet.
+
+0.7
+
+AS Score
+
+0.6
+0.5
+0.4
+0.3
+
+Claude-sonnet-4-6
+Claude-opus-4-6
+GPT-5.4
+Qwen3-30B-A3B-SFT
+GLM-5.1
+Qwen3-4B-SFT
+MiniMax-M2.7
+Qwen3-30B-A3B
+Qwen3-4B
+Inductor
+
+AS Score vs. Steps All Models
+
+0.2
+0.1
+10
+
+20
+
+Step Index
+
+30
+
+40
+
+50
+
+Figure 3: Agent performance scales with iteration budget. AS Score as a function of iteration
+steps (up to 50).
+
+(4) Iteration reveals capabilities missed by single-shot evaluation. All main results are reported
+at convergence (50 iterations). As shown in Figure 3, a single evaluation captures only 31%–51%
+of each agent’s best AS score (mean 38%), and 12%–52% of eventually-passing samples exhibit
+non-monotonic pass→fail→pass trajectories as agents explore different generalization strategies.
+This differs from KernelBench, where iteration monotonically refines a single kernel.
+4.3
+
+Dataset Efficacy via Distillation
+
+The main results show a large performance gap between frontier models and the open-source models.
+To address Q2, we distill expert trajectories into the smaller model and evaluate the resulting
+performance gains.
+Setup. We generate PassAgent trajectories from 4, 476 samples using Claude-Sonnet-4.6 (two trials
+per instance, up to 50 iterations), retaining those with AS > 0.1 to obtain 3, 899 training trajectories.
+We then fine-tune Qwen3-30B-A3B and Qwen3-4B with learning rate 2×10−5 (cosine decay to
+2×10−6 ), batch size 8, 5 epochs, and 256K context length (full setup in Appendix C).
+Results. Table 1 shows that “Qwen3-30B-A3B-SFT” yields an AS of 0.371, a 2.67× gain over the
+base model (0.139) and approaching frontier-model performance (0.410). Sub. CR and Samp. CR
+surge to 48.8% and 44.0% from 11.8% and 7.5%, respectively. Similar gains in Qwen3-4B-SFT,
+alongside scaling-driven improvements in the 30B variant, collectively validate our training dataset.
+8
+
+Table 2: Sparkle Cases. Speedups vs. Eager and Inductor on subgraphs where Inductor underperforms Eager.
+Model (Pattern)
+
+Dtype vs. Eager vs. Inductor Max Diff Kernels
+
+MaskFormer (Roll+Slice)
+BGE-Reranker (Masked Pool)
+
+bf16
+bf16
+
+1.65×
+1.50×
+
+3.02×
+2.90×
+
+0.031
+0.0
+
+6→1
+7→1
+
+This result—achieved with only ∼4K trajectories from a single teacher—suggests substantial headroom through scaling data collection, multiple teachers, and RL from ESt feedback.
+4.4
+
+Case Studies
+
+We analyze representative successes and failures to understand the capabilities and limitations of
+current LLMs. Unlike kernel-centric approaches, pass generation enables LLMs to discover graphlevel rewrite rules, i.e., pattern matchers paired with fused replacements that generalize across
+samples. Full implementations are provided in Appendix H.
+Success Case 1: Roll+Slice Fusion (MaskFormer). TorchInductor decomposes roll into multiple
+slice+cat ops, launching 6 kernels for an 8-operator subgraph. The LLM recognizes the equivalence
+of roll(shift=3) + slice[:128] to index arithmetic (idx = (S + i − shift) mod S), replacing
+the entire subgraph with a single fused kernel (3.02× speedup).
+Success Case 2: Masked Mean Pooling (BGE-Reranker). TorchInductor fails to fuse a 7-op
+chain (cast→mul→sum→sum→clamp→div→cat), yielding a ∼50% slowdown vs. eager. The
+LLM
+P identifies the masked
+P mean pooling semantics and generates a single kernel that accumulates
+(mask · hidden) and (mask) in FP32 registers (2.90× speedup, bitwise-identical).
+In both cases, the compiler loses high-level semantics after decomposing operations into primitives;
+the LLM’s advantage is recognizing composite intent and directly lowering to fused implementations.
+Failure Modes. Analysis identifies three systematic bottlenecks in agent-driven optimization:
+(1) Boundary Misalignment—Agents often misjudge arithmetic intensity, causing inefficient fusion of low-compute operators (e.g., ReLU) or redundant re-implementation of vendor-optimized
+primitives (e.g., Conv2d) in Triton. (2) Cost-Model Blindness—Lacking hardware awareness (e.g.,
+register pressure, SRAM capacity), agents employ static tiling across varying shapes, resulting in
+significant gaps from roofline performance. (3) Semantic Disruption—Local rewrites frequently
+break optimization chains by replacing standard patterns with opaque kernels, disabling critical
+features like FlashAttention-2 routing. These issues indicate that PassBench poses open problems
+requiring hardware-aware reasoning beyond current LLM capabilities.
+
+5
+
+Conclusion and Future Work
+
+We present PassNet, the first large-scale ecosystem for LLM-driven compiler pass generation,
+comprising: (1) PassNet-Dataset, featuring 18K unique computational graphs derived from 100K
+real-world models; and (2) PassBench, a suite of 200 curated long-tail tasks evaluated via the
+Error-aware Speedup Score (ESt ) with layered integrity defenses against LLM exploitation.
+Experiments demonstrate that PassBench is highly discriminative and unsaturated: while frontier
+models trail TorchInductor by 37% in aggregate, individual passes achieve up to 3× speedup—
+identifying consistency, rather than capability, as the primary bottleneck. Notably, fine-tuning on
+∼4K PassNet trajectories yields a 2.67× performance gain, approaching frontier-model levels and
+validating PassNet as essential infrastructure for advancing LLM-driven compiler optimization.
+Limitations and Future Directions. Current experiments focus on fusible tasks, following a curriculum that progresses from simpler cases to more challenging classical subgraph tasks. Accordingly,
+PassBench currently targets inference on a single GPU (NVIDIA A30), while generalization to
+training-loop optimizations, multi-device settings, and diverse hardware remains open. The dataset is
+skewed toward CV and NLP workloads (90.6% combined), which may limit coverage of emerging do9
+
+mains such as scientific simulation and generative models. Our anti-cheating defenses, while effective
+against observed exploits, cannot guarantee completeness against future adversarial strategies.
+Although evaluation graphs are sourced from public repositories, memorization risk is limited: pass
+generation requires producing executable pattern matchers and rewriters tailored to each graph
+structure, not reproducing code snippets; the multi-graph formulation further requires generalization
+across shapes and dtypes, reducing overfitting to specific instances.
+Future directions include multi-device pass generation, extension to more complex tasks (e.g.,
+classical subgraph tasks), integration of hardware cost models as auxiliary context, reinforcement
+learning from ESt feedback, and continual expansion of the dataset to underrepresented domains.
+The entire ecosystem is publicly available.
+
+10
+
+References
+Tianqi Chen, Thierry Moreau, Ziheng Jiang, Lianmin Zheng, Eddie Yan, Meghan Cowan, Haichen
+Shen, Leyuan Wang, Yuwei Hu, Luis Ceze, Carlos Guestrin, and Arvind Krishnamurthy. Tvm: an
+automated end-to-end optimizing compiler for deep learning. In USENIX Conference on Operating
+Systems Design and Implementation (OSDI), pages 579–594, 2018.
+Samuel J. Kaufman, Phitchaya Mangpo Phothilimthana, Yanqi Zhou, Charith Mendis, Sudip Roy,
+Amit Sabne, and Mike Burrows. A learned performance model for tensor processing units. In
+Conference on Machine Learning and Systems (MLSys), 2021.
+Jason Ansel, Edward Yang, Horace He, Natalia Gimelshein, Animesh Jain, Michael Voznesensky, Bin
+Bao, Peter Bell, David Berard, Evgeni Burovski, et al. Pytorch 2: Faster machine learning through
+dynamic python bytecode transformation and graph compilation. In International Conference on
+Architectural Support for Programming Languages and Operating Systems (ASPLOS), 2024.
+Anne Ouyang, Simon Guo, Simran Arora, Alex L Zhang, William Hu, Christopher Ré, and Azalia
+Mirhoseini. Kernelbench: Can llms write efficient gpu kernels? arXiv preprint arXiv:2502.10517,
+2025.
+Weinan Dai, Hanlin Wu, Qiying Yu, Huan-ang Gao, Jiahao Li, Chengquan Jiang, Weiqiang Lou,
+Yufan Song, Hongli Yu, Jiaze Chen, et al. Cuda agent: Large-scale agentic rl for high-performance
+cuda kernel generation. arXiv preprint arXiv:2602.24286, 2026.
+Gang Liao, Hongsen Qin, Ying Wang, Alicia Golden, Michael Kuchnik, Yavuz Yetim, Jia Jiunn
+Ang, Chunli Fu, Yihan He, Samuel Hsia, et al. Kernelevolve: Scaling agentic kernel coding for
+heterogeneous ai accelerators at meta. arXiv preprint arXiv:2512.23236, 2025.
+Lianmin Zheng, Cheng Cheng, Eddie Yan, Haichen Ning, Cody Hao Yu, Thierry Moreau, Tianqi Chen,
+Carlos Guestrin, Arvind Krishnamurthy, and Luis Ceze. Ansor: Generating high-performance
+tensor programs for deep learning. In USENIX Symposium on Operating Systems Design and
+Implementation (OSDI), pages 935–950, 2020.
+Chris Leary and Todd Wang. Xla: Tensorflow, compiled. TensorFlow Dev Summit, 2(3), 2017.
+Junru Shao, Xiyou Zhou, Siyuan Feng, Bohan Hou, Ruihang Lai, Hongyi Jin, Wuwei Lin, Masahiro
+Masuda, Cody Hao Yu, and Tianqi Chen. Tensor program optimization with probabilistic programs.
+Advances in Neural Information Processing Systems, 35:35783–35796, 2022.
+Yaoyao Ding, Cody Hao Yu, Bojian Zheng, Yizhi Liu, Yida Wang, and Gennady Pekhimenko.
+Hidet: Task-mapping programming paradigm for deep learning tensor programs. In ACM International Conference on Architectural Support for Programming Languages and Operating Systems
+(ASPLOS), pages 370–384, 2023.
+Zhen Zheng, Zaifeng Pan, Dalin Wang, Kai Zhu, Wenyi Zhao, Tianyou Guo, Xiafei Qiu, Minmin
+Sun, Junjie Bai, Feng Zhang, Xiaoyong Du, Jidong Zhai, and Wei Lin. Bladedisc: Optimizing
+dynamic shape machine learning workloads via compiler approach. Proc. ACM Manag. Data,
+pages 206:1–206:29, 2023a. URL https://doi.org/10.1145/3617327.
+Baidu PaddlePaddle Team. Cinn: Compiling intermediate representation to neural networks, 2021.
+URL https://github.com/PaddlePaddle/CINN. PaddlePaddle Compiler Infrastructure.
+Juyong Jiang, Fan Wang, Jiasi Shen, Sungju Kim, and Sunghun Kim. A survey on large language
+models for code generation. ACM Transactions on Software Engineering and Methodology, 2024.
+Zibin Zheng, Kaiwen Ning, Yanlin Wang, Jingwen Zhang, Dewu Zheng, Mingxi Ye, and Jiachi Chen.
+A survey of large language models for code: Evolution, benchmarking, and future trends. arXiv
+preprint arXiv:2311.10372, 2023b.
+Ke Liu, Qinglin Wang, Xiang Chen, Guang Yang, Yigui Feng, Gencheng Liu, and Jie Liu. Evaluating
+and improving framework-based parallel code completion with large language models. In 2025
+40th IEEE/ACM International Conference on Automated Software Engineering (ASE), pages
+2478–2490. IEEE, 2025.
+11
+
+Kai Huang, Jian Zhang, Xiaofei Xie, and Chunyang Chen. Seeing is fixing: Cross-modal reasoning
+with multimodal llms for visual software issue repair. In 2025 40th IEEE/ACM International
+Conference on Automated Software Engineering (ASE), pages 1156–1168. IEEE, 2025.
+Boyang Yang, Haoye Tian, Jiadong Ren, Hongyu Zhang, Jacques Klein, Tegawendé F Bissyandé,
+Claire Le Goues, and Shunfu Jin. Morepair: Teaching llms to repair code via multi-objective
+fine-tuning. ACM Transactions on Software Engineering and Methodology, 35(2):1–38, 2026.
+Carlos E. Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik
+Narasimhan. SWE-bench: Can language models resolve real-World GitHub issues? In International Conference on Learning Representations (ICLR), 2024.
+John Yang, Carlos E. Jimenez, Alexander Wettig, Kilian Lieret, Shunyu Yao, Karthik Narasimhan,
+and Ofir Press. SWE-agent: Agent-computer interfaces enable automated software engineering.
+arXiv preprint arXiv:2405.15793, 2024.
+Xingyao Wang, Boxuan Chen, Yufan Yuan, Yuzhe Zhang, Bowen Li, Haotian Qian, Pengfei He,
+Ruiqi Lyu, Yikun Ma, Ziru Yu, et al. OpenHands: An open platform for AI software developers as
+generalist agents. arXiv preprint arXiv:2407.16741, 2024.
+Chris Cummins, Volker Seeker, Dejan Grubisic, Baptiste Roziere, Jonas Gehring, Gabriel Synnaeve,
+and Hugh Leather. Llm compiler: Foundation language models for compiler optimization. In
+Proceedings of the 34th ACM SIGPLAN International Conference on Compiler Construction,
+pages 141–153, 2025.
+Haolin Pan, Hongyu Lin, Haoran Luo, Yang Liu, Kaichun Yao, Libo Zhang, Mingjie Xing, and
+Yanjun Wu. Compiler-r1: Towards agentic compiler auto-tuning with reinforcement learning.
+arXiv preprint arXiv:2506.15701, 2025.
+Tianming Cui, Pen-Chung Yew, Stephen McCamant, and Antonia Zhai. Decos: Data-efficient
+reinforcement learning for compiler optimization selection ignited by llm. In Proceedings of the
+39th ACM International Conference on Supercomputing, pages 943–958, 2025.
+Yi Zhai, Yu Zhang, Shuo Liu, Xiaomeng Chu, Jie Peng, Jianmin Ji, and Yanyong Zhang. Tlp: A
+deep learning-based cost model for tensor program tuning. In Proceedings of the 28th ACM
+International Conference on Architectural Support for Programming Languages and Operating
+Systems, Volume 2, pages 833–845, 2023.
+Yi Zhai, Sijia Yang, Keyu Pan, Renwei Zhang, Shuo Liu, Chao Liu, Zichun Ye, Jianmin Ji, Jie
+Zhao, Yu Zhang, et al. Enabling tensor language model to assist in generating high-performance
+tensor programs for deep learning. In 18th USENIX Symposium on Operating Systems Design and
+Implementation (OSDI 24), pages 289–305, 2024.
+Juncheng Dong, Yang Yang, Tao Liu, Yang Wang, Feng Qi, Vahid Tarokh, Kaushik Rangadurai, and
+Shuang Yang. Stark: Strategic team of agents for refining kernels. arXiv preprint arXiv:2510.16996,
+2025.
+Carlo Baronio, Pietro Marsella, Ben Pan, Simon Guo, and Silas Alberti. Kevin: Multi-turn rl for
+generating cuda kernels. arXiv preprint arXiv:2507.11948, 2025.
+Jianghui Wang, Vinay Joshi, Saptarshi Majumder, Xu Chao, Bin Ding, Ziqiong Liu, Pratik Prabhanjan
+Brahma, Dong Li, Zicheng Liu, and Emad Barsoum. Geak: Introducing triton kernel ai agent &
+evaluation benchmarks, 2025. URL https://arxiv.org/abs/2507.23194.
+Qirui Zhou, Yuanbo Wen, Ruizhi Chen, Ke Gao, Weiqiang Xiong, Ling Li, Qi Guo, Yanjun Wu, and
+Yunji Chen. Qimeng-gemm: Automatically generating high-performance matrix multiplication
+code by exploiting large language models. In Proceedings of the AAAI Conference on Artificial
+Intelligence, volume 39, pages 22982–22990, 2025.
+Xiaoya Li, Xiaofei Sun, Albert Wang, Jiwei Li, and Chris Shum. Cuda-l1: Improving cuda optimization via contrastive reinforcement learning. arXiv preprint arXiv:2507.14111, 2025.
+Charles Hong, Sahil Bhatia, Alvin Cheung, and Yakun Sophia Shao. Autocomp: Llm-driven code
+optimization for tensor accelerators, 2025. URL https://arxiv.org/abs/2505.18574.
+12
+
+Sharan Narang and Baidu Research. Deepbench: Benchmarking deep learning operations on different
+hardware, 2016. URL https://github.com/baidu-research/DeepBench.
+Peter Mattson, Vijay Janapa Reddi, Christine Cheng, Cody Coleman, Greg Diamos, David Kanter,
+Paulius Micikevicius, David Patterson, Guenther Schmuelling, Hanlin Tang, et al. Mlperf: An
+industry standard benchmark suite for machine learning performance. IEEE Micro, 40(2):8–16,
+2020.
+Chris Cummins, Bram Wasti, Jiadong Guo, Brandon Cui, Jason Ansel, Sahir Gomez, Somya Jain,
+Jia Liu, Olivier Teytaud, Benoit Steiner, Yuandong Tian, and Hugh Leather. Compilergym:
+robust, performant compiler optimization environments for ai research. In Proceedings of the
+20th IEEE/ACM International Symposium on Code Generation and Optimization, CGO ’22, pages
+92–105. IEEE Press, 2022. ISBN 9781665405843. doi: 10.1109/CGO53902.2022.9741258. URL
+https://doi.org/10.1109/CGO53902.2022.9741258.
+Aiden Grossman, Ludger Paehler, Konstantinos Parasyris, Tal Ben-Nun, Jacob Hegna, William S.
+Moses, Jose M Monsalve Diaz, Mircea Trofin, and Johannes Doerfert. Compile: A large IR dataset
+from production sources. Journal of Data-centric Machine Learning Research, 2024.
+Phitchaya Mangpo Phothilimthana, Sami Abu-El-Haija, Kaidi Cao, Bahare Fatemi, Michael Burrows,
+Charith Mendis, and Bryan Perozzi. Tpugraphs: A performance prediction dataset on large tensor
+computational graphs. In Conference on Neural Information Processing Systems (NeurIPS), 2023.
+Lianmin Zheng, Ruochen Liu, Junru Shao, Tianqi Chen, Joseph E. Gonzalez, Ion Stoica, and
+Ameer Haj Ali. Tenset: A large-scale program performance dataset for learned tensor compilers.
+In Conference on Neural Information Processing Systems ((NeurIPS)), 2021.
+Chris Lattner, Mehdi Amini, Uday Bondhugula, Albert Cohen, Andy Davis, Jacques Pienaar, River
+Riddle, Tatiana Shpeisman, Nicolas Vasilache, and Oleksandr Zinenko. Mlir: Scaling compiler
+infrastructure for domain specific computation. In International Symposium on Code Generation
+and Optimization (CGO), pages 2–14, 2021.
+Mingzhen Li, Yi Liu, Xiaoyan Liu, Qingxiao Sun, Xin You, Hailong Yang, Zhongzhi Luan, Lin Gan,
+Guangwen Yang, and Depei Qian. The deep learning compiler: A comprehensive survey. IEEE
+Transactions on Parallel and Distributed Systems, 32(3):708–727, 2021. ISSN 2161-9883. doi:
+10.1109/tpds.2020.3030548.
+Naman Jain, Jaskirat Singh, Manish Shetty, Liang Zheng, Koushik Sen, and Ion Stoica. R2e-gym:
+Procedural environments and hybrid verifiers for scaling open-weights swe agents. arXiv preprint
+arXiv:2504.07164, 2025.
+Anthropic. Solving SWE-bench sonnet with Sonnet 3.5 and Anthropics agent infrastructure. https:
+//www.anthropic.com/engineering/swe-bench-sonnet, 2024.
+GLM-5-Team, :, Aohan Zeng, Xin Lv, Zhenyu Hou, Zhengxiao Du, Qinkai Zheng, Bin Chen, Da Yin,
+Chendi Ge, Chenghua Huang, Chengxing Xie, Chenzheng Zhu, Congfeng Yin, Cunxiang Wang,
+Gengzheng Pan, Hao Zeng, Haoke Zhang, Haoran Wang, Huilong Chen, Jiajie Zhang, Jian Jiao,
+Jiaqi Guo, Jingsen Wang, Jingzhao Du, Jinzhu Wu, Kedong Wang, Lei Li, Lin Fan, Lucen Zhong,
+Mingdao Liu, Mingming Zhao, Pengfan Du, Qian Dong, Rui Lu, Shuang-Li, Shulin Cao, Song
+Liu, Ting Jiang, Xiaodong Chen, Xiaohan Zhang, Xuancheng Huang, Xuezhen Dong, Yabo Xu,
+Yao Wei, Yifan An, Yilin Niu, Yitong Zhu, Yuanhao Wen, Yukuo Cen, Yushi Bai, Zhongpei Qiao,
+Zihan Wang, Zikang Wang, Zilin Zhu, Ziqiang Liu, Zixuan Li, Bojie Wang, Bosi Wen, Can Huang,
+Changpeng Cai, Chao Yu, Chen Li, Chengwei Hu, Chenhui Zhang, Dan Zhang, Daoyan Lin,
+Dayong Yang, Di Wang, Ding Ai, Erle Zhu, Fangzhou Yi, Feiyu Chen, Guohong Wen, Hailong
+Sun, Haisha Zhao, Haiyi Hu, Hanchen Zhang, Hanrui Liu, Hanyu Zhang, Hao Peng, Hao Tai,
+Haobo Zhang, He Liu, Hongwei Wang, Hongxi Yan, Hongyu Ge, Huan Liu, Huanpeng Chu,
+Jia’ni Zhao, Jiachen Wang, Jiajing Zhao, Jiamin Ren, Jiapeng Wang, Jiaxin Zhang, Jiayi Gui,
+Jiayue Zhao, Jijie Li, Jing An, Jing Li, Jingwei Yuan, Jinhua Du, Jinxin Liu, Junkai Zhi, Junwen
+Duan, Kaiyue Zhou, Kangjian Wei, Ke Wang, Keyun Luo, Laiqiang Zhang, Leigang Sha, Liang
+Xu, Lindong Wu, Lintao Ding, Lu Chen, Minghao Li, Nianyi Lin, Pan Ta, Qiang Zou, Rongjun
+Song, Ruiqi Yang, Shangqing Tu, Shangtong Yang, Shaoxiang Wu, Shengyan Zhang, Shijie Li,
+Shuang Li, Shuyi Fan, Wei Qin, Wei Tian, Weining Zhang, Wenbo Yu, Wenjie Liang, Xiang Kuang,
+13
+
+Xiangmeng Cheng, Xiangyang Li, Xiaoquan Yan, Xiaowei Hu, Xiaoying Ling, Xing Fan, Xingye
+Xia, Xinyuan Zhang, Xinze Zhang, Xirui Pan, Xu Zou, Xunkai Zhang, Yadi Liu, Yandong Wu,
+Yanfu Li, Yidong Wang, Yifan Zhu, Yijun Tan, Yilin Zhou, Yiming Pan, Ying Zhang, Yinpei Su,
+Yipeng Geng, Yong Yan, Yonglin Tan, Yuean Bi, Yuhan Shen, Yuhao Yang, Yujiang Li, Yunan
+Liu, Yunqing Wang, Yuntao Li, Yurong Wu, Yutao Zhang, Yuxi Duan, Yuxuan Zhang, Zezhen
+Liu, Zhengtao Jiang, Zhenhe Yan, Zheyu Zhang, Zhixiang Wei, Zhuo Chen, Zhuoer Feng, Zijun
+Yao, Ziwei Chai, Ziyuan Wang, Zuzhou Zhang, Bin Xu, Minlie Huang, Hongning Wang, Juanzi
+Li, Yuxiao Dong, and Jie Tang. Glm-5: from vibe coding to agentic engineering, 2026. URL
+https://arxiv.org/abs/2602.15763.
+MiniMaxAI, 2026. URL https://github.com/MiniMax-AI/MiniMax-M2.7.
+Qwen Team. Qwen3 technical report, 2025. URL https://arxiv.org/abs/2505.09388.
+
+14
+
+A
+
+Dataset Quality Constraints
+
+A user’s model, wrapped by the pass_net.extract, is symbolically traced to generate a standardized set of files. This set forms a complete PassNet graph, including the high-level IR of the computation graph (model.py), metadata for inputs and weights (input_meta.py, weight_meta.py),
+SHA-based graph hash for deduplication (graph_hash.txt), and other components such as optional
+custom operator code.
+We define five constraints applied to every computational graph in PassNet to ensure dataset quality
+and cross-platform compatibility:
+• Runnable: Each graph must execute forward propagation under the designated framework without
+syntax errors or crashes.
+• Serializable: Each sample and metadata must be serializable into standard formats (e.g., JSON)
+and correctly de-serializable.
+• Decomposable: The entire computational graph must be decomposable into multiple nonoverlapping subgraphs, where each subgraph represents an independent optimization unit. This
+supports compiler backends in performing fusion, scheduling, and other optimization tasks.
+• Statically Analyzable: Operator names, types, and dependencies must be statically extractable
+(e.g., via torch.fx) for structural traversal. This allows automated analysis tools to fully interpret
+operator semantics for structural traversal and pattern matching.
+• Custom Operator Accessible: If a sample includes user-defined custom operators, the corresponding source code for these operators must be traceable and accessible in a modular form, ensuring
+reusability and integration across compiler environments.
+
+B
+
+PassBench Sampling Details
+
+Multi-dimensional Bucketing.
+complementary dimensions:
+
+Subgraphs are grouped into discrete buckets defined by three
+
+• Operator Sequence: The ordered operator-name list serves as an exact-match key.
+• Input Shape: We apply logarithmic quantization ⌊log2 (d)/4⌋ to each dimension d, where the
+scaling factor 4 is empirically chosen to balance granularity and generalization.
+• Input Dtype: Exact-match key for numerical precision.
+Hierarchical Representative Grouping. Following bucketing, we employ a hierarchical strategy
+to select representative subgraphs and construct groups with varying cardinalities, each corresponding
+to a PassBench sample. The group size controls the optimization difficulty, as larger and more
+heterogeneous groups require transformations that generalize across a broader set of subgraphs.
+• Intra-bucket Stratified Sampling: Within each operator sequence, subgraphs are sampled at a
+fixed stride σ, and then organized into groups of size 1 and 3, capturing both single-operator cases
+and short compositional patterns.
+• Cross-shape Structural Aggregation: For each unique operator sequence, one representative is
+aggregated with subgraphs sharing the same sequence across different input shape buckets.
+• Precision-aware Coverage: Within each shape bucket, subgraphs with distinct data types (FP32,
+FP16, BF16) are aggregated to ensure numerical format coverage.
+
+C
+
+Experimental Setup
+
+C.1
+
+Benchmark Evaluation
+
+Table 3 summarizes the hardware and evaluation protocol used across all PassBench experiments.
+C.2
+
+Distillation and Post-training
+
+Table 4 details the teacher-student configuration and SFT hyperparameters.
+15
+
+Category
+
+Detail
+
+GPU
+CUDA / cuDNN
+PyTorch / Triton
+Operating System
+
+NVIDIA A30, 24 GB, compute capability 8.0
+12.8 / 9.10.2
+2.9.1+cu128 / 3.5.1
+Ubuntu 24.04.1 LTS
+
+Evaluation Mode
+Warmup Runs
+Timed Trials
+Stability Criterion
+
+Single-shot, temperature= 0
+20
+100
+Re-run if IQR > 20% of median
+
+Table 3: Evaluation environment and benchmark protocol.
+Category
+
+Detail
+
+Teacher Agent
+Max Trajectory Steps
+Filtering Criterion
+Instances Processed
+Trajectories Retained
+
+Claude-Sonnet-4.6
+50 per instance
+AS score > 0.1
+4,476 (2 trials each)
+3,899
+
+Student Model
+Initial Learning Rate
+Batch Size
+Epochs
+Max Context Length
+
+Qwen3-30B-A3B-Thinking-2507
+2 × 10−5 (cosine decay to 2 × 10−6 )
+8
+5
+262,144
+
+Table 4: Distillation and post-training configuration.
+
+D
+
+Graph-level Interpretation of ESt
+
+In this section, we show that ESt can be equivalently expressed as a geometric mean of per-graph
+error-aware rectified speedups.
+We first define rt,i , the penalty factor for erroneous graphs that captures tolerance-dependent penalties.
+The per-graph error-aware rectified speedup ŝt,i (defined in Section 3.5) uses rt,i in its third case.
+Definition D.1 (Penalty Factor). For each erroneous graph i, let ci ∈ {1, 2, 3} denote its error
+category. Let Nerr be the number of erroneous graphs, and Nc be the number of graphs with error
+category c. The penalty factor is
+(
+b, t < ci ,
+(5)
+rt,i =
+1, otherwise,
+where b ∈ (0, 1) is the base penalty.
+Let πc = Nc /Nerr denote the fraction of error category c among all erroneous graphs.
+Definition D.2 (Error-aware Speedup Score ESt ). The macro-level Error-aware Speedup Score ESt
+admits the following factored form:
+ESt = αλ · β λη(p+1) · γt1−λ
+P
+
+(6)
+
+where γt = b c∈{1,2,3} πc 1(t<c) . Here α aggregates correct-and-fast subgraphs, β penalizes correctbut-slow ones, and γt accounts for errors under tolerance t.
+Proposition D.1 (Geometric mean of penalty factors). The aggregated penalty γt equals the geometric
+mean of {rt,i } over all erroneous graphs:
+!1/Nerr
+N
+err
+Y
+γt =
+rt,i
+(7)
+i=1
+
+From the definition of rt,i , each term contributes b iff t < ci :
+N
+err
+Y
+i=1
+
+rt,i =
+
+N
+err
+Y
+
+PNerr
+
+b1(t<ci ) = b
+
+i=1
+
+16
+
+i=1 1(t<ci )
+
+Grouping by error category c gives
+Nerr
+X
+
+X
+
+1(t < ci ) =
+
+i=1
+
+Nc 1(t < c)
+
+c∈{1,2,3}
+
+thus
+N
+err
+Y
+
+P
+
+rt,i = b
+
+c∈{1,2,3} Nc 1(t<c)
+
+i=1
+
+Taking the Nerr th root:
+N
+err
+Y
+
+!1/Nerr
+rt,i
+
+1
+
+= b Nerr
+
+P
+
+c∈{1,2,3} Nc 1(t<c)
+
+P
+
+=b
+
+c∈{1,2,3} πc 1(t<c)
+
+i=1
+
+which is exactly the definition of γt .
+Proposition D.2 (Geometric mean of per-graph speedups). Since γt is the geometric mean of {rt,i }
+for a given t, the macro-level metric ESt equals the geometric mean of per-graph error-aware
+rectified speedups:
+!1/N
+N
+Y
+ESt =
+ŝt,i
+(8)
+i=1
+
+This follows from the factored form: α, β, and γt are respectively the geometric means of the speedups
+from the correct-fast, correct-slow, and erroneous cases in ŝt,i . Their product therefore equals the
+geometric mean of all {ŝt,i }.
+
+E
+
+Aggregated Speedup (AS) Weight Specification
+
+The Aggregated Speedup aggregates the tolerance-parameterized ESt into a single scalar via a
+normalized geometric mean (Section 3.5). Given the weight function Wt , AS is defined as:
+|E|+1
+
+AS =
+
+Y
+
+Wt /
+
+ESt
+
+P|E|+1
+
+s=−10 Ws
+
+(9)
+
+t=−10
+
+The weight function Wt is defined as:
+
+0.001
+Wt = 1
+ t+3
+0.8
+Design Rationale.
+
+if − 10 ≤ t ≤ −6 or t ≥ |E| + 1,
+if − 5 ≤ t ≤ −3,
+if − 2 ≤ t ≤ |E|.
+
+(10)
+
+The weight schedule reflects three regimes:
+
+• Strict-correctness regime (t ∈ [−5, −3], Wt = 1): Production-level accuracy; full weight.
+• Relaxed regime (t ∈ [−2, |E|], Wt = 0.8t+3 ): Exponential decay as correctness becomes easier
+to satisfy.
+• Extreme regime (t ≤ −6 or t ≥ |E| + 1, Wt = 0.001): Near-zero weight to avoid distortion from
+ultra-strict or ultra-relaxed tolerances.
+
+F
+
+Configuration of atol(t) and rtol(t)
+
+We perform log-linear interpolation between reference points (e.g., atolfp32 (−5) = 10−5 and
+atolfp32 (0) = 1) such that atol(t), rtol(t) = 10kt .
+
+G
+
+TorchInductor Default Pipeline Profiling
+
+To empirically quantify the long-tail optimization gap discussed in Section 1, we profile TorchInductor’s default pass pipeline (torch.compile(mode="default")) on a large-scale subgraph corpus.
+17
+
+Data Type
+
+atol(t)
+
+bfloat16
+float16/complex32
+float32/complex64
+float64/complex128
+others
+
+10t
+10t
+10t
+10t·7/5
+0.0
+
+atol(-5)
+1e-5
+1e-5
+1e-5
+1e-7
+0.0
+
+Data Type
+
+rtol(t)
+
+rtol(-5)
+
+rtol(0)
+
+bfloat16
+float16/complex32
+float32/complex64
+float64/complex128
+others
+
+10t·1.796/5
+
+1.6e-2
+1e-3
+1.3e-6
+1e-7
+0.0
+
+1
+1
+1
+1
+0.0
+
+atol(0)
+1
+1
+1
+1
+0.0
+
+Table 5: atol configuration (abbreviated)
+
+10t·3/5
+10t·5.886/5
+10t·7/5
+0.0
+
+Table 6: rtol configuration (abbreviated)
+
+Setup. We extract 9,526 subgraphs from 1,000 community models via torch.fx graph tracing:
+56.9% from HuggingFace Transformers (BERT, T5, LLaVA, Qwen-VL, etc.) and 43.1% from
+timm (ResNet, EfficientNet, ViT, FastViT, etc.). Subgraph node counts range from 4 to 63 (median
+16). Experiments run on NVIDIA A30 GPUs (24 GiB) with PyTorch 2.9.1 and CUDA 12.8. Each
+subgraph is benchmarked with 20 warmup iterations and 100 timed trials; we report median latencies
+and reject samples with unstable timing (IQR/median > 20%).
+Compilation Success. Of the 9,526 subgraphs, 84.5% compile successfully and pass correctness
+verification. The majority of failures (72.8%) stem from GPU timing instability in the shared cloud
+environment (IQR/median exceeding our 20% stability threshold); these samples are excluded as
+invalid measurements. The compiler-specific failure rate is 3.1%, concentrated on non-standard
+architectures (LeViT, GCViT) with unconventional reshape and attention-head operations.
+Kernel Speedup Distribution. Table 7 reports the kernel-level speedup distribution over the 8,021
+subgraphs with valid performance data.
+Speedup Range
+< 1.0× (degradation)
+1.0–1.2× (marginal)
+1.2–2.0×
+≥ 2.0×
+
+Fraction
+8.3%
+26.6%
+37.4%
+27.2%
+
+Table 7: Kernel speedup distribution under TorchInductor’s default pipeline. Over one-third of
+subgraphs receive less than 1.2× kernel acceleration.
+
+End-to-End Slowdown Analysis. Of the 43% of subgraphs that exhibit E2E slowdowns, the
+majority are not caused by kernel-level regression. Table 8 decomposes the 3,479 E2E bad cases by
+root cause.
+Root Cause
+Small-graph fixed overhead (< 15 nodes)
+Fast-model dispatch overhead (≥ 15 nodes, eager < 2 ms)
+True kernel degradation
+Other (marginal)
+
+Fraction
+
+Median E2E Speedup
+
+61.5%
+18.7%
+18.3%
+1.5%
+
+0.68×
+0.89×
+0.86×
+0.99×
+
+Table 8: Root-cause decomposition of E2E slowdowns. In 80.2% of cases, kernels are actually
+faster (median 1.21×), but a fixed dispatch overhead of ∼0.14 ms from torch.compile negates the
+gain.
+Subgraph size is the primary determinant: the E2E bad rate drops from 85.8% for subgraphs with
+1–5 nodes to 13.0% for those with 30–50 nodes (median subgraph size: 9 nodes for bad cases vs.
+29 for good cases). This confirms that the E2E overhead is largely a framework infrastructure cost
+orthogonal to pass-level optimization quality. True kernel degradation accounts for only 18.3%
+of E2E bad cases and is concentrated on FastViT-family architectures with non-standard attention
+mechanisms.
+Numerical Precision. Among the 8,027 correctly compiled subgraphs, 39.7% produce bitwiseidentical outputs and 81.5% exhibit maximum absolute difference below 10−6 . A small fraction
+18
+
+(4.6%) shows deviations ≥ 10−3 , typically correlated with aggressive fusion strategies that yield
+higher speedups (mean kernel speedup 3.03× vs. 2.09× for precise cases).
+ES(t) Scores. Evaluating TorchInductor under our ESt metric yields a G-Mean Speedup of 0.846
+and an AS Score of 0.706 (Table 1), confirming substantial room for improvement when correctness
+and stability are jointly considered.
+
+H
+
+Detailed Sparkle Case Analysis
+
+This appendix provides the complete pass files for the sparkle cases discussed in Section 4.
+H.1
+
+Case 1: Index-Arithmetic Roll+Slice Fusion (MaskFormer)
+
+The MaskFormer pass targets an 8-operator subgraph in MaskFormer’s pixel decoder. Its operator sequence is contiguous→view→roll→slice→contiguous→view→add→layer_norm;
+under default compilation, this launches 6 separate kernels. The LLM recognizes that
+roll(shift=3)+slice[:128] on a [S, S, C] tensor can be replaced by direct index arithmetic
+input_i = (S + i − shift) mod S, and additionally fuses the layer-norm reduction via shared-memory
+accumulation. Crucially, the replacement produces two outputs (add result and layer-norm result) in
+a single kernel.
+The pass is split into a shared lowering module and a shape-specific pattern pass. The shared module contains the CUDA kernel, the inline loader registration, and a routing dispatch that parameterizes
+the kernel for three Swin-Transformer stages (D=96, 192, 384). All shape-specific passes import the
+same shared module and differ only in their pattern and replacement_args, demonstrating the
+reusability of a single lowering across multiple FX pattern instances.
+Shared lowering module (shared_fused_roll_add_ln.py with inline CUDA):
+import torch
+from torch.utils.cpp_extension import load_inline
+_cuda_src = r"""
+#include <torch/extension.h>
+#include <cuda_runtime.h>
+template<typename scalar_t>
+__global__ void fused_roll_slice_add_layernorm_kernel(
+const scalar_t* __restrict__ input_6d,
+const scalar_t* __restrict__ residual,
+const scalar_t* __restrict__ weight,
+const scalar_t* __restrict__ bias,
+scalar_t* __restrict__ out_add,
+scalar_t* __restrict__ out_ln,
+const int R, const int C, const int S, const int SC, const int shift
+) {
+const int row = blockIdx.x;
+if (row >= R) return;
+extern __shared__ float smem[];
+const int tid = threadIdx.x;
+// Index arithmetic: roll(shift,dims=[0,1]) on [S,S,C] then slice [:SC,:SC,:]
+const int i = row / SC;
+const int j = row % SC;
+const int input_i = (S + i - shift) % S;
+const int input_j = (S + j - shift) % S;
+// Pass 1: accumulate mean of (residual + rolled_input) via shared memory
+float local_sum = 0.0f;
+19
+
+for (int col = tid; col < C; col += blockDim.x) {
+float rolled = static_cast<float>(
+input_6d[input_i * S * C + input_j * C + col]);
+float res = static_cast<float>(residual[row * C + col]);
+local_sum += res + rolled;
+}
+smem[tid] = local_sum;
+// shared-memory reduction to mean ...
+const float mean = smem[0] / static_cast<float>(C);
+// Pass 2: accumulate variance
+float local_var = 0.0f;
+for (int col = tid; col < C; col += blockDim.x) {
+float rolled = static_cast<float>(
+input_6d[input_i * S * C + input_j * C + col]);
+float res = static_cast<float>(residual[row * C + col]);
+float diff = (res + rolled) - mean;
+local_var += diff * diff;
+}
+smem[tid] = local_var;
+// shared-memory reduction to variance ...
+const float inv_std = rsqrtf(smem[0] / static_cast<float>(C) + 1e-5f);
+// Pass 3: write both outputs
+for (int col = tid; col < C; col += blockDim.x) {
+float rolled = static_cast<float>(
+input_6d[input_i * S * C + input_j * C + col]);
+float res = static_cast<float>(residual[row * C + col]);
+float added = res + rolled;
+out_add[row * C + col] = static_cast<scalar_t>(added);
+float normed = (added - mean) * inv_std;
+out_ln[row * C + col] = static_cast<scalar_t>(
+normed * static_cast<float>(weight[col])
++ static_cast<float>(bias[col]));
+}
+}
+// Host wrapper omitted for brevity; allocates out_add/out_ln,
+// chooses threads via next-power-of-two heuristics, and launches.
+"""
+_ext = load_inline(
+name="fused_roll_slice_add_layernorm_ext",
+cuda_sources=_cuda_src,
+functions=["fused_roll_slice_add_layernorm_cuda"],
+verbose=False,
+)
+@torch.fx.wrap
+def fused_roll_slice_add_layernorm_dispatch(in_3, in_2, in_1, in_0, route):
+if route == "D96":
+return _ext.fused_roll_slice_add_layernorm_cuda(
+in_3, in_2, in_1, in_0, 133, 128, 3, 1e-5)
+elif route == "D192":
+return _ext.fused_roll_slice_add_layernorm_cuda(
+in_3, in_2, in_1, in_0, 70, 64, 3, 1e-5)
+elif route == "D384":
+return _ext.fused_roll_slice_add_layernorm_cuda(
+in_3, in_2, in_1, in_0, 35, 32, 3, 1e-5)
+
+20
+
+else:
+raise ValueError(f"Unknown route: {route}")
+Shape-specific pattern pass (FusedRollSliceAddLayerNorm_96.py, D=96 stage):
+import torch
+from pass_dir.shared_fused_roll_add_ln import fused_roll_slice_add_layernorm_dispatch
+def pattern(in_0, in_1, in_2, in_3):
+tmp_2 = in_3.contiguous()
+tmp_3 = tmp_2.view(-1, 133, 133, 96)
+tmp_4 = torch.roll(tmp_3, shifts=(3, 3), dims=(1, 2))
+tmp_5 = tmp_4[(slice(None, None, None), slice(None, 128, None),
+slice(None, 128, None), slice(None, None, None))]
+tmp_6 = tmp_5.contiguous()
+tmp_7 = tmp_6.view(1, 16384, 96)
+tmp_8 = in_2 + tmp_7
+tmp_9 = torch.nn.functional.layer_norm(tmp_8, (96,), in_1, in_0, 1e-05)
+return (tmp_8, tmp_9)
+def replacement_args(in_0, in_1, in_2, in_3):
+return (in_3, in_2, in_1, in_0, "D96")
+def replacement_func():
+return fused_roll_slice_add_layernorm_dispatch
+H.2
+
+Case 2: Pattern-Driven Masked Mean Pooling (BGE-Reranker)
+
+The BGE-Reranker pass targets a 7-operator subgraph in the sentence-embedding module. Its operator
+sequence is cast→mul→sum→sum→clamp→div→cat; under default compilation, this launches
+7 separate kernels because the compiler treats the two reductions independently. The LLM recognizes
+the semantic intent as “masked
+a rewrite that fuses all operators into a
+P mean pooling” and generates
+P
+single kernel, accumulating (mask · hidden) and (mask) simultaneously in float32 registers.
+Shared lowering module (shared_cuda_bge.py with inline CUDA):
+import torch
+from torch.utils.cpp_extension import load_inline
+_cuda_src = r"""
+#include <torch/extension.h>
+#include <cuda_runtime.h>
+template<typename hidden_t>
+__global__ void masked_mean_pooling_kernel(
+const float* __restrict__ mask,
+const hidden_t* __restrict__ hidden,
+float* __restrict__ output,
+const int S, const int D
+) {
+const int bid = blockIdx.x;
+const int d_idx = blockIdx.y * blockDim.x + threadIdx.x;
+if (d_idx >= D) return;
+const float* mask_batch = mask + bid * S * D;
+const hidden_t* hidden_batch = hidden + bid * S * D;
+
+21
+
+float acc_val = 0.0f;
+float acc_mask = 0.0f;
+for (int s = 0; s < S; ++s) {
+int offset = s * D + d_idx;
+acc_val += static_cast<float>(hidden_batch[offset]) * mask_batch[offset];
+acc_mask += mask_batch[offset];
+}
+output[bid * D + d_idx] = acc_val / (acc_mask > 1e-9f ? acc_mask : 1e-9f);
+}
+// Host wrapper omitted for brevity; converts mask to float32,
+// allocates [B,D] float32 output, and launches with dim3(B, ceil(D/128)).
+"""
+_ext = load_inline(
+name="fused_masked_mean_pooling_cuda_ext",
+cuda_sources=_cuda_src,
+functions=["fused_masked_mean_pooling_cuda"],
+verbose=False,
+)
+@torch.fx.wrap
+def fused_masked_mean_pooling(in_0, in_1):
+return _ext.fused_masked_mean_pooling_cuda(in_0, in_1)
+Pattern pass (FuseMaskedMeanPooling.py):
+import torch
+from pass_dir.shared_cuda_bge import fused_masked_mean_pooling
+def pattern(in_0, in_1):
+tmp_0 = in_0.to(torch.float32)
+tmp_1 = in_1 * tmp_0
+tmp_2 = torch.sum(tmp_1, 1)
+tmp_3 = tmp_0.sum(1)
+tmp_4 = torch.clamp(tmp_3, min=1e-09)
+tmp_5 = tmp_2 / tmp_4
+tmp_6 = torch.cat([tmp_5], 1)
+return tmp_6
+def replacement_args(in_0, in_1):
+return (in_0, in_1)
+def replacement_func():
+return fused_masked_mean_pooling
+Key implementation notes. The kernel performs two sequential reductions (acc_val and
+acc_mask) in float32 over the sequence dimension S, matching the eager-mode cast-to-float32
+semantics. The output shape is [B, D], where B is the batch size and D is the hidden dimension.
+Because the eager pattern includes a no-op cat (concatenating a single tensor along dim 1), the
+replacement preserves the original output shape without additional reshaping. The same rewrite rule
+applies to varying sequence lengths and hidden dimensions without recompilation.
+
+22
+
+
