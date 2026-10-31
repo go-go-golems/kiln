@@ -102,3 +102,48 @@ export function lowerAdaptiveAvgPool2d(T,input,output_size) {
   const sums=T.reshape(T.sum(flat,4),[n,c,oh,ow]);
   return T.reshape(T.div(T.div(sums,heights),widths),spec.shape);
 }
+
+// PyTorch v2.9.1 Pool.h / DilatedMaxPool2d.cu define the shape and NaN rules.
+export function maxPool2dSpec(shape, {kernel_size, stride=null, padding=0, dilation=1, ceil_mode=false, return_indices=false}={}) {
+  if (![3,4].includes(shape.length)||!shape.every(x=>Number.isSafeInteger(x)&&x>0)) throw new TypeError('maxPool2d requires positive CHW or NCHW dimensions');
+  const kernel=pair(kernel_size,'kernel_size'),step=pair(stride===null||(Array.isArray(stride)&&stride.length===0)?kernel:stride,'stride'),pad=pair(padding,'padding'),dilate=pair(dilation,'dilation');
+  if(!kernel.every(x=>x>0)||!step.every(x=>x>0)||!dilate.every(x=>x>0)||!pad.every((x,i)=>x>=0&&x<=Math.floor(kernel[i]/2)))throw new TypeError('Invalid max pooling kernel, stride, padding or dilation');
+  if(typeof ceil_mode!=='boolean'||return_indices!==false)throw new TypeError('maxPool2d requires boolean ceil_mode and return_indices=false');
+  const output=shape.slice(-2).map((size,i)=>{
+    let out=Math.floor((size+2*pad[i]-dilate[i]*(kernel[i]-1)-1+(ceil_mode?step[i]-1:0))/step[i])+1;
+    if(ceil_mode&&(out-1)*step[i]>=size+pad[i])out--;
+    if(out<=0)throw new TypeError('Max pooling output must be positive');
+    return out;
+  });
+  return {shape:[...shape.slice(0,-2),...output],kernel,stride:step,padding:pad,dilation:dilate};
+}
+export function maxPool2dReference(input,options) {
+  const spec=maxPool2dSpec(input.shape,options),[h,w]=input.shape.slice(-2),[oh,ow]=spec.shape.slice(-2),output=new Tensor(spec.shape);
+  for(let p=0;p<input.data.length/(h*w);p++)for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){
+    let maximum=-Infinity;
+    for(let ky=0;ky<spec.kernel[0];ky++)for(let kx=0;kx<spec.kernel[1];kx++){
+      const iy=y*spec.stride[0]-spec.padding[0]+ky*spec.dilation[0],ix=x*spec.stride[1]-spec.padding[1]+kx*spec.dilation[1];
+      if(iy>=0&&iy<h&&ix>=0&&ix<w){const value=input.data[(p*h+iy)*w+ix];if(value>maximum||Number.isNaN(value))maximum=value;}
+    }
+    output.data[(p*oh+y)*ow+x]=maximum;
+  }
+  return output;
+}
+export function lowerMaxPool2d(T,input,options) {
+  const spec=maxPool2dSpec(input.type.shape,options),[n,c,h,w]=input.type.shape.length===4?input.type.shape:[1,...input.type.shape];
+  const [oh,ow]=spec.shape.slice(-2),[kh,kw]=spec.kernel,[sh,sw]=spec.stride,[ph,pw]=spec.padding,[dh,dw]=spec.dilation;
+  const x=T.reshape(input,[n,c,h,w]),hp=Math.max(h+2*ph,(oh-1)*sh+(kh-1)*dh+1),wp=Math.max(w+2*pw,(ow-1)*sw+(kw-1)*dw+1);
+  let padded=x;
+  if(hp!==h||wp!==w||ph||pw){
+    const mask=new Tensor([1,1,hp,wp]);
+    for(let y=0;y<h;y++)for(let z=0;z<w;z++)mask.data[(y+ph)*wp+z+pw]=1;
+    const safe=T.view(x,[n,c,hp,wp],a=>[a[0],a[1],a[2].sub(ph).max(0).min(h-1),a[3].sub(pw).max(0).min(w-1)]);
+    padded=T.select(mask,safe,-Infinity);
+  }
+  const windows=T.view(padded,[n,c,oh,ow,kh,kw],a=>[a[0],a[1],a[2].mul(sh).add(a[4].mul(dh)),a[3].mul(sw).add(a[5].mul(dw))]);
+  const flat=T.reshape(windows,[n,c,oh,ow,kh*kw]);
+  // fmaxf suppresses NaNs. Keep a separate flag reduction; every ordered value,
+  // including both infinities, satisfies x > 0 or x < 1. Padding never flags.
+  const nan=T.select(T.gt(flat,0),0,T.select(T.lt(flat,1),0,1));
+  return T.reshape(T.select(T.max(nan,4),NaN,T.max(flat,4)),spec.shape);
+}

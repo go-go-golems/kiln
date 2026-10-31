@@ -9,7 +9,7 @@ inventory=json.loads((p/'sources/evaluation-inventory.json').read_text())
 evidence={0:'first-task-isolated.log',1:'second-task-isolated.log',2:'third-task-isolated-v2.log',11:'fourth-task-canonical-priority-fixed.log',198:'fifth-task-isolated.log',143:'sixth-task-isolated.log',121:'seventh-task-original-evaluator.log'}
 # Explicit ordered runs: only an evaluated log may supersede earlier evidence.
 configurations={}
-for run_name in ['matrix-cohort-v1','reference-domain-cohort-v1','separate-rounding-cohort-v1','softmax-cohort-v1','softmax-cohort-v2','softmax-cohort-v3','reshape-source-cohort-v1','gelu-source-cohort-v1','gelu-layernorm-cohort-v1','singleton-view-source-cohort-v1','avg-pooling-task-results-v1']:
+for run_name in ['matrix-cohort-v1','reference-domain-cohort-v1','separate-rounding-cohort-v1','softmax-cohort-v1','softmax-cohort-v2','softmax-cohort-v3','reshape-source-cohort-v1','gelu-source-cohort-v1','gelu-layernorm-cohort-v1','singleton-view-source-cohort-v1','avg-pooling-task-results-v1','adaptive-pooling-task-results-v1']:
     run_path=p/'sources'/run_name/'run.json'
     run=json.loads(run_path.read_text())
     if run['status']!='complete':raise ValueError('Coverage requires a terminal cohort')

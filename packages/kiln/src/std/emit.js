@@ -4,7 +4,9 @@ import { FNS, fill } from "./fns.js";
 
 const cname = (s) => String(s || "kernel").replace(/[^\w]/g, "_");
 const flit = (v, lang) => {
-  if (!isFinite(v)) v = v > 0 ? 3.4028234663852886e38 : -3.4028234663852886e38;
+  if (Number.isNaN(v)) return lang === "c" ? "__int_as_float(0x7fc00000)" : "bitcast<f32>(0x7fc00000u)";
+  if (v === Infinity) return lang === "c" ? "__int_as_float(0x7f800000)" : "bitcast<f32>(0x7f800000u)";
+  if (v === -Infinity) return lang === "c" ? "__int_as_float(0xff800000)" : "bitcast<f32>(0xff800000u)";
   let s = String(+v);
   if (!/[.e]/.test(s)) s += ".0";
   return lang === "c" ? s + "f" : s;

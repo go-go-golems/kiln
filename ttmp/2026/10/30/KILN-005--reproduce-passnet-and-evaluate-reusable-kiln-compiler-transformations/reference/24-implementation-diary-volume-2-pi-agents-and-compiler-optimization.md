@@ -2109,3 +2109,54 @@ See Step182 for implementation authorization. During this work the user asked, "
 ### Technical details
 - Artifacts were built from adaptive-pooling sources recorded in the fixture manifest; remote bundling hashes runtime and checker files. No evaluator or tolerance changes.
 - No LLM inference or performance claim in this checkpoint. Full-task evaluation is pending, not running.
+
+## Step 201: Accept adaptive pooling and integrate a parallel operator batch
+
+The original PassBench replay accepted all29 graphs in the five frozen adaptive-pooling families. Cumulative modified-protocol coverage is now39/200 complete tasks and404/2060 accepted graphs. Three parallel implementation lanes delivered max pooling, layout operations, and scalar bindings; their shared frontend and importer integration passes focused local tests. Their full GPU/corpus qualification remains open.
+
+### Prompt Context
+The user asked to batch coverage work, asked whether it could proceed in parallel, and requested that the current branch be pushed for independent research. The branch was pushed at ffa6388 before integrating the uncommitted batch.
+**Assistant interpretation:** Run independent operator implementations concurrently, then integrate through one importer/frontend and qualify jointly.
+**Inferred user intent:** Increase coverage quickly while retaining reproducible evidence and a branch others can inspect.
+
+### What I did
+- Collected the terminal adaptive task run with script531. Its audit records five complete families,29/29 matched executions, and numerical correctness at t=-5. Preserved the previous coverage JSON and rebuilt the cumulative ledger with script21.
+- Integrated independently written max_pool2d, pad, roll, split/chunk, hardtanh, clamp, integer scalar pow, cos and sin bindings. Split/chunk outputs remain non-fresh aliases; in-place arithmetic on them is rejected.
+- Added frontend ops and decompositions for max pooling, padding and roll. Pad keeps the input dtype through a typed select; max pooling widens low-precision inputs for computation and narrows the result.
+- Fixed max reduction's identity to negative infinity and emitted exact IEEE nonfinite constants for CUDA and WGSL. This was required for empty dilated max-pooling windows and NaN results.
+- Ran the focused Python import suites and Node layout/max-pooling suites together.
+
+### Why
+The adaptive replay was the evidence needed to increase accepted coverage. The batch targets multiple common first failures at once, while a shared qualification pass can expose second failures without restarting development for every operator.
+
+### What worked
+- Adaptive:5/5 complete tasks and29/29 graphs accepted; ledger39/200 tasks,404/2060 graphs.
+- Nine focused importer tests and both Node suites pass. Scalar helper's36 CPU/oracle/emission cases and layout's32 oracle cases pass in their respective suites.
+- Corpus census:3027 max-pool calls all use return_indices=false; scalar and layout source counts and provenance are stored in the batch notes.
+
+### What didn't work
+- The first combined Node run exposed the finite negative max identity; the fix makes the previously failing infinity case pass.
+- The first Python invocation omitted PYTHONPATH; rerunning with PYTHONPATH=integrations/passnet passed after explicit partition-alias mutation rejection.
+- Full corpus import and native CUDA qualification of the combined batch have not yet run. These tests establish local semantics and dispatch, not new accepted benchmark coverage.
+
+### What I learned
+An operator batch can share the FX metadata, dtype and ownership checks, but partition results require list-valued importer state. Max pooling needs IEEE infinities and NaNs throughout lowering, reduction and emission, so its implementation exposed a preexisting shared compiler gap.
+
+### What was tricky to build
+- Split/chunk yield several tensor expressions under one FX node. Getitem selects a member using its list metadata; the selected view does not gain fresh ownership.
+- Low-precision constant padding needed a typed tensor select to prevent FP32 promotion.
+- The public branch push includes only the prior committed checkpoint; current batch edits are awaiting GPU/corpus qualification.
+
+### What warrants a second pair of eyes
+- Inspect max-pool NaN/negative-infinity semantics in CUDA and WGSL; local compilation tests cannot establish all native GPU behavior.
+- Inspect scalar inplace source ownership and partition getitem metadata before counting coverage.
+
+### What should be done in the future
+- Run one combined import census across the selected blocked graph families, then export/execute representative GPU fixtures and complete newly importable task families.
+- Record source hashes, numerical failures and exact accepted graph membership before another coverage increment.
+
+### Code review instructions
+Review std/pooling.js, layout.js, tensor.js, fns.js, emit.js and fx_import.py with the three new FX helpers. Run the focused Python and Node suites named above. Compare adaptive-pooling-task-audit-v1.json with kiln-coverage.json.
+
+### Technical details
+PyTorch v2.9.1 max-pooling source is archived under max-pooling-semantics-v1; other corpus census and implementation notes are in ticket sources. All Kiln lowerings are independent implementations. The acceptance ledger aggregates exact original replay evidence across compiler snapshots and is not a uniform 200-task run.

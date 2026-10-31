@@ -1,4 +1,6 @@
 import {avgPool2dSpec,avgPool2dReference,lowerAvgPool2d,adaptiveAvgPool2dSpec,adaptiveAvgPool2dReference,lowerAdaptiveAvgPool2d} from './pooling.js';
+import {maxPool2dSpec,maxPool2dReference,lowerMaxPool2d} from './pooling.js';
+import {padSpec,padReference,lowerPad,rollSpec,rollReference,lowerRoll} from './layout.js';
 import {matmulSpec,linearSpec,matmulReference,linearReference,lowerMatmul,lowerLinear} from './matmul.js';
 import {concatSpec,concatReference,lowerConcat} from "./concat.js";
 import {bilinearSpec,bilinearReference,lowerBilinear} from "./bilinear.js";
@@ -171,6 +173,15 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
       if(x.type.dtype!=="f32")throw new KilnError("TypeError","avg_pool2d arithmetic requires FP32");
       return k.tensor(avgPool2dSpec(x.type.shape,options).shape);
     }, eval: ({x,...options}) => avgPool2dReference(x,options), print: "avg_pool2d({x})" })
+  .op("max_pool2d", { args: ["x"], attrs: {kernel_size:1,stride:null,padding:0,dilation:1,ceil_mode:false,return_indices:false},
+    infer: ({x,...options}) => { if(x.type.dtype!=="f32")throw new KilnError("TypeError","max_pool2d arithmetic requires FP32"); return k.tensor(maxPool2dSpec(x.type.shape,options).shape); },
+    eval: ({x,...options}) => maxPool2dReference(x,options), print:"max_pool2d({x})" })
+  .op("pad", {args:["x"],attrs:{pad:[],mode:"constant",value:0},
+    infer:({x,pad,mode,value})=>k.tensor(padSpec(x.type.shape,pad,mode,value).shape,x.type.dtype),
+    eval:({x,pad,mode,value,type})=>roundedReference(padReference(x,pad,mode,value),type),print:"pad({x})"})
+  .op("roll", {args:["x"],attrs:{shifts:0,dims:null},
+    infer:({x,shifts,dims})=>k.tensor(rollSpec(x.type.shape,shifts,dims).shape,x.type.dtype),
+    eval:({x,shifts,dims})=>rollReference(x,shifts,dims),print:"roll({x})"})
   .op("conv2d", { args: ["x", "w", "b"], attrs: { stride: 1, padding: 0, dilation: 1, groups: 1 }, infer: ({ x,w,b,stride,padding,dilation,groups }) => {
     if ([x,w,b].some(v=>v.type.dtype!=="f32")) throw new KilnError("TypeError", "conv2d lowering currently requires FP32");
     const shape=conv2dSpec(x.type.shape,w.type.shape,{stride,padding,dilation,groups}).shape;
@@ -247,6 +258,10 @@ export const N = {
     ? N.cast(nn.adaptive_avg_pool2d(N.cast(x,"f32"),{output_size}),x.type.dtype) : nn.adaptive_avg_pool2d(x,{output_size}),
   avgPool2d: (x,options) => ["f16","bf16"].includes(x.type.dtype)
     ? N.cast(nn.avg_pool2d(N.cast(x,"f32"),options),x.type.dtype) : nn.avg_pool2d(x,options),
+  maxPool2d: (x,options) => ["f16","bf16"].includes(x.type.dtype)
+    ? N.cast(nn.max_pool2d(N.cast(x,"f32"),options),x.type.dtype) : nn.max_pool2d(x,options),
+  pad:(x,pad,mode="constant",value=0)=>nn.pad(x,{pad,mode,value}),
+  roll:(x,shifts,dims=null)=>nn.roll(x,{shifts,dims}),
   concat: (xs, axis=0) => nn.concat(xs,{axis}),
   resizeBilinear: (x,size) => ["f16","bf16"].includes(x.type.dtype)
     ? N.cast(nn.bilinear(N.cast(x,"f32"),{size}),x.type.dtype) : nn.bilinear(x,{size}),
@@ -306,6 +321,9 @@ const lastAxis = (x, a) => (a < 0 ? x.type.shape.length + a : a);
 export const decompositions = [
   decompose("nn.adaptive_avg_pool2d", ({x,output_size}) => lowerAdaptiveAvgPool2d(T,x,output_size)),
   decompose("nn.avg_pool2d", ({x,...options}) => lowerAvgPool2d(T,x,options)),
+  decompose("nn.max_pool2d", ({x,...options}) => lowerMaxPool2d(T,x,options)),
+  decompose("nn.pad", ({x,pad,mode,value}) => lowerPad(T,x,pad,mode,value,tensor)),
+  decompose("nn.roll", ({x,shifts,dims}) => lowerRoll(T,x,shifts,dims)),
   decompose("nn.concat", ({xs,axis,out}) => lowerConcat(T,tensor,xs,axis,out.type.dtype)),
   decompose("nn.bilinear", ({x,size}) => lowerBilinear(T,x,size)),
   decompose("nn.conv2d", ({x,w,b,stride,padding,dilation,groups}) => lowerConv2d(T,x,w,b,{stride,padding,dilation,groups})),

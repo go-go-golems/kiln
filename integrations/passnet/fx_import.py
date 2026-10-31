@@ -7,6 +7,9 @@ from fx_pooling import AVG_POOL2D, lower_avg_pool2d, ADAPTIVE_AVG_POOL2D, lower_
 from fx_indexing import lower_index,lower_transpose,lower_reshape,lower_singleton_view,SINGLETON_FUNCTIONS,SINGLETON_METHODS,lower_flatten,FLATTEN_FUNCTIONS
 from fx_linalg import FUNCTIONS as LINALG_FUNCTIONS, METHODS as LINALG_METHODS, lower_linalg
 from fx_norm_ops import LAYER_NORM,lower_layer_norm,SOFTMAX,lower_softmax
+from fx_max_pooling import MAX_POOL2D,lower_max_pool2d
+from fx_layout import PAD,ROLL,PARTITION,PARTITION_METHODS,lower_pad,lower_roll,lower_partition
+from fx_scalar_ops import FUNCTIONS as SCALAR_FUNCTIONS,METHODS as SCALAR_METHODS,lower_scalar
 
 
 def import_graph(graph):
@@ -114,6 +117,19 @@ def import_graph(graph):
             expr=lower_adaptive_avg_pool2d(target,args,kwargs,meta,operand_spec,literal)
         elif target in AVG_POOL2D:
             expr=lower_avg_pool2d(target,args,kwargs,meta,operand_spec,literal)
+        elif target in MAX_POOL2D:
+            expr=lower_max_pool2d(target,args,kwargs,meta,operand_spec,literal)
+        elif target in PAD:
+            expr=lower_pad(target,args,kwargs,meta,operand_spec,literal)
+        elif target in ROLL or (node['kind']=='call_method' and target=='roll'):
+            expr=lower_roll(target,args,kwargs,meta,operand_spec,literal)
+        elif target in PARTITION or (node['kind']=='call_method' and target in PARTITION_METHODS):
+            expr=lower_partition(target,args,kwargs,meta,operand_spec,literal)
+        elif target in SCALAR_FUNCTIONS or (node['kind']=='call_method' and target in SCALAR_METHODS):
+            expr,source_value,mutates=lower_scalar(target,node['kind'],args,kwargs,meta,operand_spec,literal)
+            source=next((key for key,val in values.items() if val==source_value),None)
+            if mutates and (source not in fresh or uses.get(source)!=1):
+                raise ValueError(f'{name}: inplace scalar operation requires fresh single-use producer')
         elif target in SOFTMAX or (node['kind']=='call_method' and target=='softmax'):
             expr=lower_softmax('torch.softmax' if node['kind']=='call_method' else target,args,kwargs,meta,operand_spec,literal)
         elif target in LAYER_NORM:
@@ -165,13 +181,21 @@ def import_graph(graph):
         elif target == '_operator.getitem':
             if len(args)!=2 or kwargs: raise ValueError(f'{name}: invalid indexing arguments')
             source=node['args']['tuple'][0].get('ref')
-            if source not in metadata or not isinstance(metadata[source],dict):
-                raise ValueError(f'{name}: basic tensor indexing requires tensor source')
-            def index_literal(value):
-                if isinstance(value,tuple): return tuple(index_literal(x) for x in value)
-                if isinstance(value,slice) or value is Ellipsis: return value
-                return literal(value)
-            expr=lower_index(args[0],index_literal(args[1]),metadata[source]['shape'],meta['shape'])
+            if source not in metadata:raise ValueError(f'{name}: indexing source required')
+            if isinstance(metadata[source],(list,tuple)):
+                index=literal(args[1])
+                if type(index) is not int or not -len(metadata[source])<=index<len(metadata[source]):
+                    raise ValueError(f'{name}: partition index out of range')
+                item=index%len(metadata[source]);expected=metadata[source][item]
+                if meta!=expected:raise ValueError(f'{name}: partition result metadata mismatch')
+                expr=values[source][item]
+            else:
+                if not isinstance(metadata[source],dict):raise ValueError(f'{name}: basic tensor indexing requires tensor source')
+                def index_literal(value):
+                    if isinstance(value,tuple): return tuple(index_literal(x) for x in value)
+                    if isinstance(value,slice) or value is Ellipsis: return value
+                    return literal(value)
+                expr=lower_index(args[0],index_literal(args[1]),metadata[source]['shape'],meta['shape'])
         elif reduction:
             fields=['input','dim','keepdim']
             if len(args)>3 or set(kwargs)-{'dim','keepdim'}:
@@ -229,6 +253,13 @@ def import_graph(graph):
             expr=lower_reshape(value,shape,metadata[source],meta)
         elif target in FLATTEN_FUNCTIONS or (node['kind']=='call_method' and target=='flatten'):
             expr=lower_flatten(target,args,kwargs,meta,operand_spec,literal)
+        elif node['kind']=='call_method' and target in ('add_','sub_','mul_','div_'):
+            source=node['args']['tuple'][0].get('ref') if args and isinstance(node['args']['tuple'][0],dict) else None
+            if source not in fresh or uses.get(source)!=1:
+                raise ValueError(f'{name}: in-place arithmetic requires fresh single-use producer')
+            if len(args)!=2 or kwargs or metadata[source]!=meta:
+                raise ValueError(f'{name}: unsupported in-place arithmetic arguments')
+            expr=f'N.{target[:-1]}({args[0]}, {args[1]})'
         elif node['kind'] == 'call_method':
             if target == 'contiguous':
                 if len(args)!=1 or kwargs: raise ValueError(f'{name}: unsupported contiguous format')
@@ -336,6 +367,10 @@ def import_graph(graph):
             expr = f'N.{binary[target]}({args[0]}, {args[1]})'
         else:
             raise ValueError(f'{name}: unsupported target {target}; implement semantic lowering')
+        if isinstance(expr,list):
+            values[name]=[f'{var}_{j}' for j in range(len(expr))]
+            lines.extend(f'const {var}_{j} = {item};' for j,item in enumerate(expr))
+            continue
         if not isinstance(meta, dict) or meta.get('dtype') not in dtype_names:
             raise ValueError(f'{name}: supported floating result metadata required')
         lines.append(f'const {var} = {expr};')
@@ -343,7 +378,7 @@ def import_graph(graph):
         # Views, casts and disabled dropout may alias: intentionally do not
         # transfer ownership through them. Accepted in-place calls only
         # consume an already owned value whose sole use is this operation.
-        if inplace_binary or linalg or activation or reduction or target in AVG_POOL2D or target in ADAPTIVE_AVG_POOL2D or target in SOFTMAX or (node['kind']=='call_method' and target=='softmax') or target in LAYER_NORM or target in unary or target in binary or target in (
+        if inplace_binary or linalg or activation or reduction or target in AVG_POOL2D or target in ADAPTIVE_AVG_POOL2D or target in MAX_POOL2D or target in PAD or target in ROLL or target in SCALAR_FUNCTIONS or (node['kind']=='call_method' and target in SCALAR_METHODS) or (node['kind']=='call_method' and target=='roll') or target in SOFTMAX or (node['kind']=='call_method' and target=='softmax') or target in LAYER_NORM or target in unary or target in binary or target in (
                 'torch.conv2d','torch.nn.functional.batch_norm','torch.nn.functional.interpolate',
                 'torch.cat','torch.concat','torch.concatenate','aten.cat.default'):
             fresh.add(name)

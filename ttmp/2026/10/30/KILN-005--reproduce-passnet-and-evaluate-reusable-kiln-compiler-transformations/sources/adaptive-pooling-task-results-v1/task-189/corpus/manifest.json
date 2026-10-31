@@ -1,0 +1,117 @@
+{
+  "format": "kiln-passnet-corpus/1",
+  "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/4b/a1/4ba16ee80bf6a8d70d837f339075641ef28635e71bd0cfe63c23aef688fcc868",
+  "metadata_mode": "fake",
+  "variants": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/torchvision/inception_v3/_decomposed/inception_v3_start322_end326_0",
+      "script": "000.kiln.js",
+      "inputs": {
+        "v0": [
+          1,
+          320,
+          5,
+          5
+        ],
+        "v1": [
+          1,
+          768,
+          5,
+          5
+        ],
+        "v2": [
+          1,
+          768,
+          5,
+          5
+        ],
+        "v3": [
+          1,
+          192,
+          5,
+          5
+        ]
+      },
+      "input_dtypes": {
+        "v0": "bf16",
+        "v1": "bf16",
+        "v2": "bf16",
+        "v3": "bf16"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "source_input_order": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "source_sha256": "fc2f5cbb8a97219097674dce235d4ee3dc5332e7420eff81b307f46de207a232",
+      "specialization": [
+        0
+      ]
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchvision/inception_v3/_decomposed/inception_v3_start322_end326_0",
+      "script": "001.kiln.js",
+      "inputs": {
+        "v0": [
+          1,
+          320,
+          5,
+          5
+        ],
+        "v1": [
+          1,
+          768,
+          5,
+          5
+        ],
+        "v2": [
+          1,
+          768,
+          5,
+          5
+        ],
+        "v3": [
+          1,
+          192,
+          5,
+          5
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f16",
+        "v1": "f16",
+        "v2": "f16",
+        "v3": "f16"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "source_input_order": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "source_sha256": "e4ebffbb6072e377504d77be4705c3ed13c2f709657aa24b62fe448493cf359c",
+      "specialization": [
+        0
+      ]
+    }
+  ]
+}

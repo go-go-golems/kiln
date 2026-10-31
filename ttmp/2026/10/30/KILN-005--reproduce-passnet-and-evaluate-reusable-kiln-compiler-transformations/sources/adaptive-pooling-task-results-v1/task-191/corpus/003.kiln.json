@@ -1,0 +1,151 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-191/corpus/003.kiln.js",
+  "sha256": "36ee75d8608c5792a97d0c1c54fbbf8640987d0b706cf57437d689b13e62941c",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    128,
+    2048,
+    12,
+    12
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    128,
+    2048,
+    12,
+    12
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    128,
+    2048,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 37748736,
+   "bytes": 150994944
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 37748736,
+   "bytes": 150994944
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 1,
+   "bytes": 4,
+   "name": null,
+   "data": "AABAQQ=="
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 1,
+   "bytes": 4,
+   "name": null,
+   "data": "AABAQQ=="
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 262144,
+   "bytes": 1048576
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_adaptive_avg_pool2d_reduce__177utdemg8s",
+   "identity": "177utdemg8s",
+   "row": "TPB=64,COARSEN=2",
+   "reads": [
+    2,
+    3,
+    1,
+    0
+   ],
+   "writes": 4,
+   "grid": 2048,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    2048,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    2048,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     1,
+     1,
+     1,
+     1
+    ],
+    [
+     1,
+     1,
+     1,
+     1
+    ],
+    [
+     128,
+     2048,
+     12,
+     12
+    ],
+    [
+     128,
+     2048,
+     12,
+     12
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew_adaptive_avg_pool2d_reduce__177utdemg8s(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in2 = 0.0f, in3 = 0.0f, acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((128 * bid) + (64 * j)) + tid);\n        if ((e < 262144)) {\n            in2 = src1[0];\n            in3 = src0[0];\n            acc0 = 0.0f;\n            for (int r0 = 0; r0 < 144; r0 += 1) {\n                in0 = src3[((((12 * min((((((144 * (e % 2048)) + (294912 * (e / 2048))) + r0) / 12) % 12), 11)) + (144 * (((((144 * (e % 2048)) + (294912 * (e / 2048))) + r0) / 144) % 2048))) + (294912 * (((((144 * (e % 2048)) + (294912 * (e / 2048))) + r0) / 294912) % 128))) + min((r0 % 12), 11))];\n                v0 = fmaxf(in0, 0.0f);\n                in1 = src2[((((12 * min((((((144 * (e % 2048)) + (294912 * (e / 2048))) + r0) / 12) % 12), 11)) + (144 * (((((144 * (e % 2048)) + (294912 * (e / 2048))) + r0) / 144) % 2048))) + (294912 * (((((144 * (e % 2048)) + (294912 * (e / 2048))) + r0) / 294912) % 128))) + min((r0 % 12), 11))];\n                v1 = __fadd_rn(v0, in1);\n                acc0 = (acc0 + v1);\n            }\n            v2 = (acc0 / in2);\n            v3 = (v2 / in3);\n            dst[((e % 2048) + (2048 * (e / 2048)))] = v3;\n        }\n    }\n}"
+  }
+ ]
+}

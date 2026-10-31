@@ -4,10 +4,10 @@
   "coverage_scope": "Cumulative original replay evidence across recorded compiler snapshots; not a uniform full-corpus release evaluation",
   "tasks_total": 200,
   "graphs_total": 2060,
-  "tasks_verified": 34,
-  "graphs_verified": 375,
-  "graphs_in_complete_tasks": 306,
-  "tasks_remaining": 166,
+  "tasks_verified": 39,
+  "graphs_verified": 404,
+  "graphs_in_complete_tasks": 335,
+  "tasks_remaining": 161,
   "records": [
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/62/91/6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8",
@@ -2905,12 +2905,92 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/a8/2d/a82d392d5c2fd3329165f793de480c44e08a65ba7e6e3448a28c8cd2a7157094",
       "graphs": 9,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 9,
+      "evidence": "adaptive-pooling-task-results-v1/task-089/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start151_end153_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start151_end153_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/8/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start151_end153_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start151_end153_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start151_end153_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start151_end153_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start151_end153_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start151_end153_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start151_end153_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "5975bf8ace81d881e936290468f4aa7621c400c01e02c8f559e8fb59dafdb226"
+      },
       "limitations": []
     },
     {
@@ -3717,12 +3797,69 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/ff/c0/ffc02e623c7bc4e2c4aa7926d6b6639eab5a3383b8db689b781e51ecb71c1c6e",
       "graphs": 6,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 6,
+      "evidence": "adaptive-pooling-task-results-v1/task-127/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/mmseg/DDRNet-slim/_decomposed/DDRNet-slim_start168_end172_21": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmseg/DDRNet-slim/_decomposed/DDRNet-slim_start168_end172_21": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/mmseg/DDRNet-slim/_decomposed/DDRNet-slim_start168_end172_21": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmseg/DDRNet-slim/_decomposed/DDRNet-slim_start168_end172_21": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/8/samples/mmseg/DDRNet-slim/_decomposed/DDRNet-slim_start168_end172_21": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmseg/DDRNet-slim/_decomposed/DDRNet-slim_start168_end172_21": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1",
+        "kiln-pattern-multi-output/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "5975bf8ace81d881e936290468f4aa7621c400c01e02c8f559e8fb59dafdb226"
+      },
       "limitations": []
     },
     {
@@ -5216,12 +5353,68 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/a0/e5/a0e52076480882d91b49df5ac098f599e8113c6d8510e5734341ab9a0aad6b8a",
       "graphs": 6,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 6,
+      "evidence": "adaptive-pooling-task-results-v1/task-184/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start314_end321_10": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start314_end321_10": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start314_end321_10": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start314_end321_10": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/1/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start314_end321_10": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start314_end321_10": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "5975bf8ace81d881e936290468f4aa7621c400c01e02c8f559e8fb59dafdb226"
+      },
       "limitations": []
     },
     {
@@ -5377,12 +5570,36 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/4b/a1/4ba16ee80bf6a8d70d837f339075641ef28635e71bd0cfe63c23aef688fcc868",
       "graphs": 2,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 2,
+      "evidence": "adaptive-pooling-task-results-v1/task-189/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/torchvision/inception_v3/_decomposed/inception_v3_start322_end326_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchvision/inception_v3/_decomposed/inception_v3_start322_end326_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "5975bf8ace81d881e936290468f4aa7621c400c01e02c8f559e8fb59dafdb226"
+      },
       "limitations": []
     },
     {
@@ -5423,12 +5640,68 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/82/e7/82e7973d5f2ebbd378d407eab7b16ec6811b6e599a991d85dfb461ea444f3be6",
       "graphs": 6,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 6,
+      "evidence": "adaptive-pooling-task-results-v1/task-191/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/timm/hgnetv2_b5.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b5.ssld_stage1_in22k_in1k_start363_end366_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/hgnetv2_b5.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b5.ssld_stage1_in22k_in1k_start363_end366_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/timm/hgnetv2_b5.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b5.ssld_stage1_in22k_in1k_start363_end366_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/timm/hgnetv2_b5.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b5.ssld_stage1_in22k_in1k_start363_end366_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/timm/hgnetv2_b5.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b5.ssld_stage1_in22k_in1k_start363_end366_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/timm/hgnetv2_b5.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b5.ssld_stage1_in22k_in1k_start363_end366_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "5975bf8ace81d881e936290468f4aa7621c400c01e02c8f559e8fb59dafdb226"
+      },
       "limitations": []
     },
     {

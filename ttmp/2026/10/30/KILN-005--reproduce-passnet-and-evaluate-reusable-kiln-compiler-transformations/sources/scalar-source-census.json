@@ -1,0 +1,70 @@
+{
+  "source": "sources/import-audit-after-softmax.json",
+  "calls": [
+    {
+      "call": "tmp_4.clamp(min=1e-05)",
+      "count": 18,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start396_end403_0/model.py"
+    },
+    {
+      "call": "tmp_4.clamp_(0.0, 1.0)",
+      "count": 14,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/8/samples/mmpose/S-ViPNAS-MobileNetV3/_decomposed/S-ViPNAS-MobileNetV3_start128_end133_7/model.py"
+    },
+    {
+      "call": "tmp_1.cos()",
+      "count": 12,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start26_end43_3/model.py"
+    },
+    {
+      "call": "tmp_1.sin()",
+      "count": 12,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start26_end43_3/model.py"
+    },
+    {
+      "call": "tmp_10.pow(2)",
+      "count": 12,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start26_end43_3/model.py"
+    },
+    {
+      "call": "torch.nn.functional.hardtanh(in_0, 0.0, 6.0, True)",
+      "count": 10,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/mmpose/deeppose_mobilenetv2_rle/_decomposed/deeppose_mobilenetv2_rle_start148_end152_0/model.py"
+    },
+    {
+      "call": "tmp_6.pow(2)",
+      "count": 10,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/transformers-auto-model/microsoft_deberta-base/_decomposed/microsoft_deberta-base_start4_end17_1/model.py"
+    },
+    {
+      "call": "torch.nn.functional.hardtanh(in_3, 0.0, 6.0, False)",
+      "count": 6,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/timm/starnet_s1.in1k/_decomposed/starnet_s1.in1k_start8_end11_0/model.py"
+    },
+    {
+      "call": "torch.nn.functional.hardtanh(tmp_4, 0.0, 6.0, False)",
+      "count": 6,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/timm/rexnet_100.nav_in1k/_decomposed/rexnet_100.nav_in1k_start37_end41_1/model.py"
+    },
+    {
+      "call": "torch.clamp(tmp_3, min=1e-09)",
+      "count": 2,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/bge-reranker-large/_decomposed/bge-reranker-large_start557_end564_1/model.py"
+    },
+    {
+      "call": "torch.pow(in_0, 3.0)",
+      "count": 2,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/transformers-auto-model/Mahmoud8_bigbird-roberta-base/_decomposed/Mahmoud8_bigbird-roberta-base_start36_end44_4/model.py"
+    },
+    {
+      "call": "tmp_1.pow(2)",
+      "count": 2,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmseg/EncNet_R101/_decomposed/EncNet_R101_start361_end371_4/model.py"
+    },
+    {
+      "call": "tmp_4.pow(2)",
+      "count": 1,
+      "example": "sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/google/gemma-1.1-2b-it/_decomposed/gemma-1.1-2b-it_start34_end46_4/model.py"
+    }
+  ]
+}

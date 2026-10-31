@@ -1,0 +1,41 @@
+{
+  "counts": {
+    "chunk": 2067,
+    "torch.nn.functional.pad mode='constant'": 1208,
+    "split": 1079,
+    "torch.roll": 226,
+    "torch.functional.split": 4317,
+    "torch.nn.functional.pad mode='reflect'": 37,
+    "torch.chunk": 5
+  },
+  "examples": {
+    "chunk": {
+      "path": "sources/passnet/upstream/graphs/fusible_subgraphs/samples/transformers-auto-model/miangoar_esm2_t12_35M_UR50D-finetuned-secondary-structure-classification/_decomposed/miangoar_esm2_t12_35M_UR50D-finetuned-secondary-structure-classification_10/_decomposed/miangoar_esm2_t12_35M_UR50D-finetuned-secondary-structure-classification_10_start1_end16_0/model.py",
+      "call": "in_0.chunk(2, dim=-1)"
+    },
+    "torch.nn.functional.pad mode='constant'": {
+      "path": "sources/passnet/upstream/graphs/fusible_subgraphs/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-Swinv2ForImageClassification/_decomposed/hf-tiny-model-private_tiny-random-Swinv2ForImageClassification_0/_decomposed/hf-tiny-model-private_tiny-random-Swinv2ForImageClassification_0_start53_end58_13/model.py",
+      "call": "torch.nn.functional.pad(tmp_1, (0, 0, 0, 0, 0, 0), 'constant', None)"
+    },
+    "split": {
+      "path": "sources/passnet/upstream/graphs/fusible_subgraphs/samples/transformers-auto-model/SenseTime_deformable-detr-single-scale/_decomposed/SenseTime_deformable-detr-single-scale_0/_decomposed/SenseTime_deformable-detr-single-scale_0_start23_end41_9/model.py",
+      "call": "in_0.split([625], dim=1)"
+    },
+    "torch.roll": {
+      "path": "sources/passnet/upstream/graphs/fusible_subgraphs/samples/transformers-auto-model/vuiseng9_tiny-random-SwinModel/_decomposed/vuiseng9_tiny-random-SwinModel_1/_decomposed/vuiseng9_tiny-random-SwinModel_1_start29_end35_7/model.py",
+      "call": "torch.roll(tmp_1, shifts=(1, 1), dims=(1, 2))"
+    },
+    "torch.functional.split": {
+      "path": "sources/passnet/upstream/graphs/fusible_subgraphs/samples/transformers-auto-model/microsoft_cvt-13-384/_decomposed/microsoft_cvt-13-384_4/_decomposed/microsoft_cvt-13-384_4_start17_end23_3/model.py",
+      "call": "torch.functional.split(tmp_0, [1, 576], 1)"
+    },
+    "torch.nn.functional.pad mode='reflect'": {
+      "path": "sources/passnet/upstream/graphs/hf_subgraphs_v2/typical_subgraphs/float32/3/samples/timm/densenetblur121d.ra_in1k/_decomposed/densenetblur121d.ra_in1k_start8_end15_1/model.py",
+      "call": "torch.nn.functional.pad(tmp_6, [1, 1, 1, 1], 'reflect', None)"
+    },
+    "torch.chunk": {
+      "path": "sources/passnet/upstream/graphs/hf_subgraphs_v2/sole_op_subgraphs/float32/samples/torchvision/maxvit_t/_decomposed/maxvit_t_start1052_end1053_1052/model.py",
+      "call": "torch.chunk(in_0, 3, dim=-1)"
+    }
+  }
+}

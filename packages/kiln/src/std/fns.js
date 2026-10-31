@@ -50,7 +50,7 @@ export const FNS = {
 };
 export const REDUCERS = {
   add: { init: 0, js: (a, b) => a + b, op: "add", c: "0.0f", w: "0.0" },
-  max: { init: -3.4028234663852886e38, js: (a, b) => (a > b ? a : b), op: "max", c: "-3.402823466e38f", w: "-3.402823466e38" },
+  max: { init: -Infinity, js: (a, b) => (a > b ? a : b), op: "max", c: "__int_as_float(0xff800000)", w: "bitcast<f32>(0xff800000u)" },
   min: { init: 3.4028234663852886e38, js: (a, b) => (a < b ? a : b), op: "min", c: "3.402823466e38f", w: "3.402823466e38" },
   mul: { init: 1, js: (a, b) => a * b, op: "mul", c: "1.0f", w: "1.0" },
 };
