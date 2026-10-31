@@ -1,7 +1,7 @@
 {
   "tasks": 200,
   "graphs": 2060,
-  "graphs_imported": 381,
+  "graphs_imported": 804,
   "tasks_fully_imported": [
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/62/91/6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8",
@@ -34,6 +34,10 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/e0/33/e033e1d95e1e24804cf7caef66c4b838c2efb8f300faf631aada9b7771f8c7f2",
       "graphs": 6
+    },
+    {
+      "task": "samples/hf_subgraphs_v2/fusible_subgraphs/93/47/93471a9f4ab37518cc956cede1feba365e1693fcd23e7fe0a3877d5d69c66413",
+      "graphs": 3
     },
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/a9/83/a983b1af910c31795c87bff72b8876dcc5d96a8cd9d9355528f5ebde5895076c",
@@ -76,6 +80,10 @@
       "graphs": 2
     },
     {
+      "task": "samples/hf_subgraphs_v2/fusible_subgraphs/be/50/be501661ff0211b35a09e2fd7597fdc1264f626818409f385e3a32dcdb1174c7",
+      "graphs": 396
+    },
+    {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/a2/00/a2005550c46f555aad0618049b08cf11ae6a817217af724668c76ea8bb333c00",
       "graphs": 6
     },
@@ -86,13 +94,13 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/65/7a/657ac1d85821d77edd1b469df6b813d94c421fd0cd665e3e5ff12d3a444297f6",
       "graphs": 6
+    },
+    {
+      "task": "samples/hf_subgraphs_v2/fusible_subgraphs/51/a8/51a847653153f19ac9458aa2cbe628f3e08c96fc3829a150d5f4006b5add6665",
+      "graphs": 24
     }
   ],
   "first_blockers": [
-    {
-      "diagnostic": "unsupported target torch.cat; implement semantic lowering",
-      "graphs": 531
-    },
     {
       "diagnostic": "only supported floating tensor inputs accepted",
       "graphs": 119
@@ -100,6 +108,10 @@
     {
       "diagnostic": "unsupported target torch._C._nn.linear; implement semantic lowering",
       "graphs": 117
+    },
+    {
+      "diagnostic": "unsupported target torch.nn.functional.silu; implement semantic lowering",
+      "graphs": 108
     },
     {
       "diagnostic": "unsupported target torch.matmul; implement semantic lowering",
@@ -114,16 +126,16 @@
       "graphs": 66
     },
     {
-      "diagnostic": "unsupported target torch.nn.functional.silu; implement semantic lowering",
-      "graphs": 64
-    },
-    {
       "diagnostic": "Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
       "graphs": 59
     },
     {
       "diagnostic": "unsupported target torch.nn.functional.layer_norm; implement semantic lowering",
-      "graphs": 46
+      "graphs": 51
+    },
+    {
+      "diagnostic": "unsupported tensor method sigmoid",
+      "graphs": 47
     },
     {
       "diagnostic": "unsupported target _operator.matmul; implement semantic lowering",
@@ -142,8 +154,8 @@
       "graphs": 41
     },
     {
-      "diagnostic": "unsupported tensor method sigmoid",
-      "graphs": 41
+      "diagnostic": "unsupported target torch.nn.functional.pad; implement semantic lowering",
+      "graphs": 30
     },
     {
       "diagnostic": "unsupported target torch.sigmoid; implement semantic lowering",
@@ -151,7 +163,7 @@
     },
     {
       "diagnostic": "unsupported target torch.nn.functional.adaptive_avg_pool2d; implement semantic lowering",
-      "graphs": 21
+      "graphs": 23
     },
     {
       "diagnostic": "unsupported FX node kind get_attr; decompose or export constants explicitly",
@@ -182,6 +194,10 @@
       "graphs": 13
     },
     {
+      "diagnostic": "unsupported tensor method cos",
+      "graphs": 12
+    },
+    {
       "diagnostic": "unsupported target torch.functional.einsum; implement semantic lowering",
       "graphs": 12
     },
@@ -191,10 +207,6 @@
     },
     {
       "diagnostic": "unsupported target torch.unbind; implement semantic lowering",
-      "graphs": 9
-    },
-    {
-      "diagnostic": "unsupported target torch.nn.functional.pad; implement semantic lowering",
       "graphs": 9
     },
     {
@@ -210,11 +222,23 @@
       "graphs": 9
     },
     {
+      "diagnostic": "only explicit-size bilinear align_corners=False supported",
+      "graphs": 6
+    },
+    {
+      "diagnostic": "unsupported target torch.nn.functional.normalize; implement semantic lowering",
+      "graphs": 6
+    },
+    {
       "diagnostic": "unsupported target torch.max; implement semantic lowering",
       "graphs": 6
     },
     {
       "diagnostic": "unsupported target torch.softmax; implement semantic lowering",
+      "graphs": 6
+    },
+    {
+      "diagnostic": "unsupported target torch.prelu; implement semantic lowering",
       "graphs": 6
     },
     {

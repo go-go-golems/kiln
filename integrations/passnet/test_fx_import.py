@@ -115,6 +115,14 @@ class ImportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Strided'):
             import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,6),)))
 
+    def test_concatenation_promotion(self):
+        class Model(torch.nn.Module):
+            def forward(self,x,y): return torch.cat((x,y),dim=-1)
+        result=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3).half(),torch.randn(2,1).bfloat16())))
+        self.assertIn('N.concat',result['script'])
+        self.assertIn('N.cast(v0, "f32")',result['script'])
+        self.assertIn('N.cast(v1, "f32")',result['script'])
+
     def test_dtype_and_layout_rejected(self):
         class Model(torch.nn.Module):
             def forward(self, x):

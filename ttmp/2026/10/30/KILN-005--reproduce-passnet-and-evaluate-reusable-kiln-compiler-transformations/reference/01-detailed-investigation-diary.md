@@ -2880,3 +2880,97 @@ See original intern-guide delivery and detailed milestone-report requirements.
 
 ### Technical details
 - New reMarkable name avoids overwrite. All checked source materials and intermediate experiment scripts remain within the ticket. Goal remains active and far from full 200-task execution support.
+
+## Step 68: Implement typed concatenation and diagnose BF16 reference failure
+
+Added a variadic concatenation primitive with independent reference copying and Tensor IR decomposition. Shape checks preserve all non-concatenated dimensions and normalize negative axes. The initial low-precision CUDA probe build stopped at BF16's internal reference check, which is being diagnosed before any acceptance claim.
+
+### Prompt Context
+See the complete compiler-support objective and architectural consolidation request in Step 63.
+**User prompt (verbatim):** "dont forget to commit at appropriate intervals and keep a detailed diary as you work (using the diary format from the skill)
+
+how far are we?"
+**Assistant interpretation:** Continue milestone commits and preserve failures and decisions in the detailed investigation format.
+**Inferred user intent:** Keep progress auditable throughout implementation.
+
+### What I did
+- Added concat.js with shape validation, contiguous block-copy reference and safe indexed selection lowering.
+- Added nn.concat/N.concat and decomposition, preserving FP32/FP16/BF16 output types.
+- Added torch.cat/concat/concatenate/ATen import with explicit casts to the propagated output dtype for mixed floating inputs.
+- Added compiler reference/decomposition/dtype/special-value checks; 27 integration CPU tests passed.
+- Saved scripts 60–62 for multi-output homogeneous/mixed probes, compiler regressions and reference-input diagnosis.
+- Archived consulted official torch.cat documentation. No PyTorch or PassNet implementation copied into Kiln.
+
+### Why
+- Concatenation was the first import blocker for 531 graphs after indexing support. Safe selection must avoid out-of-bounds loads even when the backend evaluates both branches.
+
+### What worked
+- Local Node 26 concatenation reference and decomposition checks passed for multiple axes and all three floating storage types.
+- NaN, infinity and negative zero selection checks passed without replacing selection by arithmetic masking.
+- The new exact full-corpus import audit finds 804 graphs across 24 complete tasks importable, versus 381/21 previously; this is not execution coverage.
+
+### What didn't work
+- Remote build compiled FP32 and FP16 probes but BF16 exited nonzero with `: end-to-end check FAILED`. Broad compiler suite and CUDA checks therefore did not run in that driver.
+- Suspected invalid synthetic reference inputs: Project.inputsFor generates FP32 random values even when storage is declared BF16, while the new typed select rounds its result. Script 62 compares the original and explicitly rounded input domains without weakening checks.
+
+### What I learned
+- Removing a first blocker exposes additional operators in many graphs; importable graphs increased much more than complete importable tasks.
+
+### What was tricky to build
+- Unselected input coordinates are clamped before loading. Static per-axis masks select the correct segment and explicit result dtype avoids accidental FP32 promotion by the mask.
+
+### What warrants a second pair of eyes
+- Static mask size and unselected reads may be inefficient; empty tensors, integer concatenation and output-buffer mutation remain unsupported.
+
+### What should be done in the future
+- Resolve the BF16 check from evidence, complete compiler/GPU validation, then run a real concatenation task through PassBench.
+
+### Code review instructions
+- Review concat.js, nn.concat infer/decompose, fx_import.py concatenation binding and scripts 60–62.
+
+### Technical details
+- First lowering uses O(number of inputs × concatenated axis length) static mask storage and may load all operands. It establishes safe semantics rather than an optimized concat dispatch. Original verified coverage remains 4/200 tasks and 49/2060 variants.
+
+## Step 69: Correct typed reference inputs and qualify concatenation probes
+
+Script 62 isolated the BF16 compiler-check failure to synthetic inputs outside the declared storage domain. Converted Project reference inputs to FP16/BF16 representation without mutating caller Tensor data. After the correction, all four concatenation probes compiled and passed PyTorch CUDA comparisons, and all 24 compiler test files passed.
+
+### Prompt Context
+See the full compiler reliability objective and detailed diary reminder in Step 68.
+**Assistant interpretation:** Correct the input-domain defect rather than weakening a failing numerical check.
+**Inferred user intent:** Preserve scientific validity as compiler coverage grows.
+
+### What I did
+- Preserved before/after diagnostic JSON: BF16 max absolute error 0.0018287301063537598 before rounding, zero for all outputs after rounding.
+- Changed Project.inputsFor to prepare representable low-precision values in a new Tensor; added generated/custom input and ownership regression.
+- Reran the complete probe driver, including broad compiler tests and shared CUDA checker.
+- Wrote design document 05 with semantics, safe-load argument, reference-input correction, validation and performance limits.
+
+### Why
+- Reference validation must use the same values the declared device storage can represent.
+
+### What worked
+- All four programs (FP32, FP16, BF16, mixed) compiled with internal checks enabled.
+- All 24 compiler test files passed; all four programs passed CUDA comparisons for every output.
+- Complete post-concat import audit: 804 graphs / 24 complete tasks, versus 381/21 before this change.
+
+### What didn't work
+- Original failed BF16 compile and its diagnostic remain archived. No tolerance or benchmark guard changed.
+
+### What I learned
+- Typed data movement exposed a pre-existing reference-input defect that low-precision arithmetic operations had partly hidden by rounding their reference outputs.
+
+### What was tricky to build
+- Generated and explicit project data must both be represented correctly, while caller-owned Float32Array storage remains untouched.
+
+### What warrants a second pair of eyes
+- Extending reference-input representation to integer types and ensuring all future reference entrypoints honor storage semantics.
+
+### What should be done in the future
+- Validate a complete real concatenation task and profile memory traffic before optimizing the initial mask/select strategy.
+
+### Code review instructions
+- Review Project.inputsFor, project-input-dtypes.mjs, design document 05 and concat-reference-diagnostic.json.
+
+### Technical details
+- CUDA probes ran on GB10 with the existing exploratory PyTorch environment. The original baseline remains independent and was verified running/unpaused at 108/200. No full-paper or corpus-wide execution claim.

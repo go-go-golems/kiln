@@ -1,3 +1,4 @@
+import {concatSpec,concatReference,lowerConcat} from "./concat.js";
 import {bilinearSpec,bilinearReference,lowerBilinear} from "./bilinear.js";
 import {conv2dSpec,conv2dReference,lowerConv2d} from "./conv2d.js";
 import { roundToDtype } from "../core/dtypes.js";
@@ -154,6 +155,12 @@ const T_ = (shape, dtype = "f32") => k.tensor(shape, dtype);
 const sameAs = ({ x }) => x.type;
 
 export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like op set, each with reference semantics")
+  .op("concat", { args: {variadic:"xs"}, attrs: {axis:0}, traits:["pure"], infer: ({xs,axis}) => {
+    const spec=concatSpec(xs.map(x=>x.type.shape),axis);
+    const dtype=xs[0].type.dtype;
+    if (!["f32","f16","bf16"].includes(dtype) || xs.some(x=>x.type.dtype!==dtype)) throw new KilnError("TypeError","concat requires matching floating dtypes");
+    return k.tensor(spec.shape,dtype);
+  }, eval: ({xs,axis}) => concatReference(xs,axis), print:"concat({xs}, axis={axis})" })
   .op("bilinear", { args: ["x"], attrs: { size: [1,1] }, infer: ({x,size}) => {
     if(x.type.dtype!=="f32")throw new KilnError("TypeError","bilinear lowering currently requires FP32");
     return k.tensor(bilinearSpec(x.type.shape,size));
@@ -225,6 +232,7 @@ T.maximum = (a, b) => T.ew("max", a, b);
 // nn-level conveniences for writing programs: x.add(y), x.matmul(w), x.softmax()
 const nv = (x) => (x instanceof Value ? x : tensor.const({ value: x, shape: [] }));
 export const N = {
+  concat: (xs, axis=0) => nn.concat(xs,{axis}),
   resizeBilinear: (x,size) => ["f16","bf16"].includes(x.type.dtype)
     ? N.cast(nn.bilinear(N.cast(x,"f32"),{size}),x.type.dtype) : nn.bilinear(x,{size}),
   conv2d: (x,w,b,options={}) => {
@@ -281,6 +289,7 @@ export function decompose(opName, build, name = "decompose:" + opName) {
 }
 const lastAxis = (x, a) => (a < 0 ? x.type.shape.length + a : a);
 export const decompositions = [
+  decompose("nn.concat", ({xs,axis,out}) => lowerConcat(T,tensor,xs,axis,out.type.dtype)),
   decompose("nn.bilinear", ({x,size}) => lowerBilinear(T,x,size)),
   decompose("nn.conv2d", ({x,w,b,stride,padding,dilation,groups}) => lowerConv2d(T,x,w,b,{stride,padding,dilation,groups})),
   decompose("nn.cast", ({ x, dtype }) => tensor.ew([x], { fn: dtype === "f32" ? "copy" : "round_" + dtype, dtype })),

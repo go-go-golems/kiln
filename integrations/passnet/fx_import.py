@@ -86,7 +86,24 @@ def import_graph(graph):
                   '_operator.mul':'mul', 'torch.mul':'mul', 'aten.mul.Tensor':'mul',
                   '_operator.sub':'sub', '_operator.truediv':'div'}
         reduction = target in ('torch.sum','torch.mean','aten.sum.dim_IntList','aten.mean.dim') or (node['kind']=='call_method' and target in ('sum','mean'))
-        if target == '_operator.getitem':
+        if target in ('torch.cat','torch.concat','torch.concatenate','aten.cat.default'):
+            if len(args)>2 or set(kwargs)-{'tensors','dim'}:
+                raise ValueError(f'{name}: unsupported concatenation arguments')
+            bound=dict(zip(('tensors','dim'),args))
+            if set(bound)&set(kwargs): raise ValueError(f'{name}: duplicate concatenation argument')
+            bound.update(kwargs)
+            tensors=bound.get('tensors')
+            if not isinstance(tensors,(tuple,list)) or not tensors or any(v not in values.values() for v in tensors):
+                raise ValueError(f'{name}: static nonempty tensor sequence required')
+            axis=literal(bound.get('dim','0'))
+            if type(axis) is not int: raise ValueError(f'{name}: static concatenation dimension required')
+            dtype=dtype_names[meta['dtype']]
+            casted=[]
+            for value in tensors:
+                source=next(key for key,v in values.items() if v==value)
+                casted.append(value if metadata[source]['dtype']==meta['dtype'] else f'N.cast({value}, {json.dumps(dtype)})')
+            expr=f'N.concat([{", ".join(casted)}], {axis})'
+        elif target == '_operator.getitem':
             if len(args)!=2 or kwargs: raise ValueError(f'{name}: invalid indexing arguments')
             source=node['args']['tuple'][0].get('ref')
             if source not in metadata or not isinstance(metadata[source],dict):

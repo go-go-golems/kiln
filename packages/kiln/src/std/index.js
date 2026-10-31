@@ -1,6 +1,7 @@
 // std: the standard library the workbench scripts and the agent see.
 import { k, P } from "../core/kiln.js";
 import { Tensor } from "../core/util.js";
+import { roundToDtype } from "../core/dtypes.js";
 import * as IX from "../core/ix.js";
 import { nn, tensor, N, T, weight, decompose, decomposition, optimization, composeViews } from "./tensor.js";
 import { loop, E, schedule, printNest, lift, fuse, stamp, mergeLoopOps, inlineInto, workOf, runSerial, freshR, printE, liftEw, liftReduce, liftView } from "./loop.js";
@@ -66,7 +67,11 @@ export class Project {
     for (const i of g.inputs) {
       const t = g.nodes.get(i.id).type;
       const d = this._data?.[i.name];
-      out[i.name] = d !== undefined ? d : t?.kind === "tensor" ? Tensor.random(t.shape || [], { seed: 11 + i.name.length, dist: "uniform" }) : 0;
+      const value = d !== undefined ? d : t?.kind === "tensor" ? Tensor.random(t.shape || [], { seed: 11 + i.name.length, dist: "uniform" }) : 0;
+      if (t?.kind === "tensor" && ["f16", "bf16"].includes(t.dtype)) {
+        if (!(value instanceof Tensor)) throw new k.KilnError("TypeError", `reference input ${i.name} requires Tensor data`);
+        out[i.name] = new Tensor(value.shape, Float32Array.from(value.data, x => roundToDtype(x, t.dtype)));
+      } else out[i.name] = value;
     }
     return out;
   }
