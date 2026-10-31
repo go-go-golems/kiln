@@ -7596,3 +7596,72 @@ See Step149 for the authored report request and Steps155–157 for the continuin
 - Confirmation source revision:e2b85df5d24ee176a43fcd9461048013a03a83d8. Container kiln005-native-policy-search-heldout-v1 is absent; no GPU compute process remained after the run.
 - Vault note:Projects/2026/10/31/ARTICLE - Kiln - Controlled Policy Search and Unchanged Winners.md.
 - The numerical protocol remains explicit highest-precision FP32 with separate contraction. No task coverage count or official PassBench score was promoted from this experiment.
+
+## Step 159: Preserve the JSON prototype and switch to the requested Pi/LunaRoute route
+
+The preceding goal turn completed and published the controlled comparison, so it was progress. This turn initially investigated schema-constrained actions for the existing local-model driver. Before that prototype was validated, the user asked to use Pi with a LunaRoute GLM route. I preserved the unfinished diff and restored the committed driver, then verified the installed Pi/provider stack and made one small real connectivity call.
+
+Pi0.85.1 with the LunaRoute extension0.7.2 exposes lunaroute/glm-5.3-flash. The requested glm-fast name is not a current alias. A no-tool READY call through the available route completed in1.668521 seconds. That is a connectivity measurement, not a compiler-policy trial or representative generation-throughput comparison. The next implementation will use Pi's native tools with the existing trusted policy task.
+
+### Prompt Context
+**User prompts (verbatim):**
+- "are you doing llm calls? how?"
+- "how fast is it? can you use pi coding agent with lunaroute/glm-fast or so?"
+- "Btw write the diary, retroactively if needed, use diary format from the skill. commit at appropriate intervals and keep a detailed diary as you work (using the diary format from the skill)"
+**Assistant interpretation:** Explain the actual inference path and speed, use the requested Pi/LunaRoute agent route, and keep the detailed implementation/provenance diary current with meaningful commits.
+**Inferred user intent:** Reduce model latency and custom agent plumbing while preserving traceable compiler experiments.
+**Starting commit:**27229c216ea0290b978212ab44ecca5b645a00b6.
+
+### What I did
+- Verified the prior local server's measured decode throughput:29.66 tokens/second on its second response, with105622.23ms decoding3134 tokens. The full previous batch's142.0059 seconds and3944 completion tokens remain unchanged evidence.
+- Inspected and archived pinned llama.cpp server source and schema tests with script442. Found that executable code expects response_format.json_schema.schema for type=json_schema, unlike the README shorthand.
+- Drafted a version3 JSON-action driver locally, but did not validate or execute it. After the user's Pi request, script443 archived the complete diff and hashes and restored only that session-owned driver file to its committed bytes.
+- Inspected installed Pi SDK/tool/resource-loader APIs and LunaRoute provider source. No external implementation algorithm was ported and no credentials/configuration contents were archived.
+- Used script444 to archive selected installed API documentation/source metadata and list the provider catalog with only the explicit LunaRoute extension enabled.
+- Ran one no-tool, no-context-file Pi CLI connectivity call in tmux kiln-pi-lunaroute-smoke-v1. Retained its JSON event stream, Pi session, stderr, command, returned usage and elapsed time.
+
+### Why
+- The user's explicit framework/provider preference supersedes extending the custom local parser. Preserving the unused patch records the investigation without leaving untested production changes active.
+- Pi already provides provider integration, native tool calling, session records and event hooks. The trusted compiler task can remain the authority for validation and budget accounting.
+- A minimal provider check establishes that the installed route works before introducing compiler tools; it cannot measure realistic policy-generation throughput.
+
+### What worked
+- Explicit provider discovery found lunaroute/glm-5.3-flash and the other currently configured LunaRoute routes. Pi handles authentication internally; no credential-printing command was run.
+- The READY call completed successfully in1.668521151994355 seconds. Provider-reported usage was46 input tokens and8 output tokens,54 total, including6 reasoning tokens within the reported output usage.
+- The local JSON prototype was preserved as native-json-action-prototype-v1/driver.patch, SHA25635817d55c44e955e65f2c4d1b276b6c08c4fd0e6d00efa8d12aa8b284bd40d70. The active driver exactly matches its prior committed bytes.
+- Source provenance for llama.cpp and installed Pi/provider APIs is retained in sources rather than inferred from memory.
+
+### What didn't work
+- Initial sandboxed `pi --help` reported `Warning: Invalid settings file /home/manuel/.pi/agent/settings.json: EROFS: read-only file system, mkdir '/home/manuel/.pi/agent/settings.json.lock'`. Provider discovery succeeded with authorized escalation for Pi's normal settings lock.
+- Discovery with --no-extensions alone reported no glm-fast match and warnings about missing configured lunaroute routes. Loading the explicit installed LunaRoute provider extension resolved its catalog; no global configuration was changed.
+- One source-search regex containing an unescaped opening brace failed with `error: repetition quantifier expects a valid decimal`; the search was repeated with fixed-string patterns. A guessed pi-ai provider source filename also did not exist; installed file discovery is required before the retry-policy audit.
+- The abandoned JSON prototype was untested and never used for inference. It does not supersede any previous result or establish an alternative working agent interface.
+- The pre-commit `git diff --cached --check` reported `trailing whitespace` in the byte-preserved patch context, installed SDK documentation and aligned model-catalog output. Those evidence bytes are retained to preserve their hashes; the authored scripts and diary pass the scoped whitespace check.
+
+### What I learned
+- LunaRoute models are registered by an extension, so disabling all extensions also hides the requested provider. Explicitly enabling that provider allows isolation from unrelated extensions.
+- Pi validates tool arguments before its tool_call hook. The integration must account for malformed submissions before that validation boundary if it claims every identifiable submission is charged.
+- Pi awaits message_end extension handlers before tool execution. This provides a place to reserve submission outcomes in the trusted task and return those exact outcomes through native tools without duplicate execution.
+
+### What was tricky to build
+- The provider catalog's available name differs from the user's approximate alias. The selected glm-5.3-flash route is recorded explicitly rather than silently treating glm-fast as an existing model.
+- Shared agent configuration contains authentication and user extensions. Discovery retained only package/source metadata and model IDs, while Pi resolved its own credentials.
+- The framework transition must preserve the completed Qwen/XML experiment and its source revision. The new Pi run will be a separately declared experiment, with its own tool and token accounting.
+
+### What warrants a second pair of eyes
+- Review Pi event ordering, invalid-argument charging and concurrent tool-call behavior before claiming equivalent proposal allowances.
+- Verify retry/compaction controls and retained request payloads in the actual policy run. A successful READY call alone does not validate those experiment controls.
+
+### What should be done in the future
+- Connect Pi's native tools to one owned NativePolicyTask process, restrict active tools and context, and record model identity, requests, tool outcomes, usage and timing.
+- Run a bounded real policy batch through lunaroute/glm-5.3-flash, then use the existing compiler/evaluator on accepted artifacts. Keep the previous comparison unchanged.
+
+### Code review instructions
+- Inspect scripts442–444 and their retained source-study/prototype/runtime evidence directories.
+- Confirm the current run_native_policy_agent.py has no uncommitted prototype changes before starting the Pi integration.
+- Read the installed Pi SDK and agent-loop validation/event code cited by this investigation; use actual APIs rather than the earlier framework assumptions.
+
+### Technical details
+- Pi executable package:/home/manuel/.nvm/versions/node/v24.18.0/lib/node_modules/@earendil-works/pi-coding-agent. The retained smoke runs its CLI with Node26.13.0.
+- Provider extension:/home/manuel/.pi/agent/npm/node_modules/@lunaroute/pi-extension/src/index.ts.
+- No production compiler transformation, numerical tolerance, task coverage, native benchmark score or published comparison result changed.

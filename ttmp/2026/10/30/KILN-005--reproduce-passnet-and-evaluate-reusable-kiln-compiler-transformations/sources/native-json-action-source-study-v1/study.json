@@ -1,0 +1,29 @@
+{
+  "format": "kiln-pinned-api-source-study/1",
+  "source_revision": "0ec4027a2a0183de87c007069adddc06e665f7de",
+  "archive_sha256": "ae3412108f990e59ac0fd8a0f066ba85cc967daf3c8ac11a22e951ea1d40abc8",
+  "files": [
+    {
+      "archive_member": "llama.cpp-0ec4027a2a0183de87c007069adddc06e665f7de/tools/server/server-common.cpp",
+      "path": "tools/server/server-common.cpp",
+      "sha256": "b686729ed7d098e2f0c3da1ba28325d0e6d30721dab09f71cb9b53f342710ddb"
+    },
+    {
+      "archive_member": "llama.cpp-0ec4027a2a0183de87c007069adddc06e665f7de/tools/server/README.md",
+      "path": "tools/server/README.md",
+      "sha256": "8fd5abde2fb52de3b30f30a170631d4c0d92febecc8da44d0541e48b132b35c6"
+    },
+    {
+      "archive_member": "llama.cpp-0ec4027a2a0183de87c007069adddc06e665f7de/tests/test-json-schema-to-grammar.cpp",
+      "path": "tests/test-json-schema-to-grammar.cpp",
+      "sha256": "ef5baa4c84435c3cb426f2a810473995b31398a7790c5a6bf18f8a17621bdd5e"
+    }
+  ],
+  "findings": [
+    "server-common.cpp extracts response_format.json_schema.schema when type=json_schema.",
+    "The extracted schema becomes common_chat_templates_inputs.json_schema.",
+    "Use the executable source contract rather than the README shorthand showing a top-level schema.",
+    "No llama.cpp implementation is ported; this study informs the HTTP request shape."
+  ],
+  "pending": "Actual constrained decoding with the pinned Qwen model must be tested separately."
+}

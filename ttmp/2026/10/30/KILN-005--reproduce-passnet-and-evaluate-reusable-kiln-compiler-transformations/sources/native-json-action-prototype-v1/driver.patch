@@ -1,0 +1,229 @@
+diff --git a/integrations/passnet/run_native_policy_agent.py b/integrations/passnet/run_native_policy_agent.py
+index fc5c5e6..d279931 100644
+--- a/integrations/passnet/run_native_policy_agent.py
++++ b/integrations/passnet/run_native_policy_agent.py
+@@ -1,15 +1,15 @@
+-"""Run a bounded proposal batch using R2E-Gym actions/trajectory steps.
++"""Bounded native policy loop with schema-constrained JSON actions.
+ 
+-The repository-editing Agent.run and placeholder reward are intentionally not
+-used. This native lifecycle calls the local OpenAI-compatible endpoint directly,
+-with no hidden retries, and dispatches only the trusted native task's tools.
++This standard-library lifecycle calls the explicitly selected local endpoint,
++records exact messages and usage, and dispatches only trusted task operations.
++Original PassAgent/R2E reproduction remains a separate experiment.
+ """
+ import argparse
+ import copy
+ import hashlib
+ import json
+ from pathlib import Path
+-import re
++import sys
+ import time
+ from urllib.parse import urlparse
+ from urllib.request import Request, build_opener, ProxyHandler, HTTPRedirectHandler
+@@ -23,10 +23,11 @@ This is a proposal batch: you receive structural training features and validatio
+ feedback, but no timing feedback during the batch. Accepted means valid policy
+ data, not a speedup. Submit distinct candidate programs within the stated budget.
+ 
+-Use exactly one XML tool action per reply:
+-<function=inspect_training></function>
+-<function=submit_policy><parameter=policy_json>JSON_OBJECT</parameter></function>
+-<function=finish></function>
++Return exactly one JSON action object per reply, without prose or code fences:
++{"tool":"inspect_training"}
++{"tool":"submit_policy","policy_json":"POLICY_JSON_ENCODED_AS_A_STRING"}
++{"tool":"finish"}
++The server constrains the action envelope; the host validates every policy.
+ There is no shell, file editor, external search, or access to held-out examples.
+ 
+ Policy JSON has format "kiln-fusion-policy/1", a lowercase alphanumeric/hyphen id
+@@ -57,63 +58,52 @@ Legality checks remain in the compiler; a policy only changes profitability.
+ 
+ Do not add numerical policies, tolerance changes, task identifiers, source code,
+ imports or evaluator controls to a proposal. Rejected and duplicate submissions
+-consume proposal slots. A reply with multiple actions executes none, but each
+-recognizable submit_policy header consumes a proposal slot, including incomplete
+-or malformed submissions. Every reply consumes a model step. Finish when done.
++consume proposal slots. Every submission response consumes one proposal slot.
++Any malformed or truncated action response also consumes one slot and executes
++no action body. Inspection and finish do not consume proposal slots. Every reply
++consumes a model step. Extra keys or multiple action objects are invalid.
++Finish when done.
+ """
+ 
+ 
+-def r2e_components():
+-    # Installed from the separately pinned framework; no dynamic installation.
+-    from r2egym.agenthub.action import Action
+-    from r2egym.agenthub.trajectory import TrajectoryStep
+-    return Action, TrajectoryStep
++ACTION_SCHEMA = {'anyOf':[
++    {'type':'object','properties':{'tool':{'const':name}},'required':['tool'],'additionalProperties':False}
++    for name in ['inspect_training','finish']
++]+[{'type':'object','properties':{'tool':{'const':'submit_policy'},'policy_json':{'type':'string'}},
++    'required':['tool','policy_json'],'additionalProperties':False}]}
++ACTION_SCHEMA_SHA256 = hashlib.sha256(json.dumps(ACTION_SCHEMA,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+ 
+ 
+-def parse_action(text, action_type):
+-    matches = list(re.finditer(r'<function\s*=\s*([^>]+)>(.*?)</function>', text, re.DOTALL))
+-    openings = list(re.finditer(r'<function\s*=\s*([^>\s]+)', text))
+-    if len(matches) != 1 or len(openings) != 1 or text.count('</function>') != 1:
+-        return '', {}, 'Expected exactly one complete tool action'
+-    match = matches[0]
+-    names = re.findall(r'<parameter\s*=\s*([^>]+)>', match.group(2))
+-    if len(names) != len(set(name.strip() for name in names)):
+-        # A recognized malformed submission still consumes its proposal slot.
+-        return match.group(1).strip(), None, 'Duplicate action parameters'
+-    action = action_type.from_string(match.group(0))
+-    return action.function_name, action.parameters, None
+-
+-
+-def dispatch_response(content, finish_reason, task, action_type):
+-    """Charge identifiable submissions even when their enclosing reply is invalid.
+-
+-    Reserved XML action delimiters count anywhere in final response content.
+-    Unstructured prose and separate provider reasoning are not tool submissions.
+-    Excess attempts are reported, never admitted beyond the task's fixed budget.
+-    """
+-    identified=sum(match.group(1)=='submit_policy' for match in
+-                   re.finditer(r'<function\s*=\s*([^>\s]+)',content))
+-    name,parameters,error=parse_action(content,action_type)
++def parse_action(text):
++    """Validate the complete envelope independently of the server's grammar."""
++    try:
++        action=_strict_json(text)
++        if not isinstance(action,dict):raise ValueError('Expected one JSON action object')
++        name=action.get('tool')
++        if name in ('inspect_training','finish') and set(action)=={'tool'}:return name,{},None
++        if name=='submit_policy' and set(action)=={'tool','policy_json'} and isinstance(action['policy_json'],str):
++            return name,{'policy_json':action['policy_json']},None
++        raise ValueError('Unknown tool, extra keys or invalid action arguments')
++    except (ValueError,TypeError) as error:return '',{},str(error)
++
++
++def dispatch_response(content, finish_reason, task):
++    """One response is one action attempt; invalid/truncated replies spend a slot."""
++    name,parameters,error=parse_action(content)
+     if finish_reason!='stop':
+         name,parameters,error='',{},'Incomplete completion'
+     if error:
+         observation=({'status':'incomplete_completion','finish_reason':finish_reason}
+                      if finish_reason!='stop' else {'status':'invalid_action','error':error})
+-        rejections=[]
+-        for _ in range(identified):
+-            rejected=task.call('submit_policy',None)
+-            if rejected['status'] in ('budget_exhausted','closed'):
+-                break
+-            rejections.append(rejected)
+-        charged=len(rejections)
+-        if identified:
+-            observation['rejected_submissions']=rejections
+-            observation['remaining']=rejections[-1]['remaining'] if rejections else 0
++        rejected=task.call('submit_policy',None)
++        charged=int('attempt' in rejected)
++        observation.update(rejected_submission=rejected,remaining=rejected.get('remaining',0))
+     else:
+         observation=task.call(name,parameters)
+         charged=int(name=='submit_policy' and 'attempt' in observation)
+-    accounting={'identified_submissions':identified,'charged_submissions':charged,
+-                'unadmitted_submissions':identified-charged}
++    attempts=int(bool(error) or name=='submit_policy')
++    accounting={'proposal_attempts':attempts,'charged_submissions':charged,
++                'unadmitted_submissions':attempts-charged}
+     return name,parameters,error,observation,accounting
+ 
+ 
+@@ -143,7 +133,7 @@ class LocalCompletion:
+ 
+ 
+ def run_batch(task, output, *, model, max_steps, completion_budget,
+-              per_turn_tokens, query, action_type, step_type, proposal_budget):
++              per_turn_tokens, query, proposal_budget):
+     """No automatic query retries. Record raw response before interpreting it."""
+     if any(type(value) is not int or value < 1 for value in
+            [max_steps,completion_budget,per_turn_tokens,proposal_budget]):
+@@ -156,13 +146,15 @@ def run_batch(task, output, *, model, max_steps, completion_budget,
+     totals={'prompt_tokens':0,'completion_tokens':0,'total_tokens':0}
+     status='step_budget_exhausted'
+     steps=[]
+-    submissions={'identified_submissions':0,'charged_submissions':0,'unadmitted_submissions':0}
+-    _write_new(output/'config.json',{'format':'kiln-native-agent-batch/2', 'model':model,
++    submissions={'proposal_attempts':0,'charged_submissions':0,'unadmitted_submissions':0}
++    _write_new(output/'config.json',{'format':'kiln-native-agent-batch/3', 'model':model,
+         'max_steps':max_steps,'completion_budget':completion_budget,
+         'per_turn_tokens':per_turn_tokens,'proposal_budget':proposal_budget,
+         'system_prompt_sha256':hashlib.sha256(SYSTEM_PROMPT.encode()).hexdigest(),
+-        'retry_policy':'none','provider_mode':'local HTTP, XML actions, no native tool schemas',
+-        'proposal_accounting':'Each recognizable submit_policy header is charged, including invalid multi-action and truncated replies; excess attempts are recorded but not admitted',
++        'action_schema_sha256':ACTION_SCHEMA_SHA256,'action_schema':ACTION_SCHEMA,
++        'retry_policy':'none','provider_mode':'local HTTP, schema-constrained JSON actions',
++        'framework':'native standard-library loop','python':sys.version,
++        'proposal_accounting':'One slot per submission response or malformed/truncated action response; no action body executes on malformed/truncated replies',
+         'evaluation_status':'not_run'})
+     try:
+         for index in range(max_steps):
+@@ -171,7 +163,8 @@ def run_batch(task, output, *, model, max_steps, completion_budget,
+                 status='completion_budget_exhausted'
+                 break
+             request={'model':model,'messages':copy.deepcopy(messages),'temperature':0,
+-                     'max_tokens':min(per_turn_tokens,remaining),'stream':False}
++                     'max_tokens':min(per_turn_tokens,remaining),'stream':False,
++                     'response_format':{'type':'json_schema','json_schema':{'name':'kiln_action','strict':True,'schema':copy.deepcopy(ACTION_SCHEMA)}}}
+             prefix=output/f'step-{index:04d}'
+             _write_new(prefix.with_suffix('.request.json'),request)
+             query_start=time.monotonic()
+@@ -201,19 +194,16 @@ def run_batch(task, output, *, model, max_steps, completion_budget,
+                 raise ValueError('Provider content is not text')
+             env_start=time.monotonic()
+             name,parameters,parse_error,observation,accounting=dispatch_response(
+-                content,choice.get('finish_reason'),task,action_type)
++                content,choice.get('finish_reason'),task)
+             for key in submissions:submissions[key]+=accounting[key]
+             env_seconds=time.monotonic()-env_start
+             done=observation.get('status') in ('finished','budget_exhausted') or observation.get('remaining')==0
+-            step=step_type(step_idx=index,thought=message.get('reasoning_content') or '',
+-                action=action_type(name,parameters or {}).to_xml_string(),
+-                observation=json.dumps(observation,allow_nan=False),done=done,
+-                info={'parse_error':parse_error,'finish_reason':choice.get('finish_reason'),**accounting},
+-                token_usage_prompt=usage['prompt_tokens'],token_usage_completion=usage['completion_tokens'],
+-                token_usage_total=usage['total_tokens'],llm_exec_time=llm_seconds,
+-                env_exec_time=env_seconds,total_step_time=llm_seconds+env_seconds,
+-                total_time_traj=time.monotonic()-start,step_count=index+1)
+-            row=step.model_dump()
++            row={'format':'kiln-native-agent-step/1','step_idx':index,
++                 'reasoning':message.get('reasoning_content') or '',
++                 'action':{'tool':name,'arguments':parameters},'observation':observation,'done':done,
++                 'info':{'parse_error':parse_error,'finish_reason':choice.get('finish_reason'),**accounting},
++                 'usage':usage,'llm_seconds':llm_seconds,'task_seconds':env_seconds,
++                 'elapsed_seconds':time.monotonic()-start}
+             _write_new(prefix.with_suffix('.trajectory-step.json'),row)
+             steps.append(row)
+             messages.extend([{'role':'assistant','content':content},
+@@ -225,7 +215,7 @@ def run_batch(task, output, *, model, max_steps, completion_budget,
+         status='driver_error'
+         _write_new(output/'error.json',{'type':type(error).__name__,'error':str(error)})
+     finally:
+-        summary={'format':'kiln-native-agent-batch-result/2','exit_reason':status,
++        summary={'format':'kiln-native-agent-batch-result/3','exit_reason':status,
+                  'model':model,'usage':totals,'steps':len(steps),'task':task.finish(),
+                  'submission_accounting':submissions,
+                  'elapsed_seconds':time.monotonic()-start,'evaluation_status':'not_run'}
+@@ -245,14 +235,13 @@ def main():
+     parser.add_argument('--per-turn-tokens',type=int,default=4096)
+     parser.add_argument('--timeout',type=int,default=180)
+     args=parser.parse_args()
+-    action_type,step_type=r2e_components()
+     query=LocalCompletion(args.base_url,args.timeout)
+     args.output.mkdir(parents=True,exist_ok=False)
+     task=NativePolicyTask(args.output/'task',json.loads(args.manifest.read_text()),
+                           json.loads(args.receipt.read_text()),proposal_budget=args.proposal_budget,node=args.node)
+     result=run_batch(task,args.output/'agent',model=args.model,max_steps=args.max_steps,
+         completion_budget=args.completion_budget,per_turn_tokens=args.per_turn_tokens,
+-        query=query,action_type=action_type,step_type=step_type,proposal_budget=args.proposal_budget)
++        query=query,proposal_budget=args.proposal_budget)
+     print(json.dumps(result,indent=2))
+     if result['exit_reason'] in ('provider_error','driver_error','invalid_provider_usage','provider_exceeded_completion_limit'):
+         raise SystemExit(1)
