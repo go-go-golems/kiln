@@ -45,6 +45,14 @@ export const REDUCERS = {
   min: { init: 3.4028234663852886e38, js: (a, b) => (a < b ? a : b), op: "min", c: "3.402823466e38f", w: "3.402823466e38" },
   mul: { init: 1, js: (a, b) => a * b, op: "mul", c: "1.0f", w: "1.0" },
 };
+// Loop references model FP32 scalar registers, including accumulator updates.
+// Tensor references already round through Float32Array storage between nodes.
+export const FLOAT32_FUNCTIONS = Object.freeze(Object.fromEntries(
+  Object.entries(FNS).map(([name, spec]) => [name, (...args) => f(spec.js(...args))])
+));
+export const FLOAT32_REDUCERS = Object.freeze(Object.fromEntries(
+  Object.entries(REDUCERS).map(([name, spec]) => [name, (a, b) => f(spec.js(a, b))])
+));
 export function fn(name) { const x = FNS[name]; if (!x) throw new Error(`unknown function "${name}" (known: ${Object.keys(FNS).join(", ")})`); return x; }
 export function reducer(name) { const x = REDUCERS[name]; if (!x) throw new Error(`unknown reduction "${name}" (add, max, min, mul)`); return x; }
 export const fill = (tpl, args) => tpl.replace(/\{(\d)\}/g, (_, i) => args[+i]);

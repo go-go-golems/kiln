@@ -1,0 +1,44 @@
+ok   bilinear.mjs           34 ms
+ok   casts.mjs              39 ms
+ok   concat.mjs             57 ms
+ok   conv2d.mjs             71 ms
+ok   core.mjs               42 ms
+ok   cuda-dtypes.mjs        20 ms
+ok   dtypes.mjs             53 ms
+ok   evidence.mjs          382 ms
+ok   export.mjs            125 ms
+ok   f32-loop-reference.mjs     23 ms
+ok   fusion-policy.mjs      45 ms
+ok   hypotheses.mjs        330 ms
+ok   lowered-dtypes.mjs     29 ms
+ok   matmul.mjs             54 ms
+ok   paired.mjs            261 ms
+ok   progs.mjs             351 ms
+ok   project-input-dtypes.mjs    108 ms
+ok   protocol.mjs          188 ms
+ok   rounding-expressions.mjs     24 ms
+ok   stack1.mjs             60 ms
+ok   stack2.mjs            537 ms
+ok   stack3.mjs            255 ms
+ok   targets.mjs            85 ms
+ok   tune.mjs             1021 ms
+ok   typed-arithmetic.mjs     23 ms
+FAIL u8.mjs                142 ms  (exit 1)
+ok   floor evaluates: -3 -1 -1 0 0 1 1 255
+ok   grey compiles
+ok   grey fuses into one kernel (1)
+ok   the kernel records its input dtype: ["u8"]
+ok   traffic counts one byte per u8 element: 21504
+ok   CUDA reads the input as unsigned char
+ok   WGSL binds packed words and unpacks through ld0
+ok   seeded u8 inputs are whole numbers in 0..255
+ok   simulated kernel matches the loop reference (512 samples)
+ok   frontend evaluation equals the integer formula on 3072 pixels (0 differ)
+ok   loop level evaluation equals the integer formula on 3072 pixels (0 differ)
+ok   softmax identities unchanged: 307lrilpsx
+FAIL blur identities unchanged: 1lzuy2qencd
+ok   attention identities unchanged: 160ckx28ec8 ylusrrd178 typboubdt0
+FAIL layernorm identities unchanged: 1bmsn6x2d
+2 failed
+ok   view-dtypes.mjs        25 ms
+1 of 27 FAILED

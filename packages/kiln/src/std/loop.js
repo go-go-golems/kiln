@@ -6,7 +6,7 @@
 import { k, P, KilnError } from "../core/kiln.js";
 import { Tensor, numel, strides, hash } from "../core/util.js";
 import * as IX from "../core/ix.js";
-import { FNS, fn as F, reducer } from "./fns.js";
+import { FNS, FLOAT32_FUNCTIONS, FLOAT32_REDUCERS, fn as F, reducer } from "./fns.js";
 
 // ----------------------------------------------------------------------------- expressions
 const INTERN = new Map();
@@ -52,7 +52,7 @@ export const E = {
   load: (i, idx) => intern({ k: "in", i, idx: idx.map(IX.lift) }),
   op: (fnName, ...a) => {
     F(fnName);
-    if (a.every((x) => x.k === "num")) return E.num(Math.fround(F(fnName).js(...a.map((x) => x.v))));
+    if (a.every((x) => x.k === "num")) return E.num(Math.fround(F(fnName).js(...a.map((x) => Math.fround(x.v)))));
     if (COMM.has(fnName) && a.length === 2 && a[0].__key > a[1].__key) a = [a[1], a[0]];
     return intern({ k: "op", fn: fnName, a });
   },
@@ -206,7 +206,7 @@ export function compileSerial(sched, inShapes) {
   const flat = (idx, st) => idx.reduce((acc, e, j) => (st[j] === 0 ? acc : acc.add(e.mul(st[j]))), IX.C(0));
   const js = (e) => IX.emit(e, "js");
   const body = [];
-  const op = (o) => (o.ref ?? `(${o.num})`);
+  const op = (o) => (o.ref ?? `(${Math.fround(o.num)})`);
   const walk = (ss, pad) => {
     for (const s of ss) {
       if (s.s === "for") { body.push(`${pad}for (let ${s.v} = 0; ${s.v} < ${s.n}; ${s.v}++) {`); walk(s.body, pad + "  "); body.push(`${pad}}`); }
@@ -220,9 +220,7 @@ export function compileSerial(sched, inShapes) {
   };
   walk(sched.stmts, "  ");
   const src = `return function kernel(I, O) {\n${inShapes.map((_, i) => `  const I${i} = I[${i}];`).join("\n")}\n${body.join("\n")}\n};`;
-  const Fj = Object.fromEntries(Object.entries(FNS).map(([kk, v]) => [kk, v.js]));
-  const Rj = Object.fromEntries(Object.entries({ add: 1, max: 1, min: 1, mul: 1 }).map(([kk]) => [kk, reducer(kk).js]));
-  const fnc = new Function("F", "R", src)(Fj, Rj);
+  const fnc = new Function("F", "R", src)(FLOAT32_FUNCTIONS, FLOAT32_REDUCERS);
   fnc.source = src;
   EVAL.set(sched, { key, fn: fnc });
   return fnc;
@@ -236,7 +234,7 @@ export function compilePoint(sched, inShapes) {
   const outSt = strides(sched.shape);
   const flat = (idx, st) => idx.reduce((acc, e, j) => acc.add(e.mul(st[j])), IX.C(0));
   const js = (e) => IX.emit(e, "js");
-  const op = (o) => (o.ref ?? `(${o.num})`);
+  const op = (o) => (o.ref ?? `(${Math.fround(o.num)})`);
   const body = [];
   for (const d of sched.dims) body.push(`  const ${d.v} = Math.floor(e / ${outSt[d.dim]}) % ${d.n};`);
   const walk = (ss, pad) => {
@@ -251,9 +249,7 @@ export function compilePoint(sched, inShapes) {
   };
   walk(sched.stmts, "  ");
   const src = `return function point(I, e) {\n${inShapes.map((_, i) => `  const I${i} = I[${i}];`).join("\n")}\n${body.join("\n")}\n};`;
-  const Fj = Object.fromEntries(Object.entries(FNS).map(([kk, v]) => [kk, v.js]));
-  const Rj = Object.fromEntries(["add", "max", "min", "mul"].map((kk) => [kk, reducer(kk).js]));
-  const fnc = new Function("F", "R", src)(Fj, Rj);
+  const fnc = new Function("F", "R", src)(FLOAT32_FUNCTIONS, FLOAT32_REDUCERS);
   POINT.set(sched, { key, fn: fnc });
   return fnc;
 }

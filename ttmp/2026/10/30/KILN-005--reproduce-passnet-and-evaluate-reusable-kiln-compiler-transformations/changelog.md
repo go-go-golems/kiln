@@ -53,3 +53,11 @@ Completed adaptive training-derived fusion study with no improvement; added SiLU
 
 - /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/fx_import.py — Typed activation and ownership lowering
 - /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/reference/09-milestone-report-adaptive-policy-synthesis-and-activation-coverage.md — Measured synthesis result and compiler extension report
+
+## 2026-10-31
+
+Audited full 14-task matrix cohort, corrected nominal coverage to 8 complete tasks and 149 individual graphs after follow-up, and fixed eager synthetic input allocation through selective Project.inputsFor sampling. Original failed runs and numerical diagnostics preserved; nine-variant full-task rerun pending.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/packages/kiln/src/std/index.js — Selective synthetic sampling before reference cost guard

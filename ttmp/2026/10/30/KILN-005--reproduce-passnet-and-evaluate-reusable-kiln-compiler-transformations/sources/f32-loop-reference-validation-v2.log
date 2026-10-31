@@ -1,0 +1,36 @@
+ok   bilinear.mjs           33 ms
+ok   casts.mjs              21 ms
+ok   concat.mjs             47 ms
+ok   conv2d.mjs             69 ms
+ok   core.mjs               51 ms
+ok   cuda-dtypes.mjs        31 ms
+ok   dtypes.mjs             55 ms
+ok   evidence.mjs          396 ms
+ok   export.mjs            113 ms
+ok   f32-loop-reference.mjs     22 ms
+ok   fusion-policy.mjs      41 ms
+ok   hypotheses.mjs        329 ms
+ok   lowered-dtypes.mjs     25 ms
+ok   matmul.mjs             29 ms
+ok   paired.mjs            278 ms
+ok   progs.mjs             371 ms
+ok   project-input-dtypes.mjs     78 ms
+ok   protocol.mjs          192 ms
+ok   rounding-expressions.mjs     21 ms
+ok   stack1.mjs            100 ms
+ok   stack2.mjs            507 ms
+ok   stack3.mjs            279 ms
+ok   targets.mjs            90 ms
+ok   tune.mjs             1021 ms
+ok   typed-arithmetic.mjs     37 ms
+ok   u8.mjs                144 ms
+ok   view-dtypes.mjs        40 ms
+all 27 passed
+{"e2e":{"level":"loop","checks":[{"name":"out","ok":true,"maxAbs":0,"maxRel":0,"bad":0,"n":1,"first":-1,"message":"max abs diff 0.00e+0"}],"custom":[],"ok":true},"want":[0],"got":[0]}
+{"level":"loop","checks":[{"name":"out0","ok":true,"maxAbs":0.0000152587890625,"maxRel":0.007246376784063853,"bad":0,"n":65536,"first":-1,"message":"max abs diff 1.53e-5"}],"custom":[],"ok":true}
+{"name":"out0","shape":[1,256,16,16],"nonfinite":0,"unequal":3,"maxAbs":0.0000152587890625,"worst":[{"index":17613,"got":-0.003875732421875,"want":-0.0038604736328125,"abs":0.0000152587890625},{"index":13948,"got":-0.0002651214599609375,"want":-0.000263214111328125,"abs":0.0000019073486328125},{"index":53589,"got":0.0003795623779296875,"want":0.000377655029296875,"abs":0.0000019073486328125}]}
+{"level":"loop","checks":[{"name":"out0","ok":true,"maxAbs":0.00006103515625,"maxRel":0.008928528629756176,"bad":0,"n":228096,"first":-1,"message":"max abs diff 6.10e-5"},{"name":"out1","ok":true,"maxAbs":0,"maxRel":0,"bad":0,"n":1584,"first":-1,"message":"max abs diff 0.00e+0"}],"custom":[],"ok":true}
+{"name":"out0","shape":[1,1584,12,12],"nonfinite":0,"unequal":9,"maxAbs":0.00006103515625,"worst":[{"index":50800,"got":0.0135498046875,"want":0.01361083984375,"abs":0.00006103515625},{"index":54358,"got":0.00616455078125,"want":0.006134033203125,"abs":0.000030517578125},{"index":9859,"got":-0.003875732421875,"want":-0.0038604736328125,"abs":0.0000152587890625},{"index":200427,"got":0.000904083251953125,"want":0.0009002685546875,"abs":0.000003814697265625},{"index":22527,"got":0.0003795623779296875,"want":0.000377655029296875,"abs":0.0000019073486328125},{"index":28174,"got":-0.0002803802490234375,"want":-0.00028228759765625,"abs":0.0000019073486328125},{"index":53886,"got":0.0003604888916015625,"want":0.000362396240234375,"abs":0.0000019073486328125},{"index":22271,"got":-7.860362529754639e-7,"want":-7.82310962677002e-7,"abs":3.725290298461914e-9}]}
+{"name":"out1","shape":[1,1584,1,1],"nonfinite":0,"unequal":0,"maxAbs":0,"worst":[]}
+{"level":"loop","checks":[{"name":"out0","ok":false,"maxAbs":0.00048828125,"maxRel":0.006289308176019619,"bad":8,"n":802816,"first":458449,"message":"8 of 802816 values differ (first at 458449: -0.078125 vs -0.07763671875), max abs diff 4.88e-4"}],"custom":[],"ok":false}
+{"name":"out0","shape":[1,256,56,56],"nonfinite":0,"unequal":24,"maxAbs":0.00048828125,"worst":[{"index":458449,"got":-0.078125,"want":-0.07763671875,"abs":0.00048828125},{"index":459234,"got":-0.078125,"want":-0.07763671875,"abs":0.00048828125},{"index":460061,"got":-0.078125,"want":-0.07763671875,"abs":0.00048828125},{"index":460949,"got":-0.078125,"want":-0.07763671875,"abs":0.00048828125},{"index":704231,"got":0.041259765625,"want":0.041015625,"abs":0.000244140625},{"index":704338,"got":0.041259765625,"want":0.041015625,"abs":0.000244140625},{"index":705135,"got":0.041259765625,"want":0.041015625,"abs":0.000244140625},{"index":705470,"got":0.041259765625,"want":0.041015625,"abs":0.000244140625}]}

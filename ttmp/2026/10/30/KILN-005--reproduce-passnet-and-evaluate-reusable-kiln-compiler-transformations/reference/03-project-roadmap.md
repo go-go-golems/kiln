@@ -73,3 +73,8 @@ The 14-task / 151-variant cohort is complete: two additional complete tasks, 68 
 ### Reference-domain follow-up
 
 The 63-variant rerun yields five more nominally passing graphs from an incomplete six-variant task; cumulative coverage is 8 complete tasks /149 individual graphs. The remaining compiler checks include sparse finite BF16 discrepancies. An eager synthetic allocation bug on a 411-million-element input is fixed through selective Project.inputsFor sampling and tested against the exact program. The complete nine-variant task is pending a separate original-evaluator rerun; no additional acceptance is claimed.
+
+
+### FP32 evaluator correction and contraction investigation
+
+The full selective-input rerun is terminal: seven variants compile, the next BF16 reference check fails, and no original evaluation runs. The allocation fix holds. A proven double-versus-FP32 loop-reference defect is corrected and validated against 27 core test files and actual CUDA cancellation. Two preserved real compiler failures now pass unchanged checks; the remaining one disappears when explicit FMA contraction is removed in a diagnostic. Establishing a coherent source/IR/CUDA numerical policy is the next gate; global defaults and official tolerances remain unchanged. Coverage remains 8/200 complete tasks and 149/2060 passing individual graphs.

@@ -4125,3 +4125,56 @@ See earlier implementation, architecture consolidation and detailed-diary instru
 ### Technical details
 - Follow-up remote source snapshot: e8c0bcac34160dcd1d6437c73de248803127eebaf2809af88fbbe0f50c73a307.
 - The new full-task plan preserves graph-list identity and all nine variants; it changes allocation order only.
+
+
+## Step 94: Correct FP32 loop-reference semantics and isolate FMA rounding
+
+The complete selective-input rerun preserves the memory recovery but stops on a later BF16 reference mismatch. Investigation identifies two different numerical issues: a proven shared double-precision loop-reference bug and explicit FMA contraction changing rounding. The former is corrected and validated against actual CUDA; the latter is isolated without changing global defaults or benchmark criteria.
+
+### Prompt Context
+See prior user instructions to implement missing compiler pieces, document provenance and reassess architecture, and Step 89 for coverage accuracy.
+**Assistant interpretation:** Fix a shared compiler correctness model rather than add per-task exceptions or relax acceptance.
+**Inferred user intent:** Build a reliable base for reusable compiler optimization.
+**Commit (code):** bcdaa75 — selective reference sampling and exact memory recovery.
+
+### What I did
+- Collected the terminal nine-variant selective-reference run; seven variants compile, variant 007 fails, and all nine remain unexecuted in the original evaluator.
+- Saved script 146 for a one-element FP32 cancellation oracle, script 147 for core/exact-real-case validation, scripts 148–150 for actual CUDA verification and script 151 to isolate explicit FMA contraction.
+- Added shared FLOAT32_FUNCTIONS/FLOAT32_REDUCERS for full serial and sampled point loop references. Rounded literal evaluation/constant-fold inputs while preserving literal storage.
+- Added f32-loop-reference.mjs covering scalar cancellation, literal folding, accumulator precision and agreement between full/point evaluation.
+
+### Why
+- The frontend stores intermediate tensor results in Float32Array, while the old serial loop keeps JavaScript doubles. This is observably different from the intended scalar register model and from actual CUDA.
+- Removing FMA globally would silently choose a numerical/performance policy. Its observed rounding effect needs a separate contract and experiment.
+
+### What worked
+- Exact oracle: frontend zero, old loop one; corrected loop zero; actual GB10 CUDA zero, exact equality with native PyTorch.
+- All 27 Node test files pass, including existing kernel-identity checks.
+- Preserved task 51/003 now passes ordinary compiler checking (maxAbs 0.0000152587890625); task 60/019 also passes (maxAbs 0.00006103515625 on its large output, reduced output exact).
+- FMA isolation: task 182/007 has eight bad values of 802816 with contraction; removing only contract_fma gives zero absolute difference on every output.
+
+### What didn't work
+- Initial implementation rounded E.num storage eagerly, changing blur/layernorm emitted identities. Full validation failed in the view test: `FAIL blur identities unchanged` and `FAIL layernorm identities unchanged`. The initial log is preserved; the fix was narrowed to evaluation/folding rather than updating expected identities.
+- Corrected FP32 evaluation alone does not resolve task 182/007: eight bad values, maxAbs 0.00048828125. No original task acceptance is claimed for the diagnostic.
+- The complete selective-reference task remains compile-blocked, with all nine original evaluations unexecuted.
+
+### What I learned
+- A compiler validator can reject a GPU-correct program because its own scalar precision is wrong. Separately, FMA can be GPU-valid yet differ from a frontend sequence with two rounding boundaries.
+
+### What was tricky to build
+- Serial and sampled references must share FP32 scalar/accumulator semantics. Rounding only final output or only scalar operations leaves a reduction or sampled-reference inconsistency.
+- Stored literal representation affects kernel identity; evaluation precision can be corrected without unnecessary identity churn.
+
+### What warrants a second pair of eyes
+- Review FP32 accumulation and constant folding, compound operation references, signed zero/nonfinite behavior and the distinction between explicit contraction and CUDA compiler contraction. The JS FMA model is still a host approximation of device FMA/transcendentals, not a full bit-exact GPU implementation.
+
+### What should be done in the future
+- Establish explicit source/IR/CUDA numerical contracts and qualify a contraction policy without weakening official acceptance.
+- Reuse the existing training/confirmation framework to evaluate broader legal compiler interventions; do not repeatedly rerun the same blocked task without a corresponding implementation change.
+
+### Code review instructions
+- Start with std/fns.js, compileSerial/compilePoint, f32-loop-reference.mjs and sources/{loop-precision-counterexample.json,f32-loop-reference-validation-v2.log,f32-cancellation-cuda.json,fma-contraction-diagnostic.jsonl}.
+
+### Technical details
+- CUDA oracle output dtype BF16, input FP32, exact expected/actual zero. PyTorch 2.12.0a0+5aff3928d8.nv26.05 on NVIDIA GB10.
+- Cumulative coverage stays at eight complete tasks and 149 individually accepted graphs. No running evaluation job remains at this checkpoint.
