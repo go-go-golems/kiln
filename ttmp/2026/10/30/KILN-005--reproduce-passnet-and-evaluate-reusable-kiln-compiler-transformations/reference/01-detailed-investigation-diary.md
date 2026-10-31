@@ -5663,3 +5663,54 @@ See Steps 122–124 and the authored requests to implement and measure the compl
 
 ### Technical details
 - The same frozen plan and evaluation budgets are retained across both attempts. GB10/NVIDIA PyTorch container and modified integration matching remain explicit; no exact A30 reproduction or generalizable speedup is claimed.
+
+## Step 126: Verify vault publication and identify the next contraction-analysis target
+
+Report 16 is committed in ca81f3c and published as a new append-only vault article in 6a90c54359355f71b22ffd1db627567030dfbfeb. Script 262 verifies exact body bytes, committed note bytes, origin/main and the actually advertised remote main revision. Unrelated vault changes remain unstaged. The report body SHA-256 is 57f4ea5a12e59908b66e04dd0c8009fac8c925e78d8fb85c22d1284a9f4281c9.
+
+A separate static inspection of the slowest accepted attention source identifies a concrete next investigation. Its first matrix contraction permits tiled mapping, while the final contraction permits only thread/row mappings. Both final input loads structurally depend on both last output dimensions after transpose/reshape indexing. The existing contraction classifier therefore rejects the tiled form. A singleton-reshape index-map simplification is a plausible next compiler change; it has not been implemented or measured in this step.
+
+### Prompt Context
+See Step 125 and the user's authored requests to publish and push deep technical milestone reports, consolidate architecture as it grows, and progress toward reusable compiler improvements.
+**Assistant interpretation:** Finish durable publication and use actual emitted analysis to choose the next compiler investigation rather than assuming a schedule change will help.
+**Inferred user intent:** Preserve reviewable progress while directing implementation toward measured compiler limitations.
+
+### What I did
+- Published reference 16 with script 261, committed only the intended new article and pushed main.
+- Verified exact publication and remote state with script 262; saved softmax-report-publication.json.
+- Saved and executed script 263 against the actual slowest accepted source, using the existing compileScript, Loop IR and tile analyze APIs without modifying the compiler or running another GPU workload.
+- Recorded the analysis in slow-attention-scheduling-inspection.json.
+
+### Why
+- Publishing requires evidence that the full article reached the intended vault commit and remote, not just an existing local file.
+- The slowest accepted source provides a concrete compiler program whose scheduling analysis can be inspected. The analysis must precede any claim about the cause or improvement of its latency.
+
+### What worked
+- Vault main, origin/main and advertised main all equal 6a90c54359355f71b22ffd1db627567030dfbfeb.
+- Exact article body matches the committed ticket report.
+- Script 263 reproduces three Loop IR kernels. The first contraction has M=16384, N=256, K=64 and permits tiled mapping. The final kernel has output shape [64,16384,64], reduction extent 256 and only thread/row mappings.
+- Both final load free-variable sets include a0, a1, a2 and the reduction variable, preventing the classifier's separation of row-dependent and column-dependent operands.
+
+### What didn't work
+- No new optimization is established. The final contraction's current legality analysis does not expose tiled mapping.
+- Updated reMarkable export and original PassAgent configuration remain pending as previously documented. No new device export was attempted.
+
+### What I learned
+- The general reshape map flattens output coordinates and unflattens input coordinates. Inserting/removing singleton axes can therefore preserve syntactic dependencies that a direct axis map could avoid.
+
+### What was tricky to build
+- Mathematical equivalence and structural free-variable dependence differ. Simplifying index maps may expose a legal mapping, but it must preserve all source values and be checked independently before GPU timing.
+
+### What warrants a second pair of eyes
+- Review the raw load dependencies, the classifier's conditions and the source transpose/reshape chain. Establish a general index-map legality rule rather than a pattern-specific workaround.
+
+### What should be done in the future
+- Investigate a direct reshape coordinate map when the ordered non-singleton dimensions are unchanged. Retain general reshape behavior elsewhere; verify views, scalar/all-singleton cases and dtype preservation.
+- If the change exposes tiled contraction, validate actual CUDA correctness and original nominal numerical checks before reporting latency effects. Use separately frozen studies for generalizable compiler-policy claims.
+- Continue remaining source operations, layouts, precision compatibility, original agent reproduction and full benchmark evaluation.
+
+### Code review instructions
+- Read softmax-report-publication.json, script 263, slow-attention-scheduling-inspection.json and reshapeMap in packages/kiln/src/std/tensor.js. Report 16 remains the completed measured milestone, distinct from this next hypothesis.
+
+### Technical details
+- Overall goal remains active. Current verified acceptance is 21 tasks/299 graphs; import eligibility is 1,122 graphs/61 families. No GPU evaluation job from this cohort remains active.
