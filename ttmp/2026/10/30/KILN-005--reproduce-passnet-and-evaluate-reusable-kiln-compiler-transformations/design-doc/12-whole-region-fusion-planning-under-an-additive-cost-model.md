@@ -7,7 +7,15 @@ Topics:
 DocType: design-doc
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://integrations/passnet/freeze_study.py
+      Note: Shared immutable candidate and reference declaration
+    - Path: repo://packages/kiln/src/std/fusion.js
+      Note: Linear local model planner and admissibility
+    - Path: repo://packages/kiln/src/std/loop.js
+      Note: Canonical region selector and graph transaction
+    - Path: repo://packages/kiln/test/fusion-region.mjs
+      Note: Independent exhaustive subset oracle
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-10-31T04:02:11.270610482-04:00
@@ -101,3 +109,8 @@ Shared `prepare_controls.py`, `freeze_study.py` and `compile_study.py` replace r
 At this design checkpoint, the planner and fixtures compile and the fresh source population is frozen; CUDA execution and the full policy experiment remain pending. Local model optimality has executable evidence. GPU benefit, global partition quality, native reduced-precision compatibility and external-model synthesis do not follow from that proof.
 
 Review the implementation, exhaustive test and current policy interpreter first, then the frozen declarations and per-policy compilation receipts. The broader project still includes original PassAgent evaluation, remaining benchmark support and reusable transformation synthesis. Updated reMarkable guide delivery remains separately pending after earlier approval-review rejection.
+
+
+## CUDA and declaration checkpoint
+
+Core implementation is committed as 4523355. The 36 region fixture artifacts pass all108 CUDA comparisons on GB10. Training controls match unchanged/default across twelve graphs and expose69 multi-consumer attempts. All twelve candidate programs and the explicit highest-precision FP32 reference protocol are frozen before confirmation compilation. Shared verify_host_source.py and verify_study.py consolidate the source/commit/reference checks previously repeated in ticket scripts. Full artifact compilation and policy measurements remain pending at this checkpoint.

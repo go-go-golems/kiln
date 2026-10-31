@@ -1,0 +1,45 @@
+{
+  "format": "kiln-policy-measurement-plan/1",
+  "membership_sha256": "9cdb2cf0b136d36491e5a3cf9057219866531921a84b26dacfa42261467e55c1",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "reference_backend_numerics": {
+    "float32_matmul_precision": "highest"
+  },
+  "protocol_scope": "Modified full-precision FP32 compiler-policy research; not native PassBench acceptance",
+  "candidate_ids": [
+    "baseline",
+    "default",
+    "scalar100",
+    "scalar125",
+    "region-work",
+    "region-launch4096",
+    "region-launch32768",
+    "region-launch262144",
+    "region-material1",
+    "region-material12",
+    "region-mixed32768",
+    "region-mixed262144"
+  ],
+  "seed": 42,
+  "warmup": 20,
+  "trials": 100,
+  "repeats": 3,
+  "max_iqr_fraction": 0.2,
+  "max_retries": 2,
+  "inputs": "Original source replay, nominal dtype tolerances, output structure and unchanged inputs",
+  "order": "Seeded shuffle of distinct fingerprints; exact executable aliases share evidence",
+  "metrics": [
+    "synchronized end-to-end ms",
+    "CUDA-event stream elapsed ms including dispatch gaps"
+  ],
+  "selection": "Training-only family-balanced geometric mean end-to-end ratio to unchanged Kiln; exact ties preserve declaration order; compile-cost coefficient zero",
+  "heldout": "Only baseline and committed training selection; all 8 confirmation graphs retained without replacement or filtering",
+  "scope": "Fresh exact models relative to all evaluation models and prior policy corpora; architecture relatives may remain; metadata-restricted FP32 population",
+  "proposal_provenance": {
+    "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+    "training_trace_sha256": "488676043b449751ca53be1e0f5fe88bf20a64b4fec94ec51fb02081e0b0886f"
+  },
+  "source_contract": "Separate elementary FP32 arithmetic and highest-precision native matrix reference, fixed across candidates"
+}

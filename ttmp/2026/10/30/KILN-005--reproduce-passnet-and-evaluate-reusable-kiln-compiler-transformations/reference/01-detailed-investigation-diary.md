@@ -4949,3 +4949,48 @@ See the user's instruction to streamline self-optimization, implement missing Ki
 
 ### Technical details
 - No external algorithm source copied. The local search is derived from Kiln's own additive work model. Core pipeline defaults and original benchmark coverage remain unchanged. New launch/materialization weights are declared surrogate-work priors, not nanosecond estimates.
+
+## Step 111: Validate region CUDA semantics and freeze shared-harness evaluation
+
+All108 whole-region CUDA comparisons pass. The fresh twelve-graph training controls compile identically under unchanged/default and contain69 multi-consumer attempts. Candidate/model coefficients and the explicit highest-precision reference protocol are frozen before confirmation compilation or policy timing. Shared harness commands now own preparation, freeze and source/selection verification rather than copying those mechanisms per study.
+
+### Prompt Context
+See Step110 for the whole-region objective and the user's architectural consolidation request.
+**Assistant interpretation:** Carry the tested planner through a complete fresh experiment with reviewable provenance.
+**Inferred user intent:** Obtain reusable compiler improvements and preserve negative outcomes without accumulating experiment-specific evaluation code.
+**Commit (core):** 4523355 — feat(kiln): choose fusion subsets with whole region cost planning.
+
+### What I did
+- Ran the shared CUDA fixture checker through script207; the tmux pane reports EXIT_CODE=0 and receipt108/108 pass.
+- Used shared prepare_controls.py/freeze_study.py through script208 to declare twelve candidates, including eight bounded region models.
+- Added shared verify_host_source.py and verify_study.py and saved script209 for complete committed-source compilation.
+- Archived raw CUDA and control/freeze logs in sources.
+
+### Why
+- The proof establishes a local surrogate optimum; GPU correctness and held-out latency remain separate required evidence.
+
+### What worked
+- All36 region artifacts pass three-seed comparisons across three structures/dtypes. Original input immutability checks and tolerances are preserved.
+- Twelve training controls qualify and default equals unchanged. No confirmation IR is compiled before freeze.
+- Shared source/selection verifiers retain the same declaration, artifact, reference-flag and pre-confirmation commit checks as previous archived per-study scripts.
+
+### What didn't work
+- No latency improvement or original benchmark acceptance is claimed at this stage.
+
+### What I learned
+- Consolidating experiment mechanics can preserve source evidence while reducing divergence between subsequent studies.
+
+### What was tricky to build
+- The reference execution wrapper remains hashed in the frozen declaration. Source verification compares the complete recorded source set, and the final verifier requires the selection bytes from an explicit pre-confirmation commit.
+
+### What warrants a second pair of eyes
+- Review proof assumptions, region weight units, source snapshot scope and unchanged original numerical tolerances.
+
+### What should be done in the future
+- Compile and qualify all240 artifacts, measure training, commit one selection, then evaluate baseline and the chosen program on all eight confirmation graphs.
+
+### Code review instructions
+- Read design12, policy-corpus-v7/candidate-freeze.json, the CUDA receipt and shared harness CLIs. Script209 must run against committed source bytes.
+
+### Technical details
+- The measurement scope is modified FP32 compiler research; native PassBench acceptance and original reproduction remain open. No new reMarkable export was attempted.
