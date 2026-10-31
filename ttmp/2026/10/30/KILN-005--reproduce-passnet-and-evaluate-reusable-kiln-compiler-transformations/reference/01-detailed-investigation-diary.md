@@ -4535,3 +4535,49 @@ See Steps 99–100 for the self-optimization request and the explicitly separate
 
 ### Technical details
 - Declaration revision 3838348. Twelve training graphs, eight confirmation graphs, same f3df1dd... membership and 240 qualified artifacts. Confirmation execution requires the committed training selection file.
+
+## Step 102: Complete fresh confirmation and report a near-zero result
+
+The committed scalar105 selection and unchanged Kiln both qualify on all eight confirmation graphs. End-to-end ratio is 1.0005681560422044 and stream-elapsed ratio is 0.9995845291040679. This tiny, opposite-signed pair of measurements does not demonstrate a reliable compiler improvement. The rich-corpus study is complete, while native numerical compatibility and the broader reproduction/synthesis goal remain open.
+
+### Prompt Context
+See Steps 99–101 and the user's request for milestone technical reports, vault publication, intern documentation and diary evidence.
+**Assistant interpretation:** Finish the declared confirmation without adapting policies, then publish an accurate technical analysis.
+**Inferred user intent:** Learn from measured compiler experiments, including negative results.
+**Commit (selection):** 2a4162c — research(passnet): commit full-precision training selection before confirmation.
+
+### What I did
+- Executed script 182 through a dedicated bling tmux job; captured EXIT_CODE=0 and all eight completed records.
+- Added script 183 to recheck frozen declarations, all artifacts, reference flags, exact committed selection and recorded remote source match.
+- Wrote reference 12 as a 2200-word textbook analysis covering fusion semantics, LayerNorm, source selection, native/reference precision and measured outcomes.
+- Updated guide Section 31, design 10 and the project roadmap with the completed result and remaining scope.
+
+### Why
+- A completed negative experiment is stronger evidence for prioritization than another unmeasured candidate grammar. The next proposed intervention changes selective fusion structure rather than repeating small threshold searches on an observed population.
+
+### What worked
+- Eight confirmation graphs/families pass; no dropped or replaced examples. Only baseline and the precommitted selection are timed.
+- Script 183 passes structural/numerical/declaration/source/commit checks. All eight selected artifact fingerprints differ from baseline.
+- End-to-end graph ratios range from 0.987649 to 1.007583, with repeat variation larger than the aggregate change.
+
+### What didn't work
+- Threshold/conditional-policy search does not demonstrate a convincing advantage over the default. Native v5-r1 still has two baseline failures and no eligible selection.
+- The modified FP32 research protocol does not reproduce native PassBench acceptance or the paper's A30 hardware/software environment.
+
+### What I learned
+- Existing fusion is valuable here (disabled training ratio 0.174909), but broadening the population alone does not make threshold tuning productive.
+
+### What was tricky to build
+- Summary verification must bind the selected bytes to the commit preceding confirmation, not merely recompute a choice after seeing confirmation outcomes. The wrapper and plan identify the reference precision change explicitly.
+
+### What warrants a second pair of eyes
+- Review the native/highest-precision distinction and avoid treating an eight-model development confirmation as broad statistical evidence or native benchmark support.
+
+### What should be done in the future
+- Publish the report and updated intern guide; design selective fusion legality/lifetime semantics and obtain fresh evaluation data before claiming broader self-optimization.
+
+### Code review instructions
+- Start with reference 12 and policy-measurements-v5-r2/summary.json. Run script 183; inspect selection commit 2a4162c and native failure evidence alongside the modified-protocol result.
+
+### Technical details
+- All graph membership, candidates, numerical contraction and timing budget remain frozen. No core compiler default is changed, no original acceptance is added, and the larger active goal remains incomplete.

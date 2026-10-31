@@ -372,3 +372,14 @@ A failed attempt to select a richer optimization population is retained: the pre
 The new training IR has eighteen reduction-containing kernels and eleven multi-consumer kernels, with 34 kernels total after default fusion. Unchanged and explicit-default training controls are identical. A balanced twelve-program grammar is now frozen from training-only traces, including both restricted and relaxed fusion thresholds and conditional policies. Design 10 and policy-corpus-v5-r1 describe exact membership and procedure. No GPU optimization result is claimed yet.
 
 The compiler harness fixes contraction separate across every candidate, uses explicit phase/numerical receipts (v2), and preserves earlier artifacts. It will compile/qualify the complete declared candidate set before measuring training and committing one selection for unchanged confirmation evaluation. Original source replay tolerances are retained.
+
+
+## 31. Completed rich policy study and reference-precision distinction
+
+All 240 programs compile and structurally qualify at b4a4102. Native training completes but two matrix baselines fail comparison. The selection gate refuses this run. Diagnostic replay establishes that Kiln agrees with FP64 and highest-precision PyTorch within 4e-8, while the default TF32-enabled reference differs by up to 7.25e-5. The native failure remains archived in policy-measurements-v5-r1; neither tolerances nor benchmark acceptance are changed.
+
+A separate, explicitly modified FP32 research declaration retains every graph, candidate, split and binary, and sets the native reference matrix precision to highest through a frozen wrapper. All twelve training graphs qualify. The original objective chooses scalar105 at 1.0013193438356627 relative to unchanged Kiln. Selection is committed in 2a4162c before confirmation timing.
+
+All eight confirmation graphs qualify. End-to-end family-balanced speedup is 1.0005681560422044; CUDA-stream elapsed ratio is 0.9995845291040679. This is effectively no demonstrated improvement. Three repeats on a single GB10 do not establish confidence in such a tiny difference. Original cumulative benchmark acceptance stays eleven complete tasks/206 passing graphs; import eligibility stays 1029 graphs/51 complete families.
+
+Review reference 12 and script 183 for the complete provenance and numerical distinction. The rich-corpus selection/confirmation task is complete; original PassAgent, full support, native reference compatibility and broader transformation synthesis remain open. The next proposed compiler intervention is selective producer fusion, subject to a concrete legality/lifetime design and a newly declared evaluation. Existing fusion remains unchanged.

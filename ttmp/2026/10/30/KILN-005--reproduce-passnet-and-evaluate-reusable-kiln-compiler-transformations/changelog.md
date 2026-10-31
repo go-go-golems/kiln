@@ -61,3 +61,7 @@ Audited full 14-task matrix cohort, corrected nominal coverage to 8 complete tas
 ### Related Files
 
 - /home/manuel/code/wesen/kiln/worktrees/passnet/packages/kiln/src/std/index.js — Selective synthetic sampling before reference cost guard
+
+## 2026-10-31
+
+Completed rich twelve-policy study: 240 qualified artifacts, native TF32 reference failure retained, separately declared FP32 selection committed before fresh eight-model confirmation; no meaningful speedup demonstrated. Report 12 and guide Section 31 document evidence and limits.
