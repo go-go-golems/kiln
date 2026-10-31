@@ -3395,3 +3395,47 @@ See Step 71 for the user's streamlining request and the standing implementation/
 
 ### Technical details
 - Maximum 31 decision nodes, depth six, finite nonnegative features/cutoffs, thresholds in [0,2], hard fusedWork/originalWork cap two. No eval, imports or tensor values are exposed. Global default remains 1.02. This study adds no verified complete PassBench tasks; accepted coverage remains five tasks / 73 graphs under modified protocols.
+
+## Step 79: Preserve a negative training result and freeze unchanged selection
+
+Completed the fresh corpus's 12-graph training measurement. Every declared candidate shares the unchanged compiler's executable on every training graph, so all candidates tie at exactly 1.0 and the registered ordering selects baseline. The experiment therefore supplies no evidence of policy improvement on this corpus. Selection is frozen before confirmation timing.
+
+### Prompt Context
+See Step 78 and the standing self-optimization, evidence and diary requirements.
+**Assistant interpretation:** Retain unsuccessful hypotheses and follow the training-only selection rule.
+**Inferred user intent:** Produce reliable compiler research rather than select improvements retrospectively.
+**Commit (frozen experiment):** a914e0f.
+
+### What I did
+- Ran registered driver 83 on the DGX, archived train.json and computed selection.json using select_policy.py.
+- Saved source-staging driver 84, original-reference audit driver 85, and selection-hash-checked held-out driver 86.
+- Related design 07 to the interpreter, qualification code and frozen plan with docmgr.
+
+### Why
+- A feature program that does not change generated code cannot establish a performance improvement. Exact artifact ties should preserve the unchanged compiler.
+
+### What worked
+- All 12 distinct training executables passed replay correctness and completed stable timing; all eight declared candidates remain eligible and share those measurements.
+- Training selection: baseline, score 1.0, heldout_feedback_used=false.
+
+### What didn't work
+- The first training attempt terminated with `FileNotFoundError: [Errno 2] No such file or directory: '/work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start146_end150_4/input_meta.py'`.
+- The fresh source replay directories had not been staged on the remote host. Driver 84 copied all 20 exact manifest directories; after confirming the failed tmux handle was absent and no train.json existed, reran the same plan with a distinct raw log. No membership, candidate, tolerance or timing budget changed.
+
+### What I learned
+- Fresh dataset selection and source staging are separate dependencies. Compilation from generated programs does not prove the replay source files exist on the measurement machine.
+
+### What was tricky to build
+- Preserve old successful evidence and failed raw logs while restarting only a verified terminal pre-measurement failure. The selection hash is embedded in driver 86 before held-out execution.
+
+### What warrants a second pair of eyes
+- The baseline selection has no changed executable, so later confirmation cannot be described as transfer of an improved policy. The one unselected held-out scalar intervention must not be timed and used to override selection.
+
+### What should be done in the future
+- Finish confirmation and audit the original 200-task reference; use training fusion rejection traces for a subsequent versioned proposal study.
+
+### Code review instructions
+- Recompute select_policy.py from train.json; inspect candidate bindings to confirm exact fingerprint aliases and verify the fixed selection hash in script 86.
+
+### Technical details
+- Existing global default stays 1.02. Fresh direct study and full PassBench accepted coverage remain distinct. The original reference log's 2,041 success labels are execution labels; the upstream tolerance checker must determine numerical correctness.

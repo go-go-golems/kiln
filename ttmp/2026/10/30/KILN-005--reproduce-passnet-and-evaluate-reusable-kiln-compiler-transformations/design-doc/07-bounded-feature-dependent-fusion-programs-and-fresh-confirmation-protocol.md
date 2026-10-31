@@ -7,7 +7,13 @@ Topics:
 DocType: design-doc
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://integrations/passnet/fusion_policy.mjs
+      Note: Bounded compiler-feature policy interpreter
+    - Path: repo://integrations/passnet/qualify_policies.py
+      Note: Independent structural qualification
+    - Path: repo://ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/policy-corpus-v3/measurement-plan.json
+      Note: Frozen candidate and timing protocol
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-10-30T23:35:46.118213126-04:00
