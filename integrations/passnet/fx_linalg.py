@@ -5,7 +5,7 @@ FUNCTIONS={'torch._C._nn.linear':'linear','torch.nn.functional.linear':'linear',
            'torch.matmul':'matmul','_operator.matmul':'matmul','aten.matmul.default':'matmul',
            'torch.mm':'mm','aten.mm.default':'mm','torch.bmm':'bmm','aten.bmm.default':'bmm'}
 METHODS={'matmul','mm','bmm'}
-DTYPES={'torch.float32':'f32','torch.float16':'f16','torch.bfloat16':'bf16'}
+from fx_ops import DTYPES
 
 
 def matmul_shape(a,b):

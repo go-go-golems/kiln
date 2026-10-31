@@ -3,7 +3,7 @@ import json
 import math
 
 LAYER_NORM={'torch.nn.functional.layer_norm','torch.layer_norm','aten.layer_norm.default'}
-DTYPES={'torch.float32':'f32','torch.float16':'f16','torch.bfloat16':'bf16'}
+from fx_ops import DTYPES
 
 
 def lower_layer_norm(target,args,kwargs,meta,resolve,literal):

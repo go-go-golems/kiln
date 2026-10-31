@@ -17,7 +17,7 @@ FUNCTIONS = {
 }
 METHODS = {'clamp': 'clamp', 'clamp_': 'clamp_', 'clip': 'clamp', 'clip_': 'clamp_',
            'pow': 'pow', 'cos': 'cos', 'sin': 'sin', 'square': 'square'}
-DTYPES = {'torch.float32': 'f32', 'torch.float16': 'f16', 'torch.bfloat16': 'bf16'}
+from fx_ops import DTYPES
 
 
 def lower_scalar(target, kind, args, kwargs, meta, resolve, literal):
