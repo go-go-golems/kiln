@@ -1,0 +1,30 @@
+PATTERN graph():
+    %bias : [num_users=1] = placeholder[target=bias]
+    %weight : [num_users=1] = placeholder[target=weight]
+    %residual : [num_users=1] = placeholder[target=residual]
+    %x : [num_users=1] = placeholder[target=x]
+    %conv2d : [num_users=1] = call_function[target=torch.conv2d](args = (%x, %weight, %bias, (2, 2), (1, 1), (1, 1), 1), kwargs = {})
+    %relu : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%conv2d,), kwargs = {inplace: True})
+    %add : [num_users=1] = call_function[target=operator.add](args = (%residual, %relu), kwargs = {})
+    %interpolate : [num_users=1] = call_function[target=torch.nn.functional.interpolate](args = (%add,), kwargs = {size: (24, 24), scale_factor: None, mode: bilinear, align_corners: False, recompute_scale_factor: None, antialias: False})
+    return interpolate
+DYNAMO graph():
+    %l_in_3_ : torch.Tensor [num_users=1] = placeholder[target=L_in_3_]
+    %l_in_1_ : torch.Tensor [num_users=1] = placeholder[target=L_in_1_]
+    %l_in_0_ : torch.Tensor [num_users=1] = placeholder[target=L_in_0_]
+    %l_in_2_ : torch.Tensor [num_users=1] = placeholder[target=L_in_2_]
+    %conv2d : [num_users=1] = call_function[target=torch.conv2d](args = (%l_in_3_, %l_in_1_, %l_in_0_, (2, 2), (1, 1), (1, 1), 1), kwargs = {})
+    %tmp_3 : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%conv2d,), kwargs = {inplace: True})
+    %tmp_4 : [num_users=1] = call_function[target=operator.add](args = (%l_in_2_, %tmp_3), kwargs = {})
+    %tmp_5 : [num_users=1] = call_function[target=torch.nn.functional.interpolate](args = (%tmp_4,), kwargs = {size: (24, 24), mode: bilinear, align_corners: False})
+    return (tmp_5,)
+placeholder 'L_in_3_' () {}
+placeholder 'L_in_1_' () {}
+placeholder 'L_in_0_' () {}
+placeholder 'L_in_2_' () {}
+call_function <built-in method conv2d of type object at 0xf6b5c85f2400> (l_in_3_, l_in_1_, l_in_0_, (2, 2), (1, 1), (1, 1), 1) {}
+call_function <function relu at 0xf6b4e94ccae0> (conv2d,) {'inplace': True}
+call_function <built-in function add> (l_in_2_, tmp_3) {}
+call_function <function interpolate at 0xf6b4e95587c0> (tmp_4,) {'size': (24, 24), 'mode': 'bilinear', 'align_corners': False}
+output 'output' ((tmp_5,),) {}
+MATCHES 0

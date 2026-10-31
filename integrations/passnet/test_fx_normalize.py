@@ -24,6 +24,19 @@ class NormalizeTests(unittest.TestCase):
         torch.testing.assert_close(model(*inputs),expected,rtol=0,atol=0)
         self.assertEqual(normalize_arguments(model),[])
 
+    def test_interpolation_call_forms(self):
+        def pattern(x):
+            return torch.nn.functional.interpolate(x,size=(5,5),mode='bilinear',align_corners=False)
+        pat=symbolic_trace(pattern)
+        graph=Graph();x=graph.placeholder('x')
+        y=graph.call_function(torch.nn.functional.interpolate,(x,),{'size':(5,5),'mode':'bilinear','align_corners':False})
+        graph.output(y);model=GraphModule({},graph)
+        inputs=(torch.randn(1,2,3,4),);expected=model(*inputs)
+        normalize_arguments(pat);normalize_arguments(model)
+        # Assertion becomes active with explicit protocol whitelist extension.
+        self.assertEqual(len(SubgraphMatcher(pat.graph).match(model.graph)),1)
+        torch.testing.assert_close(model(*inputs),expected,rtol=0,atol=0)
+
     def test_invalid_call_fails_before_mutation(self):
         graph=Graph();x=graph.placeholder('x')
         relu=graph.call_function(torch.nn.functional.relu,(x,),{'bad':True});graph.output(relu)

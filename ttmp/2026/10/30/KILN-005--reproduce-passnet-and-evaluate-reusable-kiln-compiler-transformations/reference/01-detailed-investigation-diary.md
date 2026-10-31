@@ -2423,3 +2423,46 @@ Original full checker/integrity/scoring requirement.
 
 ### Technical details
 - Numerical stress limitation remains unresolved; verified task coverage stays 2/200.
+
+## Step 58: Normalize observed interpolation default-argument mismatch
+
+Corrected graph diagnostic launch and captured exact Dynamo/symbolic graphs. Difference is omitted interpolation defaults; added interpolate to explicit functional normalization whitelist with output-preservation/matcher test. Isolated third-task checker retry is being launched/observed; no acceptance claim yet.
+
+### Prompt Context
+Original integrity and reproducible diagnostics requirements.
+**Assistant interpretation:** Change only proven equivalent call representation, with tests.
+**Inferred user intent:** Faithful checker integration without hidden bypasses.
+
+### What I did
+- Saved script 41 with explicit upstream Python import path.
+- Captured third-pattern-v2.log; convolution/ReLU/add targets agree, interpolation defaults differ.
+- Extended fx_normalize TARGETS with functional.interpolate; added match and exact-output test.
+- Ran integration tests and initiated isolated v2 checker.
+
+### Why
+- Structural default-argument mismatch is the same class already declared in normalized protocol; tensor arithmetic unchanged.
+
+### What worked
+- Thirteen integration tests passed, including interpolation normalization and exact CPU output preservation.
+
+### What didn't work
+- First script 40 execution failed ModuleNotFoundError pass_bench because script path /work lacked upstream PYTHONPATH. Script 41 explicit launch fixed it.
+- Original third-task checker mismatch remains archived; corrected acceptance pending.
+
+### What I learned
+- Script location affects module import path even when container working directory is upstream.
+
+### What was tricky to build
+- Normalize both pattern and target using bound defaults; retain in-place ReLU attribute unchanged.
+
+### What warrants a second pair of eyes
+- Protocol whitelist expansion must remain explicit in reports; this is not unchanged PassBench reproduction.
+
+### What should be done in the future
+- Poll retry, inspect numerical/reverse-order/stability results, score only complete outcomes and retain stress limitation.
+
+### Code review instructions
+- Inspect scripts 40/41, third-pattern-v2.log, fx_normalize.py and test_fx_normalize.py.
+
+### Technical details
+- Source validator and dispatch arithmetic guard unchanged; coverage stays 2/200 until full checker result.

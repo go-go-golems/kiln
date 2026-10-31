@@ -9,7 +9,7 @@ import torch
 # Narrow explicit scope: functions whose inspectable Python signatures and
 # defaults define the call forms observed in the pinned first task.
 TARGETS = {torch.nn.functional.relu, torch.nn.functional.batch_norm,
-           torch.nn.functional.dropout}
+           torch.nn.functional.dropout, torch.nn.functional.interpolate}
 
 
 def normalize_arguments(graph_module):
