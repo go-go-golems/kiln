@@ -85,3 +85,7 @@ Commit source softmax lowering as 80d022e: 45 FX tests and 99 CUDA comparisons p
 ## 2026-10-31
 
 Complete repaired softmax qualification under d71eccd: all ten families/93 variants pass exact replacement, original replay execution and nominal t=-5 correctness. Cumulative coverage is 21 tasks/299 graphs. Retain initial matching failures; report descriptive 5 faster/88 slower variants, 254 emitted kernels and source/scorer provenance in milestone report 16.
+
+## 2026-10-31
+
+fed37d1 singleton reshape canonicalization passes all 93 original comparison variants; target median 703.734 -> 20.4884 ms, observed family-balanced old/new ratio 1.064442x. Separate new source cohort passes 3 tasks/14 variants, raising cumulative coverage to 24 tasks/313 graphs. Preserve native 60/63 fixture outcome and document development-only inference in report 17.

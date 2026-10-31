@@ -77,3 +77,9 @@ The initial diagnostic stopped at its first strict assertion; that log and scrip
 The real large attention program now selects tiled mapping for its final M=16384,N=64,K=256 contraction, with BM=128,BN=64,BK=16,TM=8,TN=2. The complete frozen 93-variant original cohort is the next required correctness/performance gate. No successful benchmark regression check or latency improvement is claimed until it completes.
 
 The full 200-task import re-audit after shared reshape binding reports 1,136 graphs/64 complete families, an increment of 14 graphs/three families with zero import regressions. Script 277 freezes every newly complete family in a separate source-qualification plan. This does not alter the original 93-variant optimization comparison or increase accepted coverage before evaluation.
+
+## Completed development and new source evaluation
+
+The fed37d1 complete 93-variant comparison passes all original numerical/replacement checks. All generated Kiln source programs are unchanged. Eighty-one exact executable structures change and twelve remain unchanged. The target's final grid falls from 67,108,864 row blocks to 8,192 tiled blocks, with end-to-end median 703.734 -> 20.4884 ms. The observed family-balanced ratio is 1.064442x; this sequential development measurement does not establish held-out generalization or statistical significance of small per-variant changes.
+
+The separately frozen public-reshape cohort passes every one of its three families/14 variants. Current cumulative acceptance is 24/200 tasks and 313/2,060 graphs. Native fixture qualification remains explicitly 60/63. Reference 17 contains the complete analysis and failure context.

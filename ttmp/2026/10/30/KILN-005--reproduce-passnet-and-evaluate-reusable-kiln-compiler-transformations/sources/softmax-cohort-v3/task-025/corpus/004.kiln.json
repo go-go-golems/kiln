@@ -1,0 +1,154 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../softmax-cohort-v3/task-025/corpus/004.kiln.js",
+  "sha256": "522934406486aec9e694ee248d8d3e87f7e7ac1de31c8455d1015ffe71201adf",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    8,
+    8192,
+    19
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    8,
+    19,
+    256
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 3,
+   "shape": [
+    8,
+    256,
+    8192
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 1245184,
+   "bytes": 2490368
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 38912,
+   "bytes": 77824
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 1245184,
+   "bytes": 2490368
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 16777216,
+   "bytes": 33554432
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_cast_softmax_reduce__27fwhg8x1kb",
+   "identity": "27fwhg8x1kb",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    0
+   ],
+   "writes": 2,
+   "grid": 65536,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    65535,
+    2,
+    1
+   ],
+   "shape": [
+    8,
+    8192,
+    19
+   ],
+   "inShapes": [
+    [
+     8,
+     8192,
+     19
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(32) k_ew_cast_softmax_reduce__27fwhg8x1kb(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float acc0 = 0.0f, in1 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, acc1 = 0.0f, in2 = 0.0f, v8 = 0.0f, v9 = 0.0f, v10 = 0.0f, v11 = 0.0f, v12 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, sv14 = 0.0f, sv15 = 0.0f, sv16 = 0.0f, sv17 = 0.0f, sv18 = 0.0f, sv19 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v6 = 0.0f, v7 = 0.0f, v13 = 0.0f, v14 = 0.0f, v15 = 0.0f;\n    acc0 = -3.4028234663852886e+38f;\n    for (int r0 = tid; r0 < 19; r0 += 32) {\n        in1 = __bfloat162float(src0[(((19 * (bid % 8192)) + (155648 * (bid / 8192))) + r0)]);\n        v3 = __fmul_rn(0.0625f, in1);\n        v4 = __bfloat162float(__float2bfloat16_rn(v3));\n        v5 = v4;\n        acc0 = fmaxf(acc0, v5);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = fmaxf(sv0, sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = fmaxf(sv2, sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = fmaxf(sv4, sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = fmaxf(sv6, sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = fmaxf(sv8, sv9);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    acc1 = 0.0f;\n    for (int r1 = tid; r1 < 19; r1 += 32) {\n        in2 = __bfloat162float(src0[(((19 * (bid % 8192)) + (155648 * (bid / 8192))) + r1)]);\n        v8 = __fmul_rn(0.0625f, in2);\n        v9 = __bfloat162float(__float2bfloat16_rn(v8));\n        v10 = v9;\n        v11 = __fsub_rn(v10, acc0);\n        v12 = expf(v11);\n        acc1 = (acc1 + v12);\n    }\n    __syncthreads();\n    s_red[tid] = acc1;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 16)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 8)];\n        s_red[tid] = (sv12 + sv13);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv14 = s_red[tid];\n        sv15 = s_red[(tid + 4)];\n        s_red[tid] = (sv14 + sv15);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv16 = s_red[tid];\n        sv17 = s_red[(tid + 2)];\n        s_red[tid] = (sv16 + sv17);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv18 = s_red[tid];\n        sv19 = s_red[(tid + 1)];\n        s_red[tid] = (sv18 + sv19);\n    }\n    __syncthreads();\n    acc1 = s_red[0];\n    for (int q = tid; q < 19; q += 32) {\n        in0 = __bfloat162float(src0[(((19 * (bid % 8192)) + (155648 * (bid / 8192))) + q)]);\n        v0 = __fmul_rn(0.0625f, in0);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        v2 = v1;\n        v6 = __fsub_rn(v2, acc0);\n        v7 = expf(v6);\n        v13 = (v7 / acc1);\n        v14 = __bfloat162float(__float2bfloat16_rn(v13));\n        v15 = __bfloat162float(__float2bfloat16_rn(v14));\n        dst[(((19 * (bid % 8192)) + (155648 * (bid / 8192))) + q)] = __float2bfloat16_rn(v15);\n    }\n}"
+  },
+  {
+   "name": "k_cast_matmul_transpose_reduce__2173vkqb54a",
+   "identity": "2173vkqb54a",
+   "row": "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2",
+   "reads": [
+    1,
+    2
+   ],
+   "writes": 3,
+   "grid": 1024,
+   "block": 1024,
+   "smemBytes": 8192,
+   "dispatch": [
+    1024,
+    1,
+    1
+   ],
+   "shape": [
+    8,
+    256,
+    8192
+   ],
+   "inShapes": [
+    [
+     8,
+     19,
+     256
+    ],
+    [
+     8,
+     8192,
+     19
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_matmul_transpose_reduce__2173vkqb54a(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float sA0[1024];\n    __shared__ float sB0[1024];\n    float acc_0_0 = 0.0f, acc_0_1 = 0.0f, acc_1_0 = 0.0f, acc_1_1 = 0.0f, acc_2_0 = 0.0f, acc_2_1 = 0.0f, acc_3_0 = 0.0f, acc_3_1 = 0.0f, acc_4_0 = 0.0f, acc_4_1 = 0.0f, acc_5_0 = 0.0f, acc_5_1 = 0.0f, acc_6_0 = 0.0f, acc_6_1 = 0.0f, acc_7_0 = 0.0f, acc_7_1 = 0.0f, tv = 0.0f, g0 = 0.0f, g1 = 0.0f, a0_0 = 0.0f, a0_1 = 0.0f, a0_2 = 0.0f, a0_3 = 0.0f, a0_4 = 0.0f, a0_5 = 0.0f, a0_6 = 0.0f, a0_7 = 0.0f, b0_0 = 0.0f, b0_1 = 0.0f, v0_0_0 = 0.0f, v1_0_0 = 0.0f, v2_0_0 = 0.0f, v0_0_1 = 0.0f, v1_0_1 = 0.0f, v2_0_1 = 0.0f, v0_1_0 = 0.0f, v1_1_0 = 0.0f, v2_1_0 = 0.0f, v0_1_1 = 0.0f, v1_1_1 = 0.0f, v2_1_1 = 0.0f, v0_2_0 = 0.0f, v1_2_0 = 0.0f, v2_2_0 = 0.0f, v0_2_1 = 0.0f, v1_2_1 = 0.0f, v2_2_1 = 0.0f, v0_3_0 = 0.0f, v1_3_0 = 0.0f, v2_3_0 = 0.0f, v0_3_1 = 0.0f, v1_3_1 = 0.0f, v2_3_1 = 0.0f, v0_4_0 = 0.0f, v1_4_0 = 0.0f, v2_4_0 = 0.0f, v0_4_1 = 0.0f, v1_4_1 = 0.0f, v2_4_1 = 0.0f, v0_5_0 = 0.0f, v1_5_0 = 0.0f, v2_5_0 = 0.0f, v0_5_1 = 0.0f, v1_5_1 = 0.0f, v2_5_1 = 0.0f, v0_6_0 = 0.0f, v1_6_0 = 0.0f, v2_6_0 = 0.0f, v0_6_1 = 0.0f, v1_6_1 = 0.0f, v2_6_1 = 0.0f, v0_7_0 = 0.0f, v1_7_0 = 0.0f, v2_7_0 = 0.0f, v0_7_1 = 0.0f, v1_7_1 = 0.0f, v2_7_1 = 0.0f, v3_0_0 = 0.0f, v4_0_0 = 0.0f, v3_0_1 = 0.0f, v4_0_1 = 0.0f, v3_1_0 = 0.0f, v4_1_0 = 0.0f, v3_1_1 = 0.0f, v4_1_1 = 0.0f, v3_2_0 = 0.0f, v4_2_0 = 0.0f, v3_2_1 = 0.0f, v4_2_1 = 0.0f, v3_3_0 = 0.0f, v4_3_0 = 0.0f, v3_3_1 = 0.0f, v4_3_1 = 0.0f, v3_4_0 = 0.0f, v4_4_0 = 0.0f, v3_4_1 = 0.0f, v4_4_1 = 0.0f, v3_5_0 = 0.0f, v4_5_0 = 0.0f, v3_5_1 = 0.0f, v4_5_1 = 0.0f, v3_6_0 = 0.0f, v4_6_0 = 0.0f, v3_6_1 = 0.0f, v4_6_1 = 0.0f, v3_7_0 = 0.0f, v4_7_0 = 0.0f, v3_7_1 = 0.0f, v4_7_1 = 0.0f;\n    int bz = 0, bm = 0, bn = 0, ty = 0, tx = 0, rr = 0, kq = 0;\n    bz = (bid / 128);\n    bm = ((bid / 64) % 2);\n    bn = (bid % 64);\n    ty = (tid / 64);\n    tx = (tid % 64);\n    acc_0_0 = 0.0f;\n    acc_0_1 = 0.0f;\n    acc_1_0 = 0.0f;\n    acc_1_1 = 0.0f;\n    acc_2_0 = 0.0f;\n    acc_2_1 = 0.0f;\n    acc_3_0 = 0.0f;\n    acc_3_1 = 0.0f;\n    acc_4_0 = 0.0f;\n    acc_4_1 = 0.0f;\n    acc_5_0 = 0.0f;\n    acc_5_1 = 0.0f;\n    acc_6_0 = 0.0f;\n    acc_6_1 = 0.0f;\n    acc_7_0 = 0.0f;\n    acc_7_1 = 0.0f;\n    for (int k0 = 0; k0 < 19; k0 += 8) {\n        for (int la = tid; la < 1024; la += 1024) {\n            rr = (la % 128);\n            kq = (la / 128);\n            tv = 0.0f;\n            if (((((128 * bm) + rr) < 256) && ((k0 + kq) < 19))) {\n                g0 = __bfloat162float(src0[(((((128 * bm) + (4864 * bz)) + (256 * k0)) + (256 * kq)) + rr)]);\n                tv = g0;\n            }\n            sA0[(kq + (8 * rr))] = tv;\n        }\n        for (int lb = tid; lb < 1024; lb += 1024) {\n            rr = (lb / 8);\n            kq = (lb % 8);\n            tv = 0.0f;\n            if (((((128 * bn) + rr) < 8192) && ((k0 + kq) < 19))) {\n                g1 = __bfloat162float(src1[(((((2432 * bn) + (155648 * bz)) + k0) + kq) + (19 * rr))]);\n                tv = g1;\n            }\n            sB0[((128 * kq) + rr)] = tv;\n        }\n        __syncthreads();\n        for (int kk = 0; kk < 8; kk += 1) {\n            if (((k0 + kk) < 19)) {\n                a0_0 = sA0[(kk + (64 * ty))];\n                a0_1 = sA0[((kk + (64 * ty)) + 8)];\n                a0_2 = sA0[((kk + (64 * ty)) + 16)];\n                a0_3 = sA0[((kk + (64 * ty)) + 24)];\n                a0_4 = sA0[((kk + (64 * ty)) + 32)];\n                a0_5 = sA0[((kk + (64 * ty)) + 40)];\n                a0_6 = sA0[((kk + (64 * ty)) + 48)];\n                a0_7 = sA0[((kk + (64 * ty)) + 56)];\n                b0_0 = sB0[((128 * kk) + (2 * tx))];\n                b0_1 = sB0[(((128 * kk) + (2 * tx)) + 1)];\n                v0_0_0 = b0_0;\n                v1_0_0 = a0_0;\n                v2_0_0 = __fmul_rn(v0_0_0, v1_0_0);\n                acc_0_0 = (acc_0_0 + v2_0_0);\n                v0_0_1 = b0_1;\n                v1_0_1 = a0_0;\n                v2_0_1 = __fmul_rn(v0_0_1, v1_0_1);\n                acc_0_1 = (acc_0_1 + v2_0_1);\n                v0_1_0 = b0_0;\n                v1_1_0 = a0_1;\n                v2_1_0 = __fmul_rn(v0_1_0, v1_1_0);\n                acc_1_0 = (acc_1_0 + v2_1_0);\n                v0_1_1 = b0_1;\n                v1_1_1 = a0_1;\n                v2_1_1 = __fmul_rn(v0_1_1, v1_1_1);\n                acc_1_1 = (acc_1_1 + v2_1_1);\n                v0_2_0 = b0_0;\n                v1_2_0 = a0_2;\n                v2_2_0 = __fmul_rn(v0_2_0, v1_2_0);\n                acc_2_0 = (acc_2_0 + v2_2_0);\n                v0_2_1 = b0_1;\n                v1_2_1 = a0_2;\n                v2_2_1 = __fmul_rn(v0_2_1, v1_2_1);\n                acc_2_1 = (acc_2_1 + v2_2_1);\n                v0_3_0 = b0_0;\n                v1_3_0 = a0_3;\n                v2_3_0 = __fmul_rn(v0_3_0, v1_3_0);\n                acc_3_0 = (acc_3_0 + v2_3_0);\n                v0_3_1 = b0_1;\n                v1_3_1 = a0_3;\n                v2_3_1 = __fmul_rn(v0_3_1, v1_3_1);\n                acc_3_1 = (acc_3_1 + v2_3_1);\n                v0_4_0 = b0_0;\n                v1_4_0 = a0_4;\n                v2_4_0 = __fmul_rn(v0_4_0, v1_4_0);\n                acc_4_0 = (acc_4_0 + v2_4_0);\n                v0_4_1 = b0_1;\n                v1_4_1 = a0_4;\n                v2_4_1 = __fmul_rn(v0_4_1, v1_4_1);\n                acc_4_1 = (acc_4_1 + v2_4_1);\n                v0_5_0 = b0_0;\n                v1_5_0 = a0_5;\n                v2_5_0 = __fmul_rn(v0_5_0, v1_5_0);\n                acc_5_0 = (acc_5_0 + v2_5_0);\n                v0_5_1 = b0_1;\n                v1_5_1 = a0_5;\n                v2_5_1 = __fmul_rn(v0_5_1, v1_5_1);\n                acc_5_1 = (acc_5_1 + v2_5_1);\n                v0_6_0 = b0_0;\n                v1_6_0 = a0_6;\n                v2_6_0 = __fmul_rn(v0_6_0, v1_6_0);\n                acc_6_0 = (acc_6_0 + v2_6_0);\n                v0_6_1 = b0_1;\n                v1_6_1 = a0_6;\n                v2_6_1 = __fmul_rn(v0_6_1, v1_6_1);\n                acc_6_1 = (acc_6_1 + v2_6_1);\n                v0_7_0 = b0_0;\n                v1_7_0 = a0_7;\n                v2_7_0 = __fmul_rn(v0_7_0, v1_7_0);\n                acc_7_0 = (acc_7_0 + v2_7_0);\n                v0_7_1 = b0_1;\n                v1_7_1 = a0_7;\n                v2_7_1 = __fmul_rn(v0_7_1, v1_7_1);\n                acc_7_1 = (acc_7_1 + v2_7_1);\n            }\n        }\n        __syncthreads();\n    }\n    if (((((128 * bm) + (8 * ty)) < 256) && (((128 * bn) + (2 * tx)) < 8192))) {\n        v3_0_0 = __bfloat162float(__float2bfloat16_rn(acc_0_0));\n        v4_0_0 = __bfloat162float(__float2bfloat16_rn(v3_0_0));\n        dst[(((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty))] = __float2bfloat16_rn(v4_0_0);\n    }\n    if (((((128 * bm) + (8 * ty)) < 256) && ((((128 * bn) + (2 * tx)) + 1) < 8192))) {\n        v3_0_1 = __bfloat162float(__float2bfloat16_rn(acc_0_1));\n        v4_0_1 = __bfloat162float(__float2bfloat16_rn(v3_0_1));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 1)] = __float2bfloat16_rn(v4_0_1);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 1) < 256) && (((128 * bn) + (2 * tx)) < 8192))) {\n        v3_1_0 = __bfloat162float(__float2bfloat16_rn(acc_1_0));\n        v4_1_0 = __bfloat162float(__float2bfloat16_rn(v3_1_0));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 8192)] = __float2bfloat16_rn(v4_1_0);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 1) < 256) && ((((128 * bn) + (2 * tx)) + 1) < 8192))) {\n        v3_1_1 = __bfloat162float(__float2bfloat16_rn(acc_1_1));\n        v4_1_1 = __bfloat162float(__float2bfloat16_rn(v3_1_1));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 8193)] = __float2bfloat16_rn(v4_1_1);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 2) < 256) && (((128 * bn) + (2 * tx)) < 8192))) {\n        v3_2_0 = __bfloat162float(__float2bfloat16_rn(acc_2_0));\n        v4_2_0 = __bfloat162float(__float2bfloat16_rn(v3_2_0));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 16384)] = __float2bfloat16_rn(v4_2_0);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 2) < 256) && ((((128 * bn) + (2 * tx)) + 1) < 8192))) {\n        v3_2_1 = __bfloat162float(__float2bfloat16_rn(acc_2_1));\n        v4_2_1 = __bfloat162float(__float2bfloat16_rn(v3_2_1));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 16385)] = __float2bfloat16_rn(v4_2_1);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 3) < 256) && (((128 * bn) + (2 * tx)) < 8192))) {\n        v3_3_0 = __bfloat162float(__float2bfloat16_rn(acc_3_0));\n        v4_3_0 = __bfloat162float(__float2bfloat16_rn(v3_3_0));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 24576)] = __float2bfloat16_rn(v4_3_0);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 3) < 256) && ((((128 * bn) + (2 * tx)) + 1) < 8192))) {\n        v3_3_1 = __bfloat162float(__float2bfloat16_rn(acc_3_1));\n        v4_3_1 = __bfloat162float(__float2bfloat16_rn(v3_3_1));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 24577)] = __float2bfloat16_rn(v4_3_1);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 4) < 256) && (((128 * bn) + (2 * tx)) < 8192))) {\n        v3_4_0 = __bfloat162float(__float2bfloat16_rn(acc_4_0));\n        v4_4_0 = __bfloat162float(__float2bfloat16_rn(v3_4_0));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 32768)] = __float2bfloat16_rn(v4_4_0);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 4) < 256) && ((((128 * bn) + (2 * tx)) + 1) < 8192))) {\n        v3_4_1 = __bfloat162float(__float2bfloat16_rn(acc_4_1));\n        v4_4_1 = __bfloat162float(__float2bfloat16_rn(v3_4_1));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 32769)] = __float2bfloat16_rn(v4_4_1);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 5) < 256) && (((128 * bn) + (2 * tx)) < 8192))) {\n        v3_5_0 = __bfloat162float(__float2bfloat16_rn(acc_5_0));\n        v4_5_0 = __bfloat162float(__float2bfloat16_rn(v3_5_0));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 40960)] = __float2bfloat16_rn(v4_5_0);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 5) < 256) && ((((128 * bn) + (2 * tx)) + 1) < 8192))) {\n        v3_5_1 = __bfloat162float(__float2bfloat16_rn(acc_5_1));\n        v4_5_1 = __bfloat162float(__float2bfloat16_rn(v3_5_1));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 40961)] = __float2bfloat16_rn(v4_5_1);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 6) < 256) && (((128 * bn) + (2 * tx)) < 8192))) {\n        v3_6_0 = __bfloat162float(__float2bfloat16_rn(acc_6_0));\n        v4_6_0 = __bfloat162float(__float2bfloat16_rn(v3_6_0));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 49152)] = __float2bfloat16_rn(v4_6_0);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 6) < 256) && ((((128 * bn) + (2 * tx)) + 1) < 8192))) {\n        v3_6_1 = __bfloat162float(__float2bfloat16_rn(acc_6_1));\n        v4_6_1 = __bfloat162float(__float2bfloat16_rn(v3_6_1));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 49153)] = __float2bfloat16_rn(v4_6_1);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 7) < 256) && (((128 * bn) + (2 * tx)) < 8192))) {\n        v3_7_0 = __bfloat162float(__float2bfloat16_rn(acc_7_0));\n        v4_7_0 = __bfloat162float(__float2bfloat16_rn(v3_7_0));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 57344)] = __float2bfloat16_rn(v4_7_0);\n    }\n    if ((((((128 * bm) + (8 * ty)) + 7) < 256) && ((((128 * bn) + (2 * tx)) + 1) < 8192))) {\n        v3_7_1 = __bfloat162float(__float2bfloat16_rn(acc_7_1));\n        v4_7_1 = __bfloat162float(__float2bfloat16_rn(v3_7_1));\n        dst[((((((1048576 * bm) + (128 * bn)) + (2097152 * bz)) + (2 * tx)) + (65536 * ty)) + 57345)] = __float2bfloat16_rn(v4_7_1);\n    }\n}"
+  }
+ ]
+}

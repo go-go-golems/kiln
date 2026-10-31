@@ -3,16 +3,16 @@
 import argparse,hashlib,json,subprocess
 from pathlib import Path
 p=Path(__file__).resolve().parents[1];s=p/'sources';repo=next(d for d in p.parents if (d/'integrations/passnet').exists())
-parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--cohort',required=True);parser.add_argument('--source-receipt',required=True);args=parser.parse_args()
-if Path(args.cohort).name!=args.cohort or Path(args.source_receipt).name!=args.source_receipt:raise ValueError('Basenames required')
+parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--cohort',required=True);parser.add_argument('--source-receipt',required=True);parser.add_argument('--plan',required=True);args=parser.parse_args()
+if Path(args.cohort).name!=args.cohort or Path(args.source_receipt).name!=args.source_receipt or Path(args.plan).name!=args.plan:raise ValueError('Basenames required')
 load=lambda name:json.loads((s/name).read_text())
-run=load(args.cohort+'/run.json');audit=load(args.cohort+'-audit.json');frozen=load('softmax-cohort-plan.json');source=load(args.source_receipt)
+run=load(args.cohort+'/run.json');audit=load(args.cohort+'-audit.json');frozen=load(args.plan);source=load(args.source_receipt)
 assert run['status']=='complete' and run['plan']==frozen
 assert source['remote_matches'] and run['source_snapshot']==source['snapshot']
-assert hashlib.sha256((s/'softmax-cohort-plan.json').read_bytes()).hexdigest()==run['plan_sha256']
+assert hashlib.sha256((s/args.plan).read_bytes()).hexdigest()==run['plan_sha256']
 assert frozen['contraction']=='separate' and frozen['nominal_tolerance']==-5
 assert [r['index'] for r in run['records']]==[r['index'] for r in frozen['tasks']]
-assert (audit['tasks_expected'],audit['graphs_expected'])==(10,93)
+assert (audit['tasks_expected'],audit['graphs_expected'])==(len(frozen['tasks']),sum(r['graphs'] for r in frozen['tasks']))
 for name,digest in source['snapshot']['files'].items():
  actual=subprocess.check_output(['git','show',source['revision']+':'+name],cwd=repo)
  assert hashlib.sha256(actual).hexdigest()==digest,name

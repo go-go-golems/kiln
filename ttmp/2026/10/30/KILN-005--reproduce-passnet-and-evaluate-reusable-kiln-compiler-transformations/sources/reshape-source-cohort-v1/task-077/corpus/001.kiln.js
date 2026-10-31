@@ -1,0 +1,6 @@
+project("passnet").program(({v0, v1, v2}) => {
+const v3 = N.cast(N.linear(N.cast(v0, "f32"), N.cast(v1, "f32"), N.cast(v2, "f32")), "f16");
+const v4 = N.reshape(v3, [38, 9, 1]);
+const v5 = N.cast(N.softmax(N.cast(v4, "f32"), 1), "f16");
+return {out0: v5};
+}, {v0: k.tensor([1, 19, 128], "f16"), v1: k.tensor([18, 128], "f16"), v2: k.tensor([18], "f16")});

@@ -5773,3 +5773,61 @@ See Steps 125–126 and the user's authored instructions to implement missing co
 - The CUDA/WGSL emitters are unchanged; affected IR/source identities change naturally. No codegen version bump or compatibility alias is added. Overall verified coverage stays 21 tasks/299 graphs pending the complete regression run.
 
 The full 200-task import re-audit after shared reshape binding reports 1,136 graphs/64 complete families, an increment of 14 graphs/three families with zero import regressions. Script 277 freezes every newly complete family in a separate source-qualification plan. This does not alter the original 93-variant optimization comparison or increase accepted coverage before evaluation.
+
+## Step 128: Measure the reusable reshape improvement and qualify all new source families
+
+The complete 93-variant candidate replay under fed37d1 passes every original replacement, execution and nominal t=-5 check. It uses the unchanged plan, generated source programs, container image and Node version. The attention target's recorded end-to-end median falls from 703.734 to 20.4884 ms, an observed 34.3479x ratio. The ten-family balanced observation is 1.064442x, rather than a held-out or paired-statistical improvement claim.
+
+All 14 variants in the separate three-family public reshape plan also pass. Cumulative acceptance rises to 24 tasks/313 graphs, with 248 graphs in complete tasks. Import eligibility is 1,136 graphs/64 families. Native independent fixtures remain 60/63, with their separate precision failures retained. Report 17 explains the coordinate proof, downstream scheduling, complete measurements and numerical limits.
+
+### Prompt Context
+See Step 127 and the authored requests for reusable compiler improvements, complete measurement, consolidation, detailed diaries and textbook-style milestone reports committed and pushed to the vault.
+**Assistant interpretation:** Finish both declared evaluations, keep performance comparison distinct from new source coverage, and make the result reproducible without deleting precision failures.
+**Inferred user intent:** Demonstrate measurable compiler progress while preserving the full reproduction, coverage and self-optimization objective.
+
+### What I did
+- Verified all 158 remote source files against fed37d1 and ran the unchanged ten-family/93-variant plan as softmax-cohort-v3.
+- Collected terminal evidence and used the existing audit/verification tools to establish all 93 accepted variants and exact source/scorer hashes.
+- Script 278 proves that all 93 generated Kiln programs, frozen membership, container image and Node version are unchanged before comparing timings.
+- Generalized the existing ticket wrappers with explicit plan/run arguments, then separately evaluated every newly complete reshape family as reshape-source-cohort-v1.
+- Rebuilt the single cumulative ledger, wrote reference 17 and updated guide Section 37, roadmap and design 15.
+
+### Why
+- A legal index rewrite can change accumulation order through newly selected schedules. Original numerical checks must therefore validate the complete workload population before performance is interpreted.
+- The new source-family population must not be added after declaration to the old/new optimization experiment. It has its own frozen plan and source-verification receipt.
+
+### What worked
+- Candidate comparison: 10/10 complete families, 93/93 variants accepted, zero unexecuted; source snapshot 2019962a68032cb17b421976bf2788d8a71c2775df13da1879e29549c34b761a.
+- Source extension: 3/3 complete families, 14/14 variants accepted, zero unexecuted, same verified compiler snapshot.
+- Target final mapping changes from row TPB512 to tiled BM128/BN64/BK16/TM8/TN2; grid changes 67,108,864 -> 8,192 blocks.
+- Recorded target latency 703.734 -> 20.4884 ms; family-balanced e2e ratio 1.0644424765286882 and GPU ratio 1.0654444017545264.
+- Exact executable structures change for 81 graphs and remain unchanged for twelve. Generated source programs remain identical for all 93.
+- Cumulative ledger: 24 complete tasks, 313 individual graphs, 248 graphs inside complete tasks. The 14-graph source increment has no prior accepted overlap.
+
+### What didn't work
+- The target is still slower than contemporaneous eager (15.5152 ms). Seven candidate variants beat eager while 86 remain slower.
+- Thirty-four before/after medians are slower and one ties; the largest observed slowdown is about 1.13 percent. Sequential unpaired runs do not establish whether small differences exceed noise.
+- Native independent fixtures remain 60/63. No precision threshold is relaxed, no failed fixture is dropped, and rounded-FP64 diagnostics do not replace original native acceptance.
+
+### What I learned
+- Preserving a simple coordinate invariant can enable a substantial downstream transformation already implemented by the compiler. The IR representation can constrain optimization as strongly as an explicit profitability policy.
+
+### What was tricky to build
+- The same large development family contains 48 variants; family-balanced reporting avoids allowing it to dominate the aggregate solely through variant count.
+- Generic plan verification now derives required task/graph counts from the explicit local frozen plan and checks every expected graph, rather than hard-coding the first cohort's dimensions.
+
+### What warrants a second pair of eyes
+- Verify the coordinate proof, exact generated-source equality, schedule differences, original numerical predicates and complete accounting of unchanged executable timings.
+- Keep the existing native precision mismatch and development-only selection context visible when citing the 34x target improvement.
+
+### What should be done in the future
+- Commit and publish reference 17, then verify exact vault bytes and advertised remote main state.
+- Freeze unseen-family confirmation for the compiler rewrite, while continuing source operations, native precision compatibility, original agent setup and broader benchmark qualification.
+
+### Code review instructions
+- Read singleton-reshape-development-comparison.json, both latest verified-facts receipts, reference 17, design 15 and the native/precision diagnostic files. The initial native fixture remains failed and the overall project remains incomplete.
+
+### Technical details
+- This is Codex-authored compiler engineering from observed development evidence. It is not a completed original PassAgent experiment, an unseen-program generalization result or an exact A30 reproduction.
+
+Follow-up task p4wv tracks frozen unseen-family confirmation. This remains open; development timing success does not complete it.

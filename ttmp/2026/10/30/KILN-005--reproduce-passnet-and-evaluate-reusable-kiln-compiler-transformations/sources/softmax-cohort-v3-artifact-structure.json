@@ -1,0 +1,1756 @@
+{
+  "format": "kiln-softmax-artifact-structure/1",
+  "scope": "Static exported structure, not latency or optimization evidence",
+  "variants": 93,
+  "kernels_total": 248,
+  "kernel_count_histogram": {
+    "2": 25,
+    "3": 65,
+    "1": 3
+  },
+  "input_storage_types": {
+    "f16": 36,
+    "bf16": 27,
+    "f32": 30
+  },
+  "max_output_bytes": 268435456,
+  "max_scratch_bytes": 1610612736,
+  "records": [
+    {
+      "task_index": 25,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "MAP=row,TPB=32",
+        "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2"
+      ],
+      "input_bytes": 3852288,
+      "output_bytes": 50331648,
+      "scratch_bytes": 3735552
+    },
+    {
+      "task_index": 25,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "MAP=row,TPB=32",
+        "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2"
+      ],
+      "input_bytes": 5136384,
+      "output_bytes": 67108864,
+      "scratch_bytes": 4980736
+    },
+    {
+      "task_index": 25,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "MAP=row,TPB=32",
+        "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2"
+      ],
+      "input_bytes": 7704576,
+      "output_bytes": 100663296,
+      "scratch_bytes": 7471104
+    },
+    {
+      "task_index": 25,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "MAP=row,TPB=32",
+        "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2"
+      ],
+      "input_bytes": 3852288,
+      "output_bytes": 50331648,
+      "scratch_bytes": 3735552
+    },
+    {
+      "task_index": 25,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "MAP=row,TPB=32",
+        "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2"
+      ],
+      "input_bytes": 2568192,
+      "output_bytes": 33554432,
+      "scratch_bytes": 2490368
+    },
+    {
+      "task_index": 25,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "MAP=row,TPB=32",
+        "MAP=tiled,BM=128,BN=128,BK=8,TM=8,TN=2"
+      ],
+      "input_bytes": 20545536,
+      "output_bytes": 268435456,
+      "scratch_bytes": 19922944
+    },
+    {
+      "task_index": 41,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/OFA-Sys_chinese-clip-vit-huge-patch14/_decomposed/OFA-Sys_chinese-clip-vit-huge-patch14_start21_end31_4",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=256"
+      ],
+      "input_bytes": 1973760,
+      "output_bytes": 657920,
+      "scratch_bytes": 6340704
+    },
+    {
+      "task_index": 41,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/OFA-Sys_chinese-clip-vit-huge-patch14/_decomposed/OFA-Sys_chinese-clip-vit-huge-patch14_start21_end31_4",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=256"
+      ],
+      "input_bytes": 1973760,
+      "output_bytes": 657920,
+      "scratch_bytes": 6340704
+    },
+    {
+      "task_index": 41,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/OFA-Sys_chinese-clip-vit-huge-patch14/_decomposed/OFA-Sys_chinese-clip-vit-huge-patch14_start21_end31_4",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=256"
+      ],
+      "input_bytes": 3947520,
+      "output_bytes": 1315840,
+      "scratch_bytes": 8454272
+    },
+    {
+      "task_index": 59,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/convit_base/_decomposed/convit_base_start158_end166_27",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 1,
+      "schedules": [
+        "MAP=row,TPB=32,STAGE=all"
+      ],
+      "input_bytes": 2458656,
+      "output_bytes": 1229312,
+      "scratch_bytes": 0
+    },
+    {
+      "task_index": 59,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/timm/convit_base/_decomposed/convit_base_start158_end166_27",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 1,
+      "schedules": [
+        "MAP=row,TPB=32,STAGE=all"
+      ],
+      "input_bytes": 2458656,
+      "output_bytes": 1229312,
+      "scratch_bytes": 0
+    },
+    {
+      "task_index": 59,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/convit_base/_decomposed/convit_base_start158_end166_27",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 1,
+      "schedules": [
+        "MAP=row,TPB=128,STAGE=all"
+      ],
+      "input_bytes": 4917312,
+      "output_bytes": 2458624,
+      "scratch_bytes": 0
+    },
+    {
+      "task_index": 66,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=128,STAGE=all",
+        "MAP=row,TPB=128,STAGE=all",
+        "TPB=64"
+      ],
+      "input_bytes": 30720000,
+      "output_bytes": 30720000,
+      "scratch_bytes": 307200
+    },
+    {
+      "task_index": 66,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=64,STAGE=all",
+        "MAP=row,TPB=64,STAGE=all",
+        "TPB=64,COARSEN=2"
+      ],
+      "input_bytes": 10240000,
+      "output_bytes": 10240000,
+      "scratch_bytes": 102400
+    },
+    {
+      "task_index": 66,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=128,STAGE=all",
+        "MAP=row,TPB=128,STAGE=all",
+        "TPB=128"
+      ],
+      "input_bytes": 2560000,
+      "output_bytes": 2560000,
+      "scratch_bytes": 25600
+    },
+    {
+      "task_index": 66,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=64,STAGE=all",
+        "MAP=row,TPB=64,STAGE=all",
+        "TPB=64,COARSEN=2"
+      ],
+      "input_bytes": 20480000,
+      "output_bytes": 20480000,
+      "scratch_bytes": 102400
+    },
+    {
+      "task_index": 66,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=64,STAGE=all",
+        "MAP=row,TPB=64,STAGE=all",
+        "TPB=64,COARSEN=2"
+      ],
+      "input_bytes": 81920000,
+      "output_bytes": 81920000,
+      "scratch_bytes": 819200
+    },
+    {
+      "task_index": 66,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=128,STAGE=all",
+        "MAP=row,TPB=128,STAGE=all",
+        "TPB=64"
+      ],
+      "input_bytes": 61440000,
+      "output_bytes": 61440000,
+      "scratch_bytes": 307200
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start21_end29_5",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=tiled,BM=32,BN=32,BK=8,TM=2,TN=2"
+      ],
+      "input_bytes": 2162688,
+      "output_bytes": 2097152,
+      "scratch_bytes": 33554432
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=32,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=256"
+      ],
+      "input_bytes": 9437184,
+      "output_bytes": 3145728,
+      "scratch_bytes": 75497472
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start21_end29_5",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=64,STAGE=reused",
+        "MAP=tiled,BM=32,BN=32,BK=8,TM=2,TN=8"
+      ],
+      "input_bytes": 12976128,
+      "output_bytes": 12582912,
+      "scratch_bytes": 301989888
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start21_end29_5",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=tiled,BM=128,BN=32,BK=8,TM=2,TN=8"
+      ],
+      "input_bytes": 25952256,
+      "output_bytes": 25165824,
+      "scratch_bytes": 603979776
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 7864320,
+      "output_bytes": 5242880,
+      "scratch_bytes": 83886080
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=64",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 1572864,
+      "output_bytes": 524288,
+      "scratch_bytes": 12582912
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=32,TM=8,TN=4",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=256"
+      ],
+      "input_bytes": 25165824,
+      "output_bytes": 8388608,
+      "scratch_bytes": 201326592
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start1999_end2007_62",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=32,BK=8,TM=2,TN=2",
+        "MAP=row,TPB=64",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 1572864,
+      "output_bytes": 524288,
+      "scratch_bytes": 4194304
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=128,BK=32,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=512"
+      ],
+      "input_bytes": 62914560,
+      "output_bytes": 41943040,
+      "scratch_bytes": 671088640
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=256"
+      ],
+      "input_bytes": 9437184,
+      "output_bytes": 8388608,
+      "scratch_bytes": 100663296
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/1/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start21_end29_5",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2"
+      ],
+      "input_bytes": 4325376,
+      "output_bytes": 4194304,
+      "scratch_bytes": 50331648
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 6291456,
+      "output_bytes": 2097152,
+      "scratch_bytes": 50331648
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start1999_end2007_62",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=64"
+      ],
+      "input_bytes": 6291456,
+      "output_bytes": 2097152,
+      "scratch_bytes": 16777216
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start1999_end2007_62",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=32,BK=8,TM=2,TN=2",
+        "MAP=row,TPB=64",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 786432,
+      "output_bytes": 262144,
+      "scratch_bytes": 3145728
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start21_end29_5",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=tiled,BM=32,BN=32,BK=8,TM=2,TN=2"
+      ],
+      "input_bytes": 1081344,
+      "output_bytes": 1048576,
+      "scratch_bytes": 25165824
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MobileViTModel/_decomposed/hf-tiny-model-private_tiny-random-MobileViTModel_start152_end160_12",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=64,STAGE=all",
+        "TPB=1024",
+        "MAP=row,TPB=32"
+      ],
+      "input_bytes": 9216,
+      "output_bytes": 3072,
+      "scratch_bytes": 128
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 18874368,
+      "output_bytes": 16777216,
+      "scratch_bytes": 201326592
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start21_end29_5",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2"
+      ],
+      "input_bytes": 51904512,
+      "output_bytes": 50331648,
+      "scratch_bytes": 603979776
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=64",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 3932160,
+      "output_bytes": 2621440,
+      "scratch_bytes": 62914560
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 983040,
+      "output_bytes": 655360,
+      "scratch_bytes": 10485760
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start1999_end2007_62",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=32,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=512"
+      ],
+      "input_bytes": 18874368,
+      "output_bytes": 6291456,
+      "scratch_bytes": 75497472
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=32,TM=8,TN=2",
+        "MAP=row,TPB=64,STAGE=reused",
+        "MAP=row,TPB=64"
+      ],
+      "input_bytes": 75497472,
+      "output_bytes": 67108864,
+      "scratch_bytes": 1073741824
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=512"
+      ],
+      "input_bytes": 9437184,
+      "output_bytes": 3145728,
+      "scratch_bytes": 50331648
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 1179648,
+      "output_bytes": 1048576,
+      "scratch_bytes": 16777216
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MobileViTModel/_decomposed/hf-tiny-model-private_tiny-random-MobileViTModel_start93_end101_6",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=64",
+        "MAP=row,TPB=32",
+        "MAP=row,TPB=32"
+      ],
+      "input_bytes": 13824,
+      "output_bytes": 4608,
+      "scratch_bytes": 1536
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=64",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 589824,
+      "output_bytes": 524288,
+      "scratch_bytes": 12582912
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 4718592,
+      "output_bytes": 4194304,
+      "scratch_bytes": 100663296
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start397_end405_45",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=64"
+      ],
+      "input_bytes": 3932160,
+      "output_bytes": 2621440,
+      "scratch_bytes": 20971520
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start397_end405_45",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=512"
+      ],
+      "input_bytes": 15728640,
+      "output_bytes": 10485760,
+      "scratch_bytes": 125829120
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/vinvino02_glpn-nyu/_decomposed/vinvino02_glpn-nyu_start149_end157_15",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=32,BK=8,TM=2,TN=2",
+        "MAP=row,TPB=64",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 663552,
+      "output_bytes": 589824,
+      "scratch_bytes": 3981312
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start21_end29_5",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=64,STAGE=reused",
+        "MAP=tiled,BM=128,BN=32,BK=8,TM=2,TN=4"
+      ],
+      "input_bytes": 69206016,
+      "output_bytes": 67108864,
+      "scratch_bytes": 1610612736
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/apple_mobilevit-small/_decomposed/apple_mobilevit-small_start93_end101_14",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=16,BN=32,BK=8,TM=2,TN=4",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=256"
+      ],
+      "input_bytes": 884736,
+      "output_bytes": 294912,
+      "scratch_bytes": 6291456
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=64",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 589824,
+      "output_bytes": 524288,
+      "scratch_bytes": 12582912
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 1966080,
+      "output_bytes": 1310720,
+      "scratch_bytes": 20971520
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start1999_end2007_62",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 12582912,
+      "output_bytes": 4194304,
+      "scratch_bytes": 50331648
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start397_end405_45",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=64"
+      ],
+      "input_bytes": 23592960,
+      "output_bytes": 15728640,
+      "scratch_bytes": 125829120
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start21_end29_5",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=64,STAGE=reused",
+        "MAP=tiled,BM=128,BN=64,BK=16,TM=8,TN=2"
+      ],
+      "input_bytes": 138412032,
+      "output_bytes": 134217728,
+      "scratch_bytes": 1610612736
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=512"
+      ],
+      "input_bytes": 14155776,
+      "output_bytes": 12582912,
+      "scratch_bytes": 201326592
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 4718592,
+      "output_bytes": 4194304,
+      "scratch_bytes": 33554432
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=64",
+        "MAP=row,TPB=64"
+      ],
+      "input_bytes": 1179648,
+      "output_bytes": 1048576,
+      "scratch_bytes": 12582912
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=64"
+      ],
+      "input_bytes": 37748736,
+      "output_bytes": 33554432,
+      "scratch_bytes": 402653184
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start21_end29_5",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=tiled,BM=64,BN=64,BK=16,TM=8,TN=2"
+      ],
+      "input_bytes": 69206016,
+      "output_bytes": 67108864,
+      "scratch_bytes": 536870912
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=64,BN=64,BK=32,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=256"
+      ],
+      "input_bytes": 9437184,
+      "output_bytes": 3145728,
+      "scratch_bytes": 75497472
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=128"
+      ],
+      "input_bytes": 2359296,
+      "output_bytes": 2097152,
+      "scratch_bytes": 25165824
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=256"
+      ],
+      "input_bytes": 9437184,
+      "output_bytes": 8388608,
+      "scratch_bytes": 201326592
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=32,BN=64,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=64"
+      ],
+      "input_bytes": 3145728,
+      "output_bytes": 1048576,
+      "scratch_bytes": 25165824
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/apple_mobilevit-x-small/_decomposed/apple_mobilevit-x-small_start323_end331_44",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "TPB=64",
+        "MAP=row,TPB=32",
+        "MAP=row,TPB=32"
+      ],
+      "input_bytes": 55296,
+      "output_bytes": 18432,
+      "scratch_bytes": 24576
+    },
+    {
+      "task_index": 75,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "MAP=row,TPB=128,STAGE=reused",
+        "MAP=row,TPB=64"
+      ],
+      "input_bytes": 7864320,
+      "output_bytes": 5242880,
+      "scratch_bytes": 125829120
+    },
+    {
+      "task_index": 86,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "TPB=128"
+      ],
+      "input_bytes": 201728,
+      "output_bytes": 100352,
+      "scratch_bytes": 1024
+    },
+    {
+      "task_index": 86,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "TPB=128"
+      ],
+      "input_bytes": 403456,
+      "output_bytes": 200704,
+      "scratch_bytes": 2048
+    },
+    {
+      "task_index": 86,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "TPB=128"
+      ],
+      "input_bytes": 201728,
+      "output_bytes": 100352,
+      "scratch_bytes": 1024
+    },
+    {
+      "task_index": 86,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "TPB=128"
+      ],
+      "input_bytes": 1607680,
+      "output_bytes": 802816,
+      "scratch_bytes": 2048
+    },
+    {
+      "task_index": 86,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "TPB=128"
+      ],
+      "input_bytes": 263168,
+      "output_bytes": 131072,
+      "scratch_bytes": 1024
+    },
+    {
+      "task_index": 86,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "TPB=64"
+      ],
+      "input_bytes": 452608,
+      "output_bytes": 225792,
+      "scratch_bytes": 1024
+    },
+    {
+      "task_index": 137,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "TPB=64"
+      ],
+      "input_bytes": 157294592,
+      "output_bytes": 78643200,
+      "scratch_bytes": 8192
+    },
+    {
+      "task_index": 137,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "TPB=64"
+      ],
+      "input_bytes": 16781312,
+      "output_bytes": 8388608,
+      "scratch_bytes": 4096
+    },
+    {
+      "task_index": 137,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=1024",
+        "TPB=64"
+      ],
+      "input_bytes": 1573376,
+      "output_bytes": 786432,
+      "scratch_bytes": 512
+    },
+    {
+      "task_index": 137,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=1024",
+        "TPB=64"
+      ],
+      "input_bytes": 1573376,
+      "output_bytes": 786432,
+      "scratch_bytes": 512
+    },
+    {
+      "task_index": 137,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=1024",
+        "TPB=64"
+      ],
+      "input_bytes": 1573376,
+      "output_bytes": 786432,
+      "scratch_bytes": 512
+    },
+    {
+      "task_index": 137,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "TPB=64"
+      ],
+      "input_bytes": 16778240,
+      "output_bytes": 8388608,
+      "scratch_bytes": 1024
+    },
+    {
+      "task_index": 174,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "MAP=row,TPB=256",
+        "MAP=row,TPB=1024"
+      ],
+      "input_bytes": 8390660,
+      "output_bytes": 16384,
+      "scratch_bytes": 16384
+    },
+    {
+      "task_index": 174,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "MAP=row,TPB=128",
+        "MAP=row,TPB=1024"
+      ],
+      "input_bytes": 16778244,
+      "output_bytes": 32768,
+      "scratch_bytes": 65536
+    },
+    {
+      "task_index": 174,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "MAP=row,TPB=1024"
+      ],
+      "input_bytes": 201328644,
+      "output_bytes": 393216,
+      "scratch_bytes": 393216
+    },
+    {
+      "task_index": 174,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "MAP=row,TPB=256",
+        "MAP=row,TPB=1024"
+      ],
+      "input_bytes": 4195332,
+      "output_bytes": 8192,
+      "scratch_bytes": 16384
+    },
+    {
+      "task_index": 174,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "MAP=row,TPB=1024"
+      ],
+      "input_bytes": 100664324,
+      "output_bytes": 196608,
+      "scratch_bytes": 393216
+    },
+    {
+      "task_index": 174,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "TPB=64",
+        "MAP=row,TPB=1024"
+      ],
+      "input_bytes": 134218756,
+      "output_bytes": 262144,
+      "scratch_bytes": 524288
+    },
+    {
+      "task_index": 183,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/microsoft_trocr-small-printed/_decomposed/microsoft_trocr-small-printed_start348_end355_9",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=64",
+        "TPB=1024",
+        "MAP=row,TPB=32"
+      ],
+      "input_bytes": 1536,
+      "output_bytes": 512,
+      "scratch_bytes": 48
+    },
+    {
+      "task_index": 183,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/trocr-base-handwritten/_decomposed/trocr-base-handwritten_start347_end354_17",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=64,STAGE=all",
+        "TPB=1024",
+        "MAP=row,TPB=32"
+      ],
+      "input_bytes": 6144,
+      "output_bytes": 2048,
+      "scratch_bytes": 96
+    },
+    {
+      "task_index": 183,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/microsoft_trocr-small-printed/_decomposed/microsoft_trocr-small-printed_start348_end355_9",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=64",
+        "TPB=1024",
+        "MAP=row,TPB=32"
+      ],
+      "input_bytes": 1536,
+      "output_bytes": 512,
+      "scratch_bytes": 48
+    },
+    {
+      "task_index": 183,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/trocr-base-handwritten/_decomposed/trocr-base-handwritten_start347_end354_17",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=64,STAGE=all",
+        "TPB=1024",
+        "MAP=row,TPB=32"
+      ],
+      "input_bytes": 6144,
+      "output_bytes": 2048,
+      "scratch_bytes": 96
+    },
+    {
+      "task_index": 183,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/trocr-base-handwritten/_decomposed/trocr-base-handwritten_start347_end354_17",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=64,STAGE=all",
+        "TPB=1024",
+        "MAP=row,TPB=32"
+      ],
+      "input_bytes": 12288,
+      "output_bytes": 4096,
+      "scratch_bytes": 128
+    },
+    {
+      "task_index": 183,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_trocr-small-printed/_decomposed/microsoft_trocr-small-printed_start348_end355_9",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "MAP=row,TPB=64",
+        "TPB=1024",
+        "MAP=row,TPB=32"
+      ],
+      "input_bytes": 3072,
+      "output_bytes": 1024,
+      "scratch_bytes": 64
+    },
+    {
+      "task_index": 193,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/polejowska_cdetr-cd45rb-s/_decomposed/polejowska_cdetr-cd45rb-s_start1232_end1238_13",
+      "input_dtypes": [
+        "bf16"
+      ],
+      "output_dtypes": [
+        "bf16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "TPB=128",
+        "MAP=row,TPB=256",
+        "TPB=128"
+      ],
+      "input_bytes": 3375000,
+      "output_bytes": 6000000,
+      "scratch_bytes": 3000000
+    },
+    {
+      "task_index": 193,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/polejowska_cdetr-cd45rb-s/_decomposed/polejowska_cdetr-cd45rb-s_start1232_end1238_13",
+      "input_dtypes": [
+        "f16"
+      ],
+      "output_dtypes": [
+        "f16"
+      ],
+      "kernels": 3,
+      "schedules": [
+        "TPB=128",
+        "MAP=row,TPB=256",
+        "TPB=128"
+      ],
+      "input_bytes": 3375000,
+      "output_bytes": 6000000,
+      "scratch_bytes": 3000000
+    },
+    {
+      "task_index": 193,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/polejowska_cdetr-cd45rb-s/_decomposed/polejowska_cdetr-cd45rb-s_start937_end943_7",
+      "input_dtypes": [
+        "f32"
+      ],
+      "output_dtypes": [
+        "f32"
+      ],
+      "kernels": 2,
+      "schedules": [
+        "MAP=row,TPB=128,STAGE=reused",
+        "TPB=128,COARSEN=4"
+      ],
+      "input_bytes": 14062500,
+      "output_bytes": 25000000,
+      "scratch_bytes": 0
+    }
+  ]
+}

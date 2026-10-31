@@ -438,3 +438,13 @@ All ten families and 93 variants now qualify through the original-evaluator inte
 The report's performance analysis is descriptive rather than a compiler-policy experiment: five of the 93 accepted variants are faster than eager and 88 are slower. One large attention variant measures 703.734 ms versus 15.431 ms eager. Exported programs contain 254 kernels and up to 1.5 GiB of scratch storage. Inspect the actual schedules and source program before attributing the cost to a particular compiler decision. Reference 16 and scripts 259/260 provide exact artifacts and timing records.
 
 No source operator implementation was duplicated. The importer reuses stable N.softmax, while the existing functional argument normalizer handles FX/Dynamo defaults. The next performance work can investigate large reduction/contraction lowerings while coverage work follows the remaining operator audit. New optimization hypotheses still require frozen training/confirmation protocols; these benchmark replay timings alone do not establish generalization.
+
+## 37. Direct singleton reshape coordinates expose tiled contraction
+
+When input/output shapes have the same ordered sequence of non-unit extents, reshape can map each varying coordinate directly and set singleton coordinates to zero. The existing reshapeMap now implements this rule while retaining flatten/unflatten elsewhere. The legality proof in design 15 establishes equal row-major flattened indices, including scalar, repeated-extent and all-unit cases.
+
+The inspected attention epilogue previously gave both loads syntactic dependence on both matrix dimensions. Direct maps restore independent operand dependencies, permitting the existing tiled materializer. Under fed37d1 its targeted median changes from 703.734 to 20.4884 ms, with every one of the 93 original comparison variants still accepted. The observed family-balanced ratio is 1.06444x; this is development evidence rather than unseen-family confirmation. See reference 17 for exact schedules and limitations.
+
+All 33 compiler test files and 49 FX tests pass. Native CUDA fixtures remain 60/63, and separate precision diagnostics preserve the old/new FP32 tail mismatch instead of relaxing tolerances. Original benchmark numerical validation remains a separate unchanged gate.
+
+Shared public/ATen/method reshape binding raises import eligibility to 1,136/64. Its separate three-family/14-variant original run fully qualifies, increasing cumulative acceptance to 24 tasks/313 graphs. No new evaluator is introduced: explicit plan/run arguments reuse the existing orchestration and acceptance implementation.
