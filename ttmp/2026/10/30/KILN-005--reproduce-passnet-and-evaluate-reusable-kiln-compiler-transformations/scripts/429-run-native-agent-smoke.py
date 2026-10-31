@@ -3,6 +3,7 @@
 import hashlib
 import importlib
 import json
+import re
 from pathlib import Path
 import socket
 import subprocess
@@ -15,8 +16,10 @@ bootstrap=Path('/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstr
 manifest=json.loads((root/'bundle.json').read_text())
 receipt=root/'run.json'
 if receipt.exists():raise RuntimeError('Preserve existing run')
-state={'format':'kiln-native-agent-smoke/1','status':'verifying','source_revision':manifest['source_revision'],
-       'scope':'Operational external-model proposal batch on historical training data; no performance claim',
+config=manifest['run']
+assert re.fullmatch('[a-z0-9-]+',config['name'])
+state={'format':'kiln-native-agent-owned-batch/1','status':'verifying','source_revision':manifest['source_revision'],
+       'scope':'Declared external-model proposal batch; no performance claim',
        'framework_revision':manifest['framework_revision']}
 def save():
     temp=receipt.with_suffix('.tmp');temp.write_text(json.dumps(state,indent=2)+'\n');temp.replace(receipt)
@@ -24,11 +27,15 @@ def digest(path):
     with path.open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
 save()
 server=None
-name='kiln005-native-policy-smoke-v1'
+name='kiln005-'+config['name']
 image='sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba'
 try:
     for relative,want in manifest['files_sha256'].items():
         assert digest(root/relative)==want,relative
+    protocol=json.loads((root/'inputs/protocol.json').read_text())
+    search=next(s for s in protocol['searches'] if s['id']==config['id'])
+    assert config=={'name':config['name'],'proposal_budget':protocol['proposal_budget'],**search}
+    assert config['model']=='Qwen3-30B-A3B','Owner has one explicitly pinned model'
     state['framework_files']={}
     for module,want in manifest['framework_files_sha256'].items():
         path=Path(importlib.import_module(module).__file__)
@@ -72,14 +79,17 @@ try:
                  '--manifest',str(root/'inputs/manifest.json'),'--receipt',str(root/'inputs/receipt.json'),
                  '--output',str(root/'output'),'--base-url','http://127.0.0.1:8041/v1',
                  '--model','Qwen3-30B-A3B','--node','/usr/local/bin/node',
-                 '--proposal-budget','2','--max-steps','8','--completion-budget','16384','--per-turn-tokens','4096','--timeout','180']
+                 '--proposal-budget',str(config['proposal_budget']),'--max-steps',str(config['max_steps']),
+                 '--completion-budget',str(config['completion_budget']),'--per-turn-tokens',str(config['per_turn_tokens']),
+                 '--timeout','180']
         state.update(status='running_agent',agent_command=command);save()
         with (root/'agent.stdout.txt').open('x') as agentlog:
             result=subprocess.run(command,stdout=agentlog,stderr=subprocess.STDOUT)
         state['agent_returncode']=result.returncode
         result_path=root/'output/agent/result.json'
         state['agent_result']=json.loads(result_path.read_text()) if result_path.exists() else None
-        state['status']='complete' if result.returncode==0 and state['agent_result'] and state['agent_result']['task']['unique_artifacts']>0 else 'failed'
+        # Zero valid proposals is a legitimate search outcome, not infrastructure failure.
+        state['status']='complete' if result.returncode==0 and state['agent_result'] else 'failed'
 except Exception as error:
     state.update(status='failed',error=str(error),error_type=type(error).__name__)
 finally:

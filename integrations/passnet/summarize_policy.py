@@ -8,19 +8,20 @@ from pathlib import Path
 from select_policy import rank_training
 
 
-def summarize(corpus,training,selection,heldout):
+def validate_evidence(corpus,training,selection,heldout):
     membership=corpus['membership_sha256']
     if hashlib.sha256(json.dumps(corpus['variants'],sort_keys=True).encode()).hexdigest()!=membership:raise ValueError('Frozen corpus membership hash is invalid')
     if any(x['membership_sha256']!=membership for x in (training,selection,heldout)):
         raise ValueError('Experiment membership mismatch')
     if [r['graph'] for r in training['records']]!=[r['graph'] for r in corpus['variants'] if r['split']=='train']:raise ValueError('Training membership does not match frozen corpus')
-    if rank_training(training)[0]['policy']!=selection['selected_policy']:
-        raise ValueError('Selection does not match training-only evidence')
+    if training['plan']!=heldout['plan']:raise ValueError('Training and held-out plans differ')
     if heldout['phase']!='heldout' or heldout['status']!='complete':raise ValueError('Held-out run is incomplete')
-    chosen=selection['selected_policy'];expected_policies=list(dict.fromkeys(['baseline',chosen]))
-    if heldout['policies']!=expected_policies:raise ValueError('Held-out candidate grid is not allowed')
     expected=[r['graph'] for r in corpus['variants'] if r['split']=='heldout']
     if [r['graph'] for r in heldout['records']]!=expected:raise ValueError('Incomplete held-out graph membership')
+
+
+def confirmation_metrics(corpus,heldout,chosen):
+    """The same complete-population confirmation metrics for any frozen winner."""
     source_records={r['graph']:r for r in corpus['variants']}
     rows=[];families=defaultdict(list);stream_families=defaultdict(list);failures=[]
     for row in heldout['records']:
@@ -40,8 +41,8 @@ def summarize(corpus,training,selection,heldout):
         else:failures.append(row['graph'])
         rows.append(item)
     balanced=lambda groups:math.exp(sum(sum(v)/len(v) for v in groups.values())/len(groups))
-    return {'format':'kiln-policy-study-summary/1','membership_sha256':membership,'selected_policy':chosen,
-            'training_family_balanced_speedup':rank_training(training)[0]['family_balanced_speedup'],
+    if not rows:raise ValueError('Empty held-out population')
+    return {'selected_policy':chosen,
             'heldout_graphs':len(rows),'heldout_families':len({r['sample'] for r in rows}),
             'heldout_qualified':not failures,'heldout_failures':failures,
             'heldout_family_balanced_e2e_speedup':None if failures else balanced(families),
@@ -52,6 +53,19 @@ def summarize(corpus,training,selection,heldout):
              'Identical executable fingerprints share measurements; unchanged graphs are not independent performance contrasts.',
              'Three warm repeats on one GB10; repeat ranges are descriptive and not strong statistical confidence.',
              'Direct compiler metrics are relative to unchanged Kiln, not eager or official PassBench scores.']}
+
+
+def summarize(corpus,training,selection,heldout):
+    validate_evidence(corpus,training,selection,heldout)
+    ranking=rank_training(training)
+    if ranking[0]['policy']!=selection['selected_policy']:
+        raise ValueError('Selection does not match training-only evidence')
+    chosen=selection['selected_policy']
+    if heldout['policies']!=list(dict.fromkeys(['baseline',chosen])):
+        raise ValueError('Held-out candidate grid is not allowed')
+    return {'format':'kiln-policy-study-summary/1','membership_sha256':corpus['membership_sha256'],
+            'training_family_balanced_speedup':ranking[0]['family_balanced_speedup'],
+            **confirmation_metrics(corpus,heldout,chosen)}
 
 
 def main():

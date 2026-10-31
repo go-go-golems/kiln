@@ -1,0 +1,42 @@
+[
+  {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "integrations/passnet",
+      "-p",
+      "test_native_policy*.py",
+      "-v"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "integrations/passnet",
+      "-p",
+      "test_policy*.py",
+      "-v"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "python3",
+      "-m",
+      "py_compile",
+      "/home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/policy_search.py",
+      "/home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/freeze_study.py",
+      "/home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/measure_policy.py",
+      "/home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/summarize_policy.py"
+    ],
+    "returncode": 0
+  }
+]

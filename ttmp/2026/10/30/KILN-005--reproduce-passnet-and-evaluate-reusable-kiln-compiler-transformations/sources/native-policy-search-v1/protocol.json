@@ -1,0 +1,31 @@
+{
+  "format": "kiln-policy-search-protocol/1",
+  "proposal_budget": 4,
+  "searches": [
+    {
+      "id": "threshold",
+      "method": "threshold-grid",
+      "values": [
+        0.95,
+        1.0,
+        1.1,
+        1.25
+      ]
+    },
+    {
+      "id": "random",
+      "method": "seeded-random",
+      "seed": 20261031
+    },
+    {
+      "id": "llm",
+      "method": "external-llm",
+      "model": "Qwen3-30B-A3B",
+      "max_steps": 12,
+      "completion_budget": 24576,
+      "per_turn_tokens": 4096
+    }
+  ],
+  "scope": "Equal proposal allowance; separate inference/compile/GPU costs; single proposal batch without timing feedback",
+  "selection": "Independent training winner per method; unchanged Kiln is the fallback; no replacement of rejected or duplicate proposals"
+}

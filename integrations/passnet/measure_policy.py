@@ -48,7 +48,9 @@ def main():
     parser.add_argument('--upstream',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--phase',choices=['train','heldout'],required=True)
-    parser.add_argument('--selection',type=Path)
+    selections=parser.add_mutually_exclusive_group()
+    selections.add_argument('--selection',type=Path)
+    selections.add_argument('--search-selection',type=Path,help='Frozen independent winner for each declared search method')
     parser.add_argument('--include-path',action='append',default=[])
     args=parser.parse_args()
     if args.output.exists():raise ValueError('Preserve existing measurements; choose a new run filename')
@@ -63,12 +65,17 @@ def main():
     if gate.get('numerical_policy')!=numerical_policy or plan.get('numerical_policy')!=numerical_policy:raise ValueError('Numerical contract differs from frozen qualification')
     policies=plan['candidate_ids']
     if args.phase=='heldout':
-        if not args.selection:raise ValueError('Held-out timing requires completed training selection')
-        selection=json.loads(args.selection.read_text())
-        if selection['membership_sha256']!=manifest['membership_sha256'] or selection['format']!='kiln-policy-selection/1':raise ValueError('Invalid training selection')
-        if selection['selected_policy'] not in policies:raise ValueError('Selected policy was not predeclared')
-        policies=list(dict.fromkeys(['baseline',selection['selected_policy']]))
-    elif args.selection:raise ValueError('Training must not depend on an existing selection')
+        if args.search_selection:
+            from policy_search import confirmation_policies
+            policies=confirmation_policies(plan,json.loads(args.search_selection.read_text()))
+        else:
+            if 'search_groups' in plan:raise ValueError('Search comparison requires every method selection')
+            if not args.selection:raise ValueError('Held-out timing requires completed training selection')
+            selection=json.loads(args.selection.read_text())
+            if selection['membership_sha256']!=manifest['membership_sha256'] or selection['format']!='kiln-policy-selection/1':raise ValueError('Invalid training selection')
+            if selection['selected_policy'] not in policies:raise ValueError('Selected policy was not predeclared')
+            policies=list(dict.fromkeys(['baseline',selection['selected_policy']]))
+    elif args.selection or args.search_selection:raise ValueError('Training must not depend on an existing selection')
     compiled={name:json.loads((args.artifacts/name/'compile-receipt.json').read_text()) for name in policies}
     args.output.parent.mkdir(parents=True,exist_ok=True)
     result={'format':'kiln-policy-measurement/2','status':'running','phase':args.phase,

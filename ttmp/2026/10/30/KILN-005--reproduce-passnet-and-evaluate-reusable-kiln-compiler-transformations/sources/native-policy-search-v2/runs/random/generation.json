@@ -1,0 +1,122 @@
+{
+  "format": "kiln-policy-baseline-generation/1",
+  "protocol_sha256": "112c864afc95dd42b2798616067bf660960f872aadbae1348a30ccf5f811d2ab",
+  "search": {
+    "id": "random",
+    "method": "seeded-random",
+    "seed": 20261031
+  },
+  "python": "3.13.2 (main, May 17 2025, 11:57:16) [GCC 13.3.0]",
+  "policies": [
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "random-1",
+      "kind": "selective",
+      "tree": {
+        "if": {
+          "feature": "fusedWork",
+          "op": "ge",
+          "value": 11798352
+        },
+        "then": {
+          "threshold": 1.5
+        },
+        "else": {
+          "threshold": 0.75
+        }
+      },
+      "consumer_tree": {
+        "if": {
+          "feature": "consumerCount",
+          "op": "eq",
+          "value": 1
+        },
+        "then": {
+          "accept": true
+        },
+        "else": {
+          "threshold": 1.0
+        }
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "random-2",
+      "kind": "decision-tree",
+      "tree": {
+        "if": {
+          "feature": "producerElements",
+          "op": "le",
+          "value": 32768
+        },
+        "then": {
+          "threshold": 0.95
+        },
+        "else": {
+          "threshold": 0.9
+        }
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "random-3",
+      "kind": "threshold",
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "random-4",
+      "kind": "decision-tree",
+      "tree": {
+        "if": {
+          "feature": "originalWork",
+          "op": "le",
+          "value": 1099644672
+        },
+        "then": {
+          "threshold": 1.25
+        },
+        "else": {
+          "threshold": 0.95
+        }
+      }
+    }
+  ],
+  "results": [
+    {
+      "attempt": 1,
+      "remaining": 3,
+      "status": "accepted",
+      "artifact_sha256": "ef1e49d777032e307d6fd8924fad7f72152701a474acfa5971ca37d7d9c56925",
+      "evaluation_status": "not_run"
+    },
+    {
+      "attempt": 2,
+      "remaining": 2,
+      "status": "accepted",
+      "artifact_sha256": "b5517086a5ea0b535283766a6a203afdb32909051eebf0edbdb53be018331d49",
+      "evaluation_status": "not_run"
+    },
+    {
+      "attempt": 3,
+      "remaining": 1,
+      "status": "accepted",
+      "artifact_sha256": "196f5181d17ee2f118c8b4461d5824506314f809e15562a51f3979ec573277f7",
+      "evaluation_status": "not_run"
+    },
+    {
+      "attempt": 4,
+      "remaining": 0,
+      "status": "accepted",
+      "artifact_sha256": "0269990aae9cbd2d02766673ce9cfc694f655e082f5104d01e96298b0599e19e",
+      "evaluation_status": "not_run"
+    }
+  ],
+  "task": {
+    "status": "finished",
+    "attempts": 4,
+    "unique_artifacts": 4,
+    "evaluation_status": "not_run"
+  },
+  "elapsed_seconds": 0.43382539800950326
+}

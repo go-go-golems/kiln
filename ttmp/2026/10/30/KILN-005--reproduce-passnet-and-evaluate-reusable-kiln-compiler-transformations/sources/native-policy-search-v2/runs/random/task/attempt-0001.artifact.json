@@ -1,0 +1,49 @@
+{
+  "format": "kiln-optimization-artifact/1",
+  "input_ir": "kiln-loop/1",
+  "action_contract": "kiln-loop-fusion/1",
+  "feature_contract": "kiln-loop-fusion-features/1",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "applicability": {
+    "pipeline": "emmy",
+    "static_shapes": true
+  },
+  "program_budget": {
+    "max_nodes": 31,
+    "max_depth": 6,
+    "max_work_growth": 2
+  },
+  "program": {
+    "consumer_tree": {
+      "else": {
+        "threshold": 1
+      },
+      "if": {
+        "feature": "consumerCount",
+        "op": "eq",
+        "value": 1
+      },
+      "then": {
+        "accept": true
+      }
+    },
+    "format": "kiln-fusion-policy/1",
+    "id": "artifact-policy",
+    "kind": "selective",
+    "tree": {
+      "else": {
+        "threshold": 0.75
+      },
+      "if": {
+        "feature": "fusedWork",
+        "op": "ge",
+        "value": 11798352
+      },
+      "then": {
+        "threshold": 1.5
+      }
+    }
+  }
+}

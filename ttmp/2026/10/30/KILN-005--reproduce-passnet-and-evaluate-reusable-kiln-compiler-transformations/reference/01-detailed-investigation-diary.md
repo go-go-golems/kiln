@@ -7344,3 +7344,69 @@ See Step152 for the authored design-document question and Step149 for the framew
 - Proposal accounting keys are identified_submissions, charged_submissions and unadmitted_submissions. Unstructured prose and provider-separated reasoning incur token/step costs but are not tool submissions.
 - Historical qualification SHA2563b262c0b0d853afb22cd2f8fe67caefd54f88a2bebc116e37f90f09acee6199a remains unchanged.
 - No compiler transformation, runtime kernel code, shared DGX checkout or numerical tolerance changed.
+
+## Step 155: Declare independent search methods and prepare fresh confirmation
+
+The preceding user-facing turn verified and linked the design document but changed no authoritative project state; it was a status response, not goal progress. This step resumes implementation of the controlled comparison. It adds method-specific proposal ledgers and selections around the existing evaluator, prepares a fresh confirmation population without compiling it, and generates the two deterministic search arms.
+
+All53 focused native-task and policy tests pass. Twelve training graphs compile under both controls, and threshold/random search each submit four valid policies through the same proposal boundary. The external model and candidate GPU evaluation have not yet run at this checkpoint.
+
+### Prompt Context
+See Step152 for the authored design-document question and Step149 for the framework and reassessment requests. The goal-continuation message is runtime metadata rather than a new authored quotation.
+**Assistant interpretation:** Advance the controlled compiler-policy experiment while retaining shared evaluation, explicit budgets, provenance and reviewable evidence.
+**Inferred user intent:** Reach credible reusable self-optimization results without uncontrolled architectural growth.
+**Starting commit:**4306c639eb31d4d4cdf7711b8679eece72c865db.
+
+### What I did
+- Added policy_search.py for protocol validation, deterministic baselines, raw proposal-ledger verification, cross-method artifact identity, independent selections and joint confirmation summaries.
+- Extracted freeze_candidates and confirmation_metrics from existing modules and reused rank_training. The original single-search study remains a distinct supported workflow, with no format adapter.
+- Extended measure_policy.py with a mutually exclusive search-selection input and rejection of a single winner for a multi-method declaration.
+- Added14 tests covering ledger integrity, duplicate accounting, deterministic replay, training isolation, independent winners, ties, candidate failures, frozen evidence and complete confirmation.
+- Retained scripts436/437 and all preparation/validation/proposal outputs in sources/native-policy-search-v1 and v2. Parameterized the existing DGX staging/owner/collector scripts428–430 instead of copying another launcher.
+
+### Why
+- A global best candidate would obscure which search method produced an improvement. Each method must choose from its own proposals using identical training evidence.
+- Identical artifacts should share compilation and measurement while retaining separate proposal charges.
+- Fresh confirmation must be declared without using candidate correctness or speed to choose easier graphs.
+
+### What worked
+- Corrected metadata preparation selected eight graphs, four matrix and four reduction, after3036 tasks. The merged corpus retains twelve old training graphs and has membership SHA256d236540b3b5ff4a62df035920d91602fe34df10c1d51b1facb2d8e535c3218e9.
+- Both unchanged/default controls compiled all twelve training graphs. Confirmation remains uncompiled and untimed.
+- Script437 ran18 native task/driver tests and35 policy tests successfully, then generated four accepted proposals for each deterministic arm. Candidate compilation and timing remain pending.
+- Python syntax compilation passed for the measurement/freezing/summary modules and the parameterized DGX scripts.
+
+### What didn't work
+- The initial tmux launch in the sandbox reported `error connecting to /tmp/tmux-1000/default (Operation not permitted)`. The same authorized launch succeeded with escalation; it did not start a duplicate job.
+- `python3 .../scripts/436-prepare-native-search-pilot.py --node /home/manuel/.nvm/versions/node/v26.13.0/bin/node` failed at `for row in data.get('variants',[]):` with `AttributeError: 'list' object has no attribute 'get'`. The collector had assumed every archived manifest was a corpus object.
+- Verified the original session was absent (`can't find session: kiln-native-search-prepare-v1`), preserved its failed receipt/stdout, added explicit output selection and skipped non-object manifests. The corrected attempt used a new directory and completed with the same selection salt and eligibility rules. No candidate outcome entered that repair.
+
+### What I learned
+- The archive includes non-corpus manifest schemas; prior corpus exclusion must identify the relevant variant records rather than assume one universal schema.
+- A method can legitimately produce no accepted proposals. The DGX owner now treats a normally completed zero-artifact batch as a search outcome, retaining baseline fallback, rather than an infrastructure failure.
+- The comparison can use existing compiler qualification, ranking and metric code; method membership and proposal accounting are the additional responsibilities.
+
+### What was tricky to build
+- Baseline request IDs do not affect artifact identity, but the raw baseline request must still match its declared generator. The collector checks both identities and rejects renamed/substituted baseline requests even when their normalized policy is unchanged.
+- The summary must recompute each selection from training before reading its confirmation ratio. Shared artifact identity must not allow a winner from another method to enter a method's candidate set.
+- The declaration freezes raw proposal evidence alongside policies; accepted grammar validity remains distinct from compilation, native correctness and speed.
+
+### What warrants a second pair of eyes
+- Review the finite random proposal distribution and four-slot pilot size before interpreting a comparative result. Equal proposal allowance is not equal inference cost, and one seed/model batch cannot establish general superiority.
+- Review exact-model exclusions and architecture overlap. The new confirmation population is metadata-restricted FP32 and is not the full200 evaluation.
+- Review the new parameterized owner on the actual DGX run; local syntax checks do not prove server startup/shutdown or model accounting.
+
+### What should be done in the future
+- Run the committed four-slot model batch, collect its raw evidence and freeze all methods into one candidate declaration.
+- Compile candidates, measure isolated training, commit independent selections, and measure their union on the eight confirmation graphs with no replacements.
+- Continue full200 support, numerical compatibility repairs, original reference reproduction and pending delivery separately; no overall completion claim follows from this pilot.
+
+### Code review instructions
+- Start with policy_search.collect_searches, select_searches and summarize_searches; follow their calls into the existing task/freezer/ranker/metrics.
+- Inspect native-policy-search-v2/protocol.json, prepare.json, validation/result.json and the two runs/*/task ledgers.
+- Reproduce validation using the commands in validation/checks.json. Script437 is a fresh-output experiment driver, not an overwriteable test runner.
+
+### Technical details
+- Threshold values:0.95,1.0,1.1,1.25. Random seed:20261031. Shared proposal allowance:4. Model limits:12 steps,4096 tokens/response,24576 total completion tokens.
+- New formats: kiln-policy-search-protocol/1, kiln-policy-search-proposals/1, kiln-policy-search-measurement-plan/1, kiln-policy-search-selection/1 and kiln-policy-search-summary/1.
+- Rejected/duplicate slots receive no replacement. Unchanged Kiln appears first in every method for deterministic tie/failure fallback. Confirmation failures retain graph positions and suppress aggregate speedup for the affected method.
+- No production compiler transformation, runtime kernel code, numerical tolerance or shared remote checkout changed.
