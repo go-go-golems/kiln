@@ -1,0 +1,54 @@
+{
+  "format": "kiln-native-agent-smoke-audit/1",
+  "status": "passed",
+  "model": "Qwen3-30B-A3B",
+  "framework_revision": "0d94c4eb9431cd195c55a7ea3abd54006c9a1735",
+  "source_revision": "05efc4c494a1dd0b8c2a9786be1fec2e0e3e7c21",
+  "exit_reason": "proposal_budget_exhausted",
+  "usage": {
+    "prompt_tokens": 60391,
+    "completion_tokens": 5743,
+    "total_tokens": 66134
+  },
+  "actions": [
+    {
+      "step": 0,
+      "tool": "inspect_training",
+      "status": null,
+      "artifact_sha256": null
+    },
+    {
+      "step": 1,
+      "tool": "",
+      "status": "invalid_action",
+      "artifact_sha256": null
+    },
+    {
+      "step": 2,
+      "tool": "inspect_training",
+      "status": null,
+      "artifact_sha256": null
+    },
+    {
+      "step": 3,
+      "tool": "submit_policy",
+      "status": "rejected",
+      "artifact_sha256": null
+    },
+    {
+      "step": 4,
+      "tool": "submit_policy",
+      "status": "accepted",
+      "artifact_sha256": "47de696f439bec397cfd65268d9183a49e82a5948c123898290d70cec063f6d8"
+    }
+  ],
+  "task": {
+    "status": "finished",
+    "attempts": 2,
+    "unique_artifacts": 1,
+    "evaluation_status": "not_run"
+  },
+  "container_absent": true,
+  "gpu_processes_after": "",
+  "scope": "Raw-response/tool/budget replay; no compiler correctness or speedup claim"
+}

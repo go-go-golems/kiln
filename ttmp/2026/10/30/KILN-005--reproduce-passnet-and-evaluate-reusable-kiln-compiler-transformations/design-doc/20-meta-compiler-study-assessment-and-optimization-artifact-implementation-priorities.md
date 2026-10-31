@@ -12,6 +12,8 @@ RelatedFiles:
       Note: Trusted training projection and proposal budget ledger
     - Path: repo://integrations/passnet/optimization_artifact.mjs
       Note: Canonical bounded policy artifact using existing evidence primitives
+    - Path: repo://integrations/passnet/run_native_policy_agent.py
+      Note: Bounded model loop using pinned R2E actions and trajectory steps
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-10-31T11:25:07.07604594-04:00
@@ -117,3 +119,31 @@ flowchart TD
 Scripts428/429 implement an operational smoke-run lifecycle on the DGX. The staging script refuses uncommitted input bytes and creates a separate source directory; it does not mutate the shared compiler checkout. The owning process verifies every bundle file, hashes the installed R2E Action/Trajectory modules against the archived pinned source, rehashes the full model artifact, and checks for existing GPU activity. It starts one named local model container, runs a two-proposal batch on previously observed training data, then stops only its verified container and records process/resource state. This operational run does not establish a new benchmark population or a policy speedup. Its results must be recorded separately from the later equal-budget experiment.
 
 The implementation has seven controlled-provider loop tests covering token/step stopping, missing usage, response retention, partial/malformed actions, no hidden query retry and explicit local provider selection. These tests use doubles for framework objects; the DGX smoke is required to verify the installed R2E components and real model response together. At this source checkpoint that smoke has not yet run.
+
+## First actual model batch: operational success, no executable change
+
+The subsequently completed smoke used committed source `05efc4c494a1dd0b8c2a9786be1fec2e0e3e7c21` and the pinned generic Qwen3-30B-A3B BF16 model. It took five model steps and224.366 seconds of agent-loop time. Reported usage was60391 prompt tokens plus5743 completion tokens,66134 total. These prompt tokens include repeated context across requests; they are not a single context window. The full model file was rehashed before launch. The installed R2E Action and Trajectory module hashes matched the archived pin.
+
+| Step | Observed action | Outcome |
+|---|---|---|
+|0|Inspect training features|Approved numeric feature view returned|
+|1|Two submit actions in one response|Entire response rejected as an invalid action; no policy validation|
+|2|Inspect training features again|Same approved view returned|
+|3|Submit threshold1.05 with ID `threshold-1.05`|Charged proposal rejected: `Invalid fusion policy identity`; a dot violates the ID grammar|
+|4|Submit threshold1.05 with ID `threshold-1-05`|Second charged proposal accepted; proposal budget exhausted|
+
+The accepted optimization artifact is `47de696f439bec397cfd65268d9183a49e82a5948c123898290d70cec063f6d8`. It has kind `threshold` and `max_work_growth: 1.05`. This is also the numeric value in the prompt's illustrative example; the smoke does not establish independent discovery or novel policy synthesis. The model did produce a second textual decision-tree proposal in the multi-action response, but the host did not validate, compile or accept it.
+
+Script430 collected29 files and verified their hashes against the terminal DGX files. Script432 reconstructed every model-visible message, replayed parsed actions with the pinned R2E Action implementation, and matched observations, token totals and task accounting. The final container was absent; both the owner's post-shutdown check and the later collector found no active GPU compute process.
+
+Script431 compiled the actual accepted program and unchanged Kiln on all twelve historical training graphs. All24 compilations passed the compiler reference checks. Script433 independently compared complete emitted program objects after excluding only `name`, `source` and `compiler_policy` metadata. All twelve were equal, including executable code, launch configuration, inputs/outputs and scratch allocation. The result is an executable alias of the baseline on this corpus. No CUDA correctness result or timing contrast is inferred from compilation, and no duplicate GPU timing was performed.
+
+This closes the operational model-to-policy-to-compiler connection. It does not close task f5d9: there is no equal-budget search comparison, selected improvement or fresh confirmation yet.
+
+### Budget ambiguity to resolve before the scientific comparison
+
+The implemented smoke protocol counts dispatched `submit_policy` calls as proposal attempts and counts malformed action responses against the model-step budget. Consequently its five responses contain four textual candidate blocks, but only two charged proposal attempts. That distinction is explicit in the raw evidence and must not be reported as only two generated candidates. The current run is an operational check under its recorded protocol, not evidence of equal candidate-generation budgets.
+
+Before the comparison, tighten the driver so identifiable submission attempts in rejected multi-action responses also consume the declared proposal budget, or use a predeclared model-response budget as the primary search unit and report all textual candidates separately. The preferred next implementation is to charge each identifiable submission without executing the malformed multi-action response. Preserve this smoke unchanged and run the comparison under the new declared protocol. Also avoid using an illustrative candidate value as evidence that the model learned that value, and record repeated inspection costs rather than treating them as free input.
+
+The shared study harness needs one further explicit behavior before arbitrary generated policies are compared: its current qualification function requires all candidates to compile successfully. It should retain failed candidates as ineligible search outcomes charged to the fixed budget, while a failed baseline or invalid evaluation declaration aborts the study. Implement this in the existing qualification/selection path rather than introducing a second evaluator. Fresh confirmation membership and training-only selection remain mandatory.

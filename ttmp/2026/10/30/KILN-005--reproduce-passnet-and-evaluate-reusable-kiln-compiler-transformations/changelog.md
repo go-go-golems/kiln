@@ -158,3 +158,11 @@ Implemented trusted native policy proposal tools, canonical optimization artifac
 ### Related Files
 
 - /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/native_policy_task.py — Native proposal boundary and host-owned ledger
+
+## 2026-10-31
+
+Ran actual native Qwen/R2E-component proposal batch from05efc4c: five steps, two charged submissions, one accepted threshold1.05 artifact. Audited29 raw files and token/tool replay; accepted policy compiles on12 training graphs but all complete program bodies alias baseline. Model server released. Recorded multi-action budget ambiguity and failed-candidate qualification requirements before task f5d9 comparison.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/run_native_policy_agent.py — Actual model-to-native policy path and explicit operational limits

@@ -1,0 +1,28 @@
+/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/lib/python3.12/site-packages/swebench/harness/modal_eval/run_evaluation_modal.py:302: DeprecationError: 2025-02-03: Modal will stop implicitly adding local Python modules to the Image ("automounting") in a future update. The following modules need to be explicitly added for future compatibility:
+* native_policy_task
+* propose_policy
+
+e.g.:
+image_with_source = my_image.add_local_python_source("native_policy_task", "propose_policy")
+
+For more information, see https://modal.com/docs/guide/modal-1-0-migration
+  @app.function(
+{
+  "format": "kiln-native-agent-batch-result/1",
+  "exit_reason": "proposal_budget_exhausted",
+  "model": "Qwen3-30B-A3B",
+  "usage": {
+    "prompt_tokens": 60391,
+    "completion_tokens": 5743,
+    "total_tokens": 66134
+  },
+  "steps": 5,
+  "task": {
+    "status": "finished",
+    "attempts": 2,
+    "unique_artifacts": 1,
+    "evaluation_status": "not_run"
+  },
+  "elapsed_seconds": 224.36626628192607,
+  "evaluation_status": "not_run"
+}

@@ -1,0 +1,173 @@
+{
+  "format": "kiln-native-agent-smoke/1",
+  "status": "complete",
+  "source_revision": "05efc4c494a1dd0b8c2a9786be1fec2e0e3e7c21",
+  "scope": "Operational external-model proposal batch on historical training data; no performance claim",
+  "framework_revision": "0d94c4eb9431cd195c55a7ea3abd54006c9a1735",
+  "framework_files": {
+    "r2egym.agenthub.action.action": {
+      "path": "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/lib/python3.12/site-packages/r2egym/agenthub/action/action.py",
+      "sha256": "d92df60601b3b7e8bf6ee99cffaa6a550f87799db32c32f7906b1372623e4d66"
+    },
+    "r2egym.agenthub.trajectory.trajectory": {
+      "path": "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/lib/python3.12/site-packages/r2egym/agenthub/trajectory/trajectory.py",
+      "sha256": "b879612fbcde1db5a53bec0972c8d5346553b57a7fefee9849078bbe7054a5b4"
+    }
+  },
+  "node": "v26.8.1",
+  "model_sha256": "f921b42e9b6191c3ffad54532df61e57fb1477aefdb12f5a4eb496ac8828e8ad",
+  "server_sha256": "120e0aa1ff814a42027669f3bc9cb3df03e1d797796c91c129f144a1db95fd57",
+  "server_command": [
+    "docker",
+    "run",
+    "--rm",
+    "--name",
+    "kiln005-native-policy-smoke-v1",
+    "--gpus",
+    "all",
+    "--network",
+    "host",
+    "-v",
+    "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1:/storage:ro",
+    "--entrypoint",
+    "/storage/llama-build/bin/llama-server",
+    "sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba",
+    "--model",
+    "/storage/model-converted/Qwen3-30B-A3B-BF16.gguf",
+    "--alias",
+    "Qwen3-30B-A3B",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "8041",
+    "--ctx-size",
+    "40960",
+    "--parallel",
+    "1",
+    "--jinja",
+    "--chat-template-kwargs",
+    "{\"enable_thinking\":true}",
+    "--n-gpu-layers",
+    "all",
+    "--sleep-idle-seconds",
+    "-1"
+  ],
+  "server_process_pid": 1683811,
+  "container_id": "ca3d5477209db683ec7ddaa68df21f9fdbeb0e9c449609994a2a901c22da2754",
+  "provider_models": {
+    "models": [
+      {
+        "name": "Qwen3-30B-A3B",
+        "model": "Qwen3-30B-A3B",
+        "modified_at": "",
+        "size": "",
+        "digest": "",
+        "type": "model",
+        "description": "",
+        "tags": [
+          ""
+        ],
+        "capabilities": [
+          "completion"
+        ],
+        "parameters": "",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "",
+          "families": [
+            ""
+          ],
+          "parameter_size": "",
+          "quantization_level": ""
+        }
+      }
+    ],
+    "object": "list",
+    "data": [
+      {
+        "id": "Qwen3-30B-A3B",
+        "aliases": [
+          "Qwen3-30B-A3B"
+        ],
+        "tags": [],
+        "object": "model",
+        "architecture": {
+          "input_modalities": [
+            "text"
+          ],
+          "output_modalities": [
+            "text"
+          ]
+        },
+        "created": 1793462756,
+        "owned_by": "llamacpp",
+        "meta": {
+          "vocab_type": 2,
+          "n_vocab": 151936,
+          "n_ctx": 40960,
+          "n_ctx_train": 40960,
+          "n_embd": 2048,
+          "n_params": 30532122624,
+          "size": 61089832960,
+          "ftype": "BF16"
+        }
+      }
+    ]
+  },
+  "agent_command": [
+    "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/bin/python",
+    "/home/manuel/passnet-kiln/KILN-005/sources/native-policy-agent-smoke-v1/repo/integrations/passnet/run_native_policy_agent.py",
+    "--manifest",
+    "/home/manuel/passnet-kiln/KILN-005/sources/native-policy-agent-smoke-v1/inputs/manifest.json",
+    "--receipt",
+    "/home/manuel/passnet-kiln/KILN-005/sources/native-policy-agent-smoke-v1/inputs/receipt.json",
+    "--output",
+    "/home/manuel/passnet-kiln/KILN-005/sources/native-policy-agent-smoke-v1/output",
+    "--base-url",
+    "http://127.0.0.1:8041/v1",
+    "--model",
+    "Qwen3-30B-A3B",
+    "--node",
+    "/usr/local/bin/node",
+    "--proposal-budget",
+    "2",
+    "--max-steps",
+    "8",
+    "--completion-budget",
+    "16384",
+    "--per-turn-tokens",
+    "4096",
+    "--timeout",
+    "180"
+  ],
+  "agent_returncode": 0,
+  "agent_result": {
+    "format": "kiln-native-agent-batch-result/1",
+    "exit_reason": "proposal_budget_exhausted",
+    "model": "Qwen3-30B-A3B",
+    "usage": {
+      "prompt_tokens": 60391,
+      "completion_tokens": 5743,
+      "total_tokens": 66134
+    },
+    "steps": 5,
+    "task": {
+      "status": "finished",
+      "attempts": 2,
+      "unique_artifacts": 1,
+      "evaluation_status": "not_run"
+    },
+    "elapsed_seconds": 224.36626628192607,
+    "evaluation_status": "not_run"
+  },
+  "release": {
+    "container_id": "ca3d5477209db683ec7ddaa68df21f9fdbeb0e9c449609994a2a901c22da2754",
+    "returncode": 0,
+    "stdout": "Flag --time has been deprecated, use --timeout instead\nca3d5477209db683ec7ddaa68df21f9fdbeb0e9c449609994a2a901c22da2754\n",
+    "stderr": ""
+  },
+  "server_returncode": 0,
+  "container_absent": true,
+  "gpu_processes_after": ""
+}

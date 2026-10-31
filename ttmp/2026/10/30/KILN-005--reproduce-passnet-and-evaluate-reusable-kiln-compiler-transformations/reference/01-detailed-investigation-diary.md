@@ -7202,3 +7202,75 @@ See Step149 for the authored agent-framework and project-assessment requests.
 - Initial smoke configuration: local Qwen3-30B-A3B BF16,40960-token server context, thinking enabled, two proposal slots, eight steps,4096 tokens per reply,16384 completion tokens total,180-second per-request timeout, no automatic retries.
 - Framework pin remains0d94c4eb9431cd195c55a7ea3abd54006c9a1735. R2E module hashes are derived from the archived source tarball.
 - Historical twelve-graph training features are operational inputs; no held-out measurements or new performance results are exposed or claimed.
+
+## Step 153: Run and audit the actual native model batch, then prove its accepted program aliases the baseline
+
+The committed native driver has now run against the pinned local Qwen model on the DGX. It produced one accepted threshold policy after a multi-action response and an invalid-ID submission. The two charged proposal slots were exhausted in five model steps. The owned server was stopped and its absence verified before any subsequent compiler work.
+
+The accepted policy compiles on all twelve historical training graphs, but its complete emitted programs are identical to unchanged Kiln on those graphs. This is a successful operational connection and a negative optimization result at the executable level. It is not a new correctness qualification, speedup, equal-budget agent comparison or fresh confirmation study.
+
+### Prompt Context
+See Step152 for the user's authored design-document question and Step149 for the framework/assessment requests. The continuing objective requires actual implementation and measurement with preserved evidence, not only a proposed architecture.
+**Assistant interpretation:** Exercise the model loop, audit its authoritative outputs and compile the accepted program without inflating operational success into compiler improvement.
+**Inferred user intent:** Establish a reliable route to actual self-optimization experiments and document where it still falls short.
+**Driver/source commit:**05efc4c494a1dd0b8c2a9786be1fec2e0e3e7c21.
+
+### What I did
+- Ran script428 to stage only committed bytes in sources/native-policy-agent-smoke-v1 on the DGX and launch its tmux owner.
+- Script429 verified the isolated bundle, installed R2E source hashes and the full61GB model digest, then ran the declared two-slot batch.
+- Polled the same live tmux owner and process logs through model loading and inference. No timeout caused a restart.
+- Collected29 terminal files with script430 and verified every copied file against the remote SHA256 manifest.
+- Audited raw provider usage, exact model-visible message histories, parsed actions, observations and ledger results with script432 using the actual pinned R2E Action parser.
+- Compiled the accepted artifact and unchanged compiler on all twelve training graphs with script431, then compared complete program bodies independently of fingerprints with script433.
+- Expanded design20 with actual outcomes and two experiment-contract gaps that must be resolved before the controlled comparison.
+
+### Why
+- Real model output exposes protocol behavior that controlled responses cannot establish, including multiple actions and invalid identifiers.
+- Resource release must be demonstrated before interpreting later GPU timings as isolated measurements.
+- Exact executable aliases provide no independent performance contrast. Timing them separately would measure noise rather than policy improvement.
+
+### What worked
+- Installed R2E Action SHA256d92df60601b3b7e8bf6ee99cffaa6a550f87799db32c32f7906b1372623e4d66 and Trajectory SHA256b879612fbcde1db5a53bec0972c8d5346553b57a7fefee9849078bbe7054a5b4 match the archived pin.
+- The batch ended with proposal_budget_exhausted: five steps, two charged attempts, one unique valid artifact,224.366266 seconds in the agent loop.
+- Raw usage sums independently reproduce60391 prompt tokens,5743 completion tokens and66134 total tokens.
+- Accepted artifact47de696f439bec397cfd65268d9183a49e82a5948c123898290d70cec063f6d8 raises the aggregate threshold to1.05.
+- All24 baseline/candidate compilations passed the existing compiler reference checks. Complete emitted bodies agree on all twelve graphs after removing only diagnostic/provenance metadata.
+- The model container is absent; owner and collector GPU-process queries were both empty.
+
+### What didn't work
+- Step1 emitted two submit_policy action blocks in one response. The driver returned invalid_action and executed neither.
+- Step3's policy ID threshold-1.05 contains a dot. The validator returned the exact error "Invalid fusion policy identity" and charged the attempt. Step4 corrected the ID to threshold-1-05.
+- The accepted policy changes no executable on this corpus. No optimization gain is claimed.
+- The operational protocol charged two dispatched proposals, while four textual candidate blocks appeared across the responses. This exposes an accounting ambiguity for the future equal-generation-budget comparison. The current run remains preserved under its actual protocol.
+- The final tmux observation returned "can't find window: kiln-native-agent-smoke-v1" after the owner had exited; the terminal receipt and absent container confirm normal completion rather than a lost live handle.
+
+### What I learned
+- A complete external-model-to-native-policy path now exists, but a valid proposal can have zero effect on generated code.
+- The accepted1.05 value appears in the prompt example. Its generation is not evidence of independent discovery.
+- Multiple-action responses need an explicit scientific budget rule. Charging only dispatched submissions understates the number of textual candidates generated; future comparisons must count those rejected attempts too.
+- The existing qualification harness aborts on any candidate compile failure. Arbitrary model proposals require failed-candidate outcomes to remain visible and charged, without aborting an otherwise valid baseline study.
+
+### What was tricky to build
+- The R2E imports emit incidental Modal migration warnings, but their actual component hashes and the completed trajectory prove the required components loaded. The warnings are retained in agent.stdout.txt.
+- Repeated training inspection doubles the feature view in later context. The audit reconstructs that exact history and reports repeated prompt-token costs explicitly.
+- The model server uses the same GPU as compiler evaluation; the owner verifies its container identity before shutdown and records absence after exit. No GPU timing ran during serving.
+
+### What warrants a second pair of eyes
+- Review the four textual candidates versus two dispatched attempts before defining the next experiment's budget and malformed-response penalty.
+- Review the program-body equality exclusion list; executable source, launch parameters, I/O layout and scratch buffers remain compared.
+- Review prompt-example anchoring and corpus policy sensitivity before interpreting candidate quality.
+
+### What should be done in the future
+- Charge identifiable submissions in malformed multi-action responses before the controlled comparison, preserving this prior run and protocol.
+- Extend shared qualification/selection to retain charged failed-candidate outcomes; abort on failed baseline or compromised declaration rather than discarding the entire search for an ordinary candidate failure.
+- Run threshold/seeded-random/LLM proposals under a newly fixed protocol and fresh declared confirmation. Keep full200 support and native numerical repairs active.
+
+### Code review instructions
+- Read design20's first-batch outcome and budget-ambiguity sections.
+- Compare native-agent-smoke-terminal-v1/output/agent raw responses with native-agent-smoke-audit-v1/result.json and the task request/result files.
+- Inspect native-agent-compilation-v1/result.json and native-agent-executable-alias-v1.json; script433 proves equality directly from the saved program objects.
+
+### Technical details
+- Complete model SHA256f921b42e9b6191c3ffad54532df61e57fb1477aefdb12f5a4eb496ac8828e8ad was revalidated before serving.
+- Staged bundle SHA256e954480ad6719b52c78db3b78f4bbb9377555092867574b03b02e6af4571539c; Node26.8.1 on the DGX,26.13.0 for local replay/compilation.
+- No shared remote compiler source, original PassBench evaluator, numerical tolerance or benchmark support count changed in this checkpoint. Task f5d9 remains open.
