@@ -14,8 +14,11 @@
 - [ ] Implement pooling semantics and FX import, starting with avg_pool2d; verify padding/divisor/ceil behavior, qualify real graphs on CUDA, then expand max/adaptive pooling and optimization workloads. <!-- t:kiok -->
 - [x] Evaluate fixed agent7 on every eligible fresh pointwise confirmation model; retain population shortfall, aliases, numerical failures and timing results before any promotion. <!-- t:vkgt -->
 - [x] Independent architecture review at 73bc1fc with direction plan (reference 45) and intern system guide (design 22); uploaded to reMarkable /ai/2026/10/31/KILN-005. <!-- t:rv45 -->
-- [ ] P0: replace output-order-sensitive pattern identity with body classes plus per-variant output permutation (review A1); replay tasks 6, 24 and 185 on fresh copies through the original checker. <!-- t:p0a1 -->
-- [ ] P0: split stale test_fx_trace mutation test (A2); restrict contractFma to FP32 (A3); record internal-check status in artifacts (A6); add 32-bit index overflow export guard (A7). <!-- t:p0fx -->
-- [ ] P1: name a cause for tasks 79 and 128 matcher failures and cluster the 43 nominal numerical failures of the ordinary band by operation and dtype. <!-- t:p1dg -->
-- [ ] P2: OpSpec importer registry plus per-node dtype/shape postcondition (A4), gated by a byte-identical import census hash. <!-- t:p2rg -->
+- [ ] P0: replace output-order-sensitive pattern identity with body classes plus per-variant output permutation (review A1) — implemented 9de3901, CPU-simulated 75/75; GPU replay queued as kiln-p0-replay-v1 (Step 244). <!-- t:p0a1 -->
+- [x] P0: split stale test_fx_trace mutation test (A2); restrict contractFma to FP32 (A3); record internal-check status in artifacts (A6); add 32-bit index overflow export guard (A7) — 6cd1218. <!-- t:p0fx -->
+- [x] P1: name a cause for tasks 79 and 128 matcher failures and cluster the 43 nominal numerical failures of the ordinary band by operation and dtype — 79 fixed (8ee076e), 128 diagnosed (dead branch double match), FP32 cluster = TF32 reference (f89f76c); Steps 241–243. <!-- t:p1dg -->
+- [x] P2: OpSpec importer registry plus per-node dtype/shape postcondition (A4), gated by a byte-identical import census hash — 4141da1, ed6eaab; Step 245. <!-- t:p2rg -->
 - [ ] P3b: calibrate workOf against GPU-only timings, add structural policy features and a GB10 target spec before further agent policy search. <!-- t:p3cm -->
+- [ ] Collect and audit kiln-p0-replay-v1 (15 families, 181 graphs) when bling's queue reaches it; report per group (identity, matcher, tf32, control). <!-- t:p0rp -->
+- [ ] Task 128: decide between compiling every match instance of a rule (two replacements, declared protocol change) and leaving the family unsupported. <!-- t:t128 -->
+- [ ] Fuse round_tf32 into tiled matmul operand loads (two extra elementwise launches today). <!-- t:tf32f -->
