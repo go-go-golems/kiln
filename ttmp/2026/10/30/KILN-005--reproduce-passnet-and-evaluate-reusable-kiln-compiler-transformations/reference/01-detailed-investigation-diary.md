@@ -2466,3 +2466,46 @@ Original integrity and reproducible diagnostics requirements.
 
 ### Technical details
 - Source validator and dispatch arithmetic guard unchanged; coverage stays 2/200 until full checker result.
+
+## Step 59: Accept and score actual third task with explicit numerical limitation
+
+Original checker accepted the actual FP16 convolution/residual/resize graph after interpolation normalization, using unchanged original replay inputs and numerical/dtype/stability checks. Official aggregate is 0.043470409529710305, indicating severe slowdown. Broader random-stress mismatch remains unresolved and recorded in coverage ledger.
+
+### Prompt Context
+Original benchmark reproduction, complete accounting and truthful measurement requirements.
+**Assistant interpretation:** Separate benchmark acceptance from general numerical robustness and performance quality.
+**Inferred user intent:** Complete measured integration with material limitations visible.
+
+### What I did
+- Verified one replacement, success status and automatic baseline resume.
+- Added script 42, ran unchanged official scorer with p=0/fpdb=0.1, archived checker log and score transfer.
+- Updated graph-identity coverage ledger and explicit third-task stress limitation.
+
+### Why
+- Numerical acceptance does not imply speedup or prove correctness across arbitrary input distributions.
+
+### What worked
+- Actual benchmark graph numerical/dtype/stability checks passed under declared normalized/metadata protocol.
+- Coverage now 3/200 tasks, 19/2060 graphs; every denominator retained.
+
+### What didn't work
+- Official score 0.043470409529710305 is far below eager baseline, not a performance improvement.
+- Unit-scale stress numerical mismatch remains 67 elements after bias fix; no robustness completion claim.
+
+### What I learned
+- Correctness-first indexed convolution reduction is functionally useful but not competitive with native convolution on this workload.
+
+### What was tricky to build
+- Preserve the distinction between actual replay success, broader numerical limitation, modified protocol and very poor speed score.
+
+### What warrants a second pair of eyes
+- Need measured bottleneck/precision analysis before optimizing; no claim that static masks alone explain slowdown.
+
+### What should be done in the future
+- Profile convolution schedules, investigate remaining robustness mismatch, expand operator coverage, execute agent/meta-optimization experiments and update deliverables.
+
+### Code review instructions
+- Inspect third-task-isolated-v2.log, scorer output and ledger limitations; scripts 21/42 reproduce accounting.
+
+### Technical details
+- Third task has one FP16 graph; benchmark-supported coverage does not assert broad convolution robustness. Remaining 197 tasks are unverified.
