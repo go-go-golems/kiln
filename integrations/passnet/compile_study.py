@@ -33,8 +33,9 @@ def main():
             result=subprocess.run(command);receipt['records'].append({'policy':name,'command':command,'returncode':result.returncode});save();verify()
         gate=qualify(corpus,output)
         (output/'sensitivity.json').write_text(json.dumps(gate,indent=2)+'\n')
-        receipt['status']='qualified';save()
-        print('QUALIFIED',len(plan['candidate_ids']),'policies',len(gate['artifact_sha256']['baseline']),'graphs',flush=True)
+        receipt['candidate_compile_failures']=sum(len(rows) for rows in gate['compile_failures'].values())
+        receipt['status']='qualified_with_candidate_failures' if receipt['candidate_compile_failures'] else 'qualified';save()
+        print('QUALIFIED',len(plan['candidate_ids']),'policies',len(gate['artifact_sha256']['baseline']),'graphs;',receipt['candidate_compile_failures'],'candidate graph failures retained',flush=True)
     except Exception as error:
         receipt.update(status='failed',error=str(error));save();raise
 

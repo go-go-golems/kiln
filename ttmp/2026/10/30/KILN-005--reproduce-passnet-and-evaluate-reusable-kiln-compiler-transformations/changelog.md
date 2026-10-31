@@ -166,3 +166,12 @@ Ran actual native Qwen/R2E-component proposal batch from05efc4c: five steps, two
 ### Related Files
 
 - /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/run_native_policy_agent.py — Actual model-to-native policy path and explicit operational limits
+
+## 2026-10-31
+
+Implemented native proposal-accounting v2: identifiable malformed/multiple/truncated submissions consume slots. Shared qualification and measurement retain per-graph candidate compile failures while controls and declarations stay strict; held-out-only failure does not affect training eligibility.39 focused tests pass;240 archived artifacts retain identities/alias analysis. No new inference or GPU measurement; task f5d9 remains open.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/qualify_policies.py — Shared failure-aware qualification and measurement bindings
+- /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/run_native_policy_agent.py — Identifiable submission accounting without malformed action execution

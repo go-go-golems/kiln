@@ -5,7 +5,8 @@ import re
 import tempfile
 import unittest
 
-from run_native_policy_agent import run_batch, parse_action, LocalCompletion
+from run_native_policy_agent import run_batch, parse_action, dispatch_response, LocalCompletion
+from native_policy_task import NativePolicyTask
 
 
 class ActionDouble:
@@ -90,6 +91,45 @@ class NativeAgentTests(unittest.TestCase):
         result=self.run_agent(lambda request:response(text),max_steps=1)
         self.assertEqual(self.task.calls,[('submit_policy',None)])
         self.assertEqual(result['steps'],1)
+
+    def actual_task(self,budget):
+        manifest={'membership_sha256':'a'*64,'numerical_policy':{'contraction':'separate'},
+                  'variants':[{'graph':'train','split':'train'}]}
+        receipt={'membership_sha256':'a'*64,'numerical_policy':{'contraction':'separate'},'phase':'train',
+                 'records':[{'graph':'train','split':'train','status':'compiled','decisions':[
+                     {'originalWork':100,'fusedWork':101,'producerElements':16,'consumerCount':1}]}]}
+        return NativePolicyTask(Path(self.temp.name)/'task',manifest,receipt,proposal_budget=budget)
+
+    def test_multi_action_rejection_charges_each_identifiable_submission(self):
+        self.task=self.actual_task(2)
+        text='<function=submit_policy><parameter=policy_json>{}</parameter></function>'*2
+        result=self.run_agent(lambda request:response(text))
+        self.assertEqual(result['exit_reason'],'proposal_budget_exhausted')
+        self.assertEqual(result['task']['attempts'],2)
+        self.assertEqual(result['task']['unique_artifacts'],0)
+        self.assertEqual(result['submission_accounting'],{'identified_submissions':2,'charged_submissions':2,'unadmitted_submissions':0})
+        self.assertEqual(len(list((Path(self.temp.name)/'task').glob('*.result.json'))),2)
+
+    def test_excess_multi_action_attempts_do_not_exceed_budget(self):
+        task=self.actual_task(1)
+        text='<function=submit_policy></function>'*3
+        _,_,_,observation,accounting=dispatch_response(text,'stop',task,ActionDouble)
+        self.assertEqual(observation['remaining'],0)
+        self.assertEqual(accounting,{'identified_submissions':3,'charged_submissions':1,'unadmitted_submissions':2})
+        self.assertEqual(task.finish()['attempts'],1)
+
+    def test_truncated_submission_is_charged_without_execution(self):
+        task=self.actual_task(1)
+        _,_,_,observation,accounting=dispatch_response('<function=submit_policy','length',task,ActionDouble)
+        self.assertEqual(observation['status'],'incomplete_completion')
+        self.assertEqual(accounting['charged_submissions'],1)
+        self.assertEqual(task.finish()['unique_artifacts'],0)
+
+    def test_extra_incomplete_action_cannot_hide_behind_complete_action(self):
+        task=self.actual_task(1)
+        _,_,_,observation,accounting=dispatch_response('<function=finish></function><function=submit_policy','stop',task,ActionDouble)
+        self.assertEqual(observation['status'],'invalid_action')
+        self.assertEqual(accounting['charged_submissions'],1)
 
     def test_local_endpoint_is_explicit(self):
         for url in ['https://example.com/v1','http://example.com/v1','http://a:b@localhost/v1','http://localhost/v1?x=y']:

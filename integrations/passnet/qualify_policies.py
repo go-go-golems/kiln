@@ -15,7 +15,7 @@ def qualify(corpus,artifacts):
     declared={name:json.loads((corpus/'policies'/(name+'.json')).read_text()) for name in policies}
     if 'baseline' not in policies or 'default' not in policies:raise ValueError('Unchanged/default equivalence controls required')
     receipts={name:json.loads((artifacts/name/'compile-receipt.json').read_text()) for name in policies}
-    baseline=receipts['baseline'];hashes={};semantics={};changes={};fingerprints={}
+    baseline=receipts['baseline'];hashes={};semantics={};changes={};fingerprints={};failures={}
     numerical_policy=manifest.get('numerical_policy',{'contraction':'allow'})
     if plan.get('numerical_policy')!=numerical_policy:raise ValueError('Declared numerical contract mismatch')
     if declared['baseline']['kind']!='unchanged' or declared['default']['kind']!='threshold' or declared['default'].get('max_work_growth')!=1.02:raise ValueError('Unchanged and explicit default controls required')
@@ -27,9 +27,18 @@ def qualify(corpus,artifacts):
         if receipt['policy']!=declared[name] or declared[name]['id']!=name:raise ValueError('Declared policy differs from compiled policy')
         if receipt['target']!=baseline['target']:raise ValueError('Compiler target mismatch')
         if receipt['membership_sha256']!=identity or receipt['reference_domain_sha256']!=baseline['reference_domain_sha256']:raise ValueError('Compiler configuration mismatch')
-        if [r['graph'] for r in receipt['records']]!=expected or any(r['status']!='compiled' for r in receipt['records']):raise ValueError(f'Incomplete compilation for {name}')
-        hashes[name]=[];semantics[name]=[];changes[name]=[]
+        if [r['graph'] for r in receipt['records']]!=expected:raise ValueError(f'Incomplete compilation for {name}')
+        if [r['split'] for r in receipt['records']]!=[r['split'] for r in manifest['variants']]:raise ValueError('Compilation split mismatch')
+        if any(r['status'] not in ('compiled','failed') for r in receipt['records']):raise ValueError('Unknown compilation outcome')
+        if name in ('baseline','default') and any(r['status']!='compiled' for r in receipt['records']):raise ValueError('Control compilation failed: '+name)
+        hashes[name]=[];semantics[name]=[];changes[name]=[];failures[name]=[]
         for index,record in enumerate(receipt['records']):
+            if record['status']=='failed':
+                if not isinstance(record.get('error'),str) or not record['error']:raise ValueError('Compilation failure requires a diagnostic')
+                hashes[name].append(None);semantics[name].append(None)
+                failures[name].append({'graph':record['graph'],'split':record['split'],'error':record['error']})
+                continue
+            if Path(record['artifact']).name!=record['artifact']:raise ValueError('Invalid artifact filename')
             raw=(artifacts/name/record['artifact']).read_bytes();artifact=json.loads(raw)
             if artifact['compiler_policy']!=declared[name]:raise ValueError('Artifact policy differs from declaration')
             if len(artifact['kernels'])!=record['kernel_count']:raise ValueError('Kernel count mismatch')
@@ -49,9 +58,30 @@ def qualify(corpus,artifacts):
     groups={}
     for index,digest in enumerate(semantics['baseline']):groups.setdefault(digest,[]).append(manifest['variants'][index])
     cross_split=[{'graphs':[r['graph'] for r in rows],'splits':[r['split'] for r in rows]} for rows in groups.values() if len({r['split'] for r in rows})>1]
-    return {'membership_sha256':identity,'numerical_policy':numerical_policy,'default_equals_unchanged':True,'artifact_sha256':hashes,
+    return {'format':'kiln-policy-qualification/2','membership_sha256':identity,'numerical_policy':numerical_policy,'default_equals_unchanged':True,'artifact_sha256':hashes,
             'semantic_sha256':semantics,'changes':changes,'cross_split_baseline_aliases':cross_split,
-            'scope':'Structural qualification only; exact aliases must not be described as independent performance contrasts'}
+            'compile_failures':failures,
+            'scope':'Structural qualification with explicit per-graph candidate failures; exact aliases share evidence; held-out outcomes cannot enter training selection'}
+
+
+def measurement_groups(compiled, policies, index):
+    """Build aliases and explicit failures from already qualified compile records.
+
+    Failures occupy declared candidate/graph positions and never instantiate a
+    GPU program. Namespaced bindings keep failures distinct from executable IDs.
+    """
+    bindings={};groups={}
+    for name in policies:
+        record=compiled[name]['records'][index]
+        if record['status']=='failed':
+            key='compile-failed:'+name
+            groups[key]={'policy':name,'status':'compile_failed','error':record['error'],'rounds':[]}
+        elif record['status']=='compiled':
+            fingerprint=record['fingerprint'];key='executable:'+fingerprint
+            groups.setdefault(key,{'policy':name,'fingerprint':fingerprint,'status':'initializing','rounds':[]})
+        else:raise ValueError('Unknown compilation outcome')
+        bindings[name]=key
+    return bindings,groups
 
 
 def main():

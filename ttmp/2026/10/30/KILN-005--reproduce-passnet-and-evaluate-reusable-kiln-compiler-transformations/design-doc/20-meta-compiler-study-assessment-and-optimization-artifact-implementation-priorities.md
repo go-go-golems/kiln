@@ -8,10 +8,14 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: repo://integrations/passnet/measure_policy.py
+      Note: Shared qualification verification and explicit failed-candidate records
     - Path: repo://integrations/passnet/native_policy_task.py
       Note: Trusted training projection and proposal budget ledger
     - Path: repo://integrations/passnet/optimization_artifact.mjs
       Note: Canonical bounded policy artifact using existing evidence primitives
+    - Path: repo://integrations/passnet/qualify_policies.py
+      Note: Failure-aware structural qualification and executable grouping
     - Path: repo://integrations/passnet/run_native_policy_agent.py
       Note: Bounded model loop using pinned R2E actions and trajectory steps
 ExternalSources: []
@@ -147,3 +151,21 @@ The implemented smoke protocol counts dispatched `submit_policy` calls as propos
 Before the comparison, tighten the driver so identifiable submission attempts in rejected multi-action responses also consume the declared proposal budget, or use a predeclared model-response budget as the primary search unit and report all textual candidates separately. The preferred next implementation is to charge each identifiable submission without executing the malformed multi-action response. Preserve this smoke unchanged and run the comparison under the new declared protocol. Also avoid using an illustrative candidate value as evidence that the model learned that value, and record repeated inspection costs rather than treating them as free input.
 
 The shared study harness needs one further explicit behavior before arbitrary generated policies are compared: its current qualification function requires all candidates to compile successfully. It should retain failed candidates as ineligible search outcomes charged to the fixed budget, while a failed baseline or invalid evaluation declaration aborts the study. Implement this in the existing qualification/selection path rather than introducing a second evaluator. Fresh confirmation membership and training-only selection remain mandatory.
+
+## Implemented protocol revision: rejected submissions and failed compilations
+
+The native driver now emits `kiln-native-agent-batch/2` configuration and `kiln-native-agent-batch-result/2` outcomes. `dispatch_response` counts recognizable `submit_policy` opening headers in final response content, including unfinished headers. If the response contains multiple actions, unmatched delimiters, duplicate parameters or an incomplete completion, no action body executes. Each identifiable submission instead reserves a rejected proposal through the existing task. The task's hard budget remains authoritative: excess submissions are recorded as unadmitted, and no extra slot is created. The trajectory step and aggregate result separately record `identified_submissions`, `charged_submissions` and `unadmitted_submissions`.
+
+This accounting applies to reserved XML delimiters in final response content. Arbitrary prose and provider-separated reasoning are not parsed as tool submissions; they still incur model-step and token costs. A valid action followed by a second unfinished action is invalid as a whole. The prompt states these rules and no longer includes the illustrative1.05 threshold candidate that appeared in the first smoke. It explicitly states that policy identifiers cannot contain dots or underscores.
+
+Script434 applies the new dispatch rule to the first two responses from the preserved smoke. With the original two-slot budget, its multi-submission response now consumes both slots as rejections and yields no accepted artifact. This is a counterfactual replay of fixed response text, not a new inference run or a prediction of what the model will do under changed prompts and feedback. The original five-step run and its accepted artifact remain unchanged historical evidence. Historical audit scripts should be run from their recorded source revision; the current prompt and dispatch protocol intentionally differ.
+
+`qualify_policies.py` now emits `kiln-policy-qualification/2`. Every declared candidate must still have a complete, correctly ordered record for every declared graph, matching its graph identity, split, numerical contract, target and policy. A candidate record may have status `compiled` or `failed`. A failed record requires an explicit diagnostic; its artifact and semantic-hash positions are null, and its graph/split/error remain in `compile_failures`. Missing records, unknown statuses, changed declarations or failed unchanged/default controls remain fatal. There is no outcome-dependent graph filtering.
+
+`measurement_groups` builds shared executable bindings and explicit `compile_failed` groups. `measure_policy.py` reuses the complete qualifier to verify the saved qualification before measurement, replacing its separate partial validation loop. It skips GPU construction for failed groups while retaining their positions in the measurement record. Its output format is now `kiln-policy-measurement/2`. The existing `rank_training` already makes any candidate with a failed training measurement ineligible; no separate scoring system was needed. Successful aliases continue to share measurements.
+
+Failures remain per graph and split. A candidate that compiles on training graphs and fails only on held-out graphs stays eligible for training selection; its later confirmation failure remains visible. Qualification does not compute a global candidate eligibility flag that could leak held-out outcomes into training selection. Failed controls still invalidate the study's reference. `compile_study.py` reports `qualified_with_candidate_failures` when appropriate, including the count of retained failed graph outcomes.
+
+Validation comprises39 focused tests and syntax compilation of the affected compiler-study/measurement entry points. Tests cover budget overflow, truncated and hidden extra actions, explicit failed-candidate selection, missing outcomes, failed controls and held-out-only failures. Script435 also requalifies the real archived v8-r2 outputs: twelve policies across twenty graphs,240 successful artifacts. Their raw artifact hashes, semantic hashes, executable changes, control equivalence and cross-split alias analysis all agree with the historical qualification. New output is saved separately; the old qualification is preserved.
+
+No new model inference or GPU timing ran under this protocol revision yet. The next experiment work is to freeze the method-specific proposal budgets and training population, generate threshold and seeded-random baselines through the same task boundary, and connect accepted model artifacts to a shared declaration. The comparison must preserve each method's independently selected training winner before fresh confirmation, rather than reporting only the globally best candidate across all methods. These orchestration steps remain part of open task f5d9.

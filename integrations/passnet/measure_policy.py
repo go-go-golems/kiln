@@ -4,7 +4,6 @@ Training measures all predeclared policies; held-out measures only unchanged Kil
 and the already selected policy. Equal executable fingerprints share evidence.
 """
 import argparse
-import hashlib
 import json
 from pathlib import Path
 import random
@@ -14,6 +13,7 @@ import torch
 from corpus import load_module,read_manifest
 from check_corpus_cuda import check_structure
 from runtime import TorchProgram
+from qualify_policies import qualify,measurement_groups
 
 
 def save(path, value):
@@ -57,6 +57,7 @@ def main():
     if plan['membership_sha256']!=manifest['membership_sha256']:raise ValueError('Measurement membership mismatch')
     if plan['trials']<2 or plan['repeats']<1 or plan['warmup']<0 or plan['max_retries']<0:raise ValueError('Invalid measurement budget')
     gate=json.loads((args.artifacts/'sensitivity.json').read_text())
+    if gate!=qualify(args.corpus,args.artifacts):raise ValueError('Compilation qualification changed before measurement')
     if gate['membership_sha256']!=manifest['membership_sha256'] or not gate['default_equals_unchanged']:raise ValueError('Unqualified policy controls')
     numerical_policy=manifest.get('numerical_policy',{'contraction':'allow'})
     if gate.get('numerical_policy')!=numerical_policy or plan.get('numerical_policy')!=numerical_policy:raise ValueError('Numerical contract differs from frozen qualification')
@@ -69,17 +70,8 @@ def main():
         policies=list(dict.fromkeys(['baseline',selection['selected_policy']]))
     elif args.selection:raise ValueError('Training must not depend on an existing selection')
     compiled={name:json.loads((args.artifacts/name/'compile-receipt.json').read_text()) for name in policies}
-    for name,receipt in compiled.items():
-        if receipt.get('format')!='kiln-policy-compilation/2' or receipt.get('phase')!='all' or receipt.get('numerical_policy')!=numerical_policy:raise ValueError('Compiled policy scope or numerical contract differs')
-        if receipt['membership_sha256']!=manifest['membership_sha256']:raise ValueError('Artifact membership mismatch')
-        if [r['graph'] for r in receipt['records']]!=[r['graph'] for r in manifest['variants']]:raise ValueError('Artifact graph identity mismatch')
-        if any(r['status']!='compiled' for r in receipt['records']):raise ValueError('Incomplete successful compilation required')
-        for index,record in enumerate(receipt['records']):
-            if Path(record['artifact']).name!=record['artifact']:raise ValueError('Invalid artifact filename')
-            digest=hashlib.sha256((args.artifacts/name/record['artifact']).read_bytes()).hexdigest()
-            if digest!=gate['artifact_sha256'][name][index]:raise ValueError('Compiled artifact changed after structural gate')
     args.output.parent.mkdir(parents=True,exist_ok=True)
-    result={'format':'kiln-policy-measurement/1','status':'running','phase':args.phase,
+    result={'format':'kiln-policy-measurement/2','status':'running','phase':args.phase,
             'membership_sha256':manifest['membership_sha256'],'numerical_policy':numerical_policy,'plan':plan,'policies':policies,
             'device':torch.cuda.get_device_name(),'torch_version':torch.__version__,
             'backend_numerics':{'float32_matmul_precision':torch.get_float32_matmul_precision(),
@@ -98,14 +90,12 @@ def main():
         inputs=[named[f'in_{i}'] for i in range(len(named))]
         snapshots=[value.clone() for value in inputs]
         with torch.no_grad():expected=load_module(source/'model.py').GraphModule()(*inputs)
-        groups={};bindings={};programs={}
+        bindings,groups=measurement_groups(compiled,policies,index);programs={}
         row={'graph':record['graph'],'sample':record['sample'],'split':record['split'],'bindings':bindings,'measurements':groups}
         try:
-            for policy_id in policies:
-                artifact=compiled[policy_id]['records'][index];fingerprint=artifact['fingerprint']
-                bindings[policy_id]=fingerprint
-                if fingerprint in groups:continue
-                measurement={'policy':policy_id,'fingerprint':fingerprint,'status':'initializing','rounds':[]};groups[fingerprint]=measurement
+            for fingerprint,measurement in groups.items():
+                if measurement['status']=='compile_failed':continue
+                policy_id=measurement['policy'];artifact=compiled[policy_id]['records'][index]
                 try:
                     started=time.perf_counter()
                     program=TorchProgram(args.artifacts/policy_id/artifact['artifact'],include_paths=args.include_path)

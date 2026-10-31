@@ -29,7 +29,8 @@ Use exactly one XML tool action per reply:
 <function=finish></function>
 There is no shell, file editor, external search, or access to held-out examples.
 
-Policy JSON has format "kiln-fusion-policy/1", a lowercase alphanumeric/hyphen id,
+Policy JSON has format "kiln-fusion-policy/1", a lowercase alphanumeric/hyphen id
+(for example candidate-a; dots and underscores are forbidden),
 and one kind:
 - "threshold": max_work_growth, a finite number in [0,2].
 - "decision-tree": tree.
@@ -54,11 +55,11 @@ not GPU time. The region selector jointly models launch/materialization work.
 Producer materialization remains charged when some consumers still need it.
 Legality checks remain in the compiler; a policy only changes profitability.
 
-Example: {"format":"kiln-fusion-policy/1","id":"candidate-a",
-"kind":"threshold","max_work_growth":1.05}
 Do not add numerical policies, tolerance changes, task identifiers, source code,
 imports or evaluator controls to a proposal. Rejected and duplicate submissions
-consume proposal slots. Every reply consumes a model step. Finish when done.
+consume proposal slots. A reply with multiple actions executes none, but each
+recognizable submit_policy header consumes a proposal slot, including incomplete
+or malformed submissions. Every reply consumes a model step. Finish when done.
 """
 
 
@@ -71,7 +72,8 @@ def r2e_components():
 
 def parse_action(text, action_type):
     matches = list(re.finditer(r'<function\s*=\s*([^>]+)>(.*?)</function>', text, re.DOTALL))
-    if len(matches) != 1:
+    openings = list(re.finditer(r'<function\s*=\s*([^>\s]+)', text))
+    if len(matches) != 1 or len(openings) != 1 or text.count('</function>') != 1:
         return '', {}, 'Expected exactly one complete tool action'
     match = matches[0]
     names = re.findall(r'<parameter\s*=\s*([^>]+)>', match.group(2))
@@ -80,6 +82,39 @@ def parse_action(text, action_type):
         return match.group(1).strip(), None, 'Duplicate action parameters'
     action = action_type.from_string(match.group(0))
     return action.function_name, action.parameters, None
+
+
+def dispatch_response(content, finish_reason, task, action_type):
+    """Charge identifiable submissions even when their enclosing reply is invalid.
+
+    Reserved XML action delimiters count anywhere in final response content.
+    Unstructured prose and separate provider reasoning are not tool submissions.
+    Excess attempts are reported, never admitted beyond the task's fixed budget.
+    """
+    identified=sum(match.group(1)=='submit_policy' for match in
+                   re.finditer(r'<function\s*=\s*([^>\s]+)',content))
+    name,parameters,error=parse_action(content,action_type)
+    if finish_reason!='stop':
+        name,parameters,error='',{},'Incomplete completion'
+    if error:
+        observation=({'status':'incomplete_completion','finish_reason':finish_reason}
+                     if finish_reason!='stop' else {'status':'invalid_action','error':error})
+        rejections=[]
+        for _ in range(identified):
+            rejected=task.call('submit_policy',None)
+            if rejected['status'] in ('budget_exhausted','closed'):
+                break
+            rejections.append(rejected)
+        charged=len(rejections)
+        if identified:
+            observation['rejected_submissions']=rejections
+            observation['remaining']=rejections[-1]['remaining'] if rejections else 0
+    else:
+        observation=task.call(name,parameters)
+        charged=int(name=='submit_policy' and 'attempt' in observation)
+    accounting={'identified_submissions':identified,'charged_submissions':charged,
+                'unadmitted_submissions':identified-charged}
+    return name,parameters,error,observation,accounting
 
 
 class LocalCompletion:
@@ -121,11 +156,13 @@ def run_batch(task, output, *, model, max_steps, completion_budget,
     totals={'prompt_tokens':0,'completion_tokens':0,'total_tokens':0}
     status='step_budget_exhausted'
     steps=[]
-    _write_new(output/'config.json',{'format':'kiln-native-agent-batch/1', 'model':model,
+    submissions={'identified_submissions':0,'charged_submissions':0,'unadmitted_submissions':0}
+    _write_new(output/'config.json',{'format':'kiln-native-agent-batch/2', 'model':model,
         'max_steps':max_steps,'completion_budget':completion_budget,
         'per_turn_tokens':per_turn_tokens,'proposal_budget':proposal_budget,
         'system_prompt_sha256':hashlib.sha256(SYSTEM_PROMPT.encode()).hexdigest(),
         'retry_policy':'none','provider_mode':'local HTTP, XML actions, no native tool schemas',
+        'proposal_accounting':'Each recognizable submit_policy header is charged, including invalid multi-action and truncated replies; excess attempts are recorded but not admitted',
         'evaluation_status':'not_run'})
     try:
         for index in range(max_steps):
@@ -163,19 +200,15 @@ def run_batch(task, output, *, model, max_steps, completion_budget,
             if not isinstance(content,str):
                 raise ValueError('Provider content is not text')
             env_start=time.monotonic()
-            if choice.get('finish_reason')!='stop':
-                # Partial policy text is retained, never executed.
-                name,parameters,parse_error='',{},'Incomplete completion'
-                observation={'status':'incomplete_completion','finish_reason':choice.get('finish_reason')}
-            else:
-                name,parameters,parse_error=parse_action(content,action_type)
-                observation=task.call(name,parameters) if name else {'status':'invalid_action','error':parse_error}
+            name,parameters,parse_error,observation,accounting=dispatch_response(
+                content,choice.get('finish_reason'),task,action_type)
+            for key in submissions:submissions[key]+=accounting[key]
             env_seconds=time.monotonic()-env_start
             done=observation.get('status') in ('finished','budget_exhausted') or observation.get('remaining')==0
             step=step_type(step_idx=index,thought=message.get('reasoning_content') or '',
                 action=action_type(name,parameters or {}).to_xml_string(),
                 observation=json.dumps(observation,allow_nan=False),done=done,
-                info={'parse_error':parse_error,'finish_reason':choice.get('finish_reason')},
+                info={'parse_error':parse_error,'finish_reason':choice.get('finish_reason'),**accounting},
                 token_usage_prompt=usage['prompt_tokens'],token_usage_completion=usage['completion_tokens'],
                 token_usage_total=usage['total_tokens'],llm_exec_time=llm_seconds,
                 env_exec_time=env_seconds,total_step_time=llm_seconds+env_seconds,
@@ -192,8 +225,9 @@ def run_batch(task, output, *, model, max_steps, completion_budget,
         status='driver_error'
         _write_new(output/'error.json',{'type':type(error).__name__,'error':str(error)})
     finally:
-        summary={'format':'kiln-native-agent-batch-result/1','exit_reason':status,
+        summary={'format':'kiln-native-agent-batch-result/2','exit_reason':status,
                  'model':model,'usage':totals,'steps':len(steps),'task':task.finish(),
+                 'submission_accounting':submissions,
                  'elapsed_seconds':time.monotonic()-start,'evaluation_status':'not_run'}
         _write_new(output/'result.json',summary)
     return summary

@@ -7274,3 +7274,73 @@ See Step152 for the user's authored design-document question and Step149 for the
 - Complete model SHA256f921b42e9b6191c3ffad54532df61e57fb1477aefdb12f5a4eb496ac8828e8ad was revalidated before serving.
 - Staged bundle SHA256e954480ad6719b52c78db3b78f4bbb9377555092867574b03b02e6af4571539c; Node26.8.1 on the DGX,26.13.0 for local replay/compilation.
 - No shared remote compiler source, original PassBench evaluator, numerical tolerance or benchmark support count changed in this checkpoint. Task f5d9 remains open.
+
+## Step 154: Charge malformed submissions and retain candidate compilation failures in the shared evaluator
+
+The previous turn ran an actual external-model batch, audited its responses and proved the accepted policy aliases the baseline; that was progress, including evidence that changed the next action. This step fixes the observed accounting gap and extends the existing study harness to represent ordinary candidate compilation failures without discarding their declared graph positions.
+
+The changes remain in the native driver and shared qualification/measurement path. The existing selector already rejects candidates with failed training measurements, so a new evaluator or score implementation was unnecessary.39 focused tests pass, and requalification preserves the identities and alias analysis of240 real archived successful artifacts.
+
+### Prompt Context
+See Step152 for the authored design-document question and Step149 for the framework and reassessment requests. The automatic continuation is runtime metadata rather than a new authored quotation.
+**Assistant interpretation:** Resolve the protocol defects discovered in the real smoke before running a controlled equal-budget comparison.
+**Inferred user intent:** Obtain credible compiler-optimization results while keeping architecture, failures and provenance reviewable.
+**Starting commit:**3ce763e7d11fe69b2b3d241d6ca9bbf2853a22da.
+
+### What I did
+- Added dispatch_response to count identifiable submission headers and charge malformed, multi-action and truncated attempts through NativePolicyTask's existing rejection path.
+- Added explicit identified/charged/unadmitted counts to trajectory steps and batch results, with batch/result formats advanced to version2.
+- Removed the illustrative1.05 candidate from the prompt and clarified the ID grammar.
+- Extended qualify_policies.py to preserve explicit candidate failures per graph/split, keeping controls and declaration integrity strict.
+- Added measurement_groups and reused the full qualifier inside measure_policy.py, removing the duplicated partial artifact-validation loop.
+- Updated compile_study.py to report qualified_with_candidate_failures where applicable. Existing training selection remains the authoritative ranking implementation.
+- Retained scripts434/435 for historical-response counterfactual replay, focused tests and real archived-artifact requalification; updated design20 with the implemented contracts and remaining experiment orchestration.
+
+### Why
+- A malformed response containing several proposals must not bypass the declared proposal budget simply because no action body executes.
+- Generated candidates can legitimately fail compilation. Their failures should make them ineligible where they fail, while missing evidence or failed controls should invalidate the experiment.
+- Candidate eligibility must be determined from training outcomes only. A global failed-candidate flag derived from held-out compilation would leak confirmation information into selection.
+
+### What worked
+-18 native task/driver tests passed, including multiple submissions, excess attempts, truncated headers and a valid action followed by an incomplete hidden action.
+-21 policy proposal/qualification/selection tests passed. The new integration tests carry candidate compile_failed groups into rank_training and verify that held-out-only failure does not disqualify training selection.
+- Script434 replayed the preserved first two model responses with the actual pinned R2E Action parser. The second response now charges two rejected slots and produces no artifact, as the new rule requires.
+- Script435 requalified twelve archived policies over twenty graphs. All240 raw artifact identities and the existing semantic/change/alias fields agree with the historical qualification.
+- Python syntax compilation passed for compile_study.py and measure_policy.py. No new GPU performance validation is claimed.
+
+### What didn't work
+- No unexpected validation failure occurred in this checkpoint. Negative tests use explicitly controlled compiler failures and malformed responses.
+- The counterfactual replay would exhaust the old two-slot budget without an accepted candidate. It does not change the actual historical trajectory, and it does not predict how a new model run will respond to the updated prompt.
+- This implementation does not yet generate the equal-budget baseline/search groups or independently freeze each method's selected winner. Task f5d9 remains open.
+
+### What I learned
+- The existing selector already handles arbitrary non-measured candidate outcomes; the missing behavior was earlier in qualification and measurement construction.
+- Successful artifact identity can remain stable while the surrounding qualification schema becomes capable of retaining failures.
+- Counting response-level model steps and counting identifiable proposal attempts must remain separate. The new receipt exposes both instead of hiding their difference.
+
+### What was tricky to build
+- parse_action previously accepted a complete action followed by an unfinished second opening tag. It now requires exactly one opening, complete action and closing delimiter.
+- Malformed submissions are charged without parsing or executing their bodies. Attempts beyond the hard task limit are reported as unadmitted, and no extra slot is created.
+- Measurement bindings use separate executable and compile-failed namespaces so a failure cannot alias a valid program's timing evidence.
+- Candidate failures remain aligned with the complete ordered corpus through null artifact positions and explicit graph/split diagnostics. Held-out failures are not propagated into training eligibility.
+
+### What warrants a second pair of eyes
+- Review the reserved-header accounting definition, including truncated headers and delimiters embedded in final text, before fixing the controlled experiment's protocol.
+- Review training/held-out failure separation and the remaining strict control/declaration checks.
+- Review the measurement loop's skip of compile_failed groups during the upcoming actual GPU study; this checkpoint verifies its structure, ranking path and syntax, not a new GPU run.
+
+### What should be done in the future
+- Freeze the candidate-generation methods and their equal attempt budgets, then generate threshold/random/LLM proposals through the same task interface.
+- Preserve per-method selections from training and evaluate unique selected executables on fresh confirmation. Reuse the shared declaration/measurement machinery rather than creating parallel evaluators.
+- Continue full200 support, native numerical repairs, reference reproduction and pending delivery requirements; these protocol changes do not close those tracks.
+
+### Code review instructions
+- Start with dispatch_response, qualify and measurement_groups, then their focused tests.
+- Inspect native-agent-accounting-replay-v2/result.json and native-study-contract-validation-v2/result.json/qualification-v2.json.
+- Historical v1 audit scripts belong to their recorded revision; use the new replay artifact to assess the changed protocol without rewriting old evidence.
+
+### Technical details
+- New formats: kiln-native-agent-batch/2, kiln-native-agent-batch-result/2, kiln-policy-qualification/2 and kiln-policy-measurement/2. No compatibility adapter was added.
+- Proposal accounting keys are identified_submissions, charged_submissions and unadmitted_submissions. Unstructured prose and provider-separated reasoning incur token/step costs but are not tool submissions.
+- Historical qualification SHA2563b262c0b0d853afb22cd2f8fe67caefd54f88a2bebc116e37f90f09acee6199a remains unchanged.
+- No compiler transformation, runtime kernel code, shared DGX checkout or numerical tolerance changed.
