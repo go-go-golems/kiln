@@ -26,8 +26,8 @@ export function toCuda(K) {
   };
   const out = K.params.find((p) => p.role === "out") || {};
   const types = [...ins, out].map((p) => p.dtype || "f32");
-  if (types.includes("f16")) lines.push("#include <cuda_fp16.h>");
-  if (types.includes("bf16")) lines.push("#include <cuda_bf16.h>");
+  if (types.includes("f16") || JSON.stringify(K.body).includes('"round_f16"')) lines.push("#include <cuda_fp16.h>");
+  if (types.includes("bf16") || JSON.stringify(K.body).includes('"round_bf16"')) lines.push("#include <cuda_bf16.h>");
   const load = (dtype, expr) => dtype === "f16" ? `__half2float(${expr})` : dtype === "bf16" ? `__bfloat162float(${expr})` : dtype === "u8" ? `(float)${expr}` : expr;
   const store = (expr) => out.dtype === "f16" ? `__float2half_rn(${expr})` : out.dtype === "bf16" ? `__float2bfloat16_rn(${expr})` : expr;
   lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `const ${ctype(p)}* __restrict__ src${i}`), `${ctype(out)}* __restrict__ dst`].join(", ")}) {`);
@@ -65,6 +65,11 @@ export function toWgsl(K) {
   const ix = (e) => IX.emit(e, "wgsl", iv);
   const fx = (e) => (e.k === "num" ? flit(e.v, "w") : e.k === "var" ? fv(e.n) : fill(FNS[e.fn].w, e.a.map(fx)));
   const lines = [];
+  if (JSON.stringify(K.body).includes('"round_bf16"')) lines.push(`fn kiln_round_bf16(x: f32) -> f32 {
+    let bits = bitcast<u32>(x);
+    if ((bits & 0x7fffffffu) > 0x7f800000u) { return bitcast<f32>((bits & 0xffff0000u) | 0x00400000u); }
+    return bitcast<f32>((bits + 0x7fffu + ((bits >> 16u) & 1u)) & 0xffff0000u);
+  }`);
   // WGSL has no 8-bit storage type: a u8 input binds as packed u32 words and is read through an unpack function
   ins.forEach((p, i) => lines.push(`@group(0) @binding(${i}) var<storage, read> b${i}: array<${p.dtype === "u8" ? "u32" : "f32"}>;`));
   lines.push(`@group(0) @binding(${ins.length}) var<storage, read_write> bout: array<f32>;`);

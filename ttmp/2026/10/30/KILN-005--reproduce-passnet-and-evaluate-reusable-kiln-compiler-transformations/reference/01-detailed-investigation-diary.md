@@ -1163,3 +1163,45 @@ Original full implementation objective; dtype architecture from Step 21.
 
 ### Technical details
 - Artifact storage support is separate from frontend dtype support; no implicit CPU conversion or upstream code copying.
+
+## Step 28: Represent reduced-precision rounding in scalar expressions
+
+Added explicit round_f16/round_bf16 scalar functions shared by reference evaluation and code emission. These preserve an observable precision boundary inside a fused expression rather than relying only on output storage conversion. They are not yet inserted automatically by frontend inference.
+
+### Prompt Context
+Original full implementation scope; reduced precision design from Step 21.
+**Assistant interpretation:** Preserve intermediate source rounding through fusion.
+**Inferred user intent:** Correct reduced-precision execution across compiler passes.
+
+### What I did
+- Added scalar function entries using independently validated reference codecs, CUDA RN conversions and WGSL forms.
+- CUDA emitter includes conversion headers when expressions need them even with FP32 storage.
+- Added WGSL BF16 helper with explicit NaN handling and integer ties-to-even rounding.
+- Added tests for midpoint rounding, loop reference execution and required emitter declarations.
+
+### Why
+- Fusing two source operations must not erase a required intermediate reduced-precision rounding step.
+
+### What worked
+- Node v26.13.0 focused rounding-expressions test passed.
+
+### What didn't work
+- First fixture called nonexistent E.input, raising TypeError; corrected to actual E.load API and reran successfully.
+
+### What I learned
+- Shared function table supplies reference implementations to compiled loop evaluator, so explicit rounding can survive as an ordinary scalar expression.
+
+### What was tricky to build
+- Emission header/helper requirements arise from expression functions as well as storage types.
+
+### What warrants a second pair of eyes
+- WGSL pack/unpack numerical behavior and generated shader compilation remain unverified; CUDA expression conversions need actual GPU tests beyond storage tests.
+
+### What should be done in the future
+- Run broad regressions, validate emitted rounding expressions on GPU, propagate source result dtype and insert explicit boundaries during frontend lowering.
+
+### Code review instructions
+- Inspect std/fns.js, std/emit.js and test/rounding-expressions.mjs; run focused test with Node 26.
+
+### Technical details
+- Independent implementation, no upstream source copied. Low-precision frontend remains disabled pending full propagation.
