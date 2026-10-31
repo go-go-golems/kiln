@@ -376,3 +376,88 @@ See prior steps for full benchmark and upstream provenance requirements.
 
 ### Technical details
 - Bridge independently implemented against existing Kiln launcher and public PyTorch storage/stream APIs. No PyTorch or PassNet source copied. a100 controls scheduling only; NVRTC compiles for detected SM121.
+
+## Step 9: Lower genuine task inference batch normalization
+
+Implemented FP32 inference batch_norm lowering with channel-vector reshaping and disabled-dropout identity. Exported the first genuine task from its pinned model.py using CPU FX. Actual Kiln export rejected the generated graph at its end-to-end check; this failure remains unresolved and must not be bypassed to claim correctness.
+
+### Prompt Context
+See Step 3 for provenance requirements.
+**Assistant interpretation:** Expand semantics to the real benchmark graph.
+**Inferred user intent:** Verify the complete integration rather than a synthetic substitute.
+
+### What I did
+- Added explicit inference-only batch_norm and non-inplace disabled dropout handling to fx_import.py.
+- Validated channel dimensions and epsilon; training batch_norm remains an explicit unsupported case.
+- Exported actual FP32 batch-eight LINKX graph into sources/first-task-fp32.kiln.js.
+
+### Why
+- Batch normalization is required by the first verified PassBench task.
+
+### What worked
+- Four existing CPU tests passed; source FX export and importer translation succeeded.
+- Materialization reached six shards and 886,206 records during observation.
+
+### What didn't work
+- On bling.local: node scripts/kiln-export.mjs --script ../first-task-fp32.kiln.js --target a100 --out ../first-task-fp32.json exited 1 with `: end-to-end check FAILED`.
+
+### What I learned
+- endToEnd calls project.inputsFor then compares graph and lowered outputs. Need inspect generated inputs and numerical mismatch, including whether running variance violates its nonnegative domain. This is a hypothesis, not established cause.
+
+### What was tricky to build
+- Channel vector reshaping must match rank-dependent axis-one normalization; source kwargs and positional arguments must be bound without silent duplication.
+
+### What warrants a second pair of eyes
+- FP32 intermediate rounding and fused arithmetic differences; dropout kwargs validation and non-FP32 support remain incomplete.
+
+### What should be done in the future
+- Diagnose failed compiler reference check using actual valid task metadata; add targeted numerical tests and validate GPU before PassBench matching.
+
+### Code review instructions
+- Inspect fx_import.py batch_norm branch and archived first-task-fp32.kiln.js. Do not treat four existing tests as batch_norm validation.
+
+### Technical details
+- Independent mathematical inference lowering; source model revision 61c64709f6d324216ae8252cec3cdc35b2dd5da5. No upstream implementation code copied.
+
+## Step 10: Resolve reference input domain and verify real-task CUDA semantics
+
+The genuine graph exported successfully after providing valid test data matching its running-statistics domain. A separate CUDA test used nontrivial running mean, positive variance, weight and bias; this passed the original FP32 tolerance with maximum absolute error 9.5367431640625e-07. This is not yet a PassBench matched/scored result.
+
+### Prompt Context
+See Step 9.
+**Assistant interpretation:** Diagnose the failure with valid source-domain inputs and verify numerical behavior independently.
+**Inferred user intent:** Fix real failures without bypassing validation.
+
+### What I did
+- Inspected Project.inputsFor: unspecified tensors receive generic uniform random values, without batch_norm domain constraints.
+- Added explicit project data to sources/first-task-fp32.kiln.js: running mean/bias zero, variance/weight one, seeded activation.
+- Re-ran unmodified export validation; it passed at loop level and exported two kernels.
+- Added smoke_batch_norm.py with random nontrivial positive variance and affine inputs on GB10.
+
+### Why
+- Running variance must be nonnegative; generic compiler inputs do not express the benchmark's input constraints.
+
+### What worked
+- Export exited 0 with end-to-end check ok at loop.
+- CUDA test exited 0 at rtol 1.3e-6 and atol 1e-5; max absolute error 9.5367431640625e-07.
+
+### What didn't work
+- Earlier unconstrained reference check failed as recorded in Step 9; no check was disabled. The generic generator's invalid variance is consistent with the repaired result; per-element NaN diagnostics were not archived, so causal attribution remains limited to this controlled input change.
+
+### What I learned
+- Imported programs need source-domain example data/constraints for compiler checking, distinct from runtime graph semantics.
+
+### What was tricky to build
+- Valid constant-like example data must not specialize runtime statistics away; GPU validation therefore used nontrivial randomized statistics and affine parameters.
+
+### What warrants a second pair of eyes
+- Reduced precision, graph matcher/integrity compatibility, and broader shape/layout support remain unverified.
+
+### What should be done in the future
+- Add reusable constraint/example-data transport and match/score genuine tasks in PassBench.
+
+### Code review instructions
+- Review fx_import.py, smoke_batch_norm.py and first-task-fp32.kiln.js, with source graph provenance in Step 9.
+
+### Technical details
+- Original graph shape [1000,128], 128 channels; tested CUDA runtime container and compiler environment as Step 8. No upstream code copied.

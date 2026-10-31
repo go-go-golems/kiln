@@ -9,6 +9,7 @@ def import_graph(graph):
     if graph.get('format') != 'kiln-fx/1':
         raise ValueError('Expected kiln-fx/1')
     values, specs, lines, outputs = {}, {}, [], None
+    metadata = {n['id']: n.get('tensor_meta') for n in graph['nodes']}
 
     def decode(v):
         if isinstance(v, dict):
@@ -60,7 +61,49 @@ def import_graph(graph):
         binary = {'_operator.add':'add', 'torch.add':'add', 'aten.add.Tensor':'add',
                   '_operator.mul':'mul', 'torch.mul':'mul', 'aten.mul.Tensor':'mul',
                   '_operator.sub':'sub', '_operator.truediv':'div'}
-        if target in unary:
+        if target == 'torch.nn.functional.batch_norm':
+            # Public PyTorch functional signature: input, mean, var, weight, bias,
+            # training=False, momentum=0.1, eps=1e-5. Inference only.
+            fields = ['input', 'running_mean', 'running_var', 'weight', 'bias', 'training', 'momentum', 'eps']
+            if len(args) > len(fields) or set(kwargs) - set(fields):
+                raise ValueError(f'{name}: invalid batch_norm arguments')
+            bound = dict(zip(fields, args))
+            if set(bound) & set(kwargs):
+                raise ValueError(f'{name}: duplicate batch_norm argument')
+            bound.update(kwargs)
+            if bound.get('training', 'false') != 'false':
+                raise ValueError(f'{name}: training batch_norm requires statistics updates')
+            source = node['args']['tuple'][0]
+            if not isinstance(source, dict) or 'ref' not in source:
+                raise ValueError(f'{name}: batch_norm input must reference a tensor')
+            shape = metadata[source['ref']]['shape']
+            if len(shape) < 2:
+                raise ValueError(f'{name}: batch_norm requires a channel dimension')
+            channels = [1, shape[1]] + [1] * (len(shape)-2)
+            def channel(field, optional=False):
+                value = bound.get(field, 'null')
+                if value == 'null':
+                    if optional: return None
+                    raise ValueError(f'{name}: inference batch_norm requires {field}')
+                source_id = next((key for key,val in values.items() if val == value), None)
+                if source_id is None or metadata[source_id]['shape'] != [shape[1]]:
+                    raise ValueError(f'{name}: invalid channel vector {field}')
+                return f'N.reshape({value}, {json.dumps(channels)})'
+            mean, variance = channel('running_mean'), channel('running_var')
+            weight, bias = channel('weight', True), channel('bias', True)
+            eps = bound.get('eps', '1e-5')
+            epsilon = json.loads(eps)
+            if not isinstance(epsilon, (int,float)) or epsilon < 0:
+                raise ValueError(f'{name}: invalid epsilon')
+            expr = f'N.div(N.sub({bound["input"]}, {mean}), N.sqrt(N.add({variance}, {eps})))'
+            if weight: expr = f'N.mul({expr}, {weight})'
+            if bias: expr = f'N.add({expr}, {bias})'
+        elif target == 'torch.nn.functional.dropout':
+            bound = dict(zip(['input','p','training','inplace'], args)); bound.update(kwargs)
+            if bound.get('training', 'true') != 'false' or bound.get('inplace', 'false') != 'false':
+                raise ValueError(f'{name}: only disabled non-inplace dropout supported')
+            expr = bound['input']
+        elif target in unary:
             if len(args) != 1 or any(k != 'inplace' or v != 'false' for k,v in kwargs.items()):
                 raise ValueError(f'{name}: unsupported unary arguments')
             expr = f'N.{unary[target]}({args[0]})'
