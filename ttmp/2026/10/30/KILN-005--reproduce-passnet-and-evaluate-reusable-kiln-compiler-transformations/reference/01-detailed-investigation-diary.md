@@ -1414,3 +1414,45 @@ User requests phase/task visibility and continued implementation across complete
 
 ### Technical details
 - 32-element same-dtype add/multiply with scalar 0.5; exact CUDA comparison is bounded to this test. No full benchmark coverage claim.
+
+## Step 34: Enable floating elementwise import and verify cancellation rounding
+
+Enabled FP16/BF16 input type emission for the supported elementwise importer path. Low-precision batch_norm remains rejected because source accumulation semantics are not implemented. Strengthened GPU arithmetic testing with cancellation after an intermediate midpoint addition.
+
+### Prompt Context
+Original goal requires faithful importer/compiler support across real dtype variants.
+**Assistant interpretation:** Enable only validated semantic paths while extending required coverage.
+**Inferred user intent:** Preserve source rounding and explicit unsupported diagnostics.
+
+### What I did
+- Added torch dtype to Kiln storage mapping and input_dtypes manifest in fx_import.py.
+- Added low-precision importer tests and retained integer/noncontiguous rejection tests.
+- Extended script 15 and GPU test with cancellation output (x+y)-x, midpoint operands and exact PyTorch comparison.
+
+### Why
+- Cancellation detects erased intermediate rounding that output-only conversion tests can miss.
+
+### What worked
+- Eight integration unit tests passed.
+- Both full exports passed loop reference checks; both GPU types passed exact outputs and zero midpoint cancellation.
+
+### What didn't work
+- No new failures. Low-precision batch_norm remains explicitly unsupported, not silently lowered using separately rounded elementary operations.
+
+### What I learned
+- Same-dtype elementwise support is a smaller validated semantic unit than normalization, whose accumulation requires a distinct lowering.
+
+### What was tricky to build
+- Keep output metadata dtype checks aligned with newly accepted input dtypes without permitting unsupported integer arithmetic.
+
+### What warrants a second pair of eyes
+- Complete mixed-dtype promotion, scalar attributes, NaN semantics and importer numerical metadata consistency require further validation.
+
+### What should be done in the future
+- Implement normalization accumulation, evaluate all first-task variants, run regressions and expand operator/layout coverage.
+
+### Code review instructions
+- Review fx_import.py/test_fx_import.py, script 15 and check_typed_arithmetic_cuda.py with archived artifacts.
+
+### Technical details
+- GPU check includes 32-element random inputs and explicit midpoint cancellation; not complete floating-domain proof or full corpus support.

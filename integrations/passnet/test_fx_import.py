@@ -15,11 +15,20 @@ class ImportTests(unittest.TestCase):
         self.assertIn('N.add', lowered['script'])
         self.assertEqual(lowered['output_structure'], {'tuple':[{'output':'out0'}, {'list':[{'output':'out1'}]}]})
 
+    def test_low_precision_elementwise(self):
+        class Model(torch.nn.Module):
+            def forward(self, x, y): return (x+y)*0.5
+        for dtype, name in [(torch.float16,'f16'),(torch.bfloat16,'bf16')]:
+            graph=export_graph(symbolic_trace(Model()),(torch.randn(2,3).to(dtype),torch.randn(2,3).to(dtype)))
+            result=import_graph(graph)
+            self.assertEqual(set(result['input_dtypes'].values()),{name})
+            self.assertIn('"'+name+'"',result['script'])
+
     def test_dtype_and_layout_rejected(self):
         class Model(torch.nn.Module):
             def forward(self, x):
                 return torch.relu(x)
-        for x in [torch.randn(2,3,dtype=torch.float16), torch.randn(2,3).t()]:
+        for x in [torch.ones(2,3,dtype=torch.int64), torch.randn(2,3).t()]:
             with self.assertRaises(ValueError):
                 import_graph(export_graph(symbolic_trace(Model()), (x,)))
 

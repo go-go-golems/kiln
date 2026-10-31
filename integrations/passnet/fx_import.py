@@ -9,6 +9,8 @@ def import_graph(graph):
     if graph.get('format') != 'kiln-fx/1':
         raise ValueError('Expected kiln-fx/1')
     values, specs, lines, outputs = {}, {}, [], None
+    dtype_names = {'torch.float32':'f32','torch.float16':'f16','torch.bfloat16':'bf16'}
+    input_dtypes = {}
     metadata = {n['id']: n.get('tensor_meta') for n in graph['nodes']}
 
     def decode(v):
@@ -34,8 +36,8 @@ def import_graph(graph):
         var = f'v{i}'
         meta = node.get('tensor_meta')
         if node['kind'] == 'placeholder':
-            if not isinstance(meta, dict) or meta.get('dtype') != 'torch.float32':
-                raise ValueError(f'{name}: only FP32 tensor inputs supported currently')
+            if not isinstance(meta, dict) or meta.get('dtype') not in dtype_names:
+                raise ValueError(f'{name}: only supported floating tensor inputs accepted')
             shape = meta['shape']
             if any(type(d) is not int or d <= 0 for d in shape):
                 raise ValueError(f'{name}: positive static dimensions required')
@@ -46,6 +48,7 @@ def import_graph(graph):
             if stride != expected:
                 raise ValueError(f'{name}: noncontiguous input requires layout lowering')
             specs[var] = shape
+            input_dtypes[var] = dtype_names[meta['dtype']]
             values[name] = var
             continue
         args = decode(node['args'])
@@ -62,6 +65,8 @@ def import_graph(graph):
                   '_operator.mul':'mul', 'torch.mul':'mul', 'aten.mul.Tensor':'mul',
                   '_operator.sub':'sub', '_operator.truediv':'div'}
         if target == 'torch.nn.functional.batch_norm':
+            if meta.get('dtype') != 'torch.float32':
+                raise ValueError(f'{name}: reduced-precision batch_norm accumulation is not implemented')
             # Public PyTorch functional signature: input, mean, var, weight, bias,
             # training=False, momentum=0.1, eps=1e-5. Inference only.
             fields = ['input', 'running_mean', 'running_var', 'weight', 'bias', 'training', 'momentum', 'eps']
@@ -113,8 +118,8 @@ def import_graph(graph):
             expr = f'N.{binary[target]}({args[0]}, {args[1]})'
         else:
             raise ValueError(f'{name}: unsupported target {target}; implement semantic lowering')
-        if not isinstance(meta, dict) or meta.get('dtype') != 'torch.float32':
-            raise ValueError(f'{name}: FP32 result metadata required')
+        if not isinstance(meta, dict) or meta.get('dtype') not in dtype_names:
+            raise ValueError(f'{name}: supported floating result metadata required')
         lines.append(f'const {var} = {expr};')
         values[name] = var
     if outputs is None:
@@ -130,7 +135,7 @@ def import_graph(graph):
         key = f'out{len(flat)}'; flat.append((key, v)); return {'output': key}
     structure = flatten(outputs)
     result = ', '.join(f'{key}: {v}' for key,v in flat)
-    inputs = ', '.join(f'{key}: k.tensor({json.dumps(shape)})' for key,shape in specs.items())
+    inputs = ', '.join(f'{key}: k.tensor({json.dumps(shape)}, {json.dumps(input_dtypes[key])})' for key,shape in specs.items())
     script = 'project("passnet").program(({'+', '.join(specs)+'}) => {\n'
     script += '\n'.join(lines) + '\nreturn {'+result+'};\n}, {'+inputs+'});\n'
-    return {'script':script, 'inputs':specs, 'output_structure':structure}
+    return {'script':script, 'inputs':specs, 'input_dtypes':input_dtypes, 'output_structure':structure}
