@@ -1,0 +1,58 @@
+{
+  "format": "kiln-fixed-compiler-confirmation-summary/1",
+  "scope": "Independent synthetic execution-harness fixture; no optimization/generalization inference",
+  "membership_sha256": "55ef2fa6c28dbff57e90a7c8b3560ca141e5faf0681b94424c283c4de03300ec",
+  "graphs": 2,
+  "families": 2,
+  "qualified": true,
+  "failures": [],
+  "changed_executables": 1,
+  "family_balanced_e2e_speedup": 0.9984135368116617,
+  "family_balanced_stream_speedup": 1.002936886310837,
+  "records": [
+    {
+      "graph": "graphs/float32/samples/fixture/matrix/case",
+      "model": "fixture/matrix",
+      "category": "matrix",
+      "exact_executable_changed": true,
+      "statuses": {
+        "baseline": "measured",
+        "candidate": "measured"
+      },
+      "baseline_ms": 0.015092,
+      "candidate_ms": 0.01514,
+      "e2e_speedup": 0.9968295904887714,
+      "stream_speedup": 1.0058823979228766,
+      "paired_repeat_e2e_speedups": [
+        1.0063472226789882,
+        0.9967965653896962,
+        1.0053290700772715
+      ]
+    },
+    {
+      "graph": "graphs/float32/samples/fixture/reduction/case",
+      "model": "fixture/reduction",
+      "category": "reduction",
+      "exact_executable_changed": false,
+      "statuses": {
+        "baseline": "measured",
+        "candidate": "measured"
+      },
+      "baseline_ms": 0.0141,
+      "candidate_ms": 0.0141,
+      "e2e_speedup": 1.0,
+      "stream_speedup": 1.0,
+      "paired_repeat_e2e_speedups": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "limitations": [
+    "Fixed change selected on previous development cases; this is fresh exact-model confirmation, not architecture-disjoint evaluation.",
+    "Three randomized paired repeat blocks are descriptive; no calibrated confidence interval.",
+    "Exact executable aliases share measurements and are not independent performance contrasts.",
+    "Highest-precision FP32 source reference is an explicit research protocol, not native PassBench acceptance."
+  ]
+}

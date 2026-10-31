@@ -63,3 +63,11 @@ The second declaration keeps the same quotas, salt, exclusion inventory, compile
 The second attempt may reuse metadata-only choices from the first attempt; those are not independent additional confirmations. All official evaluation models and previous policy-study selections remain excluded. The fixed rewrite is unchanged and no artifact or timing feedback informs this amendment.
 
 The confirmation harness reuses compile_policy.mjs with unchanged fusion configuration in each pinned compiler, and measure_policy.sample for timing. Its fixed-source qualification and all-heldout summary are independent of policy-search training-selection receipts. Critical regression tests verify exact alias handling, missing members/repeats and the rule that every compile/reference/correctness/timing failure disables aggregate speedup reporting.
+
+## Complete v2 membership and independent execution fixture
+
+The broader v2 scan fills both quotas after 2,950 tasks: twenty unique exact models and tasks, ten matrix and ten reduction graphs, all heldout. Membership hash is cc554758196f86c52856850e4a923ed264959fab43eacc7416828a9e1207d41a. Independent verification reconstructs the exclusion set of 290 exact models and proves zero overlap, along with all generated/original source hashes and scan membership.
+
+An independent two-graph synthetic fixture exercises the complete isolated compilation and CUDA measurement path before confirmation compilation. Both graphs qualify. One exact executable aliases across both compiler versions and shares one measurement; the other changes structure. Fixture timings are not optimization evidence and are not used to tune candidate production source or the confirmation budget.
+
+The reference package path is explicit and separately hashed, allowing synthetic model data to use the unchanged PassBench input replay code. Source and dependency pinning, exact alias checks, complete repeat budgets and failure-to-aggregate behavior are validated before the selected population is compiled.

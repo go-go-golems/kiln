@@ -1,0 +1,1296 @@
+{
+  "format": "kiln-passnet-corpus/1",
+  "sample": "reshape-confirmation-v2",
+  "membership_sha256": "cc554758196f86c52856850e4a923ed264959fab43eacc7416828a9e1207d41a",
+  "selection_status": "source_selected",
+  "importer_source_sha256": {
+    "prepare_study.py": "82f7c3168718a4d59b6de88c18464948b9fdf778a69f882040da8cf7e316ec9b",
+    "corpus.py": "1598542db3652d03ab6fc6c0013b2fa54724ecc29af146b6aaa2d8b5376953f5",
+    "fx_import.py": "a97751447c2e5690d08e5a3adc3eaa1351f7084d865f50b1a6b996c07cb82f7d",
+    "fx_norm_ops.py": "388fd8c61c62217545e6160579b3ee5c77627b139d67c133de6caa5ed5da7291",
+    "fx_linalg.py": "ddf9e3083483c733ac01a0ca2a2027e769ac28ca93bc29ee25cc46e73560db17",
+    "fx_indexing.py": "387a715ce004792028acd94cef39943f8fe285c91850272a57f71e786c82cdf4",
+    "fx_trace.py": "c8db2a90656ca234a940c94b26ab02840bc8d67246062037d9b3325e518620ec",
+    "fx_export.py": "5d6794be75a11f21196a79cfa6cd0751d07d58f9f5dcf420abdd32e29641306f",
+    "reference_domains.py": "4c9e0a648c19522b5371f72a5f0c583052f99d74f0e86c73dcaf0a9de42fa669"
+  },
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "source_sample_list": "sample_lists/train/hf_fusible_train_samples_v2.txt",
+  "source_sample_list_sha256": "60611747144ea8f861646e9d1302d6981ef635a1a94311a143fcf3a3095df86a",
+  "excluded_evaluation_list_sha256": "cad415a912929013d3b556095ea08a60fcb96aa68cdca921ee12551e7621fd21",
+  "excluded_models_sha256": "05938df7a24f4d2790e0821dc3b154e554a633729ecef297895eb8663c694dd5",
+  "selection_spec_sha256": "9664ca9f72d5b2e3cb0e5fc3533ab2ccd1fabc016b129c9668444cf3892b4edb",
+  "selector_sha256": "82f7c3168718a4d59b6de88c18464948b9fdf778a69f882040da8cf7e316ec9b",
+  "selection": "First eligible exact models in salted task-hash order; fixed per-category train/confirmation quotas; no compilation or timing feedback",
+  "scope": "Fresh exact models relative to all evaluation models and prior policy corpora; architecture relatives may remain; metadata-restricted FP32 population",
+  "variants": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/Mahmoud8_mah-efficient_mlm_m0.40/_decomposed/Mahmoud8_mah-efficient_mlm_m0.40_start310_end312_13",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/bb/e2/bbe26cd41a9fade13d8b4ed452390c2f7c152cd93fce82790d273861150d8cbe",
+      "split": "heldout",
+      "model": "transformers-auto-model/Mahmoud8_mah-efficient_mlm_m0.40",
+      "category": "reduction",
+      "script": "000.kiln.js",
+      "source_sha256": "71e79152efd965235b5f8c92da70aedff7ada5d85097a8c9808f22c32c334741",
+      "inputs": {
+        "v0": [
+          1024
+        ],
+        "v1": [
+          1024
+        ],
+        "v2": [
+          1,
+          64,
+          1024
+        ],
+        "v3": [
+          1,
+          64,
+          1024
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "reduction",
+        "input_elements": 133120,
+        "max_tensor_elements": 65536,
+        "total_tensor_elements": 264192,
+        "tensor_nodes": 6,
+        "matrix_products": 0
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "aab7417438ee5ab428a3c663992781fd78faddf6176091fb37e5ac4dd9f2edb1",
+        "graph_net.json": "fdab620b251ebc7384307bf26578dc8fb8cdd96b6475e6339402cc043006c0ea",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "797dcda1e918fbdd3587388291894f2ecba76a2aa98c10a8efae8fdb1800a29e",
+        "subgraph_sources.json": "585ffaa31036736274cf0fadd72b95a5b5db289e79d29940022cc104eec9f22d",
+        "weight_meta.py": "21597c5fd1d409c6e6a52423f7971d0e352ed6d9dac60a3698282a04b7decc86"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/nvidia_mit-b1/_decomposed/nvidia_mit-b1_start335_end340_24",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c5/4b/c54b8a0422c9104f921055a7f4aa6ef7dc85e73ed3958d1a9c2efc4d8af6cc08",
+      "split": "heldout",
+      "model": "transformers-auto-model/nvidia_mit-b1",
+      "category": "reduction",
+      "script": "001.kiln.js",
+      "source_sha256": "6e5e8c8f7471fe62b21b02607df13908339a4809e66e607cee6c6b8f852b04a7",
+      "inputs": {
+        "v0": [
+          512
+        ],
+        "v1": [
+          512
+        ],
+        "v2": [
+          1,
+          256,
+          512
+        ],
+        "v3": [
+          1,
+          256,
+          512
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "reduction",
+        "input_elements": 263168,
+        "max_tensor_elements": 131072,
+        "total_tensor_elements": 918528,
+        "tensor_nodes": 9,
+        "matrix_products": 0
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "a9a91ece0bf7a54b7e0c20e9e25b8148392213d025bde242195e0f61b0c31959",
+        "graph_net.json": "03cd6d62fbd8235110e8c23f918c91ca28a4b34a105a78d31a32d30991bc8772",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "5a5122b26391001da66e1dfbc7fb3ae3363ce0118de4a213ed9643b54345d75c",
+        "subgraph_sources.json": "3da4291f0a0b8dd4191ab75eb62bfd33d2fa022a997f2ef00829c90f66afb7b7",
+        "weight_meta.py": "7e9a351ca8f5c8f84ecd697e360bf5a79f988f44482ecfec8d1c2f2bca511b13"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-SCANDINAVIA-SCANDINAVIA/_decomposed/opus-mt-SCANDINAVIA-SCANDINAVIA_start18_end24_3",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/39/9f/399f57ff7024d1e5e278ef2c1c39340028d3bc0f4bd251e056221410024d642e",
+      "split": "heldout",
+      "model": "transformers-auto-model/opus-mt-SCANDINAVIA-SCANDINAVIA",
+      "category": "matrix",
+      "script": "002.kiln.js",
+      "source_sha256": "21e39d9f9d3eb333405e9a43f502fc2e42ef49cb4f32a530288f3bf84ac59133",
+      "inputs": {
+        "v0": [
+          512
+        ],
+        "v1": [
+          512,
+          512
+        ],
+        "v2": [
+          1,
+          1,
+          33,
+          33
+        ],
+        "v3": [
+          1,
+          33,
+          512
+        ],
+        "v4": [
+          1,
+          33,
+          512
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          },
+          {
+            "output": "out2"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "matrix",
+        "input_elements": 297537,
+        "max_tensor_elements": 262144,
+        "total_tensor_elements": 383106,
+        "tensor_nodes": 11,
+        "matrix_products": 8650752
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "7e2ffb5204257593161056bb32e5e4949688961812bcc535165e536fc4bab731",
+        "graph_net.json": "eed8c799ab3d1e4f4825a5f2969cb90e48b204ebb9798365b6578a39515e76ae",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "1da212799210657b6a35e8764db43d464726b75ab147dfd733c94265871c2b33",
+        "subgraph_sources.json": "997cbc9cf012a0889245b30748bda3a6d2c181b0f02e1043db4c7d969d3128e3",
+        "weight_meta.py": "a473929ead0b23eb08e18dd9570d9a8a2e5eb7c5d736d5c366c4a69639cd7510"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/microsoft_table-transformer-detection/_decomposed/microsoft_table-transformer-detection_start478_end481_4",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/cb/12/cb127fb257f13f64f3dfbaeb0c41ae8bc8ef482b0e1b6fb169952705301ec94a",
+      "split": "heldout",
+      "model": "transformers-auto-model/microsoft_table-transformer-detection",
+      "category": "reduction",
+      "script": "003.kiln.js",
+      "source_sha256": "1b16b9b70a17f5380b71fbbc297f0149ba4c127dd2e6fe32ceeb4c52f8b79a7d",
+      "inputs": {
+        "v0": [
+          256
+        ],
+        "v1": [
+          256
+        ],
+        "v2": [
+          1,
+          625,
+          256
+        ],
+        "v3": [
+          1,
+          625,
+          256
+        ],
+        "v4": [
+          1,
+          625,
+          256
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          },
+          {
+            "output": "out2"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "reduction",
+        "input_elements": 480512,
+        "max_tensor_elements": 160000,
+        "total_tensor_elements": 960512,
+        "tensor_nodes": 8,
+        "matrix_products": 0
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "6168894b3e6fb39a84fc66ff8872cf2d2cf0439694a7bd45e804428d56da76e5",
+        "graph_net.json": "eac8e2b4b29cb7546f03853a44975db2a2e749491c12124ade3e68a0682bcd23",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "24136391e3bca4767144ab663c948b2ab1b87d7dcd7fb325b96d2e6fbc01ea11",
+        "subgraph_sources.json": "1e33ba2dad428a22e3c669826e114a2932e0d555f5f02d019e0128a8a0070fea",
+        "weight_meta.py": "5b9c6db1bf19bfa19fe7b07e2c7e211d1985f7c19ec0a5269accf3f3fc56ac82"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmpose/ViTPose-S/_decomposed/ViTPose-S_start17_end19_4",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/1d/2e/1d2e654a39d7a534d7d824118e6d1d87c3783695e273d30303ecdc20a4f8632a",
+      "split": "heldout",
+      "model": "mmpose/ViTPose-S",
+      "category": "reduction",
+      "script": "004.kiln.js",
+      "source_sha256": "8a42719b91959f0f59f8cff4871a0529149a7dc4826731f7344f1f84bd0f083f",
+      "inputs": {
+        "v0": [
+          384
+        ],
+        "v1": [
+          384
+        ],
+        "v2": [
+          16,
+          192,
+          384
+        ],
+        "v3": [
+          16,
+          192,
+          384
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "reduction",
+        "input_elements": 2360064,
+        "max_tensor_elements": 1179648,
+        "total_tensor_elements": 4719360,
+        "tensor_nodes": 6,
+        "matrix_products": 0
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "b3bc2f1e9a46cca0db1d24ecb6fa74a64dc1fdb5b1d092956cf0b12acb97b88d",
+        "graph_net.json": "494f0b19ff5907fbc16c7f10d1f996a3fb6f101158e96d9b626a541ef8840915",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "cd113cc02d5372bf27251b2d8fce858caee8938f1c8811389bb8d119190e53ae",
+        "subgraph_sources.json": "31cfd2c774668ceb833a110d66bd5b810abe573eac3056495265ca5e78e3bd08",
+        "weight_meta.py": "1c1c01f573b2c3713e5736373e138a1afcc1e6e53466951bcf4b4bb73183f3a0"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/Aleksandar_distilbert-srb-ner-setimes/_decomposed/Aleksandar_distilbert-srb-ner-setimes_start143_end145_12",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/7d/96/7d96679740fc236beca9ee8d08bb3dffe95d9e72cd56bcc1bb3b665e214b12b3",
+      "split": "heldout",
+      "model": "transformers-auto-model/Aleksandar_distilbert-srb-ner-setimes",
+      "category": "reduction",
+      "script": "005.kiln.js",
+      "source_sha256": "9b6d95254febb8a22f4fa9e6b3c619ca675bb0550dded0923ecaef52532b7006",
+      "inputs": {
+        "v0": [
+          768
+        ],
+        "v1": [
+          768
+        ],
+        "v2": [
+          16,
+          128,
+          768
+        ],
+        "v3": [
+          16,
+          128,
+          768
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "reduction",
+        "input_elements": 3147264,
+        "max_tensor_elements": 1572864,
+        "total_tensor_elements": 6292992,
+        "tensor_nodes": 6,
+        "matrix_products": 0
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "d139f68104e9dfa6c6618122a5116b5217169d431242c820739dff98cf8ebe09",
+        "graph_net.json": "942a2b3f300873bc3312024b54dbcd6eeae8e954250aed33522e966a01ab886d",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "6180c8c8a9dc7b95e5279ba2c8ea341d8057a7d8521762f01965607d67101b09",
+        "subgraph_sources.json": "e65e82e18b1000101feb6a33042c35e7a6bbdee1812f909d0e63b7ef7394794e",
+        "weight_meta.py": "188a9c71bc9a3e763ca96a3f506af4333c56ca1417c0006a0f65eecf6143f957"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/facebook_deit-small-distilled-patch16-224/_decomposed/facebook_deit-small-distilled-patch16-224_start12_end15_2",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/75/48/7548c7cf1436de564abb5507b7206a96afba024990b58076db34c7baf3b00b4c",
+      "split": "heldout",
+      "model": "transformers-auto-model/facebook_deit-small-distilled-patch16-224",
+      "category": "matrix",
+      "script": "006.kiln.js",
+      "source_sha256": "79d8a4bb5764075e269da38ce1032761cf0129e1240155e583c277c1152cf780",
+      "inputs": {
+        "v0": [
+          384
+        ],
+        "v1": [
+          384,
+          384
+        ],
+        "v2": [
+          1,
+          198,
+          384
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "matrix",
+        "input_elements": 223872,
+        "max_tensor_elements": 147456,
+        "total_tensor_elements": 451968,
+        "tensor_nodes": 6,
+        "matrix_products": 29196288
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "ed2a47cd595731691f8ad6fafa00d1eba750d71bd6238dc758c891b354fff32e",
+        "graph_net.json": "6ade525341fee9991efbbe7f8490c633d21ef15469138747d25d2d57b77a8cfd",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "576e84d26e46995f83e76da3bd17c261ea2e1b626fcb8d628b46b90b1fbf05ff",
+        "subgraph_sources.json": "670d434e768c27ceb7148267955506eb62d3d114a100c4867f716ad5471b0e42",
+        "weight_meta.py": "e77638cd060ecec8175eeb60231aaeb0e54131ffa442c6eff8545a3cc04bc3e3"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ar-de/_decomposed/opus-mt-ar-de_start235_end242_20",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/b0/ac/b0ac968054ed1a07b1ee705d7c7741aba26f9096270dd57873950cccc05f480b",
+      "split": "heldout",
+      "model": "transformers-auto-model/opus-mt-ar-de",
+      "category": "matrix",
+      "script": "007.kiln.js",
+      "source_sha256": "9747fe56fb45899c7fb0478c8749ca48dcc6e682e1bda91fc27d90b9161768d0",
+      "inputs": {
+        "v0": [
+          512
+        ],
+        "v1": [
+          512,
+          512
+        ],
+        "v2": [
+          1,
+          1,
+          1,
+          51
+        ],
+        "v3": [
+          1,
+          51,
+          512
+        ],
+        "v4": [
+          1,
+          51,
+          512
+        ],
+        "v5": [
+          1,
+          8,
+          1,
+          64
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32",
+        "v5": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          },
+          {
+            "output": "out2"
+          },
+          {
+            "output": "out3"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "matrix",
+        "input_elements": 315443,
+        "max_tensor_elements": 262144,
+        "total_tensor_elements": 446566,
+        "tensor_nodes": 13,
+        "matrix_products": 13369344
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "1e498f6b5bcf8b348845d6428d5838d79fc256358e270f43e9ec9670a9a21c2a",
+        "graph_net.json": "a3bcde427b0835a9db30ca1360e917d5ac11b1088e1b704bc8422de756d7288b",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "3741e24a0b558ae6f5d8cddfb1539c97e1be977e3c90948faa38ef7792d19135",
+        "subgraph_sources.json": "d7d74d054c06ecfc3d0b7aea244866f5ccfd60adb9c61d264a4917e63cd9c5d3",
+        "weight_meta.py": "19aa15635d0dacac2705b5f917d9a20636d4223c6c2daa761dda65c8840cc5ec"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/vit_gigantic_patch14_clip_224.laion2b/_decomposed/vit_gigantic_patch14_clip_224.laion2b_start217_end219_8",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/87/3c/873c60eca3bae341a9f885b8839ce9cb73c0d2a6cf8ac4ac037e071fc93fb92b",
+      "split": "heldout",
+      "model": "timm/vit_gigantic_patch14_clip_224.laion2b",
+      "category": "reduction",
+      "script": "008.kiln.js",
+      "source_sha256": "75eb0aab7d24444f62cef5089094d756aba9f7f3b4a93dff247b5dc734e87491",
+      "inputs": {
+        "v0": [
+          1664
+        ],
+        "v1": [
+          1664
+        ],
+        "v2": [
+          1,
+          257,
+          1664
+        ],
+        "v3": [
+          1,
+          257,
+          1664
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "reduction",
+        "input_elements": 858624,
+        "max_tensor_elements": 427648,
+        "total_tensor_elements": 1713920,
+        "tensor_nodes": 6,
+        "matrix_products": 0
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "4c4a14d846186319af14230f9655302cbd3d89a7e334c64d05a49fc34473094f",
+        "graph_net.json": "77ab4ec9a0b404256e00801a4fd9ebdec4b93313934c1d5dfa22ae197c39c595",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "48624939de2289e412c5d4c2bccc2c1bcb587977d672205bae882bcc1bd934e3",
+        "subgraph_sources.json": "753de88dab1e0d06ef8b614a64ab279347e1ec534f27090c2b44bd1641fcadef",
+        "weight_meta.py": "5678379356a1097852f187c395ea2a73f75cfd9dfc91915b79db822e69e7e022"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-ElectraForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-ElectraForSequenceClassification_start111_end119_6",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/78/7f/787f1d58771e729c1f8f8736e4dc7217b8b8990a65a3d2a714a5bd8a1dbaf181",
+      "split": "heldout",
+      "model": "transformers-auto-model/hf-tiny-model-private_tiny-random-ElectraForSequenceClassification",
+      "category": "matrix",
+      "script": "009.kiln.js",
+      "source_sha256": "01036afaf9560d542a02b6e6499c29271a88c4f456b9d9a4a8b0b176995e295e",
+      "inputs": {
+        "v0": [
+          1,
+          4,
+          512,
+          512
+        ],
+        "v1": [
+          1,
+          1,
+          1,
+          512
+        ],
+        "v2": [
+          1,
+          4,
+          512,
+          8
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "matrix",
+        "input_elements": 1065472,
+        "max_tensor_elements": 1048576,
+        "total_tensor_elements": 5325312,
+        "tensor_nodes": 11,
+        "matrix_products": 8388608
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "ab544b6de613436c49c67707893f466dfb694f8559724ae3cf6e6530743f84ce",
+        "graph_net.json": "a7671ab11a70934333441bcc8cbaf448abadcbf95a35bf08ababe91006a4c90e",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "2047daac57764a13ef0d06efcb4b9e0c848d1ce6a57c8d10f58c1062a2f8e6e0",
+        "subgraph_sources.json": "43df866a8e6600adeaa86d89c5df32724f14f92fd376a50ddbfac8b8d0529db6",
+        "weight_meta.py": "6d511300e3a0188984197c3b15c23e3d036ed31483027273a17d7d1f380486cf"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/optimum_hubert-base-superb-ks/_decomposed/optimum_hubert-base-superb-ks_start378_end380_3",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/13/da/13daa60a8ef5fa5d41b1a7561b8d7c2b84f2e249d5b193a64d3482a94b6face1",
+      "split": "heldout",
+      "model": "transformers-auto-model/optimum_hubert-base-superb-ks",
+      "category": "reduction",
+      "script": "010.kiln.js",
+      "source_sha256": "35f78cf0ad799869fe35422bdd966ea5cde47bfbf6b4ce1836a82e790bf6bbd9",
+      "inputs": {
+        "v0": [
+          13
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "reduction",
+        "input_elements": 13,
+        "max_tensor_elements": 13,
+        "total_tensor_elements": 39,
+        "tensor_nodes": 3,
+        "matrix_products": 0
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "1f9da5dcd416d7b9e290c0bc2004c19c7d226079ef1ef4832e5a1531737ec9c3",
+        "graph_net.json": "0fb46f3e25da5d465b18186268759c5e6646deed51a94eee7b5bc7aa8f91bb45",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "d58afa3b4cd7309fc0f4492c9db76af90f02d6fd41ea55e1a3729bc6d56a0bff",
+        "subgraph_sources.json": "cc0df0c93352ceda4824575350c2b1432bf6d9d502cd99415f9de44a59fe2036",
+        "weight_meta.py": "29ed33da17bb289fbdcd093f848c65129b6a6e519f544a228ea0e4d3c434e670"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/mmpose/ViTPose-S-simple/_decomposed/ViTPose-S-simple_start244_end250_2",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/20/8a/208a3e0cd9d816cbcad4d92e27f8468ecbc6a8fb22d558779b4a8c1dbbefeb2a",
+      "split": "heldout",
+      "model": "mmpose/ViTPose-S-simple",
+      "category": "reduction",
+      "script": "011.kiln.js",
+      "source_sha256": "29e6fcd518cd09219780fafd187a819c32d5651d1418fd838518a062f96c8c7e",
+      "inputs": {
+        "v0": [
+          384
+        ],
+        "v1": [
+          384
+        ],
+        "v2": [
+          32,
+          192,
+          384
+        ],
+        "v3": [
+          32,
+          192,
+          384
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "reduction",
+        "input_elements": 4719360,
+        "max_tensor_elements": 2359296,
+        "total_tensor_elements": 18875136,
+        "tensor_nodes": 10,
+        "matrix_products": 0
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "8b7388672b3de6af3aeb826df09da0b6e5e53b7cdeabdf275f390b4d98afeccd",
+        "graph_net.json": "494f0b19ff5907fbc16c7f10d1f996a3fb6f101158e96d9b626a541ef8840915",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "a72ff0d6a87fb63f563324babbce80d6cc580081668bd5403389c1f25402b092",
+        "subgraph_sources.json": "5c0b68c71d47571ecfec91b519bba4d4ad5f5d844203002e79a6fc39d2a117c7",
+        "weight_meta.py": "b7f634cf5962825e47717c3c48832336e75735878604c6bee7a800eba12f9926"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/ultralytics/yolo12n/_decomposed/yolo12n_start230_end236_6",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/15/4a/154a972d0194bb021553aeb71ed6fc5912c890799fd1da7245aed4e98e262b90",
+      "split": "heldout",
+      "model": "ultralytics/yolo12n",
+      "category": "matrix",
+      "script": "012.kiln.js",
+      "source_sha256": "f1b783826a769e3dae969653f878d20a15d7b153f78780a342f1e53215dc5fef",
+      "inputs": {
+        "v0": [
+          1,
+          4,
+          400,
+          400
+        ],
+        "v1": [
+          1,
+          4,
+          32,
+          400
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "matrix",
+        "input_elements": 691200,
+        "max_tensor_elements": 640000,
+        "total_tensor_elements": 998400,
+        "tensor_nodes": 8,
+        "matrix_products": 20480000
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "f9c5b8524f7b1017444243ae9ae5e149f86199160a77b9acdf87f5fd431288e1",
+        "graph_net.json": "ee2b7579414b26038f158b53d163e8375a6fadb27b567644dd9679862fd76db5",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "0ba755a7fc76607e428f7826891afad6e0289bbccb312cb020d2e7218a35d975",
+        "subgraph_sources.json": "013f0a9be3d243ec445c8da0ffed7494424a6c16ef1f6008b4605b71a2518a64",
+        "weight_meta.py": "f0df5ae212695d4821af405395fc4ed0dfcc6692ccdedf6c5cb014c0b07f7ee9"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/Helsinki-NLP_opus-mt-en-zh/_decomposed/Helsinki-NLP_opus-mt-en-zh_start23_end29_3",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ea/45/ea458e1c07cd6a9ae14f8f0ea69006b080279d17b8ce60ddde4decdf4832fab5",
+      "split": "heldout",
+      "model": "transformers-auto-model/Helsinki-NLP_opus-mt-en-zh",
+      "category": "matrix",
+      "script": "013.kiln.js",
+      "source_sha256": "bdf3f73bb9133c4c810f758e9f9a8bc1beadb40c65d3a702707551b3973932f8",
+      "inputs": {
+        "v0": [
+          512
+        ],
+        "v1": [
+          512,
+          512
+        ],
+        "v2": [
+          1,
+          1,
+          12,
+          13
+        ],
+        "v3": [
+          1,
+          12,
+          512
+        ],
+        "v4": [
+          1,
+          12,
+          512
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          },
+          {
+            "output": "out2"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "matrix",
+        "input_elements": 275100,
+        "max_tensor_elements": 262144,
+        "total_tensor_elements": 305964,
+        "tensor_nodes": 11,
+        "matrix_products": 3145728
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "f4545b252f213498fb471a802f048069c293ca43a7c33ad0b9faa11044b5aae6",
+        "graph_net.json": "14de4da30146ed1f2f0822bd57c54c3e4551cc3561f60ca47b3d44505119e0dc",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "05afd486ac5f164f5f995a5da59f6e92dc761b07f028de07fcc19d40a18dcf80",
+        "subgraph_sources.json": "4893bda89d7a19bc02502993cfe41af171127eb7d482f305362cb0e096128b93",
+        "weight_meta.py": "b2139ff54f0cf1d7abc1426a30b7a769800b251848f189b93dabf75e283ea3e7"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/monoelectra-large/_decomposed/monoelectra-large_start706_end709_11",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8d/be/8dbe3db83785b55cb56369e810d66b5f8f566a0c72a576d7529eac43347b4496",
+      "split": "heldout",
+      "model": "transformers-auto-model/monoelectra-large",
+      "category": "reduction",
+      "script": "014.kiln.js",
+      "source_sha256": "12ac5622f0f7edac092f5e0fd0e3686d130f3fab3c7956e77ec5e32d61042f7c",
+      "inputs": {
+        "v0": [
+          1024
+        ],
+        "v1": [
+          1024
+        ],
+        "v2": [
+          16,
+          128,
+          1024
+        ],
+        "v3": [
+          16,
+          128,
+          1024
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "reduction",
+        "input_elements": 4196352,
+        "max_tensor_elements": 2097152,
+        "total_tensor_elements": 8407040,
+        "tensor_nodes": 7,
+        "matrix_products": 0
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "593ae7f122e6b9532f2cbacce6d35e2dcaa05be28f76284686958ef7722b8d74",
+        "graph_net.json": "27e02a346ac0331ff4d56670f29ae32df6193f292d82221133a468bf62c9a406",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "71fbca3eebebb9d296748327212f8e5ed34bb4bc04cb7497155e0b921629d8e9",
+        "subgraph_sources.json": "f4df6dee42d3bf11194197c16e564906b449e50b02779caca1a2a387e14f0eae",
+        "weight_meta.py": "b1672f4398d1c0c115d0bdcce0274432eb2610f08aba410ccd38d52dc8ef3214"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/transformers-auto-model/nickmuchi_yolos-small-plant-disease-detection/_decomposed/nickmuchi_yolos-small-plant-disease-detection_start29_end31_2",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/74/fd/74fdc41b47d97c189e01cab3d85a268a0ed1f8d5bba8690baacd79424c60e4ed",
+      "split": "heldout",
+      "model": "transformers-auto-model/nickmuchi_yolos-small-plant-disease-detection",
+      "category": "reduction",
+      "script": "015.kiln.js",
+      "source_sha256": "0f3e1338ab6e3e21e04cd7319f3979adfcda5c4b6dab4005f775a36a6fed799d",
+      "inputs": {
+        "v0": [
+          384
+        ],
+        "v1": [
+          384
+        ],
+        "v2": [
+          11,
+          1,
+          1,
+          384
+        ],
+        "v3": [
+          11,
+          1,
+          100,
+          384
+        ],
+        "v4": [
+          1,
+          1125,
+          384
+        ],
+        "v5": [
+          11,
+          1,
+          1024,
+          384
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32",
+        "v5": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "reduction",
+        "input_elements": 5184768,
+        "max_tensor_elements": 4752000,
+        "total_tensor_elements": 10368768,
+        "tensor_nodes": 8,
+        "matrix_products": 0
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "a5062208c38c7722a5f5f9e8cb40c9197fb4e1ca857e2049a13862a22f58fd83",
+        "graph_net.json": "c9861c9aae570d37f7180f050499dad7e1145e963ce9f930735a6c943b085f87",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "c57d4b96b976c8cb4daabae71159bea4eb5973bad6cfae363db4bd68cdb6ff88",
+        "subgraph_sources.json": "2ab984d3807322b6b86ff6ffac7d260d0b10b0704bf4596be51202fddeb1e6d7",
+        "weight_meta.py": "5e766d751086ad5b6121c4dcc2f3dc60c0b6977c010ebdef610616a3dd6dd645"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/google_electra_base_generator/_decomposed/google_electra_base_generator_start23_end32_5",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a4/28/a4282ed3366cd1eece1f81a888b58c1785a61cf16b5de2d64c486ea233c2e585",
+      "split": "heldout",
+      "model": "transformers-auto-model/google_electra_base_generator",
+      "category": "matrix",
+      "script": "016.kiln.js",
+      "source_sha256": "f2d406c691f9030fd469a9ac9c1bf0f900e0857c041f90c05432a68a9ca19ebb",
+      "inputs": {
+        "v0": [
+          1,
+          1,
+          1,
+          16
+        ],
+        "v1": [
+          1,
+          4,
+          16,
+          64
+        ],
+        "v2": [
+          1,
+          4,
+          64,
+          16
+        ],
+        "v3": [
+          1,
+          4,
+          16,
+          64
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "matrix",
+        "input_elements": 12304,
+        "max_tensor_elements": 4096,
+        "total_tensor_elements": 33808,
+        "tensor_nodes": 13,
+        "matrix_products": 131072
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "ea21cd3cba18184b01413535ee8fc74b4b0469a1c240503a0b168c1fb937900a",
+        "graph_net.json": "3c4db6c947fd559915b4a9cd8cceeb3fb71396e49d44fbd21e670571ae74d886",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "37fced1286372f222798b7f2514e943078b196dbf029f8ad336a5936f70d3143",
+        "subgraph_sources.json": "1f9357ff2597a8362cc689dababadd995abd6eaf8bdc5f1fc74468ce75e54f7b",
+        "weight_meta.py": "8c8932a7fdd16a3d07e69ea413bd4b0017479e3d0f29c4f536389775c8e3f599"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/google_electra_base_discriminator/_decomposed/google_electra_base_discriminator_start22_end31_5",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/f9/de/f9de862dede2684701bbef9c890a8777157a05a96def07e7e09b7bb226417f31",
+      "split": "heldout",
+      "model": "transformers-auto-model/google_electra_base_discriminator",
+      "category": "matrix",
+      "script": "017.kiln.js",
+      "source_sha256": "e6030563a9bd122a692771d6c8430e71b2c2f662cce4a358d34a9f9604c9088e",
+      "inputs": {
+        "v0": [
+          1,
+          1,
+          1,
+          64
+        ],
+        "v1": [
+          1,
+          12,
+          64,
+          64
+        ],
+        "v2": [
+          1,
+          12,
+          64,
+          64
+        ],
+        "v3": [
+          1,
+          12,
+          64,
+          64
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "matrix",
+        "input_elements": 147520,
+        "max_tensor_elements": 49152,
+        "total_tensor_elements": 589888,
+        "tensor_nodes": 13,
+        "matrix_products": 6291456
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "c33ac9d45022976f2ed2eadc9c67df582224a0cefceb47586dda231683ba4d74",
+        "graph_net.json": "f895711659e933110b032362750a655f0cdbb268f82087eae27dc30d8f387147",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "508b8021b379ed7c59ae64e2989d5612af3324f95e0da6363c326559d3429008",
+        "subgraph_sources.json": "694960bea7fa35a98048b8c61739ac9f1927c5d52449c0f5102f14e59905a992",
+        "weight_meta.py": "966d68f52716c3939f074439b4825de724587e33936ccfb695539afab6c81fc3"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MobileBertForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-MobileBertForSequenceClassification_start154_end162_28",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/21/99/2199c044909ef6d2c518ea0dac32224a2d9a89b27b9f5fe459a61116da67c088",
+      "split": "heldout",
+      "model": "transformers-auto-model/hf-tiny-model-private_tiny-random-MobileBertForSequenceClassification",
+      "category": "matrix",
+      "script": "018.kiln.js",
+      "source_sha256": "6efd4ed6cef8dba90f765ce8d9a6ef17c5e4f253775b815d6802e85e066c917c",
+      "inputs": {
+        "v0": [
+          1,
+          4,
+          45,
+          45
+        ],
+        "v1": [
+          1,
+          1,
+          1,
+          45
+        ],
+        "v2": [
+          1,
+          4,
+          45,
+          32
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "matrix",
+        "input_elements": 13905,
+        "max_tensor_elements": 8100,
+        "total_tensor_elements": 69345,
+        "tensor_nodes": 11,
+        "matrix_products": 259200
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "60928e49a841237ef45d216adffed19c34193ff51c4648f4d1b467d268c5e4d5",
+        "graph_net.json": "b9ed2b4820d8731f22ef2b56d9e8eccbab1aecda8efec9857f633d97dc43c608",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "42afea112be6606d55487985235283adf75e0dfeb43d4537a2eec3431e69c41b",
+        "subgraph_sources.json": "4f17e5af9bfb6adf7d4b65a38021c45217c57161528ff45bbfeeffacdec0a756",
+        "weight_meta.py": "cd6835405a3930ad5d6d276da2895f367d3bc6cb3fc9111596d0fd5e7beb65ee"
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/aubmindlab_aragpt2-mega-detector-long/_decomposed/aubmindlab_aragpt2-mega-detector-long_start23_end31_5",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a2/c1/a2c13fb8fe887507a62f526f1c10ef5b2cbad3cbcd64481c22cc5ede1a848f05",
+      "split": "heldout",
+      "model": "transformers-auto-model/aubmindlab_aragpt2-mega-detector-long",
+      "category": "matrix",
+      "script": "019.kiln.js",
+      "source_sha256": "04c80be5a70774f30622310d60609ec0566f4a1e61323c12e8bcd8dd9bea3adf",
+      "inputs": {
+        "v0": [
+          1,
+          12,
+          26,
+          26
+        ],
+        "v1": [
+          1,
+          1,
+          1,
+          26
+        ],
+        "v2": [
+          1,
+          12,
+          26,
+          64
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "matrix",
+        "input_elements": 28106,
+        "max_tensor_elements": 19968,
+        "total_tensor_elements": 140426,
+        "tensor_nodes": 11,
+        "matrix_products": 519168
+      },
+      "source_files_sha256": {
+        "graph_hash.txt": "856022c8caa164554b8d51306e525bede2e52e9f2af5210ecd6a51083d0f7530",
+        "graph_net.json": "1c9e4516830ec73dda4b4b28b1fa24abbafcc2f1496a7af99c83bba4f891f406",
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "input_tensor_constraints.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "0112c975d72f55d3d90028b46216d56e3b60a679a025c817739c1b2862f76389",
+        "subgraph_sources.json": "c9c833890f9952da38b9ddd7c62c1ed233bb497968a7e2062ab79a3c399cfddd",
+        "weight_meta.py": "69d9a2a0881df3ed89b23afac403187e75115edf5786ed394c6485415a5d53d5"
+      }
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "format": "kiln-policy-compilation/2",
+  "membership_sha256": "55ef2fa6c28dbff57e90a7c8b3560ca141e5faf0681b94424c283c4de03300ec",
+  "reference_domain_sha256": "9767008e809c7ec8ebb92932911de84ef87a9c76502d290b2889e521bab32cdc",
+  "policy": {
+    "format": "kiln-fusion-policy/1",
+    "id": "baseline",
+    "kind": "unchanged",
+    "provenance": "Unchanged fusion policy in the separately pinned compiler source version; not a policy-search candidate"
+  },
+  "policy_node_count": 0,
+  "target": "a100",
+  "phase": "all",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "records": [
+    {
+      "graph": "graphs/float32/samples/fixture/matrix/case",
+      "split": "heldout",
+      "script": "000.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "000.kiln.json",
+      "fingerprint": "fe96496268e801af28c67faf93d358268bcf605e3dacae278dcd01ebfb69abc5",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1ismuon4ck2"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 2.384185791015625e-7,
+            "maxRel": 3.8140917110361763e-7,
+            "bad": 0,
+            "n": 30,
+            "first": -1,
+            "message": "max abs diff 2.38e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 28.24817300000001
+    },
+    {
+      "graph": "graphs/float32/samples/fixture/reduction/case",
+      "split": "heldout",
+      "script": "001.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "001.kiln.json",
+      "fingerprint": "b79007e1742c6e35489511800f84c0ecc8941dcf14b0484f0032042bc6d7638a",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1fzo6nkqwv7"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 5.960464477539063e-8,
+            "maxRel": 1.9150235126525357e-7,
+            "bad": 0,
+            "n": 3,
+            "first": -1,
+            "message": "max abs diff 5.96e-8"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 4.497366999999997
+    }
+  ]
+}

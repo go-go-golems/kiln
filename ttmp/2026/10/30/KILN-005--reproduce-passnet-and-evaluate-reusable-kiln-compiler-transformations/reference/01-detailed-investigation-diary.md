@@ -5977,3 +5977,53 @@ See Step 130, task p4wv and the user's request to implement and measure the full
 
 ### Technical details
 - Overall original coverage stays 24 tasks/313 graphs and import eligibility 1,136/64. Original PassAgent, native precision compatibility and the remaining full goal stay open.
+
+## Step 132: Freeze complete fresh-family membership and validate the paired execution path independently
+
+The broader selection completes after 2,950 tasks with twenty unique exact models/tasks, ten per category, all heldout. Independent verification finds zero overlap with the 290 excluded evaluation/prior-policy models and verifies every generated/original source hash. No selected confirmation source has yet been compiled or timed.
+
+The new driver is exercised on an independent two-graph synthetic fixture. Both isolated compilers build and qualify, both CUDA references and repeated timings complete, and the intentionally unchanged reduction executable shares one measurement across compiler roles. These fixture numbers are operational validation, not a compiler improvement or generalization result.
+
+### Prompt Context
+See Steps 130–131 and task p4wv; the authored objective requires reproducible implementation, complete measurement, preserved failures and architectural consolidation.
+**Assistant interpretation:** Establish a complete immutable confirmation population and test its new execution path without using confirmation feedback to tune code or budgets.
+**Inferred user intent:** Make fresh-family claims depend on actual isolated source controls and complete measured evidence.
+
+### What I did
+- Ran the separately declared v2 selector and retained the failed v1 audit and source fragments.
+- Script 293 independently reconstructs model exclusions, graph/task/model uniqueness, category quotas, scan membership and source hashes.
+- Script 289 creates synthetic matrix/reduction source fixtures and runs the frozen source pair through the existing compiler CLI.
+- Scripts 290/291 stage and execute their CUDA measurement path; result and raw log are collected into the fixture evidence directory.
+- Saved script 292 for freezing execution-code hashes and compiling the actual twenty-family population only after this checkpoint.
+
+### Why
+- A confirmation-only experiment cannot use its own correctness/timing results to repair its measurement implementation or choose candidates without explicit disclosure.
+- A synthetic fixture can validate real package resolution, compiler isolation, runtime execution and exact-alias pooling before the confirmation experiment begins.
+
+### What worked
+- V2 membership: cc554758196f86c52856850e4a923ed264959fab43eacc7416828a9e1207d41a; 20/20 exact models/tasks, all heldout, 10 matrix/10 reduction.
+- Exclusion verification: 290 excluded exact models, zero selected overlap; source hashes and ordered scan membership match.
+- Both synthetic graphs compile under both source versions with no compile failures. Their alias pattern is changed/unchanged as intended.
+- The CUDA fixture is terminal with qualified=true and two complete graph records. Each unchanged binding uses the same measurement group, while changed executables are shuffled across the three repeat blocks.
+
+### What didn't work
+- The original smaller population remains failed at nineteen families; it is not relabeled as a success.
+- No confirmation performance/generalization outcome has been observed or claimed yet.
+
+### What I learned
+- Separating trusted reference code from model-data paths makes the execution harness independently testable without copying or modifying the upstream evaluator.
+
+### What was tricky to build
+- Compiler-role metadata differs, but exact executable fingerprints must omit only the already declared nonexecuting metadata fields. The synthetic unchanged reduction verifies that these roles do not create artificial timing contrasts.
+
+### What warrants a second pair of eyes
+- Review source population verification, separate worktree/dependency identities, frozen source-pair declaration, and fixture measurement groups before actual confirmation compilation.
+
+### What should be done in the future
+- Commit membership and fixture evidence, freeze execution hashes and compile both source variants for every selected graph. Preserve any compile/reference/correctness/stability failure, with no replacement or aggregate speedup on partial success.
+
+### Code review instructions
+- Begin with design 16, source-population-verification-v2.json, both declarations, the v1 audit, the independent fixture's pair qualification and measurements, and script 292.
+
+### Technical details
+- This advances setup/validation of p4wv; its measurement requirement remains open. Original benchmark coverage and native precision limitations remain unchanged.

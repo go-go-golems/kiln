@@ -1,0 +1,68 @@
+{
+  "format": "kiln-fixed-compiler-confirmation-declaration/1",
+  "scope": "Independent synthetic execution-harness fixture; no optimization/generalization inference",
+  "selected_change_revision": "fed37d1",
+  "compiler_comparison": "Separate isolated compiler checkouts; all production compilation source files pinned; only tensor.js differs. Identical current importer-generated programs and measurement runtime for both variants.",
+  "compiler_variants": {
+    "baseline": {
+      "tensor_revision": "c15c610",
+      "relative_path": "reshape-confirmation-compiler-sources-v1/baseline-tensor.js",
+      "sha256": "18296e53fc46e8334d6f487b451b8e81f17895a32f771ebc003e2e1c63a132b5",
+      "production_revision": "c15c610",
+      "production_snapshot": "reshape-confirmation-compiler-sources-v1/baseline-production-snapshot.json",
+      "production_snapshot_sha256": "cfe8d6d2f62827de2e824e76a25253e59b40f3e7adfdc0adad6fb63e403f8ee2"
+    },
+    "candidate": {
+      "tensor_revision": "fed37d1",
+      "relative_path": "reshape-confirmation-compiler-sources-v1/candidate-tensor.js",
+      "sha256": "4c87f61072280adb23e3deb7222c2d32f89269177a9d79b9b056852bda789852",
+      "production_revision": "fed37d1",
+      "production_snapshot": "reshape-confirmation-compiler-sources-v1/candidate-production-snapshot.json",
+      "production_snapshot_sha256": "28756aa183554c8ade3efc856bb26f60f3c09652fefc192fd4f9c69f5fe754ee"
+    }
+  },
+  "selection_spec_sha256": "eddb1a647f3023c572d6ff85ffe43b79145dc9b5abcb17672dcc256eb0a83a33",
+  "exclusion_sha256": "c8baf0bd9a3214fe67f4d010664c27449dee1aaffcb3d1ceb148079bc6beb858",
+  "candidate_ids": [
+    "baseline",
+    "candidate"
+  ],
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "reference_backend_numerics": {
+    "float32_matmul_precision": "highest"
+  },
+  "dtype_tolerances": {
+    "f32": {
+      "rtol": 1.3e-06,
+      "atol": 1e-05
+    }
+  },
+  "target": "a100",
+  "seed": 42,
+  "warmup": 20,
+  "trials": 100,
+  "repeats": 3,
+  "max_iqr_fraction": 0.2,
+  "max_retries": 2,
+  "inputs": "Original source replay, no input mutation, complete output structure",
+  "order": "Seeded shuffled order of exact distinct executable fingerprints per graph/repeat; aliases share measurements",
+  "failure_policy": "Retain every selected graph and every compile/reference/correctness/timing failure; any failure disables an aggregate speedup claim; no replacement or outcome-based eligibility",
+  "selection": "No training, ranking or tuning; both source variants fixed before any selected graph is compiled",
+  "metrics": [
+    "synchronized end-to-end ms",
+    "CUDA-event stream elapsed ms including dispatch gaps"
+  ],
+  "primary_summary": "Exact-model family-balanced geometric mean baseline/candidate median ratio; repeated timings are descriptive, not a calibrated confidence interval",
+  "expected_production_source_differences": [
+    "packages/kiln/src/std/tensor.js"
+  ],
+  "declaration_status": "Finalized before confirmation source scanning or compilation",
+  "prior_selection_attempt": {
+    "directory": "reshape-confirmation-v1",
+    "scan_audit_sha256": "1fcc2c9200bc0333d78e0b49e9a3f8e66a417424c0dbbfdb85e6b5e972ba279c",
+    "result": "Incomplete 19 of 20 metadata-selected families; no compilation, artifact inspection or GPU timing"
+  },
+  "metadata_retry_policy": "May reuse first-attempt metadata-only selections; these are not independent confirmations. All evaluation models and previously selected prior policy-study models remain excluded; fixed compiler sources and all measurement rules unchanged."
+}

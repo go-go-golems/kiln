@@ -1,0 +1,119 @@
+{
+  "format": "kiln-passnet-corpus/1",
+  "sample": "corpus",
+  "membership_sha256": "55ef2fa6c28dbff57e90a7c8b3560ca141e5faf0681b94424c283c4de03300ec",
+  "selection_status": "source_selected",
+  "importer_source_sha256": {
+    "prepare_study.py": "82f7c3168718a4d59b6de88c18464948b9fdf778a69f882040da8cf7e316ec9b",
+    "corpus.py": "1598542db3652d03ab6fc6c0013b2fa54724ecc29af146b6aaa2d8b5376953f5",
+    "fx_import.py": "a97751447c2e5690d08e5a3adc3eaa1351f7084d865f50b1a6b996c07cb82f7d",
+    "fx_norm_ops.py": "388fd8c61c62217545e6160579b3ee5c77627b139d67c133de6caa5ed5da7291",
+    "fx_linalg.py": "ddf9e3083483c733ac01a0ca2a2027e769ac28ca93bc29ee25cc46e73560db17",
+    "fx_indexing.py": "387a715ce004792028acd94cef39943f8fe285c91850272a57f71e786c82cdf4",
+    "fx_trace.py": "c8db2a90656ca234a940c94b26ab02840bc8d67246062037d9b3325e518620ec",
+    "fx_export.py": "5d6794be75a11f21196a79cfa6cd0751d07d58f9f5dcf420abdd32e29641306f",
+    "reference_domains.py": "4c9e0a648c19522b5371f72a5f0c583052f99d74f0e86c73dcaf0a9de42fa669"
+  },
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "source_sample_list": "train.txt",
+  "source_sample_list_sha256": "a69f91071387a315ceb252c123b92ce5b0f29c8dccb907e3d800b30d0d01d9d1",
+  "excluded_evaluation_list_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "excluded_models_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "selection_spec_sha256": "eddb1a647f3023c572d6ff85ffe43b79145dc9b5abcb17672dcc256eb0a83a33",
+  "selector_sha256": "82f7c3168718a4d59b6de88c18464948b9fdf778a69f882040da8cf7e316ec9b",
+  "selection": "First eligible exact models in salted task-hash order; fixed per-category train/confirmation quotas; no compilation or timing feedback",
+  "scope": "Fresh exact models relative to all evaluation models and prior policy corpora; architecture relatives may remain; metadata-restricted FP32 population",
+  "variants": [
+    {
+      "graph": "graphs/float32/samples/fixture/matrix/case",
+      "sample": "samples/train/matrix",
+      "split": "heldout",
+      "model": "fixture/matrix",
+      "category": "matrix",
+      "script": "000.kiln.js",
+      "source_sha256": "d254f36bf658855d656ef47455b2fa0942db8c12f8fab209b9c37dd9f5e67f51",
+      "inputs": {
+        "v0": [
+          2,
+          1,
+          5,
+          7
+        ],
+        "v1": [
+          2,
+          1,
+          7,
+          3
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "matrix",
+        "input_elements": 112,
+        "max_tensor_elements": 70,
+        "total_tensor_elements": 202,
+        "tensor_nodes": 5,
+        "matrix_products": 210
+      },
+      "source_files_sha256": {
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "0a6318e7b806072a7ceba9f3f2e5620fd115afb7659b9a840c5aa3f2fe6cd967",
+        "weight_meta.py": "b1d4a9b7cf9dcb110e1756b151c6d0d316d8cbcfb36a25ca03683fe4faff52c6"
+      }
+    },
+    {
+      "graph": "graphs/float32/samples/fixture/reduction/case",
+      "sample": "samples/train/reduction",
+      "split": "heldout",
+      "model": "fixture/reduction",
+      "category": "reduction",
+      "script": "001.kiln.js",
+      "source_sha256": "5c219b35dabc4862b217b26f86b71c158e140c3725d8807df76dcb143a7c8f61",
+      "inputs": {
+        "v0": [
+          3,
+          7
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "structural_features": {
+        "category": "reduction",
+        "input_elements": 21,
+        "max_tensor_elements": 21,
+        "total_tensor_elements": 24,
+        "tensor_nodes": 2,
+        "matrix_products": 0
+      },
+      "source_files_sha256": {
+        "input_meta.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model.py": "31701ce182bfe3542356b034d8b362b33f4ffb478945f517c6364352cfb48893",
+        "weight_meta.py": "18ecf9543ffe0a3fb4a52444d1817cf5945fac91703d0c045d39753f5bf5c3c9"
+      }
+    }
+  ]
+}
