@@ -49,3 +49,27 @@ assert.ok(changed.graph.findAll('loop.kernel').length>normal.graph.findAll('loop
 const inputs={x:Tensor.random([32],{seed:42})};
 for(const [name,want] of Object.entries(graph.eval(inputs)))assert.ok(compare(changed.graph.eval(inputs)[name],want,{rtol:1e-6,atol:1e-6}).ok);
 console.log('feature program changes actual compiler decisions and preserves values');
+
+// A separate consumer tree selects edges; the aggregate tree still caps total
+// work including any retained producer. Consumer order/IDs are not DSL features.
+const selectivePolicy={format:'kiln-fusion-policy/1',id:'select-reduction',kind:'selective',
+ tree:{threshold:2},consumer_tree:{if:{feature:'consumerElements',op:'le',value:1},then:{accept:true},else:{accept:false}}};
+const selective=prepareFusionPolicy(selectivePolicy);
+assert.equal(selective.nodeCount,4);
+const edge={producerWork:100,consumerWork:30,fusedConsumerWork:40,consumerCount:2,producerElements:32,consumerElements:1};
+assert.equal(selective.selectConsumer(edge),true);
+assert.equal(selective.selectConsumer({...edge,consumerElements:32}),false);
+selectivePolicy.consumer_tree.then.accept=false;
+assert.equal(selective.selectConsumer(edge),true,'compiled selection must not retain mutable JSON');
+assert.throws(()=>selective.selectConsumer({...edge,consumerWork:NaN}),/consumer feature/);
+assert.throws(()=>prepareFusionPolicy({...selectivePolicy,consumer_tree:{if:{feature:'consumerIndex',op:'eq',value:0},then:{accept:true},else:{accept:false}}}),/predicate/);
+assert.throws(()=>prepareFusionPolicy({...selectivePolicy,kind:'decision-tree'}),/Only selective/);
+assert.throws(()=>prepareFusionPolicy(selectivePolicy,{maxNodes:3}),/budget/);
+const reducedGraph=k.trace('selective-reduction',({x,y})=>{const p=N.exp(x);return {a:N.sum(p,-1),b:N.mul(p,y)};},{x:k.tensor([32]),y:k.tensor([32])});
+const selectedRun=base.replaceRule('loop/fusion','merge_loop_ops',createFusionRule({decide:selective.decide,selectConsumer:selective.selectConsumer})).run(reducedGraph);
+assert.ok(selectedRun.ok,selectedRun.error?.message);
+assert.ok(selectedRun.graph.findAll('loop.kernel').some(p=>p.users.length===1&&!selectedRun.graph.isOutput(p.id)),
+ 'unselected consumer keeps the producer alive');
+const reducedInputs={x:Tensor.random([32],{seed:17}),y:Tensor.random([32],{seed:18})};
+for(const [name,want] of Object.entries(reducedGraph.eval(reducedInputs)))assert.ok(compare(selectedRun.graph.eval(reducedInputs)[name],want,{rtol:1e-6,atol:1e-6}).ok);
+console.log('bounded selective programs change actual consumer edges with retained-producer correctness');

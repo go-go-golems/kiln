@@ -1,0 +1,3270 @@
+{
+  "format": "kiln-selective-fusion-fixtures/1",
+  "scope": "Independent mathematical fixtures, not PassBench acceptance",
+  "records": [
+    {
+      "kind": "elementwise",
+      "dtype": "f32",
+      "policy": "unchanged",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-f32-unchanged.json",
+      "artifact_sha256": "b90682531ebfb298b48843d0e41830bd583010996b8dbdcbfec86aba12a49324",
+      "kernels": 2,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "elementwise",
+      "dtype": "f32",
+      "policy": "none",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-f32-none.json",
+      "artifact_sha256": "fea191dee90f72fc8a21ecd9174b15e6359ff3f5e1102206353fc390cecc66ba",
+      "kernels": 11,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "elementwise",
+      "dtype": "f32",
+      "policy": "partial",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-f32-partial.json",
+      "artifact_sha256": "35b442d096b4bad235bac0662d31d09d9f6721b23f3123dba823c0580dfdd28d",
+      "kernels": 11,
+      "decisions": [
+        {
+          "originalWork": 9216,
+          "fusedWork": 9216,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10240,
+          "fusedWork": 11264,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11264,
+          "fusedWork": 11264,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 3
+    },
+    {
+      "kind": "elementwise",
+      "dtype": "f32",
+      "policy": "all",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-f32-all.json",
+      "artifact_sha256": "ae5a0a792484f6250c26bde76c3ba0772fbd05bba29a0c7011d223051ae723f6",
+      "kernels": 2,
+      "decisions": [
+        {
+          "originalWork": 7808,
+          "fusedWork": 4736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7808,
+          "fusedWork": 4736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7808,
+          "fusedWork": 4736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7808,
+          "fusedWork": 4736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7808,
+          "fusedWork": 4736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7808,
+          "fusedWork": 4736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12544,
+          "fusedWork": 9472,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13568,
+          "fusedWork": 11520,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14592,
+          "fusedWork": 11520,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "reduction",
+      "dtype": "f32",
+      "policy": "unchanged",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-f32-unchanged.json",
+      "artifact_sha256": "af7db799ac5f308df90b87d8b00fa3db387f526826d472913d47f597e1b9055d",
+      "kernels": 3,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.1549045794736948e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.2340233313087583e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "reduction",
+      "dtype": "f32",
+      "policy": "none",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-f32-none.json",
+      "artifact_sha256": "7e7abbbe5fc70180dfb4c5e42b23c63e226036f9e2f9465a95cf7dad9150c620",
+      "kernels": 13,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.1549045794736948e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.2340233313087583e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "reduction",
+      "dtype": "f32",
+      "policy": "partial",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-f32-partial.json",
+      "artifact_sha256": "d85a5cf2d1028f2c9dcfabceac7643a073b2f7aad1c39cf0efbce31b32822b42",
+      "kernels": 13,
+      "decisions": [
+        {
+          "originalWork": 288,
+          "fusedWork": 288,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1904,
+          "fusedWork": 3520,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8160,
+          "fusedWork": 9824,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11184,
+          "fusedWork": 11184,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11184,
+          "fusedWork": 9648,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.1549045794736948e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.2340233313087583e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 5
+    },
+    {
+      "kind": "reduction",
+      "dtype": "f32",
+      "policy": "all",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-f32-all.json",
+      "artifact_sha256": "ca3d4847cc89fd097cb61b0168070097219fe1a7ca502482ac7e89ebd7aaedc9",
+      "kernels": 2,
+      "decisions": [
+        {
+          "originalWork": 244,
+          "fusedWork": 148,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 244,
+          "fusedWork": 148,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 244,
+          "fusedWork": 148,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 244,
+          "fusedWork": 148,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 244,
+          "fusedWork": 148,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 244,
+          "fusedWork": 148,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 392,
+          "fusedWork": 296,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2008,
+          "fusedWork": 3528,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8264,
+          "fusedWork": 6856,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9928,
+          "fusedWork": 6856,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9928,
+          "fusedWork": 3784,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.1549045794736948e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.2340233313087583e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "nested",
+      "dtype": "f32",
+      "policy": "unchanged",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-f32-unchanged.json",
+      "artifact_sha256": "d29f77c96727c6aa64da585593f8b93aed783058f1142252d4502d3f0e466100",
+      "kernels": 3,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.2340233313087583e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "nested",
+      "dtype": "f32",
+      "policy": "none",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-f32-none.json",
+      "artifact_sha256": "5470cbffdaad202297edc83c785c921b02a58bde285115d38c491319ee2226c7",
+      "kernels": 14,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.2340233313087583e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "nested",
+      "dtype": "f32",
+      "policy": "partial",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-f32-partial.json",
+      "artifact_sha256": "09d9ab03b65157eb0a3dd969a16a52ce3f304743507a8fb9628a21b92115e7d1",
+      "kernels": 14,
+      "decisions": [
+        {
+          "originalWork": 384,
+          "fusedWork": 384,
+          "consumerCount": 3,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1904,
+          "fusedWork": 3520,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1904,
+          "fusedWork": 3520,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9872,
+          "fusedWork": 11536,
+          "consumerCount": 3,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11184,
+          "fusedWork": 11184,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8160,
+          "fusedWork": 9824,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14560,
+          "fusedWork": 13024,
+          "consumerCount": 3,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.2340233313087583e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 7
+    },
+    {
+      "kind": "nested",
+      "dtype": "f32",
+      "policy": "all",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-f32-all.json",
+      "artifact_sha256": "9bead976275ab3294dd312fc7bd33e1a921aec6420e893b716bc2bce8186d543",
+      "kernels": 2,
+      "decisions": [
+        {
+          "originalWork": 244,
+          "fusedWork": 148,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 244,
+          "fusedWork": 148,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 244,
+          "fusedWork": 148,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 88,
+          "fusedWork": 64,
+          "consumerCount": 1,
+          "producerElements": 1,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 212,
+          "fusedWork": 116,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 212,
+          "fusedWork": 116,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 212,
+          "fusedWork": 68,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 312,
+          "fusedWork": 216,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1928,
+          "fusedWork": 3448,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8184,
+          "fusedWork": 6776,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9848,
+          "fusedWork": 6776,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9848,
+          "fusedWork": 3704,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 1.2340233313087583e-7,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "elementwise",
+      "dtype": "f16",
+      "policy": "unchanged",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-f16-unchanged.json",
+      "artifact_sha256": "0f8104182f2c3fc1fbd1e574ba0dc25b9ce278c4aad4d44d3e35608ebfddf0a7",
+      "kernels": 2,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "elementwise",
+      "dtype": "f16",
+      "policy": "none",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-f16-none.json",
+      "artifact_sha256": "8ad3976e5e0ecbd8f386d3bbe3abdbe35545098417241419ec9308199da0f70f",
+      "kernels": 11,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "elementwise",
+      "dtype": "f16",
+      "policy": "partial",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-f16-partial.json",
+      "artifact_sha256": "5dcb9af8c50b06a1a5e6ab1a2616418b3b365f8cd502a9332fbdf808486fead1",
+      "kernels": 11,
+      "decisions": [
+        {
+          "originalWork": 9472,
+          "fusedWork": 9728,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10752,
+          "fusedWork": 11776,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11520,
+          "fusedWork": 11520,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 3
+    },
+    {
+      "kind": "elementwise",
+      "dtype": "f16",
+      "policy": "all",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-f16-all.json",
+      "artifact_sha256": "2c8c6dcf32623dec332e193f42bed3ee10c720b78b2545e42b74caac5dbf0a01",
+      "kernels": 2,
+      "decisions": [
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13312,
+          "fusedWork": 10496,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14592,
+          "fusedWork": 12544,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15616,
+          "fusedWork": 12544,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "reduction",
+      "dtype": "f16",
+      "policy": "unchanged",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-f16-unchanged.json",
+      "artifact_sha256": "e3850c8fe5bcc354c58eb94bc60d33dc88ff4f716daf4a72c118354a8fbacb14",
+      "kernels": 3,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "reduction",
+      "dtype": "f16",
+      "policy": "none",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-f16-none.json",
+      "artifact_sha256": "f62e91a03e5d476753a7ee0a88ec569e413aff564097d3a1ba0c6717b356450b",
+      "kernels": 13,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "reduction",
+      "dtype": "f16",
+      "policy": "partial",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-f16-partial.json",
+      "artifact_sha256": "f5f6cd079fe56e389fb51f0e516b58477c84690f76b16ef853078bb8ed1d561e",
+      "kernels": 13,
+      "decisions": [
+        {
+          "originalWork": 296,
+          "fusedWork": 304,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1920,
+          "fusedWork": 3536,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8168,
+          "fusedWork": 9832,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11184,
+          "fusedWork": 11184,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11184,
+          "fusedWork": 9648,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 5
+    },
+    {
+      "kind": "reduction",
+      "dtype": "f16",
+      "policy": "all",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-f16-all.json",
+      "artifact_sha256": "6f799d23dc35b8aee94b6fc18e5ee896d1059efe1cb761d24e74f8ad84b3270f",
+      "kernels": 2,
+      "decisions": [
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 416,
+          "fusedWork": 328,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2040,
+          "fusedWork": 3560,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8296,
+          "fusedWork": 6888,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9960,
+          "fusedWork": 6888,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9960,
+          "fusedWork": 3816,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "nested",
+      "dtype": "f16",
+      "policy": "unchanged",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-f16-unchanged.json",
+      "artifact_sha256": "fcd2c689d5dd41877ebc3826aabe15084ad3fc8f44a25394d9fcc5167e59c5e8",
+      "kernels": 3,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "nested",
+      "dtype": "f16",
+      "policy": "none",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-f16-none.json",
+      "artifact_sha256": "326e89b1701821f9200ac07de5e23c6a50727bd7d22514ff3cd6ccb1d7a627de",
+      "kernels": 14,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "nested",
+      "dtype": "f16",
+      "policy": "partial",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-f16-partial.json",
+      "artifact_sha256": "98af27d70a4862cf1fc36cf2de28960c7690c3bf0041ab4fa7fbea187882f6fd",
+      "kernels": 14,
+      "decisions": [
+        {
+          "originalWork": 392,
+          "fusedWork": 400,
+          "consumerCount": 3,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1920,
+          "fusedWork": 3536,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1912,
+          "fusedWork": 3536,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9888,
+          "fusedWork": 11552,
+          "consumerCount": 3,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11184,
+          "fusedWork": 11184,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8176,
+          "fusedWork": 9840,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14568,
+          "fusedWork": 13032,
+          "consumerCount": 3,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 7
+    },
+    {
+      "kind": "nested",
+      "dtype": "f16",
+      "policy": "all",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-f16-all.json",
+      "artifact_sha256": "be013af37ccd526d6e69742d6eecbda66c2e26c005b9f561ea2b796b2226aed2",
+      "kernels": 2,
+      "decisions": [
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 90,
+          "fusedWork": 66,
+          "consumerCount": 1,
+          "producerElements": 1,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 214,
+          "fusedWork": 118,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 214,
+          "fusedWork": 118,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 214,
+          "fusedWork": 70,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 330,
+          "fusedWork": 242,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1954,
+          "fusedWork": 3474,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8210,
+          "fusedWork": 6802,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9874,
+          "fusedWork": 6802,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9874,
+          "fusedWork": 3730,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "elementwise",
+      "dtype": "bf16",
+      "policy": "unchanged",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-bf16-unchanged.json",
+      "artifact_sha256": "f56f30dcc7700aebca3c57e4ae602ce0407f48fc0763187223fde3e05af1cd25",
+      "kernels": 2,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "elementwise",
+      "dtype": "bf16",
+      "policy": "none",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-bf16-none.json",
+      "artifact_sha256": "86854d5fa468119aa9f8ef68396153a27e92ce868b8c321c5797af8636cd87af",
+      "kernels": 11,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "elementwise",
+      "dtype": "bf16",
+      "policy": "partial",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-bf16-partial.json",
+      "artifact_sha256": "4d4ffec7a7a1101b9516bab94c1eb3b3b4f6ff73381263c111d2a94ba5d53136",
+      "kernels": 11,
+      "decisions": [
+        {
+          "originalWork": 9472,
+          "fusedWork": 9728,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10752,
+          "fusedWork": 11776,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11520,
+          "fusedWork": 11520,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 3
+    },
+    {
+      "kind": "elementwise",
+      "dtype": "bf16",
+      "policy": "all",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          32
+        ],
+        "z": [
+          4,
+          32
+        ]
+      },
+      "artifact": "elementwise-bf16-all.json",
+      "artifact_sha256": "ff84efd86a20d59638bd4d54f1993ad353b5296635831de87bc310aa33927d44",
+      "kernels": 2,
+      "decisions": [
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8064,
+          "fusedWork": 4992,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13312,
+          "fusedWork": 10496,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14592,
+          "fusedWork": 12544,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15616,
+          "fusedWork": 12544,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 128,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "reduction",
+      "dtype": "bf16",
+      "policy": "unchanged",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-bf16-unchanged.json",
+      "artifact_sha256": "3f987717d23478070e6201838d51f15479d8f0035a0a0ff7ca7c0883d40df250",
+      "kernels": 3,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "reduction",
+      "dtype": "bf16",
+      "policy": "none",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-bf16-none.json",
+      "artifact_sha256": "02019eb050c335bd72a9296de24277b5930ddb1dff3ce151da77fa6df9df771c",
+      "kernels": 13,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "reduction",
+      "dtype": "bf16",
+      "policy": "partial",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-bf16-partial.json",
+      "artifact_sha256": "04de28cba4118fabf61c4411fe4eb8bdc5e8180d320aa70c8c219996e9286747",
+      "kernels": 13,
+      "decisions": [
+        {
+          "originalWork": 296,
+          "fusedWork": 304,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1920,
+          "fusedWork": 3536,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8168,
+          "fusedWork": 9832,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11184,
+          "fusedWork": 11184,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11184,
+          "fusedWork": 9648,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 5
+    },
+    {
+      "kind": "reduction",
+      "dtype": "bf16",
+      "policy": "all",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "reduction-bf16-all.json",
+      "artifact_sha256": "9450a34fe72913a5670e9c80aeba817a4fc2a836847ef223b8d2cb91e8ef2738",
+      "kernels": 2,
+      "decisions": [
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 416,
+          "fusedWork": 328,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2040,
+          "fusedWork": 3560,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8296,
+          "fusedWork": 6888,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9960,
+          "fusedWork": 6888,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9960,
+          "fusedWork": 3816,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "nested",
+      "dtype": "bf16",
+      "policy": "unchanged",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-bf16-unchanged.json",
+      "artifact_sha256": "5f1d644f3dfe1df74558cca36869087edab754508e3b6def18f8e72e85043970",
+      "kernels": 3,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "nested",
+      "dtype": "bf16",
+      "policy": "none",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-bf16-none.json",
+      "artifact_sha256": "d1ce8081dfd8b58b1a08b4290cc0bddc24ee10af39c2ec4304aad3f0d16d42a7",
+      "kernels": 14,
+      "decisions": [],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    },
+    {
+      "kind": "nested",
+      "dtype": "bf16",
+      "policy": "partial",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-bf16-partial.json",
+      "artifact_sha256": "1de5c9ddc8d0cda33999a8abbf1081140e196228f7495c1e4019a37516de5488",
+      "kernels": 14,
+      "decisions": [
+        {
+          "originalWork": 392,
+          "fusedWork": 400,
+          "consumerCount": 3,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1920,
+          "fusedWork": 3536,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1912,
+          "fusedWork": 3536,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9888,
+          "fusedWork": 11552,
+          "consumerCount": 3,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11184,
+          "fusedWork": 11184,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8176,
+          "fusedWork": 9840,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14568,
+          "fusedWork": 13032,
+          "consumerCount": 3,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": true,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 7
+    },
+    {
+      "kind": "nested",
+      "dtype": "bf16",
+      "policy": "all",
+      "inputs": {
+        "x": [
+          4,
+          32
+        ],
+        "y": [
+          4,
+          1
+        ],
+        "z": [
+          4,
+          1
+        ]
+      },
+      "artifact": "nested-bf16-all.json",
+      "artifact_sha256": "f762845a0ce50c4ade344e6af3990bb82ef32e417b8daaf1a3e01321f9bcecbd",
+      "kernels": 2,
+      "decisions": [
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 252,
+          "fusedWork": 156,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 90,
+          "fusedWork": 66,
+          "consumerCount": 1,
+          "producerElements": 1,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 214,
+          "fusedWork": 118,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 214,
+          "fusedWork": 118,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 214,
+          "fusedWork": 70,
+          "consumerCount": 1,
+          "producerElements": 4,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 330,
+          "fusedWork": 242,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1954,
+          "fusedWork": 3474,
+          "consumerCount": 2,
+          "producerElements": 4,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8210,
+          "fusedWork": 6802,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9874,
+          "fusedWork": 6802,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9874,
+          "fusedWork": 3730,
+          "consumerCount": 2,
+          "producerElements": 128,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "a",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "b",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "retained_partial_decisions": 0
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+# graph fanout: 8 nodes, 1 input, 2 outputs
+
+inputs:
+  x: (32) f32
+
+n10 = loop.kernel ·(x)  -> (32) f32
+    for a0 in 0..32:  # free
+        in0 = load x[a0]
+        v0 = exp(in0)
+        out[a0] = v0
+
+n1 = 1  -> f32
+
+n11 = loop.kernel ·(n1)  -> (32) f32
+    in0 = load n1[]
+    for a0 in 0..32:  # free
+        out[a0] = in0
+
+n12 = loop.kernel ·(n10, n11)  -> (32) f32
+    for a0 in 0..32:  # free
+        in0 = load n10[a0]
+        in1 = load n11[a0]
+        v0 = add(in0, in1)
+        out[a0] = v0
+
+n3 = 2  -> f32
+
+n13 = loop.kernel ·(n3)  -> (32) f32
+    in0 = load n3[]
+    for a0 in 0..32:  # free
+        out[a0] = in0
+
+n14 = loop.kernel ·(n10, n13)  -> (32) f32
+    for a0 in 0..32:  # free
+        in0 = load n10[a0]
+        in1 = load n13[a0]
+        v0 = mul(in0, in1)
+        out[a0] = v0
+
+outputs:
+  a: n12  (32) f32
+  b: n14  (32) f32
+CANDIDATE {
+  producerWork: 396,
+  consumerWork: 1184,
+  fusedConsumerWork: 812,
+  consumerCount: 1,
+  consumerIndex: 0,
+  producerElements: 32,
+  consumerElements: 32
+}
+DECISION {
+  originalWork: 1580,
+  fusedWork: 812,
+  consumerCount: 1,
+  producerElements: 32,
+  selectedConsumerCount: 1,
+  retainedProducer: false,
+  accepted: true,
+  reason: null
+}
+CANDIDATE {
+  producerWork: 396,
+  consumerWork: 1184,
+  fusedConsumerWork: 812,
+  consumerCount: 1,
+  consumerIndex: 0,
+  producerElements: 32,
+  consumerElements: 32
+}
+DECISION {
+  originalWork: 1580,
+  fusedWork: 812,
+  consumerCount: 1,
+  producerElements: 32,
+  selectedConsumerCount: 1,
+  retainedProducer: false,
+  accepted: true,
+  reason: null
+}
+CANDIDATE {
+  producerWork: 1024,
+  consumerWork: 812,
+  fusedConsumerWork: 1068,
+  consumerCount: 2,
+  consumerIndex: 0,
+  producerElements: 32,
+  consumerElements: 32
+}
+CANDIDATE {
+  producerWork: 1024,
+  consumerWork: 812,
+  fusedConsumerWork: 1068,
+  consumerCount: 2,
+  consumerIndex: 1,
+  producerElements: 32,
+  consumerElements: 32
+}
+DECISION {
+  originalWork: 2648,
+  fusedWork: 2904,
+  consumerCount: 2,
+  producerElements: 32,
+  selectedConsumerCount: 1,
+  retainedProducer: true,
+  accepted: true,
+  reason: null
+}
+true null # graph fanout: 6 nodes, 1 input, 2 outputs
+
+inputs:
+  x: (32) f32
+
+n1 = 1  -> f32
+
+n12 = loop.kernel ·(n1, x)  -> (32) f32
+    in1 = load n1[]
+    for a0 in 0..32:  # free
+        in0 = load x[a0]
+        v0 = exp(in0)
+        v1 = add(v0, in1)
+        out[a0] = v1
+
+n10 = loop.kernel ·(x)  -> (32) f32
+    for a0 in 0..32:  # free
+        in0 = load x[a0]
+        v0 = exp(in0)
+        out[a0] = v0
+
+n3 = 2  -> f32
+
+n14 = loop.kernel ·(n10, n3)  -> (32) f32
+    in1 = load n3[]
+    for a0 in 0..32:  # free
+        in0 = load n10[a0]
+        v0 = mul(in0, in1)
+        out[a0] = v0
+
+outputs:
+  a: n12  (32) f32
+  b: n14  (32) f32
+[
+  {
+    kind: 'rewrite',
+    node: 'n13',
+    reason: undefined,
+    changed: [ 'n14' ]
+  },
+  {
+    kind: 'rewrite',
+    node: 'n11',
+    reason: undefined,
+    changed: [ 'n12' ]
+  },
+  {
+    kind: 'rewrite',
+    node: 'n10',
+    reason: undefined,
+    changed: [ 'n12' ]
+  }
+]

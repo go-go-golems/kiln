@@ -53,7 +53,7 @@ for(const record of manifest.variants.filter(r=>phase==='all'||r.split===phase))
   }
   project.data({...explicitData,...referenceInputs});
   let pipe=std.emmy.pipeline({target,contraction:numericalPolicy.contraction});
-  if(preparedPolicy.apply)pipe=pipe.replaceRule('loop/fusion','merge_loop_ops',std.loop.createFusionRule({decide:preparedPolicy.decide,onDecision:event=>decisions.push(event)}));
+  if(preparedPolicy.apply)pipe=pipe.replaceRule('loop/fusion','merge_loop_ops',std.loop.createFusionRule({decide:preparedPolicy.decide,selectConsumer:preparedPolicy.selectConsumer,onDecision:event=>decisions.push(event)}));
   const run=pipe.run(graph);if(!run.ok)throw new Error(run.error?.message||'Compilation failed');
   const check=endToEnd(run,graph,project).e2e;
   if(check.error||(!check.skipped&&!check.ok))throw new Error('Reference check failed: '+JSON.stringify(check));

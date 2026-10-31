@@ -4628,3 +4628,52 @@ The user's authored vault request includes: "Commit and push the bsidian vault w
 
 ### Technical details
 - No guide upload process exists because approval rejected process creation. No guide delivery is claimed. The complete goal remains active, with substantive compiler/reproduction work still possible.
+
+## Step 104: Implement selective consumer fusion in the shared compiler primitive
+
+The existing fusion-rule factory now supports an opt-in consumer selector. It plans substitutions before editing the graph, leaves unselected nodes and edges intact, and counts the retained producer in the aggregate work guard. The standard pipeline still selects all consumers by default. The bounded integration grammar can express both edge selection and aggregate profitability without introducing a second evaluator or inlining implementation.
+
+### Prompt Context
+See the user's requests to streamline self-optimization, implement missing Kiln capabilities and reassess architectural sprawl. No new authorization for the blocked reMarkable export is inferred from an automatic continuation.
+**Assistant interpretation:** Move beyond a near-zero threshold study by implementing a reusable graph transformation capability with explicit lifetime/cost contracts.
+**Inferred user intent:** Obtain substantive compiler optimization progress while keeping evidence and provenance reviewable.
+
+### What I did
+- Extended createFusionRule with selectConsumer, Boolean validation, immutable edge features, preplanned edits and empty-selection skip behavior.
+- Reused inlineInto, tx.set, Graph.dce and normal transactional guard rollback. The common guard includes the producer whenever it remains live.
+- Added selective policy programs with separate consumer/aggregate trees sharing the existing node/depth budget; compile_policy passes both functions through the shared factory.
+- Added core/integration tests and saved scripts 185–189 for the initial diagnostic, validation, fresh source selection and 36 CUDA fixture artifacts.
+- Wrote design 11 explaining graph semantics, retained-work equations, APIs, grammar and evaluation restrictions.
+- Selected twenty fresh exact models excluding all200 evaluation models and all previous policy corpora, including v5. Fixed v6 membership is 0547e152ab29ae79070177cec031ddb393751f2b45d13499548a583668e7203f.
+
+### Why
+- Changing a global threshold cannot choose a subset of consumers. The new opt-in selector changes the mutation while keeping default behavior and shared architecture.
+- Omitting a retained producer from aggregate cost would incorrectly accept some partial fusions. A discriminating regression exercises exactly that mistake.
+
+### What worked
+- All 29 core test files pass; bounded policy tests pass; all 73 Python integration tests pass.
+- Focused tests verify retained producer/unselected consumer identity, selected-edge substitution, complete-fusion equivalence, rejection rollback, empty skip, repeated operands and nested reduction binding.
+- All 36 independent fixture artifacts compile with normal reference checks, spanning three structures, three dtypes and four selection modes. CUDA validation is pending at this checkpoint.
+- Fresh source selection fills six training/four confirmation examples in each of two categories after 2549 tasks. Confirmation remains uncompiled and untimed.
+
+### What didn't work
+- Initial focused test failed `AssertionError: 4 !== 2`: scalar constants introduced extra broadcast kernels and valid selector calls. Script 185 records the actual candidates. The test now uses tensor inputs to isolate producer retention, without changing compiler behavior for that error.
+- No GPU speedup, new official benchmark acceptance or globally optimal subset selection is claimed.
+
+### What I learned
+- Graph liveness already supplies partial-fusion lifetime semantics; the missing correctness-sensitive work is mutation scope and aggregate accounting.
+
+### What was tricky to build
+- Selection must observe the same graph before any edit. Both decision trees share a budget, have different feature sets/threshold meanings, and compile immutable closures. Consumer order is deliberately unavailable in the declarative grammar.
+
+### What warrants a second pair of eyes
+- Review retained-producer costs and guard rollback; ensure dtype round operations and fresh reduction binders remain inside the shared inlining substitution.
+
+### What should be done in the future
+- Execute 108 CUDA fixture comparisons, inspect training-only opportunities in v6, freeze candidate/reference declarations, then run the complete fresh selection/confirmation experiment.
+
+### Code review instructions
+- Read design 11, loop.js:createFusionRule, selective-fusion.mjs and fusion_policy.mjs. Run script 186 and inspect the frozen v6 source selection audit.
+
+### Technical details
+- No external algorithm implementation copied. The transformation extends Kiln's existing inlineInto mechanism. All older experiments remain associated with their recorded code revisions. Original coverage stays eleven tasks/206 graphs; import coverage stays 1029/51.

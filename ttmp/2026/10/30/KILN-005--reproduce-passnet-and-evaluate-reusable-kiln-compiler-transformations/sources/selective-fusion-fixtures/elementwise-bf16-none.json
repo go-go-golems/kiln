@@ -1,0 +1,523 @@
+{
+ "format": "kiln-program/1",
+ "name": "elementwise-bf16-none",
+ "codegen": "kiln-codegen/2",
+ "target": null,
+ "params": {},
+ "source": {
+  "path": "elementwise-bf16.kiln.js",
+  "sha256": "7b8941872a807a4bbee8a9e410ebb10794e96e42532d601277d739628e57b95c",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "x",
+   "buffer": 0,
+   "shape": [
+    4,
+    32
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "y",
+   "buffer": 1,
+   "shape": [
+    4,
+    32
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "z",
+   "buffer": 2,
+   "shape": [
+    4,
+    32
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "a",
+   "buffer": 9,
+   "shape": [
+    4,
+    32
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "b",
+   "buffer": 13,
+   "shape": [
+    4,
+    32
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 128,
+   "bytes": 256
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 128,
+   "bytes": 256
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 128,
+   "bytes": 256
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 5,
+   "dtype": "bf16",
+   "elements": 128,
+   "bytes": 256
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 8,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 9,
+   "dtype": "bf16",
+   "elements": 128,
+   "bytes": 256
+  },
+  {
+   "id": 10,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 11,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 12,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 13,
+   "dtype": "bf16",
+   "elements": 128,
+   "bytes": 256
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast__n3cgayw8hr",
+   "identity": "n3cgayw8hr",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 3,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast__n3cgayw8hr(const __nv_bfloat16* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = __bfloat162float(src0[((e % 32) + (32 * (e / 32)))]);\n        v0 = in0;\n        dst[((e % 32) + (32 * (e / 32)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_ew__1oypp0ex5so",
+   "identity": "1oypp0ex5so",
+   "row": "TPB=1024",
+   "reads": [
+    3
+   ],
+   "writes": 4,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 128i) {\n        v_in0 = b0[((n_e % 32i) + (32i * (n_e / 32i)))];\n        v_v0 = exp(v_in0);\n        bout[((n_e % 32i) + (32i * (n_e / 32i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_ew__1oypp0ex5so(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = src0[((e % 32) + (32 * (e / 32)))];\n        v0 = expf(in0);\n        dst[((e % 32) + (32 * (e / 32)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_2__1ttizruql6u",
+   "identity": "1ttizruql6u",
+   "row": "TPB=1024",
+   "reads": [
+    4
+   ],
+   "writes": 5,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (out)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_2__1ttizruql6u(const float* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = src0[((e % 32) + (32 * (e / 32)))];\n        v0 = __bfloat162float(__float2bfloat16_rn(in0));\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        dst[((e % 32) + (32 * (e / 32)))] = __float2bfloat16_rn(v1);\n    }\n}"
+  },
+  {
+   "name": "k_cast_3__n3cgayw8hr",
+   "identity": "n3cgayw8hr",
+   "row": "TPB=1024",
+   "reads": [
+    5
+   ],
+   "writes": 6,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_3__n3cgayw8hr(const __nv_bfloat16* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = __bfloat162float(src0[((e % 32) + (32 * (e / 32)))]);\n        v0 = in0;\n        dst[((e % 32) + (32 * (e / 32)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_4__n3cgayw8hr",
+   "identity": "n3cgayw8hr",
+   "row": "TPB=1024",
+   "reads": [
+    1
+   ],
+   "writes": 7,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_4__n3cgayw8hr(const __nv_bfloat16* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = __bfloat162float(src0[((e % 32) + (32 * (e / 32)))]);\n        v0 = in0;\n        dst[((e % 32) + (32 * (e / 32)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_2__1gxa2f8wzy",
+   "identity": "1gxa2f8wzy",
+   "row": "TPB=1024",
+   "reads": [
+    6,
+    7
+   ],
+   "writes": 8,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ],
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_ew_2__1gxa2f8wzy(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = src0[((e % 32) + (32 * (e / 32)))];\n        in1 = src1[((e % 32) + (32 * (e / 32)))];\n        v0 = __fadd_rn(in0, in1);\n        dst[((e % 32) + (32 * (e / 32)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_a__1ttizruql6u",
+   "identity": "1ttizruql6u",
+   "row": "TPB=1024",
+   "reads": [
+    8
+   ],
+   "writes": 9,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (out)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_a__1ttizruql6u(const float* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = src0[((e % 32) + (32 * (e / 32)))];\n        v0 = __bfloat162float(__float2bfloat16_rn(in0));\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        dst[((e % 32) + (32 * (e / 32)))] = __float2bfloat16_rn(v1);\n    }\n}"
+  },
+  {
+   "name": "k_cast_5__n3cgayw8hr",
+   "identity": "n3cgayw8hr",
+   "row": "TPB=1024",
+   "reads": [
+    5
+   ],
+   "writes": 10,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_5__n3cgayw8hr(const __nv_bfloat16* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = __bfloat162float(src0[((e % 32) + (32 * (e / 32)))]);\n        v0 = in0;\n        dst[((e % 32) + (32 * (e / 32)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_6__n3cgayw8hr",
+   "identity": "n3cgayw8hr",
+   "row": "TPB=1024",
+   "reads": [
+    2
+   ],
+   "writes": 11,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_6__n3cgayw8hr(const __nv_bfloat16* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = __bfloat162float(src0[((e % 32) + (32 * (e / 32)))]);\n        v0 = in0;\n        dst[((e % 32) + (32 * (e / 32)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_3__fpptgh7p25",
+   "identity": "fpptgh7p25",
+   "row": "TPB=1024",
+   "reads": [
+    10,
+    11
+   ],
+   "writes": 12,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ],
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_ew_3__fpptgh7p25(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = src0[((e % 32) + (32 * (e / 32)))];\n        in1 = src1[((e % 32) + (32 * (e / 32)))];\n        v0 = __fmul_rn(in0, in1);\n        dst[((e % 32) + (32 * (e / 32)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_b__1ttizruql6u",
+   "identity": "1ttizruql6u",
+   "row": "TPB=1024",
+   "reads": [
+    12
+   ],
+   "writes": 13,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (out)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_b__1ttizruql6u(const float* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = src0[((e % 32) + (32 * (e / 32)))];\n        v0 = __bfloat162float(__float2bfloat16_rn(in0));\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        dst[((e % 32) + (32 * (e / 32)))] = __float2bfloat16_rn(v1);\n    }\n}"
+  }
+ ]
+}

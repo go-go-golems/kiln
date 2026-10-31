@@ -113,7 +113,7 @@ def prepare(upstream, output, config):
     if any(category_counts[c]!=total for c in categories):raise ValueError('Selection incomplete; preserve partial audit')
     if source_hashes()!=initial_sources:raise ValueError('Importer changed during selection; preserve partial sources')
     identity=digest(json.dumps(records,sort_keys=True).encode())
-    manifest={'format':FORMAT,'sample':'rich-policy-corpus-v5','membership_sha256':identity,
+    manifest={'format':FORMAT,'sample':output.name,'membership_sha256':identity,
               'selection_status':'source_selected','importer_source_sha256':initial_sources,
               'numerical_policy':{'contraction':'separate'},'source_sample_list':spec['sample_list'],
               'source_sample_list_sha256':digest(sample_list.read_bytes()),'excluded_evaluation_list_sha256':digest(evaluation_list.read_bytes()),
