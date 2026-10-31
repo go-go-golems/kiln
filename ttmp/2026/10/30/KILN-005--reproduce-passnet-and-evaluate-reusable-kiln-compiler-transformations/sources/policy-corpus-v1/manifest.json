@@ -1,0 +1,259 @@
+{
+  "format": "kiln-passnet-corpus/1",
+  "sample": "policy-corpus-fp32-v1",
+  "selection": "FP32 only, no convolution, verified task families, min/max eligible input volume per family, <=20M input elements",
+  "split_contract": "train task indices 0/11; heldout 1/198; no task/model overlap; not a globally blind benchmark",
+  "membership_sha256": "b9fba0d932df1cf24e31b3590ea2210163739f96d0f5a16ad51b5f022ff85d68",
+  "variants": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/torchgeometric/LINKX/_decomposed/LINKX_start17_end20_5",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/62/91/6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8",
+      "task_index": 0,
+      "split": "train",
+      "model": "torchgeometric/LINKX",
+      "script": "000.kiln.js",
+      "source_sha256": "67155971e25638c34c2adea7da942ab814ac60b0f540496bad2f7c3ddf2fd53e",
+      "input_elements": 128512,
+      "inputs": {
+        "v0": [
+          128
+        ],
+        "v1": [
+          128
+        ],
+        "v2": [
+          128
+        ],
+        "v3": [
+          128
+        ],
+        "v4": [
+          1000,
+          128
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/mobileone_s4.apple_in1k/_decomposed/mobileone_s4.apple_in1k_start356_end359_12",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e6/f2/e6f244f12cb8bf8954c9ac5adc78e6267f77f95f13ba6acc7420064393c0cb93",
+      "task_index": 11,
+      "split": "train",
+      "model": "timm/mobileone_s4.apple_in1k",
+      "script": "001.kiln.js",
+      "source_sha256": "5d9944e7eb9233b96180d000e4a5558bdf2aabe0311193e759048139643f8f0f",
+      "input_elements": 131072,
+      "inputs": {
+        "v0": [
+          1,
+          2048,
+          8,
+          8
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/timm/repvgg_d2se.rvgg_in1k/_decomposed/repvgg_d2se.rvgg_in1k_start113_end116_8",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e6/f2/e6f244f12cb8bf8954c9ac5adc78e6267f77f95f13ba6acc7420064393c0cb93",
+      "task_index": 11,
+      "split": "train",
+      "model": "timm/repvgg_d2se.rvgg_in1k",
+      "script": "002.kiln.js",
+      "source_sha256": "7f141473f713966cb76afbc229087bc3e00c1848e342e9d167dee956d6f03f5e",
+      "input_elements": 1505280,
+      "inputs": {
+        "v0": [
+          1,
+          160,
+          56,
+          56
+        ],
+        "v1": [
+          1,
+          160,
+          56,
+          56
+        ],
+        "v2": [
+          1,
+          160,
+          56,
+          56
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start22_end24_3",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c2/73/c2737b2dfa6d0ea43a5e6c03a1ce62e33c08403e044afdf09977b864ccbde68d",
+      "task_index": 1,
+      "split": "heldout",
+      "model": "transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification",
+      "script": "003.kiln.js",
+      "source_sha256": "b78ce51924c7f9540ca08bcf322646e37d702ae4273af0a86b70feb7b1d62a30",
+      "input_elements": 65536,
+      "inputs": {
+        "v0": [
+          32,
+          4,
+          64,
+          8
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start22_end24_3",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c2/73/c2737b2dfa6d0ea43a5e6c03a1ce62e33c08403e044afdf09977b864ccbde68d",
+      "task_index": 1,
+      "split": "heldout",
+      "model": "transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification",
+      "script": "004.kiln.js",
+      "source_sha256": "4dd7864fa5d0f66f17e2754cf0bcf212d9c0c08c1b29b8b1d6c37b069af9a47d",
+      "input_elements": 65536,
+      "inputs": {
+        "v0": [
+          8,
+          4,
+          256,
+          8
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/timm/ghostnet_100.in1k/_decomposed/ghostnet_100.in1k_start174_end177_7",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/51/a8/51a847653153f19ac9458aa2cbe628f3e08c96fc3829a150d5f4006b5add6665",
+      "task_index": 198,
+      "split": "heldout",
+      "model": "timm/ghostnet_100.in1k",
+      "script": "005.kiln.js",
+      "source_sha256": "a2092dc9a9d9b2ac2eac52f6058ddf339b7f6a64b1b3301eb876f726d31dfba5",
+      "input_elements": 94080,
+      "inputs": {
+        "v0": [
+          1,
+          240,
+          14,
+          14
+        ],
+        "v1": [
+          1,
+          240,
+          14,
+          14
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/timm/ghostnet_100.in1k/_decomposed/ghostnet_100.in1k_start174_end177_7",
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/51/a8/51a847653153f19ac9458aa2cbe628f3e08c96fc3829a150d5f4006b5add6665",
+      "task_index": 198,
+      "split": "heldout",
+      "model": "timm/ghostnet_100.in1k",
+      "script": "006.kiln.js",
+      "source_sha256": "bc7b303868141685d22b57f11ba79823606cce4aaf30dbe826cc97ff7d26c909",
+      "input_elements": 12042240,
+      "inputs": {
+        "v0": [
+          128,
+          240,
+          14,
+          14
+        ],
+        "v1": [
+          128,
+          240,
+          14,
+          14
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          }
+        ]
+      }
+    }
+  ]
+}

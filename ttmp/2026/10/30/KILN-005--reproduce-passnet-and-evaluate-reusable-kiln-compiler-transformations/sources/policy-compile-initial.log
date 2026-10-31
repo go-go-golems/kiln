@@ -1,0 +1,43 @@
+ok   bilinear.mjs           59 ms
+ok   casts.mjs              21 ms
+ok   concat.mjs             56 ms
+ok   conv2d.mjs             63 ms
+ok   core.mjs               46 ms
+ok   cuda-dtypes.mjs        30 ms
+ok   dtypes.mjs             28 ms
+ok   evidence.mjs          367 ms
+ok   export.mjs            123 ms
+ok   fusion-policy.mjs      66 ms
+ok   hypotheses.mjs        323 ms
+ok   lowered-dtypes.mjs     26 ms
+ok   paired.mjs            254 ms
+ok   progs.mjs             289 ms
+ok   project-input-dtypes.mjs     90 ms
+ok   protocol.mjs          193 ms
+ok   rounding-expressions.mjs     39 ms
+ok   stack1.mjs             58 ms
+ok   stack2.mjs            502 ms
+ok   stack3.mjs            243 ms
+ok   targets.mjs            85 ms
+ok   tune.mjs              995 ms
+ok   typed-arithmetic.mjs     24 ms
+ok   u8.mjs                144 ms
+ok   view-dtypes.mjs        22 ms
+all 25 passed
+node:fs:621
+    return binding.readFileUtf8(path, stringToFlags(options.flag));
+                   ^
+
+Error: ENOENT: no such file or directory, open '/home/manuel/passnet-kiln/KILN-005/policy-corpus-v1/reference-domains.json'
+    at readFileSync (node:fs:621:20)
+    at file:///home/manuel/passnet-kiln/KILN-005/kiln/integrations/passnet/compile_policy.mjs:21:28
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/manuel/passnet-kiln/KILN-005/policy-corpus-v1/reference-domains.json'
+}
+
+Node.js v26.8.1

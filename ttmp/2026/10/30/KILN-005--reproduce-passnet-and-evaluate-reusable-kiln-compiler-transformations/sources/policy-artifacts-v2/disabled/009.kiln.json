@@ -1,0 +1,1110 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "009.kiln.js",
+  "sha256": "dec977ca0ed7801501cf816319e207b68ec34cc52d33ab6c5d1cb57709f332b9"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    32
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    32
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    32
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    32
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 23,
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 28,
+   "shape": [
+    1,
+    32,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 8,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 9,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 10,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 11,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 12,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 13,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 14,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 15,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 16,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 17,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 18,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 19,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 20,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 21,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 22,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 23,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 24,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 25,
+   "dtype": "f32",
+   "elements": 1024,
+   "bytes": 4096
+  },
+  {
+   "id": 26,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 27,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 28,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast__12epe7p7ch6",
+   "identity": "12epe7p7ch6",
+   "row": "TPB=64",
+   "reads": [
+    4
+   ],
+   "writes": 6,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_v0 = v_in0;\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_cast__12epe7p7ch6(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        v0 = in0;\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_2__1cw7jz4q14j",
+   "identity": "1cw7jz4q14j",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 7,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    32
+   ],
+   "inShapes": [
+    [
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 32i) {\n        v_in0 = b0[n_e];\n        v_v0 = v_in0;\n        bout[n_e] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_cast_2__1cw7jz4q14j(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 32)) {\n        in0 = src0[e];\n        v0 = in0;\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_ew__1ktxqcjfcpc",
+   "identity": "1ktxqcjfcpc",
+   "row": "TPB=64",
+   "reads": [
+    7
+   ],
+   "writes": 8,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[((n_e / 1024i) % 32i)];\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew__1ktxqcjfcpc(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[((e / 1024) % 32)];\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_2__lzaijghn3l",
+   "identity": "lzaijghn3l",
+   "row": "TPB=64",
+   "reads": [
+    6,
+    8
+   ],
+   "writes": 9,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     32,
+     32
+    ],
+    [
+     1,
+     32,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_in1 = b1[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_v0 = (v_in0 - v_in1);\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew_2__lzaijghn3l(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        in1 = src1[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        v0 = (in0 - in1);\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_3__1cw7jz4q14j",
+   "identity": "1cw7jz4q14j",
+   "row": "TPB=1024",
+   "reads": [
+    1
+   ],
+   "writes": 10,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    32
+   ],
+   "inShapes": [
+    [
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 32i) {\n        v_in0 = b0[n_e];\n        v_v0 = v_in0;\n        bout[n_e] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_cast_3__1cw7jz4q14j(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 32)) {\n        in0 = src0[e];\n        v0 = in0;\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_reshape__1a523l231bw",
+   "identity": "1a523l231bw",
+   "row": "TPB=1024",
+   "reads": [
+    10
+   ],
+   "writes": 11,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 32i) {\n        v_in0 = b0[(n_e % 32i)];\n        bout[n_e] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_reshape__1a523l231bw(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 32)) {\n        in0 = src0[(e % 32)];\n        dst[e] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_3__1x6qzzwm5wv",
+   "identity": "1x6qzzwm5wv",
+   "row": "TPB=1024",
+   "reads": [
+    11
+   ],
+   "writes": 12,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 32i) {\n        v_in0 = b0[n_e];\n        v_v0 = (0.00001 + v_in0);\n        bout[n_e] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_ew_3__1x6qzzwm5wv(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 32)) {\n        in0 = src0[e];\n        v0 = (0.00001f + in0);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_4__20qzzbu5g6d",
+   "identity": "20qzzbu5g6d",
+   "row": "TPB=1024",
+   "reads": [
+    12
+   ],
+   "writes": 13,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 32i) {\n        v_in0 = b0[n_e];\n        v_v0 = sqrt(v_in0);\n        bout[n_e] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_ew_4__20qzzbu5g6d(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 32)) {\n        in0 = src0[e];\n        v0 = sqrtf(in0);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_5__11jlcvu4n0x",
+   "identity": "11jlcvu4n0x",
+   "row": "TPB=64",
+   "reads": [
+    13
+   ],
+   "writes": 14,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[(n_e / 1024i)];\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew_5__11jlcvu4n0x(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[(e / 1024)];\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_6__14zrxw7i1bs",
+   "identity": "14zrxw7i1bs",
+   "row": "TPB=64",
+   "reads": [
+    9,
+    14
+   ],
+   "writes": 15,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     32,
+     32
+    ],
+    [
+     1,
+     32,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_in1 = b1[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_v0 = (v_in0 / v_in1);\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew_6__14zrxw7i1bs(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        in1 = src1[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        v0 = (in0 / in1);\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_4__1cw7jz4q14j",
+   "identity": "1cw7jz4q14j",
+   "row": "TPB=1024",
+   "reads": [
+    3
+   ],
+   "writes": 16,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    32
+   ],
+   "inShapes": [
+    [
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 32i) {\n        v_in0 = b0[n_e];\n        v_v0 = v_in0;\n        bout[n_e] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_cast_4__1cw7jz4q14j(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 32)) {\n        in0 = src0[e];\n        v0 = in0;\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_7__1ktxqcjfcpc",
+   "identity": "1ktxqcjfcpc",
+   "row": "TPB=64",
+   "reads": [
+    16
+   ],
+   "writes": 17,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[((n_e / 1024i) % 32i)];\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew_7__1ktxqcjfcpc(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[((e / 1024) % 32)];\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_5__1cw7jz4q14j",
+   "identity": "1cw7jz4q14j",
+   "row": "TPB=1024",
+   "reads": [
+    2
+   ],
+   "writes": 18,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    32
+   ],
+   "inShapes": [
+    [
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 32i) {\n        v_in0 = b0[n_e];\n        v_v0 = v_in0;\n        bout[n_e] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_cast_5__1cw7jz4q14j(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 32)) {\n        in0 = src0[e];\n        v0 = in0;\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_8__1ktxqcjfcpc",
+   "identity": "1ktxqcjfcpc",
+   "row": "TPB=64",
+   "reads": [
+    18
+   ],
+   "writes": 19,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[((n_e / 1024i) % 32i)];\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew_8__1ktxqcjfcpc(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[((e / 1024) % 32)];\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_9__1akjlvtdfge",
+   "identity": "1akjlvtdfge",
+   "row": "TPB=64",
+   "reads": [
+    15,
+    17,
+    19
+   ],
+   "writes": 20,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     32,
+     32
+    ],
+    [
+     1,
+     32,
+     32,
+     32
+    ],
+    [
+     1,
+     32,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read> b2: array<f32>;\n@group(0) @binding(3) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_in2: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_in1 = b1[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_in2 = b2[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_v0 = fma(v_in0, v_in1, v_in2);\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew_9__1akjlvtdfge(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, in2 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        in1 = src1[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        in2 = src2[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        v0 = fmaf(in0, in1, in2);\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_6__12epe7p7ch6",
+   "identity": "12epe7p7ch6",
+   "row": "TPB=64",
+   "reads": [
+    20
+   ],
+   "writes": 21,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_v0 = v_in0;\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_cast_6__12epe7p7ch6(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        v0 = in0;\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_10__1kgscogr9hy",
+   "identity": "1kgscogr9hy",
+   "row": "TPB=64",
+   "reads": [
+    5,
+    21
+   ],
+   "writes": 22,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     32,
+     32
+    ],
+    [
+     1,
+     32,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_in1 = b1[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_v0 = (v_in0 + v_in1);\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew_10__1kgscogr9hy(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        in1 = src1[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        v0 = (in0 + in1);\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_out0__10pd69ikgge",
+   "identity": "10pd69ikgge",
+   "row": "TPB=64",
+   "reads": [
+    22
+   ],
+   "writes": 23,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_v0 = max(v_in0, 0.0);\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out0__10pd69ikgge(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        v0 = fmaxf(in0, 0.0f);\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_7__12epe7p7ch6",
+   "identity": "12epe7p7ch6",
+   "row": "TPB=64",
+   "reads": [
+    23
+   ],
+   "writes": 24,
+   "grid": 512,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 32768i) {\n        v_in0 = b0[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))];\n        v_v0 = v_in0;\n        bout[(((32i * ((n_e / 32i) % 32i)) + (n_e % 32i)) + (1024i * (n_e / 1024i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_cast_7__12epe7p7ch6(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 32768)) {\n        in0 = src0[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))];\n        v0 = in0;\n        dst[(((32 * ((e / 32) % 32)) + (e % 32)) + (1024 * (e / 1024)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_reduce_reduce__5vjqdjrh4m",
+   "identity": "5vjqdjrh4m",
+   "row": "MAP=row,TPB=64",
+   "reads": [
+    24
+   ],
+   "writes": 25,
+   "grid": 1024,
+   "block": 64,
+   "smemBytes": 256,
+   "dispatch": [
+    1024,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    1,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\nvar<workgroup> s_red: array<f32, 64>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1024i) { return; }\n    var v_acc0: f32 = 0.0;\n    var v_in0: f32 = 0.0;\n    var v_sv0: f32 = 0.0;\n    var v_sv1: f32 = 0.0;\n    var v_sv2: f32 = 0.0;\n    var v_sv3: f32 = 0.0;\n    var v_sv4: f32 = 0.0;\n    var v_sv5: f32 = 0.0;\n    var v_sv6: f32 = 0.0;\n    var v_sv7: f32 = 0.0;\n    var v_sv8: f32 = 0.0;\n    var v_sv9: f32 = 0.0;\n    var v_sv10: f32 = 0.0;\n    var v_sv11: f32 = 0.0;\n    v_acc0 = 0.0;\n    for (var n_r73: i32 = tid; n_r73 < 32i; n_r73 = n_r73 + 64i) {\n        v_in0 = b0[(((bid % 32i) + (1024i * (bid / 32i))) + (32i * n_r73))];\n        v_acc0 = (v_acc0 + v_in0);\n    }\n    workgroupBarrier();\n    s_red[tid] = v_acc0;\n    workgroupBarrier();\n    if (tid < 32i) {\n        v_sv0 = s_red[tid];\n        v_sv1 = s_red[(tid + 32i)];\n        s_red[tid] = (v_sv0 + v_sv1);\n    }\n    workgroupBarrier();\n    if (tid < 16i) {\n        v_sv2 = s_red[tid];\n        v_sv3 = s_red[(tid + 16i)];\n        s_red[tid] = (v_sv2 + v_sv3);\n    }\n    workgroupBarrier();\n    if (tid < 8i) {\n        v_sv4 = s_red[tid];\n        v_sv5 = s_red[(tid + 8i)];\n        s_red[tid] = (v_sv4 + v_sv5);\n    }\n    workgroupBarrier();\n    if (tid < 4i) {\n        v_sv6 = s_red[tid];\n        v_sv7 = s_red[(tid + 4i)];\n        s_red[tid] = (v_sv6 + v_sv7);\n    }\n    workgroupBarrier();\n    if (tid < 2i) {\n        v_sv8 = s_red[tid];\n        v_sv9 = s_red[(tid + 2i)];\n        s_red[tid] = (v_sv8 + v_sv9);\n    }\n    workgroupBarrier();\n    if (tid < 1i) {\n        v_sv10 = s_red[tid];\n        v_sv11 = s_red[(tid + 1i)];\n        s_red[tid] = (v_sv10 + v_sv11);\n    }\n    workgroupBarrier();\n    v_acc0 = s_red[0i];\n    if (tid == 0i) {\n        bout[((bid % 32i) + (32i * (bid / 32i)))] = v_acc0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_reduce_reduce__5vjqdjrh4m(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[64];\n    float acc0 = 0.0f, in0 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f;\n    acc0 = 0.0f;\n    for (int r73 = tid; r73 < 32; r73 += 64) {\n        in0 = src0[(((bid % 32) + (1024 * (bid / 32))) + (32 * r73))];\n        acc0 = (acc0 + in0);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 32)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 32)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 16)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 8)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 4)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 2)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 1)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    if ((tid == 0)) {\n        dst[((bid % 32) + (32 * (bid / 32)))] = acc0;\n    }\n}"
+  },
+  {
+   "name": "k_reduce_reduce_2__12he5x8s7mi",
+   "identity": "12he5x8s7mi",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    25
+   ],
+   "writes": 26,
+   "grid": 32,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    32,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     1,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\nvar<workgroup> s_red: array<f32, 32>;\n\n@compute @workgroup_size(32)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 32i) { return; }\n    var v_acc0: f32 = 0.0;\n    var v_in0: f32 = 0.0;\n    var v_sv0: f32 = 0.0;\n    var v_sv1: f32 = 0.0;\n    var v_sv2: f32 = 0.0;\n    var v_sv3: f32 = 0.0;\n    var v_sv4: f32 = 0.0;\n    var v_sv5: f32 = 0.0;\n    var v_sv6: f32 = 0.0;\n    var v_sv7: f32 = 0.0;\n    var v_sv8: f32 = 0.0;\n    var v_sv9: f32 = 0.0;\n    v_acc0 = 0.0;\n    for (var n_r75: i32 = tid; n_r75 < 32i; n_r75 = n_r75 + 32i) {\n        v_in0 = b0[((32i * bid) + n_r75)];\n        v_acc0 = (v_acc0 + v_in0);\n    }\n    workgroupBarrier();\n    s_red[tid] = v_acc0;\n    workgroupBarrier();\n    if (tid < 16i) {\n        v_sv0 = s_red[tid];\n        v_sv1 = s_red[(tid + 16i)];\n        s_red[tid] = (v_sv0 + v_sv1);\n    }\n    workgroupBarrier();\n    if (tid < 8i) {\n        v_sv2 = s_red[tid];\n        v_sv3 = s_red[(tid + 8i)];\n        s_red[tid] = (v_sv2 + v_sv3);\n    }\n    workgroupBarrier();\n    if (tid < 4i) {\n        v_sv4 = s_red[tid];\n        v_sv5 = s_red[(tid + 4i)];\n        s_red[tid] = (v_sv4 + v_sv5);\n    }\n    workgroupBarrier();\n    if (tid < 2i) {\n        v_sv6 = s_red[tid];\n        v_sv7 = s_red[(tid + 2i)];\n        s_red[tid] = (v_sv6 + v_sv7);\n    }\n    workgroupBarrier();\n    if (tid < 1i) {\n        v_sv8 = s_red[tid];\n        v_sv9 = s_red[(tid + 1i)];\n        s_red[tid] = (v_sv8 + v_sv9);\n    }\n    workgroupBarrier();\n    v_acc0 = s_red[0i];\n    if (tid == 0i) {\n        bout[bid] = v_acc0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(32) k_reduce_reduce_2__12he5x8s7mi(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float acc0 = 0.0f, in0 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f;\n    acc0 = 0.0f;\n    for (int r75 = tid; r75 < 32; r75 += 32) {\n        in0 = src0[((32 * bid) + r75)];\n        acc0 = (acc0 + in0);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    if ((tid == 0)) {\n        dst[bid] = acc0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_11__3vp3bqxprq",
+   "identity": "3vp3bqxprq",
+   "row": "TPB=1024",
+   "reads": [
+    26
+   ],
+   "writes": 27,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 32i) {\n        v_in0 = b0[n_e];\n        v_v0 = (0.0009765625 * v_in0);\n        bout[n_e] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_ew_11__3vp3bqxprq(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 32)) {\n        in0 = src0[e];\n        v0 = (0.0009765625f * in0);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_out1__26gda55k76b",
+   "identity": "26gda55k76b",
+   "row": "TPB=1024",
+   "reads": [
+    27
+   ],
+   "writes": 28,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     1,
+     32,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 32i) {\n        v_in0 = b0[n_e];\n        v_v0 = v_in0;\n        bout[n_e] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_out1__26gda55k76b(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 32)) {\n        in0 = src0[e];\n        v0 = in0;\n        dst[e] = v0;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "disabled",
+  "kind": "threshold",
+  "max_work_growth": 0
+ }
+}

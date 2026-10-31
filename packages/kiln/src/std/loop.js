@@ -334,16 +334,28 @@ export function inlineInto(c, p) {
   return { expr: rw(c.attrs.expr, {}), args, origin: [...new Set([...(p.attrs.origin || []), ...(c.attrs.origin || [])])] };
 }
 const kernelWork = (n) => workOf(schedule(n.attrs.expr, n.attrs.shape));
-export const mergeLoopOps = k.rule("merge_loop_ops")
+export function createFusionRule({maxWorkGrowth=1.02, decide=null, onDecision=null}={}) {
+  if (!Number.isFinite(maxWorkGrowth) || maxWorkGrowth<0) throw new TypeError("maxWorkGrowth must be finite and nonnegative");
+  if (decide!==null && typeof decide!=="function") throw new TypeError("fusion decide must be a function");
+  if (onDecision!==null && typeof onDecision!=="function") throw new TypeError("fusion observer must be a function");
+  return k.rule("merge_loop_ops")
   .match(P.op("loop.kernel").as("p").where(({ p, graph }) => !graph.isOutput(p.id) && p.users.length > 0 && p.users.every((u) => u.is("loop.kernel"))))
   .mutate(({ p, tx }) => { for (const u of p.users) { const r = inlineInto(u, p); tx.set(u, { args: r.args, attrs: { expr: r.expr, origin: r.origin } }); } })
   .guard(({ before, after, root }) => {
     const users = before.users(root);
     const was = kernelWork(before.value(root)) + users.reduce((a, u) => a + kernelWork(before.value(u)), 0);
     const now = users.reduce((a, u) => a + (after.nodes.has(u) ? kernelWork(after.value(u)) : 0), 0);
-    return now <= was * 1.02 || `blowup: fused work ${Math.round(now).toLocaleString()} > unfused ${Math.round(was).toLocaleString()}`;
+    const producer=before.value(root);
+    const features=Object.freeze({originalWork:was,fusedWork:now,consumerCount:users.length,
+      producerElements:producer.attrs.shape.reduce((a,b)=>a*b,1)});
+    const decision=decide ? decide(features) : now <= was * maxWorkGrowth || `blowup: fused work ${Math.round(now).toLocaleString()} > unfused ${Math.round(was).toLocaleString()}`;
+    if (typeof decision!=="boolean" && typeof decision!=="string") throw new TypeError("fusion policy must return a Boolean or rejection reason");
+    onDecision?.(Object.freeze({...features,accepted:decision===true,reason:typeof decision==="string"?decision:null}));
+    return decision;
   })
   .describe("inline a producer kernel into all its consumers when that does not increase the work");
+}
+export const mergeLoopOps = createFusionRule();
 export const fuse = k.pass("loop/fusion").short("f").rules(mergeLoopOps).order("reverse").describe("maximal fusion, consumers first, with a blowup guard");
 
 // ----------------------------------------------------------------------------- s: stamp names

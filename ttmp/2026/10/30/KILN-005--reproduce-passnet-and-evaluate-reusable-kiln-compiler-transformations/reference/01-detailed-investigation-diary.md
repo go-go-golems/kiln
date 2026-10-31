@@ -3113,3 +3113,97 @@ Authored a roughly 4,400-word technical report covering the implementation throu
 
 ### Technical details
 - Source implementation snapshot e98a315; vault commit d081b7a. Reference baseline was observed at 121/200 invocations during report preparation and remains incomplete. No full-corpus score, completed PassAgent reproduction or learned compiler improvement is claimed.
+
+## Step 73: Expose fusion profitability and freeze the first policy corpus
+
+Implemented createFusionRule with the existing matcher/inlining mutation and a replaceable profitability decision. The unchanged mergeLoopOps export is constructed with the original 1.02 threshold. Froze seven real FP32 graphs from four previously accepted task families, with training and held-out task/model separation, and prepared an unchanged compiler control plus five threshold policies. GPU policy timing has not started.
+
+### Prompt Context
+See Step 71's verbatim request to streamline toward self-optimization.
+**Assistant interpretation:** Build the smallest controlled compiler-policy experiment with genuine real-graph code generation and held-out evaluation, while preserving the full project objective.
+**Inferred user intent:** Reach reusable compiler optimization before completing unrelated operator expansion.
+
+### What I did
+- Added a policy factory with immutable original/fused weighted-work features, consumer count and producer size, optional decision callback and observation callback.
+- Exposed it through std.loop and existing pipeline.replaceRule API.
+- Added fusion-policy.mjs for default behavior, correctness, changed kernel construction and immutable diagnostics.
+- Saved scripts 69–71 for frozen corpus selection, controls/reference domains and policy compilation.
+- Added compile_policy.mjs with source-hash checks, recorded decisions, compile cost, reference-check results, kernel identities and executable fingerprints.
+
+### Why
+- Policy search needs a measurable change in compiler decisions; a threshold sweep whose artifacts are identical supplies no performance signal.
+- WorkOf includes weighted memory reads/writes (weight 12), not just scalar arithmetic. Policies and documentation must use that actual cost model.
+
+### What worked
+- Local Node 26 policy regression passed with kernel counts [2,2,5] for unchanged/default/disabled controls and preserved numerical values.
+- Frozen corpus: three training graphs from task families 0/11 and four held-out graphs from 1/198, all FP32, at most 20M input elements and no source-model overlap.
+- Frozen membership SHA256 b9fba0d932df1cf24e31b3590ea2210163739f96d0f5a16ad51b5f022ff85d68.
+
+### What didn't work
+- Initial test expected relaxed threshold 2 to change a small fanout example, but counts were [2,2,2]. The existing weighted memory savings already justified default fusion. Replaced that assumption with a strict disabled-fusion control; it changes construction to five kernels.
+- First reference-domain extractor assumed the batch_norm variance was a direct source input name and failed `ValueError: Cannot identify batch_norm running variance` on aliases. Replaced AST name assumptions with FX reference resolution.
+- The initial remote compiler job then terminated with ENOENT for policy-corpus-v1/reference-domains.json. Confirmed its session absent before staging the corrected sidecar and starting v2; preserved the initial log.
+
+### What I learned
+- Input-domain constraints are part of a valid reference experiment. Running variance must be positive for synthetic checks; source replay remains the separate GPU correctness input.
+
+### What was tricky to build
+- Preserve graph membership after freezing while adding an explicit, separately hashed reference-domain sidecar. The same sidecar applies to every compiler policy.
+
+### What warrants a second pair of eyes
+- The held-out set is new to policy-search feedback, not a globally blind benchmark: its task families were observed during integration. The selection is deliberately small and exploratory.
+
+### What should be done in the future
+- Observe complete control compilation, verify default fingerprints equal unchanged compilation, then run training-only timing/selection before held-out timing.
+
+### Code review instructions
+- Review createFusionRule, fusion-policy.mjs, compile_policy.mjs, frozen manifest and reference-domains.json. Every candidate uses unchanged legality and code generation infrastructure.
+
+### Technical details
+- Controls: unchanged baseline, thresholds 0,1,1.02,1.25,2. No learned improvement is claimed. Graph selection and split were frozen before candidate timing; default compiler behavior remains unchanged.
+
+## Step 74: Qualify the compiler controls and strengthen held-out applicability
+
+All six policies compiled over the seven-graph pilot corpus, and the configurable default produced identical executable fingerprints to unchanged Kiln. Relaxed policies reduced the training LINKX graph from two kernels to one, but changed no pilot held-out artifact. Before any timing, froze an expanded ten-graph corpus adding distinct RepViT and RepGhostNet held-out families. Its relaxed policy changes one held-out program from three kernels to two.
+
+### Prompt Context
+See the user's streamlined self-optimization request in Step 71.
+**Assistant interpretation:** Ensure the held-out set can exercise the policy intervention while keeping performance feedback unavailable to candidate selection.
+**Inferred user intent:** Obtain a meaningful reusable-policy experiment rather than a parameter sweep over identical executables.
+
+### What I did
+- Added source/semantic artifact verification and per-file SHA256 qualification in script 72.
+- Preserved version 1 as structural preflight; added version 2 with unchanged training membership and extra held-out task indices 81/153.
+- Froze measurement-plan.json: 20 warmups, 100 trials, three repeats, IQR <=20%, at most two retries, seeded per-repeat order and identical-artifact deduplication.
+- Added direct policy correctness/timing runner and training-only family-balanced selector.
+- Added selector tests for equal family weighting, rejection of held-out feedback, failure exclusion and complete membership. Python integration suite passed 34 tests; compiler suite passed all 25 files.
+
+### Why
+- A held-out set whose artifacts do not change can detect regressions but cannot demonstrate a benefit of the relaxed policy.
+- Family weighting prevents large shape families from dominating selection through variant count alone.
+
+### What worked
+- All 60 expanded policy/graph combinations compiled; actual default/unchanged semantic bodies match, not merely receipt metadata.
+- Version 2 membership SHA256 7bf086a3e2968974db811a38283e95471e711d6b670f0a8dcb56aed2e495dcbf.
+- Expanded split has three training graphs from two families and seven held-out graphs from four distinct families, with no source-model overlap.
+
+### What didn't work
+- The original pilot offered no nontrivial relaxed-policy held-out contrast. It remains archived as preflight, with no timing-based result claimed.
+
+### What I learned
+- The structural sensitivity gate is useful before spending measurement budget and before treating a held-out split as an improvement experiment.
+
+### What was tricky to build
+- Timing may be shared only for genuinely identical executables. Qualification now hashes actual artifact files and checks semantic bodies; later measurement validates these bytes before loading.
+
+### What warrants a second pair of eyes
+- This development corpus is drawn from the published evaluation list; it is not an untouched paper test set. Training/held-out terminology refers specifically to policy-search performance feedback.
+
+### What should be done in the future
+- Run training correctness and timing under GPU isolation, record one selected policy, then run only that policy against unchanged Kiln on held-out graphs.
+
+### Code review instructions
+- Read design document 06, compile_policy.mjs, measure_policy.py, select_policy.py and script 72. Inspect frozen plan and sensitivity.json.
+
+### Technical details
+- JavaScript pipeline/reference/export cost and CUDA program-load cost are separate fields. Selection optimizes synchronized end-to-end latency with compile-cost coefficient zero for this pilot. CUDA event measurements are stream elapsed time including dispatch gaps, not pure kernel-only duration.

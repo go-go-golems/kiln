@@ -1,0 +1,27 @@
+{
+  "format": "kiln-policy-measurement-plan/1",
+  "membership_sha256": "7bf086a3e2968974db811a38283e95471e711d6b670f0a8dcb56aed2e495dcbf",
+  "candidate_ids": [
+    "baseline",
+    "disabled",
+    "strict",
+    "default",
+    "relaxed125",
+    "relaxed2"
+  ],
+  "seed": 42,
+  "warmup": 20,
+  "trials": 100,
+  "repeats": 3,
+  "max_iqr_fraction": 0.2,
+  "max_retries": 2,
+  "inputs": "original PassBench replay; all candidates for a graph receive the same tensors",
+  "order": "seeded shuffle of distinct executable fingerprints each repeat; exact artifact aliases share measurements",
+  "metrics": [
+    "synchronized end-to-end ms including output/scratch allocation and final synchronization",
+    "CUDA event stream elapsed ms, including dispatch gaps; not pure device kernel duration"
+  ],
+  "selection": "training-only, family-balanced geometric mean end-to-end speedup; exact ties use candidate declaration order; any correctness/stability failure excludes candidate; compile-cost coefficient 0",
+  "heldout": "only unchanged compiler and training-selected policy; no candidate grid on held-out timing",
+  "scope": "exploratory development study from previously observed evaluation tasks; not an untouched paper benchmark"
+}
