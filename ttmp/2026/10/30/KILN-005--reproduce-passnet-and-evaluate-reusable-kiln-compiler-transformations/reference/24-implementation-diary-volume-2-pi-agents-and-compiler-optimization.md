@@ -1341,3 +1341,52 @@ The continuing goal requests technical milestone reports in the Obsidian vault, 
 ### Technical details
 - Vault path: Projects/2026/10/31/ARTICLE - Kiln - Staged Fusion Generalization and Agent Composition.md.
 - Existing unrelated vault modifications were left untouched. No external implementation was copied during this checkpoint.
+
+## Step 187: Implement average pooling and import all forty-one previously blocked graphs
+
+Implemented static average-pooling semantics as a Kiln frontend operation with a tensor decomposition and FX binding. All forty-one historical avg_pool2d first-failure graphs now import. The independent reference and decomposition agree with 288 PyTorch oracle cases, but GPU execution and original PassBench acceptance remain pending at this checkpoint.
+
+### Prompt Context
+See Step 182 for the authored request to continue implementing and expand the port when appropriate; Step 186 records the pooling-priority evidence.
+**Assistant interpretation:** Add a real missing operation that broadens optimization workloads.
+**Inferred user intent:** Advance full-corpus support and reusable compiler research together.
+
+### What I did
+- Added packages/kiln/src/std/pooling.js with output-shape validation, reference semantics and view/mask/reduction decomposition.
+- Registered nn.avg_pool2d and N.avgPool2d, including explicit FP16/BF16 widening and operation-boundary narrowing.
+- Added fx_pooling.py and integrated it into import_graph and fresh-storage accounting.
+- Preserved scripts 473–476 for oracle generation, source downloads, complete historical-blocker import audit and CUDA export; added check_pooling_cuda.py.
+- Downloaded pinned PyTorch v2.9.1 CPU/CUDA pooling and shape-helper sources and recorded origin URLs/hashes and implementation provenance.
+
+### Why
+- Average pooling is a first blocker for forty-one benchmark graphs. Existing view, select and reduction primitives can express it without a new IR or GPU opcode.
+- Ceil-only trailing cells must not be counted as explicit padding in the average denominator.
+
+### What worked
+- 288 reference and decomposition cases pass against actual PyTorch CPU outputs, covering CHW/NCHW, rectangular kernels, default/explicit strides, padding, ceil flags, include-pad flags and positive/negative divisor overrides.
+- Invalid parameters and NaN masking checks pass. Existing convolution tests pass.
+- Two FX tests pass across functional/ATen calls and FP32/FP16/BF16, including metadata and malformed divisor rejection.
+- Script 475 imports all 41 recorded avg_pool2d blockers without excluding failures.
+
+### What didn't work
+- Initial script 474 stopped with urllib.error.HTTPError: HTTP Error 403: Forbidden on the public documentation page. The revised script records individual download failures and continues; three pinned GitHub source files downloaded successfully. The public contract was available through web search.
+- No CUDA or original PassBench correctness claim yet. The lowered reduction order can differ from PyTorch's serial CUDA accumulation.
+
+### What I learned
+- Clamping before masking prevents out-of-bounds reads; selecting zero rather than multiplying a mask avoids propagating NaN from clamped cells outside a window.
+
+### What was tricky to build
+- Three separate quantities determine boundary behavior: padded output-size arithmetic, the extent of explicit source padding, and actual input bounds. Divisor selection uses the latter two independently of the extended padded buffer needed for ceil mode.
+
+### What warrants a second pair of eyes
+- FP16/BF16 rounding and reduction reassociation need GPU validation. Static masks/divisor tensors are an initial decomposition cost, not an optimized pooling kernel design.
+
+### What should be done in the future
+- Compile and execute the oracle fixtures on GB10, then qualify real imported pooling graphs with the existing evaluator. Do not equate forty-one imports with forty-one accepted graphs.
+
+### Code review instructions
+- Read pooling.js, fx_pooling.py and sources/pooling-semantics-v1/semantic-notes.md. Run packages/kiln/test/pooling.mjs and test_fx_pooling.py using Node 26 and the existing Python environment.
+
+### Technical details
+- Public reference: https://docs.pytorch.org/docs/main/generated/torch.nn.functional.avg_pool2d.html.
+- No PyTorch implementation code copied. Scripts preserve source provenance and oracle generation for reproduction.
