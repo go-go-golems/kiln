@@ -46,6 +46,11 @@ Reproduce the original PassNet experiment independently, then evaluate Kiln-gene
 - [Cumulative original-evaluator coverage ledger](sources/kiln-coverage.json)
 - Source papers, dataset receipts, archived references and experiment evidence: `sources/`.
 
+## Working conventions (mandatory)
+
+- Every work unit is recorded in the active diary ([volume 2](reference/24-implementation-diary-volume-2-pi-agents-and-compiler-optimization.md)) using the **diary skill's investigation entry format** (`~/.claude/skills/diary/references/investigation-entry.md`): verbatim prompt once, Commit (code), What I did / Why / What worked / What didn't work / What I learned / What was tricky / Second pair of eyes / Future / Code review instructions / Technical details. This is mandatory for the main agent **and for every subagent**; subagent briefs must say so.
+- Commit at coherent boundaries (one focused commit per fix or capability step), and record the code hash in the next diary step.
+
 ## Status
 
 Current status: **active**
