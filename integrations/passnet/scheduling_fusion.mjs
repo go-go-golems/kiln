@@ -21,12 +21,18 @@ export function preferredMapping(an, target) {
   return Object.entries(best).sort((a, b) => a[1].us - b[1].us)[0]?.[0];
 }
 
-export function applySchedulingFusion(pipeline, target) {
-  const expose = createFusionRule({
+export function applySchedulingFusion(pipeline, target, options = {}) {
+  const expose = createFusionRule(options.expose ? {
+    decide: options.expose.decide, selectConsumers: options.expose.selectConsumers,
+    onDecision: options.onDecision,
+  } : {
     selectConsumers: region => region.consumers.flatMap((edge, index) =>
       edge.fusedConsumerWork <= 2 * edge.consumerWork ? [index] : []),
   });
-  const cleanup = createFusionRule().match(P.op('loop.kernel').as('p').where(({ p, graph }) => {
+  const cleanup = createFusionRule(options.cleanup ? {
+    decide: options.cleanup.decide, selectConsumers: options.cleanup.selectConsumers,
+    onDecision: options.onDecision,
+  } : {}).match(P.op('loop.kernel').as('p').where(({ p, graph }) => {
     if (graph.isOutput(p.id) || !p.users.length || !p.users.every(u => u.is('loop.kernel'))) return false;
     const an = analyze(p.attrs.expr, p.attrs.shape, p.args.map(a => a.type.shape));
     return !an.contraction || preferredMapping(an, target) !== 'tiled';

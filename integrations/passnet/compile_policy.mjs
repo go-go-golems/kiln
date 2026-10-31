@@ -6,8 +6,7 @@ import {runScript} from '../../packages/kiln/src/core/script.js';
 import {std} from '../../packages/kiln/src/std/index.js';
 import {exportProgram} from '../../packages/kiln/src/std/export.js';
 import {endToEnd} from '../../apps/workbench/src/compile.js';
-import {prepareFusionPolicy} from './fusion_policy.mjs';
-import {applySchedulingFusion} from './scheduling_fusion.mjs';
+import {prepareOptimizationProgram} from './transformation_program.mjs';
 const args={};
 for(let i=2;i<process.argv.length;i+=2){
  const key=process.argv[i];if(!['--directory','--output','--policy','--target','--phase'].includes(key)||!process.argv[i+1])throw new Error('Expected --directory --output --policy --target [--phase train|heldout|all]');
@@ -21,9 +20,7 @@ const phase=args.phase||'all';if(!['train','heldout','all'].includes(phase))thro
 const numericalPolicy=Object.hasOwn(manifest,'numerical_policy')?manifest.numerical_policy:{contraction:'allow'};
 if(!numericalPolicy||typeof numericalPolicy!=='object'||Array.isArray(numericalPolicy)||Object.keys(numericalPolicy).length!==1||!['allow','separate'].includes(numericalPolicy.contraction))throw new Error('Invalid fixed numerical policy');
 const policy=JSON.parse(readFileSync(args.policy,'utf8'));
-const staged=policy.format==='kiln-transformation-program/1';
-if(staged && (policy.kind!=='scheduling-fusion' || typeof policy.id!=='string' || !/^[a-z0-9-]+$/.test(policy.id) || Object.keys(policy).some(key=>!['format','id','kind'].includes(key))))throw new Error('Invalid experimental transformation program');
-const preparedPolicy=staged?{apply:false,nodeCount:1}:prepareFusionPolicy(policy);
+const preparedPolicy=prepareOptimizationProgram(policy);
 const referenceDomainsText=readFileSync(join(directory,'reference-domains.json'),'utf8');
 const referenceDomains=JSON.parse(referenceDomainsText);
 if(referenceDomains.membership_sha256!==manifest.membership_sha256)throw new Error('Reference domain membership mismatch');
@@ -57,7 +54,7 @@ for(const record of manifest.variants.filter(r=>phase==='all'||r.split===phase))
   project.data({...explicitData,...referenceInputs});
   let pipe=std.emmy.pipeline({target,contraction:numericalPolicy.contraction});
   if(preparedPolicy.apply)pipe=pipe.replaceRule('loop/fusion','merge_loop_ops',std.loop.createFusionRule({decide:preparedPolicy.decide,selectConsumers:preparedPolicy.selectConsumers,onDecision:event=>decisions.push(event)}));
-  if(staged)pipe=applySchedulingFusion(pipe,target);
+  if(preparedPolicy.transform)pipe=preparedPolicy.transform(pipe,target,event=>decisions.push(event));
   const run=pipe.run(graph);if(!run.ok)throw new Error(run.error?.message||'Compilation failed');
   const check=endToEnd(run,graph,project).e2e;
   if(check.error||(!check.skipped&&!check.ok))throw new Error('Reference check failed: '+JSON.stringify(check));

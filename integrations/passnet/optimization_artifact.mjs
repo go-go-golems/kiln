@@ -2,7 +2,7 @@
 // Reuse evidence canonicalization rather than defining a second JSON identity.
 import {canonicalJSON} from '../../packages/evidence/src/canonical.ts';
 import {sha256Hex} from '../../packages/evidence/src/sha256.ts';
-import {prepareFusionPolicy} from './fusion_policy.mjs';
+import {prepareOptimizationProgram} from './transformation_program.mjs';
 import {pathToFileURL} from 'node:url';
 
 export function optimizationArtifact(policy, numericalPolicy) {
@@ -12,15 +12,21 @@ export function optimizationArtifact(policy, numericalPolicy) {
   }
   // Validate before dropping metadata: forbidden fields must not disappear.
   canonicalJSON(policy);
-  prepareFusionPolicy(policy);
+  prepareOptimizationProgram(policy);
   const program = JSON.parse(canonicalJSON(policy));
   delete program.provenance;
   // Names affect diagnostics, not the policy's executable decisions.
   program.id = 'artifact-policy';
+  if (program.kind === 'fusion-sequence') {
+    for (const stage of ['expose', 'cleanup']) {
+      program[stage].id = stage;
+      delete program[stage].provenance;
+    }
+  }
   const artifact = {
     format: 'kiln-optimization-artifact/1',
     input_ir: 'kiln-loop/1',
-    action_contract: 'kiln-loop-fusion/1',
+    action_contract: program.format === 'kiln-transformation-program/1' ? 'kiln-staged-loop-fusion/1' : 'kiln-loop-fusion/1',
     feature_contract: 'kiln-loop-fusion-features/1',
     numerical_policy: {...numericalPolicy},
     applicability: {pipeline: 'emmy', static_shapes: true},

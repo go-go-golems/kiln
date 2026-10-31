@@ -1145,3 +1145,53 @@ The fixed staged-fusion program passed correctness checks on all thirteen confir
 ### Technical details
 - Family-balanced speedup: exp(mean over families of mean log(baseline e2e / candidate e2e))). Exact executable aliases share measurements and contribute 1.0.
 - Confirmation membership SHA256: c67af7ec18bf0fd9c9dc00fc7f3888df731916ba1270de512eba05ac246b7874.
+
+## Step 183: Expose cooperating fusion stages to actual Pi agents
+
+Consolidated optimization-program preparation across agent validation and compilation, then exposed two cooperating fusion policies around the existing scheduling-aware preservation rule. The known two-stage sequence exactly reproduces the fixed staged executable on all six changed development graphs. Started six real Pi lanes with three proposals each and two replicates per requested thinking level.
+
+### Prompt Context
+See Step 182 for the current authored request; prior user instructions authorize six concurrent lanes and thinking-level experiments.
+**Assistant interpretation:** Expand the agent's compiler action space around a measured mechanism.
+**Inferred user intent:** Obtain useful self-optimization results without building general infrastructure prematurely.
+**Prior result commit:** e89b705 — Confirm staged fusion at 1.146x on thirteen fresh models.
+
+### What I did
+- Added transformation_program.mjs and replaced duplicate compiler/agent preparation with that shared module.
+- Parameterized the existing scheduling_fusion.mjs stages using prepared fusion policies; retained the fixed transformation's semantics.
+- Added semantic artifact identity for nested policies and a distinct staged action contract.
+- Retained script 465 for actual compilation/reference/equivalence checks and script 466 for the six real inference lanes.
+- Updated design document 20 with the measured result, scope and experiment design.
+
+### Why
+- Agents previously could submit only one profitability rule. The useful scheduling interaction requires two cooperating stages.
+- Existing pipeline APIs suffice; no core compiler extension or new orchestration framework is needed.
+
+### What worked
+- test_optimization_artifact.mjs and test_fusion_policy.mjs passed.
+- Script 465 passed six real graph reference checks and exact executable equivalence against the fixed staged program; invalid stage thresholds and unchanged stages were rejected.
+- Script 466 syntax compilation passed; the live inference owner runs under tmux kiln-transformation-lanes-v1.
+
+### What didn't work
+- An initial guessed script filename (453-freeze-six-lane-study.py) did not exist; file discovery located 453-prepare-six-lane-study.py. No implementation failure resulted.
+- No candidate performance claim is possible at this checkpoint; inference has just started.
+
+### What I learned
+- The existing compiler abstractions express this experiment without adding a second implementation of fusion legality or scheduling.
+
+### What was tricky to build
+- Agent and compiler validators must describe the same action space. Both now call prepareOptimizationProgram; canonical nested stage names avoid naming-only duplicate identities.
+
+### What warrants a second pair of eyes
+- The preservation rule compares candidate schedules for a producer, not full fused-versus-materialized total time. It remains a heuristic.
+- Two replicates per thinking level cannot establish statistical superiority; verify effective levels rather than assuming the provider honored each request.
+
+### What should be done in the future
+- Collect proposals, compile them on development data, then measure genuinely different executables. Expand supported operations when they unlock additional useful workloads.
+
+### Code review instructions
+- Start at transformation_program.mjs, scheduling_fusion.mjs and optimization_artifact.mjs. Run scripts/465-test-agent-fusion-sequence.mjs using Node 26, then inspect inference receipts separately.
+
+### Technical details
+- Schema: format kiln-transformation-program/1, kind fusion-sequence, id, expose, cleanup. Each stage is an existing explicit fusion policy; combined node budget 31.
+- Six lanes: low/medium/high × two replicates; three proposal slots each. All receive identical development-only feedback. No new confirmation outcomes enter prompts.
