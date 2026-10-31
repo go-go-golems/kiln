@@ -1,0 +1,31 @@
+{
+  "consumer_tree": {
+    "else": {
+      "threshold": 1.02
+    },
+    "if": {
+      "feature": "producerWork",
+      "op": "gt",
+      "value": 0
+    },
+    "then": {
+      "else": {
+        "threshold": 1.02
+      },
+      "if": {
+        "feature": "fusedConsumerWork",
+        "op": "lt",
+        "value": 9007199254740991
+      },
+      "then": {
+        "threshold": 1.02
+      }
+    }
+  },
+  "format": "kiln-fusion-policy/1",
+  "id": "glm-10",
+  "kind": "selective",
+  "tree": {
+    "threshold": 1.02
+  }
+}

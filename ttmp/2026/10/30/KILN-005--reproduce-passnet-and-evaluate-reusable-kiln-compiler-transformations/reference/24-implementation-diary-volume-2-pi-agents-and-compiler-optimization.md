@@ -610,3 +610,52 @@ See Steps 168–169 for research-first priorities, six concurrent lanes and exte
 ### Technical details
 - GB10, twenty warmups, one hundred trials, three repeats, original stability criteria and explicit separate-contraction reference protocol.
 - No fresh held-out performance claim; no production compiler change promoted.
+
+## Step 172: Run six concurrent GLM lanes with measured feedback
+
+All six requested proposal lanes completed successfully. They produced 34 accepted artifacts from 36 submissions in roughly 9–21 seconds per lane. Cross-lane deduplication retained 33 unique policy artifacts. Compilation is now running in tmux kiln-six-lane-compile-v1; no GPU result is yet available for this expanded batch.
+
+### Prompt Context
+See Step 168 for the verbatim six-lane request and Step 169 for research-first direction and external approval.
+**Assistant interpretation:** Use concurrency and measured feedback to accelerate proposal exploration.
+**Inferred user intent:** Explore multiple hypotheses quickly and evaluate concrete compiler outcomes.
+**Previous commit:** be807bb — Measure GLM policies on GB10 and retain negative optimization result.
+
+### What I did
+- Added script 452 to run six independent existing owners concurrently, with separate configurations, ledgers and traces.
+- Supplied actual prior policies and their measured development ranking.
+- Assigned region launch costs, region materialization costs, selective consumers, fanout, small producers and counterhypothesis exploration.
+- Raised operational allowances; no tight token-cost constraint motivated this batch.
+- Added script 453 to deduplicate accepted artifacts and prepare the existing compilation/evaluation path.
+
+### Why
+- Distinct hypotheses and feedback offer more information than repeating the original blind proposal batch.
+- The evaluator and GPU measurement path remain shared, with GPU work serialized.
+
+### What worked
+- All six owners exited successfully and each consumed six proposal slots.
+- Accepted artifact counts were 6, 6, 6, 5, 6 and 5 across the lane receipts; 33 unique artifacts remain after cross-lane deduplication.
+- Longest lane elapsed time was 21.260461628 seconds; shortest was 8.544991329 seconds.
+
+### What didn't work
+- Two submission slots did not produce unique accepted artifacts. Their original outcomes remain in the per-lane ledgers.
+- These policies still operate within the existing fusion grammar; this is not new arbitrary compiler-pass synthesis.
+
+### What I learned
+- Six-lane proposal generation is practical with this route. Compilation and performance evaluation now determine whether the expanded search is useful.
+
+### What was tricky to build
+- Cross-lane duplicates must remain traceable to their origins while avoiding redundant policy compilation. origins.json preserves that mapping.
+
+### What warrants a second pair of eyes
+- Do not equate 33 distinct policy programs with 33 distinct executables or improvements.
+
+### What should be done in the future
+- Poll the existing compilation session, evaluate qualified candidates on bling, and use changed-executable and timing results to decide whether to extend the transformation grammar.
+
+### Code review instructions
+- Inspect scripts 452–453, pi-six-lanes-v1/summary.json and pi-six-lane-study-v1/origins.json.
+
+### Technical details
+- Six concurrent inference processes, independent six-proposal ledgers; no simultaneous GPU benchmarks.
+- Existing development corpus and prior timing feedback; no fresh held-out claim.

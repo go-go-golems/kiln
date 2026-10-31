@@ -1,0 +1,431 @@
+{
+  "policies": [
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "baseline",
+      "kind": "unchanged"
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "default",
+      "kind": "threshold",
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-1",
+      "kind": "threshold",
+      "max_work_growth": 1.017
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-2",
+      "kind": "threshold",
+      "max_work_growth": 1.06
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-3",
+      "kind": "decision-tree",
+      "tree": {
+        "else": {
+          "threshold": 1.02
+        },
+        "if": {
+          "feature": "fusedWork",
+          "op": "le",
+          "value": 200000
+        },
+        "then": {
+          "threshold": 1
+        }
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-4",
+      "kind": "region",
+      "launch_work": 4096,
+      "materialization_work": 8,
+      "max_work_growth": 1.02
+    },
+    {
+      "consumer_tree": {
+        "threshold": 1.02
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-5",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.02
+      }
+    },
+    {
+      "consumer_tree": {
+        "else": {
+          "threshold": 1.05
+        },
+        "if": {
+          "feature": "consumerCount",
+          "op": "gt",
+          "value": 1
+        },
+        "then": {
+          "threshold": 0.99
+        }
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-6",
+      "kind": "selective",
+      "tree": {
+        "threshold": 2
+      }
+    },
+    {
+      "consumer_tree": {
+        "else": {
+          "threshold": 1.02
+        },
+        "if": {
+          "feature": "consumerElements",
+          "op": "gt",
+          "value": 0
+        },
+        "then": {
+          "threshold": 1.05
+        }
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-7",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.02
+      }
+    },
+    {
+      "consumer_tree": {
+        "else": {
+          "threshold": 1.02
+        },
+        "if": {
+          "feature": "producerElements",
+          "op": "lt",
+          "value": 1000
+        },
+        "then": {
+          "threshold": 1.15
+        }
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-8",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.02
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-9",
+      "kind": "decision-tree",
+      "tree": {
+        "else": {
+          "threshold": 1.02
+        },
+        "if": {
+          "feature": "consumerCount",
+          "op": "gt",
+          "value": 1
+        },
+        "then": {
+          "threshold": 1
+        }
+      }
+    },
+    {
+      "consumer_tree": {
+        "else": {
+          "threshold": 1.02
+        },
+        "if": {
+          "feature": "producerWork",
+          "op": "gt",
+          "value": 0
+        },
+        "then": {
+          "else": {
+            "threshold": 1.02
+          },
+          "if": {
+            "feature": "fusedConsumerWork",
+            "op": "lt",
+            "value": 9007199254740991
+          },
+          "then": {
+            "threshold": 1.02
+          }
+        }
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-10",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.02
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-11",
+      "kind": "region",
+      "launch_work": 0,
+      "materialization_work": 16,
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-12",
+      "kind": "region",
+      "launch_work": 512,
+      "materialization_work": 16,
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-13",
+      "kind": "region",
+      "launch_work": 4096,
+      "materialization_work": 16,
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-14",
+      "kind": "region",
+      "launch_work": 16384,
+      "materialization_work": 16,
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-15",
+      "kind": "region",
+      "launch_work": 65536,
+      "materialization_work": 16,
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-16",
+      "kind": "region",
+      "launch_work": 262144,
+      "materialization_work": 16,
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-17",
+      "kind": "region",
+      "launch_work": 2048,
+      "materialization_work": 0,
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-18",
+      "kind": "region",
+      "launch_work": 2048,
+      "materialization_work": 4,
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-19",
+      "kind": "region",
+      "launch_work": 2048,
+      "materialization_work": 32,
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-20",
+      "kind": "region",
+      "launch_work": 2048,
+      "materialization_work": 64,
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-21",
+      "kind": "region",
+      "launch_work": 8192,
+      "materialization_work": 8,
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-22",
+      "kind": "region",
+      "launch_work": 2048,
+      "materialization_work": 24,
+      "max_work_growth": 1
+    },
+    {
+      "consumer_tree": {
+        "threshold": 1.02
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-23",
+      "kind": "selective",
+      "tree": {
+        "threshold": 2
+      }
+    },
+    {
+      "consumer_tree": {
+        "threshold": 1
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-24",
+      "kind": "selective",
+      "tree": {
+        "threshold": 2
+      }
+    },
+    {
+      "consumer_tree": {
+        "threshold": 1.05
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-25",
+      "kind": "selective",
+      "tree": {
+        "threshold": 2
+      }
+    },
+    {
+      "consumer_tree": {
+        "else": {
+          "threshold": 1.02
+        },
+        "if": {
+          "feature": "producerElements",
+          "op": "lt",
+          "value": 4096
+        },
+        "then": {
+          "threshold": 1.05
+        }
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-26",
+      "kind": "selective",
+      "tree": {
+        "threshold": 2
+      }
+    },
+    {
+      "consumer_tree": {
+        "else": {
+          "threshold": 1.02
+        },
+        "if": {
+          "feature": "consumerWork",
+          "op": "lt",
+          "value": 1000000
+        },
+        "then": {
+          "threshold": 1.05
+        }
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-27",
+      "kind": "selective",
+      "tree": {
+        "threshold": 2
+      }
+    },
+    {
+      "consumer_tree": {
+        "threshold": 2
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-28",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.02
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-29",
+      "kind": "threshold",
+      "max_work_growth": 1.03
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-30",
+      "kind": "decision-tree",
+      "tree": {
+        "else": {
+          "threshold": 1.02
+        },
+        "if": {
+          "feature": "producerElements",
+          "op": "le",
+          "value": 1024
+        },
+        "then": {
+          "threshold": 1.06
+        }
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-31",
+      "kind": "decision-tree",
+      "tree": {
+        "else": {
+          "threshold": 1.02
+        },
+        "if": {
+          "feature": "producerElements",
+          "op": "le",
+          "value": 1024
+        },
+        "then": {
+          "threshold": 1.04
+        }
+      }
+    },
+    {
+      "consumer_tree": {
+        "threshold": 1.02
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-32",
+      "kind": "selective",
+      "tree": {
+        "else": {
+          "threshold": 1.02
+        },
+        "if": {
+          "feature": "producerElements",
+          "op": "le",
+          "value": 1024
+        },
+        "then": {
+          "threshold": 1.06
+        }
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-33",
+      "kind": "region",
+      "launch_work": 2048,
+      "materialization_work": 16,
+      "max_work_growth": 1.06
+    }
+  ],
+  "training_membership_sha256": "d236540b3b5ff4a62df035920d91602fe34df10c1d51b1facb2d8e535c3218e9",
+  "provenance": "Six actual concurrent GLM lanes with prior development timing feedback; not a fresh generalization study."
+}
