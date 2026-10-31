@@ -1,0 +1,486 @@
+{
+  "format": "kiln-typed-frontier-source-ops/1",
+  "source": "sources/input-mutation-wave-import-v1.json",
+  "caveat": "FX source tracing without ShapeProp; operations may hide later importer, dtype, or runtime blockers.",
+  "typed_first_blocker_graphs": 119,
+  "traced_graphs": 119,
+  "trace_failures": [],
+  "target_family_counts": {
+    "call_function:_operator.mul": 10,
+    "call_function:_operator.getitem": 9,
+    "call_function:_operator.add": 8,
+    "call_function:_operator.sub": 5,
+    "call_function:torch.nn.functional.layer_norm": 4,
+    "call_method:view": 4,
+    "call_method:to": 4,
+    "call_function:torch.nn.functional.embedding": 4,
+    "call_function:torch.cat": 3,
+    "call_method:contiguous": 3,
+    "call_method:long": 3,
+    "call_method:unsqueeze": 3,
+    "call_function:torch.nn.functional.dropout": 3,
+    "call_method:expand": 2,
+    "call_function:torch._C._nn.linear": 2,
+    "call_function:torch.cumsum": 2,
+    "call_function:_operator.floordiv": 2,
+    "call_function:torch.sym_sum": 2,
+    "call_method:mean": 2,
+    "call_method:expand_as": 2,
+    "call_function:_operator.neg": 1,
+    "call_method:reshape": 1,
+    "call_function:torch.tanh": 1,
+    "call_method:int": 1,
+    "call_method:ne": 1,
+    "call_method:type_as": 1,
+    "call_method:split": 1,
+    "call_method:squeeze": 1,
+    "call_function:torch.nn.functional.relu": 1,
+    "call_function:_operator.eq": 1,
+    "call_method:cumsum": 1,
+    "call_method:masked_fill_": 1,
+    "call_method:max": 1,
+    "call_function:_operator.truediv": 1,
+    "call_function:torch.clamp": 1,
+    "call_function:torch.sum": 1,
+    "call_method:sum": 1,
+    "call_function:torch.nn.functional.pad": 1,
+    "call_method:float": 1,
+    "call_function:torch.nn.functional.silu": 1,
+    "call_method:new_zeros": 1,
+    "call_function:torch.nn.functional.softmax": 1,
+    "call_function:torch.sigmoid": 1,
+    "call_method:permute": 1,
+    "call_function:_operator.iadd": 1,
+    "call_method:bool": 1,
+    "call_method:masked_fill": 1,
+    "call_method:index_select": 1
+  },
+  "family_summary": [
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/05/2c/052c1263bf0268f407cf07b6f1507cb538a516402b6c5a73ec7b59dc508981a2",
+      "traced_graphs": 1,
+      "call_targets_union": [
+        "call_function:_operator.add",
+        "call_function:_operator.getitem",
+        "call_function:_operator.mul",
+        "call_function:_operator.neg",
+        "call_function:torch.cat",
+        "call_method:contiguous",
+        "call_method:expand",
+        "call_method:reshape"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.add",
+        "call_function:_operator.getitem",
+        "call_function:_operator.mul",
+        "call_function:_operator.neg",
+        "call_function:torch.cat",
+        "call_method:contiguous",
+        "call_method:expand",
+        "call_method:reshape"
+      ],
+      "graph_node_range": [
+        22,
+        22
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/0d/13/0d135bc0845ca65cc045864d5db2139d694ae236df07940fb31fb4a7ac06b737",
+      "traced_graphs": 3,
+      "call_targets_union": [
+        "call_function:_operator.add",
+        "call_function:_operator.getitem",
+        "call_function:torch._C._nn.linear",
+        "call_function:torch.nn.functional.layer_norm",
+        "call_function:torch.tanh",
+        "call_method:view"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.add",
+        "call_function:_operator.getitem",
+        "call_function:torch._C._nn.linear",
+        "call_function:torch.nn.functional.layer_norm",
+        "call_function:torch.tanh",
+        "call_method:view"
+      ],
+      "graph_node_range": [
+        14,
+        14
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/1f/cf/1fcf9384a62ac34a6d5a40e76f7e65580aa9fba4b2eea9f4abc7a9880021dedb",
+      "traced_graphs": 6,
+      "call_targets_union": [
+        "call_function:_operator.add",
+        "call_function:_operator.mul",
+        "call_function:torch.cumsum",
+        "call_method:int",
+        "call_method:long",
+        "call_method:ne",
+        "call_method:type_as"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.add",
+        "call_function:_operator.mul",
+        "call_function:torch.cumsum",
+        "call_method:int",
+        "call_method:long",
+        "call_method:ne",
+        "call_method:type_as"
+      ],
+      "graph_node_range": [
+        10,
+        10
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/2b/84/2b842c6d025b590e1f513cc2e2c0590d22141915e2dce7b9aeed026e14b304af",
+      "traced_graphs": 2,
+      "call_targets_union": [
+        "call_function:_operator.getitem",
+        "call_function:_operator.mul",
+        "call_function:_operator.sub",
+        "call_method:contiguous",
+        "call_method:split",
+        "call_method:squeeze"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.getitem",
+        "call_function:_operator.mul",
+        "call_function:_operator.sub",
+        "call_method:contiguous",
+        "call_method:split",
+        "call_method:squeeze"
+      ],
+      "graph_node_range": [
+        12,
+        12
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/2f/62/2f622ee9340fe056613f21517df8194f872f4c6e8797629aa2573ccc42f5a017",
+      "traced_graphs": 15,
+      "call_targets_union": [
+        "call_function:_operator.floordiv",
+        "call_function:torch.nn.functional.relu",
+        "call_function:torch.sym_sum",
+        "call_method:mean"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.floordiv",
+        "call_function:torch.nn.functional.relu",
+        "call_function:torch.sym_sum",
+        "call_method:mean"
+      ],
+      "graph_node_range": [
+        7,
+        7
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/39/0b/390b4b97cfd49cdc03a343ac8f919aeb86bb477f3815380c2edd98e0844cb50d",
+      "traced_graphs": 6,
+      "call_targets_union": [
+        "call_function:_operator.add",
+        "call_function:_operator.eq",
+        "call_function:_operator.getitem",
+        "call_function:_operator.sub",
+        "call_method:cumsum",
+        "call_method:expand",
+        "call_method:masked_fill_",
+        "call_method:max",
+        "call_method:to",
+        "call_method:unsqueeze"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.add",
+        "call_function:_operator.eq",
+        "call_function:_operator.getitem",
+        "call_function:_operator.sub",
+        "call_method:cumsum",
+        "call_method:expand",
+        "call_method:masked_fill_",
+        "call_method:max",
+        "call_method:to",
+        "call_method:unsqueeze"
+      ],
+      "graph_node_range": [
+        16,
+        16
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/55/02/5502b06854ec8350b943cb7da35e04cdb5f53f2fd8a2fe4dca59a043261c35d0",
+      "traced_graphs": 2,
+      "call_targets_union": [
+        "call_function:_operator.mul",
+        "call_function:_operator.truediv",
+        "call_function:torch.cat",
+        "call_function:torch.clamp",
+        "call_function:torch.sum",
+        "call_method:sum",
+        "call_method:to"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.mul",
+        "call_function:_operator.truediv",
+        "call_function:torch.cat",
+        "call_function:torch.clamp",
+        "call_function:torch.sum",
+        "call_method:sum",
+        "call_method:to"
+      ],
+      "graph_node_range": [
+        10,
+        10
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/5f/c6/5fc65ba8011322e15a4f3c0dcc5378b90fbef6ebc7110e0d9058e64d081a840e",
+      "traced_graphs": 10,
+      "call_targets_union": [
+        "call_function:_operator.getitem",
+        "call_function:torch.cat",
+        "call_function:torch.nn.functional.embedding",
+        "call_function:torch.nn.functional.pad"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.getitem",
+        "call_function:torch.cat",
+        "call_function:torch.nn.functional.embedding",
+        "call_function:torch.nn.functional.pad"
+      ],
+      "graph_node_range": [
+        9,
+        9
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/66/e7/66e7239d72500ca4b635138719ed6f56792f27ea25bbf7d443fe3d44533ec9e4",
+      "traced_graphs": 2,
+      "call_targets_union": [
+        "call_function:_operator.mul",
+        "call_function:torch.nn.functional.layer_norm",
+        "call_method:expand_as",
+        "call_method:float",
+        "call_method:unsqueeze"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.mul",
+        "call_function:torch.nn.functional.layer_norm",
+        "call_method:expand_as",
+        "call_method:float",
+        "call_method:unsqueeze"
+      ],
+      "graph_node_range": [
+        10,
+        10
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/67/44/6744e9b4140c2e6a100fcbcdce9710419ef84c6250ee640f20d6b5e331673c7c",
+      "traced_graphs": 15,
+      "call_targets_union": [
+        "call_function:_operator.floordiv",
+        "call_function:torch.nn.functional.silu",
+        "call_function:torch.sym_sum",
+        "call_method:mean",
+        "call_method:view"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.floordiv",
+        "call_function:torch.nn.functional.silu",
+        "call_function:torch.sym_sum",
+        "call_method:mean",
+        "call_method:view"
+      ],
+      "graph_node_range": [
+        8,
+        8
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/87/4d/874d407216e4f834d1ab01f10807d36aada16611bd06f256f54e743ccc47db19",
+      "traced_graphs": 3,
+      "call_targets_union": [
+        "call_function:_operator.mul",
+        "call_method:expand_as",
+        "call_method:new_zeros",
+        "call_method:view"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.mul",
+        "call_method:expand_as",
+        "call_method:new_zeros",
+        "call_method:view"
+      ],
+      "graph_node_range": [
+        9,
+        9
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/89/d4/89d445d1438db810f640e29e7573683da23a0cf28318efd8489440488bd817ce",
+      "traced_graphs": 1,
+      "call_targets_union": [
+        "call_function:_operator.add",
+        "call_function:_operator.getitem",
+        "call_function:_operator.mul",
+        "call_function:_operator.sub",
+        "call_function:torch.cumsum",
+        "call_method:long"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.add",
+        "call_function:_operator.getitem",
+        "call_function:_operator.mul",
+        "call_function:_operator.sub",
+        "call_function:torch.cumsum",
+        "call_method:long"
+      ],
+      "graph_node_range": [
+        8,
+        8
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8d/9b/8d9ba223c7308a0eaf73dd06aa65b3933dd5d7ff303aece6cf4ba75a4ac1d264",
+      "traced_graphs": 4,
+      "call_targets_union": [
+        "call_function:_operator.add",
+        "call_function:_operator.getitem",
+        "call_function:_operator.mul",
+        "call_function:torch._C._nn.linear",
+        "call_function:torch.nn.functional.dropout",
+        "call_function:torch.nn.functional.softmax",
+        "call_function:torch.sigmoid",
+        "call_method:contiguous",
+        "call_method:permute",
+        "call_method:unsqueeze",
+        "call_method:view"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.add",
+        "call_function:_operator.getitem",
+        "call_function:_operator.mul",
+        "call_function:torch._C._nn.linear",
+        "call_function:torch.nn.functional.dropout",
+        "call_function:torch.nn.functional.softmax",
+        "call_function:torch.sigmoid",
+        "call_method:contiguous",
+        "call_method:permute",
+        "call_method:unsqueeze",
+        "call_method:view"
+      ],
+      "graph_node_range": [
+        27,
+        27
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a2/2a/a22a61606ad5bac7cee37acbdbe052925d2ee69e23f0cf3789533defef164353",
+      "traced_graphs": 30,
+      "call_targets_union": [
+        "call_function:_operator.add",
+        "call_function:_operator.iadd",
+        "call_function:torch.nn.functional.dropout",
+        "call_function:torch.nn.functional.embedding",
+        "call_function:torch.nn.functional.layer_norm"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.add",
+        "call_function:_operator.iadd",
+        "call_function:torch.nn.functional.dropout",
+        "call_function:torch.nn.functional.embedding",
+        "call_function:torch.nn.functional.layer_norm"
+      ],
+      "graph_node_range": [
+        16,
+        16
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ac/b5/acb5482a145fbb818e43250c0b9eb24f2958ae94b5b06374c8f0923e5a5badfb",
+      "traced_graphs": 6,
+      "call_targets_union": [
+        "call_function:torch.nn.functional.embedding",
+        "call_method:long"
+      ],
+      "call_targets_common": [
+        "call_function:torch.nn.functional.embedding",
+        "call_method:long"
+      ],
+      "graph_node_range": [
+        6,
+        6
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/b1/80/b1808162e62a5bbe5505c0f3d18d4b30c6a2d0761f0c6cfc70b846e36cb65b1d",
+      "traced_graphs": 1,
+      "call_targets_union": [
+        "call_function:_operator.mul",
+        "call_function:_operator.sub",
+        "call_method:bool",
+        "call_method:masked_fill",
+        "call_method:to"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.mul",
+        "call_function:_operator.sub",
+        "call_method:bool",
+        "call_method:masked_fill",
+        "call_method:to"
+      ],
+      "graph_node_range": [
+        7,
+        7
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c2/51/c251f09f8f570a031a3fa38d8beb16111ccfb900ebc87c176eb1779d1d1a49a1",
+      "traced_graphs": 10,
+      "call_targets_union": [
+        "call_function:_operator.add",
+        "call_function:_operator.getitem",
+        "call_function:_operator.mul",
+        "call_function:_operator.sub",
+        "call_function:torch.nn.functional.dropout",
+        "call_function:torch.nn.functional.embedding",
+        "call_function:torch.nn.functional.layer_norm",
+        "call_method:to"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.add",
+        "call_function:_operator.getitem",
+        "call_function:_operator.mul",
+        "call_function:_operator.sub",
+        "call_function:torch.nn.functional.dropout",
+        "call_function:torch.nn.functional.embedding",
+        "call_function:torch.nn.functional.layer_norm",
+        "call_method:to"
+      ],
+      "graph_node_range": [
+        48,
+        48
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e3/25/e325920e2cf2744e62dc0f42e12cc941eff284125c22c4d60c9582f03be240f3",
+      "traced_graphs": 2,
+      "call_targets_union": [
+        "call_function:_operator.getitem",
+        "call_method:index_select"
+      ],
+      "call_targets_common": [
+        "call_function:_operator.getitem",
+        "call_method:index_select"
+      ],
+      "graph_node_range": [
+        6,
+        6
+      ]
+    }
+  ]
+}

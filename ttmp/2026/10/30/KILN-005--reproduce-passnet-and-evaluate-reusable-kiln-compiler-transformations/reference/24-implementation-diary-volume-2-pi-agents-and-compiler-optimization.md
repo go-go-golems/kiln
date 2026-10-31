@@ -3482,3 +3482,45 @@ Run script652 and inspect `sources/current-capability-wave-frontier-v1.json` bes
 
 ### Technical details
 The current audit contains392 blocked graphs in29 distinct first-error messages. Script652 does not invoke FX tracing or the GPU; it is a deterministic projection of the frozen full-corpus importer audit.
+
+## Step 232: Audit typed source graphs and define the cross-layer indexing design
+
+The complete-family frontier made typed inputs the leading confirmed importer barrier, but a first-error count could hide diverse work. I traced all119 typed-first-blocker source graphs without ShapeProp and archived five pinned PyTorch2.9 API pages. The source inventory shows embedding, cumsum, masks, integer casts and other operations behind the placeholder error. I wrote design21 to make exact typed values and runtime-indexed reads a shared Kiln capability rather than an importer-only exception.
+
+### Prompt Context
+**User prompt:** See Step230 for the broad progress request; the active project goal calls for implementing and measuring the full PassNet/Kiln integration with source provenance and design documentation.
+**Assistant interpretation:** Investigate the highest-yield capability before coding so the compiler representation spans the real source operations.
+**Inferred user intent:** Gain broad coverage and open new reusable indexing, scan and mask optimization strategies without accumulating ad hoc lowerings.
+
+### What I did
+- Checked the frozen GPU qualification session on bling. All three queued tmux sessions were live; the uniform owner log had reached task73 evaluation after task195 scoring. I did not start another GPU workload.
+- Added script653, which traces all119 typed-first-blocker graphs, records canonical FX targets and reports union/common operations by family in `sources/typed-frontier-source-ops-v1.json`. It ran with zero trace failures across18 families.
+- Read the importer, tensor/loop IR, CUDA emitter and PyTorch runtime. Added script654 and archived official PyTorch2.9 embedding, index_select, cumsum, masked_fill and Tensor.long pages in a hashed tarball/receipt.
+- Wrote design21 for typed storage/reference semantics, indirect reads, ordered scans, source effects, batch implementation and indexing strategy experiments; linked it from the ticket index.
+
+### Why
+The existing Loop IR load index is a function of static loop coordinates. Embedding and index_select need a second input tensor's value to determine a memory address. An integer placeholder accepted by the importer would still be converted to a float register by the current CUDA emitter and could lose exact identity. The correct unit of work spans storage, reference evaluation, IR scheduling, code emission and dispatch.
+
+### What worked
+All119 source graphs traced without ShapeProp. Four families contain embedding, two contain cumsum, one contains index_select, and several contain mask/cast operations. The official source archive contains five pages with SHA256 `73990d062bf9a53cd0b4b89525932ba4dbd6b684abcf464520c8d203fa70c601`. `docmgr validate frontmatter` passed for design21 and `git diff --check` passed.
+
+### What didn't work
+The source trace does not execute operations or reveal all later importer failures. No typed Kiln implementation or new external acceptance result follows from this step. A broad `rg` inspection included a nonexistent `packages/kiln/src/std/schedule.js` path; its diagnostic was `No such file or directory (os error 2)`. The scheduler is in `packages/kiln/src/std/loop.js`, which I inspected directly afterward.
+
+### What I learned
+The 18-family typed first-blocker figure is an upper bound on immediate import gain. It includes several semantic subfamilies, so the implementation should first establish exact typed values, then indirect reads, masks and ordered scans. A separate benchmark-specific CUDA emitter would duplicate the existing compiler path and hide optimization dependencies.
+
+### What was tricky to build
+Current JS reference tensors use float storage, while `int64` values require exact representation. The Loop IR distinguishes float scalar expressions and integer coordinate expressions, but an indirect load needs a runtime integer value inside a memory-index dependency. Design21 specifies that boundary explicitly and leaves exact source option audits to the relevant batch.
+
+### What warrants a second pair of eyes
+Review the proposed typed scalar/reference representation, especially BigInt constant folding and bounds behavior for indirect reads. Check the actual source options for embedding and index_select families before binding operations. Numerical and PassBench acceptance remain open.
+
+### What should be done in the future
+Implement typed storage and scalar IR, then the shared indirect-read primitive and source bindings as one broad wave. Re-census after each capability boundary and run complete-family original PassBench replay. Use accepted gather/scan families for held-out strategy comparisons.
+
+### Code review instructions
+Run script653 against the frozen input-mutation import audit; inspect the per-family operation inventory. Read design21 with `fx_import.py`, `tensor.js`, `loop.js`, `emit.js` and `runtime.py`. Verify the five official-doc archive hashes through its receipt before relying on source semantics.
+
+### Technical details
+The trace uses `corpus.load_module(...).GraphModule()` and `fx_trace.trace_module` without ShapeProp. It records source call targets but does not infer dtypes or execute GPU kernels. The archived PyTorch pages are under `https://docs.pytorch.org/docs/2.9/generated/` and no upstream implementation code was copied.
