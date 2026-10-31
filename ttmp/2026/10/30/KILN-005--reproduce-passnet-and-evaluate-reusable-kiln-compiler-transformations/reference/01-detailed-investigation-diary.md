@@ -2741,3 +2741,52 @@ See the ongoing complete integration and measurement objective.
 
 ### Technical details
 - Task e6f244f12cb8bf8954c9ac5adc78e6267f77f95f13ba6acc7420064393c0cb93; 30 FP32/FP16/BF16 graph variants, one or three input tensors, two outputs. Aggregate score is a task-level exploratory result on GB10, not an all-corpus or paper-hardware reproduction result.
+
+## Step 65: Inspect graph metadata without allocating dataset tensors
+
+Added optional FakeTensorMode propagation to FX export and made the shared corpus exporter use it by default. Fallback tensor kernels are disabled explicitly. All 30 fourth-task exports produced identical ordered manifest records and Kiln source compared with real CPU propagation. Launched a metadata-only import audit over the full pinned evaluation list.
+
+### Prompt Context
+See the full-corpus objective and the user's architectural consolidation request in Step 63.
+**Assistant interpretation:** Obtain actionable import blockers across the full corpus through the shared runner.
+**Inferred user intent:** Prioritize missing compiler work from evidence rather than ad hoc task selection.
+**Commit (preceding task acceptance):** d6e5e67.
+
+### What I did
+- Extended export_graph with an explicit fake_mode parameter and documented interpretation semantics.
+- Extracted translate_graph in corpus.py, added metadata-mode selection and complete corpus inspection command.
+- Added fake/real metadata and lowering equivalence regression; 23 integration tests passed.
+- Archived the installed PyTorch ShapeProp source, exact torch commit/hash provenance and official Fake Tensor documentation under sources/pytorch.
+- Saved audit driver 56 and started it in local tmux.
+
+### Why
+- Large corpus tensors should not require materialization merely to find unsupported operators and shapes.
+
+### What worked
+- Fake propagation with fallback kernels disabled exported all 30 fourth-task variants identically to real propagation.
+- Full audit made progress through 81 tasks/841 graphs at the observation checkpoint; imported status denotes only successful translation, never execution coverage.
+
+### What didn't work
+- Initial local tmux invocation failed `error connecting to /tmp/tmux-1000/default (Operation not permitted)` under the sandbox. Retried with authorized socket access; no process existed before retry.
+- During refactoring, code inspection caught a local variable shadowing the graph path with a traced GraphModule before execution; translate_graph now retains separate source identity and traced variables. The complete 30-record equality check verifies identity preservation.
+
+### What I learned
+- PyTorch ShapeProp already accepts a fake mode; no tensor metadata engine or PyTorch implementation port is needed.
+
+### What was tricky to build
+- Fake mode can otherwise permit fallback kernels. Explicitly disable them so unsupported metadata operations become diagnostics rather than hidden execution.
+
+### What warrants a second pair of eyes
+- Fake metadata parity beyond the validated operator chain; symbolic tracing still executes trusted Python and is not a sandbox.
+
+### What should be done in the future
+- Finish and summarize the audit, prioritize blockers, and separately compile/check/evaluate importable tasks.
+
+### Code review instructions
+- Review corpus.py translate_graph/inspect_corpus, fx_export.py and test_fake_export.py. Inspect source provenance JSON and driver 56.
+
+### Technical details
+- Consulted installed torch.fx.passes.shape_prop.ShapeProp and official https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_fake_tensor.html . Archived source is research material; no PyTorch implementation copied into Kiln. Audit format is kiln-passnet-import-audit/1 and must remain separate from kiln-coverage.json.
+
+### Completed audit outcome
+The audit finished all 200 tasks and 2,060 graphs. Script 57 verifies exact task/graph membership and detects duplicates before summarizing. Current import succeeds for 279 graphs, comprising 19 complete tasks. These are not compiled/verified coverage claims. First blockers include slice decoding (504 graphs), cat (135), unsupported input dtypes (118), linear (114), matmul (81) and softmax (70). Fifty-nine graphs fail trusted source tracing because this local machine lacks an NVIDIA driver; those environment failures must not be mislabeled compiler-operator gaps. Only the first blocker is counted, so these counts are not marginal feature unlock estimates.

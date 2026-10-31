@@ -44,13 +44,14 @@ def tensor_spec(meta):
     return None
 
 
-def export_graph(module: GraphModule, example_inputs):
+def export_graph(module: GraphModule, example_inputs, *, fake_mode=None):
     """Propagate example metadata and export static FX, preserving exact targets.
 
-    ShapeProp executes the module. Call only for trusted graphs in the designated
-    evaluation environment. get_attr constants require separate explicit handling.
+    ShapeProp interprets the trusted module. With fake_mode it computes metadata
+    without tensor kernels; otherwise it executes real examples. Value-dependent
+    operations can fail in fake mode. get_attr constants need explicit handling.
     """
-    ShapeProp(module).propagate(*example_inputs)
+    ShapeProp(module, fake_mode=fake_mode).propagate(*example_inputs)
     nodes = []
     for node in module.graph.nodes:
         if node.op in ("call_module", "get_attr"):
