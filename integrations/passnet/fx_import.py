@@ -56,7 +56,7 @@ def import_graph(graph):
         if node['kind'] == 'output':
             outputs = args[0]
             continue
-        if node['kind'] != 'call_function':
+        if node['kind'] not in ('call_function', 'call_method'):
             raise ValueError(f'{name}: unsupported node kind {node["kind"]}')
         target = node['target']
         unary = {'torch.relu':'relu', 'torch.nn.functional.relu':'relu', 'aten.relu.default':'relu',
@@ -64,7 +64,14 @@ def import_graph(graph):
         binary = {'_operator.add':'add', 'torch.add':'add', 'aten.add.Tensor':'add',
                   '_operator.mul':'mul', 'torch.mul':'mul', 'aten.mul.Tensor':'mul',
                   '_operator.sub':'sub', '_operator.truediv':'div'}
-        if target == 'torch.nn.functional.batch_norm':
+        if node['kind'] == 'call_method':
+            if target != 'transpose' or len(args) != 3 or kwargs:
+                raise ValueError(f'{name}: unsupported tensor method {target}')
+            dims = [json.loads(value) for value in args[1:]]
+            if any(type(d) is not int for d in dims):
+                raise ValueError(f'{name}: transpose dimensions must be integers')
+            expr = f'N.transpose({args[0]}, {dims[0]}, {dims[1]})'
+        elif target == 'torch.nn.functional.batch_norm':
             # Public PyTorch functional signature: input, mean, var, weight, bias,
             # training=False, momentum=0.1, eps=1e-5. Inference only.
             fields = ['input', 'running_mean', 'running_var', 'weight', 'bias', 'training', 'momentum', 'eps']

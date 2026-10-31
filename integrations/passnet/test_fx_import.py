@@ -34,6 +34,14 @@ class ImportTests(unittest.TestCase):
             self.assertIn('N.cast(v4, "f32")',result['script'])
             self.assertIn(', "'+name+'")',result['script'])
 
+    def test_divide_transpose_task_pattern(self):
+        class Model(torch.nn.Module):
+            def forward(self,x): return (x/1.6817928305074292).transpose(-1,-2)
+        for dtype in [torch.float32,torch.float16,torch.bfloat16]:
+            result=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3,4).to(dtype),)))
+            self.assertIn('N.div',result['script'])
+            self.assertIn('N.transpose',result['script'])
+
     def test_dtype_and_layout_rejected(self):
         class Model(torch.nn.Module):
             def forward(self, x):

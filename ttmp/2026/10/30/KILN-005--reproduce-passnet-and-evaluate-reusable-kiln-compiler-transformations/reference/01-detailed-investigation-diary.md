@@ -1707,3 +1707,46 @@ Original full-task evaluation, controlled evidence and milestone documentation r
 
 ### Technical details
 - Four FP16, one FP32, one BF16 variants; graph shape [1000,128]. Full remaining benchmark and agents/meta-optimization remain incomplete.
+
+## Step 41: Extend importer to next genuine task and validate regressions
+
+Inspected the next pinned evaluation task: scalar division followed by tensor transpose. Added explicit tensor-method transpose import and exported all twelve variants from actual source/metadata. These are imported source artifacts only; task coverage remains 1/200 until GPU/evaluator acceptance.
+
+### Prompt Context
+Original complete-corpus target; preserve scripts and source provenance.
+**Assistant interpretation:** Select extensions based on actual next-task dependencies.
+**Inferred user intent:** Expand verified coverage rather than only synthetic capabilities.
+
+### What I did
+- Added call_method transpose lowering with integer-dimension validation and unsupported-method diagnostics.
+- Added cross-dtype importer unit test for divide/transpose.
+- Saved script 22 loading actual pinned model/input/weight metadata and emitted twelve project scripts plus manifest.
+- Ran full remote compiler regressions after precision changes.
+
+### Why
+- Next task needs no new arithmetic primitive, but method import was missing.
+
+### What worked
+- All 20 compiler test files passed; ten integration tests passed.
+- All twelve second-task variants exported successfully from source graphs.
+
+### What didn't work
+- No new failures; full second-task compile/GPU/matcher checks remain pending.
+
+### What I learned
+- Source graph support requires method targets as well as functional targets; positional dimension arguments remain explicit.
+
+### What was tricky to build
+- Preserve graph/task membership and dtype manifest for every variant; importing does not prove support.
+
+### What warrants a second pair of eyes
+- Output layout/alias contracts and matching normalization for tensor methods need original evaluator validation.
+
+### What should be done in the future
+- Compile all twelve artifacts, validate against PyTorch, generate reusable dispatching pass and run full-task checks.
+
+### Code review instructions
+- Review fx_import.py, test_fx_import.py, script 22 and sources/second-task/manifest.json.
+
+### Technical details
+- Source task c2737b2dfa6d0ea43a5e6c03a1ce62e33c08403e044afdf09977b864ccbde68d at pinned upstream revision; no code copied.
