@@ -874,3 +874,42 @@ Original goal requires complete measured round-trip; preserve protocol changes e
 
 ### Technical details
 - Original source checkout unchanged. Process-local integration policy marker kiln-dispatch-record-stream/1, matching marker kiln-normalized-fx/1. No upstream implementation copied.
+
+## Step 21: Map reduced-precision compiler implementation boundaries
+
+Inspected actual dtype handling across core types, reference utilities, kernel materialization, CUDA/WGSL emitters, program identity, export and Python runtime. Added a dedicated design document rather than removing FP32 input validation prematurely.
+
+### Prompt Context
+User authorizes implementing missing Kiln capabilities with design docs and source provenance.
+**Assistant interpretation:** Define correct end-to-end precision semantics before storage/codegen edits.
+**Inferred user intent:** Support the real corpus without silent dtype corruption.
+
+### What I did
+- Added design-doc/02-typed-storage-and-reduced-precision-compiler-extension.md with file-level evidence, phased changes, invariants and validation gates.
+
+### Why
+- Non-FP32 pointers currently become float pointers and outputs are unconditionally f32. Superficial runtime casts would implement a different computation.
+
+### What worked
+- Identified concrete dtype omissions at materialization, emit, artifact size, output identity and host packing boundaries.
+
+### What didn't work
+- No new execution failures; reduced precision remains unimplemented.
+
+### What I learned
+- Both CUDA and WGSL are emitted; CUDA-only support requires explicit backend capability handling.
+
+### What was tricky to build
+- Storage dtype, arithmetic precision and source-observable intermediate rounding are separate contracts.
+
+### What warrants a second pair of eyes
+- Conversion movement across fusion, accumulation dtype, identity versioning and backend availability.
+
+### What should be done in the future
+- Archive authoritative precision/conversion references, implement typed dtype contract and reference conversions, then propagate storage/output types through all layers.
+
+### Code review instructions
+- Read new design against std/emit.js, std/export.js, std/kernel.js, std/program.js, core/util.js and runtime/python/kiln_launch.py.
+
+### Technical details
+- No upstream implementation copied and no claimed low-precision support in this checkpoint.
