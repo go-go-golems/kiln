@@ -4342,3 +4342,90 @@ The exporter now compiles every graph twice when given a gated program, once unt
 ### Technical details
 - Gate file shape: `{"format":"kiln-transformation-program/1","id":"…","kind":"cost-gated","program":<any non-gated program>}`.
 - The artifact `source.optimization_program_sha256` hashes the gate file text, so gated and ungated runs are distinguishable by source identity as well as by artifact contract.
+
+## Step 249: Freeze and launch the held-out cost-gate study; measure the P0 replay
+
+This step turns reference 47's retrospective finding into a frozen experiment, and collects the GPU replay of the P0/P1 repairs. Selecting the held-out population exposed a regression I had introduced in P0. The 32-bit launch guard rejected nine row-mapped graphs that were correct, in families 32, 75, 107 and 160. I fixed the guard before freezing, so the study's snapshot can compile its own population.
+
+The replay confirms the identity and matcher repairs: families 6, 24 and 79 are complete, and 79 went from 0 to 21 graphs. It splits the TF32 repair by operation. Operand rounding matches cuBLAS linear layers (8 fixed, 0 broken) but not cuDNN convolutions (1 fixed, 4 broken), so convolutions no longer get TF32 rounding.
+
+### Prompt Context
+**User prompt (verbatim):** "conyinure" (continue). Earlier in this step the user asked "are far are we overall?", which I answered with a progress summary.
+**Assistant interpretation:** Proceed with the plan: freeze and queue the three-arm study, then collect the replay when it ends.
+**Inferred user intent:** Keep moving toward a measured, reusable result.
+**Commit (code):**
+- 88c2ad1 — "Limit the 32-bit thread-id guard to thread-mapped kernels"
+- 06f60fc — freeze
+- e0d76a5 — staging scripts
+- 7f97678 — launch receipt
+- 3040427 — replay collection
+- 7e40d54 — "Keep convolution operands FP32 under matmulPrecision tf32"
+- 461eb66 / e99595d — reference 48
+
+### What I did
+- Script 666 (`666-compare-program-arms.mjs` + `666-select-held-out-gate-population.py`): a compile-only census of the 73 complete uniform families outside reference 35. For each graph it compiles both arms, hashes the exported kernels, computes the predicted cost of each arm, and records the gate's choice. Result: 20 families and 237 graphs; 191 graphs change, and the gate disagrees with always-apply on 92.
+- Script 667 froze `sources/cost-gate-held-out-v1/`:
+  - `{baseline,always,gated}-plan.json`, identical except for `optimization_program`;
+  - `always-program.json` (= `fixed-program.json`) and `gated-program.json`;
+  - `declaration.json`, with the primary endpoint, secondary endpoints, decision rule and limitations.
+- Script 668 staged it on bling, verified the remote snapshot, and launched tmux `kiln-cost-gate-held-out-v1`. The runner checks for an idle GPU before each arm and runs the arms in the declared order: baseline, always, gated.
+- Script 669 is a generic collector (staging, plan and snapshot identity, then audit, archive and receipt). I used it for `p0-replay-gpu-v1/results`.
+- `export.js`: the grid × block limit now applies only to thread-mapped kernels, and every kernel's grid is capped at 2^31 − 1. New regression test in `test/export.mjs`: a 1×1 convolution reshaped to `[64,256,4096]` schedules as `MAP=row,TPB=32` with 2^26 blocks.
+- `tensor.js`: removed `tf32Conv2d` from `tf32Pass`; `test/tf32.mjs` now asserts that convolutions are not rounded.
+- Reference 48 records the replay result.
+
+### Why
+- The census uses compile-only information (kernel hashes and predictions), so selecting on it does not peek at measured outcomes. Excluding reference 35's tasks keeps the population disjoint from the one the rule was derived on.
+- The decision rule was declared before the run. It requires gated < always, gated ≤ 1.0, and no loss of accepted graphs, so a favorable reading cannot be chosen after the fact.
+
+### What worked
+- The census completed in 19 s with 0 errors once the guard was fixed.
+- Staging receipt: revision `e0d76a5`, snapshot `c0d8027c…`, and the six frozen file hashes. The study was running at the end of the step.
+- Replay: 8/15 families complete and 160/181 graphs accepted, with 0 unexecuted graphs. Per family:
+
+  | Family | Before → after |
+  |---|---|
+  | 6 | 53 → 66 |
+  | 24 | 2 → 4 |
+  | 79 | 0 → 21 |
+  | 27 | 11 → 14 |
+  | 93 | 7 → 9 |
+  | 52 | 5 → 8 |
+  | 133 | 16 → 13 |
+  | 72, 88, 157, 118, controls | unchanged |
+
+- Kiln suite 43/43 after both code changes.
+
+### What didn't work
+- The first census reported 4 errors. Two were `kernel k_out1__1h1ro1nrd7n launches 2147483648 threads: CUDA thread ids are 32-bit (limit 2147483647)` (task 32), and two were similar `k_cast_matmul_reshape_reduce` errors on task 75 (5,368,709,120 and 2,684,354,560 threads). A scan of all 1,514 uniform scripts found 9 such graphs, in families 32, 75, 107 and 160, all of them `MAP=row` and all of them accepted on the GPU. The P0 guard (6cd1218) was wrong for row and tiled kernels. The running P0 replay did not include these families, so it was unaffected.
+- I first wrote the regression test without the reshape. That graph schedules differently and has no oversized launch, so the test failed for the wrong reason (`undefined`). Adding the reshape reproduced task 32's kernel. Restoring the old guard makes the test fail with the original message.
+- My first draft of reference 48 stated as fact that family 133 returns to 16/20. That is a prediction, and I corrected the wording (e99595d).
+- The harness blocked `sleep 45; ssh …`. I checked the launch with a direct ssh call instead.
+
+### What I learned
+- The emitter defines only `tid` and `bid`. A global thread id exists only in thread-mapped index expressions. Row and tiled kernels build their offsets from `bid` and loop variables, and those offsets are bounded by the buffer extents.
+- "The FP32 reference is TF32" holds for cuBLAS products and fails for cuDNN convolutions. The CPU emulation in Step 241 covered linear layers only, which is why it agreed.
+
+### What was tricky to build
+- `canonRow` omits `MAP=thread` because it is the default. So the thread-mapped test is "row does not name `MAP=row` or `MAP=tiled`" rather than a positive match on `MAP=thread`.
+- The census hashed the old uniform-snapshot scripts, while the study regenerates scripts at its own snapshot. The declaration records this. Each gate decision is also written into the run's artifacts, so the actual changed-graph set will come from the run itself, not from the census.
+
+### What warrants a second pair of eyes
+- The arms run sequentially, so drift is not randomized. The declaration lists this as a limitation.
+- The study snapshot (`e0d76a5`) predates 7e40d54. All arms use the default `highest` precision, so the TF32 change does not affect it.
+
+### What should be done in the future
+- Collect the three arms with 669 when the run ends, then analyze against the declaration.
+- Run a GPU probe of cuDNN's TF32 convolution rounding, scheduled after the study.
+- Get error magnitudes for the remaining TF32 linear failures (88, 118, 157).
+- Re-qualify families 32, 75 and 107 on a later snapshot as part of the next uniform re-qualification.
+
+### Code review instructions
+- `packages/kiln/src/std/export.js` (the launch guard loop) with `test/export.mjs` (last block).
+- `packages/kiln/src/std/tensor.js` (`tf32Pass`).
+- `scripts/666-*`, `667-*`, `668-*`, `669-*`; `sources/cost-gate-held-out-v1/declaration.json`.
+- Validate with `cd packages/kiln && npm test`.
+
+### Technical details
+- Gate-program SHA256 `7666ca3f…`; always-program `de482bd2…`; declaration `213f7ee0…`.
+- Held-out families: 4, 10, 20, 31, 32, 41, 46, 75, 76, 113, 115, 116, 120, 146, 168, 173, 174, 177, 184, 189.
