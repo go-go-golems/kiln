@@ -4724,3 +4724,47 @@ See Step 104 and the user's continuing self-optimization implementation goal.
 
 ### Technical details
 - Source corpus membership 0547e152ab29ae79070177cec031ddb393751f2b45d13499548a583668e7203f; independent CUDA fixtures add no original benchmark coverage.
+
+## Step 106: Qualify every selective program before training timing
+
+All twelve programs compile and structurally qualify across the entire twenty-source v6 corpus, producing 240 artifacts from committed d324850 sources. Default equals unchanged. Some selective programs accept genuine partial substitutions on training graphs: edge125/aggregate102 accepts three retained-producer partial mutations, while edge125/aggregate125 and edge150/aggregate125 each accept seven. These are structural observations, not measured improvements.
+
+### Prompt Context
+See Steps 104–105 for the new transformation/evaluation objective.
+**Assistant interpretation:** Carry the implementation through the predeclared experiment rather than stopping at semantic tests.
+**Inferred user intent:** Obtain measured generalization evidence on fresh programs.
+**Commit (study declaration):** d324850 — research(passnet): validate selective fusion CUDA and freeze fresh policy study.
+
+### What I did
+- Ran shared compile_study.py through script 194; its final receipt is qualified with all twelve return codes zero.
+- Saved scripts 195–198 for source/artifact staging, training, confirmation and exact remote source audit.
+- Staged every frozen source directory and all qualified binaries to bling. No source membership or candidate changes are made after freeze.
+
+### Why
+- Real accepted partial mutations distinguish a useful intervention from a program grammar that aliases the existing compiler everywhere.
+
+### What worked
+- All 240 compile; unchanged/default controls match; no incomplete policy is admitted to measurement.
+- Seven accepted partial mutations are observed in each of the two most permissive selective training programs. The four edge100/105 programs have no accepted partial training mutation; their behavior remains part of the declared comparison.
+- Exact artifact hashes and compilation source bytes are recorded in policy-artifacts-v6/study-compile-receipt.json and sensitivity.json.
+
+### What didn't work
+- Structural changes alone provide no evidence of latency benefit or native PassBench acceptance.
+
+### What I learned
+- More permissive consumer selection creates some partial-fusion opportunities, but aggregate retained-work accounting still rejects many proposed subsets.
+
+### What was tricky to build
+- The complete compilation gate runs only after source commitment. Training and confirmation use the same fixed reference protocol and qualified binaries.
+
+### What warrants a second pair of eyes
+- Review exact alias sharing, accepted partial counts and the source audit before interpreting measurements.
+
+### What should be done in the future
+- Complete training measurements, commit one selection, then evaluate only that selection and baseline across all eight confirmation graphs.
+
+### Code review instructions
+- Start with selective-full-compile.log and policy-artifacts-v6/sensitivity.json, then inspect per-policy training decision records and scripts 195–198.
+
+### Technical details
+- Artifact compiler revision d324850; all twelve candidate IDs and twenty sources remain frozen. CUDA fixture evidence remains 108/108, while original benchmark coverage remains unchanged.
