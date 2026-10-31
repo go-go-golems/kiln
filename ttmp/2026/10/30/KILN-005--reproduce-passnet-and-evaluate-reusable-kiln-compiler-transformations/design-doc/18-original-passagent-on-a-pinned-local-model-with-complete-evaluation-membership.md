@@ -7,7 +7,11 @@ Topics:
 DocType: design-doc
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/scripts/367-convert-original-bf16-checkpoint.py
+      Note: Unquantized conversion and storage-type gate
+    - Path: repo://ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/agent-runtime-bootstrap-v1/agent-image-fidelity-v1.json
+      Note: Original source and complete graph membership verification
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-10-31T08:25:02.345997986-04:00
@@ -37,7 +41,7 @@ Direct inspection finds200 unique directories in passbench_demo_dataset_200.json
 
 A derived agent JSONL now preserves every official evaluation task in its original order. It includes all2060 graph identities, graph-list hashes, original source task paths and no filtering by Kiln support, size or dtype. Dataset selection is an exposed original runner parameter; the agent algorithm is unchanged. The shipped single-task CrossViT example can remain a separate operational smoke test. It must not replace the official full evaluation population.
 
-The derived rows select a dedicated image name, kiln005-passagent:torch26.05. The image still needs construction and execution validation. Fresh task workspaces must begin with empty generated pass directories so existing example/teacher code does not enter an agent trajectory. Original input/model metadata, integrity checks, reverse-order evaluation, scorer and every failure must remain visible.
+The derived rows select a dedicated image name, kiln005-passagent:torch26.05. Source fidelity and normal shell startup are now verified; see the setup checkpoints below. Fresh task workspaces must begin with empty generated pass directories so existing example/teacher code does not enter an agent trajectory. Original input/model metadata, integrity checks, reverse-order evaluation, scorer and every failure must remain visible.
 
 ## Build and acquisition sequence
 
@@ -75,3 +79,16 @@ Two BuildKit attempts failed to resolve the locally available base image by conf
 The generic Qwen3-30B-A3B checkpoint is the explicitly selected local original-agent experiment. The paper's student-training appendix names Qwen3-30B-A3B-Thinking-2507, which is a different model release. Generic model naming in a results table is insufficient evidence that this local checkpoint exactly reproduces that experiment. Preserve this distinction in every reported score; training reproduction remains separate. Native model context is40960, not the paper's262144-token training context.
 
 No new accepted Kiln task, original-agent trajectory or published model-score reproduction follows from these setup checks. API chat/tool calls and actual original container/evaluator execution remain the next required gates.
+
+
+## Operational provider and original runner gate
+
+Unquantized conversion completes in205.73 seconds. The61095803040-byte GGUF artifact has SHA256 f921b42e9b6191c3ffad54532df61e57fb1477aefdb12f5a4eb496ac8828e8ad, with338 BF16 and241 F32 tensors (579 total,30532122624 elements). The F32 auxiliary tensors are the converter's declared output; no quantized tensor storage is present.
+
+The local-only server binds127.0.0.1:8041, context40960, one slot, all layers on GPU, original embedded template, explicit thinking enabled. The model remains resident; measurements from the cohosted agent are not isolated compiler timing results. Both a real chat response and a correctly structured file_editor function call pass. The server warns that object-valued tool_choice falls back to its default, so the probe proves actual structured tool generation, not strict forced-choice enforcement.
+
+The final evaluator image is sha256:0f8b8235cfda1daed9b1cddfa9162ad320403b90d2d715ed2a8b16cc2861e913 (kiln005-passagent:torch26.05-shell-v5). Its filesystem layers exactly equal the audited source image. Its explicit /usr/bin/env entrypoint forwards the original shell command; no evaluator, pass matcher or integrity logic changes. Derived smoke/full manifests alter only docker_image; full task and graph membership remains unchanged.
+
+Startup failures are retained rather than counted as trajectories. One launch lacked the staged smoke dataset. Another exposed the base image's inherited [bash] entrypoint, causing /bin/bash: /bin/bash: cannot execute binary file and exit126. A Docker commit with an empty ENTRYPOINT retained the temporary container's /bin/true instead; the normal startup assertion caught this. The explicit executable entrypoint passes. A subsequent original run failed locating ./tools/file_editor.py because the launcher selected an output directory as cwd; the original README requires running in pass_agent. The corrected driver supplies that cwd and both import roots, while trajectories use absolute output paths. All these corrections are orchestration/image configuration, not upstream agent modifications.
+
+The v5 operational smoke now reaches the original PassAgent tool-installation and first LiteLLM request. It uses50 steps, temperature0, one worker and the unchanged original runner's131072 max_tokens setting. This is larger than native serving context and remains a recorded compatibility/generalization limit, not an assertion of a131072-token model context. No successful optimization or final score is claimed until trajectory and original evaluator evidence exist.

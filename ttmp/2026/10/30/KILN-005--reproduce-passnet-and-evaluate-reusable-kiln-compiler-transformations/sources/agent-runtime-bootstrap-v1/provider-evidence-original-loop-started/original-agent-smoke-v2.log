@@ -1,0 +1,87 @@
+None of PyTorch, TensorFlow >= 2.0, or Flax have been found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/lib/python3.12/site-packages/swebench/harness/modal_eval/run_evaluation_modal.py:302: DeprecationError: 2025-02-03: Modal will stop implicitly adding local Python modules to the Image ("automounting") in a future update. The following modules need to be explicitly added for future compatibility:
+* pass_agent
+* runtime
+
+e.g.:
+image_with_source = my_image.add_local_python_source("pass_agent", "runtime")
+
+For more information, see https://modal.com/docs/guide/modal-1-0-migration
+  @app.function(
+2026-10-31 09:09:55,193 - httpx - INFO - HTTP Request: GET https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json "HTTP/1.1 200 OK"
+Running PassAgent on dataset: /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passagent-shipping-smoke.jsonl
+Trajectories will be saved to: /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v2
+Using config from: /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passnet-pristine/pass_agent/configs
+LLM: openai/Qwen3-30B-A3B
+--------------------------------------------------------------------------------
+Loading dataset from /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passagent-shipping-smoke.jsonl...
+Loaded 1 total tasks
+Running on 1 tasks (index 0 to 0)
+Max workers: 1
+--------------------------------------------------------------------------------
+Trajectories will be saved to: /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v2/original-shipping-smoke-v2.jsonl
+Completions (history) will be saved to: /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v2/original-shipping-smoke-v2_completions.jsonl
+--------------------------------------------------------------------------------
+
+[Task 1/1] Starting: samples/fusible_subgraphs/crossvit_15_dagger_240.in1k/crossvit_15_dagger_240.in1k_0_start14_end16_4
+[10/31/26 09:09:57] ERROR    Error: Exit code 137                  docker.py:735
+                             Error Message:                                     
+                    ERROR    Problem directory not found:  passnet_docker.py:122
+                             /workspace/passnet/samples/fu                      
+                             sible_subgraphs/crossvit_15_d                      
+                             agger_240.in1k/crossvit_15_da                      
+                             gger_240.in1k_0_start14_end16                      
+                             _4                                                 
+                    ERROR    ❌ Error setting up PassAgent passnet_docker.py:159
+                             environment: Problem                               
+                             directory does not exist:                          
+                             /workspace/passnet/samples/fu                      
+                             sible_subgraphs/crossvit_15_d                      
+                             agger_240.in1k/crossvit_15_da                      
+                             gger_240.in1k_0_start14_end16                      
+                             _4                                                 
+                    ERROR    Traceback (most recent call   passnet_docker.py:162
+                             last):                                             
+                               File                                             
+                             "/home/manuel/passnet-kiln/KI                      
+                             LN-005/sources/agent-runtime-                      
+                             bootstrap-v1/passnet-pristine                      
+                             /pass_agent/runtime/passnet_d                      
+                             ocker.py", line 123, in                            
+                             setup_env                                          
+                                 raise RuntimeError(                            
+                             RuntimeError: Problem                              
+                             directory does not exist:                          
+                             /workspace/passnet/samples/fu                      
+                             sible_subgraphs/crossvit_15_d                      
+                             agger_240.in1k/crossvit_15_da                      
+                             gger_240.in1k_0_start14_end16                      
+                             _4                                                 
+                                                                                
+Traceback (most recent call last):
+  File "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passnet-pristine/pass_agent/examples/run_pass_agent_demo.py", line 287, in run_single_task
+    result = runagent(
+             ^^^^^^^^^
+  File "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passnet-pristine/pass_agent/examples/run_pass_agent_demo.py", line 145, in patched_runagent
+    env = RepoEnv(env_args, logger=logger, backend=backend)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/lib/python3.12/site-packages/r2egym/agenthub/environment/env.py", line 47, in __init__
+    self.runtime = DockerRuntime(
+                   ^^^^^^^^^^^^^^
+  File "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passnet-pristine/pass_agent/runtime/passnet_docker.py", line 96, in __init__
+    super().__init__(
+  File "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/lib/python3.12/site-packages/r2egym/agenthub/runtime/docker.py", line 166, in __init__
+    self.setup_env()
+  File "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passnet-pristine/pass_agent/runtime/passnet_docker.py", line 123, in setup_env
+    raise RuntimeError(
+RuntimeError: Problem directory does not exist: /workspace/passnet/samples/fusible_subgraphs/crossvit_15_dagger_240.in1k/crossvit_15_dagger_240.in1k_0_start14_end16_4
+[Task 1/1] Error: Problem directory does not exist: /workspace/passnet/samples/fusible_subgraphs/crossvit_15_dagger_240.in1k/crossvit_15_dagger_240.in1k_0_start14_end16_4
+
+================================================================================
+Completed 0 / 1 tasks successfully
+Trajectories saved to: /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v2/original-shipping-smoke-v2.jsonl
+Completions saved to: /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v2/original-shipping-smoke-v2_completions.jsonl
+================================================================================
+
+================================================================================
+All tasks completed!

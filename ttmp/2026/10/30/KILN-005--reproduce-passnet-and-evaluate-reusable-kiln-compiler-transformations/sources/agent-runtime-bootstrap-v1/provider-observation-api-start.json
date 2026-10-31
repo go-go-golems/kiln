@@ -1,0 +1,45 @@
+{
+  "returncode": 0,
+  "observation": {
+    "model-conversion-v1": {
+      "status": "complete",
+      "returncode": 0,
+      "inspection": {
+        "tensor_types": {
+          "BF16": 338,
+          "F32": 241
+        },
+        "tensor_count": 579,
+        "tensor_elements": 30532122624
+      },
+      "output_sha256": "f921b42e9b6191c3ffad54532df61e57fb1477aefdb12f5a4eb496ac8828e8ad",
+      "tail": [
+        "Writing:  98%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a| 59.9G/61.1G [02:00<00:02, 537Mbyte/s]",
+        "Writing:  99%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a| 60.3G/61.1G [02:01<00:01, 507Mbyte/s]",
+        "Writing:  99%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 60.7G/61.1G [02:02<00:00, 502Mbyte/s]",
+        "Writing: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 61.1G/61.1G [02:03<00:00, 504Mbyte/s]",
+        "Writing: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 61.1G/61.1G [02:03<00:00, 495Mbyte/s]",
+        "INFO:hf-to-gguf:Model successfully exported to /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/model-converted/Qwen3-30B-A3B-BF16.gguf"
+      ]
+    },
+    "model-server-v1": {
+      "status": "starting",
+      "tail": [
+        "1.19.946.977 I slot print_timing: id  0 | task 0 |   graph reallocs =          0    /     0        (same size) / (changed size)",
+        "1.19.946.999 I slot      release: id  0 | task 0 | stop processing: n_tokens = 154, truncated = 0",
+        "1.19.962.131 W Wrong type supplied for parameter 'tool_choice', using default value: [json.exception.type_error.302] type must be string, but is object",
+        "1.19.965.061 I slot get_availabl: id  0 | task -1 | selected slot by LRU, n_tokens = 154, t_last = 992021928517",
+        "1.19.969.121 I slot launch_slot_: id  0 | task 141 | processing task, is_child = 0",
+        "1.23.648.562 I slot print_timing: id  0 | task 141 | n_gen =    107, tg =  35.33 t/s, tg_3s =  35.67 t/s"
+      ]
+    },
+    "model-api-probe-v1": {
+      "status": "running",
+      "requests": 1
+    },
+    "health": {
+      "status": "ok"
+    }
+  },
+  "stderr": ""
+}

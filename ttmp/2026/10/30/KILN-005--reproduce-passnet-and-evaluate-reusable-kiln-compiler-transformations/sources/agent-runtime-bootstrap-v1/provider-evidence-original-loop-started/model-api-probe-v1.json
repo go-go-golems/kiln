@@ -1,0 +1,308 @@
+{
+  "format": "kiln-original-model-api-probe/1",
+  "status": "complete",
+  "base_url": "http://127.0.0.1:8041",
+  "requests": [
+    {
+      "request": {
+        "model": "Qwen3-30B-A3B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Reply with the single word ready."
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 4096
+      },
+      "response": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "ready",
+              "reasoning_content": "Okay, the user wants me to reply with the single word \"ready.\" Let me make sure I understand the request correctly. They specified to reply with just that word, no extra text or explanations. So I need to check if there are any guidelines or rules that might affect this. The user mentioned not to use any markdown, so I should avoid any formatting. Also, they want the response in the same language as the query, which is English here. Since the instruction is straightforward, I just need to output \"ready\" without anything else. I'll double-check that there's no additional context or hidden requirements. Everything seems clear. Time to send the response.\n"
+            }
+          }
+        ],
+        "created": 1793452099,
+        "model": "Qwen3-30B-A3B",
+        "system_fingerprint": "b0-0ec4027a2a0183de87c007069adddc06e665f7de",
+        "object": "chat.completion",
+        "usage": {
+          "completion_tokens": 140,
+          "prompt_tokens": 15,
+          "total_tokens": 155,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "id": "chatcmpl-DyXN9mRzLMe2o5jBXnZkXSqwTW0wXwO4",
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 15,
+          "prompt_ms": 122.385,
+          "prompt_per_token_ms": 8.159,
+          "prompt_per_second": 122.56403971074886,
+          "predicted_n": 140,
+          "predicted_ms": 3937.718,
+          "predicted_per_token_ms": 28.328906474820144,
+          "predicted_per_second": 35.29963293460832
+        }
+      },
+      "elapsed_seconds": 4.064201803994365
+    },
+    {
+      "request": {
+        "model": "Qwen3-30B-A3B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Use the file_editor tool to view /workspace/passnet/README.md. Do not answer in text."
+          }
+        ],
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "file_editor",
+              "description": "View a source file",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "command": {
+                    "type": "string",
+                    "enum": [
+                      "view"
+                    ]
+                  },
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "command",
+                  "path"
+                ]
+              }
+            }
+          }
+        ],
+        "tool_choice": {
+          "type": "function",
+          "function": {
+            "name": "file_editor"
+          }
+        },
+        "temperature": 0,
+        "max_tokens": 4096
+      },
+      "response": {
+        "choices": [
+          {
+            "finish_reason": "tool_calls",
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "",
+              "reasoning_content": "Okay, the user wants me to use the file_editor tool to view the README.md file in the /workspace/passnet directory. Let me check the available functions. The tool provided has a function called file_editor with a command parameter that can be \"view\" and a path parameter. The required parameters are command and path. So I need to construct a tool call with command \"view\" and path \"/workspace/passnet/README.md\". I should make sure the JSON is correctly formatted with the right parameters. No other functions are available, so this is the only one I can use. The user also mentioned not to answer in text, so I just need to output the tool call in the specified XML tags.\n",
+              "tool_calls": [
+                {
+                  "type": "function",
+                  "function": {
+                    "name": "file_editor",
+                    "arguments": "{\"command\": \"view\", \"path\": \"/workspace/passnet/README.md\"}"
+                  },
+                  "id": "tGUEmU4p17k4Rqw7lHpxg3x2uCdGZpcp"
+                }
+              ]
+            }
+          }
+        ],
+        "created": 1793452105,
+        "model": "Qwen3-30B-A3B",
+        "system_fingerprint": "b0-0ec4027a2a0183de87c007069adddc06e665f7de",
+        "object": "chat.completion",
+        "usage": {
+          "completion_tokens": 178,
+          "prompt_tokens": 185,
+          "total_tokens": 363,
+          "prompt_tokens_details": {
+            "cached_tokens": 1
+          }
+        },
+        "id": "chatcmpl-XFkLJPUvbr2B2z8bdbEeMfbao179uLdk",
+        "timings": {
+          "cache_n": 1,
+          "prompt_n": 184,
+          "prompt_ms": 679.342,
+          "prompt_per_token_ms": 3.6920760869565217,
+          "prompt_per_second": 270.85032281236846,
+          "predicted_n": 178,
+          "predicted_ms": 5014.11,
+          "predicted_per_token_ms": 28.32830508474576,
+          "predicted_per_second": 35.300382321089884
+        }
+      },
+      "elapsed_seconds": 5.714482070994563
+    }
+  ],
+  "health": {
+    "status": "ok"
+  },
+  "models": {
+    "models": [
+      {
+        "name": "Qwen3-30B-A3B",
+        "model": "Qwen3-30B-A3B",
+        "modified_at": "",
+        "size": "",
+        "digest": "",
+        "type": "model",
+        "description": "",
+        "tags": [
+          ""
+        ],
+        "capabilities": [
+          "completion"
+        ],
+        "parameters": "",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "",
+          "families": [
+            ""
+          ],
+          "parameter_size": "",
+          "quantization_level": ""
+        }
+      }
+    ],
+    "object": "list",
+    "data": [
+      {
+        "id": "Qwen3-30B-A3B",
+        "aliases": [
+          "Qwen3-30B-A3B"
+        ],
+        "tags": [],
+        "object": "model",
+        "architecture": {
+          "input_modalities": [
+            "text"
+          ],
+          "output_modalities": [
+            "text"
+          ]
+        },
+        "created": 1793452095,
+        "owned_by": "llamacpp",
+        "meta": {
+          "vocab_type": 2,
+          "n_vocab": 151936,
+          "n_ctx": 40960,
+          "n_ctx_train": 40960,
+          "n_embd": 2048,
+          "n_params": 30532122624,
+          "size": 61089832960,
+          "ftype": "BF16"
+        }
+      }
+    ]
+  },
+  "props": {
+    "default_generation_settings": {
+      "params": {
+        "seed": 4294967295,
+        "temperature": 0.6000000238418579,
+        "dynatemp_range": 0.0,
+        "dynatemp_exponent": 1.0,
+        "top_k": 20,
+        "top_p": 0.949999988079071,
+        "min_p": 0.05000000074505806,
+        "top_n_sigma": -1.0,
+        "xtc_probability": 0.0,
+        "xtc_threshold": 0.10000000149011612,
+        "typical_p": 1.0,
+        "repeat_last_n": 64,
+        "repeat_penalty": 1.0,
+        "presence_penalty": 0.0,
+        "frequency_penalty": 0.0,
+        "dry_multiplier": 0.0,
+        "dry_base": 1.75,
+        "dry_allowed_length": 2,
+        "dry_penalty_last_n": 64,
+        "mirostat": 0,
+        "mirostat_tau": 5.0,
+        "mirostat_eta": 0.10000000149011612,
+        "adaptive_target": -1.0,
+        "adaptive_decay": 0.8999999761581421,
+        "max_tokens": -1,
+        "n_predict": -1,
+        "n_keep": 0,
+        "n_discard": 0,
+        "ignore_eos": false,
+        "stream": false,
+        "n_probs": 0,
+        "min_keep": 0,
+        "chat_format": "Content-only",
+        "reasoning_format": "none",
+        "reasoning_in_content": false,
+        "generation_prompt": "",
+        "samplers": [
+          "penalties",
+          "dry",
+          "top_n_sigma",
+          "top_k",
+          "typ_p",
+          "top_p",
+          "min_p",
+          "xtc",
+          "temperature"
+        ],
+        "speculative.types": "none",
+        "timings_per_token": false,
+        "post_sampling_probs": false,
+        "backend_sampling": false,
+        "lora": []
+      },
+      "n_ctx": 40960
+    },
+    "total_slots": 1,
+    "model_alias": "Qwen3-30B-A3B",
+    "model_ftype": "BF16",
+    "model_path": "/storage/model-converted/Qwen3-30B-A3B-BF16.gguf",
+    "modalities": {
+      "vision": false,
+      "video": false,
+      "audio": false
+    },
+    "media_marker": "<__media_dtXYEH3YUcVaDmxCbp1GwN35D4mX9s38__>",
+    "endpoint_slots": true,
+    "endpoint_props": false,
+    "endpoint_metrics": false,
+    "ui": true,
+    "ui_settings": {},
+    "chat_template": "{%- if tools %}\n    {{- '<|im_start|>system\\n' }}\n    {%- if messages[0].role == 'system' %}\n        {{- messages[0].content + '\\n\\n' }}\n    {%- endif %}\n    {{- \"# Tools\\n\\nYou may call one or more functions to assist with the user query.\\n\\nYou are provided with function signatures within <tools></tools> XML tags:\\n<tools>\" }}\n    {%- for tool in tools %}\n        {{- \"\\n\" }}\n        {{- tool | tojson }}\n    {%- endfor %}\n    {{- \"\\n</tools>\\n\\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\\n<tool_call>\\n{\\\"name\\\": <function-name>, \\\"arguments\\\": <args-json-object>}\\n</tool_call><|im_end|>\\n\" }}\n{%- else %}\n    {%- if messages[0].role == 'system' %}\n        {{- '<|im_start|>system\\n' + messages[0].content + '<|im_end|>\\n' }}\n    {%- endif %}\n{%- endif %}\n{%- set ns = namespace(multi_step_tool=true, last_query_index=messages|length - 1) %}\n{%- for message in messages[::-1] %}\n    {%- set index = (messages|length - 1) - loop.index0 %}\n    {%- if ns.multi_step_tool and message.role == \"user\" and message.content is string and not(message.content.startswith('<tool_response>') and message.content.endswith('</tool_response>')) %}\n        {%- set ns.multi_step_tool = false %}\n        {%- set ns.last_query_index = index %}\n    {%- endif %}\n{%- endfor %}\n{%- for message in messages %}\n    {%- if message.content is string %}\n        {%- set content = message.content %}\n    {%- else %}\n        {%- set content = '' %}\n    {%- endif %}\n    {%- if (message.role == \"user\") or (message.role == \"system\" and not loop.first) %}\n        {{- '<|im_start|>' + message.role + '\\n' + content + '<|im_end|>' + '\\n' }}\n    {%- elif message.role == \"assistant\" %}\n        {%- set reasoning_content = '' %}\n        {%- if message.reasoning_content is string %}\n            {%- set reasoning_content = message.reasoning_content %}\n        {%- else %}\n            {%- if '</think>' in content %}\n                {%- set reasoning_content = content.split('</think>')[0].rstrip('\\n').split('<think>')[-1].lstrip('\\n') %}\n                {%- set content = content.split('</think>')[-1].lstrip('\\n') %}\n            {%- endif %}\n        {%- endif %}\n        {%- if loop.index0 > ns.last_query_index %}\n            {%- if loop.last or (not loop.last and reasoning_content) %}\n                {{- '<|im_start|>' + message.role + '\\n<think>\\n' + reasoning_content.strip('\\n') + '\\n</think>\\n\\n' + content.lstrip('\\n') }}\n            {%- else %}\n                {{- '<|im_start|>' + message.role + '\\n' + content }}\n            {%- endif %}\n        {%- else %}\n            {{- '<|im_start|>' + message.role + '\\n' + content }}\n        {%- endif %}\n        {%- if message.tool_calls %}\n            {%- for tool_call in message.tool_calls %}\n                {%- if (loop.first and content) or (not loop.first) %}\n                    {{- '\\n' }}\n                {%- endif %}\n                {%- if tool_call.function %}\n                    {%- set tool_call = tool_call.function %}\n                {%- endif %}\n                {{- '<tool_call>\\n{\"name\": \"' }}\n                {{- tool_call.name }}\n                {{- '\", \"arguments\": ' }}\n                {%- if tool_call.arguments is string %}\n                    {{- tool_call.arguments }}\n                {%- else %}\n                    {{- tool_call.arguments | tojson }}\n                {%- endif %}\n                {{- '}\\n</tool_call>' }}\n            {%- endfor %}\n        {%- endif %}\n        {{- '<|im_end|>\\n' }}\n    {%- elif message.role == \"tool\" %}\n        {%- if loop.first or (messages[loop.index0 - 1].role != \"tool\") %}\n            {{- '<|im_start|>user' }}\n        {%- endif %}\n        {{- '\\n<tool_response>\\n' }}\n        {{- content }}\n        {{- '\\n</tool_response>' }}\n        {%- if loop.last or (messages[loop.index0 + 1].role != \"tool\") %}\n            {{- '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- endif %}\n{%- endfor %}\n{%- if add_generation_prompt %}\n    {{- '<|im_start|>assistant\\n' }}\n    {%- if enable_thinking is defined and enable_thinking is false %}\n        {{- '<think>\\n\\n</think>\\n\\n' }}\n    {%- endif %}\n{%- endif %}",
+    "chat_template_caps": {
+      "supports_object_arguments": true,
+      "supports_parallel_tool_calls": true,
+      "supports_preserve_reasoning": false,
+      "supports_reasoning_effort": false,
+      "supports_string_content": true,
+      "supports_system_role": true,
+      "supports_tool_calls": true,
+      "supports_tools": true,
+      "supports_typed_content": false,
+      "reasoning_effort_levels": []
+    },
+    "bos_token": "<|endoftext|>",
+    "eos_token": "<|im_end|>",
+    "build_info": "b0-0ec4027a2a0183de87c007069adddc06e665f7de",
+    "is_sleeping": false,
+    "cors_proxy_enabled": false
+  }
+}

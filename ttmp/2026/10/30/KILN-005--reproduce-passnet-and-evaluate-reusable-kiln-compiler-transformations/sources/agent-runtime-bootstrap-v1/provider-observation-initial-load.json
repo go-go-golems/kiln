@@ -1,0 +1,41 @@
+{
+  "returncode": 0,
+  "observation": {
+    "model-conversion-v1": {
+      "status": "complete",
+      "returncode": 0,
+      "inspection": {
+        "tensor_types": {
+          "BF16": 338,
+          "F32": 241
+        },
+        "tensor_count": 579,
+        "tensor_elements": 30532122624
+      },
+      "output_sha256": "f921b42e9b6191c3ffad54532df61e57fb1477aefdb12f5a4eb496ac8828e8ad",
+      "tail": [
+        "Writing:  98%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a| 59.9G/61.1G [02:00<00:02, 537Mbyte/s]",
+        "Writing:  99%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a| 60.3G/61.1G [02:01<00:01, 507Mbyte/s]",
+        "Writing:  99%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 60.7G/61.1G [02:02<00:00, 502Mbyte/s]",
+        "Writing: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 61.1G/61.1G [02:03<00:00, 504Mbyte/s]",
+        "Writing: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 61.1G/61.1G [02:03<00:00, 495Mbyte/s]",
+        "INFO:hf-to-gguf:Model successfully exported to /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/model-converted/Qwen3-30B-A3B-BF16.gguf"
+      ]
+    },
+    "model-server-v1": {
+      "status": "starting",
+      "tail": [
+        "0.00.323.122 I srv    load_model: loading model '/storage/model-converted/Qwen3-30B-A3B-BF16.gguf'",
+        "0.00.503.535 W load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden",
+        "0.56.510.300 I cmn          init: llama threadpool init, n_threads = 20",
+        "0.56.700.294 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 40960, kv_unified = 'false'",
+        "0.56.711.165 I srv  server_run_i: model loaded",
+        "0.56.711.173 I srv  server_on_li: listening on http://127.0.0.1:8041"
+      ]
+    },
+    "health": {
+      "status": "ok"
+    }
+  },
+  "stderr": ""
+}

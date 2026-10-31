@@ -1,0 +1,88 @@
+{
+  "returncode": 0,
+  "observation": {
+    "model-conversion-v1": {
+      "status": "complete",
+      "returncode": 0,
+      "inspection": {
+        "tensor_types": {
+          "BF16": 338,
+          "F32": 241
+        },
+        "tensor_count": 579,
+        "tensor_elements": 30532122624
+      },
+      "output_sha256": "f921b42e9b6191c3ffad54532df61e57fb1477aefdb12f5a4eb496ac8828e8ad",
+      "tail": [
+        "Writing:  98%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a| 59.9G/61.1G [02:00<00:02, 537Mbyte/s]",
+        "Writing:  99%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a| 60.3G/61.1G [02:01<00:01, 507Mbyte/s]",
+        "Writing:  99%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 60.7G/61.1G [02:02<00:00, 502Mbyte/s]",
+        "Writing: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589| 61.1G/61.1G [02:03<00:00, 504Mbyte/s]",
+        "Writing: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 61.1G/61.1G [02:03<00:00, 495Mbyte/s]",
+        "INFO:hf-to-gguf:Model successfully exported to /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/model-converted/Qwen3-30B-A3B-BF16.gguf"
+      ]
+    },
+    "model-server-v1": {
+      "status": "starting",
+      "tail": [
+        "10.16.658.139 I slot print_timing: id  0 | task 2608 | n_gen =    100, tg =  30.17 t/s, tg_3s =  30.47 t/s",
+        "10.19.658.818 I slot print_timing: id  0 | task 2608 | n_gen =    191, tg =  30.24 t/s, tg_3s =  30.33 t/s",
+        "10.22.662.980 I slot print_timing: id  0 | task 2608 | n_gen =    281, tg =  30.15 t/s, tg_3s =  29.96 t/s",
+        "10.25.687.326 I slot print_timing: id  0 | task 2608 | n_gen =    372, tg =  30.14 t/s, tg_3s =  30.09 t/s",
+        "10.28.718.994 I slot print_timing: id  0 | task 2608 | n_gen =    463, tg =  30.11 t/s, tg_3s =  30.02 t/s",
+        "10.31.729.706 I slot print_timing: id  0 | task 2608 | n_gen =    554, tg =  30.13 t/s, tg_3s =  30.23 t/s"
+      ]
+    },
+    "model-api-probe-v1": {
+      "status": "complete",
+      "requests": 2
+    },
+    "original-agent-smoke-v2": {
+      "status": "failed",
+      "returncode": 0,
+      "error": "Original runner failed or emitted no trajectory; inspect complete original log",
+      "results": [],
+      "tail": [
+        "Trajectories saved to: /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v2/original-shipping-smoke-v2.jsonl",
+        "Completions saved to: /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v2/original-shipping-smoke-v2_completions.jsonl",
+        "================================================================================",
+        "",
+        "================================================================================",
+        "All tasks completed!"
+      ]
+    },
+    "original-agent-smoke-v4": {
+      "status": "failed",
+      "returncode": 0,
+      "error": "Original runner failed or emitted no trajectory; inspect complete original log",
+      "results": [],
+      "tail": [
+        "Trajectories saved to: /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v4/original-shipping-smoke-v4.jsonl",
+        "Completions saved to: /home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v4/original-shipping-smoke-v4_completions.jsonl",
+        "================================================================================",
+        "",
+        "================================================================================",
+        "All tasks completed!"
+      ]
+    },
+    "original-agent-smoke-v5": {
+      "status": "running",
+      "results": [],
+      "tail": [
+        "                                                                                ",
+        "                    INFO     --------------------------------- pass_agent.py:237",
+        "                             -----------------                                  ",
+        "                    INFO     Steps Remaining: 47               pass_agent.py:165",
+        "\u001b[92m09:17:10 - LiteLLM:INFO\u001b[0m: utils.py:3075 - ",
+        "LiteLLM completion() model= Qwen3-30B-A3B; provider = openai"
+      ]
+    },
+    "agent-image-shell-v5": {
+      "status": "complete"
+    },
+    "health": {
+      "status": "ok"
+    }
+  },
+  "stderr": ""
+}
