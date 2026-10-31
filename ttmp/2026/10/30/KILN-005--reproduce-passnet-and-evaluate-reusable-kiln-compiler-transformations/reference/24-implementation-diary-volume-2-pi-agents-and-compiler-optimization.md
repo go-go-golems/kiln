@@ -4288,3 +4288,57 @@ The fixed program's transfer loss therefore came from its `workOf` thresholds (c
 
 ### Technical details
 - Sign threshold ±2 %. Family-balanced GM = geometric mean over families of each family's geometric mean over changed graphs. Unchanged graphs are excluded from the paired analysis.
+
+## Step 248: Implement the cost gate as a compiler strategy
+
+Reference 47 showed, retrospectively, that keeping a transformation only when the schedule cost model predicts a cheaper program would have turned the fixed program's transfer loss (1.041) into a gain (0.863). This step makes that rule an executable transformation program kind, `cost-gated`, so that it can be frozen and measured on held-out families rather than argued from old logs.
+
+The exporter now compiles every graph twice when given a gated program, once untransformed and once with the inner program. It keeps the transformed executable only if the sum of Tile IR kernel estimates on the scheduling target is lower, and records the choice and both predictions in the artifact. On the staged scripts it makes the expected choice for tasks 25 (baseline) and 101 (transformed), and the known wrong choice for 106.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 243. Mid-step the user also wrote: "how far are we? btw don't forget to us ethe diary skill to know the diary format"
+**Assistant interpretation:** Continue the P3b plan from reference 47; keep the diary in the skill's investigation format.
+**Inferred user intent:** Turn the most promising finding into a measurable compiler capability without drifting.
+**Commit (code):** fd1abaf — "Add a cost-gated transformation program kind"
+
+### What I did
+- `packages/kiln/src/std/tile.js`: `predictedCost(tileGraph, target)` sums `estimate(analyze(expr, shape, inShapes), map, target).us` over `tile.kernel` nodes (the same quantity script 664 calibrated).
+- `integrations/passnet/transformation_program.mjs`: kind `cost-gated` with fields exactly `{format, id, kind, program}`; returns `{apply:false, nodeCount, gate:'predicted-cost', inner}`; nested gates rejected; `applyOptimizationProgram` refuses a gate (the gate selects between compilations, it is not a pipeline edit).
+- `scripts/kiln-export.mjs`: `compileWith(pins, prepared)`; `compileOne` compiles baseline and inner arms for a gate, chooses by predicted µs, writes `program.compiler_policy_decision = {gate, chosen, predicted_us:{baseline, transformed}}`; if only one arm compiles, it takes that arm and records `reason`.
+- `integrations/passnet/optimization_artifact.mjs`: anonymization factored into `anonymize()` and applied recursively to the gated inner program; action contract `kiln-predicted-cost-gate/1+<inner contract>`; `input_ir` follows the inner program.
+- `test_optimization_artifact.mjs`: gate contract, identity independent of names, distinct from the ungated identity, nesting and unknown-field rejection.
+
+### Why
+- The gate has no tuned parameter (strict `<`), so it cannot be overfitted to the retrospective population. A margin would be a second experiment.
+- Selecting at whole-graph granularity in the exporter reuses two unmodified pipelines. A per-decision gate inside fusion would need the schedule model at Loop IR time, before tiling exists.
+
+### What worked
+- Manual check with `fixed-program.json` wrapped as a gate (`--target a100 --contraction separate --no-check`):
+  - task-025 → baseline (132.4 vs 386.2 µs predicted);
+  - task-101 → transformed (127,824 vs 2,878 µs);
+  - task-106 → transformed (26,695 vs 2,072 µs), which is the known misprediction.
+- `packages/kiln` 43/43, all `integrations/passnet/test_*.mjs`, pytest 166 passed.
+
+### What didn't work
+- My first version of the one-sided case only handled "baseline failed, transformed compiled". The reverse case (the inner program fails, the baseline compiles) left `decision` null, so the artifact looked like an ungated compilation. I found it by reading the exporter before committing and fixed it before the commit.
+
+### What I learned
+- The artifact identity code enumerates program kinds in two places, the contract choice and the anonymization. Any new wrapper kind must update both, or renamed inner stages change the hash.
+
+### What was tricky to build
+- `compileWith(pins, null)` must mean "standard pipeline", not "gate". So the gate's untransformed arm passes `null` explicitly, and only the inner program reaches `applyOptimizationProgram`.
+
+### What warrants a second pair of eyes
+- Compile time doubles for gated programs. That is acceptable for the study, but it is a cost if the gate becomes the default.
+- The prediction uses the scheduling target (`a100`) while the hardware is GB10. Reference 47 found both models give the same counterfactual, but on fresh graphs they may disagree.
+
+### What should be done in the future
+- Freeze a held-out three-arm study (baseline, always-apply, gated) on complete families outside reference 35's 12 tasks whose executables change under the program.
+
+### Code review instructions
+- Start at `compileOne` in `scripts/kiln-export.mjs`, then `prepareOptimizationProgram` (cost-gated branch), then `predictedCost`.
+- Validate: `node integrations/passnet/test_optimization_artifact.mjs`; `cd packages/kiln && npm test`.
+
+### Technical details
+- Gate file shape: `{"format":"kiln-transformation-program/1","id":"…","kind":"cost-gated","program":<any non-gated program>}`.
+- The artifact `source.optimization_program_sha256` hashes the gate file text, so gated and ungated runs are distinguishable by source identity as well as by artifact contract.
