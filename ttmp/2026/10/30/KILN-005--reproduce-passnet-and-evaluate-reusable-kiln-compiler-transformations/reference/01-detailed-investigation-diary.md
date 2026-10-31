@@ -750,3 +750,43 @@ User authorizes implementing missing Kiln pieces and preserving intermediate scr
 
 ### Technical details
 - Standard-library AST only; no upstream source execution or implementation copying.
+
+## Step 18: Implement explicit integration-protocol argument normalization
+
+Added a narrow FX normalization component rather than hiding forbidden graph constructors in generated passes. It binds public function signatures and fills defaults for ReLU/batch_norm/dropout; target and pattern receive identical treatment. This is a declared protocol modification, not an original benchmark result.
+
+### Prompt Context
+Original goal requests faithful reproduction and separate Kiln integration; preserve integrity and provenance.
+**Assistant interpretation:** Resolve a structural representation mismatch without relaxing semantic or numerical checks.
+**Inferred user intent:** Build an auditable experiment that identifies compiler effects.
+
+### What I did
+- Added fx_normalize.py and tests for matching, exact output preservation, idempotence and invalid-call rejection before mutation.
+- Documented modified protocol in guide section 16.
+
+### Why
+- Original symbolic trace and Dynamo differ in optional-argument representation. Equivalent canonicalization of both graphs is reviewable; source-constructor hiding is not.
+
+### What worked
+- Tests cover observed first-task pattern versus Dynamo-style graph and preserve tensor output on valid inference inputs.
+
+### What didn't work
+- Full evaluator integration not yet run; numerical/dispatch acceptance of launcher remains unproven.
+
+### What I learned
+- Matching normalization should operate before replacement and produce its own receipt.
+
+### What was tricky to build
+- Signature binding must finish for all calls before mutating graph arguments, so invalid calls do not leave partial edits.
+
+### What warrants a second pair of eyes
+- Public signature defaults across pinned software versions; graph keyword metadata and unsupported callable categories.
+
+### What should be done in the future
+- Wire normalization into a separately labeled integration harness, restore ordinary generated pattern source and execute original integrity/correctness checks.
+
+### Code review instructions
+- Run python3 -m unittest discover -s integrations/passnet -p 'test_*.py'. Review fx_normalize.py and guide section 16.
+
+### Technical details
+- Independent implementation using inspect.signature and public FX graph APIs; no upstream code copied or original evaluator edited.
