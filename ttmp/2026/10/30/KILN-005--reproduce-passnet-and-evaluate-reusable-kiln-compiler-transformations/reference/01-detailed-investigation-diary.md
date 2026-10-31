@@ -1205,3 +1205,44 @@ Original full implementation scope; reduced precision design from Step 21.
 
 ### Technical details
 - Independent implementation, no upstream source copied. Low-precision frontend remains disabled pending full propagation.
+
+## Step 29: Validate scalar rounding on GPU and reject unsupported WGSL storage
+
+Before connecting output dtype propagation, verified explicit rounding expressions against PyTorch CUDA and found another silent storage interpretation risk in WGSL emission. Unsupported WGSL storage now fails explicitly instead of becoming f32. Full typed lowering remains unfinished.
+
+### Prompt Context
+Original full implementation objective and typed storage design.
+**Assistant interpretation:** Validate prerequisite backend precision behavior before enabling graph support.
+**Inferred user intent:** Avoid numerically plausible but incorrectly typed implementations.
+
+### What I did
+- Extended script 13 with explicit-round FP32-storage kernels; added check_rounding_cuda.py.
+- Added WGSL storage capability checks and tests for FP16/BF16 rejection.
+
+### Why
+- Typed CUDA support must not silently enable invalid WGSL output; scalar rounding must work beyond reference interpretation.
+
+### What worked
+- CUDA scalar f16 and bf16 rounding exactly matched PyTorch on random and midpoint inputs.
+- Focused storage and rounding tests passed under local Node 26.
+
+### What didn't work
+- No new execution failures. Result dtype propagation is not yet implemented.
+
+### What I learned
+- Existing unconditional dual-source emission will require explicit backend availability handling before CUDA-only storage can pass full compilation.
+
+### What was tricky to build
+- Test FP32 storage with reduced-precision arithmetic boundary to distinguish rounding from typed pointer load/store behavior.
+
+### What warrants a second pair of eyes
+- WGSL shader compilation is still unverified; current rejection is deliberate capability reporting, not reduced-precision support.
+
+### What should be done in the future
+- Implement backend availability and typed output propagation, preserving precision identities and full numerical validation.
+
+### Code review instructions
+- Review std/emit.js capability checks, script 13 and check_rounding_cuda.py.
+
+### Technical details
+- Standalone emitted kernels, 32 test values, fixed seed 42 and midpoint cases; not full-domain GPU verification or graph execution support.

@@ -59,6 +59,11 @@ export function toCuda(K) {
 // ----------------------------------------------------------------------------- WGSL
 // one dispatch per kernel; grids past 65535 workgroups fold into two dimensions
 export function toWgsl(K) {
+  for (const parameter of K.params) {
+    const dtype = parameter.dtype || "f32";
+    const allowed = parameter.role === "in" ? ["f32", "u8"] : ["f32"];
+    if (!allowed.includes(dtype)) throw new TypeError(`WGSL storage dtype unsupported: ${dtype} (${parameter.role})`);
+  }
   const ins = K.params.filter((p) => p.role === "in");
   const fv = (n) => "v_" + n, iv = (n) => (n === "tid" || n === "bid" ? n : "n_" + n);
   const bufName = (b) => (b === "out" ? "bout" : "b" + b);
