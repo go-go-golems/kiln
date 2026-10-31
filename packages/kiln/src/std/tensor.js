@@ -418,6 +418,20 @@ export const separateRounding = k.rule("separate_rounding")
   .rewrite(({ e }) => tensor.ew(e.args, { ...e.attrs, fn: separateFn[e.attrs.fn] }))
   .describe("retain separate FP32 add/subtract/multiply boundaries through CUDA compilation");
 export const separateRoundingPass = k.pass("frontend/separate-rounding").rules(separateRounding);
+// matmulPrecision "tf32": the reference backend (PyTorch with allow_tf32, e.g. NGC containers'
+// float32_matmul_precision "high") rounds FP32 matmul/linear and ungrouped convolution operands to
+// TF32 and accumulates in FP32. Bias is added in FP32. Grouped convolutions keep FP32 operands.
+const isTf32 = (v) => v.is(nn.ew) && v.attrs.fn === "round_tf32";
+const tf32 = (v) => (isTf32(v) ? v : nn.ew([v], { fn: "round_tf32" }));
+const fp32Operands = (...vs) => vs.every((v) => (v.type.dtype || "f32") === "f32") && !vs.every(isTf32);
+export const tf32Linear = k.rule("tf32_linear").match(P.op("nn.linear").as("n").where(({ n }) => fp32Operands(n.arg("x"), n.arg("w"))))
+  .rewrite(({ n }) => nn.linear(tf32(n.arg("x")), tf32(n.arg("w"))));
+export const tf32Matmul = k.rule("tf32_matmul").match(P.op("nn.matmul").as("n").where(({ n }) => fp32Operands(n.arg("a"), n.arg("b"))))
+  .rewrite(({ n }) => nn.matmul(tf32(n.arg("a")), tf32(n.arg("b"))));
+export const tf32Conv2d = k.rule("tf32_conv2d").match(P.op("nn.conv2d").as("n").where(({ n }) => n.attrs.groups === 1 && fp32Operands(n.arg("x"), n.arg("w"))))
+  .rewrite(({ n }) => nn.conv2d(tf32(n.arg("x")), tf32(n.arg("w")), n.arg("b"), { stride: n.attrs.stride, padding: n.attrs.padding, dilation: n.attrs.dilation, groups: n.attrs.groups }));
+export const tf32Pass = k.pass("frontend/tf32-contraction-inputs").rules(tf32Linear, tf32Matmul, tf32Conv2d)
+  .describe("round FP32 contraction operands to TF32 to match a TF32 reference backend");
 export const optimization = k.pass("frontend/optimization").short("o").rules(composeViews, foldSplatView, dropIdentityView, foldSplatEw, contractFma)
   .describe("compose index-map chains, fold constant views and constant arithmetic, contract multiply-add into fma");
 

@@ -10,9 +10,9 @@ import { schedule } from "@kiln/kiln/std/loop.js";
 import { compare } from "@kiln/kiln/core/util.js";
 
 /** The project's pipeline (or the default one) for a target, with per-kernel pins ahead of its own policy. */
-export function pipelineFor(project, target, kernelPins = {}, contraction) {
-  if (contraction !== undefined && project?._pipe) throw new TypeError("an explicit contraction option requires the standard pipeline");
-  const base = project?._pipe || std.emmy.pipeline({ contraction });
+export function pipelineFor(project, target, kernelPins = {}, contraction, matmulPrecision) {
+  if ((contraction !== undefined || matmulPrecision !== undefined) && project?._pipe) throw new TypeError("explicit numerical options require the standard pipeline");
+  const base = project?._pipe || std.emmy.pipeline({ contraction, matmulPrecision });
   return base.with({ target, decide: k.decide.chain(kernelPinPolicy(kernelPins), base._decide) });
 }
 
@@ -20,12 +20,12 @@ export function pipelineFor(project, target, kernelPins = {}, contraction) {
  * Compile `text` without touching any workbench: `params` is cloned (the script's params are declared on the clone),
  * `store` is the evidence store forks may read for `deviceId`. → { ok, diags, project, graph, run, prog, pipe }
  */
-export function compileScript(text, { params, kernelPins = {}, target, deviceId, store = null, pins = null, contraction, transformPipeline = null }) {
+export function compileScript(text, { params, kernelPins = {}, target, deviceId, store = null, pins = null, contraction, matmulPrecision, transformPipeline = null }) {
   const res = runScript(text);
   if (!res.ok) return { ok: false, diags: res.diags };
   if (transformPipeline !== null && typeof transformPipeline !== "function") throw new TypeError("transformPipeline must be a function");
   const project = res.project;
-  let pipe = pipelineFor(project, target, kernelPins, contraction);
+  let pipe = pipelineFor(project, target, kernelPins, contraction, matmulPrecision);
   if (transformPipeline) pipe = transformPipeline(pipe, { project, target });
   const ps = params.clone();
   for (const p of [...project._params, ...pipe.allParams()]) ps.declare(p);

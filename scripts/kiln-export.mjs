@@ -11,6 +11,8 @@
 //     --out PATH          write here (default: stdout)
 //     --no-check          skip the end-to-end check of the compiled program against the frontend graph
 //     --contraction MODE  allow (default) or separate add/subtract/multiply rounding in CUDA
+//     --matmul-precision P  highest (default) or tf32: round FP32 matmul/linear/conv operands to TF32,
+//                         matching a reference backend with PyTorch allow_tf32 enabled
 //     --optimization-program PATH  apply a validated Kiln transformation program to the standard pipeline
 //
 // Exits non-zero when the script does not compile, the check fails, or a kernel argument cannot be exported.
@@ -46,6 +48,7 @@ function parseArgs(argv) {
     else if (a === "--out") o.out = next();
     else if (a === "--no-check") o.check = false;
     else if (a === "--contraction") { o.contraction = next(); if (!["allow", "separate"].includes(o.contraction)) usage(2); }
+    else if (a === "--matmul-precision") { o.matmulPrecision = next(); if (!["highest", "tf32"].includes(o.matmulPrecision)) usage(2); }
     else if (a === "--optimization-program") o.optimizationProgram = next();
     else { process.stderr.write(`unknown argument ${a}\n`); usage(2); }
   }
@@ -61,7 +64,7 @@ function scriptPath(o) {
 }
 
 function compileOne(pins) {
-  const c = compileScript(text, { params: paramSet([]), target, pins, contraction: o.contraction,
+  const c = compileScript(text, { params: paramSet([]), target, pins, contraction: o.contraction, matmulPrecision: o.matmulPrecision,
     transformPipeline: preparedProgram ? (pipe, { project, target }) => {
       if (project._pipe) throw new TypeError("optimization programs require the standard pipeline");
       return applyOptimizationProgram(pipe, target, preparedProgram);
@@ -95,6 +98,7 @@ const optimizationProgram = optimizationText ? JSON.parse(optimizationText) : nu
 const preparedProgram = optimizationProgram ? prepareOptimizationProgram(optimizationProgram) : null;
 const source = { path: relative(ROOT, file), sha256: createHash("sha256").update(text).digest("hex"),
   ...(o.contraction ? { contraction: o.contraction } : {}),
+  ...(o.matmulPrecision ? { matmul_precision: o.matmulPrecision } : {}),
   ...(optimizationText ? { optimization_program_sha256: createHash("sha256").update(optimizationText).digest("hex") } : {}) };
 // every combination of the listed values, first parameter slowest
 const combos = Object.entries(o.params).reduce((acc, [k, v]) => acc.flatMap((c) => v.split(",").map((x) => ({ ...c, [k]: x }))), [{}]);

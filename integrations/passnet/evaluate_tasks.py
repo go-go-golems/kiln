@@ -53,6 +53,12 @@ def main():
     path=output/'run.json';save(path,result)
     def docker(command,*,gpu=False,work='/work/kiln/integrations/passnet'):
         return ['docker','run','--rm',*(['--gpus','all'] if gpu else []),'-v',str(root)+':/work','-w',work,'--entrypoint','python',args.image,*command]
+    # The eager reference's FP32 contraction precision decides which Kiln matmul_precision is faithful.
+    probe='import json,torch;print(json.dumps({"float32_matmul_precision":torch.get_float32_matmul_precision(),"matmul_allow_tf32":torch.backends.cuda.matmul.allow_tf32,"cudnn_allow_tf32":torch.backends.cudnn.allow_tf32}))'
+    result['reference_backend_numerics']=json.loads(subprocess.check_output(docker(['-c',probe]),text=True).strip().splitlines()[-1])
+    if plan.get('matmul_precision')=='tf32' and not result['reference_backend_numerics']['matmul_allow_tf32']:
+        raise ValueError('Plan declares tf32 matmul precision but the reference backend computes FP32 contractions')
+    save(path,result)
     for case in plan['tasks']:
         if snapshot(kiln)!=initial:raise RuntimeError('Compiler/runtime source changed during run; preserve this checkpoint')
         if policy and hashlib.sha256(policy.read_bytes()).hexdigest()!=policy_sha256:
@@ -64,6 +70,7 @@ def main():
               'generate(Path('+repr(str(mounted/'corpus'))+'),Path("/work/upstream"),Path('+repr(str(mounted/'passes'))+'),Path('+repr(str(mounted/'corpus'))+'))'
         compile_command=['python3','integrations/passnet/corpus.py','compile','--directory',str(corpus),'--kiln',str(kiln),'--target','a100']
         if 'contraction' in plan:compile_command.extend(['--contraction',plan['contraction']])
+        if 'matmul_precision' in plan:compile_command.extend(['--matmul-precision',plan['matmul_precision']])
         if policy:compile_command.extend(['--optimization-program',str(policy)])
         if skip_internal:compile_command.append('--skip-internal-reference-check')
         phases=[('export',docker(['-c',stage])),

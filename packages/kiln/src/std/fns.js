@@ -3,6 +3,15 @@
 import { roundToDtype } from "../core/dtypes.js";
 import { erf } from "./special.js";
 const f = Math.fround;
+// TF32: FP32 storage with a 10-bit explicit mantissa. cuBLAS/cuDNN tensor-core paths round
+// FP32 operands to nearest (ties away, PTX cvt.rna.tf32.f32) when TF32 is enabled.
+const TF32_BITS = new Uint32Array(1), TF32_VALUE = new Float32Array(TF32_BITS.buffer);
+export function roundTf32(x) {
+  TF32_VALUE[0] = x;
+  if ((TF32_BITS[0] & 0x7f800000) === 0x7f800000) return TF32_VALUE[0];  // inf, nan
+  TF32_BITS[0] = ((TF32_BITS[0] + 0x1000) & 0xffffe000) >>> 0;
+  return TF32_VALUE[0];
+}
 export const FNS = {
   // CUDA round-to-nearest intrinsics retain operation boundaries under NVRTC
   // contraction. WGSL has no implementation of this declared guarantee here.
@@ -10,6 +19,7 @@ export const FNS = {
   sub_rn: { n: 2, js: (a, b) => f(f(a) - f(b)), c: "__fsub_rn({0}, {1})", w: null, flops: 1 },
   mul_rn: { n: 2, js: (a, b) => f(f(a) * f(b)), c: "__fmul_rn({0}, {1})", w: null, flops: 1 },
   round_f16: { n: 1, js: (x) => roundToDtype(x, "f16"), c: "__half2float(__float2half_rn({0}))", w: "unpack2x16float(pack2x16float(vec2<f32>({0}, 0.0))).x", flops: 1 },
+  round_tf32: { n: 1, js: roundTf32, c: "kiln_round_tf32({0})", w: "kiln_round_tf32({0})", flops: 1 },
   round_bf16: { n: 1, js: (x) => roundToDtype(x, "bf16"), c: "__bfloat162float(__float2bfloat16_rn({0}))", w: "kiln_round_bf16({0})", flops: 1 },
   add: { n: 2, js: (a, b) => a + b, c: "({0} + {1})", w: "({0} + {1})", flops: 1 },
   sub: { n: 2, js: (a, b) => a - b, c: "({0} - {1})", w: "({0} - {1})", flops: 1 },
