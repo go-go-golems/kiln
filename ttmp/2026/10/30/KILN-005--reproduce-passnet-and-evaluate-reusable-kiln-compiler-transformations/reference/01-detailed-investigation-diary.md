@@ -669,3 +669,43 @@ Original goal requests an intern guide stored in ticket and uploaded to reMarkab
 
 ### Technical details
 - No force overwrite, no evaluator edits, no new performance claims.
+
+## Step 16: Publish first technical milestone report to the vault
+
+Wrote a technical article explaining corpus provenance, FX semantics, CUDA storage/stream ownership, genuine-task numerical evidence and the unresolved original-protocol integrity boundary. Copied it as a new dated vault note, committed only that file, and pushed successfully.
+
+### Prompt Context
+Original goal requests milestone textbook-style technical reports and vault commit/push.
+**Assistant interpretation:** Publish evidence-backed explanation of the first substantive implementation milestone.
+**Inferred user intent:** Preserve reusable technical understanding and project progress.
+
+### What I did
+- Used obsidian-vault-writing and textbook-authoring skills; followed existing article frontmatter convention.
+- Added ticket reference/02-milestone-report-fx-to-cuda.md and vault Projects/2026/10/30/ARTICLE - PassNet and Kiln - From FX Semantics to CUDA Execution.md.
+
+### Why
+- GPU correctness and evaluator incompatibility are distinct outcomes requiring a coherent technical account.
+
+### What worked
+- Vault commit 2c3cc7f; push succeeded main -> main, ba76161..2c3cc7f.
+
+### What didn't work
+- No publication failure. Unrelated existing vault modifications remain untouched.
+
+### What I learned
+- Publication records need to retain incomplete experiment status rather than implying final reproduction.
+
+### What was tricky to build
+- Explained file/graph/task counts and original versus modified protocol without conflating evidence scopes.
+
+### What warrants a second pair of eyes
+- Report numerical claims and code references are bounded to verified evidence; full reproduction remains outstanding.
+
+### What should be done in the future
+- Continue integration, isolated measurements and further milestone reports.
+
+### Code review instructions
+- Read the new article and compare with prior diary entries and raw sources logs.
+
+### Technical details
+- Append-only vault addition; task-specific staging only; successful remote push verified from command result.
