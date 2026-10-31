@@ -1329,3 +1329,45 @@ Original full compiler objective; preserve existing verified behavior while addi
 
 ### Technical details
 - No source validation/dispatch changes in this checkpoint; no full typed arithmetic claim.
+
+## Step 32: Verify full-pipeline FP16/BF16 view execution
+
+Compiled typed transpose frontend programs through the complete Kiln pipeline and export CLI, then executed artifacts through TorchProgram on GB10. Both output dtypes, byte sizes, shapes and values matched expectations. This establishes typed view execution, not general low-precision arithmetic.
+
+### Prompt Context
+Original implementation goal and reduced-precision contract from Step 21.
+**Assistant interpretation:** Prove metadata and storage agreement across the actual compiler, not standalone emitter fixtures.
+**Inferred user intent:** Expand verified compiler capabilities toward corpus support.
+
+### What I did
+- Saved scripts/14-generate-typed-views.py and typed transpose frontend sources.
+- Compiled both types on remote supported Node with target a100 scheduling proxy.
+- Added check_typed_views_cuda.py and archived actual compiler artifacts.
+
+### Why
+- Complete compilation tests detect dtype loss between frontend, loop, tile, kernel, program and artifact boundaries.
+
+### What worked
+- Both exports passed existing end-to-end reference checks at loop level.
+- GPU tests passed for f16/bf16: output [3,2], correct dtype, 12-byte output buffer, exact values versus PyTorch transpose.
+
+### What didn't work
+- No failures in this experiment; typed arithmetic, fusion rounding and full-task precision coverage remain incomplete.
+
+### What I learned
+- Explicit outDtype and backend unavailability metadata now enable CUDA-only typed view compilation without pretending WGSL storage support.
+
+### What was tricky to build
+- Test output allocation and bytes in addition to values; correct FP32 values alone would miss dtype regressions.
+
+### What warrants a second pair of eyes
+- Odd element counts, alias-only outputs, multiple streams and arithmetic promotion need broader coverage.
+
+### What should be done in the future
+- Implement typed arithmetic inference/reference semantics and precision-preserving fusion, then genuine low-precision PassBench graph execution.
+
+### Code review instructions
+- Reproduce script 14, export via scripts/kiln-export.mjs, run check_typed_views_cuda.py; inspect sources/typed-transpose artifacts.
+
+### Technical details
+- Shapes [2,3] → [3,2], independent test data; no upstream source copied and no general low-precision benchmark support claimed.

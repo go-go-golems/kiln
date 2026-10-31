@@ -1,0 +1,85 @@
+{
+ "format": "kiln-program/1",
+ "name": "typed-transpose-f16",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../typed-transpose-f16.kiln.js",
+  "sha256": "dfd8df370a753cac03f41bc9984e120ab920732bb68e9a0099444e23d39b50b1"
+ },
+ "inputs": [
+  {
+   "name": "x",
+   "buffer": 0,
+   "shape": [
+    2,
+    3
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out",
+   "buffer": 1,
+   "shape": [
+    3,
+    2
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 6,
+   "bytes": 12
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 6,
+   "bytes": 12
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_transpose__1l46d51a5r6",
+   "identity": "1l46d51a5r6",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    3,
+    2
+   ],
+   "inShapes": [
+    [
+     2,
+     3
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_transpose__1l46d51a5r6(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 6)) {\n        in0 = __half2float(src0[((3 * (e % 2)) + (e / 2))]);\n        dst[((e % 2) + (2 * (e / 2)))] = __float2half_rn(in0);\n    }\n}"
+  }
+ ]
+}
