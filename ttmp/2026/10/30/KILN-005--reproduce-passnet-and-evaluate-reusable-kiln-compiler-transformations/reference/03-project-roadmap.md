@@ -112,3 +112,7 @@ The local additive-model planner is implemented (4523355), exhaustive 280-case o
 ### Canonical emission and completed no-change selection
 
 Core e0f64dc canonicalizes reduction names before code emission and fixes spawn-error test acceptance. All32 compiler files execute successfully,8/8 known name-only contrasts resolve exactly, and108 canonical CUDA comparisons pass. Transpose/input-only export support (71fb43d) passes117 CUDA comparisons but leaves import eligibility1029/51 and original acceptance11/206 unchanged. Fresh broader v8-r2 qualifies240 artifacts; training selects baseline in58133d1, every altered candidate is slower, and all eight confirmation graphs qualify. Ratios1.0 are identity comparisons, with no speedup claim. See design13/reference15. Original PassAgent awaits the requested model/provider; remaining full support and synthesis stay open.
+
+### Softmax source checkpoint
+
+Source softmax reuses the existing stable compiler primitive with explicit conversion/axis contracts. All 45 FX tests and 99 CUDA fixture comparisons pass. Import eligibility is now 1,122 graphs/61 complete families. A frozen ten-family/93-graph original-evaluator cohort is the next acceptance gate; strict cumulative acceptance remains eleven complete tasks/206 individual graphs pending that audit. See design 14 and diary Step 122.

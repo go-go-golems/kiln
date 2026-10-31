@@ -1,0 +1,193 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/softmax-fixtures/012.kiln.js",
+  "sha256": "999bde083d8dd6fdba9c3aa39e929ea7742234f164536e56a3a8088d51cf5476",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    3,
+    7
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 3,
+   "shape": [
+    2,
+    3,
+    7
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 42,
+   "bytes": 84
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 14,
+   "bytes": 56
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 14,
+   "bytes": 56
+  },
+  {
+   "id": 3,
+   "dtype": "f16",
+   "elements": 42,
+   "bytes": 84
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_softmax_reduce__2bvkrldr37w",
+   "identity": "2bvkrldr37w",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    1,
+    7
+   ],
+   "inShapes": [
+    [
+     2,
+     3,
+     7
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_softmax_reduce__2bvkrldr37w(const __half* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 14)) {\n        acc0 = -3.4028234663852886e+38f;\n        for (int r0 = 0; r0 < 3; r0 += 1) {\n            in0 = __half2float(src0[(((e % 7) + (21 * (e / 7))) + (7 * r0))]);\n            v0 = in0;\n            acc0 = fmaxf(acc0, v0);\n        }\n        dst[((e % 7) + (7 * (e / 7)))] = acc0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_softmax_reduce_2__19m32131vz9",
+   "identity": "19m32131vz9",
+   "row": "TPB=1024",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    1,
+    7
+   ],
+   "inShapes": [
+    [
+     2,
+     1,
+     7
+    ],
+    [
+     2,
+     3,
+     7
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_softmax_reduce_2__19m32131vz9(const float* __restrict__ src0, const __half* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in1 = 0.0f, acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 14)) {\n        in1 = src0[((e % 7) + (7 * (e / 7)))];\n        acc0 = 0.0f;\n        for (int r0 = 0; r0 < 3; r0 += 1) {\n            in0 = __half2float(src1[(((e % 7) + (21 * (e / 7))) + (7 * r0))]);\n            v0 = in0;\n            v1 = __fsub_rn(v0, in1);\n            v2 = expf(v1);\n            acc0 = (acc0 + v2);\n        }\n        dst[((e % 7) + (7 * (e / 7)))] = acc0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_softmax__2562qsltcfe",
+   "identity": "2562qsltcfe",
+   "row": "TPB=1024",
+   "reads": [
+    2,
+    1,
+    0
+   ],
+   "writes": 3,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    3,
+    7
+   ],
+   "inShapes": [
+    [
+     2,
+     1,
+     7
+    ],
+    [
+     2,
+     1,
+     7
+    ],
+    [
+     2,
+     3,
+     7
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_softmax__2562qsltcfe(const float* __restrict__ src0, const float* __restrict__ src1, const __half* __restrict__ src2, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, v2 = 0.0f, in2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 42)) {\n        in0 = __half2float(src2[(((7 * ((e / 7) % 3)) + (e % 7)) + (21 * (e / 21)))]);\n        v0 = in0;\n        in1 = src1[((e % 7) + (7 * (e / 21)))];\n        v1 = __fsub_rn(v0, in1);\n        v2 = expf(v1);\n        in2 = src0[((e % 7) + (7 * (e / 21)))];\n        v3 = (v2 / in2);\n        v4 = __half2float(__float2half_rn(v3));\n        v5 = __half2float(__float2half_rn(v4));\n        dst[(((7 * ((e / 7) % 3)) + (e % 7)) + (21 * (e / 21)))] = __float2half_rn(v5);\n    }\n}"
+  }
+ ]
+}

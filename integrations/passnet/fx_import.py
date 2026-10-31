@@ -5,7 +5,7 @@ Independent lowering against Kiln N APIs. No upstream implementation copied.
 import json
 from fx_indexing import lower_index,lower_transpose
 from fx_linalg import FUNCTIONS as LINALG_FUNCTIONS, METHODS as LINALG_METHODS, lower_linalg
-from fx_norm_ops import LAYER_NORM,lower_layer_norm
+from fx_norm_ops import LAYER_NORM,lower_layer_norm,SOFTMAX,lower_softmax
 
 
 def import_graph(graph):
@@ -106,6 +106,12 @@ def import_graph(graph):
                 if source is None or not isinstance(metadata[source],dict):raise ValueError(f'{name}: matrix operand must reference a tensor')
                 return metadata[source]
             expr=lower_linalg(linalg,args,kwargs,meta,operand_spec)
+        elif target in SOFTMAX or (node['kind']=='call_method' and target=='softmax'):
+            def softmax_spec(value):
+                source=next((key for key,val in values.items() if val==value),None)
+                if source is None or not isinstance(metadata[source],dict):raise ValueError('softmax: operand must reference a tensor')
+                return metadata[source]
+            expr=lower_softmax('torch.softmax' if node['kind']=='call_method' else target,args,kwargs,meta,softmax_spec,literal)
         elif target in LAYER_NORM:
             def norm_spec(value):
                 source=next((key for key,val in values.items() if val==value),None)
@@ -325,7 +331,7 @@ def import_graph(graph):
         # Views, casts and disabled dropout may alias: intentionally do not
         # transfer ownership through them. Accepted in-place calls only
         # consume an already owned value whose sole use is this operation.
-        if inplace_binary or linalg or activation or reduction or target in LAYER_NORM or target in unary or target in binary or target in (
+        if inplace_binary or linalg or activation or reduction or target in SOFTMAX or (node['kind']=='call_method' and target=='softmax') or target in LAYER_NORM or target in unary or target in binary or target in (
                 'torch.conv2d','torch.nn.functional.batch_norm','torch.nn.functional.interpolate',
                 'torch.cat','torch.concat','torch.concatenate','aten.cat.default'):
             fresh.add(name)

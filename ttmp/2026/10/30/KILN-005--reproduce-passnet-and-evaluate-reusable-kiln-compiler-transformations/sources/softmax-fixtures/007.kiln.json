@@ -1,0 +1,74 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/softmax-fixtures/007.kiln.js",
+  "sha256": "94c247f12b993932ccce2bdb79392ed3f09118eb8969f9705bd3e76ef2a94022",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 1,
+   "bytes": 4
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 1,
+   "bytes": 4
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_reshape_softmax_reduce__pt341stw2p",
+   "identity": "pt341stw2p",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [],
+   "inShapes": [
+    []
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: sub_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_cast_reshape_softmax_reduce__pt341stw2p(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, acc0 = 0.0f, v1 = 0.0f, v2 = 0.0f, acc1 = 0.0f, v3 = 0.0f, v4 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 1)) {\n        in0 = src0[0];\n        v0 = in0;\n        acc0 = -3.4028234663852886e+38f;\n        for (int r0 = 0; r0 < 1; r0 += 1) {\n            acc0 = fmaxf(acc0, v0);\n        }\n        v1 = __fsub_rn(v0, acc0);\n        v2 = expf(v1);\n        acc1 = 0.0f;\n        for (int r1 = 0; r1 < 1; r1 += 1) {\n            acc1 = (acc1 + v2);\n        }\n        v3 = (v2 / acc1);\n        v4 = v3;\n        dst[0] = v4;\n    }\n}"
+  }
+ ]
+}

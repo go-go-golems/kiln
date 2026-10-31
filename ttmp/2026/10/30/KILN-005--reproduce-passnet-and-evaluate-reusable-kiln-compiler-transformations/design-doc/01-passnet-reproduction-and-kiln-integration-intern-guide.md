@@ -422,3 +422,9 @@ Transpose is unified across function/method/ATen forms with shape/dtype/axis and
 Two fresh-source attempts fail their matrix quota and remain archived. An explicit broader declaration allows the complete4476-task list and64M matrix products, keeping other limits, quotas and exclusions. The twenty-source v8-r2 population has membership c40f81bf05839042fd845dc797a6ddb3b8665d1f3d7b27f83cc5fb4d9cc27ca5; all240 /3 artifacts qualify. Training selects baseline at1.0 in commit58133d1, with every changed candidate slower and exact aliases tied. All eight confirmation graphs qualify; ratios1.0 are identity comparisons with zero changed artifacts, not optimization evidence.
 
 Design13/reference15 and scripts217–238 preserve implementation, real test execution and complete study evidence. The original PassAgent model/endpoint question is pending because documented settings are absent locally/on bling. No external-model result is claimed. Updated reMarkable delivery still awaits the earlier explicit approval request; no new export is attempted.
+
+## 35. Source softmax and the next complete-family qualification
+
+The source binder now connects functional, torch, Tensor and ATen softmax to Kiln's existing stable reduction primitive. It preserves explicit input dtype conversion, FP32 low-precision accumulation, negative/interior/scalar axes, and fresh-storage ownership. Design 14 explains the signatures, conversion order and provenance.
+
+All 45 FX tests and 99 CUDA fixture comparisons pass. The full import audit now reports 1,122/2,060 graphs and 61/200 complete families. Script 249 freezes every newly complete family: ten tasks and 93 graphs, with no shape/dtype filtering. Their original-evaluator qualification remains a separate gate; accepted coverage is not inferred from import success.

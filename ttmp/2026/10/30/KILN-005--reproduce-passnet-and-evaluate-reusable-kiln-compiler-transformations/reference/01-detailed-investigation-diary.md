@@ -5456,3 +5456,54 @@ See Steps116–120 and the user's request for complete measurement and durable m
 
 ### Technical details
 - Overall goal remains active and incomplete. Original acceptance eleven tasks/206 graphs; import eligibility1029/51. Device-document delivery is not claimed.
+
+## Step 122: Publish the canonical study and connect source softmax to existing Kiln reductions
+
+Milestone report 15 is committed in b8881ac and published as a new vault article in 19be088. Script 240 verifies exact body bytes, committed vault content and origin/main equality. No reMarkable upload was attempted because the previous automatic rejection still awaits explicit renewed authorization.
+
+The next import audit identifies 135 graphs whose first blocker is source softmax. The implementation reuses Kiln's existing stable primitive, adding source argument, dtype and scalar-axis semantics in the existing normalization helper. All 45 FX tests pass and all 33 fixtures compile. All 99 CUDA comparisons pass. Full import eligibility rises from 1,029 graphs/51 complete families to 1,122 graphs/61 complete families. These are eligibility counts; original accepted coverage has not yet increased.
+
+### Prompt Context
+See the initial authored requests and Steps 116–121. The latest authored questions ask whether five tasks was an old checkpoint and whether coverage had previously been higher.
+**Assistant interpretation:** Finish milestone publication, clarify the coverage categories, and resume actual benchmark support rather than reporting only internal study progress.
+**Inferred user intent:** Make measurable progress toward complete benchmark execution while maintaining reliable evidence and reusable compiler transformations.
+
+### What I did
+- Published reference 15 with scripts 239/240; verified vault revision 19be0887210a54bd67ffc3699d8dce8758402d4d.
+- Added functional, torch, Tensor method, aten.softmax.int and aten._softmax bindings in fx_norm_ops.py, with scalar reshaping, normalized static axes, deprecated functional dimension selection, explicit input dtype conversion and FP32 accumulation.
+- Preserved the stable max-subtract/exponential/sum implementation already present in Kiln. Softmax results own fresh storage, so single-use downstream mutation can be functionalized safely.
+- Saved the public PyTorch v2.9.1 functional source and installed 2.11 API reference with provenance. No upstream implementation was copied into Kiln.
+- Froze all ten newly completely importable task families, totaling 93 variants, before their original-evaluator GPU run. No shape/dtype filtering or timing selection is applied.
+
+### Why
+- Import eligibility is a necessary gate, but complete original-evaluator execution and nominal numerical acceptance must establish real benchmark coverage.
+- Explicit dtype narrowing must happen before softmax; computing FP32 directly and narrowing only the output would implement a different source program.
+
+### What worked
+- `python3 -m unittest discover -s integrations/passnet -p 'test_fx*.py'`: 45 tests pass.
+- Script 244 compiles all 33 artifacts; scripts 245–247 establish 99/99 CUDA comparisons, including large common offsets and wider input ranges.
+- Script 248 audits all 200 tasks/2,060 variants; script 249 freezes the complete ten-family increment.
+
+### What didn't work
+- The initial negative test assumed FX stored the dimension positionally: `IndexError: list assignment index out of range`. Functional symbolic tracing stores it in kwargs. The duplicate-argument test also initially replaced an existing kwarg rather than introducing a duplicate, yielding `AssertionError: ValueError not raised`. Both test fixtures now modify the actual FX encoding; production binding rejects the intended errors.
+- Direct source-document download first failed under restricted networking with `Name or service not known`, then with permission returned `HTTP Error 403: Forbidden`. The official version-pinned GitHub source downloaded successfully and is archived instead.
+- An initial copy of intermediate script 241 used the root-worktree relative directory and returned `No such file or directory`; the implementation itself used absolute paths and the script was saved in the correct ticket afterwards.
+
+### What I learned
+- Existing compiler functionality can unlock substantial import coverage when source contracts are implemented carefully. Ten complete families become eligible, while 42 of the 135 formerly first-blocked graphs expose additional blockers.
+
+### What was tricky to build
+- Scalar dimensions accept only -1/0, while functional implicit dimensions depend on rank. ATen half_to_float is distinct from a requested public output dtype. Explicit conversion, opmath accumulation and final storage conversion are separate boundaries.
+
+### What warrants a second pair of eyes
+- Check dtype conversion order, metadata rejection, the FP16-only half_to_float rule, and fresh-storage ownership. Read the fixture source programs rather than inferring coverage from test counts.
+
+### What should be done in the future
+- Execute the frozen 93-variant cohort through original matching, nominal correctness and scoring; audit every failure and preserve all denominators.
+- Original PassAgent still requires the requested model/provider configuration. Full operation/layout/dtype support and broader pass synthesis remain open.
+
+### Code review instructions
+- Review fx_norm_ops.py and test_fx_softmax.py, softmax-cuda.json, import-audit-after-softmax-summary.json and softmax-cohort-plan.json. Publication verification is canonical-report-publication.json.
+
+### Technical details
+- Current strict original acceptance remains eleven tasks/206 individual graphs until a new original-evaluator audit proves an increment. New GPU fixture comparisons are independent correctness checks, not official task acceptance or speedup evidence.

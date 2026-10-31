@@ -1,0 +1,74 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/softmax-fixtures/018.kiln.js",
+  "sha256": "b8b7fce6acb72285efbc548fa8131fbcd7f94c1ff3067183bd337aaed8bca65e",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 1,
+   "bytes": 4
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 1,
+   "bytes": 4
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_reshape_softmax_reduce__27xk574bsyy",
+   "identity": "27xk574bsyy",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [],
+   "inShapes": [
+    []
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_reshape_softmax_reduce__27xk574bsyy(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, acc0 = 0.0f, v1 = 0.0f, v2 = 0.0f, acc1 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 1)) {\n        in0 = __half2float(src0[0]);\n        v0 = in0;\n        acc0 = -3.4028234663852886e+38f;\n        for (int r0 = 0; r0 < 1; r0 += 1) {\n            acc0 = fmaxf(acc0, v0);\n        }\n        v1 = __fsub_rn(v0, acc0);\n        v2 = expf(v1);\n        acc1 = 0.0f;\n        for (int r1 = 0; r1 < 1; r1 += 1) {\n            acc1 = (acc1 + v2);\n        }\n        v3 = (v2 / acc1);\n        v4 = __half2float(__float2half_rn(v3));\n        v5 = __half2float(__float2half_rn(v4));\n        dst[0] = __float2half_rn(v5);\n    }\n}"
+  }
+ ]
+}
