@@ -2942,3 +2942,42 @@ Read scripts618–622, `sources/fixed-policy-passbench-v1/{baseline-audit,candid
 
 ### Technical details
 Both GPU arms used source snapshot `7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740`; the fixed program SHA256 was `de482bd2b23ee1296ca97336a8ff8a7214492782e147b8118f4c0bd826e149b5`. The raw archive SHA256 is `efbe9a10d0738a0b7635c947a07592f83039ef6e7138869a5174172fd967fed4`. Scores are from the original scorer with `p=0`; FX normalization and bypass of Kiln's internal synthetic check are declared integration modifications.
+
+## Step 219: Freeze the complete current import surface for uniform replay
+
+### Prompt Context
+The ongoing goal and user request in Step218 prioritize broad task coverage and optimization breadth. Reference34 identifies58 fully importable but unverified tasks as the next qualification wave.
+**Assistant interpretation:** Turn that plan into exact, reproducible task manifests and a bling run that includes every currently fully importable family.
+**Inferred user intent:** Measure the complete existing capability surface now, while delaying narrow failure investigations until a broad failure census exists.
+
+### What I did
+- Added script623 to join the current full import census to the cumulative acceptance ledger, freeze every fully importable task's complete graph list and divide the111 tasks/1,514 graphs into three execution bands.
+- Added reference36 stating population, modified protocol, acceptance conditions and expected evidence. Added scripts624 and625 for one pinned bling staging directory and serialized GPU evaluation of the three bands.
+
+### Why
+The cumulative53-task ledger spans historical snapshots. It cannot establish current uniform coverage. The58 unverified importable tasks contain1,083 graph variants and are the largest immediate opportunity to learn which shared compiler or integration failures still matter.
+
+### What worked
+- The frozen plans contain56 ordinary unverified tasks/561 graphs, two large unverified tasks/522 graphs, and53 regression tasks/431 graphs. All111 task indices are distinct; exact membership hashes and source-audit/ledger hashes are recorded.
+- Python syntax compilation, shell syntax checking, plan accounting and `git diff --check` passed.
+
+### What didn't work
+The first freeze script draft incorrectly summed each band dictionary as though it were a task row and raised `KeyError: 'graphs'`. Correcting the nested sum produced the expected1,514-graph declaration. No new GPU result exists at this checkpoint.
+
+### What I learned
+The large two families account for nearly half of the pending graph variants. Separating them for scheduling preserves all task variants while allowing the ordinary families to produce a broad early result.
+
+### What was tricky to build
+The manifests must use the actual `graph_list.txt` order, not an operator inventory or import-audit order alone. Script623 verifies that the materialized graph list exactly matches the audited rows for each task. The remote source snapshot will be checked against the commit before launch.
+
+### What warrants a second pair of eyes
+Review the uniform-run protocol choice to bypass Kiln's synthetic reference gate while retaining the original external PassBench numerical checker. Historical accepted tasks may regress under the current snapshot and must be counted as such.
+
+### What should be done in the future
+Commit and stage the exact snapshot on bling; let the three-band run finish; audit full graph membership and failure phases before changing the cumulative ledger. Work on typed inputs and constants concurrently with GPU evaluation only if it does not change the staged source.
+
+### Code review instructions
+Read scripts623–625, reference36, `sources/uniform-importable-qualification-v1/{declaration,pending-ordinary-plan,pending-large-plan,regression-plan}.json`, and compare against the full current import audit.
+
+### Technical details
+The three plans all set `contraction=separate`, `skip_internal_reference_check=true`, and numerical tolerance `t=-5`. Each planned task retains its sample path, zero-based index, graph count and `graph_list.txt` SHA256. The requested benchmark settings remain20 warmups and100 trials on GB10 with the pinned image and A100 schedule model.
