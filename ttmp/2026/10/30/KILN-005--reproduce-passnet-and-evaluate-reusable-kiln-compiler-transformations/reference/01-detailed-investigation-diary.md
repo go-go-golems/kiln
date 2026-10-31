@@ -4581,3 +4581,50 @@ See Steps 99–101 and the user's request for milestone technical reports, vault
 
 ### Technical details
 - All graph membership, candidates, numerical contraction and timing budget remain frozen. No core compiler default is changed, no original acceptance is added, and the larger active goal remains incomplete.
+
+## Step 103: Publish the rich-study report and retain delivery approval failures
+
+Report 12 is committed in fce41a3 and published as a new append-only vault article. Vault revision 14a7b3c is pushed to origin/main; the article body matches the ticket report exactly. The requested updated guide is ready locally, but automatic approval review rejected both the broader reMarkable bundle and the narrowed guide-only delivery. No Progress 08 upload occurred; previous deliveries remain intact.
+
+### Prompt Context
+The user's authored vault request includes: "Commit and push the bsidian vault when done (go-go-parc vault)." The active objective also requests guide delivery to reMarkable. Publication succeeded; the guide export requires renewed user confirmation because automatic review did not accept the available authorization context.
+**Assistant interpretation:** Publish the completed milestone and report the remaining delivery restriction precisely.
+**Inferred user intent:** Keep durable technical documentation synchronized with measured results and available for reading.
+**Commit (report):** fce41a3 — research(passnet): complete rich policy confirmation and document near-zero result.
+**Commit (vault):** 14a7b3c — docs(kiln): analyze rich fusion policy study and reference precision.
+
+### What I did
+- Created only ARTICLE - Kiln - Rich Fusion Policy Learning and Reference Precision.md under the dated vault folder; staged only that note and pushed main.
+- Verified committed note bytes, exact report-body equality and matching HEAD/origin/main with saved script 184 and rich-report-publication.json.
+- Tried the requested new Progress 08 reMarkable delivery; following rejection, narrowed the request to only the intern guide and cited the original objective. The second review still rejected it; no workaround was attempted.
+- Added the next selective-consumer fusion task while leaving original broad reproduction/synthesis tasks open.
+
+### Why
+- Historical vault reports and device annotations remain preserved; the new article records the actual near-zero outcome and numerical limitations.
+
+### What worked
+- Vault push: c9d8b43..14a7b3c main -> main. Only the intended 157-line article is committed; unrelated dropcut-studio changes remain unstaged.
+- Source/body/publication verification passes, and all research evidence is committed through fce41a3.
+
+### What didn't work
+- Bundle review: `This uploads internal project documents to an external reMarkable destination, but the trusted user messages shown do not explicitly authorize sending these specific files to that destination.`
+- Guide-only retry review: `This retry still exports an internal guide to an external reMarkable destination, and the cited authorization is only an untrusted assistant claim after a prior rejection rather than a trusted user instruction.`
+- Both commands were rejected before execution. The outstanding action is uploading only the updated intern guide as KILN-005 PassNet Intern Guide Progress 08 to /ai/2026/10/31/KILN-005. It needs explicit user confirmation in the current trusted context.
+
+### What I learned
+- The approval review may lack earlier authorization context. A rejected external export must remain visible rather than being rerouted or reported as delivered.
+
+### What was tricky to build
+- Delivery state is independent from report completion and vault publication. The publication receipt records the blocked new guide upload without invalidating earlier cloud deliveries.
+
+### What warrants a second pair of eyes
+- Review the reference-protocol distinction in the published article and confirm the intended updated-guide export destination before another attempt.
+
+### What should be done in the future
+- After user confirmation, upload the updated intern guide only. Continue selective-fusion implementation/design and the remaining full reproduction goal independently of that delivery.
+
+### Code review instructions
+- Run script 184; inspect vault commit 14a7b3c and source report fce41a3. Review the native failed study alongside the modified FP32 result.
+
+### Technical details
+- No guide upload process exists because approval rejected process creation. No guide delivery is claimed. The complete goal remains active, with substantive compiler/reproduction work still possible.
