@@ -3759,3 +3759,61 @@ Uploading and pushing the vault worked on the first attempt.
 
 ### What should be done in the future
 Start P0 from reference 45 §7: A2, A3, A6 and A7 as small focused commits, then A1 with tasks 6, 24 and 185 replays once the GPU queue is free.
+
+## Step 239: Fix the four small P0 review defects (A2, A3, A6, A7)
+
+This step starts implementing the reference 45 plan. It covers the four single-file defects first, because each has a precise test and none touches a frozen experiment. The stale mutation test now reflects the intended guarded-mutation semantics. FMA contraction no longer removes low-precision rounding. Every artifact records whether Kiln's internal check ran. The exporter refuses artifacts whose index arithmetic could exceed 32-bit CUDA `int`.
+
+From this step on, every entry uses the diary skill's investigation format, which the user made mandatory for the main agent and for subagents. The rule is recorded in the ticket index under "Working conventions (mandatory)" (commit `05e5b74`).
+
+### Prompt Context
+**User prompt (verbatim):** "Ok, go ahead and implement then. commit at appropriate intervals and keep a detailed diary as you work (using the diary format from the skill). The diary format from the diary skill is MANDATORY, subagents should also follow it MANDATORY. Write that down somewhere to not forget it."
+**Assistant interpretation:** Execute the reference 45 phases starting with P0, with focused commits and a full investigation-format diary entry per work unit. Persist the diary rule.
+**Inferred user intent:** Move from review to measurable progress without losing the evidence trail.
+**Commit (code):** 6cd1218 — "Fix P0 review defects: stale mutation test, low-precision FMA, check record, index guard"
+
+### What I did
+- `integrations/passnet/test_fx_trace.py`: split the old combined test into `test_single_use_input_mutation_is_functionalized` (asserts `output_structure == {'input_alias': 0}` and `input_mutations == [{'input_index': 0, 'output': '__mut0'}]`) and `test_alias_observer_and_read_before_mutation_rejected` (keeps `Alias`, adds `ReadAfter`).
+- `packages/kiln/src/std/tensor.js`: `contractFma` now requires FP32 for both the `add` and the contracted `mul` (helpers `fp32`, `contractibleMul`).
+- `packages/kiln/test/contraction.mjs`: f16 and bf16 multiply-add under the default policy must emit no `fmaf(`. A loop-reference-versus-frontend check uses `x = y = 1+2^-6`.
+- `scripts/kiln-export.mjs`: `program.source.internal_check` is `ok at <level>`, `skipped: <reason>` or `bypassed (--no-check)`.
+- `packages/kiln/src/std/export.js`: `INT32_INDEX_LIMIT = 2**31-1`. Any buffer whose `elements` exceeds it, or any kernel whose `grid*block` exceeds it, raises `ExportError`. `packages/kiln/test/export.mjs` adds a `[65536, 32769]` case.
+- Memory file `diary-format-mandatory.md` and the ticket index section record the diary rule.
+
+### Why
+- A2: a permanently red test hides the next real regression.
+- A3: the default `allow` mode silently changed PassBench-visible f16 arithmetic whenever the internal check was bypassed.
+- A6: artifacts travel into task directories and evidence tarballs, but run manifests do not, so the artifact itself must say how it was checked.
+- A7: the alternative (64-bit indices everywhere) would change every kernel's identity and performance. A refusal is the minimal safe step until a large tensor actually needs 64-bit indexing.
+
+### What worked
+- `node packages/kiln/test/contraction.mjs` passes with the fix. With the fix reverted (`git apply -R` of the tensor.js diff), it fails with `AssertionError [ERR_ASSERTION]: f16 multiply-add must not contract`, so the test discriminates.
+- Artifact check: `kiln-export.mjs --script example.kiln.js --target a100` gives `internal_check: 'ok at loop'`, and with `--no-check` it gives `'bypassed (--no-check)'`.
+- `node packages/kiln/test/export.mjs`: `ok a 2^31-element buffer is refused: buffer 0 has 2147549184 elements: CUDA index arithmetic is 32-bit (limit 2147483647)`.
+- Full gates: `node scripts/run-node-tests.mjs packages/kiln/test` → `all 41 passed`. `python3 -m unittest discover -s integrations/passnet -p 'test_*.py'` → `Ran 156 tests ... OK`.
+
+### What didn't work
+- My first f16 probe values (`1+2^-10`) do not distinguish fused from unfused rounding, because `2^-9(1+2^-11)` rounds to `2^-9` in f16 either way. I switched to `1+2^-6`, where `2^-5(1+2^-7)` is representable. The CUDA no-`fmaf(` assertion is the primary discriminator in any case.
+- My first corpus scan for maximum tensor size found 0 shapes, because `rglob` does not follow the `graphs/` symlinks. Re-running with `os.walk(..., followlinks=True)` found 539,564 shape records.
+
+### What I learned
+- The largest corpus input or weight tensor has 1,644,167,168 elements (`dla102x2.in1k_start14_end20_1`, `coatnet_1_rw_224_start11_end13_0`), which is 77 % of `INT32_MAX`. No input exceeds the limit. Intermediates such as unfold, expand or matmul outputs can be larger, so the guard can fire on real large-band graphs. If it does, that becomes a named export failure instead of a numerical mismatch.
+- `compile_policy.mjs:61` excludes `source` from its artifact fingerprint, so the new field does not change policy identities. `qualify_policies.py` and `compiler_confirmation.py` read only `source.sha256` and `source.contraction`.
+
+### What was tricky to build
+- `contractFma`'s `where` and `rewrite` must agree on which argument is the contractible multiply. I factored the predicate into `contractibleMul` so that both use one definition; otherwise the rewrite could pick a non-FP32 multiply that the match did not check.
+
+### What warrants a second pair of eyes
+- Whether `fp32()` should treat an absent dtype as f32. It matches `elementwiseDtype` and `T_` defaults, but a future typed frontend may want absence to be an error.
+- Changed artifacts: for FP32 graphs, kernels are byte-identical (the existing `contraction.mjs` identity assertions still pass). f16/bf16 multiply-add graphs compiled with `allow` change. The qualification bands used `separate`, which is unaffected.
+
+### What should be done in the future
+- A1 (pattern classes with output permutation), then replays of tasks 6, 24 and 185 on fresh copies when the GPU queue is free.
+
+### Code review instructions
+- Start at `packages/kiln/src/std/tensor.js` (`contractFma`), `packages/kiln/src/std/export.js` (`INT32_INDEX_LIMIT`), `scripts/kiln-export.mjs` (`internalCheck`).
+- Validate with `node packages/kiln/test/contraction.mjs`, `node packages/kiln/test/export.mjs` and `python3 -m unittest test_fx_trace` (from `integrations/passnet`).
+
+### Technical details
+- Rounding example: f16 with `x = y = 1+2^-6` and `z = -1`. Unfused: `round16(x*y) = 1+2^-5`, result `2^-5`. Fused: `2^-5 + 2^-12`.
+- Guard messages: `buffer <id> has <n> elements: CUDA index arithmetic is 32-bit (limit 2147483647)` and `kernel <name> launches <n> threads: CUDA thread ids are 32-bit (limit 2147483647)`.
