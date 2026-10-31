@@ -11,13 +11,19 @@ import torch
 TARGETS = {torch.nn.functional.relu, torch.nn.functional.batch_norm,
            torch.nn.functional.dropout, torch.nn.functional.interpolate,
            torch.nn.functional.softmax, torch.nn.functional.gelu,
-           torch.nn.functional.layer_norm}
+           torch.nn.functional.layer_norm, torch.nn.functional.max_pool2d}
 
 # The builtin GELU has no inspectable Python signature. Its public schema has a
 # keyword-only approximation selector; keep that selector in canonical kwargs.
 GELU_SIGNATURE = inspect.Signature([
     inspect.Parameter('input', inspect.Parameter.POSITIONAL_OR_KEYWORD),
     inspect.Parameter('approximate', inspect.Parameter.KEYWORD_ONLY, default='none'),
+])
+MAX_POOL2D_SIGNATURE = inspect.Signature([
+    inspect.Parameter(name, inspect.Parameter.POSITIONAL_OR_KEYWORD, default=default)
+    for name,default in [('input',inspect.Parameter.empty),('kernel_size',inspect.Parameter.empty),
+                         ('stride',None),('padding',0),('dilation',1),
+                         ('ceil_mode',False),('return_indices',False)]
 ])
 
 
@@ -32,7 +38,9 @@ def normalize_arguments(graph_module):
     for node in graph_module.graph.nodes:
         if node.op != 'call_function' or node.target not in TARGETS:
             continue
-        signature = GELU_SIGNATURE if node.target is torch.nn.functional.gelu else inspect.signature(node.target)
+        signature = (GELU_SIGNATURE if node.target is torch.nn.functional.gelu else
+                     MAX_POOL2D_SIGNATURE if node.target is torch.nn.functional.max_pool2d else
+                     inspect.signature(node.target))
         if any(p.kind not in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD, p.KEYWORD_ONLY)
                for p in signature.parameters.values()):
             raise ValueError(f'{node.name}: unsupported signature')

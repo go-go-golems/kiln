@@ -2397,3 +2397,46 @@ Review parallel-port-delta-task-audit-v1.json, task52 benchmark.log, and kiln-co
 
 ### Technical details
 Delta source revision929a375; snapshot SHA256 ecaa01c28bb0f2d10851c8dcf95d0eccf72ecbbef7d1bfaf19db204499c38ad7. The original scorer reported the task scores; no local approximation was substituted.
+
+## Step 207: Diagnose and normalize max-pooling match arguments
+
+A captured task107 TorchDynamo graph contains the same convolution and max_pool2d call targets as the generated source pattern. The pooling call differs structurally: Dynamo uses positional stride/padding/dilation while source FX tracing preserves them as keywords. The existing integration normalizer omitted max_pool2d. Adding its public static signature makes the real captured pattern match the target exactly in a local structural diagnostic. Full PassBench acceptance remains to be measured.
+
+### Prompt Context
+The user requested broad coverage progress and evidence-backed diagnosis after the first batch matched only three of sixteen families.
+**Assistant interpretation:** Find a concrete matcher divergence before modifying the integration protocol.
+**Inferred user intent:** Turn the existing ported kernels into accepted tasks without masking numerical or compiler failures.
+
+### What I did
+- Script592 captured task107's source-derived pattern and TorchDynamo target FX using local PyTorch without executing the convolution. Archived full node arguments in pattern-target-fx-diagnostic-v1.json.
+- Added max_pool2d to the narrow argument-normalization whitelist with an explicit public signature because its boolean_dispatch wrapper has only `*args, **kwargs` under inspect.signature.
+- Script593 recaptured the same graph and applied the existing SubgraphMatcher. It reports one match. Added a regression test that starts with zero matches, normalizes both forms, gets one match, preserves output and rejects a changed stride.
+
+### Why
+Structural matching compares call arguments. The source and target encode the same pooling semantics differently, so the explicit signature is needed to canonicalize both graphs without changing computation or predicates.
+
+### What worked
+- Before: pattern `(conv,3)` with stride/padding/dilation in kwargs; target `(conv,3,2,1,1)` with ceil_mode and return_indices kwargs. Zero matches.
+- After: one exact SubgraphMatcher match on the captured task107 graph. All seven fx_normalize tests pass.
+
+### What didn't work
+- No full GPU PassBench replay has yet used this normalizer change. It may expose a separate numerical or compile failure after matching.
+
+### What I learned
+The no-match class includes a concrete integration protocol omission, not just unsupported operator semantics. A captured target graph is more informative than the source model alone.
+
+### What was tricky to build
+The max_pool2d callable is a boolean_dispatch wrapper, so inspect.signature returns `*args, **kwargs`. Its explicit canonical parameter order must retain stride, padding, dilation, ceil_mode and return_indices.
+
+### What warrants a second pair of eyes
+Confirm the explicit max_pool2d signature against the pinned PyTorch API and observe an original-evaluator task replay before generalizing this result to the other unmatched families.
+
+### What should be done in the future
+- Run task107 end to end from a committed source snapshot.
+- Capture representative graphs for other unmatched families; normalize only proven equivalent call forms.
+
+### Code review instructions
+Compare pattern-target-fx-diagnostic-v1.json and v2.json. Run PYTHONPATH=integrations/passnet python3 -m unittest integrations/passnet/test_fx_normalize.py.
+
+### Technical details
+The local diagnostic used Torch2.11.0+cu130 and the original PassBench matcher utility, without executing a CUDA kernel. The GPU evaluator uses the pinned container's Torch2.12.0 development build, so it requires separate confirmation.

@@ -1,0 +1,72 @@
+{
+  "scope": "Local CPU TorchDynamo structural diagnostic; no numerical benchmark",
+  "torch_version": "2.11.0+cu130",
+  "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0",
+  "pattern": "graph():\n    %in_1 : [num_users=1] = placeholder[target=in_1]\n    %in_0 : [num_users=1] = placeholder[target=in_0]\n    %conv2d : [num_users=1] = call_function[target=torch.conv2d](args = (%in_1, %in_0, None, (2, 2), (3, 3), (1, 1), 1), kwargs = {})\n    %max_pool2d : [num_users=1] = call_function[target=torch.nn.functional.max_pool2d](args = (%conv2d, 3, 2, 1, 1, False, False), kwargs = {})\n    return max_pool2d",
+  "target": "graph():\n    %l_in_1_ : torch.Tensor [num_users=1] = placeholder[target=L_in_1_]\n    %l_in_0_ : torch.Tensor [num_users=1] = placeholder[target=L_in_0_]\n    %conv2d : [num_users=1] = call_function[target=torch.conv2d](args = (%l_in_1_, %l_in_0_, None, (2, 2), (3, 3), (1, 1), 1), kwargs = {})\n    %tmp_3 : [num_users=1] = call_function[target=torch.nn.functional.max_pool2d](args = (%conv2d, 3, 2, 1, 1, False, False), kwargs = {})\n    return (tmp_3,)",
+  "pattern_nodes": [
+    {
+      "op": "placeholder",
+      "target": "in_1",
+      "args": "()",
+      "kwargs": "{}"
+    },
+    {
+      "op": "placeholder",
+      "target": "in_0",
+      "args": "()",
+      "kwargs": "{}"
+    },
+    {
+      "op": "call_function",
+      "target": "<built-in method conv2d of type object at 0x7d1e15145000>",
+      "args": "(in_1, in_0, None, (2, 2), (3, 3), (1, 1), 1)",
+      "kwargs": "{}"
+    },
+    {
+      "op": "call_function",
+      "target": "<function boolean_dispatch.<locals>.fn at 0x7d1dcf434540>",
+      "args": "(conv2d, 3, 2, 1, 1, False, False)",
+      "kwargs": "{}"
+    },
+    {
+      "op": "output",
+      "target": "output",
+      "args": "(max_pool2d,)",
+      "kwargs": "{}"
+    }
+  ],
+  "target_nodes": [
+    {
+      "op": "placeholder",
+      "target": "L_in_1_",
+      "args": "()",
+      "kwargs": "{}"
+    },
+    {
+      "op": "placeholder",
+      "target": "L_in_0_",
+      "args": "()",
+      "kwargs": "{}"
+    },
+    {
+      "op": "call_function",
+      "target": "<built-in method conv2d of type object at 0x7d1e15145000>",
+      "args": "(l_in_1_, l_in_0_, None, (2, 2), (3, 3), (1, 1), 1)",
+      "kwargs": "{}"
+    },
+    {
+      "op": "call_function",
+      "target": "<function boolean_dispatch.<locals>.fn at 0x7d1dcf434540>",
+      "args": "(conv2d, 3, 2, 1, 1, False, False)",
+      "kwargs": "{}"
+    },
+    {
+      "op": "output",
+      "target": "output",
+      "args": "((tmp_3,),)",
+      "kwargs": "{}"
+    }
+  ],
+  "matches": 1
+}
