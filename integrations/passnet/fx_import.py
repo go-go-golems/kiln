@@ -86,8 +86,6 @@ def import_graph(graph):
                 raise ValueError(f'{name}: transpose dimensions must be integers')
             expr = f'N.transpose({args[0]}, {dims[0]}, {dims[1]})'
         elif target == 'torch.conv2d':
-            if meta.get('dtype') != 'torch.float32':
-                raise ValueError(f'{name}: convolution currently requires FP32')
             fields=['input','weight','bias','stride','padding','dilation','groups']
             if len(args)>7 or set(kwargs)-set(fields): raise ValueError(f'{name}: unsupported conv2d arguments')
             bound=dict(zip(fields,args))
@@ -96,8 +94,8 @@ def import_graph(graph):
             options={key:literal(bound.get(key,default)) for key,default in [('stride','1'),('padding','0'),('dilation','1'),('groups','1')]}
             expr=f'N.conv2d({bound["input"]}, {bound["weight"]}, {bound.get("bias","null")}, {json.dumps(options)})'
         elif target == 'torch.nn.functional.interpolate':
-            if meta.get('dtype') != 'torch.float32' or len(args)!=1:
-                raise ValueError(f'{name}: interpolation currently requires FP32 and explicit keyword options')
+            if meta.get('dtype') not in dtype_names or len(args)!=1:
+                raise ValueError(f'{name}: interpolation requires supported floating dtype and explicit keyword options')
             if set(kwargs)-{'size','scale_factor','mode','align_corners','recompute_scale_factor','antialias'}:
                 raise ValueError(f'{name}: unsupported interpolation arguments')
             if kwargs.get('mode')!='"bilinear"' or kwargs.get('align_corners')!='false' or kwargs.get('scale_factor','null')!='null' or kwargs.get('antialias','false')!='false' or kwargs.get('recompute_scale_factor','null') not in ('null','false'):

@@ -2126,3 +2126,46 @@ Original full compiler/importer support and no silent semantic changes requireme
 
 ### Technical details
 - Independent importer implementation; no upstream code copied and no task-coverage increment claimed.
+
+## Step 51: Export actual FP16 third-task candidate
+
+Inspection found the third task has only one variant and it is FP16; there is no FP32 benchmark variant to validate first. Added candidate explicit FP32 internal convolution/interpolation with narrowing at each source operation result, and exported the actual graph. GPU and original evaluator validation remain pending.
+
+### Prompt Context
+Original complete benchmark target; unsupported variants must remain visible.
+**Assistant interpretation:** Implement required reduced precision rather than substitute an easier FP32 benchmark.
+**Inferred user intent:** Faithful real-task support.
+
+### What I did
+- Saved script 32 using actual pinned graph/metadata; initial manifest exposed sole variant as unsupported.
+- Added N.conv2d/resizeBilinear candidate widening/narrowing for FP16/BF16 and importer acceptance; mixed low-precision convolution operands are rejected.
+- Regenerated actual FP16 project and saved script 33 for remote full compiler export in tmux.
+
+### Why
+- Testing a derived FP32 graph cannot establish support for the sole FP16 task variant.
+
+### What worked
+- Actual source graph exported successfully.
+- Existing FP32 convolution and bilinear reference/decomposition tests still pass.
+- Exploratory baseline reached 65 tasks at latest observation.
+
+### What didn't work
+- No new failure yet; candidate precision behavior and full compile remain unverified.
+
+### What I learned
+- Task dtype composition differs; corpus metadata must determine required capability rather than assuming FP32 is always present.
+
+### What was tricky to build
+- Preserve rounding after convolution, residual arithmetic and interpolation independently, rather than narrowing only the final tensor.
+
+### What warrants a second pair of eyes
+- FP32 internal arithmetic is a candidate model of source accumulation, not proven for all backends/shapes. Actual GPU comparison is required.
+
+### What should be done in the future
+- Observe existing compilation handle, validate original FP16 graph on GPU, resolve numerical failures and run isolated original checker/scorer.
+
+### Code review instructions
+- Inspect scripts 32/33, third-task manifest/source, tensor.js wrappers and importer changes.
+
+### Technical details
+- Candidate implementation only; verified coverage remains 2/200 and no GPU correctness claim for new precision path.

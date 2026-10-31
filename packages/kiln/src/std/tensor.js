@@ -225,8 +225,15 @@ T.maximum = (a, b) => T.ew("max", a, b);
 // nn-level conveniences for writing programs: x.add(y), x.matmul(w), x.softmax()
 const nv = (x) => (x instanceof Value ? x : tensor.const({ value: x, shape: [] }));
 export const N = {
-  resizeBilinear: (x,size) => nn.bilinear(x,{size}),
-  conv2d: (x,w,b,options={}) => nn.conv2d(x,w,b || tensor.const({value:0,shape:[w.type.shape[0]]}),options),
+  resizeBilinear: (x,size) => ["f16","bf16"].includes(x.type.dtype)
+    ? N.cast(nn.bilinear(N.cast(x,"f32"),{size}),x.type.dtype) : nn.bilinear(x,{size}),
+  conv2d: (x,w,b,options={}) => {
+    if (["f16","bf16"].includes(x.type.dtype)) {
+      if(w.type.dtype!==x.type.dtype || (b && b.type.dtype!==x.type.dtype)) throw new KilnError("TypeError","conv2d mixed low-precision operands unsupported");
+      return N.cast(nn.conv2d(N.cast(x,"f32"),N.cast(w,"f32"),b ? N.cast(b,"f32") : tensor.const({value:0,shape:[w.type.shape[0]]}),options),x.type.dtype);
+    }
+    return nn.conv2d(x,w,b || tensor.const({value:0,shape:[w.type.shape[0]]}),options);
+  },
   cast: (x, dtype) => nn.cast(x, { dtype }),
   ew: (f, ...xs) => nn.ew(xs.map(nv), { fn: f }),
   add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b), div: (a, b) => N.ew("div", a, b),
