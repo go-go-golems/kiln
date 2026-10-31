@@ -1,0 +1,212 @@
+[
+  {
+    "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15",
+    "artifact": "000.kiln.json",
+    "returncode": 0,
+    "reference_check": {
+      "skipped": "the reference would take ~52793M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          128,
+          1,
+          256,
+          1,
+          784
+        ],
+        "row": "MAP=tiled,BM=128,BN=64,BK=16,TM=8,TN=2",
+        "grid": 3328,
+        "block": 512
+      },
+      {
+        "shape": [
+          128,
+          256,
+          14,
+          14
+        ],
+        "row": "TPB=64,COARSEN=2",
+        "grid": 50176,
+        "block": 64
+      }
+    ]
+  },
+  {
+    "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15",
+    "artifact": "001.kiln.json",
+    "returncode": 0,
+    "reference_check": {
+      "skipped": "the reference would take ~1818M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          1,
+          256,
+          1,
+          2304
+        ],
+        "row": "MAP=tiled,BM=64,BN=32,BK=8,TM=2,TN=2",
+        "grid": 288,
+        "block": 512
+      },
+      {
+        "shape": [
+          1,
+          256,
+          24,
+          24
+        ],
+        "row": "TPB=128",
+        "grid": 1152,
+        "block": 128
+      }
+    ]
+  },
+  {
+    "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15",
+    "artifact": "002.kiln.json",
+    "returncode": 0,
+    "reference_check": {
+      "skipped": "the reference would take ~1818M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          1,
+          256,
+          1,
+          2304
+        ],
+        "row": "MAP=tiled,BM=64,BN=32,BK=8,TM=2,TN=2",
+        "grid": 288,
+        "block": 512
+      },
+      {
+        "shape": [
+          1,
+          256,
+          24,
+          24
+        ],
+        "row": "TPB=128",
+        "grid": 1152,
+        "block": 128
+      }
+    ]
+  },
+  {
+    "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15",
+    "artifact": "003.kiln.json",
+    "returncode": 0,
+    "reference_check": {
+      "skipped": "the reference would take ~539M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          1,
+          256,
+          1,
+          1024
+        ],
+        "row": "MAP=tiled,BM=32,BN=16,BK=8,TN=2",
+        "grid": 512,
+        "block": 256
+      },
+      {
+        "shape": [
+          1,
+          256,
+          16,
+          16
+        ],
+        "row": "TPB=128",
+        "grid": 512,
+        "block": 128
+      }
+    ]
+  },
+  {
+    "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15",
+    "artifact": "004.kiln.json",
+    "returncode": 0,
+    "reference_check": {
+      "skipped": "the reference would take ~19797M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          32,
+          1,
+          256,
+          1,
+          784
+        ],
+        "row": "MAP=tiled,BM=128,BN=64,BK=8,TM=8,TN=2",
+        "grid": 832,
+        "block": 512
+      },
+      {
+        "shape": [
+          32,
+          256,
+          14,
+          14
+        ],
+        "row": "TPB=64,COARSEN=2",
+        "grid": 12544,
+        "block": 64
+      }
+    ]
+  },
+  {
+    "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/timm/densenet121.ra_in1k/_decomposed/densenet121.ra_in1k_start138_end140_15",
+    "artifact": "005.kiln.json",
+    "returncode": 0,
+    "reference_check": {
+      "skipped": "the reference would take ~232721M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          128,
+          1,
+          256,
+          1,
+          2304
+        ],
+        "row": "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "grid": 4608,
+        "block": 1024
+      },
+      {
+        "shape": [
+          128,
+          256,
+          24,
+          24
+        ],
+        "row": "TPB=128,COARSEN=2",
+        "grid": 73728,
+        "block": 128
+      }
+    ]
+  }
+]

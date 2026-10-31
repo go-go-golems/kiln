@@ -1546,3 +1546,59 @@ See Step182 for the authored request and Step189 for the measured optimization t
 ### Technical details
 - No external implementation copied. The transformation is derived from the existing convolution formula and Kiln's batched matmul API.
 - This is a manually authored reusable compiler transformation, informed by measured workload behavior; no new LLM inference occurred in this step.
+
+## Step 191: Measure a 32.73× improvement from pointwise lowering plus staged fusion
+
+The fixed reusable transformation passes original-evaluator matching and nominal t=-5 numerical acceptance on all six development-family graphs. Geometric-mean end-to-end speedup relative to the previous Kiln artifacts is32.730548×, with per-graph gains15.0597×–56.8588×. The largest FP16 graph falls from749.238 ms to14.4792 ms. The original scorer result improves from0.0122771 to0.401718, although eager execution remains faster on every graph.
+
+These are sequential native replay runs on the same observed development family, not fresh-model confirmation or an interleaved paired benchmark. The candidate is opt-in and manually derived from the measured bottleneck; no new agent synthesis or default promotion is claimed.
+
+### Prompt Context
+See Step182 and Step190 for the active implementation/measurement direction.
+**Assistant interpretation:** Complete native correctness and performance evaluation of the reusable pointwise transformation.
+**Inferred user intent:** Obtain concrete compiler gains and preserve their experimental limits.
+**Compiler commit:** 9ef4cd9 — Expose pointwise convolution contractions for staged tiled scheduling.
+
+### What I did
+- Staged the fixed six-graph artifacts and committed compiler/runtime snapshot with scripts488–489.
+- Preserved the initial terminal pass-generation failure, then launched a separate v2 replay using unchanged baseline-generated passes and canonical input bindings.
+- Script490 verified terminal source identity, collected results and invoked the established exact acceptance audit.
+- Script491 extracted native compiled/eager medians and compared all six graphs with the previous baseline artifacts.
+
+### Why
+- The compilation probe established a schedule change but could not establish numerical correctness, matching or real performance.
+- Reusing the existing generated passes keeps graph matching and canonical bindings identical while changing only compiled implementations.
+
+### What worked
+- All six graphs have complete evidence, exactly one replacement and nominal numerical acceptance. No graph was dropped or had its tolerance changed.
+- End-to-end baseline/candidate medians (ms):275.035/4.83716;5.91505/0.241995;5.88131/0.241518;3.18837/0.211716;60.4358/1.2964;749.238/14.4792.
+- Task score:0.012277115545126591 →0.40171779395730883.
+- Candidate source snapshot:f744a61dd0430e7bb5e37a891a2bd00da4c2d9c323130c7bb3ca41343620c037.
+
+### What didn't work
+- v1 stopped before evaluation with ValueError: Preserve existing generated passes/specializations. The copied corpus was already canonicalized and specialized; attempting generation again was incorrect orchestration.
+- v2 reuses the unchanged original passes, whose runtime paths are already /work/results/task-101/corpus. The failure and exact v1 runner are retained in pointwise-pooling-failed-v1.
+- The improved candidate remains1.8–3.6× slower than eager across these examples; it is not a claim of beating PyTorch or reproducing the paper's aggregate results.
+
+### What I learned
+- Existing matrix scheduling and staged fusion can remove a large generic-convolution scheduling cost once the reduction is represented with appropriate axes.
+- The decomposition by itself is insufficient here: normal fusion obscures the contraction again. The measured candidate composes both transformations.
+
+### What was tricky to build
+- Generated pass specializations and compiler artifacts have different lifecycle boundaries. The candidate was compiled from already canonical source scripts; regenerating matchers would risk changing argument order and is deliberately rejected by the existing generator.
+
+### What warrants a second pair of eyes
+- This population was selected after observing a slow family. The result is development evidence, not unbiased workload-wide generalization.
+- Grouped/strided correctness has local semantic tests, while this native family uses the observed pointwise geometry; broader native transfer remains to be evaluated.
+- Sequential comparison is not a controlled interleaved benchmark, even though gains are large on all six graphs.
+
+### What should be done in the future
+- Evaluate the fixed composed transformation on additional relevant families, including native numerical failures, before any default promotion.
+- Expose the verified pointwise primitive to the agent's transformation space and investigate remaining scheduling/low-precision opportunities. Publish a technical milestone report with the unchanged-eager comparison visible.
+
+### Code review instructions
+- Read pointwise-pooling-improvement-v1.json, pointwise-pooling-task-audit-v2.json, both source snapshots and the original scorer outputs. Inspect the failed v1 separately from the completed v2.
+
+### Technical details
+- Six FP32/FP16/BF16 graphs;20 warmups,100 timed trials; separate contraction; NVIDIA GB10 with A100 scheduling proxy and existing CUDA image.
+- Cumulative coverage remains34 complete tasks and375 accepted graphs. This experiment improves an already accepted family's performance; it does not add new supported tasks.
