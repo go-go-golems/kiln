@@ -223,3 +223,9 @@ A separate unit-scale random stress test still fails 67/73728 elements after the
 The importer now accepts tensor methods reshape/view, flatten, permute, contiguous, and explicit floating conversions. Reshape uses the static output shape recorded by FX propagation after verifying literal shape operands. Permutation composes pairwise Kiln transposes. Contiguous materializes the logical tensor value through reshape. Casts use N.cast so FP16/BF16 rounding remains explicit through fusion.
 
 This is value-semantic graph import. External noncontiguous inputs and mutation-dependent alias behavior remain unsupported. Device transfers and dynamic shape operands fail explicitly. Scripts 44/45 export and run a four-output chain; all outputs matched PyTorch CUDA exactly on GB10. These probes do not increase the verified PassBench task count.
+
+## 20. Shared corpus execution and explicit pattern support
+
+Use `integrations/passnet/corpus.py` for task export and compilation, and `check_corpus_cuda.py` for source-model comparisons. The manifest records ordered inputs, graph identity and complete output structure. The recursive checker validates every output, including tuple/list/dict structure, shape and dtype. Design document 04 explains the ownership boundaries and commands. The original numbered scripts remain historical evidence rather than separate production implementations.
+
+Two additional integration protocol components address patterns with explicit in-place operators and multiple outputs. `kiln-pattern-autowrap/1` preserves directly imported operator.iadd during pattern tracing. `kiln-pattern-multi-output/1` reuses the pinned upstream direct backend's tuple-destructuring helper with the standard backend's guarded callable. Neither changes graph arithmetic or removes source/dispatch/numerical checks. These changes must be reported alongside the existing argument-normalization and record_stream policies whenever presenting integration results.

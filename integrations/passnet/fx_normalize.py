@@ -39,3 +39,16 @@ def normalize_arguments(graph_module):
     graph_module.graph.lint()
     graph_module.recompile()
     return changed
+
+
+def trace_pattern(pattern):
+    """Preserve explicit operator.iadd calls in trusted match patterns.
+
+    Ordinary Proxy += falls back to add; autowrapping a directly imported iadd
+    retains the target identity without executing or rewriting the operation.
+    No target graph nodes or evaluator predicates change.
+    """
+    import operator
+    tracer = torch.fx.Tracer(autowrap_functions=(operator.iadd,))
+    graph = tracer.trace(pattern)
+    return torch.fx.GraphModule(tracer.root, graph)

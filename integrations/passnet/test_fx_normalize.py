@@ -45,4 +45,21 @@ class NormalizeTests(unittest.TestCase):
         with self.assertRaises(TypeError): normalize_arguments(model)
         self.assertEqual(str(model.graph),before)
 
+
+
+class PatternTraceTests(unittest.TestCase):
+    def test_explicit_iadd_retained(self):
+        from fx_normalize import trace_pattern
+        graph=trace_pattern(explicit_iadd_pattern)
+        import operator
+        self.assertIn(operator.iadd,[n.target for n in graph.graph.nodes])
+        x,y,z=[torch.randn(2,3) for _ in range(3)]
+        torch.testing.assert_close(graph(x,y,z),(y+z)+x)
+
+# Direct global binding is what FX autowrap intercepts, without module-level
+# torch.fx.wrap registration inside a generated pass.
+from operator import iadd
+def explicit_iadd_pattern(x,y,z):
+    return iadd(y+z,x)
+
 if __name__=='__main__': unittest.main()
