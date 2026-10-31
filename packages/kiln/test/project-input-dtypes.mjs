@@ -17,4 +17,15 @@ for(const dtype of ['f16','bf16']) {
  assert.deepEqual(original,snapshot,'caller data remains unchanged');
  assert.deepEqual(actual.data,Float32Array.from(original,x=>roundToDtype(x,dtype)));
 }
+// Configuring a small reference domain must not allocate an unrelated 1.6 GB input.
+const large=new Project('selective').program(({huge,v})=>({out:huge,variance:v}),{
+ huge:k.tensor([512,256,56,56],'f16'),v:k.tensor([256],'bf16')
+});
+const largeGraph=large.graph();
+const subset=large.inputsFor(largeGraph,{names:['v']});
+assert.deepEqual(Object.keys(subset),['v']);
+assert.equal(subset.v.data.length,256);
+assert.ok(subset.v.data.every(x=>Object.is(x,roundToDtype(x,'bf16'))));
+for(const names of [['missing'],['v','v']])assert.throws(()=>large.inputsFor(largeGraph,{names}),/distinct graph inputs/);
+assert.deepEqual(large.inputsFor(largeGraph,{names:[]}),{});
 console.log('project reference inputs honor low-precision storage without mutating caller data');

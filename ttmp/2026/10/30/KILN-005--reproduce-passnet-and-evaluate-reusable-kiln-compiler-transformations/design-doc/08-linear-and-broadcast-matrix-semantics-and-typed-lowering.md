@@ -109,3 +109,10 @@ The first complete cohort leaves four families (51,60,82,182), comprising 63 var
 The shared reference_domains.py now exposes constraints_for_graph and attach_reference_data. The first follows a source variance placeholder through supported sign-preserving views/casts and assigns a positive reference-only domain using canonical input names. The second configures existing Project.data after obtaining deterministic Project.inputsFor values, replacing only established variance inputs by abs(value)+0.1. Program placeholders and generated runtime arguments remain free. The compiler's check remains enabled. Unknown computed domains produce an explicit reference_domain_diagnostic and retain ordinary validation; they do not falsely establish semantic import failure.
 
 Policy reference-domain export reuses the same source inference and honors source_input_order. Frozen prior corpora are not rewritten. Full Python integration validation passes 65 tests; actual compiler/rerun results remain a separate required gate.
+
+
+## Select synthetic inputs before allocation
+
+The initial attach_reference_data implementation requested every project input before configuring positive variance. On task 182 variant 005 this allocated a [512,256,56,56] tensor even though the ordinary compiler endToEnd work estimate would skip expensive evaluation. The node process aborted with `FATAL ERROR: invalid array length Allocation failed - JavaScript heap out of memory` after roughly 2.4 GB heap use.
+
+Project.inputsFor(g,{names}) now supports validated selective sampling. Source-domain setup requests only established variance names, so values retain the same deterministic seed and dtype rounding as before. Project.data remains partial; ordinary endToEnd generates other inputs only after its existing cost guard. Tests use the exact huge input shape with a small selected variance, proving the unrelated tensor is not sampled. The focused previously aborting program compiles with its normal check policy. A full nine-variant original-evaluator rerun remains necessary for acceptance.

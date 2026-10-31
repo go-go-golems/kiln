@@ -34,7 +34,7 @@ Teacher trajectory generation/student fine-tuning remains a separate expensive r
 
 ## Priority change: start reusable-policy optimization before full corpus support
 
-The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is eight complete tasks containing 84 graphs, with 144 individually passing graphs including partial tasks. Translation succeeds for 984 graphs and 43 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
+The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is eight complete tasks containing 84 graphs, with 149 individually passing graphs including partial tasks. Translation succeeds for 984 graphs and 43 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
 
 The immediate critical path is:
 
@@ -68,3 +68,8 @@ The shared runner has frozen all newly complete families relative to the activat
 ### First matrix cohort result
 
 The 14-task / 151-variant cohort is complete: two additional complete tasks, 68 passing variants, 20 evaluated nonqualifying variants and 63 unexecuted variants from four compiler failures. After overlap accounting, cumulative coverage is 8/200 complete tasks and 144/2060 individually passing graphs. Source eligibility remains 984/43. All four compile-blocked families are retained in a separate 63-variant reference-domain rerun; that result is pending. Guide Section 26 and matrix-cohort-v1-audit.json own the details.
+
+
+### Reference-domain follow-up
+
+The 63-variant rerun yields five more nominally passing graphs from an incomplete six-variant task; cumulative coverage is 8 complete tasks /149 individual graphs. The remaining compiler checks include sparse finite BF16 discrepancies. An eager synthetic allocation bug on a 411-million-element input is fixed through selective Project.inputsFor sampling and tested against the exact program. The complete nine-variant task is pending a separate original-evaluator rerun; no additional acceptance is claimed.

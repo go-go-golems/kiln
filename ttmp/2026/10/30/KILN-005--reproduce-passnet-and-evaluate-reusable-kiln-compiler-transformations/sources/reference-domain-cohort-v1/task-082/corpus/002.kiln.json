@@ -1,0 +1,300 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../reference-domain-cohort-v1/task-082/corpus/002.kiln.js",
+  "sha256": "d95574cdaf5a340db7bc68095c6c35aed14f49a67f3f34ffa631f130d29f69c3"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    128,
+    384
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1000,
+    384
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1000
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    128,
+    384
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    384
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    384
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v6",
+   "buffer": 6,
+   "shape": [
+    384
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v7",
+   "buffer": 7,
+   "shape": [
+    384
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 8,
+   "shape": [
+    128,
+    1000
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 10,
+   "shape": [
+    128,
+    384
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 49152,
+   "bytes": 196608
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 384000,
+   "bytes": 1536000
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 1000,
+   "bytes": 4000
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 49152,
+   "bytes": 196608
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 384,
+   "bytes": 1536
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 384,
+   "bytes": 1536
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 384,
+   "bytes": 1536
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 384,
+   "bytes": 1536
+  },
+  {
+   "id": 8,
+   "dtype": "f32",
+   "elements": 128000,
+   "bytes": 512000
+  },
+  {
+   "id": 9,
+   "dtype": "f32",
+   "elements": 384,
+   "bytes": 1536
+  },
+  {
+   "id": 10,
+   "dtype": "f32",
+   "elements": 49152,
+   "bytes": 196608
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__4qk9rt7inf",
+   "identity": "4qk9rt7inf",
+   "row": "MAP=tiled,BM=16,BN=16,BK=8",
+   "reads": [
+    2,
+    1,
+    0
+   ],
+   "writes": 8,
+   "grid": 504,
+   "block": 256,
+   "smemBytes": 1024,
+   "dispatch": [
+    504,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    1000
+   ],
+   "inShapes": [
+    [
+     1000
+    ],
+    [
+     1000,
+     384
+    ],
+    [
+     128,
+     384
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read> b2: array<f32>;\n@group(0) @binding(3) var<storage, read_write> bout: array<f32>;\nvar<workgroup> sA0: array<f32, 128>;\nvar<workgroup> sB0: array<f32, 128>;\n\n@compute @workgroup_size(256)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 504i) { return; }\n    var v_acc_0_0: f32 = 0.0;\n    var v_tv: f32 = 0.0;\n    var v_g0: f32 = 0.0;\n    var v_g1: f32 = 0.0;\n    var v_a0_0: f32 = 0.0;\n    var v_b0_0: f32 = 0.0;\n    var v_v1_0_0: f32 = 0.0;\n    var v_v2_0_0: f32 = 0.0;\n    var v_v3_0_0: f32 = 0.0;\n    var v_in0_0_0: f32 = 0.0;\n    var v_v0_0_0: f32 = 0.0;\n    var v_v4_0_0: f32 = 0.0;\n    var v_v5_0_0: f32 = 0.0;\n    var n_bz: i32 = 0i;\n    var n_bm: i32 = 0i;\n    var n_bn: i32 = 0i;\n    var n_ty: i32 = 0i;\n    var n_tx: i32 = 0i;\n    var n_rr: i32 = 0i;\n    var n_kq: i32 = 0i;\n    n_bz = (bid / 504i);\n    n_bm = ((bid / 63i) % 8i);\n    n_bn = (bid % 63i);\n    n_ty = (tid / 16i);\n    n_tx = (tid % 16i);\n    v_acc_0_0 = 0.0;\n    for (var n_k0: i32 = 0i; n_k0 < 384i; n_k0 = n_k0 + 8i) {\n        for (var n_la: i32 = tid; n_la < 128i; n_la = n_la + 256i) {\n            n_rr = (n_la / 8i);\n            n_kq = (n_la % 8i);\n            v_tv = 0.0;\n            if ((((16i * n_bm) + n_rr) < 128i) && ((n_k0 + n_kq) < 384i)) {\n                v_g0 = b2[((((6144i * n_bm) + n_k0) + n_kq) + (384i * n_rr))];\n                v_tv = v_g0;\n            }\n            sA0[(n_kq + (8i * n_rr))] = v_tv;\n        }\n        for (var n_lb: i32 = tid; n_lb < 128i; n_lb = n_lb + 256i) {\n            n_rr = (n_lb / 8i);\n            n_kq = (n_lb % 8i);\n            v_tv = 0.0;\n            if ((((16i * n_bn) + n_rr) < 1000i) && ((n_k0 + n_kq) < 384i)) {\n                v_g1 = b1[((((6144i * n_bn) + n_k0) + n_kq) + (384i * n_rr))];\n                v_tv = v_g1;\n            }\n            sB0[((16i * n_kq) + n_rr)] = v_tv;\n        }\n        workgroupBarrier();\n        for (var n_kk: i32 = 0i; n_kk < 8i; n_kk = n_kk + 1i) {\n            if ((n_k0 + n_kk) < 384i) {\n                v_a0_0 = sA0[(n_kk + (8i * n_ty))];\n                v_b0_0 = sB0[((16i * n_kk) + n_tx)];\n                v_v1_0_0 = v_b0_0;\n                v_v2_0_0 = v_a0_0;\n                v_v3_0_0 = (v_v1_0_0 * v_v2_0_0);\n                v_acc_0_0 = (v_acc_0_0 + v_v3_0_0);\n            }\n        }\n        workgroupBarrier();\n    }\n    if ((((16i * n_bm) + n_ty) < 128i) && (((16i * n_bn) + n_tx) < 1000i)) {\n        v_in0_0_0 = b0[((16i * n_bn) + n_tx)];\n        v_v0_0_0 = v_in0_0_0;\n        v_v4_0_0 = (v_v0_0_0 + v_acc_0_0);\n        v_v5_0_0 = v_v4_0_0;\n        bout[((((16000i * n_bm) + (16i * n_bn)) + n_tx) + (1000i * n_ty))] = v_v5_0_0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(256) k_out0__4qk9rt7inf(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float sA0[128];\n    __shared__ float sB0[128];\n    float acc_0_0 = 0.0f, tv = 0.0f, g0 = 0.0f, g1 = 0.0f, a0_0 = 0.0f, b0_0 = 0.0f, v1_0_0 = 0.0f, v2_0_0 = 0.0f, v3_0_0 = 0.0f, in0_0_0 = 0.0f, v0_0_0 = 0.0f, v4_0_0 = 0.0f, v5_0_0 = 0.0f;\n    int bz = 0, bm = 0, bn = 0, ty = 0, tx = 0, rr = 0, kq = 0;\n    bz = (bid / 504);\n    bm = ((bid / 63) % 8);\n    bn = (bid % 63);\n    ty = (tid / 16);\n    tx = (tid % 16);\n    acc_0_0 = 0.0f;\n    for (int k0 = 0; k0 < 384; k0 += 8) {\n        for (int la = tid; la < 128; la += 256) {\n            rr = (la / 8);\n            kq = (la % 8);\n            tv = 0.0f;\n            if (((((16 * bm) + rr) < 128) && ((k0 + kq) < 384))) {\n                g0 = src2[((((6144 * bm) + k0) + kq) + (384 * rr))];\n                tv = g0;\n            }\n            sA0[(kq + (8 * rr))] = tv;\n        }\n        for (int lb = tid; lb < 128; lb += 256) {\n            rr = (lb / 8);\n            kq = (lb % 8);\n            tv = 0.0f;\n            if (((((16 * bn) + rr) < 1000) && ((k0 + kq) < 384))) {\n                g1 = src1[((((6144 * bn) + k0) + kq) + (384 * rr))];\n                tv = g1;\n            }\n            sB0[((16 * kq) + rr)] = tv;\n        }\n        __syncthreads();\n        for (int kk = 0; kk < 8; kk += 1) {\n            if (((k0 + kk) < 384)) {\n                a0_0 = sA0[(kk + (8 * ty))];\n                b0_0 = sB0[((16 * kk) + tx)];\n                v1_0_0 = b0_0;\n                v2_0_0 = a0_0;\n                v3_0_0 = (v1_0_0 * v2_0_0);\n                acc_0_0 = (acc_0_0 + v3_0_0);\n            }\n        }\n        __syncthreads();\n    }\n    if (((((16 * bm) + ty) < 128) && (((16 * bn) + tx) < 1000))) {\n        in0_0_0 = src0[((16 * bn) + tx)];\n        v0_0_0 = in0_0_0;\n        v4_0_0 = (v0_0_0 + acc_0_0);\n        v5_0_0 = v4_0_0;\n        dst[((((16000 * bm) + (16 * bn)) + tx) + (1000 * ty))] = v5_0_0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_reshape_ew__2andn0u6zqn",
+   "identity": "2andn0u6zqn",
+   "row": "TPB=64",
+   "reads": [
+    5
+   ],
+   "writes": 9,
+   "grid": 6,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    6,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    384
+   ],
+   "inShapes": [
+    [
+     384
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 6i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var v_v1: f32 = 0.0;\n    var v_v2: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 384i) {\n        v_in0 = b0[(n_e % 384i)];\n        v_v0 = v_in0;\n        v_v1 = (0.00001 + v_v0);\n        v_v2 = sqrt(v_v1);\n        bout[n_e] = v_v2;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_cast_reshape_ew__2andn0u6zqn(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 384)) {\n        in0 = src0[(e % 384)];\n        v0 = in0;\n        v1 = (0.00001f + v0);\n        v2 = sqrtf(v1);\n        dst[e] = v2;\n    }\n}"
+  },
+  {
+   "name": "k_out1__ua1v5kpyff",
+   "identity": "ua1v5kpyff",
+   "row": "TPB=128",
+   "reads": [
+    7,
+    6,
+    9,
+    4,
+    3
+   ],
+   "writes": 10,
+   "grid": 384,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    384,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    384
+   ],
+   "inShapes": [
+    [
+     384
+    ],
+    [
+     384
+    ],
+    [
+     1,
+     384
+    ],
+    [
+     384
+    ],
+    [
+     128,
+     384
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read> b2: array<f32>;\n@group(0) @binding(3) var<storage, read> b3: array<f32>;\n@group(0) @binding(4) var<storage, read> b4: array<f32>;\n@group(0) @binding(5) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 384i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_v1: f32 = 0.0;\n    var v_v2: f32 = 0.0;\n    var v_in2: f32 = 0.0;\n    var v_v3: f32 = 0.0;\n    var v_in3: f32 = 0.0;\n    var v_v4: f32 = 0.0;\n    var v_in4: f32 = 0.0;\n    var v_v5: f32 = 0.0;\n    var v_v6: f32 = 0.0;\n    var v_v7: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((128i * bid) + tid);\n    if (n_e < 49152i) {\n        v_in0 = b4[((n_e % 384i) + (384i * (n_e / 384i)))];\n        v_v0 = v_in0;\n        v_in1 = b3[((n_e % 384i) % 384i)];\n        v_v1 = v_in1;\n        v_v2 = (v_v0 - v_v1);\n        v_in2 = b2[(n_e % 384i)];\n        v_v3 = (v_v2 / v_in2);\n        v_in3 = b1[((n_e % 384i) % 384i)];\n        v_v4 = v_in3;\n        v_in4 = b0[((n_e % 384i) % 384i)];\n        v_v5 = v_in4;\n        v_v6 = fma(v_v3, v_v4, v_v5);\n        v_v7 = v_v6;\n        bout[((n_e % 384i) + (384i * (n_e / 384i)))] = v_v7;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out1__ua1v5kpyff(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, const float* __restrict__ src4, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, v2 = 0.0f, in2 = 0.0f, v3 = 0.0f, in3 = 0.0f, v4 = 0.0f, in4 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 49152)) {\n        in0 = src4[((e % 384) + (384 * (e / 384)))];\n        v0 = in0;\n        in1 = src3[((e % 384) % 384)];\n        v1 = in1;\n        v2 = (v0 - v1);\n        in2 = src2[(e % 384)];\n        v3 = (v2 / in2);\n        in3 = src1[((e % 384) % 384)];\n        v4 = in3;\n        in4 = src0[((e % 384) % 384)];\n        v5 = in4;\n        v6 = fmaf(v3, v4, v5);\n        v7 = v6;\n        dst[((e % 384) + (384 * (e / 384)))] = v7;\n    }\n}"
+  }
+ ]
+}

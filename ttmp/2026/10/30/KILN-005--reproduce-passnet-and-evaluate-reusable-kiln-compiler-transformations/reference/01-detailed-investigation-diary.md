@@ -4070,3 +4070,58 @@ See Step 89 for the coverage question and earlier instructions to implement miss
 ### Technical details
 - Original frozen remote source snapshot SHA256: c06547a73b7864bc2e6604bac86f3984f843ece2f36584ed6693af16fbda23f2.
 - Reference-only positive transform: abs(value)+0.1; original GPU replay inputs, original scorer p=0/fpdb=0.1 and nominal t=-5 remain unchanged.
+
+
+## Step 93: Qualify reference-domain results and fix eager sampling before the cost guard
+
+The reference-domain rerun is terminal: six graphs are evaluated, five pass nominally, and 57 remain unexecuted after compiler stops. The cumulative ledger now has eight complete tasks and 149 individually accepted graphs. Diagnostics distinguish sparse BF16 discrepancies from a new eager-allocation regression in the reference setup. Selective sampling fixes the exact heap-aborting program without changing variance samples, numerical tolerances or memory limits.
+
+### Prompt Context
+See earlier implementation, architecture consolidation and detailed-diary instructions, plus Step 89 for coverage reporting.
+**Assistant interpretation:** Resolve shared infrastructure failures while preserving numerical rejection and complete task denominators.
+**Inferred user intent:** Obtain reproducible compiler progress and reliable workloads for subsequent reusable transformation experiments.
+**Commit (code):** 2668557 — audited first matrix cohort and shared source-domain setup.
+
+### What I did
+- Collected all four follow-up families and independently audited their 63 variants; saved the complete source snapshot and original score for task 82.
+- Added script 142 to report finite/unequal values and worst differences from compiler frontend-versus-loop checking.
+- Added selective `Project.inputsFor(g,{names})` sampling and used it to initialize variance-only Project.data.
+- Added a regression using the actual huge unrelated input shape and a selected 256-element variance; unknown and duplicate names fail.
+- Saved script 143 to run the Node boundary and recompile the exact formerly aborting source, plus scripts 144–145 to freeze/launch its complete nine-variant task.
+
+### Why
+- The old source-domain setup eagerly sampled every input before endToEnd could apply its existing work estimate. Positive variance needs only small channel vectors; other inputs must retain ordinary allocation order.
+- Sparse numerical differences must be investigated independently rather than hidden by this memory repair.
+
+### What worked
+- All 26 Node test files pass, including selective sampling of the real 411-million-element input graph without allocating that input.
+- Exact formerly aborting task 182 variant 005 compiles normally; the existing end-to-end guard reports its reference would take about 6167M operations and skips it as designed. No no-check flag is used.
+- Full Python integration boundary: 65 tests pass.
+- Task 82 original score: 0.7087369883771111; five of six variants nominally pass, so it remains incomplete. Cumulative coverage: 8/200 complete tasks and 149/2060 individually passing graphs.
+
+### What didn't work
+- Task 51 remaining BF16 check: one bad value of 65536, max absolute difference 0.0001220703125; all values finite.
+- Task 60 remaining check: three bad values of 228096, max absolute difference 0.000244140625; its reduced output matches exactly.
+- Initial task 182 variant 005 aborts with `FATAL ERROR: invalid array length Allocation failed - JavaScript heap out of memory`, after roughly 2.4 GB heap use. Shape [512,256,56,56] contains 411041792 elements. The failing run remains intact.
+- A complete nine-variant original evaluator result is not yet established by the focused compilation probe.
+
+### What I learned
+- Reference-data setup must respect the same cost guard as reference evaluation. An otherwise legitimate domain correction can allocate enormous tensors before the guard if it samples all inputs eagerly.
+
+### What was tricky to build
+- Sampling only named graph inputs preserves the original deterministic random values and dtype rounding for variance. Replacing those values with a different hand-written sampler would have changed the failing numerical cases.
+- Partial Project.data lets ordinary checks sample remaining inputs only if they actually run. The new selector is a general project API, not a per-task compiler override.
+
+### What warrants a second pair of eyes
+- Review selected-name validation, unchanged sampling semantics and the caller allocation boundary. Review BF16 discrepancies in conjunction with fused arithmetic/storage boundaries and the compiler check's fixed tolerance policy.
+
+### What should be done in the future
+- Run all nine variants of task 182 under the original evaluation protocol and audit them.
+- Investigate sparse compiler-reference differences without relaxing original benchmark acceptance; broaden the transformation intervention once a useful workload population is qualified.
+
+### Code review instructions
+- Start with Project.inputsFor, project-input-dtypes.mjs, attach_reference_data, the two numerical diagnostics and selective-reference-validation.log. Script 143 reproduces the exact memory recovery.
+
+### Technical details
+- Follow-up remote source snapshot: e8c0bcac34160dcd1d6437c73de248803127eebaf2809af88fbbe0f50c73a307.
+- The new full-task plan preserves graph-list identity and all nine variants; it changes allocation order only.

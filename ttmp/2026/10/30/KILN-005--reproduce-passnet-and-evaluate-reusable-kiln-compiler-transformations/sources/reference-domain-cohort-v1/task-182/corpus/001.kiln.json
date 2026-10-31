@@ -1,0 +1,194 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../reference-domain-cohort-v1/task-182/corpus/001.kiln.js",
+  "sha256": "3e2e471d62bf3b1208a637ce6b6d12485333447d129d37e4673c926e07e76a80"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    16,
+    256,
+    56,
+    56
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    16,
+    256,
+    1,
+    1
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    256
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    256
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    256
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    256
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 6,
+   "shape": [
+    16,
+    256,
+    56,
+    56
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 12845056,
+   "bytes": 25690112
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 4096,
+   "bytes": 8192
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 256,
+   "bytes": 512
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 256,
+   "bytes": 512
+  },
+  {
+   "id": 4,
+   "dtype": "bf16",
+   "elements": 256,
+   "bytes": 512
+  },
+  {
+   "id": 5,
+   "dtype": "bf16",
+   "elements": 256,
+   "bytes": 512
+  },
+  {
+   "id": 6,
+   "dtype": "bf16",
+   "elements": 12845056,
+   "bytes": 25690112
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_cast_reshape__k45nvyqzos",
+   "identity": "k45nvyqzos",
+   "row": "TPB=64",
+   "reads": [
+    5,
+    4,
+    3,
+    2,
+    0,
+    1
+   ],
+   "writes": 6,
+   "grid": 200704,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65535,
+    4,
+    1
+   ],
+   "shape": [
+    16,
+    256,
+    56,
+    56
+   ],
+   "inShapes": [
+    [
+     256
+    ],
+    [
+     256
+    ],
+    [
+     256
+    ],
+    [
+     256
+    ],
+    [
+     16,
+     256,
+     56,
+     56
+    ],
+    [
+     16,
+     256,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16",
+    "bf16",
+    "bf16",
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_ew_cast_reshape__k45nvyqzos(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, const __nv_bfloat16* __restrict__ src2, const __nv_bfloat16* __restrict__ src3, const __nv_bfloat16* __restrict__ src4, const __nv_bfloat16* __restrict__ src5, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in1 = 0.0f, in2 = 0.0f, v3 = 0.0f, in3 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f, in4 = 0.0f, v9 = 0.0f, in5 = 0.0f, v10 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v4 = 0.0f, v8 = 0.0f, v11 = 0.0f, v12 = 0.0f, v13 = 0.0f, v14 = 0.0f, v15 = 0.0f, v16 = 0.0f, v17 = 0.0f, v18 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 12845056)) {\n        in1 = __bfloat162float(src5[(((e / 3136) % 256) + (256 * (e / 802816)))]);\n        in2 = __bfloat162float(src3[(((e / 3136) % 256) % 256)]);\n        v3 = in2;\n        in3 = __bfloat162float(src2[(((e / 3136) % 256) % 256)]);\n        v5 = in3;\n        v6 = (0.00001f + v5);\n        v7 = sqrtf(v6);\n        in4 = __bfloat162float(src1[(((e / 3136) % 256) % 256)]);\n        v9 = in4;\n        in5 = __bfloat162float(src0[(((e / 3136) % 256) % 256)]);\n        v10 = in5;\n        in0 = __bfloat162float(src4[((((3136 * ((e / 3136) % 256)) + (56 * ((e / 56) % 56))) + (e % 56)) + (802816 * (e / 802816)))]);\n        v0 = (in0 * in1);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        v2 = v1;\n        v4 = (v2 - v3);\n        v8 = (v4 / v7);\n        v11 = fmaf(v8, v9, v10);\n        v12 = __bfloat162float(__float2bfloat16_rn(v11));\n        v13 = __bfloat162float(__float2bfloat16_rn(v12));\n        v14 = v13;\n        v15 = (1.0f / (1.0f + expf(-(v14))));\n        v16 = (v14 * v15);\n        v17 = __bfloat162float(__float2bfloat16_rn(v16));\n        v18 = __bfloat162float(__float2bfloat16_rn(v17));\n        dst[((((3136 * ((e / 3136) % 256)) + (56 * ((e / 56) % 56))) + (e % 56)) + (802816 * (e / 802816)))] = __float2bfloat16_rn(v18);\n    }\n}"
+  }
+ ]
+}

@@ -35,7 +35,8 @@ def attach_reference_data(script, inputs, constraints):
     if not constraints:return script
     if not script.startswith('project('):raise ValueError('Expected generated project script')
     script='const passnetProject = '+script
-    script+='const passnetReferenceInputs = passnetProject.inputsFor(passnetProject.graph());\n'
+    names=list(dict.fromkeys(c['input'] for c in constraints))
+    script+='const passnetReferenceInputs = passnetProject.inputsFor(passnetProject.graph(), {names: '+json.dumps(names)+'});\n'
     for constraint in constraints:
         name=constraint['input']
         if name not in inputs or constraint['kind']!='positive' or constraint['offset']!=0.1:

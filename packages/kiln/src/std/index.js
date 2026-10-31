@@ -62,9 +62,14 @@ export class Project {
     const fn = this._prog;
     return k.trace(this.name, (vals) => fn(vals, { param: paramGet }), spec);
   }
-  inputsFor(g) {
+  inputsFor(g, { names = null } = {}) {
+    const selected = names === null ? null : new Set(names);
+    if (selected && (!Array.isArray(names) || selected.size !== names.length || names.some(name => !g.inputs.some(i => i.name === name)))) {
+      throw new k.KilnError("ProjectError", "reference input names must be distinct graph inputs");
+    }
     const out = {};
     for (const i of g.inputs) {
+      if (selected && !selected.has(i.name)) continue;
       const t = g.nodes.get(i.id).type;
       const d = this._data?.[i.name];
       const value = d !== undefined ? d : t?.kind === "tensor" ? Tensor.random(t.shape || [], { seed: 11 + i.name.length, dist: "uniform" }) : 0;
