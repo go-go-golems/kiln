@@ -1,0 +1,100 @@
+{
+ "format": "kiln-program/1",
+ "name": "typed-arithmetic-f16",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../typed-arithmetic-f16.kiln.js",
+  "sha256": "995a41e566d3a64b5b219bb287c8ff791fab9cb7b95fe8fcb94c6425ef081b40"
+ },
+ "inputs": [
+  {
+   "name": "x",
+   "buffer": 0,
+   "shape": [
+    32
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "y",
+   "buffer": 1,
+   "shape": [
+    32
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out",
+   "buffer": 2,
+   "shape": [
+    32
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 32,
+   "bytes": 64
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 32,
+   "bytes": 64
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 32,
+   "bytes": 64
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew__1wd9jx218me",
+   "identity": "1wd9jx218me",
+   "row": "TPB=1024",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    32
+   ],
+   "inShapes": [
+    [
+     32
+    ],
+    [
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_ew__1wd9jx218me(const __half* __restrict__ src0, const __half* __restrict__ src1, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 32)) {\n        in0 = __half2float(src0[e]);\n        in1 = __half2float(src1[e]);\n        v0 = (in0 + in1);\n        v1 = __half2float(__float2half_rn(v0));\n        v2 = (0.5f * v1);\n        v3 = __half2float(__float2half_rn(v2));\n        dst[e] = __float2half_rn(v3);\n    }\n}"
+  }
+ ]
+}

@@ -1371,3 +1371,46 @@ Original implementation goal and reduced-precision contract from Step 21.
 
 ### Technical details
 - Shapes [2,3] → [3,2], independent test data; no upstream source copied and no general low-precision benchmark support claimed.
+
+## Step 33: Verify typed arithmetic through fusion and GPU execution
+
+Added elementwise dtype inference/reference rounding and explicit low-precision rounding expressions during primitive lowering. Compiled add/multiply chains to one fused kernel for each low-precision dtype; both matched PyTorch exactly on GB10. Saved the user-requested full-goal roadmap in reference/03-project-roadmap.md.
+
+### Prompt Context
+User requests phase/task visibility and continued implementation across complete goal.
+**Assistant interpretation:** Establish actual low-precision arithmetic, keeping full corpus support explicit.
+**Inferred user intent:** See measurable compiler progress and remaining scope.
+
+### What I did
+- Added same-low-dtype elementwise inference, treating lifted scalar literals as weak scalar operands; mixed recognized floating types promote to FP32.
+- Rounded reference outputs and inserted round_f16/round_bf16 in loop expressions so fusion retains boundaries.
+- Saved script 15 and check_typed_arithmetic_cuda.py with compiled artifact evidence.
+
+### Why
+- Merely typing final storage would erase intermediate rounding and change source arithmetic.
+
+### What worked
+- Local typed arithmetic reference test passed.
+- Both full exports passed loop-level checks and compiled to one kernel.
+- CUDA FP16/BF16 add/multiply outputs matched PyTorch exactly on seeded random inputs, with preserved output dtype.
+
+### What didn't work
+- No failures in these tests. Broader promotion rules, reductions, non-floating semantics and importer precision support remain incomplete.
+
+### What I learned
+- Weak scalar identification must survive broadcast views, while tensor-valued FP32 operands remain strong dtype inputs.
+
+### What was tricky to build
+- Rounding must be expressed in the producer expression before fusion, rather than only in emitted stores.
+
+### What warrants a second pair of eyes
+- Reference input generation still does not automatically quantize arbitrary example inputs; typed task constraints and mixed-dtype semantics need explicit tests.
+
+### What should be done in the future
+- Run full regressions and cancellation-sensitive fusion tests, enable importer typed elementwise graphs, then implement genuine task normalization precision.
+
+### Code review instructions
+- Review tensor.js, loop.js, typed-arithmetic.mjs, script 15 and GPU check with archived artifacts.
+
+### Technical details
+- 32-element same-dtype add/multiply with scalar 0.5; exact CUDA comparison is bounded to this test. No full benchmark coverage claim.

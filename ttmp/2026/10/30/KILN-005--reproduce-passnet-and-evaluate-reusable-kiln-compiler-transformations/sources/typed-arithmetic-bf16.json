@@ -1,0 +1,100 @@
+{
+ "format": "kiln-program/1",
+ "name": "typed-arithmetic-bf16",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../typed-arithmetic-bf16.kiln.js",
+  "sha256": "94d1700a8fcded4f030724010ed8edb4dba9584087d40cd961f189acc95af79a"
+ },
+ "inputs": [
+  {
+   "name": "x",
+   "buffer": 0,
+   "shape": [
+    32
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "y",
+   "buffer": 1,
+   "shape": [
+    32
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out",
+   "buffer": 2,
+   "shape": [
+    32
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 32,
+   "bytes": 64
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 32,
+   "bytes": 64
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 32,
+   "bytes": 64
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew__16q40u6bbi",
+   "identity": "16q40u6bbi",
+   "row": "TPB=1024",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    32
+   ],
+   "inShapes": [
+    [
+     32
+    ],
+    [
+     32
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_ew__16q40u6bbi(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 32)) {\n        in0 = __bfloat162float(src0[e]);\n        in1 = __bfloat162float(src1[e]);\n        v0 = (in0 + in1);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        v2 = (0.5f * v1);\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        dst[e] = __float2bfloat16_rn(v3);\n    }\n}"
+  }
+ ]
+}

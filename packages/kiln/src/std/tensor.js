@@ -1,3 +1,4 @@
+import { roundToDtype } from "../core/dtypes.js";
 // The frontend ("Torch IR", dialect nn) and the canonical primitive set ("Tensor IR", dialect tensor),
 // with reference semantics for both and the decomposition and optimization passes between them.
 import { k, P, Value, KilnError, Node } from "../core/kiln.js";
@@ -131,11 +132,27 @@ export function broadcastMap(from, to) {
 }
 
 // ----------------------------------------------------------------------------- dialects
+function weakScalar(value) {
+  if (value.is?.("tensor.const")) return value.type.shape.length === 0 && !value.attrs.data;
+  if (value.is?.("tensor.view")) return weakScalar(value.arg("x"));
+  return false;
+}
+function elementwiseDtype(xs) {
+  const dtypes = [...new Set(xs.filter((x) => !weakScalar(x)).map((x) => x.type.dtype || "f32"))];
+  if (dtypes.length === 1 && ["f16", "bf16"].includes(dtypes[0])) return dtypes[0];
+  return "f32";
+}
+function roundedReference(value, type) {
+  if (["f16", "bf16"].includes(type?.dtype)) {
+    for (let i = 0; i < value.data.length; i++) value.data[i] = roundToDtype(value.data[i], type.dtype);
+  }
+  return value;
+}
 const T_ = (shape, dtype = "f32") => k.tensor(shape, dtype);
 const sameAs = ({ x }) => x.type;
 
 export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like op set, each with reference semantics")
-  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add" }, traits: ["pure"], infer: ({ xs, fn }) => (F(fn), T_(bshape(...xs.map((x) => x.type.shape)))), eval: ({ xs, fn }) => ewRef(fn, xs), print: "{fn}({xs})" })
+  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add" }, traits: ["pure"], infer: ({ xs, fn }) => (F(fn), T_(bshape(...xs.map((x) => x.type.shape)), elementwiseDtype(xs))), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs), type), print: "{fn}({xs})" })
   .op("linear", { args: ["x", "w"], infer: ({ x, w }) => T_([...x.type.shape.slice(0, -1), w.type.shape[0]]), eval: ({ x, w }) => linearRef(x, w), print: "linear({x}, {w})",
     validate: ({ args: [x, w] }) => x.type.shape.at(-1) === w.type.shape[1] || `in_features ${x.type.shape.at(-1)} ≠ weight ${w.type.shape[1]}` })
   .op("matmul", { args: ["a", "b"], infer: ({ a, b }) => T_([...a.type.shape.slice(0, -1), b.type.shape.at(-1)]), eval: ({ a, b }) => matmulRef(a, b), print: "matmul({a}, {b})" })
@@ -153,7 +170,7 @@ export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, redu
   .op("const", { attrs: { value: 0, shape: [], data: null }, traits: ["pure", "any-ir"], infer: ({ shape, data }) => T_(data ? data.shape : shape),
     eval: ({ value, shape, data }) => (data ? data : Tensor.fill(shape, value)),
     print: ({ value, shape, data, name }) => (data ? `${name ? name + " " : ""}data(${data.shape.join("×")})` : shape.length ? `splat ${+(+value).toPrecision(6)} (${shape.join("×")})` : String(+(+value).toPrecision(6))) })
-  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add" }, traits: ["pure"], infer: ({ xs }) => xs[0].type.dtype === "u8" ? T_(xs[0].type.shape) : xs[0].type, eval: ({ xs, fn }) => ewRef(fn, xs),
+  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add" }, traits: ["pure"], infer: ({ xs }) => T_(xs[0].type.shape, elementwiseDtype(xs)), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs), type),
     validate: ({ args }) => args.every((a) => a.type.shape.join() === args[0].type.shape.join()) || "elementwise inputs must share a shape (insert views)", print: "{fn}({xs})" })
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1 }, traits: ["pure"], infer: ({ x, axis }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(s.map((d, i) => (i === a ? 1 : d))); }, eval: ({ x, fn, axis }) => reduceRef(fn, x, axis), print: "{fn}({x}, axis={axis})" })
   .op("view", { args: ["x"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, shape }) => T_(shape, x.type.dtype), eval: ({ x, shape, map }) => viewRef(x, shape, map),

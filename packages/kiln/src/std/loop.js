@@ -291,7 +291,9 @@ export const liftEw = k.rule("lift_elementwise").match(P.op("tensor.ew").as("n")
     if (i < 0) { ins.push(a); i = ins.length - 1; }
     return E.load(i, coords(shape.length).slice(shape.length - a.type.shape.length));
   });
-  return mkKernel(ins, E.op(n.attrs.fn, ...ops), shape, n.attrs.origin, n.type.dtype);
+  let expr = E.op(n.attrs.fn, ...ops);
+  if (["f16", "bf16"].includes(n.type.dtype)) expr = E.op("round_" + n.type.dtype, expr);
+  return mkKernel(ins, expr, shape, n.attrs.origin, n.type.dtype);
 });
 export const liftReduce = k.rule("lift_reduce").match(P.op("tensor.reduce").as("n")).rewrite(({ n }) => {
   const x = n.arg("x"), s = x.type.shape, ax = n.attrs.axis;
