@@ -405,3 +405,54 @@ See Step 159 for the Pi request and Step 165 for the pending external payload ap
 ### Technical details
 - Provider local-fixture/model scripted, one native submit_policy call with ID invalid-1.
 - No compiler speedup, benchmark coverage change or model-quality result follows from this test.
+
+## Step 168: Complete the local Pi round trip and adopt six-lane planning
+
+The complete production owner passed with a local scripted provider: Pi generated a native submission, the real Python ledger and Node validator accepted one artifact, and the process exited cleanly. The user then clarified that LunaRoute token costs are irrelevant and requested six concurrent lanes. Updated the design direction accordingly without conflating that clarification with the pending external payload approval.
+
+### Prompt Context
+**User prompts (verbatim):**
+- "there's no budget need on lunaroue btw, tokens are free."
+- "we can just do 6 concurrent lanes, so that way it's easier for you to test out things."
+**Assistant interpretation:** Avoid cost-driven token constraints and support six independent concurrent proposal experiments.
+**Inferred user intent:** Increase iteration throughput while retaining traceable experiments.
+**Previous commit:** e4875a0 — Verify native Pi accounting order with local scripted inference.
+
+### What I did
+- Added script 449 to exercise the production runner with a scripted local provider and the real policy task.
+- Retained complete owner events, session records, ledger, artifact and terminal verification.
+- Updated design 20 with the verified integration boundary and six-lane architecture.
+
+### Why
+- Full composition can fail even when isolated SDK and RPC tests pass.
+- Concurrent proposal lanes can improve experimental throughput; simultaneous GPU measurements would compromise timing isolation.
+
+### What worked
+- The owner completed in 1376.677119 ms with one request, one consumed proposal slot and one unique accepted artifact.
+- RPC exited with code zero and no signal. Terminal receipt states evaluation_status not_run.
+
+### What didn't work
+- No local failure occurred. External LunaRoute execution remains unstarted after the prior automatic-review rejection.
+- Six-lane orchestration is a design update at this checkpoint, not implemented concurrency.
+
+### What I learned
+- The installed Pi session, accounting hook, inference gate, Python process and real validator compose successfully for the scripted valid-policy path.
+
+### What was tricky to build
+- A local provider must implement the actual SDK stream contract while ensuring no network inference occurs. The fixture implements streamSimple directly.
+
+### What warrants a second pair of eyes
+- This 1.38-second elapsed time is a local fixture measurement, not GLM throughput or GPU speedup.
+- Concurrency requires independent ledger ownership and serialized GPU evaluation.
+
+### What should be done in the future
+- Add six-lane orchestration using the existing owner and revise cost-motivated caps. Preserve declared experimental allowances where needed for comparisons.
+- Resolve external payload approval, then run actual model proposals and evaluate accepted artifacts.
+
+### Code review instructions
+- Inspect script 449, sources/pi-local-full-run-v1/verification.json and the owner event stream.
+- Read design 20's new checkpoint before implementing lane orchestration.
+
+### Technical details
+- The fixture policy is a threshold policy with max_work_growth 0.95, not an LLM discovery.
+- The local run reserved 4096 completion tokens but reported synthetic usage; neither number estimates real inference cost.
