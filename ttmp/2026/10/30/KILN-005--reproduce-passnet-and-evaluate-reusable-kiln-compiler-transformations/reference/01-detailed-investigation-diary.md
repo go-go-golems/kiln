@@ -3623,3 +3623,46 @@ See Step 82 and the standing self-optimization/evidence requirements.
 
 ### Technical details
 - Twelve predeclared candidates; 12 reused adaptive training graphs; eight new exact-model confirmation graphs. No confirmation timing entered selection. Global compiler defaults remain unchanged.
+
+## Step 84: Complete the adaptive study without a performance-selected change
+
+The eight newly reserved confirmation graphs all passed correctness and stable timing using the committed selected baseline. Script 99 independently recomputes structural qualification, training ranking, exact membership and timing checks. No held-out performance is used to rescue an unsuccessful training policy.
+
+### Prompt Context
+See Steps 82–83 and the standing research-evidence requirements.
+**Assistant interpretation:** Finish the declared experiment and retain its negative outcome before changing the intervention or workload pool.
+**Inferred user intent:** Maintain a reproducible route to self-optimization that can report unsuccessful hypotheses honestly.
+**Commit (fixed training selection):** 6d2f422.
+
+### What I did
+- Ran confirmation driver 97; archived heldout.json, summary.json and its raw log.
+- Saved verifier 99, preserving checks for policy declarations, target identity, source/artifact hashes, ranking, complete membership and stable repeat evidence.
+
+### Why
+- The experiment tests a bounded grammar. A negative result constrains that grammar on this training population; it does not justify removing failures or selecting from held-out feedback.
+
+### What worked
+- Eight of eight confirmation executables passed original source replay and stable timing. All 20 graphs across the adaptive study qualified.
+- Selected policy baseline, relative ratio exactly 1.0, zero changed selected confirmation executables.
+- Selection SHA256 a5a0c1adf17e9da448becc100dffcd3b72f3fe60917517470e04df480b713892 remained fixed.
+
+### What didn't work
+- No measured training improvement arose from the fixed 12-program grammar. No confirmation execution failure occurred.
+
+### What I learned
+- Strict fusion decisions can change code yet still lose the end-to-end objective. The near-parity changed conditional candidate is not evidence of improvement, and warm repeated measurements do not establish a global optimality claim.
+
+### What was tricky to build
+- Keep adaptive training reuse explicit while enforcing a new exact-model confirmation set and preserving older held-out studies as historical observations.
+
+### What warrants a second pair of eyes
+- Exact-model disjointness is not architecture-family independence. Baseline-versus-itself ratios provide regression evidence, not transfer of a new compiler policy.
+
+### What should be done in the future
+- Move the next intervention beyond this narrow fusion grammar and expand eligible operator coverage so optimization does not repeatedly target the same small workload population.
+
+### Code review instructions
+- Run script 99 and compare all ranking entries with train.json; inspect the confirmation candidate list and fixed selection commit before assessing summary claims.
+
+### Technical details
+- Corpus v4, artifacts v4, measurements v3. Explicit/default compiler behavior remains unchanged. The direct study adds no accepted PassBench task by itself.
