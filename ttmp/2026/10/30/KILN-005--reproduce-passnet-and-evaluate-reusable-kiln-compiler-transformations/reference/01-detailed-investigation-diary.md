@@ -3487,3 +3487,48 @@ See Steps 78–79, the user's coverage clarification and standing milestone docu
 
 ### Technical details
 - The shared summarizer now uses source-neutral scope text instead of incorrectly asserting every future corpus comes from evaluation tasks or every policy is scalar. Historical saved summaries remain intact. Global compiler default remains 1.02; current accepted Kiln PassBench coverage remains five tasks / 73 graphs.
+
+## Step 81: Publish conditional-policy findings and deliver guide Progress 04
+
+Published the technical follow-up as a new Obsidian article and pushed only that note. Delivered the updated intern guide, design 07 and report 08 together as a distinct reMarkable edition. Earlier reports and annotated device documents remain historical artifacts.
+
+### Prompt Context
+See the standing user instructions for milestone reports, vault commit/push, detailed diaries and intern-guide delivery.
+**Assistant interpretation:** Make the completed negative experiment and reference audit available in the requested reading environments.
+**Inferred user intent:** Preserve reviewable research progress and clear scope distinctions.
+**Commit (evidence and report):** 042f016.
+**Commit (vault):** 929c296.
+
+### What I did
+- Added reference report 08 and a matching new vault ARTICLE note, explaining the interpreter, frozen corpus, exact executable aliases, failed optimization hypotheses and original reference audit.
+- Updated the intern guide's current checkpoint and roadmap; recorded the milestone with docmgr changelog.
+- Uploaded the new guide bundle through remarquee upload bundle without forcing replacement.
+
+### Why
+- The negative result explains how policy expressiveness differs from effective optimization; the completed reference audit explains why execution status cannot stand in for numerical correctness.
+
+### What worked
+- Vault push: `2383314..929c296 main -> main`.
+- Device receipt: `OK: uploaded KILN-005 PassNet Intern Guide Progress 04.pdf -> /ai/2026/10/30/KILN-005`.
+- Script 89 recomputed the fresh study evidence; four policy-related Python tests passed after source-neutral summarizer wording changed.
+
+### What didn't work
+- Git whitespace review flagged trailing spaces in three raw NVIDIA diagnostic log timestamps. Preserved the original captured bytes intentionally; code/doc whitespace validation had no new failure. No publication or upload failure occurred.
+
+### What I learned
+- Training traces identify the immediate limitation more precisely than kernel counts alone: 70 accepted guards and zero rejections explain why relaxed profitability policies do not change these training executables.
+
+### What was tricky to build
+- Explain upstream parser phase classifications alongside explicit raw failure messages without inventing a causal diagnosis for every reference failure.
+
+### What warrants a second pair of eyes
+- Reports must preserve the difference between original Inductor reference acceptance, direct compiler-policy correctness and modified-protocol Kiln PassBench acceptance. Device receipt proves cloud delivery, not physical synchronization.
+
+### What should be done in the future
+- Continue the next synthesis experiment from training opportunities with a prospective confirmation boundary. Full support, controlled performance reproduction and original agent evaluation remain open.
+
+### Code review instructions
+- Read report 08, design 07 and guide Section 23; inspect scripts 85 and 89 and their saved audit/facts files. Compare the report body with the new vault note.
+
+### Technical details
+- The unrelated untracked root sources directory and unrelated vault changes were not staged. The overall project goal remains active; no completion claim is made.

@@ -36,3 +36,11 @@ Completed first reusable fusion-policy pilot: training-selected 1.25, held-out f
 ### Related Files
 
 - /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/reference/07-milestone-report-first-measured-reusable-fusion-policy-improvement.md — Measured policy transfer and limits
+
+## 2026-10-30
+
+Committed bounded feature-policy interpreter and fresh 12/8 study: all 160 compiles passed, training retained baseline and confirmation showed no improvement. Audited original 200-task reference: 2039/2060 variants and 191 complete tasks pass upstream tolerance one; timings exploratory. Published follow-up report and preserved all scripts and evidence.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/reference/08-milestone-report-bounded-fusion-programs-and-a-negative-confirmation-result.md — Conditional policy design and measured negative result
