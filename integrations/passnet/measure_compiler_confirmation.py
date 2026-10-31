@@ -15,8 +15,9 @@ from measure_policy import sample,save
 from runtime import TorchProgram
 
 
-def run(corpus,artifacts,upstream,output,include_paths):
-    corpus=Path(corpus);artifacts=Path(artifacts);upstream=Path(upstream);output=Path(output)
+def run(corpus,artifacts,upstream,output,include_paths,passbench):
+    corpus=Path(corpus);artifacts=Path(artifacts);upstream=Path(upstream);output=Path(output);passbench=Path(passbench)
+    sys.path.insert(0,str(passbench.resolve()))
     if output.exists():raise ValueError('Preserve existing measurements')
     manifest,plan,frozen=verify_freeze(corpus,Path(__file__).resolve().parents[2])
     if plan['candidate_ids']!=list(ROLES) or plan['reference_backend_numerics']!={'float32_matmul_precision':'highest'}:raise ValueError('Unsupported fixed source/reference declaration')
@@ -27,7 +28,7 @@ def run(corpus,artifacts,upstream,output,include_paths):
         if [r['graph'] for r in compiled[role]['records']]!=[r['graph'] for r in manifest['variants']]:raise ValueError('Incomplete artifact graph membership')
         for q in qualification['records'][role]:
             if q and sha(artifacts/role/q['artifact'])!=q['artifact_sha256']:raise ValueError('Artifact changed after qualification')
-    result={'format':'kiln-fixed-compiler-confirmation-measurement/1','status':'running','membership_sha256':manifest['membership_sha256'],'plan':plan,'freeze_sha256':sha(corpus/'confirmation-freeze.json'),'qualification_sha256':sha(artifacts/'pair-qualification.json'),'device':torch.cuda.get_device_name(),'torch':torch.__version__,'records':[]}
+    result={'format':'kiln-fixed-compiler-confirmation-measurement/1','status':'running','membership_sha256':manifest['membership_sha256'],'plan':plan,'freeze_sha256':sha(corpus/'confirmation-freeze.json'),'qualification_sha256':sha(artifacts/'pair-qualification.json'),'device':torch.cuda.get_device_name(),'torch':torch.__version__,'passbench_source_sha256':{name:sha(passbench/name) for name in ['pass_bench/torch/test_compiler.py','pass_bench/torch/utils.py']},'records':[]}
     output.parent.mkdir(parents=True,exist_ok=True);prior=torch.get_float32_matmul_precision()
     try:
         torch.set_float32_matmul_precision('highest')
@@ -96,8 +97,8 @@ def run(corpus,artifacts,upstream,output,include_paths):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    for name in ['corpus','artifacts','upstream','output']:parser.add_argument('--'+name,type=Path,required=True)
+    for name in ['corpus','artifacts','upstream','output','passbench']:parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--include-path',action='append',default=[]);args=parser.parse_args()
-    run(args.corpus,args.artifacts,args.upstream,args.output,args.include_path)
+    run(args.corpus,args.artifacts,args.upstream,args.output,args.include_path,args.passbench)
 
 if __name__=='__main__':main()
