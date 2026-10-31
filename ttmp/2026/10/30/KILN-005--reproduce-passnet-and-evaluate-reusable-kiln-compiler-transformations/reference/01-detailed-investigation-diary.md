@@ -111,3 +111,49 @@ Resolved immutable reference revisions and started the complete dataset download
 
 ### Technical details
 - Dataset receipt is written only after each shard verifies; interrupted partial files are not valid shards.
+
+## Step 3: Verify CUDA execution and document implementation contracts
+
+Wrote the first substantive intern guide against the paper, pinned PassBench README and current Kiln runtime/compiler sources. Verified real CUDA tensor execution in an existing DGX Spark container; this proves execution availability but not PassBench compatibility.
+
+### Prompt Context
+**User prompt (verbatim):** "Don't hesitate to look at pytorch or passnet or research or so if there is something that needs to be ported to kiln, make sure to properly document it though in the diary so we can keep track of where what is coming from"
+**Assistant interpretation:** Consult upstream implementations and research as necessary, preserving exact provenance for every port.
+**Inferred user intent:** Build missing capabilities with an auditable implementation history.
+
+### What I did
+- Archived pinned PassBench and PassAgent READMEs in sources/upstream-readmes.
+- Added guide sections covering graph/task structure, pass module API, corpus materialization, numerical checking, runtime ownership, importer semantics, policy experiments and delivery gates.
+- Ran a CUDA tensor calculation in localhost:5000/playback-redaction:base-26.05 on bling.local.
+
+### Why
+- Executable environment verification resolves the hardware uncertainty before implementation.
+- Design boundaries prevent silent dtype/layout errors and invalid benchmark comparisons.
+
+### What worked
+- Container reported PyTorch 2.12.0a0+5aff3928d8.nv26.05, Triton 3.7.0, CUDA 13.2, NVIDIA GB10, capability (12,1).
+- CUDA arange squared and copied to CPU produced [0,1,4,9,16,25,36,49].
+- Verified mergeLoopOps guard in packages/kiln/src/std/loop.js is now <= was * 1.02.
+
+### What didn't work
+- No new failures; full source and dataset acquisition remain in progress, not complete.
+
+### What I learned
+- Existing usable GPU environment differs materially from paper versions. Record both hardware and software deviations.
+- The pinned README confirms 25 warmups and squared-slowdown prose, requiring reconciliation with paper settings and scorer code.
+
+### What was tricky to build
+- Asynchronous CUDA pointers require tensor lifetime, context and stream ownership; guide identifies these as integration contracts requiring GPU tests.
+
+### What warrants a second pair of eyes
+- Corpus materialization safety, exact ATen semantics, score parameters and benchmark integrity restrictions.
+
+### What should be done in the future
+- Complete source extraction and corpus acquisition; inspect executable evaluator and materialize dataset; implement bridge against genuine tasks.
+- Every port must record upstream URL, revision, path, symbol, license, adaptation and validation evidence. No code has been ported in this step.
+
+### Code review instructions
+- Read design-doc/01-passnet-reproduction-and-kiln-integration-intern-guide.md alongside the archived PassBench README and runtime/python/kiln_launch.py.
+
+### Technical details
+- CUDA smoke test used a disposable docker run --rm --gpus all invocation, with no host Python installation changes.
