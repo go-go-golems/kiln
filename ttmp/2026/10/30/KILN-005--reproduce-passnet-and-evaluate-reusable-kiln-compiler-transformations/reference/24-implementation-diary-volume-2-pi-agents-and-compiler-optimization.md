@@ -2440,3 +2440,50 @@ Compare pattern-target-fx-diagnostic-v1.json and v2.json. Run PYTHONPATH=integra
 
 ### Technical details
 The local diagnostic used Torch2.11.0+cu130 and the original PassBench matcher utility, without executing a CUDA kernel. The GPU evaluator uses the pinned container's Torch2.12.0 development build, so it requires separate confirmation.
+
+## Step 208: Normalize padding and hardtanh pattern forms across nine failed families
+
+A first-graph census of nine no-match families showed three exact structural causes: max_pool2d positional/keyword arguments, hardtanh positional/keyword arguments, and functional pad versus TorchDynamo's `_C._nn.pad` target. After narrow canonicalization, all nine captured first graphs match their source-derived patterns under the original SubgraphMatcher. This is local structural evidence, not complete-family GPU acceptance.
+
+### Prompt Context
+The user asked to move coverage forward in broad batches, preserve scripts and detailed diary evidence, and publish committed research checkpoints.
+**Assistant interpretation:** Diagnose multiple no-match families together before launching additional complete-family evaluation.
+**Inferred user intent:** Improve the PassBench bridge so already implemented operators count in real benchmark results.
+
+### What I did
+- Script598 captured local CPU TorchDynamo target FX for the first graph of eight previously unmatched first-cohort families plus task83 from the delta. Archived pre-normalization and normalized pattern/target graphs.
+- Five of nine still failed structural matching after max-pool normalization. Exact differences were hardtanh argument forms or functional pad versus `_C._nn.pad` calls.
+- Extended the existing narrow normalizer: hardtanh uses its inspectable public signature; pad uses an explicit four-argument signature for both functional and C targets, and canonicalizes the function target to `_C._nn.pad`.
+- Script599 repeated the nine-family census; all nine first graphs now have one SubgraphMatcher match. Added a focused regression test for hardtanh+pad call forms, output preservation, idempotence and mode mismatch. Eight normalizer tests pass.
+
+### Why
+These changes reconcile equivalent captured graph representations without changing tensor operations, dropping predicates or weakening numerical validation. A family-wide evaluator run remains necessary to establish acceptance across all shapes and dtypes.
+
+### What worked
+- Local first-graph matches after normalization:9/9; before padding/hardtanh changes:4/9.
+- Task107 complete-family GPU replay from commit06aacce was launched separately and remained live in evaluate stage at the latest check.
+
+### What didn't work
+- No complete-family acceptance from the new padding/hardtanh normalization is claimed yet. A first-graph census does not cover every variant.
+- Source-derived patterns with in-place hardtanh on placeholders remain rejected at FX import; this matcher change does not solve mutation semantics.
+
+### What I learned
+TorchDynamo may lower a Python functional call to the underlying C call while retaining the same literal arguments. Canonicalizing the identity as well as defaults is required for structural matching in that case.
+
+### What was tricky to build
+- The `torch._C._nn.pad` builtin has no inspectable Python signature; using the explicit functional pad signature validates arguments before graph mutation.
+- The normalizer validates every candidate first, then changes targets and arguments, so an invalid call leaves the graph untouched.
+
+### What warrants a second pair of eyes
+- Verify pad target normalization under the pinned PyTorch2.12 image and all benchmark variants; local Torch2.11 structural matches are only a diagnostic.
+- Inspect the other compiler and numerical failures independently after matching starts.
+
+### What should be done in the future
+- Finish and collect the live task107 max-pool confirmation.
+- Replay representative pad and hardtanh families from this committed source snapshot, then broaden to the full affected cohort if the fix transfers.
+
+### Code review instructions
+Compare failed-fx-pattern-census-v1.json and v2.json. Run the eight fx_normalize tests. Inspect the normalizer's explicit pad signature and target rewrite.
+
+### Technical details
+The local diagnostic used Torch2.11.0+cu130; original PassBench GPU execution remains on the pinned image with Torch2.12.0a0+5aff3928d8.nv26.05. No original evaluator or correctness predicate changed.

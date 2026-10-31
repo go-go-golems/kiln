@@ -6,6 +6,25 @@ from torch.fx.passes.utils.matcher_utils import SubgraphMatcher
 from fx_normalize import normalize_arguments
 
 class NormalizeTests(unittest.TestCase):
+    def test_hardtanh_and_pad_dynamo_call_forms(self):
+        def pattern(x):
+            return torch.nn.functional.pad(torch.nn.functional.hardtanh(x,min_val=0.0,max_val=6.0,inplace=False),(1,1),mode='constant',value=None)
+        pat=symbolic_trace(pattern)
+        graph=Graph();x=graph.placeholder('x')
+        hard=graph.call_function(torch.nn.functional.hardtanh,(x,0.0,6.0,False))
+        pad=graph.call_function(torch._C._nn.pad,(hard,(1,1),'constant',None))
+        graph.output(pad);model=GraphModule({},graph)
+        sample=torch.randn(2,3);original=model(sample)
+        self.assertEqual(len(SubgraphMatcher(pat.graph).match(model.graph)),0)
+        normalize_arguments(pat);normalize_arguments(model)
+        self.assertEqual(len(SubgraphMatcher(pat.graph).match(model.graph)),1)
+        torch.testing.assert_close(model(sample),original,rtol=0,atol=0)
+        self.assertEqual(normalize_arguments(model),[])
+        changed=copy.deepcopy(model)
+        for node in changed.graph.nodes:
+            if node.target is torch._C._nn.pad:node.args=(*node.args[:2],'reflect',None)
+        self.assertEqual(SubgraphMatcher(pat.graph).match(changed.graph),[])
+
     def test_max_pool2d_dynamo_positional_args(self):
         def pattern(x):
             return torch.nn.functional.max_pool2d(x,3,2,1,1,ceil_mode=False,return_indices=False)
