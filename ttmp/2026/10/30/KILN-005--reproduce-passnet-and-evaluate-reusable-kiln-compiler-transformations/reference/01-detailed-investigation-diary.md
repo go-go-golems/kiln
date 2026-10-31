@@ -288,3 +288,48 @@ See Step 3 for source/port provenance requirements.
 
 ### Technical details
 - Source provenance: public PyTorch FX Node/GraphModule/ShapeProp APIs, local runtime 2.11.0+cu130. No upstream source copied or adapted. ATen OpOverload uses its qualified string name.
+
+## Step 7: Implement initial typed FX to Kiln project lowering
+
+Added fx_import.py as the next integration component. It emits Kiln project source for supported FP32 elementwise targets and preserves output container structure separately from flattened program outputs. This checkpoint has CPU structural validation only; no generated script compilation or GPU correctness is claimed yet.
+
+### Prompt Context
+See Step 3 for source provenance and full implementation scope.
+**Assistant interpretation:** Implement semantic translation incrementally, with explicit coverage failures.
+**Inferred user intent:** Build a complete measured compiler integration rather than silently narrow the benchmark.
+
+### What I did
+- Added node reference resolution, duplicate/forward reference diagnostics, static contiguous FP32 input checks and explicit unsupported-target errors.
+- Mapped ReLU, exp, sqrt and selected add/mul/sub/div targets to Kiln N operations.
+- Flattened tensor outputs with a separate tuple/list/dictionary structure manifest.
+- Added tests for ReLU/add broadcasting, nested output structure, dtype rejection and stride rejection.
+
+### Why
+- Emitting source through the existing project/compiler path avoids introducing a second compiler pipeline while preserving a reviewable input artifact.
+
+### What worked
+- python3 -m unittest discover -s integrations/passnet -p 'test_*.py': four tests passed.
+- Full reference benchmark live at three completed tasks during observation.
+- Materializer reached 443,103 records across three shards, zero duplicates at observation.
+- Supported Node and pnpm are available on bling.local.
+
+### What didn't work
+- No new failures; actual Kiln script compilation and CUDA integration validation are pending.
+
+### What I learned
+- FX output tuples and lists must remain distinct through lowering; using one generic sequence representation would change return semantics.
+
+### What was tricky to build
+- Generated variable names use internal indices rather than source identifiers; output containers are represented independently from Kiln's named program outputs.
+
+### What warrants a second pair of eyes
+- Operator-specific kwargs, intermediate type/shape equivalence and full ATen promotion semantics need broader validation before coverage expands.
+
+### What should be done in the future
+- Compile emitted project scripts using supported Node, add batch_norm semantics and CUDA/PyTorch runtime bridge, then validate genuine benchmark tasks including FP16/BF16.
+
+### Code review instructions
+- Review integrations/passnet/fx_import.py and test_fx_import.py alongside packages/kiln/src/std/tensor.js N definitions.
+
+### Technical details
+- Independent implementation against existing Kiln N API; no upstream source copied. Current dtype/layout restrictions are temporary coverage errors, not benchmark filtering policy.
