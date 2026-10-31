@@ -1,0 +1,123 @@
+{
+  "format": "kiln-accumulation-counterfactual/1",
+  "source": "/home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/singleton-view-source-cohort-v1/task-010/corpus/001.kiln.js",
+  "configuration": {
+    "target": "a100",
+    "contraction": "separate",
+    "rtol": 0.001,
+    "atol": 0.0001
+  },
+  "records": [
+    {
+      "mode": "unchanged",
+      "graph": "frontend",
+      "against_loop": {
+        "different": 21,
+        "failed": 2,
+        "max_abs": 0.0010986328125
+      },
+      "changes": []
+    },
+    {
+      "mode": "frontend-conv-fp32",
+      "graph": "frontend",
+      "against_loop": {
+        "different": 0,
+        "failed": 0,
+        "max_abs": 0
+      },
+      "changes": [
+        {
+          "node": "n3",
+          "operation": "nn.conv2d",
+          "shape": [
+            128,
+            1,
+            8,
+            6
+          ],
+          "different": 5670,
+          "failed": 0,
+          "max_abs": 0.0000362396240234375
+        }
+      ]
+    },
+    {
+      "mode": "tensor-softmax-sum-fp32",
+      "graph": "tensor",
+      "against_loop": {
+        "different": 21,
+        "failed": 2,
+        "max_abs": 0.0010986328125
+      },
+      "changes": [
+        {
+          "node": "n34",
+          "operation": "tensor.reduce",
+          "shape": [
+            128,
+            1,
+            1
+          ],
+          "different": 66,
+          "failed": 0,
+          "max_abs": 7.152557373046875e-7
+        }
+      ]
+    },
+    {
+      "mode": "tensor-all-sums-fp32",
+      "graph": "tensor",
+      "against_loop": {
+        "different": 0,
+        "failed": 0,
+        "max_abs": 0
+      },
+      "changes": [
+        {
+          "node": "n19",
+          "operation": "tensor.reduce",
+          "shape": [
+            128,
+            1,
+            8,
+            6,
+            1,
+            1,
+            1
+          ],
+          "different": 5670,
+          "failed": 0,
+          "max_abs": 0.0000362396240234375
+        },
+        {
+          "node": "n34",
+          "operation": "tensor.reduce",
+          "shape": [
+            128,
+            1,
+            1
+          ],
+          "different": 67,
+          "failed": 0,
+          "max_abs": 7.152557373046875e-7
+        }
+      ]
+    }
+  ],
+  "witnesses": [
+    {
+      "index": 1685,
+      "fp64": 11.209155566757545,
+      "fp64_stored_f32": 11.209156036376953,
+      "fp32": 11.209155082702637
+    },
+    {
+      "index": 1696,
+      "fp64": 10.386718338355422,
+      "fp64_stored_f32": 10.38671875,
+      "fp32": 10.386717796325684
+    }
+  ],
+  "limitation": "Diagnostic substitutions only. Not a compiler repair or GPU/PassBench acceptance."
+}

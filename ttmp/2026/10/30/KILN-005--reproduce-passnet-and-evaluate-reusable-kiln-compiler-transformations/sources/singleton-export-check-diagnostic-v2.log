@@ -1,0 +1,372 @@
+{
+  "format": "kiln-singleton-export-diagnostic/1",
+  "source": "/home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/singleton-view-source-cohort-v1/task-010/corpus/001.kiln.js",
+  "e2e": {
+    "level": "loop",
+    "checks": [
+      {
+        "name": "out0",
+        "ok": false,
+        "maxAbs": 0.0010986328125,
+        "maxRel": 0.006907137375244372,
+        "bad": 2,
+        "n": 6144,
+        "first": 1685,
+        "message": "2 of 6144 values differ (first at 1685: 0.361572265625 vs 0.361083984375), max abs diff 1.10e-3"
+      }
+    ],
+    "custom": [],
+    "ok": false
+  },
+  "outputs": [
+    {
+      "name": "out0",
+      "shape": [
+        128,
+        1,
+        48,
+        1
+      ],
+      "different": 21,
+      "failed": 2,
+      "max_abs_error": 0.0010986328125,
+      "examples": [
+        {
+          "index": 1685,
+          "want": 0.361083984375,
+          "got": 0.361572265625,
+          "error": 0.00048828125
+        },
+        {
+          "index": 1696,
+          "want": 0.1590576171875,
+          "got": 0.157958984375,
+          "error": 0.0010986328125
+        }
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "ir": "torch",
+      "outputs": [
+        {
+          "name": "out0",
+          "shape": [
+            128,
+            1,
+            48,
+            1
+          ],
+          "different": 0,
+          "failed": 0,
+          "max_abs_error": 0,
+          "examples": []
+        }
+      ]
+    },
+    {
+      "ir": "tensor",
+      "outputs": [
+        {
+          "name": "out0",
+          "shape": [
+            128,
+            1,
+            48,
+            1
+          ],
+          "different": 0,
+          "failed": 0,
+          "max_abs_error": 0,
+          "examples": []
+        }
+      ]
+    },
+    {
+      "ir": "loop",
+      "outputs": [
+        {
+          "name": "out0",
+          "shape": [
+            128,
+            1,
+            48,
+            1
+          ],
+          "different": 21,
+          "failed": 2,
+          "max_abs_error": 0.0010986328125,
+          "examples": [
+            {
+              "index": 1685,
+              "want": 0.361083984375,
+              "got": 0.361572265625,
+              "error": 0.00048828125
+            },
+            {
+              "index": 1696,
+              "want": 0.1590576171875,
+              "got": 0.157958984375,
+              "error": 0.0010986328125
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ir": "tile",
+      "error": "tile.kernel (n53) has no eval: it can be compiled but not interpreted"
+    },
+    {
+      "ir": "kernel",
+      "error": "kernel.kernel (n53) has no eval: it can be compiled but not interpreted"
+    },
+    {
+      "ir": "gpu",
+      "error": "gpu.kernel (n53) has no eval: it can be compiled but not interpreted"
+    }
+  ],
+  "frontend_nodes": [
+    {
+      "id": "v0",
+      "operation": "kiln.input",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          128,
+          608,
+          8,
+          6
+        ],
+        "dtype": "f16"
+      },
+      "args": []
+    },
+    {
+      "id": "v1",
+      "operation": "kiln.input",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          1,
+          608,
+          1,
+          1
+        ],
+        "dtype": "f16"
+      },
+      "args": []
+    },
+    {
+      "id": "v2",
+      "operation": "kiln.input",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          1
+        ],
+        "dtype": "f16"
+      },
+      "args": []
+    },
+    {
+      "id": "n0",
+      "operation": "nn.cast",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          128,
+          608,
+          8,
+          6
+        ],
+        "dtype": "f32"
+      },
+      "args": [
+        "v0"
+      ]
+    },
+    {
+      "id": "n1",
+      "operation": "nn.cast",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          1,
+          608,
+          1,
+          1
+        ],
+        "dtype": "f32"
+      },
+      "args": [
+        "v1"
+      ]
+    },
+    {
+      "id": "n2",
+      "operation": "tensor.const",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          1
+        ],
+        "dtype": "f32"
+      },
+      "args": []
+    },
+    {
+      "id": "n3",
+      "operation": "nn.conv2d",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          128,
+          1,
+          8,
+          6
+        ],
+        "dtype": "f32"
+      },
+      "args": [
+        "n0",
+        "n1",
+        "n2"
+      ]
+    },
+    {
+      "id": "n4",
+      "operation": "nn.cast",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          128,
+          1,
+          8,
+          6
+        ],
+        "dtype": "f16"
+      },
+      "args": [
+        "n3"
+      ]
+    },
+    {
+      "id": "n5",
+      "operation": "nn.reshape",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "dtype": "f16"
+      },
+      "args": [
+        "v2"
+      ]
+    },
+    {
+      "id": "n6",
+      "operation": "nn.ew",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          128,
+          1,
+          8,
+          6
+        ],
+        "dtype": "f16"
+      },
+      "args": [
+        "n4",
+        "n5"
+      ]
+    },
+    {
+      "id": "n7",
+      "operation": "nn.reshape",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          128,
+          1,
+          48
+        ],
+        "dtype": "f16"
+      },
+      "args": [
+        "n6"
+      ]
+    },
+    {
+      "id": "n8",
+      "operation": "nn.cast",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          128,
+          1,
+          48
+        ],
+        "dtype": "f32"
+      },
+      "args": [
+        "n7"
+      ]
+    },
+    {
+      "id": "n9",
+      "operation": "nn.softmax",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          128,
+          1,
+          48
+        ],
+        "dtype": "f32"
+      },
+      "args": [
+        "n8"
+      ]
+    },
+    {
+      "id": "n10",
+      "operation": "nn.cast",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          128,
+          1,
+          48
+        ],
+        "dtype": "f16"
+      },
+      "args": [
+        "n9"
+      ]
+    },
+    {
+      "id": "n11",
+      "operation": "nn.reshape",
+      "type": {
+        "kind": "tensor",
+        "shape": [
+          128,
+          1,
+          48,
+          1
+        ],
+        "dtype": "f16"
+      },
+      "args": [
+        "n10"
+      ]
+    }
+  ]
+}

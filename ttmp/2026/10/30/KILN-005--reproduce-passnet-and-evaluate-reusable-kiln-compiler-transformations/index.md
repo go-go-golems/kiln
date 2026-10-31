@@ -32,7 +32,8 @@ Reproduce the original PassNet experiment independently, then evaluate Kiln-gene
 - [Project phases and current completion gates](reference/03-project-roadmap.md)
 - [Intern architecture and implementation guide](design-doc/01-passnet-reproduction-and-kiln-integration-intern-guide.md)
 - [Detailed chronological diary](reference/01-detailed-investigation-diary.md)
-- [Latest compiler improvement and qualification report](reference/17-milestone-report-singleton-reshape-maps-and-measured-contraction-speedup.md)
+- [Latest qualification and original-agent audit report](reference/21-singleton-view-qualification-and-audited-original-agent-failure.md)
+- [Current convolution numerical investigation](design-doc/19-convolution-accumulation-precision-and-protected-export-failure.md)
 - [Softmax source contracts and qualification](design-doc/14-softmax-source-contracts-and-complete-family-qualification.md)
 - [Cumulative original-evaluator coverage ledger](sources/kiln-coverage.json)
 - Source papers, dataset receipts, archived references and experiment evidence: `sources/`.

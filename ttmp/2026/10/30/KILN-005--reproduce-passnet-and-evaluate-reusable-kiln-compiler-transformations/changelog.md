@@ -138,3 +138,7 @@ Completed singleton cohort audit:31 tasks/358 graphs cumulative nominal acceptan
 ## 2026-10-31
 
 Published and pushed2762-word reference21 to go-go-parc in ef4b0d8; verified remote main and exact report-body identity. Compiler a040057, source/evidence584e341; complete goal remains active (diary147).
+
+## 2026-10-31
+
+Isolated task10 export failure to convolution accumulation; native CUDA FP16 matches retained frontend row, so no oracle/tolerance change. Preserved scripts415–419, witness/results and design19; coverage remains31/358 (diary148).

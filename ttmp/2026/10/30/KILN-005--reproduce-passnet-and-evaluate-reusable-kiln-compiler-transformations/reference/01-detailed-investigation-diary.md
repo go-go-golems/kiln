@@ -6877,3 +6877,71 @@ See the standing authored request for detailed textbook-style milestone reports 
 ### Technical details
 - New note: Projects/2026/10/31/ARTICLE - Kiln - Singleton View Contracts and Audited Agent Failure.md.
 - Worktree research/passnet; endpoint manuel@bling with HostKeyAlias=bling.local, supplied IP192.168.0.65. Both named qualification sessions and the original agent session are terminal.
+
+## Step 148: Isolate convolution accumulation before changing numerical contracts
+
+The protected task10 export failure is traced to convolution accumulation on its deterministic input. Replacing only the frontend convolution's double accumulation with sequential FP32 arithmetic makes all6144 outputs match the loop interpreter; changing only softmax accumulation leaves both failures. This is a diagnostic substitution, not a production repair.
+
+Native PyTorch CUDA FP16 on one retained complete softmax row matches the existing frontend exactly and differs from the loop at the same two failing values. That result argues against changing the reference merely to clear the export gate. Full original-shape execution remains necessary; this probe uses one batch instead of128. Coverage stays31 complete tasks/358 individually accepted graphs. No compiler semantics, tolerances, coverage ledger or benchmark results change.
+
+### Prompt Context
+**User prompt (verbatim):** "you can also just manuel@bling"
+**Assistant interpretation:** Use the shorter authorized DGX SSH endpoint and continue the active compiler investigation.
+**Inferred user intent:** Keep workloads moving on the available GPU while preserving the earlier requirements for source provenance, detailed diaries, retained scripts and appropriate commits.
+See earlier entries for the standing implementation, consolidation, self-optimization and documentation requests.
+**Starting revision:** e699113 — verified singleton milestone publication; compiler source used by the preceding qualification remains a040057.
+
+### What I did
+- Verified `ssh -o BatchMode=yes -o ConnectTimeout=10 -o HostKeyAlias=bling.local manuel@bling` reaches host bling, reports NVIDIA GB10 and only the existing kiln002-registry Docker container.
+- Retained script415 and its local stage-by-stage discrepancy receipt, including the initial path failure and successful retry log.
+- Added script416 for four controlled arithmetic substitutions using the existing evaluator callback. It preserves registered implementations and records every changed node.
+- Added script417 to preserve a complete deterministic input row and script418 to execute independent native CPU/CUDA probes in the pinned evaluation image.
+- Added design19 with numerical boundaries, measured results, batch-shape/dtype limitations, rejected oracle changes and a concrete reduction-strategy implementation sequence.
+- Added script419 to verify controlled substitutions, retained witness shape/hash, native raw-log/receipt identity and exact CUDA FP16/frontend equality. Node syntax checks for415–417, script419 and git diff --check pass.
+- Used the diary and docmgr skills for this investigation checkpoint. No upstream implementation was copied or ported.
+
+### Why
+- The33-variant family is blocked before original evaluation, so its export discrepancy needs an arithmetic diagnosis before a compiler change.
+- Agreement between two internal interpreters is insufficient to select an oracle. Independent native execution helps distinguish a reference mismatch from an externally relevant numerical failure.
+- The existing low-precision convolution bias/cast boundary is intentional and covered by native fixtures; moving it would change semantics.
+
+### What worked
+- Frontend and tensor references agree exactly. The loop differs at21/6144 final values, two outside unchanged export thresholds; maximum absolute difference0.0010986328125.
+- FP32 convolution substitution changes5670 intermediate values but yields zero final differences from loop. All tensor add reductions substituted with FP32 also yield zero differences. Softmax-only substitution leaves21 differences/two failures.
+- CUDA FP16 on retained batch35 yields48 outputs exactly equal to frontend. CPU FP16 fails two against frontend, showing why CPU-only replay is insufficient here.
+- Retained witness SHA256 is daf0ebf62b22502a7027d5896d3b46778deb44c0d70fc297bb3d1573a9e02bc3; remote receipt checks its byte identity.
+- The probe uses the pinned CUDA13.2/PyTorch2.12 development image and explicitly disables TF32. It creates an isolated source diagnostic directory and does not mutate the shared compiler.
+
+### What didn't work
+- The initial `node .../scripts/415-diagnose-singleton-export-check.mjs` invocation failed with `MODULE_NOT_FOUND` because the newly authored file was first placed in the repository scripts directory. The file was moved into the ticket scripts directory; the retry completed. Both logs remain in sources.
+- Two read-only inspection commands named nonexistent paths (`402-run-singleton-view-source-cohort.sh` and `runtime/test/check_convolution_cuda.py`); actual files are ticket script402-run-singleton-qualification.sh and integrations/passnet/check_convolution_cuda.py. No production action depended on these failed reads.
+- The export failure is not repaired. Native FP32/FP64 dtype controls are distinct programs, and the batch1 CUDA result does not establish the batch128 algorithm's behavior.
+- Tasks88/95 retain their prior evaluated numerical failures. No result here qualifies any of the33 unexecuted variants or resolves the old60/63 native suite status.
+
+### What I learned
+- A small convolution accumulator error can cross an FP16 midpoint before softmax. At index1696, the frontend FP32 store is10.38671875 while sequential FP32 accumulation is10.386717796325684.
+- The midpoint lies exactly between FP16 values10.3828125 and10.390625. Both accumulation precision and intermediate FP32-to-FP16 rounding boundaries matter.
+- Blindly making tensor/frontend reductions match loop registers could hide a discrepancy with native CUDA rather than improve correctness.
+
+### What was tricky to build
+- Controlled substitutions must be applied after node evaluation but before dependent nodes execute. The existing onNode hook provides that boundary without replacing global evaluator functions.
+- The tensor graph has decomposed convolution reductions rather than an nn.conv2d node. The diagnostic separates frontend convolution substitution, tensor softmax-only substitution and all tensor add reductions.
+- The retained input preserves every channel and spatial position needed for one softmax row. Its smaller batch dimension is explicit because native convolution algorithms may depend on the complete geometry.
+
+### What warrants a second pair of eyes
+- Review the native shape limitation before inferring a full-family repair. Check original bias/cast semantics and numerical comparison anchors.
+- Review any proposed reduction strategy for reference/emitter agreement, reassociation, contraction, final rounding and backend support. An extra accumulator state should belong to shared reduction machinery.
+
+### What should be done in the future
+- Confirm native arithmetic at full original geometry, then implement and qualify a reusable accumulation strategy under the existing numerical gates.
+- Replay all33 retained family variants after a real fix, investigate the two other families independently and advance agent-generated native transformation synthesis through the established policy harness.
+- Keep full200 support and controlled release measurements active. Updated reMarkable delivery remains pending the earlier explicit approval request; no retry is attempted.
+
+### Code review instructions
+- Start with design19 and singleton-accumulation-counterfactual-v1.json, then compare singleton-native-precision-v1.json against the exact witness bytes.
+- Reproduce scripts415–417 using Node26 from the worktree; script418 requires the authorized DGX endpoint and pinned image.
+- Inspect conv2dReference, reduceRef, FLOAT32_REDUCERS and the existing low-precision bias fixture. Production source changes are intentionally absent from this checkpoint.
+
+### Technical details
+- Local targeta100/contraction separate; export comparison atol1e-4, rtol1e-3. Native image222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba, PyTorch2.12.0a0+5aff3928d8.nv26.05, NVIDIA GB10.
+- Remote diagnostic directory: /home/manuel/passnet-kiln/KILN-005/sources/singleton-precision-diagnostic-v1. Compiler and benchmark source trees remain unchanged throughout.
