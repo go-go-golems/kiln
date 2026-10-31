@@ -3232,3 +3232,45 @@ Read scripts641–642, the structural staging receipt, both task plans, and `eva
 
 ### Technical details
 The staging receipt format is `kiln-task-plan-gpu-staging/1`. Its full file-hash snapshot and plan hash are retained in the ticket. The generic runner uses pinned image `sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba`, with the frozen plan's target A100, separate contraction, internal synthetic check bypass and PassBench t=-5 setting. The stage command does not launch tmux or use the GPU.
+
+## Step 226: Queue the two newly covered cohorts behind the frozen GPU study
+
+The five-family scalar/layout and three-family stack/unbind cohorts are both staged. I committed and launched a tmux queue on bling that waits for the uniform111-task qualification to finish and verifies its three task bands before running either new cohort. At this checkpoint both tmux sessions are live, the queue is waiting, and neither new `results/run.json` exists.
+
+### Prompt Context
+**User prompt:** The active project goal requests implementation and measurement for PassNet/Kiln, and Step222 requests broad coverage progress.
+**Assistant interpretation:** Arrange the already prepared external correctness runs to execute serially after the active timed study, while preserving their frozen source snapshots.
+**Inferred user intent:** Obtain verified coverage results without waiting for another manual launch turn or contaminating GPU timing.
+
+### What I did
+- Added and syntax-checked `scripts/643-queue-breadth-replays.sh`; its SHA256 is `83639e0c4f5ef4cebb4371ff72a84491046f8b1ece935d82d3780ccdc4af7b0f`. Committed it as `103fa89` before remote copying.
+- Copied the exact committed script to `/home/manuel/passnet-kiln/KILN-005/sources/breadth-replays-v1/queue.sh` and verified the same SHA256 on bling.
+- Started tmux session `kiln-breadth-replays-v1`. It waits for `kiln-uniform-importable-v1` to end, verifies `pending-ordinary`56, `pending-large`2 and `regression`53 records with `status=complete`, then runs the scalar five-family cohort and checks its five records before running the structural three-family cohort. Each run uses its staged `run.sh` and own owner log.
+- Rechecked remote sessions and result paths: uniform tmux live, queue tmux live, scalar and structural `results/run.json` absent. The uniform log had reached task109 evaluation at that observation.
+
+### Why
+The current timed study and the two new replays share one GPU. Serial scheduling preserves each study's latency conditions and removes launch latency after the prior run completes. A completed process alone is insufficient; the queue verifies all111 planned task records before starting another workload.
+
+### What worked
+Remote script hash matched the local committed file. Both tmux sessions were live, and no staged replay had started early. The queue's first launch remains conditional on complete uniform-run accounting.
+
+### What didn't work
+No failure observed. The queued jobs have not executed yet, so no new external correctness or score result is claimed.
+
+### What I learned
+The two new coverage batches can be measured under separate immutable snapshots after the uniform study without conflating their denominators. The queue's terminal checks retain phase failures as recorded task outcomes; numerical acceptance still requires the later audit.
+
+### What was tricky to build
+The queue must distinguish tmux session termination from successful full accounting. It waits for the session to end, then checks all three `run.json` files before starting scalar replay. It similarly checks the scalar run's status and five records before starting structural replay.
+
+### What warrants a second pair of eyes
+Review the queue's status checks after the uniform run ends and inspect each cohort's external match/numerical audit. A `status=complete` run can contain phase failures or incorrect graphs; it is not an acceptance claim.
+
+### What should be done in the future
+Collect and audit the uniform111-task results as soon as the first tmux session ends. Then audit the five-family and three-family replays separately. If the queue exits because the uniform run is incomplete, inspect the terminal cause before restarting any GPU work.
+
+### Code review instructions
+Read script643, the queue receipt, scripts625/634/642, all three task plans and `evaluate_tasks.py`. Check the remote tmux sessions and individual `run.json` files, not a lock or stale log alone.
+
+### Technical details
+The queue's owner log is `/home/manuel/passnet-kiln/KILN-005/sources/breadth-replays-v1/owner.log`. The uniform session was still active when the queue was launched; neither later `results/run.json` existed. The queue uses `sg docker -c` for the two evaluation runners and does not run a second timed job while uniform tmux exists.
