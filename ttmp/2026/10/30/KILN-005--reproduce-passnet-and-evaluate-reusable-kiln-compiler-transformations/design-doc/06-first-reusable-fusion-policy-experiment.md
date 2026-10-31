@@ -58,3 +58,9 @@ Held-out timing is unavailable to candidate selection. The held-out runner requi
 3. Training selection is recorded before held-out timing starts.
 4. Held-out result reports correctness, timing, artifact changes, family weighting and limitations without tuning on that result.
 5. A later policy/program experiment extends this harness; a threshold sweep alone is not a new rewriting algorithm or completed recursive compiler improvement.
+
+## Completed pilot outcome
+
+Training selected maxWorkGrowth=1.25 with family-balanced end-to-end score 1.1174679569686872 relative to unchanged Kiln. Selection was committed as 575effd before held-out timing. All seven held-out graphs qualified; the family-balanced held-out score is 1.0186065904267643 (stream elapsed 1.0203162784302078). Only one held-out RepViT graph changes, from three kernels to two, with e2e ratio 1.158915720454182 and three paired repeat ratios 1.1523/1.1595/1.1546. The other six executables are identical and share measurement evidence.
+
+Post-selection domain-valid random-input stress passed 60/60 comparisons across both compilers, ten graphs and three seeds, maximum output error 3.814697265625e-06. The global default remains 1.02. This is a narrow, curated FP32 tuning result; generated policies, broad confirmation and PassAgent comparisons remain future work. The complete evidence is under sources/policy-measurements-v1; scripts 77/79 verify exact accounting.

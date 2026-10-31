@@ -26,7 +26,7 @@ The target is evaluation across all 200 PassBench tasks and 2,060 variants with 
 | Full benchmark integration | Pending | Every task/variant accounted for with integrity/correctness/scoring |
 | Controlled measurements | Pending | Isolated timing, stability checks, provenance and complete comparisons |
 | Original PassAgent | Pending | Recorded model/budget/trajectories on declared task set |
-| Kiln meta-optimization | Pending | Fixed train/held-out split, reusable policies/passes and measured generalization |
+| Kiln meta-optimization | Initial FP32 threshold study qualified; generated policies pending | Fixed train/held-out split, reusable policies/passes and measured generalization |
 | Reports and delivery | Ongoing | Milestone vault reports committed/pushed and updated guide editions |
 | Completion audit | Pending | Requirement-by-requirement current-state evidence |
 
@@ -45,4 +45,4 @@ The immediate critical path is:
 5. Search policies only on training graphs, select one policy and evaluate it unchanged on held-out graphs. Report correctness failures and compile-cost changes.
 6. Extend the same harness to generated reusable policies and transformation programs; use original PassBench for external comparisons.
 
-The existing default is fused work <= 1.02 × original work. No learned policy, held-out improvement or agent comparison has been measured yet. Direct FX-to-Kiln experiments avoid the per-task matcher-authoring step, but are separate from PassBench acceptance and scores. Unrelated missing operator implementation is deferred while this path is built.
+The existing default is fused work <= 1.02 × original work. An initial scalar-threshold study now selects 1.25 and measures 1.0186x family-balanced held-out e2e speedup on seven FP32 development graphs; only one held-out executable changes. No generated decision program, new rewrite algorithm or agent comparison has been measured yet. Direct FX-to-Kiln experiments avoid the per-task matcher-authoring step, but are separate from PassBench acceptance and scores. Unrelated missing operator implementation is deferred while this path is built.

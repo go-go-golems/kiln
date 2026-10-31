@@ -3254,3 +3254,50 @@ See the prioritized self-optimization objective in Step 71 and frozen protocol i
 
 ### Technical details
 - Three training graphs across two families; 20 warmups, 100 trials, three repeats and IQR gate retained. Compile-cost coefficient is zero. This is scalar policy tuning, not a newly synthesized rewriting algorithm or completed recursive compiler improvement.
+
+## Step 76: Measure selected-policy transfer and complete numerical stress
+
+The committed 1.25 policy passed all seven held-out graph evaluations and measured family-balanced end-to-end speedup 1.0186065904267643 relative to unchanged Kiln. One RepViT graph changed from three kernels to two, with speedup 1.158915720454182; the other six artifacts were identical. Post-selection numerical stress passed all 60 graph/policy/seed comparisons. This qualifies a small reusable scalar-policy tuning milestone, not a new rewriting algorithm or broad benchmark completion.
+
+### Prompt Context
+See the self-optimization priority in Step 71 and frozen experiment in Steps 74–75.
+**Assistant interpretation:** Evaluate the training-selected compiler policy unchanged, then verify it on nontrivial domain-valid inputs without retuning on held-out results.
+**Inferred user intent:** Establish evidence of transfer before claiming compiler improvement.
+**Commit (selection fixed before held-out timing):** 575effd.
+
+### What I did
+- Saved driver 76 with selection-file SHA256 verification and GPU isolation.
+- Added summarize_policy.py with frozen membership checksum, exact train/held-out graph accounting and enforcement of baseline-plus-selected-only held-out evaluation.
+- Saved scripts 77–79 for summary reproduction, numerical stress and final evidence audit.
+- Ran selected and unchanged programs on random FP32 inputs for seeds 1,7,42, satisfying source-derived running-variance domains; retained all comparisons.
+
+### Why
+- Benchmark replay inputs may not expose numerical differences introduced by a changed fusion boundary. The selected policy must remain fixed during these follow-up checks.
+
+### What worked
+- All seven held-out graphs qualified; family-balanced synchronized e2e speedup 1.0186065904267643 and stream-elapsed speedup 1.0203162784302078.
+- Changed RepViT graph: 0.0362335 ms -> 0.031265 ms, three kernels -> two. Paired repeat e2e ratios: 1.152337499801974, 1.1595091042913375, 1.1545818007356468.
+- The changed graph's within-repeat IQR fractions were approximately 0.9–1.4%, below the frozen 20% gate.
+- All 60 numerical stress comparisons passed; maximum output error 3.814697265625e-06.
+- Reference container was verified running/unpaused after both held-out and stress drivers exited.
+
+### What didn't work
+- No failure in the completed held-out or stress run. Only one held-out artifact changed, so the result is narrow transfer evidence and not seven independent speedup demonstrations.
+
+### What I learned
+- A reusable profitability threshold can transfer from LINKX inference normalization to a different RepViT residual/mean/normalization pattern on GB10. The gain is consistent with eliminating a launch/intermediate while accepting more weighted work; separate cost contributions were not isolated.
+
+### What was tricky to build
+- Keep numerical robustness checks separate from policy selection and preserve exact artifact aliases. Six unchanged held-out programs share baseline timing evidence rather than introducing independent noise.
+
+### What warrants a second pair of eyes
+- Curated applicability set from evaluation tasks, FP32 only, one device, three warm repeats, and a single changed held-out program limit generality. No formal confidence interval or untouched paper-benchmark claim is justified.
+
+### What should be done in the future
+- Publish the bounded milestone, retain 1.02 global default, then extend to generated feature-dependent policies on a new reserved confirmation corpus and compare equal search budgets.
+
+### Code review instructions
+- Inspect frozen selection commit, heldout.json, stress.json, summary.json and verified-facts.json. Run scripts 77 and 79 to reproduce accounting.
+
+### Technical details
+- Direct compiler-policy study, not official PassBench scoring. Verified PassBench coverage remains 5 tasks / 73 graphs; these selected FP32 experiments do not add complete benchmark tasks. Default 1.02 is unchanged and the selected 1.25 policy is explicit through createFusionRule.
