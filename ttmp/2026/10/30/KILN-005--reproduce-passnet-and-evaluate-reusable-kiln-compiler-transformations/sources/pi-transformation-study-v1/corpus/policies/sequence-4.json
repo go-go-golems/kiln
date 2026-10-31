@@ -1,0 +1,32 @@
+{
+  "cleanup": {
+    "format": "kiln-fusion-policy/1",
+    "id": "cleanup",
+    "kind": "threshold",
+    "max_work_growth": 1.02
+  },
+  "expose": {
+    "consumer_tree": {
+      "threshold": 2
+    },
+    "format": "kiln-fusion-policy/1",
+    "id": "expose",
+    "kind": "selective",
+    "tree": {
+      "else": {
+        "threshold": 1
+      },
+      "if": {
+        "feature": "producerElements",
+        "op": "gt",
+        "value": 8192
+      },
+      "then": {
+        "threshold": 1.05
+      }
+    }
+  },
+  "format": "kiln-transformation-program/1",
+  "id": "sequence-4",
+  "kind": "fusion-sequence"
+}

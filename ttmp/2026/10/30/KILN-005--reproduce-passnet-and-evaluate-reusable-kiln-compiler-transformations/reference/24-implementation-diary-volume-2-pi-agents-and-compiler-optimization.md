@@ -1195,3 +1195,51 @@ See Step 182 for the current authored request; prior user instructions authorize
 ### Technical details
 - Schema: format kiln-transformation-program/1, kind fusion-sequence, id, expose, cleanup. Each stage is an existing explicit fusion policy; combined node budget 31.
 - Six lanes: low/medium/high × two replicates; three proposal slots each. All receive identical development-only feedback. No new confirmation outcomes enter prompts.
+
+## Step 184: Six transformation lanes produce twenty additional development executables
+
+All six real Pi lanes completed. They made eighteen submissions, fifteen accepted and three rejected, yielding fifteen distinct transformation programs. All 360 compilations passed (eighteen programs including controls across twenty graphs). On the twelve training graphs, proposals add twenty executable fingerprints beyond baseline and the fixed staged program. GPU evaluation is launched; these counts alone establish no new speedup.
+
+### Prompt Context
+See Step 182. Continue actual experiments and retain intermediate scripts and evidence.
+**Commit (code):** 125c6bbb4af3a2a6dbdbee515c57c7f9ae0746ac — Let native agents compose exposure and scheduling-aware fusion.
+**Assistant interpretation:** Measure whether the expanded action space produces useful programs.
+**Inferred user intent:** Advance compiler self-optimization with concrete results.
+
+### What I did
+- Completed script 466, froze all fifteen accepted programs plus baseline/default/fixed-staged controls using script 467, and ran compile_study.py.
+- Script 468 preserved verbose streaming events losslessly as gzip with original byte hashes; originals remain locally available. This reduces about 128 MB of repeated streaming snapshots to about 1.4 MB without dropping evidence.
+- Script 469 counted executable differences, without assigning performance meaning to fingerprints.
+- Reused script 438 to launch pi-transformation-train-v1 on bling; no new evaluation harness was added.
+
+### Why
+- Compilation and alias checks distinguish novel executable behavior from merely different policy syntax. The evaluator still accounts for every declared candidate.
+
+### What worked
+- All six lanes returned zero. Low took 8.816/11.898 seconds, medium 37.048/50.736, high 56.162/56.839. Pi reported effective settings matching requested levels; this is not independent provider verification.
+- All eighteen programs qualified on all twenty graphs. Seven existing NativePolicyTask tests also passed after the shared-validator change.
+- Fifteen accepted programs were distinct in artifact identity; five exactly reproduce fixed staged outputs across the training set.
+
+### What didn't work
+- low-1 attempt 1: Threshold must be finite in [0,2].
+- medium-2 attempts 1 and 3: Invalid decision node.
+- Rejections consumed their proposal slots as declared. All raw requests and responses remain preserved.
+
+### What I learned
+- Longer thinking did not guarantee syntactically valid submissions. The sample is too small for a quality ranking, and performance is still pending.
+
+### What was tricky to build
+- Streaming snapshots grew much larger than final conversations. Lossless compressed evidence avoids a large repository expansion while preserving the exact events and hashes.
+
+### What warrants a second pair of eyes
+- Diversity counts are per graph, not globally unique kernels or measured improvements. The twenty extra executables are development outputs only.
+
+### What should be done in the future
+- Collect terminal GPU results and rank on training data only; preserve negative outcomes as well as improvements.
+
+### Code review instructions
+- Read scripts 467–469, sources/pi-transformation-lanes-v1/analysis.json, pi-transformation-compilation-analysis-v1.json and the qualified study receipt.
+
+### Technical details
+- GPU source revision 125c6bbb4af3a2a6dbdbee515c57c7f9ae0746ac. Session kiln-pi-transformation-train-v1.
+- No fresh confirmation data was sent in prompts. This is exploratory composition search, not a statistically controlled thinking-level comparison.

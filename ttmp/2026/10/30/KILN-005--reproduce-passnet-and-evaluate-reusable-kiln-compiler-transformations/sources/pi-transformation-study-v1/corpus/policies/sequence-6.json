@@ -1,0 +1,44 @@
+{
+  "cleanup": {
+    "format": "kiln-fusion-policy/1",
+    "id": "cleanup",
+    "kind": "decision-tree",
+    "tree": {
+      "else": {
+        "threshold": 1.15
+      },
+      "if": {
+        "feature": "producerElements",
+        "op": "gt",
+        "value": 8192
+      },
+      "then": {
+        "threshold": 1.02
+      }
+    }
+  },
+  "expose": {
+    "consumer_tree": {
+      "threshold": 2
+    },
+    "format": "kiln-fusion-policy/1",
+    "id": "expose",
+    "kind": "selective",
+    "tree": {
+      "else": {
+        "threshold": 0.98
+      },
+      "if": {
+        "feature": "producerElements",
+        "op": "gt",
+        "value": 8192
+      },
+      "then": {
+        "threshold": 1.02
+      }
+    }
+  },
+  "format": "kiln-transformation-program/1",
+  "id": "sequence-6",
+  "kind": "fusion-sequence"
+}

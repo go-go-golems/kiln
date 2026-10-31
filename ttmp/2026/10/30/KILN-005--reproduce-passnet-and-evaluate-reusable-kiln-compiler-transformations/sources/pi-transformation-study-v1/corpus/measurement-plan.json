@@ -1,0 +1,48 @@
+{
+  "format": "kiln-policy-measurement-plan/1",
+  "membership_sha256": "d236540b3b5ff4a62df035920d91602fe34df10c1d51b1facb2d8e535c3218e9",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "reference_backend_numerics": {
+    "float32_matmul_precision": "highest"
+  },
+  "protocol_scope": "Modified full-precision FP32 compiler-policy research; not native PassBench acceptance",
+  "candidate_ids": [
+    "baseline",
+    "default",
+    "staged-fusion",
+    "sequence-1",
+    "sequence-2",
+    "sequence-3",
+    "sequence-4",
+    "sequence-5",
+    "sequence-6",
+    "sequence-7",
+    "sequence-8",
+    "sequence-9",
+    "sequence-10",
+    "sequence-11",
+    "sequence-12",
+    "sequence-13",
+    "sequence-14",
+    "sequence-15"
+  ],
+  "seed": 42,
+  "warmup": 20,
+  "trials": 100,
+  "repeats": 3,
+  "max_iqr_fraction": 0.2,
+  "max_retries": 2,
+  "inputs": "Original source replay, nominal dtype tolerances, output structure and unchanged inputs",
+  "order": "Seeded shuffle of distinct fingerprints; exact executable aliases share evidence",
+  "metrics": [
+    "synchronized end-to-end ms",
+    "CUDA-event stream elapsed ms including dispatch gaps"
+  ],
+  "selection": "Training-only family-balanced geometric mean end-to-end ratio to unchanged Kiln; exact ties preserve declaration order; compile-cost coefficient zero",
+  "heldout": "Only baseline and committed training selection; all 8 confirmation graphs retained without replacement or filtering",
+  "scope": "Twelve previously studied FP32 training graphs; eight fresh exact-model confirmation graphs excluding tracked prior corpus models and official evaluation models; architecture relatives may remain",
+  "proposal_provenance": "Six actual transformation lanes, two replicates per thinking level; development feedback only, no fresh generalization claim.",
+  "source_contract": "Separate elementary FP32 arithmetic and highest-precision native matrix reference, fixed across candidates"
+}

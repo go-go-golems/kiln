@@ -1,0 +1,238 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "017.kiln.js",
+  "sha256": "68ad18f18666c83fb64094e2512f5613d2f36eb7bbabb1dd6b06f36c94a9d975",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    8,
+    400,
+    400
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    8,
+    32,
+    400
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    1,
+    400,
+    8,
+    32
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 4,
+   "shape": [
+    1,
+    256,
+    20,
+    20
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 1280000,
+   "bytes": 5120000
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 102400,
+   "bytes": 409600
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 102400,
+   "bytes": 409600
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 102400,
+   "bytes": 409600
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 102400,
+   "bytes": 409600
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__16h4ezulhot",
+   "identity": "16h4ezulhot",
+   "row": "TPB=64",
+   "reads": [
+    1
+   ],
+   "writes": 2,
+   "grid": 1600,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    1600,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    400,
+    8,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     8,
+     32,
+     400
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1600i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 102400i) {\n        v_in0 = b0[(((12800i * ((n_e / 32i) % 8i)) + (400i * (n_e % 32i))) + (n_e / 256i))];\n        bout[(((32i * ((n_e / 32i) % 8i)) + (n_e % 32i)) + (256i * (n_e / 256i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out0__16h4ezulhot(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 102400)) {\n        in0 = src0[(((12800 * ((e / 32) % 8)) + (400 * (e % 32))) + (e / 256))];\n        dst[(((32 * ((e / 32) % 8)) + (e % 32)) + (256 * (e / 256)))] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_matmul_reduce__1kkta4twu2v",
+   "identity": "1kkta4twu2v",
+   "row": "MAP=tiled,BM=32,BN=32,BK=16",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 3,
+   "grid": 104,
+   "block": 1024,
+   "smemBytes": 4096,
+   "dispatch": [
+    104,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    8,
+    32,
+    1,
+    400
+   ],
+   "inShapes": [
+    [
+     1,
+     8,
+     400,
+     400
+    ],
+    [
+     1,
+     8,
+     32,
+     400
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_cast_matmul_reduce__1kkta4twu2v(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float sA0[512];\n    __shared__ float sB0[512];\n    float acc_0_0 = 0.0f, tv = 0.0f, g0 = 0.0f, g1 = 0.0f, a0_0 = 0.0f, b0_0 = 0.0f, v0_0_0 = 0.0f, v1_0_0 = 0.0f, v2_0_0 = 0.0f;\n    int bz = 0, bm = 0, bn = 0, ty = 0, tx = 0, rr = 0, kq = 0;\n    bz = (bid / 13);\n    bm = 0;\n    bn = (bid % 13);\n    ty = (tid / 32);\n    tx = (tid % 32);\n    acc_0_0 = 0.0f;\n    for (int k0 = 0; k0 < 400; k0 += 16) {\n        for (int la = tid; la < 512; la += 1024) {\n            rr = (la / 16);\n            kq = (la % 16);\n            tv = 0.0f;\n            if (((((32 * bm) + rr) < 32) && ((k0 + kq) < 400))) {\n                g0 = src1[(((((12800 * bm) + (12800 * bz)) + k0) + kq) + (400 * rr))];\n                tv = g0;\n            }\n            sA0[(kq + (16 * rr))] = tv;\n        }\n        for (int lb = tid; lb < 512; lb += 1024) {\n            rr = (lb % 32);\n            kq = (lb / 32);\n            tv = 0.0f;\n            if (((((32 * bn) + rr) < 400) && ((k0 + kq) < 400))) {\n                g1 = src0[(((((32 * bn) + (160000 * bz)) + (400 * k0)) + (400 * kq)) + rr)];\n                tv = g1;\n            }\n            sB0[((32 * kq) + rr)] = tv;\n        }\n        __syncthreads();\n        for (int kk = 0; kk < 16; kk += 1) {\n            if (((k0 + kk) < 400)) {\n                a0_0 = sA0[(kk + (16 * ty))];\n                b0_0 = sB0[((32 * kk) + tx)];\n                v0_0_0 = a0_0;\n                v1_0_0 = b0_0;\n                v2_0_0 = __fmul_rn(v0_0_0, v1_0_0);\n                acc_0_0 = (acc_0_0 + v2_0_0);\n            }\n        }\n        __syncthreads();\n    }\n    if (((((32 * bm) + ty) < 32) && (((32 * bn) + tx) < 400))) {\n        dst[(((((12800 * bm) + (32 * bn)) + (12800 * bz)) + tx) + (400 * ty))] = acc_0_0;\n    }\n}"
+  },
+  {
+   "name": "k_out1__8tdzx79x33",
+   "identity": "8tdzx79x33",
+   "row": "TPB=64",
+   "reads": [
+    3
+   ],
+   "writes": 4,
+   "grid": 1600,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    1600,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    256,
+    20,
+    20
+   ],
+   "inShapes": [
+    [
+     1,
+     8,
+     32,
+     1,
+     400
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1600i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 102400i) {\n        v_in0 = b0[(((((((5120i * ((n_e / 20i) % 20i)) + (256i * (n_e % 20i))) + (n_e / 400i)) / 256i) % 400i) + (12800i * (((((5120i * ((n_e / 20i) % 20i)) + (256i * (n_e % 20i))) + (n_e / 400i)) / 32i) % 8i))) + (400i * ((n_e / 400i) % 32i)))];\n        v_v0 = v_in0;\n        bout[(((20i * ((n_e / 20i) % 20i)) + (n_e % 20i)) + (400i * (n_e / 400i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out1__8tdzx79x33(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 102400)) {\n        in0 = src0[(((((((5120 * ((e / 20) % 20)) + (256 * (e % 20))) + (e / 400)) / 256) % 400) + (12800 * (((((5120 * ((e / 20) % 20)) + (256 * (e % 20))) + (e / 400)) / 32) % 8))) + (400 * ((e / 400) % 32)))];\n        v0 = in0;\n        dst[(((20 * ((e / 20) % 20)) + (e % 20)) + (400 * (e / 400)))] = v0;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "cleanup": {
+   "format": "kiln-fusion-policy/1",
+   "id": "cleanup",
+   "kind": "threshold",
+   "max_work_growth": 1.05
+  },
+  "expose": {
+   "consumer_tree": {
+    "threshold": 2
+   },
+   "format": "kiln-fusion-policy/1",
+   "id": "expose",
+   "kind": "selective",
+   "tree": {
+    "threshold": 1.02
+   }
+  },
+  "format": "kiln-transformation-program/1",
+  "id": "sequence-1",
+  "kind": "fusion-sequence"
+ }
+}
