@@ -5831,3 +5831,50 @@ See Step 127 and the authored requests for reusable compiler improvements, compl
 - This is Codex-authored compiler engineering from observed development evidence. It is not a completed original PassAgent experiment, an unseen-program generalization result or an exact A30 reproduction.
 
 Follow-up task p4wv tracks frozen unseen-family confirmation. This remains open; development timing success does not complete it.
+
+## Step 129: Verify reshape milestone publication and check local agent runtime availability
+
+Report 17 is committed in a1b3f96 and published in vault revision eadc3a10c198180a6630053b1edf9c0c4ee7aead. Script 281 verifies exact body bytes, committed note bytes, origin/main and the actually advertised remote main revision. The body SHA-256 is 1cfba7eafeaf73dacc8d495c989ff7507589e20f8af22f0c80fe3ae8cf8df530. Unrelated vault edits remain unstaged.
+
+A read-only local-inference discovery probe checks whether original PassAgent could use an already available DGX endpoint. No ollama, vllm or llama-server executable is found on the host command path, and the four standard loopback model-list endpoints refuse connections. This bounded probe does not establish that no model files or alternate runtime configuration exist elsewhere. No credentials are read and no inference service or workload is started.
+
+### Prompt Context
+See Step 128 and the authored requests for committed/pushed milestone reports, complete original-agent work and autonomous progress on the DGX.
+**Assistant interpretation:** Finish verifiable publication and gather concrete local-runtime evidence before treating provider setup as supplied.
+**Inferred user intent:** Preserve a durable technical result and reduce unnecessary setup questions where an existing local service could suffice.
+
+### What I did
+- Published the full new article with script 280, staged only that note, committed and pushed the vault.
+- Verified remote publication with script 281 and retained singleton-reshape-report-publication.json.
+- Saved and ran script 282, querying only runtime executable presence and public model-list metadata on standard loopback ports.
+
+### Why
+- A successful local file creation or push command is weaker than exact committed/advertised remote verification.
+- Existing local inference could have provided an original-agent route without reading API credentials or selecting a paid provider.
+
+### What worked
+- Vault HEAD, origin/main and advertised main all match eadc3a10c198180a6630053b1edf9c0c4ee7aead; the published body exactly matches the ticket report.
+- The repeated read-only DGX probe completes and saves bounded runtime/endpoint facts in local-inference-presence-bling.json.
+
+### What didn't work
+- The first probe fails with `ssh: Could not resolve hostname bling.local: Name or service not known`. Retrying the same read-only query succeeds; no workload is restarted.
+- No ready model endpoint is found on 11434, 8000, 8001 or 8080, so original PassAgent is not launched.
+- Updated reMarkable export remains pending renewed explicit authorization after the prior automatic-review rejection; no new export is attempted.
+
+### What I learned
+- The recorded DGX environment currently provides benchmark execution but no inference endpoint found by this standard host/loopback probe. A configured provider or an explicitly documented local-model setup remains necessary for original agent execution.
+
+### What was tricky to build
+- Runtime discovery must not confuse an unreachable hostname with evidence that software is absent. The transport retry produces actual remote endpoint results.
+
+### What warrants a second pair of eyes
+- Check publication hashes and keep the 34x target result's development-only scope and native precision failures intact when citing the article.
+
+### What should be done in the future
+- Complete p4wv's fresh unseen-family confirmation; investigate a provider or local open-model setup for the original agent, and continue remaining source/layout/precision support and complete benchmark evaluation.
+
+### Code review instructions
+- Inspect singleton-reshape-report-publication.json, script 282 and local-inference-presence-bling.json alongside report 17 and Step 128's complete measurement evidence.
+
+### Technical details
+- Overall goal remains active and incomplete. Current accepted coverage is 24 tasks/313 graphs; import eligibility is 1,136 graphs/64 families. No GPU benchmark job from these completed cohorts remains active.
