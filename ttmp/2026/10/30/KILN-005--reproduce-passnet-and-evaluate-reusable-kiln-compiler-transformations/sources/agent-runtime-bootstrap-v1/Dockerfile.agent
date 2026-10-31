@@ -1,0 +1,10 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+COPY passnet-agent-context-v1.tar.gz /tmp/passnet-agent-context.tar.gz
+RUN mkdir -p /workspace/passnet && tar -xzf /tmp/passnet-agent-context.tar.gz -C /workspace/passnet && rm /tmp/passnet-agent-context.tar.gz
+COPY wheels /opt/kiln005-wheels
+RUN python -m pip install --no-index --find-links=/opt/kiln005-wheels chardet==5.2.0 && python -c 'import torch,triton,numpy,scipy,chardet;print(torch.__version__,triton.__version__,numpy.__version__,scipy.__version__,chardet.__version__)'
+ENV PYTHONPATH=/workspace/passnet
+ENV PYTHONUNBUFFERED=1
+WORKDIR /workspace/passnet
+CMD ["/bin/bash", "-l"]

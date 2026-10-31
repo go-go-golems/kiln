@@ -1,0 +1,102 @@
+usage: convert_hf_to_gguf.py [-h] [--vocab-only] [--outfile OUTFILE]
+                             [--outtype {f32,f16,bf16,q8_0,tq1_0,tq2_0,auto}]
+                             [--bigendian] [--use-temp-file] [--no-lazy]
+                             [--model-name MODEL_NAME] [--verbose]
+                             [--split-max-tensors SPLIT_MAX_TENSORS]
+                             [--split-max-size SPLIT_MAX_SIZE] [--dry-run]
+                             [--no-tensor-first-split] [--metadata METADATA]
+                             [--print-supported-models] [--remote] [--mmproj]
+                             [--mtp] [--no-nextn] [--dspark]
+                             [--mistral-format]
+                             [--disable-mistral-community-chat-template]
+                             [--sentence-transformers-dense-modules]
+                             [--fuse-gate-up-exps] [--fp8-as-q8] [--fuse-qkv]
+                             [--target-model-dir TARGET_MODEL_DIR]
+                             [model]
+
+Convert a huggingface model to a GGML compatible file
+
+positional arguments:
+  model                 directory containing model file or huggingface
+                        repository ID (if --remote)
+
+options:
+  -h, --help            show this help message and exit
+  --vocab-only          extract only the vocab
+  --outfile OUTFILE     path to write to; default: based on input. {ftype}
+                        will be replaced by the outtype.
+  --outtype {f32,f16,bf16,q8_0,tq1_0,tq2_0,auto}
+                        output format - use f32 for float32, f16 for float16,
+                        bf16 for bfloat16, q8_0 for Q8_0, tq1_0 or tq2_0 for
+                        ternary, and auto to preserve supported FP8 weights
+                        and otherwise select the highest-fidelity 16-bit float
+                        type
+  --bigendian           model is executed on big endian machine
+  --use-temp-file       use the tempfile library while processing (helpful
+                        when running out of memory, process killed)
+  --no-lazy             use more RAM by computing all outputs before writing
+                        (use in case lazy evaluation is broken)
+  --model-name MODEL_NAME
+                        name of the model
+  --verbose             increase output verbosity
+  --split-max-tensors SPLIT_MAX_TENSORS
+                        max tensors in each split
+  --split-max-size SPLIT_MAX_SIZE
+                        max size per split N(M|G)
+  --dry-run             only print out a split plan and exit, without writing
+                        any new files
+  --no-tensor-first-split
+                        do not add tensors to the first split (disabled by
+                        default)
+  --metadata METADATA   Specify the path for an authorship metadata override
+                        file
+  --print-supported-models
+                        Print the supported models
+  --remote              (Experimental) Read safetensors file remotely without
+                        downloading to disk. Config and tokenizer files will
+                        still be downloaded. To use this feature, you need to
+                        specify Hugging Face model repo name instead of a
+                        local directory. For example:
+                        'HuggingFaceTB/SmolLM2-1.7B-Instruct'. Note: To access
+                        gated repo, set HF_TOKEN environment variable to your
+                        Hugging Face token.
+  --mmproj              Export multimodal projector (mmproj) for vision
+                        models. This will only work on some vision models. An
+                        'mmproj-' prefix will be added to the output file
+                        name.
+  --mtp                 Export only the multi-token prediction (MTP) head as a
+                        separate GGUF, suitable for use as a speculative
+                        draft. An 'mtp-' prefix will be added to the output
+                        file name.
+  --no-nextn, --no-mtp  Exclude NextN speculative draft tensors from the
+                        converted GGUF. Pair with --mtp or --dspark on a
+                        second run to publish target and draft as two files.
+  --dspark              Export only the DeepSeek-V4 or Mistral Large 4 DSpark
+                        draft tensors as a separate GGUF.
+  --mistral-format      Whether the model is stored following the Mistral
+                        format.
+  --disable-mistral-community-chat-template
+                        Whether to disable usage of Mistral community chat
+                        templates. If set, use the Mistral official `mistral-
+                        common` library for tokenization and detokenization of
+                        Mistral models. Using `mistral-common` ensure
+                        correctness and zero-day support of tokenization for
+                        models converted from the Mistral format but requires
+                        to manually setup the tokenization server.
+  --sentence-transformers-dense-modules
+                        Whether to include sentence-transformers dense
+                        modules. It can be used for sentence-transformers
+                        models, like google/embeddinggemma-300m. Default these
+                        modules are not included.
+  --fuse-gate-up-exps   Fuse gate_exps and up_exps tensors into a single
+                        gate_up_exps tensor for MoE models.
+  --fp8-as-q8           Store tensors dequantized from FP8 as Q8_0 instead of
+                        BF16/F16.
+  --fuse-qkv            Fuse separate Q, K, V weight tensors into a single QKV
+                        tensor.
+  --target-model-dir TARGET_MODEL_DIR
+                        path to the target model directory; required when
+                        converting a standalone draft model (e.g. EAGLE3 /
+                        DFlash) that needs target-model metadata such as
+                        tokenizer, hidden size, and layer count to populate
+                        its GGUF.

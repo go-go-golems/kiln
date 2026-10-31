@@ -1,0 +1,74 @@
+{
+  "returncode": 0,
+  "stderr": "",
+  "observation": {
+    "model-build": {
+      "session": "passnet-model-build-v1",
+      "live": false,
+      "status": "complete",
+      "phase": "build",
+      "error": null,
+      "model-build-driver-v1.log": [
+        "      \"returncode\": 0,",
+        "      \"elapsed_seconds\": 202.5604639830999",
+        "    }",
+        "  ],",
+        "  \"phase\": \"build\",",
+        "  \"binary_sha256\": \"120e0aa1ff814a42027669f3bc9cb3df03e1d797796c91c129f144a1db95fd57\",",
+        "  \"binary\": \"/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/llama-build/bin/llama-server\"",
+        "}"
+      ],
+      "server-configure-v1.log": [
+        "CMake Warning at common/CMakeLists.txt:33 (message):",
+        "  Git repository not found; to enable automatic generation of build info,",
+        "  make sure Git is installed and the project is a Git repository.",
+        "",
+        "",
+        "-- Configuring done (4.4s)",
+        "-- Generating done (0.1s)",
+        "-- Build files have been written to: /storage/llama-build"
+      ],
+      "server-build-v1.log": [
+        "[373/380] Building CXX object tools/server/CMakeFiles/llama-server-impl.dir/server-http.cpp.o",
+        "[374/380] Building CXX object tools/server/CMakeFiles/server-context.dir/server-tools.cpp.o",
+        "[375/380] Building CXX object tools/server/CMakeFiles/llama-server-impl.dir/server-models-sched.cpp.o",
+        "[376/380] Building CXX object tools/server/CMakeFiles/server-context.dir/server-context.cpp.o",
+        "[377/380] Linking CXX static library tools/server/libserver-context.a",
+        "[378/380] Building CXX object tools/server/CMakeFiles/llama-server-impl.dir/server-models.cpp.o",
+        "[379/380] Linking CXX shared library bin/libllama-server-impl.so",
+        "[380/380] Linking CXX executable bin/llama-server"
+      ]
+    },
+    "model-download": {
+      "session": "passnet-model-download-v1",
+      "live": true,
+      "pane": "1419497 bash 0",
+      "status": "running",
+      "phase": null,
+      "error": null,
+      "bytes": 14686813468,
+      "expected_bytes": 61084185821,
+      "verified": 7,
+      "files": 25,
+      "file_states": {
+        "model-00003-of-00016.safetensors": {
+          "status": "downloading",
+          "bytes": 3833593856
+        },
+        "model-00004-of-00016.safetensors": {
+          "status": "downloading",
+          "bytes": 2852126720
+        }
+      },
+      "model-download-driver-v1.log": [
+        "VERIFIED LICENSE",
+        "VERIFIED README.md",
+        "VERIFIED config.json",
+        "VERIFIED generation_config.json",
+        "VERIFIED merges.txt",
+        "VERIFIED model-00001-of-00016.safetensors",
+        "VERIFIED model-00002-of-00016.safetensors"
+      ]
+    }
+  }
+}

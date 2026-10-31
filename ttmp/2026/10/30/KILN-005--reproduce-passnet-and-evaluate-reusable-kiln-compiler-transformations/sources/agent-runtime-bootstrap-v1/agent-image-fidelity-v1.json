@@ -1,0 +1,35 @@
+{
+  "format": "kiln-original-agent-image-fidelity/1",
+  "returncode": 0,
+  "image_id": "sha256:e5c039c27c487f6c15b9f2d90bfb4c326d986b2731a2be83eece2e039e231ab6",
+  "source_context_sha256": "38b605d11a5b6148d309ab0cd4b6a5d6b1a728e9e0773472926959379473cfc2",
+  "stdout": "{\"source_files_verified\": 14876, \"symlinks_verified\": 603, \"empty_pass_directories\": 201, \"canonical_tasks\": 200, \"canonical_graphs\": 2060, \"versions\": {\"torch\": \"2.12.0a0+5aff3928d8.nv26.05\", \"triton\": \"3.7.0\", \"scipy\": \"1.17.1\", \"numpy\": \"2.1.0\", \"chardet\": \"5.2.0\"}, \"original_evaluator_import\": true}\n",
+  "stderr": "",
+  "command": [
+    "docker",
+    "run",
+    "--rm",
+    "-v",
+    "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1:/bootstrap:ro",
+    "--entrypoint",
+    "python",
+    "sha256:e5c039c27c487f6c15b9f2d90bfb4c326d986b2731a2be83eece2e039e231ab6",
+    "-c",
+    "\nimport hashlib,json\nfrom pathlib import Path\nimport torch,triton,scipy,numpy,chardet\nroot=Path('/workspace/passnet');manifest=json.loads(Path('/bootstrap/agent-context-manifest.json').read_text());membership=json.loads(Path('/bootstrap/evaluation-membership.json').read_text());files=links=0\nfor row in manifest['members']:\n path=root/row['path']\n if row['type']=='file':assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'],row['path'];files+=1\n elif row['type']=='symlink':assert path.is_symlink() and path.readlink().as_posix()==row['target'] and path.exists(),row['path'];links+=1\n else:assert path.is_dir(),row['path']\nfor relative in manifest['empty_pass_directories']:assert (root/relative).is_dir() and not list((root/relative).iterdir()),relative\nfor row in membership['members']:\n sample=root/row['sample'];assert hashlib.sha256((sample/'graph_list.txt').read_bytes()).hexdigest()==row['graph_list_sha256']\n entry=(sample/'entry.sh').resolve();assert (entry.parent.parent/'pass_bench/__init__.py').is_file()\n for graph in row['graphs']:\n  for filename in ['model.py','input_meta.py','weight_meta.py']:assert (sample/graph/filename).is_file(),str(sample/graph/filename)\nfrom pass_bench.torch.test_compiler import get_input_dict\nprint(json.dumps({'source_files_verified':files,'symlinks_verified':links,'empty_pass_directories':len(manifest['empty_pass_directories']),'canonical_tasks':len(membership['members']),'canonical_graphs':sum(len(row['graphs']) for row in membership['members']),'versions':{'torch':torch.__version__,'triton':triton.__version__,'scipy':scipy.__version__,'numpy':numpy.__version__,'chardet':chardet.__version__},'original_evaluator_import':True}))\n"
+  ],
+  "verified": {
+    "source_files_verified": 14876,
+    "symlinks_verified": 603,
+    "empty_pass_directories": 201,
+    "canonical_tasks": 200,
+    "canonical_graphs": 2060,
+    "versions": {
+      "torch": "2.12.0a0+5aff3928d8.nv26.05",
+      "triton": "3.7.0",
+      "scipy": "1.17.1",
+      "numpy": "2.1.0",
+      "chardet": "5.2.0"
+    },
+    "original_evaluator_import": true
+  }
+}

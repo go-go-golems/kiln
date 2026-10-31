@@ -1,0 +1,15 @@
+{
+  "format": "kiln-original-agent-import/1",
+  "returncode": 0,
+  "status": "complete",
+  "command": [
+    "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/bin/python",
+    "-c",
+    "import sys;sys.path[:0]=['/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passnet-pristine', '/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passnet-pristine/pass_agent'];from runtime.passnet_docker import PassNetDocker;from agent.pass_agent import PassAgent;from r2egym.agenthub.agent.agent import AgentArgs;print(\"Original PassAgent, PassNetDocker and AgentArgs import succeeded\")"
+  ],
+  "stdout": "Original PassAgent, PassNetDocker and AgentArgs import succeeded\n",
+  "stderr": "None of PyTorch, TensorFlow >= 2.0, or Flax have been found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.\n/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/lib/python3.12/site-packages/swebench/harness/modal_eval/run_evaluation_modal.py:302: DeprecationError: 2025-02-03: Modal will stop implicitly adding local Python modules to the Image (\"automounting\") in a future update. The following modules need to be explicitly added for future compatibility:\n* pass_agent\n* runtime\n\ne.g.:\nimage_with_source = my_image.add_local_python_source(\"pass_agent\", \"runtime\")\n\nFor more information, see https://modal.com/docs/guide/modal-1-0-migration\n  @app.function(\n2026-10-31 09:03:42,910 - httpx - INFO - HTTP Request: GET https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json \"HTTP/1.1 200 OK\"\n",
+  "driver_sha256": "83de6ac2983ef2a1432f0259f0da7fb5fa8e5a6a5d64fd50502db2cd2e75ffea",
+  "source_changes": false,
+  "recovery": "Supply both source root and pass_agent root for mixed original absolute imports"
+}

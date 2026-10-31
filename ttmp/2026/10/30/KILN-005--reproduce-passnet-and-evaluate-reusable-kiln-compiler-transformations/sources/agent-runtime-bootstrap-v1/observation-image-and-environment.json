@@ -1,0 +1,122 @@
+{
+  "returncode": 0,
+  "stderr": "",
+  "observation": {
+    "model-build": {
+      "session": "passnet-model-build-v1",
+      "live": false,
+      "status": "complete",
+      "phase": "build",
+      "error": null,
+      "model-build-driver-v1.log": [
+        "      \"returncode\": 0,",
+        "      \"elapsed_seconds\": 202.5604639830999",
+        "    }",
+        "  ],",
+        "  \"phase\": \"build\",",
+        "  \"binary_sha256\": \"120e0aa1ff814a42027669f3bc9cb3df03e1d797796c91c129f144a1db95fd57\",",
+        "  \"binary\": \"/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/llama-build/bin/llama-server\"",
+        "}"
+      ],
+      "server-configure-v1.log": [
+        "CMake Warning at common/CMakeLists.txt:33 (message):",
+        "  Git repository not found; to enable automatic generation of build info,",
+        "  make sure Git is installed and the project is a Git repository.",
+        "",
+        "",
+        "-- Configuring done (4.4s)",
+        "-- Generating done (0.1s)",
+        "-- Build files have been written to: /storage/llama-build"
+      ],
+      "server-build-v1.log": [
+        "[373/380] Building CXX object tools/server/CMakeFiles/llama-server-impl.dir/server-http.cpp.o",
+        "[374/380] Building CXX object tools/server/CMakeFiles/server-context.dir/server-tools.cpp.o",
+        "[375/380] Building CXX object tools/server/CMakeFiles/llama-server-impl.dir/server-models-sched.cpp.o",
+        "[376/380] Building CXX object tools/server/CMakeFiles/server-context.dir/server-context.cpp.o",
+        "[377/380] Linking CXX static library tools/server/libserver-context.a",
+        "[378/380] Building CXX object tools/server/CMakeFiles/llama-server-impl.dir/server-models.cpp.o",
+        "[379/380] Linking CXX shared library bin/libllama-server-impl.so",
+        "[380/380] Linking CXX executable bin/llama-server"
+      ]
+    },
+    "model-download": {
+      "session": "passnet-model-download-v1",
+      "live": true,
+      "pane": "1419497 bash 0",
+      "status": "running",
+      "phase": null,
+      "error": null,
+      "bytes": 32956022380,
+      "expected_bytes": 61084185821,
+      "verified": 12,
+      "files": 25,
+      "file_states": {
+        "model-00008-of-00016.safetensors": {
+          "status": "downloading",
+          "bytes": 2768240640
+        },
+        "model-00009-of-00016.safetensors": {
+          "status": "downloading",
+          "bytes": 2189426688
+        }
+      },
+      "model-download-driver-v1.log": [
+        "VERIFIED merges.txt",
+        "VERIFIED model-00001-of-00016.safetensors",
+        "VERIFIED model-00002-of-00016.safetensors",
+        "VERIFIED model-00003-of-00016.safetensors",
+        "VERIFIED model-00004-of-00016.safetensors",
+        "VERIFIED model-00005-of-00016.safetensors",
+        "VERIFIED model-00007-of-00016.safetensors",
+        "VERIFIED model-00006-of-00016.safetensors"
+      ]
+    },
+    "agent-env": {
+      "session": "passnet-agent-env-v1",
+      "live": true,
+      "pane": "1491760 bash 0",
+      "status": "running",
+      "phase": "install",
+      "error": null,
+      "agent-environment-driver-v1.log": [],
+      "agent-install-v1.log": [
+        "   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 9.4/9.4 MB 245.3 kB/s eta 0:00:00",
+        "Downloading ipython-9.18.0-py3-none-any.whl (649 kB)",
+        "   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 649.6/649.6 kB 359.2 kB/s eta 0:00:00",
+        "Downloading kubernetes-37.0.1-py2.py3-none-any.whl (7.5 MB)",
+        "   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 7.5/7.5 MB 162.8 kB/s eta 0:00:00",
+        "Downloading libtmux-0.62.0-py3-none-any.whl (127 kB)",
+        "   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 127.7/127.7 kB 98.9 kB/s eta 0:00:00",
+        "Downloading litellm-1.106.6-cp310-abi3-manylinux_2_28_aarch64.whl (35.6 MB)"
+      ],
+      "agent-venv-v1.log": []
+    },
+    "agent-image": {
+      "session": "passnet-agent-image-v1",
+      "live": false,
+      "status": "failed",
+      "phase": null,
+      "error": "Image build returned 1",
+      "agent-image-driver-v1.log": [
+        "  \"returncode\": 1,",
+        "  \"error\": \"Image build returned 1\"",
+        "}",
+        "Traceback (most recent call last):",
+        "  File \"/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/scripts/351-build-original-agent-image.py\", line 20, in <module>",
+        "    if r.returncode:raise RuntimeError('Image build returned '+str(r.returncode))",
+        "                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "RuntimeError: Image build returned 1"
+      ],
+      "agent-image-build-v1.log": [
+        "Dockerfile.agent:2",
+        "--------------------",
+        "   1 |     ARG BASE_IMAGE",
+        "   2 | >>> FROM ${BASE_IMAGE}",
+        "   3 |     COPY passnet-agent-context-v1.tar.gz /tmp/passnet-agent-context.tar.gz",
+        "   4 |     RUN mkdir -p /workspace/passnet && tar -xzf /tmp/passnet-agent-context.tar.gz -C /workspace/passnet && rm /tmp/passnet-agent-context.tar.gz",
+        "--------------------",
+        "ERROR: failed to build: failed to solve: sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba: failed to resolve source metadata for docker.io/library/sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba: pull access denied, repository does not exist or may require authorization: server message: insufficient_scope: authorization failed"
+      ]
+    }
+  }
+}

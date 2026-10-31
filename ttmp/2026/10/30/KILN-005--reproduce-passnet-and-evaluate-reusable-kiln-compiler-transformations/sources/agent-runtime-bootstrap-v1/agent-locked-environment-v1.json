@@ -1,0 +1,75 @@
+{
+  "format": "kiln-original-agent-locked-environment/1",
+  "status": "failed",
+  "driver_sha256": "b150d19172826da8b98f5c1193d4d7d3d986258babb78829dafc8448171ed47e",
+  "framework_revision": "0d94c4eb9431cd195c55a7ea3abd54006c9a1735",
+  "lock_sha256": "1084b56be576c576da0cba6f7a83c0ba80a934ff717ba787507d0f48b902ee2b",
+  "requirements_sha256": "99e657d01e8dcb0d550d39d948ae0b75903a549ea6a912be83f188fdc1bdedda",
+  "phases": [
+    {
+      "name": "venv",
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "venv",
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "locked_dependencies",
+      "command": [
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/bin/python",
+        "-m",
+        "pip",
+        "--disable-pip-version-check",
+        "--timeout",
+        "120",
+        "--retries",
+        "5",
+        "install",
+        "--cache-dir",
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/locked-pip-cache",
+        "--require-hashes",
+        "-r",
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/r2e-locked-requirements.txt"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "original_framework",
+      "command": [
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/bin/python",
+        "-m",
+        "pip",
+        "--disable-pip-version-check",
+        "install",
+        "--no-deps",
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/r2e-src"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "editor_dependency",
+      "command": [
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/bin/python",
+        "-m",
+        "pip",
+        "--disable-pip-version-check",
+        "install",
+        "--no-index",
+        "--no-deps",
+        "--find-links",
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/wheels",
+        "chardet==5.2.0"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "original_import",
+      "returncode": 1
+    }
+  ],
+  "phase": "editor_dependency",
+  "error": "Original import returned 1"
+}

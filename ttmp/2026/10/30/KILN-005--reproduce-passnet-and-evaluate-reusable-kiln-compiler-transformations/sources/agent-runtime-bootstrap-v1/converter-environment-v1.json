@@ -1,0 +1,38 @@
+{
+  "format": "kiln-checkpoint-converter-environment/1",
+  "status": "failed",
+  "driver_sha256": "f7bc7814fe808fb544200947864e102640ef257180d0ab2eca69e61177cba83f",
+  "requirements_sha256": "3c1d689a0fb8b17057f012848819e405ca3949482e0554d8ae4586391b5bbbd4",
+  "phases": [
+    {
+      "name": "venv",
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "venv",
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/converter-venv"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 1.4236073211068287
+    },
+    {
+      "name": "install",
+      "command": [
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/converter-venv/bin/python",
+        "-m",
+        "pip",
+        "--disable-pip-version-check",
+        "install",
+        "--cache-dir",
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/converter-pip-cache",
+        "-r",
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/llama-src/requirements/requirements-convert_hf_to_gguf.txt",
+        "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/llama-src/gguf-py"
+      ],
+      "returncode": 2,
+      "elapsed_seconds": 246.5256624809699
+    }
+  ],
+  "phase": "install",
+  "error": "install returned 2"
+}

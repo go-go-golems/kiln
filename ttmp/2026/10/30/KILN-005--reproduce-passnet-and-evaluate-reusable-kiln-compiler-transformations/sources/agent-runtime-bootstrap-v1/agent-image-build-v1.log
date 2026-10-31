@@ -1,0 +1,23 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.agent
+#1 transferring dockerfile: 670B done
+#1 WARN: InvalidDefaultArgInFrom: Default value for ARG ${BASE_IMAGE} results in empty or invalid base image name (line 2)
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba
+#2 ERROR: pull access denied, repository does not exist or may require authorization: server message: insufficient_scope: authorization failed
+------
+ > [internal] load metadata for docker.io/library/sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba:
+------
+
+ [33m1 warning found (use docker --debug to expand):
+[0m - InvalidDefaultArgInFrom: Default value for ARG ${BASE_IMAGE} results in empty or invalid base image name (line 2)
+Dockerfile.agent:2
+--------------------
+   1 |     ARG BASE_IMAGE
+   2 | >>> FROM ${BASE_IMAGE}
+   3 |     COPY passnet-agent-context-v1.tar.gz /tmp/passnet-agent-context.tar.gz
+   4 |     RUN mkdir -p /workspace/passnet && tar -xzf /tmp/passnet-agent-context.tar.gz -C /workspace/passnet && rm /tmp/passnet-agent-context.tar.gz
+--------------------
+ERROR: failed to build: failed to solve: sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba: failed to resolve source metadata for docker.io/library/sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba: pull access denied, repository does not exist or may require authorization: server message: insufficient_scope: authorization failed

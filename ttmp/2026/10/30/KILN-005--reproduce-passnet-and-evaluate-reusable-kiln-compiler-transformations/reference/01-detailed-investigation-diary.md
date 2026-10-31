@@ -6465,3 +6465,64 @@ See earlier authored requests to reproduce PassNet, implement/measure the comple
 
 ### Technical details
 - Full goal stays active. No model inference, agent trajectory, new accepted task or whole-goal completion is claimed at this preparation checkpoint.
+
+## Step 141: Qualify the original agent image, checkpoint and locked framework imports
+
+The original-agent infrastructure now has verified source, data and dependency identities. The CUDA server build and complete checkpoint download finish successfully. The agent image preserves original evaluator files and symlinks across all200 tasks and2060 graphs; the locked framework imports without source modifications after correcting the probe search path. BF16 conversion has started in its own tmux session.
+
+This checkpoint does not increase accepted Kiln coverage (27 complete tasks,338 graph variants across recorded runs). It establishes the prerequisites for observing the original agent's tool loop with a declared local model.
+
+### Prompt Context
+See Step140 and the earlier requests to preserve scripts, sources and detailed implementation history. The latest authored user instruction is: "you can also just manuel@bling".
+**Assistant interpretation:** Continue authorized DGX execution using the provided SSH endpoint and preserve a reviewable setup boundary.
+**Inferred user intent:** Reach working agent optimization without losing experimental provenance.
+**Commit (code):** 8138481 — pinned original-agent runtime and full membership; this step records subsequent execution.
+
+### What I did
+- Scripts346–366 preserve bounded observations, image assembly, original entry preflight, original dependency lock export/install, failures and diagnosed recoveries.
+- Verified14876 original source files,603 symlinks,201 empty generated-pass directories and all canonical200/2060 graph paths in the assembled image.
+- Downloaded and verified25 original model/tokenizer/config/license files,61084185821 bytes, under remote sources; copied their receipt rather than committing bulk weights.
+- Used R2E-Gym's original uv.lock with artifact hashes enforced. Stopped only the owned unconstrained installer after this dependency-fidelity decision; preserved its logs and explicit supersession receipt.
+- Script369 supplies both original import roots, successfully importing PassAgent, PassNetDocker and AgentArgs without upstream edits.
+- Scripts367–368 start unquantized BF16 conversion; scripts370–371 retain evidence and this documentation.
+
+### Why
+- Pinning framework source while allowing all transitive dependencies to drift would weaken reproducibility.
+- Image source fidelity and actual symlink resolution resolve concrete integration concerns before asking a model to edit a pass.
+- Local Docker image identity is available even when registry resolution fails; preserving that identity avoids selecting another runtime silently.
+
+### What worked
+- CUDA server build completes in about202.56 seconds; pinned binary SHA256 is120e0aa1ff814a42027669f3bc9cb3df03e1d797796c91c129f144a1db95fd57.
+- Complete model acquisition, image fidelity check, converter dependency/help gate and corrected original-framework import gate pass.
+- Original entry scripts require no repair: their symlink targets establish the intended root.
+
+### What didn't work
+- Initial agent/converter pip installs failed with ReadTimeoutError from files.pythonhosted.org. Separate diagnosed retries use120-second timeout and5 retries; no live job is restarted because an observation timed out.
+- BuildKit treated a local config ID as a remote image name, then could not resolve the recorded registry digest. Logs/receipts preserve both failures; local Docker Engine image assembly succeeds.
+- Initial locked import probe failed: ModuleNotFoundError: No module named 'pass_agent'. Script369 corrects the probe search paths; pinned source and dependencies remain unchanged.
+- Converter/API/trajectory outcomes are not yet qualified at this diary checkpoint.
+
+### What I learned
+- Original absolute imports use both package-root and pass_agent-root paths. The operational launcher must supply both.
+- The paper's student-training checkpoint is explicitly Thinking-2507; this generic Qwen3 checkpoint cannot be presented as an exact published-score reproduction.
+- The original LiteLLM import fetches public model price/context metadata at runtime; this behavior appears in the retained import receipt and needs consideration when recording provider configuration.
+
+### What was tricky to build
+- Docker image configuration IDs and retrievable registry manifests are different identities. Source/data verification after local assembly proves what is actually available to the agent.
+- Separating host controller, CPU conversion environment and GPU evaluator avoids forcing incompatible dependency sets into one environment.
+
+### What warrants a second pair of eyes
+- Verify that the complete official membership remains distinct from the shipping smoke dataset, and that no model/API setup result is counted as compiler correctness.
+- Review model template/thinking/context settings and cohosted inference memory residency before interpreting benchmark timings.
+
+### What should be done in the future
+- Complete conversion/type/hash checks, validate real chat/function-call responses, then execute an original-framework smoke trajectory and retain its complete tool feedback.
+- Continue full official evaluation accounting and remaining Kiln precision/operation support; the whole goal remains active.
+
+### Code review instructions
+- Begin with design18 and sources/agent-runtime-bootstrap-v1/agent-image-fidelity-v1.json, model-download-v1.json and agent-locked-import-v2.json.
+- Review scripts358,361–362,367–370 and terminal failure logs before interpreting setup completion.
+
+### Technical details
+- Remote endpoint manuel@bling, HostKeyAlias=bling.local; all workloads retain named tmux sessions and explicit receipts.
+- Agent image sha256:e5c039c27c487f6c15b9f2d90bfb4c326d986b2731a2be83eece2e039e231ab6; no original-agent inference was run before dependency locking.

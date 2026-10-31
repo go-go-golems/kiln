@@ -58,3 +58,20 @@ Original PassAgent alternates model requests and evaluator feedback. If serving 
 Current accepted Kiln replay remains27/200 complete tasks and338/2060 graphs. Import eligibility1196/69 and native precision discrepancies are separate work. The present setup has not run PassAgent or produced trajectories.
 
 Remaining gates are: complete pinned build/download; unquantized conversion and artifact checks; valid chat/tool responses; compatible R2E-Gym installation; original agent container/workspace/evaluator smoke; fixed-budget trajectories on a declared smoke/ten-task population; full200-task accounting; and comparison with Kiln-native reusable transformation synthesis. Preserve raw failures throughout. Updated reMarkable delivery remains pending the earlier explicit approval request.
+
+
+## Verified setup checkpoint
+
+The CUDA llama-server build is complete (binary SHA256120e0aa1ff814a42027669f3bc9cb3df03e1d797796c91c129f144a1db95fd57). All25 checkpoint files,61084185821 bytes, have passed the pinned content checks. The independent converter environment passes its upstream CLI import/help gate. Script367 runs the original converter with --outtype bf16, and rejects a final artifact containing storage types other than BF16/F32. Conversion is a separate gate from inference agreement.
+
+The dedicated original-agent image is sha256:e5c039c27c487f6c15b9f2d90bfb4c326d986b2731a2be83eece2e039e231ab6. Fidelity validation checks14876 source files,603 symlinks,201 empty pass directories and all200 tasks/2060 graph metadata paths. Original entry.sh links resolve to the intended root; no entry script or evaluator changes are needed. The image uses the existing NVIDIA Torch2.12 development runtime, not the paper's Torch2.9.1 stack.
+
+R2E-Gym's committed uv.lock supplies the dependency versions, exported with hashes enforced. The earlier unconstrained installation was deliberately superseded before inference. The locked dependency install succeeds, and script369 imports original PassAgent, PassNetDocker and AgentArgs with both the checkout root and pass_agent directory on the Python search path. The first probe omitted the checkout root and failed with ModuleNotFoundError: No module named 'pass_agent'; this is a probe correction, not an upstream compatibility patch.
+
+Two BuildKit attempts failed to resolve the locally available base image by config ID and registry digest. Script358 uses Docker Engine's local image identity to assemble and commit the image, with equivalent build inputs retained. This is infrastructure setup and does not change the benchmark algorithm.
+
+## Checkpoint identity and interpretation
+
+The generic Qwen3-30B-A3B checkpoint is the explicitly selected local original-agent experiment. The paper's student-training appendix names Qwen3-30B-A3B-Thinking-2507, which is a different model release. Generic model naming in a results table is insufficient evidence that this local checkpoint exactly reproduces that experiment. Preserve this distinction in every reported score; training reproduction remains separate. Native model context is40960, not the paper's262144-token training context.
+
+No new accepted Kiln task, original-agent trajectory or published model-score reproduction follows from these setup checks. API chat/tool calls and actual original container/evaluator execution remain the next required gates.

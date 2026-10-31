@@ -1,0 +1,64 @@
+{
+  "returncode": 0,
+  "stderr": "",
+  "observation": {
+    "model-build": {
+      "session": "passnet-model-build-v1",
+      "live": true,
+      "pane": "1419315 bash 0",
+      "status": "running",
+      "phase": "build",
+      "error": null,
+      "model-build-driver-v1.log": [],
+      "server-configure-v1.log": [
+        "CMake Warning at common/CMakeLists.txt:33 (message):",
+        "  Git repository not found; to enable automatic generation of build info,",
+        "  make sure Git is installed and the project is a Git repository.",
+        "",
+        "",
+        "-- Configuring done (4.4s)",
+        "-- Generating done (0.1s)",
+        "-- Build files have been written to: /storage/llama-build"
+      ],
+      "server-build-v1.log": [
+        "[96/380] Building CUDA object ggml/src/ggml-cuda/CMakeFiles/ggml-cuda.dir/wkv.cu.o",
+        "[97/380] Building CUDA object ggml/src/ggml-cuda/CMakeFiles/ggml-cuda.dir/mmvf.cu.o",
+        "[98/380] Building CUDA object ggml/src/ggml-cuda/CMakeFiles/ggml-cuda.dir/unary.cu.o",
+        "[99/380] Building CUDA object ggml/src/ggml-cuda/CMakeFiles/ggml-cuda.dir/template-instances/fattn-tile-instance-dkq320-dv256.cu.o",
+        "[100/380] Building CUDA object ggml/src/ggml-cuda/CMakeFiles/ggml-cuda.dir/template-instances/fattn-tile-instance-dkq192-dv128.cu.o",
+        "[101/380] Building CUDA object ggml/src/ggml-cuda/CMakeFiles/ggml-cuda.dir/mmvq.cu.o",
+        "[102/380] Building CUDA object ggml/src/ggml-cuda/CMakeFiles/ggml-cuda.dir/template-instances/fattn-tile-instance-dkq112-dv112.cu.o",
+        "[103/380] Building CUDA object ggml/src/ggml-cuda/CMakeFiles/ggml-cuda.dir/template-instances/fattn-tile-instance-dkq40-dv40.cu.o"
+      ]
+    },
+    "model-download": {
+      "session": "passnet-model-download-v1",
+      "live": true,
+      "pane": "1419497 bash 0",
+      "status": "running",
+      "phase": null,
+      "error": null,
+      "bytes": 2283402572,
+      "expected_bytes": 61084185821,
+      "verified": 5,
+      "files": 25,
+      "file_states": {
+        "model-00001-of-00016.safetensors": {
+          "status": "downloading",
+          "bytes": 1048576000
+        },
+        "model-00002-of-00016.safetensors": {
+          "status": "downloading",
+          "bytes": 1233125376
+        }
+      },
+      "model-download-driver-v1.log": [
+        "VERIFIED LICENSE",
+        "VERIFIED README.md",
+        "VERIFIED config.json",
+        "VERIFIED generation_config.json",
+        "VERIFIED merges.txt"
+      ]
+    }
+  }
+}
