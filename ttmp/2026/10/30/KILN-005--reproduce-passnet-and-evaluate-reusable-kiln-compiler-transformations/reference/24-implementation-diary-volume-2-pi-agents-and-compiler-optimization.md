@@ -1497,3 +1497,52 @@ See Step182 for the authored implementation direction and Step188 for pending co
 ### Technical details
 - Large accepted example input:[128,512,48,48] FP16; weight:[256,512,1,1]; output:[128,256,24,24].
 - Nominal criterion t=-5;20 warmups,100 timed trials; separate contraction; NVIDIA GB10 and A100 scheduling proxy. All seventeen accepted graphs retain original scorer evidence.
+
+## Step 190: Expose pointwise convolution as a reusable matrix decomposition
+
+Added an opt-in pointwise-convolution decomposition and tested it on the complete six-graph slow pooling family. The matrix decomposition alone fuses back into the original row kernel. Combined with the existing staged fusion program, every family variant instead exposes a tiled contraction and a separate pooling kernel. Native correctness and timing are pending at this checkpoint.
+
+### Prompt Context
+See Step182 for the authored request and Step189 for the measured optimization target.
+**Assistant interpretation:** Improve a reusable lowering decision using existing compiler primitives and measure its effect.
+**Inferred user intent:** Turn workload expansion into new compiler-optimization results.
+
+### What I did
+- Added lowerPointwiseConv2d to the existing conv2d module and a small opt-in pipeline rule installer in pointwise_convolution.mjs.
+- Represented pointwise channel reduction using existing batched matmul lowering, preserving groups, spatial strides, bias and existing cast boundaries.
+- Retained generic convolution lowering for padded or non-pointwise convolutions; default compiler behavior remains unchanged.
+- Added36 typed grouped/strided/padded semantic cases and a non-pointwise fallback check. Existing convolution tests also pass.
+- Scripts486–487 inspect the large graph and export every variant in the six-graph family under the fixed candidate.
+
+### Why
+- The generic convolution's spatial output axes obscure the matrix contraction from the scheduler. Keeping channel reduction as matrix K and flattened spatial coordinates as N exposes existing tiled schedules.
+- This reuses the existing scheduler and staged-fusion mechanism rather than creating a specialized external CUDA replacement.
+
+### What worked
+- All36 semantic cases and non-pointwise fallback pass exact frontend/decomposition comparison; existing convolution reference, decomposition and low-precision bias tests pass.
+- All six fixed family variants export with existing protected reference-check behavior. Large cases retain the standard reference-size skip, not a new exemption.
+- The largest graph changes from18,874,368 row blocks to4,608 tiled contraction blocks plus73,728 pooling blocks. All six variants expose tiled contractions.
+
+### What didn't work
+- Pointwise decomposition without staged fusion does not change the final large graph's row kernel structure. Both changes are needed in this observed case.
+- No GPU performance or native correctness result yet; block counts alone do not establish a speedup.
+
+### What I learned
+- The earlier scheduling-aware fusion policy becomes useful on a new workload once its channel reduction is expressed in a recognizable layout.
+
+### What was tricky to build
+- Grouped weights have shape[G,OC/G,IC/G]; input views have shape[N,G,IC/G,OH*OW]. Existing matmul broadcasting supplies the batch dimension, and spatial coordinates map through the convolution strides.
+- The frontend's low-precision narrowing stays outside the rewritten FP32 convolution node, preserving the source-operation boundary.
+
+### What warrants a second pair of eyes
+- Native floating-point compatibility and tile indexing across all six shape/dtype variants must be checked on CUDA. Small exact tests do not prove arbitrary-input or cuDNN agreement.
+
+### What should be done in the future
+- Run the fixed candidate through the original evaluator and scorer for all six graphs, retaining any failure. Only then consider exposing this transformation to agents or promoting it.
+
+### Code review instructions
+- Inspect lowerPointwiseConv2d, pointwise_convolution.mjs, test/pointwise-conv.mjs and pointwise-convolution-probe-v1/results.json. Run the pointwise and convolution tests under Node26.
+
+### Technical details
+- No external implementation copied. The transformation is derived from the existing convolution formula and Kiln's batched matmul API.
+- This is a manually authored reusable compiler transformation, informed by measured workload behavior; no new LLM inference occurred in this step.

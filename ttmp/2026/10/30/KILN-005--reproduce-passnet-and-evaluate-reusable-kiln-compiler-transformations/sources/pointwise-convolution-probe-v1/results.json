@@ -1,0 +1,108 @@
+[
+  {
+    "name": "baseline",
+    "compile_ms": 31.536609999999996,
+    "loop": [
+      {
+        "shape": [
+          128,
+          256,
+          24,
+          24
+        ],
+        "contraction": false
+      }
+    ],
+    "kernels": [
+      {
+        "shape": [
+          128,
+          256,
+          24,
+          24
+        ],
+        "row": "MAP=row,TPB=32",
+        "grid": 18874368,
+        "block": 32
+      }
+    ]
+  },
+  {
+    "name": "pointwise",
+    "compile_ms": 17.85720599999999,
+    "loop": [
+      {
+        "shape": [
+          128,
+          256,
+          24,
+          24
+        ],
+        "contraction": false
+      }
+    ],
+    "kernels": [
+      {
+        "shape": [
+          128,
+          256,
+          24,
+          24
+        ],
+        "row": "MAP=row,TPB=32",
+        "grid": 18874368,
+        "block": 32
+      }
+    ]
+  },
+  {
+    "name": "pointwise-staged",
+    "compile_ms": 70.66570300000001,
+    "loop": [
+      {
+        "shape": [
+          128,
+          1,
+          256,
+          1,
+          2304
+        ],
+        "contraction": true
+      },
+      {
+        "shape": [
+          128,
+          256,
+          24,
+          24
+        ],
+        "contraction": false
+      }
+    ],
+    "kernels": [
+      {
+        "shape": [
+          128,
+          1,
+          256,
+          1,
+          2304
+        ],
+        "row": "MAP=tiled,BM=128,BN=128,BK=16,TM=8,TN=2",
+        "grid": 4608,
+        "block": 1024
+      },
+      {
+        "shape": [
+          128,
+          256,
+          24,
+          24
+        ],
+        "row": "TPB=128,COARSEN=2",
+        "grid": 73728,
+        "block": 128
+      }
+    ]
+  }
+]

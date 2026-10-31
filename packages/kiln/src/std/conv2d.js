@@ -1,5 +1,6 @@
 // Independent NCHW/OIHW cross-correlation reference. No PyTorch source copied.
 import {Tensor} from '../core/util.js';
+import {lowerMatmul} from './matmul.js';
 function pair(value,name){
  const v=Number.isInteger(value)?[value,value]:value;
  if(!Array.isArray(v)||v.length!==2||!v.every(Number.isInteger))throw new TypeError(`${name} must be an integer pair`);
@@ -55,4 +56,20 @@ export function lowerConv2d(T, x, w, b, options) {
  for(const axis of [6,5,4])result=T.sum(result,axis);
  result=T.reshape(result,spec.shape);
  return T.add(result,T.reshape(b,[1,oc,1,1]));
+}
+
+// Optional decomposition for pointwise convolutions. Keep the channel reduction
+// as the matrix K dimension; flatten spatial coordinates into its N dimension.
+// Non-pointwise and padded cases retain the existing convolution decomposition.
+export function lowerPointwiseConv2d(T, x, w, b, options) {
+ const spec=conv2dSpec(x.type.shape,w.type.shape,options);
+ if(w.type.shape[2]!==1 || w.type.shape[3]!==1 || spec.padding.some(p=>p!==0))
+  return lowerConv2d(T,x,w,b,options);
+ const [n,c]=x.type.shape,[oc,ic]=w.type.shape,[,,oh,ow]=spec.shape,g=spec.groups;
+ const matrixInput=T.view(x,[n,g,ic,oh*ow],a=>[
+  a[0],a[1].mul(ic).add(a[2]),a[3].div(ow).mul(spec.stride[0]),a[3].mod(ow).mul(spec.stride[1])]);
+ const matrixWeight=T.reshape(w,[g,oc/g,ic]);
+ const product=lowerMatmul(T,matrixWeight,matrixInput);
+ const biased=T.add(product,T.reshape(b,[1,g,oc/g,1]));
+ return T.reshape(biased,spec.shape);
 }
