@@ -712,3 +712,51 @@ See Steps 168–169 for concurrent-lane and research-first instructions.
 ### Technical details
 - Development result under the modified explicit FP32 protocol; not native PassBench score or fresh held-out evidence.
 - Thinking-level configuration defaults to off for existing configurations; new requests can specify thinkingLevel explicitly.
+
+## Step 174: Repeat the gain and identify matrix scheduling as the next hypothesis
+
+A fresh isolated run of the identical candidate set again selected glm-28, scoring 1.2873976889929954 versus the first run's 1.285583430086401. The development gain repeats. Per-graph analysis shows four wins, two regressions and six exact aliases. The largest observed improvement is approximately 19.01x on one graph; one regression is approximately 0.408x. This concentration rules out interpreting the aggregate as uniform improvement.
+
+### Prompt Context
+See Steps 168–169 and 173 for research-first priorities, concurrency and thinking-level experimentation.
+**Assistant interpretation:** Repeat the measured result and explain which compiler behavior warrants further research.
+**Inferred user intent:** Find reusable improvements rather than promote a lucky aggregate.
+**Previous commit:** ec3c154 — Measure 1.286x development gain from GLM selective fusion policy.
+
+### What I did
+- Added script 454 to extract the original immutable evaluation bundle into a fresh remote run directory and repeat GPU measurement.
+- Collected repeated timing/terminal receipts and recomputed the ranking.
+- Added script 455 to relate changed-graph timings to actual kernel schedules and shapes.
+
+### Why
+- Repetition addresses run variability; inspecting kernel changes provides a concrete optimization hypothesis.
+
+### What worked
+- Both runs select glm-28 with closely matching aggregate scores; the repeated ranking records no candidate failures.
+- Graph 3 changes a fused row-mapped matrix/layout kernel into a tiled matrix kernel plus layout conversion, reducing observed end-to-end time from 1.17646 ms to 0.0618875 ms in the first run.
+- Graph 10 similarly switches to MAP=tiled,BM=32,BN=16,BK=8 plus a separate layout kernel and improves approximately 1.568x.
+
+### What didn't work
+- Graph 11 regresses from 0.0844555 ms to 0.207151 ms; its separated matrix kernel remains row-mapped, using TPB=128,STAGE=all.
+- Repetition on the same development population establishes neither unseen-family generalization nor a universally beneficial policy.
+
+### What I learned
+- Preserving a matrix operation until scheduling can enable a profitable tiled implementation. Fusion changes scheduling opportunities as well as launch count.
+- The next targeted hypothesis is to prevent layout fusion where it destroys profitable matrix tiling, while retaining fusion where separation supplies no better schedule.
+
+### What was tricky to build
+- The repeat uses unchanged compiled inputs and evaluator source; only run ownership/name differs. Current uncommitted implementation choices cannot affect its kernels.
+
+### What warrants a second pair of eyes
+- Schedule differences are observed evidence, but attributing the entire speedup to tiling requires a controlled compiler ablation.
+
+### What should be done in the future
+- Design a matrix/layout-aware profitability decision or schedule comparison, then test it against both the winner's gains and regressions.
+- Confirm on additional families and publish the substantive milestone report.
+
+### Code review instructions
+- Inspect scripts 454–455, pi-six-lane-repeat-results-v1/selection.json and pi-selective-winner-analysis-v1.json.
+
+### Technical details
+- Fixed development population and modified explicit FP32 protocol; no default compiler promotion.
+- Baseline and candidate share measurements only when their executable fingerprints are identical.

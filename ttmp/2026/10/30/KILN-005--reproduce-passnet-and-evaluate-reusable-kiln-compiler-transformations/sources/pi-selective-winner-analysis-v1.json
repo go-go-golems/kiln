@@ -1,0 +1,501 @@
+{
+  "scope": "Development observations; schedule causality needs targeted ablation",
+  "records": [
+    {
+      "index": 3,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/mesolitica_ner-t5-small-standard-bahasa-cased/_decomposed/mesolitica_ner-t5-small-standard-bahasa-cased_start769_end775_3",
+      "e2e_speedup": 19.00965461522925,
+      "baseline_ms": 1.17646,
+      "candidate_ms": 0.0618875,
+      "baseline": [
+        {
+          "shape": [
+            1,
+            8,
+            64,
+            82
+          ],
+          "schedule": "TPB=64",
+          "reads": [
+            2
+          ]
+        },
+        {
+          "shape": [
+            1,
+            8,
+            82,
+            64
+          ],
+          "schedule": "MAP=row,TPB=1024",
+          "reads": [
+            0,
+            1
+          ]
+        }
+      ],
+      "glm-28": [
+        {
+          "shape": [
+            1,
+            8,
+            64,
+            82
+          ],
+          "schedule": "TPB=64",
+          "reads": [
+            2
+          ]
+        },
+        {
+          "shape": [
+            1,
+            82,
+            1,
+            512
+          ],
+          "schedule": "MAP=tiled,BM=32,BN=16,BK=8",
+          "reads": [
+            0,
+            1
+          ]
+        },
+        {
+          "shape": [
+            1,
+            8,
+            82,
+            64
+          ],
+          "schedule": "TPB=64",
+          "reads": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/facebook_wav2vec2-base-960h/_decomposed/facebook_wav2vec2-base-960h_start36_end41_7",
+      "e2e_speedup": 1.4116970837701328,
+      "baseline_ms": 0.11850350000000001,
+      "candidate_ms": 0.08394399999999999,
+      "baseline": [
+        {
+          "shape": [
+            1,
+            12,
+            49,
+            64
+          ],
+          "schedule": "TPB=128",
+          "reads": [
+            3
+          ]
+        },
+        {
+          "shape": [
+            1,
+            12,
+            49,
+            64
+          ],
+          "schedule": "TPB=128",
+          "reads": [
+            4
+          ]
+        },
+        {
+          "shape": [
+            1,
+            12,
+            49,
+            64
+          ],
+          "schedule": "MAP=row,TPB=64",
+          "reads": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      "glm-28": [
+        {
+          "shape": [
+            1,
+            12,
+            49,
+            64
+          ],
+          "schedule": "TPB=128",
+          "reads": [
+            3
+          ]
+        },
+        {
+          "shape": [
+            1,
+            12,
+            49,
+            64
+          ],
+          "schedule": "TPB=128",
+          "reads": [
+            4
+          ]
+        },
+        {
+          "shape": [
+            1,
+            49,
+            1,
+            768
+          ],
+          "schedule": "MAP=tiled,BM=32,BN=16,BK=8",
+          "reads": [
+            1,
+            2
+          ]
+        },
+        {
+          "shape": [
+            1,
+            12,
+            49,
+            64
+          ],
+          "schedule": "TPB=128",
+          "reads": [
+            0,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MBartForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-MBartForSequenceClassification_start101_end107_20",
+      "e2e_speedup": 0.8394892908634195,
+      "baseline_ms": 0.02824,
+      "candidate_ms": 0.0336395,
+      "baseline": [
+        {
+          "shape": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "schedule": "TPB=1024",
+          "reads": [
+            3
+          ]
+        },
+        {
+          "shape": [
+            1,
+            4,
+            15,
+            4
+          ],
+          "schedule": "TPB=1024",
+          "reads": [
+            4
+          ]
+        },
+        {
+          "shape": [
+            1,
+            4,
+            15,
+            4
+          ],
+          "schedule": "MAP=row,TPB=32",
+          "reads": [
+            1,
+            2,
+            0
+          ]
+        }
+      ],
+      "glm-28": [
+        {
+          "shape": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "schedule": "TPB=1024",
+          "reads": [
+            3
+          ]
+        },
+        {
+          "shape": [
+            1,
+            4,
+            15,
+            4
+          ],
+          "schedule": "TPB=1024",
+          "reads": [
+            4
+          ]
+        },
+        {
+          "shape": [
+            1,
+            15,
+            1,
+            16
+          ],
+          "schedule": "MAP=row,TPB=32",
+          "reads": [
+            2,
+            0
+          ]
+        },
+        {
+          "shape": [
+            1,
+            4,
+            15,
+            4
+          ],
+          "schedule": "TPB=1024",
+          "reads": [
+            1,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ar-eo/_decomposed/opus-mt-ar-eo_start235_end242_20",
+      "e2e_speedup": 1.4148961854176725,
+      "baseline_ms": 0.09376799999999999,
+      "candidate_ms": 0.066272,
+      "baseline": [
+        {
+          "shape": [
+            1,
+            1,
+            1,
+            64
+          ],
+          "schedule": "TPB=1024",
+          "reads": [
+            2
+          ]
+        },
+        {
+          "shape": [
+            1,
+            8,
+            64,
+            64
+          ],
+          "schedule": "TPB=64",
+          "reads": [
+            4
+          ]
+        },
+        {
+          "shape": [
+            1,
+            8,
+            1,
+            64
+          ],
+          "schedule": "TPB=64",
+          "reads": [
+            5
+          ]
+        },
+        {
+          "shape": [
+            1,
+            8,
+            64,
+            64
+          ],
+          "schedule": "MAP=row,TPB=64",
+          "reads": [
+            0,
+            1,
+            3
+          ]
+        }
+      ],
+      "glm-28": [
+        {
+          "shape": [
+            1,
+            1,
+            1,
+            64
+          ],
+          "schedule": "TPB=1024",
+          "reads": [
+            2
+          ]
+        },
+        {
+          "shape": [
+            1,
+            8,
+            64,
+            64
+          ],
+          "schedule": "TPB=64",
+          "reads": [
+            4
+          ]
+        },
+        {
+          "shape": [
+            1,
+            8,
+            1,
+            64
+          ],
+          "schedule": "TPB=64",
+          "reads": [
+            5
+          ]
+        },
+        {
+          "shape": [
+            1,
+            64,
+            1,
+            512
+          ],
+          "schedule": "MAP=tiled,BM=32,BN=16,BK=8",
+          "reads": [
+            1,
+            3
+          ]
+        },
+        {
+          "shape": [
+            1,
+            8,
+            64,
+            64
+          ],
+          "schedule": "TPB=64",
+          "reads": [
+            0,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/GKLMIP_electra-khmer-small-uncased-tokenized/_decomposed/GKLMIP_electra-khmer-small-uncased-tokenized_start103_end106_10",
+      "e2e_speedup": 1.5682193591014206,
+      "baseline_ms": 0.075952,
+      "candidate_ms": 0.048432,
+      "baseline": [
+        {
+          "shape": [
+            1,
+            8,
+            64,
+            64
+          ],
+          "schedule": "MAP=row,TPB=64",
+          "reads": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      "glm-28": [
+        {
+          "shape": [
+            1,
+            64,
+            1,
+            512
+          ],
+          "schedule": "MAP=tiled,BM=32,BN=16,BK=8",
+          "reads": [
+            1,
+            2
+          ]
+        },
+        {
+          "shape": [
+            1,
+            8,
+            64,
+            64
+          ],
+          "schedule": "TPB=64",
+          "reads": [
+            0,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/breadlicker45_autotrain-blender-50601120822/_decomposed/breadlicker45_autotrain-blender-50601120822_start122_end125_26",
+      "e2e_speedup": 0.4077001800618872,
+      "baseline_ms": 0.08445549999999999,
+      "candidate_ms": 0.207151,
+      "baseline": [
+        {
+          "shape": [
+            1,
+            32,
+            15,
+            40
+          ],
+          "schedule": "MAP=row,TPB=64",
+          "reads": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      "glm-28": [
+        {
+          "shape": [
+            1,
+            15,
+            1,
+            1280
+          ],
+          "schedule": "MAP=row,TPB=128,STAGE=all",
+          "reads": [
+            1,
+            2
+          ]
+        },
+        {
+          "shape": [
+            1,
+            32,
+            15,
+            40
+          ],
+          "schedule": "TPB=64",
+          "reads": [
+            0,
+            3
+          ]
+        }
+      ]
+    }
+  ]
+}
