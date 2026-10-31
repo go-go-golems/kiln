@@ -109,6 +109,15 @@ function rmsRef(x, w, eps) { x = asT(x); w = asT(w); const [R, D] = rows(x); con
 function lnRef(x, w, b, eps) { x = asT(x); w = asT(w); b = asT(b); const [R, D] = rows(x); const o = new Tensor(x.shape); for (let r = 0; r < R; r++) { let m = 0; for (let j = 0; j < D; j++) m += x.data[r * D + j]; m /= D; let v = 0; for (let j = 0; j < D; j++) v += (x.data[r * D + j] - m) ** 2; const inv = 1 / Math.sqrt(v / D + eps); for (let j = 0; j < D; j++) o.data[r * D + j] = (x.data[r * D + j] - m) * inv * w.data[j] + b.data[j]; } return o; }
 function softmaxRef(x, dim) { x = asT(x); const ax = dim < 0 ? x.shape.length + dim : dim; const mx = reduceRef("max", x, ax); const e = ewRef("exp", [ewRef("sub", [x, mx])]); return ewRef("div", [e, reduceRef("add", e, ax)]); }
 function reshapeMap(inShape, outShape) {
+  // Inserting/removing unit axes preserves each non-unit coordinate directly.
+  // Flatten/unflatten is equivalent but retains spurious cross-axis dependencies,
+  // which can hide contraction structure from scheduling analysis.
+  const inputAxes = inShape.map((extent, axis) => ({ extent, axis })).filter(d => d.extent !== 1);
+  const outputAxes = outShape.map((extent, axis) => ({ extent, axis })).filter(d => d.extent !== 1);
+  if (inputAxes.length === outputAxes.length && inputAxes.every((d, i) => d.extent === outputAxes[i].extent)) {
+    const coordinates = new Map(inputAxes.map((d, i) => [d.axis, outputAxes[i].axis]));
+    return IX.map(outShape.length, a => inShape.map((extent, axis) => extent === 1 ? IX.C(0) : a[coordinates.get(axis)]));
+  }
   return IX.map(outShape.length, (a) => {
     const os = strides(outShape), is = strides(inShape);
     let flat = IX.C(0);

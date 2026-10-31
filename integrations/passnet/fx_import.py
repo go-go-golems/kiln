@@ -3,7 +3,7 @@
 Independent lowering against Kiln N APIs. No upstream implementation copied.
 """
 import json
-from fx_indexing import lower_index,lower_transpose
+from fx_indexing import lower_index,lower_transpose,lower_reshape
 from fx_linalg import FUNCTIONS as LINALG_FUNCTIONS, METHODS as LINALG_METHODS, lower_linalg
 from fx_norm_ops import LAYER_NORM,lower_layer_norm,SOFTMAX,lower_softmax
 
@@ -202,21 +202,30 @@ def import_graph(graph):
             source=next((key for key,value in values.items() if value==bound[input_name]),None)
             if source is None:raise ValueError(f'{name}: transpose input must reference a tensor')
             expr=lower_transpose(bound[input_name],literal(bound['dim0']),literal(bound['dim1']),metadata[source],meta)
+        elif target in ('torch.reshape','aten.reshape.default') or (node['kind']=='call_method' and target in ('reshape','view')):
+            if node['kind']=='call_method':
+                if not args or kwargs:raise ValueError(f'{name}: unsupported layout arguments')
+                value=args[0]
+                shape=literal(args[1]) if len(args)==2 and isinstance(args[1],(tuple,list)) else [literal(x) for x in args[1:]]
+            else:
+                first='self' if target=='aten.reshape.default' else 'input'
+                fields=[first,'shape']
+                if len(args)>2 or set(kwargs)-set(fields):raise ValueError(f'{name}: unsupported reshape arguments')
+                bound=dict(zip(fields,args))
+                if set(bound)&set(kwargs):raise ValueError(f'{name}: duplicate reshape argument')
+                bound.update(kwargs)
+                if set(bound)!=set(fields):raise ValueError(f'{name}: reshape input and shape required')
+                value=bound[first];shape=literal(bound['shape'])
+            source=next((key for key,val in values.items() if val==value),None)
+            if source is None or not isinstance(metadata[source],dict):raise ValueError(f'{name}: reshape operand must reference a tensor')
+            expr=lower_reshape(value,shape,metadata[source],meta)
         elif node['kind'] == 'call_method':
-            if target in ('reshape','view','flatten'):
-                if kwargs and (target!='flatten' or set(kwargs)-{'start_dim','end_dim'}):
-                    raise ValueError(f'{name}: unsupported layout keyword arguments')
-                if target in ('reshape','view'):
-                    shape_args=literal(args[1]) if len(args)==2 and isinstance(args[1],(tuple,list)) else [literal(x) for x in args[1:]]
-                    if any(type(d) is not int for d in shape_args):
-                        raise ValueError(f'{name}: static integer shape required')
-                else:
-                    if len(args)>3: raise ValueError(f'{name}: invalid flatten arguments')
-                    bound=dict(zip(('start_dim','end_dim'),args[1:]))
-                    if set(bound)&set(kwargs): raise ValueError(f'{name}: duplicate flatten argument')
-                    bound.update(kwargs)
-                    if any(type(literal(d)) is not int for d in bound.values()):
-                        raise ValueError(f'{name}: static flatten axes required')
+            if target=='flatten':
+                if len(args)>3 or set(kwargs)-{'start_dim','end_dim'}:raise ValueError(f'{name}: invalid flatten arguments')
+                bound=dict(zip(('start_dim','end_dim'),args[1:]))
+                if set(bound)&set(kwargs):raise ValueError(f'{name}: duplicate flatten argument')
+                bound.update(kwargs)
+                if any(type(literal(v)) is not int for v in bound.values()):raise ValueError(f'{name}: static flatten axes required')
                 expr=f'N.reshape({args[0]}, {json.dumps(meta["shape"])})'
             elif target == 'contiguous':
                 if len(args)!=1 or kwargs: raise ValueError(f'{name}: unsupported contiguous format')

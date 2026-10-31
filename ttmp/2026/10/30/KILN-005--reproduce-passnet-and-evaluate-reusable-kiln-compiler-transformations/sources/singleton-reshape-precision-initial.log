@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/work/271-diagnose-reshape-precision-cuda.py", line 27, in <module>
+    torch.testing.assert_close(value,highest,rtol=1.3e-6,atol=1e-5)
+  File "/usr/local/lib/python3.12/dist-packages/torch/testing/_comparison.py", line 1631, in assert_close
+    raise error_metas[0].to_error(msg)
+AssertionError: Tensor-likes are not close!
+
+Mismatched elements: 1 / 561 (0.2%)
+Greatest absolute difference: 1.7642974853515625e-05 at index (0, 16, 3) (up to 1e-05 allowed)
+Greatest relative difference: 4.66823075839784e-06 at index (0, 16, 3) (up to 1.3e-06 allowed)

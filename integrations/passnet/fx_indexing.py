@@ -68,3 +68,20 @@ def lower_index(value, key, shape, output_shape):
     # Integer selections preserve unit axes during slicing; reshape removes them
     # and inserts None axes without changing flattened logical order.
     return f'N.reshape({expression}, {json.dumps(result_shape)})'
+
+
+def lower_reshape(value,shape,source,output):
+    """Resolve positive static sizes and one inferred axis against source metadata."""
+    import math
+    if not isinstance(shape,(tuple,list)) or any(type(d) is not int or d==0 or d < -1 for d in shape):
+        raise ValueError('reshape: positive static dimensions or one -1 required')
+    if shape.count(-1)>1:raise ValueError('reshape: only one inferred dimension allowed')
+    elements=math.prod(source['shape']);resolved=list(shape)
+    if -1 in resolved:
+        known=math.prod(d for d in resolved if d!=-1)
+        if elements%known:raise ValueError('reshape: inferred dimension must divide element count')
+        resolved[resolved.index(-1)]=elements//known
+    if math.prod(resolved)!=elements:raise ValueError('reshape: element count must be preserved')
+    if not isinstance(output,dict) or source['dtype']!=output.get('dtype') or resolved!=output.get('shape'):
+        raise ValueError('reshape: result shape/dtype disagrees with static semantics')
+    return f'N.reshape({value}, {json.dumps(resolved)})'

@@ -1,0 +1,83 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/singleton-reshape-fixtures/004.kiln.js",
+  "sha256": "a3d801f3d5d66b6b3c69165f1815fc1f52a8f9447ce23f56635a713c7cb1dd99",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    3
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    6
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 6,
+   "bytes": 24
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 6,
+   "bytes": 24
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_reshape__1ldqlomwul3",
+   "identity": "1ldqlomwul3",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    6
+   ],
+   "inShapes": [
+    [
+     2,
+     3
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 6i) {\n        v_in0 = b0[(((n_e / 2i) % 3i) + (3i * (n_e % 2i)))];\n        bout[n_e] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_reshape__1ldqlomwul3(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 6)) {\n        in0 = src0[(((e / 2) % 3) + (3 * (e % 2)))];\n        dst[e] = in0;\n    }\n}"
+  }
+ ]
+}

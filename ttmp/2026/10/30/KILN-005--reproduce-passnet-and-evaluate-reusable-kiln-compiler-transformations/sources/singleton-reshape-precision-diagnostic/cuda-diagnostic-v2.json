@@ -1,0 +1,119 @@
+{
+  "status": "complete",
+  "scope": "Precision diagnostic only: original native fixture remains 60/63, with no relaxed tolerance or reclassification",
+  "initial_allow_tf32": true,
+  "torch": "2.12.0a0+5aff3928d8.nv26.05",
+  "gpu": "NVIDIA GB10",
+  "records": [
+    {
+      "seed": 1,
+      "native_vs_fp64_max_abs": 0.005511283874511719,
+      "full_fp32_vs_fp64_max_abs": 1.9073486328125e-06,
+      "baseline_vs_optimized_max_abs": 0.0,
+      "baseline": {
+        "native_max_abs": 0.005512237548828125,
+        "full_fp32_max_abs": 1.9073486328125e-06,
+        "fp64_max_abs": 1.9073486328125e-06,
+        "strict_comparisons": {
+          "full_fp32": {
+            "passed": true
+          },
+          "fp64": {
+            "passed": true
+          }
+        },
+        "fp32_forward_error_bound_satisfied": true,
+        "max_forward_error_bound_ratio": 0.044043099019727916
+      },
+      "optimized": {
+        "native_max_abs": 0.005512237548828125,
+        "full_fp32_max_abs": 1.9073486328125e-06,
+        "fp64_max_abs": 1.9073486328125e-06,
+        "strict_comparisons": {
+          "full_fp32": {
+            "passed": true
+          },
+          "fp64": {
+            "passed": true
+          }
+        },
+        "fp32_forward_error_bound_satisfied": true,
+        "max_forward_error_bound_ratio": 0.044043099019727916
+      }
+    },
+    {
+      "seed": 7,
+      "native_vs_fp64_max_abs": 0.09804534912109375,
+      "full_fp32_vs_fp64_max_abs": 4.57763671875e-05,
+      "baseline_vs_optimized_max_abs": 0.0,
+      "baseline": {
+        "native_max_abs": 0.09804534912109375,
+        "full_fp32_max_abs": 3.0517578125e-05,
+        "fp64_max_abs": 1.52587890625e-05,
+        "strict_comparisons": {
+          "full_fp32": {
+            "passed": false,
+            "error": "Tensor-likes are not close!\n\nMismatched elements: 1 / 561 (0.2%)\nGreatest absolute difference: 1.7642974853515625e-05 at index (0, 16, 3) (up to 1e-05 allowed)\nGreatest relative difference: 4.66823075839784e-06 at index (0, 16, 3) (up to 1.3e-06 allowed)"
+          },
+          "fp64": {
+            "passed": true
+          }
+        },
+        "fp32_forward_error_bound_satisfied": true,
+        "max_forward_error_bound_ratio": 0.043298874074432676
+      },
+      "optimized": {
+        "native_max_abs": 0.09804534912109375,
+        "full_fp32_max_abs": 3.0517578125e-05,
+        "fp64_max_abs": 1.52587890625e-05,
+        "strict_comparisons": {
+          "full_fp32": {
+            "passed": false,
+            "error": "Tensor-likes are not close!\n\nMismatched elements: 1 / 561 (0.2%)\nGreatest absolute difference: 1.7642974853515625e-05 at index (0, 16, 3) (up to 1e-05 allowed)\nGreatest relative difference: 4.66823075839784e-06 at index (0, 16, 3) (up to 1.3e-06 allowed)"
+          },
+          "fp64": {
+            "passed": true
+          }
+        },
+        "fp32_forward_error_bound_satisfied": true,
+        "max_forward_error_bound_ratio": 0.043298874074432676
+      }
+    },
+    {
+      "seed": 42,
+      "native_vs_fp64_max_abs": 0.0046749114990234375,
+      "full_fp32_vs_fp64_max_abs": 3.814697265625e-06,
+      "baseline_vs_optimized_max_abs": 0.0,
+      "baseline": {
+        "native_max_abs": 0.0046749114990234375,
+        "full_fp32_max_abs": 3.814697265625e-06,
+        "fp64_max_abs": 1.9073486328125e-06,
+        "strict_comparisons": {
+          "full_fp32": {
+            "passed": true
+          },
+          "fp64": {
+            "passed": true
+          }
+        },
+        "fp32_forward_error_bound_satisfied": true,
+        "max_forward_error_bound_ratio": 0.05232340201076134
+      },
+      "optimized": {
+        "native_max_abs": 0.0046749114990234375,
+        "full_fp32_max_abs": 3.814697265625e-06,
+        "fp64_max_abs": 1.9073486328125e-06,
+        "strict_comparisons": {
+          "full_fp32": {
+            "passed": true
+          },
+          "fp64": {
+            "passed": true
+          }
+        },
+        "fp32_forward_error_bound_satisfied": true,
+        "max_forward_error_bound_ratio": 0.05232340201076134
+      }
+    }
+  ]
+}

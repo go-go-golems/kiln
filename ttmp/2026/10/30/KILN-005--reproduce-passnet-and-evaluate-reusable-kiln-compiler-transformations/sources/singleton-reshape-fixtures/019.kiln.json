@@ -1,0 +1,117 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/singleton-reshape-fixtures/019.kiln.js",
+  "sha256": "86aea9bbf825ea1f792536ea867afd137b820202d886d989bbb5231d98e5dfbb",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    1,
+    5,
+    7
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    2,
+    1,
+    7,
+    3
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    2,
+    5,
+    3
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 70,
+   "bytes": 140
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 42,
+   "bytes": 84
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 30,
+   "bytes": 60
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_matmul_reshape_reduce__1du0z1a8kz",
+   "identity": "1du0z1a8kz",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 30,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    30,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    5,
+    3
+   ],
+   "inShapes": [
+    [
+     2,
+     1,
+     7,
+     3
+    ],
+    [
+     2,
+     1,
+     5,
+     7
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(32) k_cast_matmul_reshape_reduce__1du0z1a8kz(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, v2 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, v3 = 0.0f, v4 = 0.0f;\n    acc0 = 0.0f;\n    for (int r0 = tid; r0 < 7; r0 += 32) {\n        in0 = __bfloat162float(src1[(((7 * ((bid / 3) % 5)) + (35 * (bid / 15))) + r0)]);\n        v0 = in0;\n        in1 = __bfloat162float(src0[(((bid % 3) + (21 * (bid / 15))) + (3 * r0))]);\n        v1 = in1;\n        v2 = __fmul_rn(v0, v1);\n        acc0 = (acc0 + v2);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    v3 = __bfloat162float(__float2bfloat16_rn(acc0));\n    v4 = __bfloat162float(__float2bfloat16_rn(v3));\n    if ((tid == 0)) {\n        dst[(((3 * ((bid / 3) % 5)) + (bid % 3)) + (15 * (bid / 15)))] = __float2bfloat16_rn(v4);\n    }\n}"
+  }
+ ]
+}

@@ -1,0 +1,4 @@
+class Input:
+ name="in_0"
+ shape=[2, 1, 3]
+ dtype="torch.float16"

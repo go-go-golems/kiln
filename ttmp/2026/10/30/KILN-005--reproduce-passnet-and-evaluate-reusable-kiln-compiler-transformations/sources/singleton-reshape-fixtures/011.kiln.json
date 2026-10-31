@@ -1,0 +1,84 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/singleton-reshape-fixtures/011.kiln.js",
+  "sha256": "3ee2d4de3a093bab7a9d85c95c76a811ee89e6b246b663b6b6c39e55ab601717",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    3
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    6
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 6,
+   "bytes": 12
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 6,
+   "bytes": 12
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_reshape__1uh67utjq7o",
+   "identity": "1uh67utjq7o",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    6
+   ],
+   "inShapes": [
+    [
+     2,
+     3
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_reshape__1uh67utjq7o(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 6)) {\n        in0 = __half2float(src0[(((e / 2) % 3) + (3 * (e % 2)))]);\n        dst[e] = __float2half_rn(in0);\n    }\n}"
+  }
+ ]
+}

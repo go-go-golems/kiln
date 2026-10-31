@@ -5714,3 +5714,62 @@ See Step 125 and the user's authored requests to publish and push deep technical
 
 ### Technical details
 - Overall goal remains active. Current verified acceptance is 21 tasks/299 graphs; import eligibility is 1,122 graphs/61 families. No GPU evaluation job from this cohort remains active.
+
+## Step 127: Implement unit-axis reshape maps and preserve the native precision diagnostic
+
+The shared reshape map now uses direct coordinates when the ordered non-unit dimensions agree. It retains the existing flatten/unflatten map for general reshapes. The real attention epilogue consequently exposes and selects tiled contraction rather than the former per-output row reduction. All 33 compiler test files pass, including 444 scalar/unit-axis/dtype numerical cases and noncontiguous logical input/general-reshape checks. A newly discovered public reshape source binding is implemented in the existing indexing helper, with 49 FX tests passing.
+
+Native CUDA fixtures pass 60/63 comparisons. Their three FP32 tail failures are retained. An old/new lowering diagnostic produces identical outputs on those cases: both pass rounded-FP64 comparisons for all seeds, while both fail one strict full-FP32 comparison and disagree with native TF32 reference execution. The complete original benchmark cohort remains the required next gate; no numerical tolerance is relaxed and no speedup is yet claimed.
+
+### Prompt Context
+See Steps 125–126 and the user's authored instructions to implement missing compiler pieces, preserve intermediate scripts, document source provenance and reassess architectural sprawl.
+**Assistant interpretation:** Implement a general index-map simplification, expose legal scheduling structure, and validate through actual source/runtime boundaries rather than assuming the static mapping change is sufficient.
+**Inferred user intent:** Turn a measured performance limitation into a reusable compiler improvement without obscuring correctness or precision failures.
+
+### What I did
+- Added the unit-axis mapping rule to the existing private reshapeMap in tensor.js; no new pipeline or attention-specific compiler pass is introduced.
+- Added singleton-reshape.mjs with 444 numerical/dtype cases, transposed logical inputs, fallback reshapes and actual contraction analysis.
+- Added torch.reshape/aten.reshape source forms and consolidated method reshape/view validation through lower_reshape, including one inferred -1, element-count and metadata checks.
+- Saved scripts 264–274, archived the initial failed export, compiled 21 source fixtures and ran all 63 CUDA comparisons.
+- Compared baseline tensor.js from c15c610 against the new lowering on the exact failed tail fixture, preserving the diagnostic's limited source-snapshot scope.
+- Recorded actual selected mappings: the final large contraction now chooses tiled BM128/BN64/BK16/TM8/TN2.
+
+### Why
+- Flatten/unflatten indexing retains syntactic dependencies that prevent contraction separation even when singleton axes imply a direct coordinate correspondence.
+- A public source fixture exposed a real unsupported entry point. Implementing its contract is preferable to removing that call from the fixture population.
+
+### What worked
+- Full compiler gate: all 33 files execute successfully with actual subprocess permissions.
+- Full FX gate: 49 tests pass, including public/method/ATen binding equivalence, shape inference, metadata errors and mutation ownership rejection.
+- All 21 artifacts compile. Native CUDA comparisons: 60 pass, three fail on one FP32 tail case.
+- Old and new tail lowerings have identical outputs and pass rounded-FP64 comparisons for all three seeds. Both miss one strict full-FP32 comparison on the wider input, preserving rather than concealing that failure.
+
+### What didn't work
+- The first new core test accessed an output reference as a typed node: `TypeError: Cannot read properties of undefined (reading 'dtype')`. The assertion now resolves the node through the graph, and the complete gate passes.
+- The first fixture export failed: `ValueError: reshape: unsupported target torch.reshape; implement semantic lowering`; the subsequent compile attempt lacked manifest.json. Both diagnostics are archived before the source binder is implemented.
+- The native FP32 tail comparison fails on 557/561, 559/561 and 542/561 elements across the three seeds. The initial precision diagnostic then stops on a strict full-FP32 comparison with one mismatched element, absolute difference 1.7642974853515625e-05. The complete second diagnostic records all outcomes at the same tolerances.
+- Reusing script 263 initially overwrote the existing inspection filename locally. The previous committed bytes were restored exactly, the new inspection was saved separately, and the tool now requires a new basename and uses exclusive creation.
+
+### What I learned
+- A small general index rewrite can change scheduler legality substantially. Native framework numerical compatibility remains a separate issue from index-map correctness.
+- The small FP32 tail fixture still selects row mapping under both lowerings; the full real attention program selects tiled mapping and requires its own original-evaluator validation.
+
+### What was tricky to build
+- Baseline diagnostic compilation temporarily restores only tensor.js, with try/finally restoring candidate bytes. Its receipt explicitly says this is not a complete historical source snapshot.
+- The original failed native receipt stays 60/63. Rounded-FP64 diagnostics do not replace original native or benchmark acceptance.
+
+### What warrants a second pair of eyes
+- Review the unit-axis legality proof, repeated dimension handling, scalar/all-unit behavior and preservation of dtype and alias ownership.
+- Review all precision records, source hashes and the absence of benchmark tolerance changes before interpreting the newly selected tiled schedule.
+
+### What should be done in the future
+- Commit the candidate, verify a fresh remote source snapshot and rerun all 93 original variants with the same frozen plan and budgets. Audit every regression before interpreting timing effects.
+- Continue native precision compatibility, broader source/layout coverage and agent-driven reusable transformations.
+
+### Code review instructions
+- Start with design 15, tensor.js, singleton-reshape.mjs, lower_reshape/test_fx_reshape.py, native CUDA receipt and both precision diagnostics. Compare original and candidate scheduling inspections without altering historical records.
+
+### Technical details
+- The CUDA/WGSL emitters are unchanged; affected IR/source identities change naturally. No codegen version bump or compatibility alias is added. Overall verified coverage stays 21 tasks/299 graphs pending the complete regression run.
+
+The full 200-task import re-audit after shared reshape binding reports 1,136 graphs/64 complete families, an increment of 14 graphs/three families with zero import regressions. Script 277 freezes every newly complete family in a separate source-qualification plan. This does not alter the original 93-variant optimization comparison or increase accepted coverage before evaluation.

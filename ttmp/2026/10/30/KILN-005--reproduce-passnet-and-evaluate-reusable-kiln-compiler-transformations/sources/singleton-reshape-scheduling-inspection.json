@@ -1,0 +1,263 @@
+{
+  "format": "kiln-attention-scheduling-inspection/1",
+  "scope": "Actual static scheduling analysis; no causal latency or optimization claim",
+  "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start21_end29_5",
+  "eager_ms": 15.431,
+  "compiled_ms": 703.734,
+  "kernels": [
+    {
+      "name": "k_cast_matmul_reduce",
+      "shape": [
+        64,
+        1,
+        16384,
+        1,
+        256
+      ],
+      "dimensions": [
+        {
+          "variable": "a0",
+          "extent": 64
+        },
+        {
+          "variable": "a2",
+          "extent": 16384
+        },
+        {
+          "variable": "a4",
+          "extent": 256
+        }
+      ],
+      "rowDepth": 3,
+      "rows": 268435456,
+      "inner": 1,
+      "legalMappings": [
+        "thread",
+        "row",
+        "tiled"
+      ],
+      "contraction": {
+        "M": 16384,
+        "N": 256,
+        "K": 64
+      },
+      "reductions": [
+        {
+          "variable": "r161",
+          "extent": 64,
+          "placementDepth": 3,
+          "nested": false
+        }
+      ],
+      "loads": [
+        {
+          "input": 1,
+          "shape": [
+            64,
+            1,
+            16384,
+            64
+          ],
+          "free": [
+            "a0",
+            "a2",
+            "r161"
+          ],
+          "placementDepth": 4,
+          "nested": true
+        },
+        {
+          "input": 0,
+          "shape": [
+            64,
+            1,
+            64,
+            256
+          ],
+          "free": [
+            "a0",
+            "r161",
+            "a4"
+          ],
+          "placementDepth": 4,
+          "nested": true
+        }
+      ]
+    },
+    {
+      "name": "k_matmul_cast_ew_reduce",
+      "shape": [
+        64,
+        1,
+        16384,
+        256
+      ],
+      "dimensions": [
+        {
+          "variable": "a0",
+          "extent": 64
+        },
+        {
+          "variable": "a2",
+          "extent": 16384
+        },
+        {
+          "variable": "a3",
+          "extent": 256
+        }
+      ],
+      "rowDepth": 2,
+      "rows": 1048576,
+      "inner": 256,
+      "legalMappings": [
+        "thread",
+        "row"
+      ],
+      "contraction": null,
+      "reductions": [
+        {
+          "variable": "r76",
+          "extent": 256,
+          "placementDepth": 2,
+          "nested": false
+        },
+        {
+          "variable": "r77",
+          "extent": 256,
+          "placementDepth": 2,
+          "nested": false
+        }
+      ],
+      "loads": [
+        {
+          "input": 0,
+          "shape": [
+            64,
+            1,
+            16384,
+            1,
+            256
+          ],
+          "free": [
+            "a0",
+            "a2",
+            "a3"
+          ],
+          "placementDepth": 3,
+          "nested": false
+        },
+        {
+          "input": 0,
+          "shape": [
+            64,
+            1,
+            16384,
+            1,
+            256
+          ],
+          "free": [
+            "a0",
+            "a2",
+            "r76"
+          ],
+          "placementDepth": 3,
+          "nested": true
+        },
+        {
+          "input": 0,
+          "shape": [
+            64,
+            1,
+            16384,
+            1,
+            256
+          ],
+          "free": [
+            "a0",
+            "a2",
+            "r77"
+          ],
+          "placementDepth": 3,
+          "nested": true
+        }
+      ]
+    },
+    {
+      "name": "k_cast_matmul_reshape_reduce",
+      "shape": [
+        64,
+        16384,
+        64
+      ],
+      "dimensions": [
+        {
+          "variable": "a0",
+          "extent": 64
+        },
+        {
+          "variable": "a1",
+          "extent": 16384
+        },
+        {
+          "variable": "a2",
+          "extent": 64
+        }
+      ],
+      "rowDepth": 3,
+      "rows": 67108864,
+      "inner": 1,
+      "legalMappings": [
+        "thread",
+        "row",
+        "tiled"
+      ],
+      "contraction": {
+        "M": 16384,
+        "N": 64,
+        "K": 256
+      },
+      "reductions": [
+        {
+          "variable": "r13",
+          "extent": 256,
+          "placementDepth": 3,
+          "nested": false
+        }
+      ],
+      "loads": [
+        {
+          "input": 1,
+          "shape": [
+            64,
+            1,
+            16384,
+            256
+          ],
+          "free": [
+            "a0",
+            "a1",
+            "r13"
+          ],
+          "placementDepth": 4,
+          "nested": true
+        },
+        {
+          "input": 0,
+          "shape": [
+            64,
+            1,
+            256,
+            64
+          ],
+          "free": [
+            "a0",
+            "r13",
+            "a2"
+          ],
+          "placementDepth": 4,
+          "nested": true
+        }
+      ]
+    }
+  ]
+}
