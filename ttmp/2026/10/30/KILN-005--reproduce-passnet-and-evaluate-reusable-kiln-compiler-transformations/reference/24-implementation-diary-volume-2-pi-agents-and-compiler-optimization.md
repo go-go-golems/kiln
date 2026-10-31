@@ -2206,3 +2206,46 @@ Read parallel-port-batch-import-v1.json, parallel-port-family-import-v1.json, pa
 
 ### Technical details
 All78 artifacts carry source-file SHA256 values in the fixture manifest. The GPU checker used the pinned PassBench image digest and native torch.nn.functional.max_pool2d. No tolerance relaxation or evaluator change occurred in this fixture cohort.
+
+## Step 203: Launch complete-family PassBench replay for the parallel port batch
+
+The16-family,158-graph cohort is running on bling from committed source revision898fd0f. This is an active benchmark job, not an acceptance result.
+
+### Prompt Context
+The user requested rapid coverage expansion in parallel and a pushed branch for independent research.
+**Assistant interpretation:** After native max-pool validation, replay all complete importable families under the existing task evaluator.
+**Inferred user intent:** Obtain measured benchmark acceptance, not merely an import count.
+
+### What I did
+- Copied the existing isolated task workflow into scripts577–579 with the parallel-port cohort paths and selection.
+- Script577 verified every snapshot file against git revision898fd0f, staged the compiler and all158 source graphs, checked the remote source snapshot, and launched the tmux owner job.
+- Pushed research/passnet at898fd0f. A remote check found the job active with one run record started.
+
+### Why
+The source snapshot and complete membership checks keep the resulting correctness and performance evidence attributable to this compiler revision.
+
+### What worked
+- Remote source snapshot SHA256:41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed.
+- The owner session kiln-parallel-port-tasks-v1 was live at the last check.
+
+### What didn't work
+- No result is yet terminal; accepted coverage remains39/200 tasks and404/2060 graphs.
+
+### What I learned
+The batch is large enough to justify one shared qualification run across all16 families rather than operator-specific task replays.
+
+### What was tricky to build
+The isolated compiler checkout must resolve its own workspace packages; the stage script verifies the remote snapshot before running any task.
+
+### What warrants a second pair of eyes
+Check per-graph matching and original numerical tolerance in the collected audit before updating coverage.
+
+### What should be done in the future
+- Poll the same live remote session/run handle; do not restart on an observation timeout.
+- When terminal, collect with script579, inspect all failures, and update the coverage ledger only for verified complete tasks.
+
+### Code review instructions
+Review parallel-port-task-plan-v1.json, parallel-port-task-staging-v1.json and scripts577–579. Inspect results/run.json and individual benchmark logs once terminal.
+
+### Technical details
+The pinned GPU image is sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba. The evaluation uses the existing modified integration protocol and nominal t=-5 numerical acceptance.
