@@ -3066,3 +3066,50 @@ All 24 fifth-task graph variants completed the original evaluator under the decl
 
 ### Technical details
 - New task score is an exploratory GB10 aggregate under modified integration protocol, not a published hardware reproduction result. Default fusion guard remains unchanged at 1.02.
+
+## Step 72: Publish the detailed project report to the Obsidian vault
+
+Authored a roughly 4,400-word technical report covering the implementation through e98a315, then saved matching ticket and vault copies. The report defines the coverage stages before presenting counts, explains architecture and numerical failures, records all five task scores and distinguishes the proposed self-optimization experiment from work already completed. Committed and pushed the new vault note successfully.
+
+### Prompt Context
+**User prompt (verbatim, line break escaped):** "write a detailed project report for the obsidian vault as a deep dive technical analysis blog post using a textbook writing style (no analogies, see skill).      \n Commit and push the bsidian vault when done (go-go-parc vault).    About things so far"
+**Assistant interpretation:** Publish a comprehensive evidence-backed current-state article, with conceptual foundations, technical algorithms, diagrams, results and limitations.
+**Inferred user intent:** Preserve the work so far as a readable technical account and clarify progress toward reusable compiler optimization.
+**Commit (vault):** d081b7a — docs: report PassNet Kiln integration and self-optimization plan.
+
+### What I did
+- Read the vault-writing and textbook-authoring skills and the previous historical vault article.
+- Wrote reference/06-project-report-passnet-kiln-integration-and-the-path-to-self-optimization.md and a new dated ARTICLE note in go-go-parc.
+- Added script 68 to check exact coverage, import counts, all five score values and compiler/probe outcomes against saved receipts.
+- Added Mermaid dataflow, a concrete small tensor example, precision and concat pseudocode, protocol identities, failure analysis and the proposed training/held-out experiment.
+- Staged and committed only the new vault note; verified the configured push remote was ssh://git@github.com/go-go-golems/go-go-parc.
+
+### Why
+- Earlier progress updates mixed importable and verified counts too closely. The article makes each evidence stage explicit and does not equate translation with execution support.
+
+### What worked
+- Script 68 verified 5/200 accepted tasks, 73/2060 accepted graphs, 804 imported graphs and 24 completely imported tasks; all score values matched.
+- Vault/ticket article bodies matched and fenced blocks were balanced; Git whitespace checks passed.
+- Push completed: `2c3cc7f..d081b7a main -> main` to the existing go-go-parc remote.
+- Prior historical notes and unrelated vault working changes were preserved.
+
+### What didn't work
+- No new publication failure. The earlier publication hold was resolved after the user renewed the explicit vault commit/push request; the new report consolidates the current findings rather than publishing stale intermediate drafts as current results.
+
+### What I learned
+- Defining task, variant, import, compilation and benchmark acceptance early is necessary to prevent misleading interpretations of partial coverage.
+
+### What was tricky to build
+- Keep measured task aggregates separate from GPU-only speedups, direct compiler experiments separate from PassBench acceptance, and planned policy search separate from actual held-out results.
+
+### What warrants a second pair of eyes
+- Review the convolution stress limitation, modified protocol identities, approximately-parity score and family-split proposal before using the report as research evidence.
+
+### What should be done in the future
+- Resume the prioritized self-optimization path: freeze eligible graph families, establish unchanged-Kiln measurements and expose the fusion profitability policy.
+
+### Code review instructions
+- Read reference 06, run script 68 and inspect sources/project-report-facts.json; the vault article is Projects/2026/10/30/ARTICLE - PassNet and Kiln - Compiler Integration and the Self-Optimization Experiment.md.
+
+### Technical details
+- Source implementation snapshot e98a315; vault commit d081b7a. Reference baseline was observed at 121/200 invocations during report preparation and remains incomplete. No full-corpus score, completed PassAgent reproduction or learned compiler improvement is claimed.
