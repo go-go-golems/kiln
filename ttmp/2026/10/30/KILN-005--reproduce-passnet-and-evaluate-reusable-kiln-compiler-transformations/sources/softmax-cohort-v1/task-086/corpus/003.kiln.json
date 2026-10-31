@@ -1,0 +1,168 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../softmax-cohort-v1/task-086/corpus/003.kiln.js",
+  "sha256": "b70c8aedc756ffd448938a51170423e5a241a7c553345406060f9e40f8f8bf35",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    2,
+    256,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    2,
+    256,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 3,
+   "shape": [
+    1,
+    256,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 512,
+   "bytes": 2048
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 401408,
+   "bytes": 1605632
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 512,
+   "bytes": 2048
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 200704,
+   "bytes": 802816
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_softmax_reduce__yp6ylit5k2",
+   "identity": "yp6ylit5k2",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 2,
+   "grid": 8,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    8,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    2,
+    256,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     1,
+     2,
+     256,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: sub_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_cast_softmax_reduce__yp6ylit5k2(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, acc0 = 0.0f, in1 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, acc1 = 0.0f, in2 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 512)) {\n        in0 = src0[((e % 256) + (256 * (e / 256)))];\n        v0 = in0;\n        acc0 = -3.4028234663852886e+38f;\n        for (int r0 = 0; r0 < 2; r0 += 1) {\n            in1 = src0[((e % 256) + (256 * r0))];\n            v1 = in1;\n            acc0 = fmaxf(acc0, v1);\n        }\n        v2 = __fsub_rn(v0, acc0);\n        v3 = expf(v2);\n        acc1 = 0.0f;\n        for (int r1 = 0; r1 < 2; r1 += 1) {\n            in2 = src0[((e % 256) + (256 * r1))];\n            v4 = in2;\n            v5 = __fsub_rn(v4, acc0);\n            v6 = expf(v5);\n            acc1 = (acc1 + v6);\n        }\n        v7 = (v3 / acc1);\n        dst[((e % 256) + (256 * (e / 256)))] = v7;\n    }\n}"
+  },
+  {
+   "name": "k_cast_ew_reduce_reduce__7qu1fvdzzm",
+   "identity": "7qu1fvdzzm",
+   "row": "TPB=128",
+   "reads": [
+    1,
+    2
+   ],
+   "writes": 3,
+   "grid": 1568,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1568,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    256,
+    28,
+    28
+   ],
+   "inShapes": [
+    [
+     1,
+     2,
+     256,
+     28,
+     28
+    ],
+    [
+     1,
+     2,
+     256,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_cast_ew_reduce_reduce__7qu1fvdzzm(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc0 = 0.0f, in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 200704)) {\n        acc0 = 0.0f;\n        for (int r0 = 0; r0 < 2; r0 += 1) {\n            in0 = src0[((((28 * (((((28 * ((e / 28) % 28)) + (e % 28)) + (784 * (e / 784))) / 28) % 28)) + (784 * (((((28 * ((e / 28) % 28)) + (e % 28)) + (784 * (e / 784))) / 784) % 256))) + ((e % 28) % 28)) + (200704 * r0))];\n            in1 = src1[((((((28 * ((e / 28) % 28)) + (e % 28)) + (784 * (e / 784))) / 784) % 256) + (256 * r0))];\n            v0 = in1;\n            v1 = __fmul_rn(in0, v0);\n            v2 = v1;\n            acc0 = (acc0 + v2);\n        }\n        v3 = acc0;\n        dst[(((28 * ((e / 28) % 28)) + (e % 28)) + (784 * (e / 784)))] = v3;\n    }\n}"
+  }
+ ]
+}

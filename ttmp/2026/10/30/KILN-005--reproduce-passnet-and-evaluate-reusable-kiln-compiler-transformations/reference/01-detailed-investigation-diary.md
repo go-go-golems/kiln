@@ -5557,3 +5557,53 @@ See Step 122 and the authored requests to implement missing pieces, preserve int
 
 ### Technical details
 - Current strict acceptance remains eleven tasks/206 graphs. Import eligibility is 1,122/61. Source/fixture correctness is not used to substitute for an original-evaluator acceptance result.
+
+## Step 124: Audit the complete first softmax cohort and start the same population with repaired matching
+
+The first cohort is terminal. All ten tasks and 93 variants compile, reach original-evaluator attempts and score, with no unexecuted variants. The unchanged upstream numerical audit accepts four complete families and 21 individual graphs. Every other variant fails matching. Cumulative original replay coverage rises to fifteen tasks/227 graphs; 162 graphs belong to complete accepted tasks. The preceding coverage ledger is archived before rebuilding the authoritative current ledger.
+
+The same frozen 93-variant plan is staged under matcher commit d71eccd, with all 157 source files matching its committed bytes. A distinct `softmax-cohort-v2` run starts after v1 is terminal and archived. Shared ticket wrappers now take explicit run/receipt names, avoiding separate copies of orchestration and verification code for each attempt.
+
+### Prompt Context
+See Steps 122–123 and the user's request to reassess architectural sprawl and consolidate while implementing and measuring the complete goal.
+**Assistant interpretation:** Convert actual original-evaluator evidence into coverage, preserve the failed attempt, and rerun the same population after the narrowly established matcher repair.
+**Inferred user intent:** Understand real progress and retain a reproducible distinction between new capability and unverified fixes.
+
+### What I did
+- Collected the terminal v1 run with script 254, audited all expected graphs through script 255 and bound source/plan/scorer identities through script 256.
+- Verified that task indices 59, 66, 86 and 174 add 21 accepted graphs with no prior overlap.
+- Preserved coverage-before-softmax.json and extended the existing script 21 ledger rather than building a separate coverage counter.
+- Replaced stale current-phase text in the roadmap and filled the ticket index with links to the authoritative guide, roadmap, diary and evidence.
+- Generalized existing cohort wrapper arguments, staged exact committed source d71eccd, and launched the separate v2 run with the original plan unchanged.
+
+### Why
+- The completed v1 run contains both positive and negative evidence. Omitting it after repairing matching would hide how source import and original evaluation differ.
+- One orchestration implementation and one coverage ledger reduce experiment drift; run names and source receipts identify distinct attempts explicitly.
+
+### What worked
+- Shared audit: 10 tasks, 93 variants, four complete tasks accepted, 21 graphs accepted, zero unexecuted.
+- Shared source verification proves all 157 source files, plan membership and successful scorer log hashes for v1.
+- `python3 .../scripts/21-build-coverage.py`: `Coverage: 15/200 tasks, 227/2060 graphs verified under declared modified protocol.`
+- Repaired v2 source snapshot e483b4f2c82e0330e928a1ff54b63603573e55829702e93b43192f0d5794dafc matches d71eccd; its result remains pending.
+
+### What didn't work
+- The 72 nonaccepted v1 variants fail structural matching, so neither their successful compilation nor scorer process completion counts as acceptance.
+- The complete 200-task release evaluation, original model-agent reproduction and stronger synthesis experiments remain incomplete.
+
+### What I learned
+- Four newly importable families use call forms that already match. Their success can be retained while the remaining functional-softmax cases require default-argument normalization.
+
+### What was tricky to build
+- Staging waited for authoritative terminal state and absent evaluator PID, not an observation timeout. Original v1 artifacts and failed graph records remain unchanged.
+
+### What warrants a second pair of eyes
+- Review all 93 audit rows and exact replacement predicates, compare the archived ledger against the new cumulative ledger, and confirm v2's plan hash remains identical to v1's.
+
+### What should be done in the future
+- Poll the same v2 process, collect it only once terminal, run shared audit/verification and investigate any remaining numerical, matching or dispatch failures. Publish the complete original-evaluator milestone report after this result is known.
+
+### Code review instructions
+- Begin with softmax-cohort-v1-audit.json, softmax-cohort-v1-verified-facts.json, coverage-before-softmax.json and kiln-coverage.json. Inspect generalized scripts 250–256 and the distinct source-verification receipts.
+
+### Technical details
+- The DGX environment and modified integration protocol remain explicit. No strict paper reproduction, controlled speedup, external-agent synthesis or renewed device-document delivery is claimed.

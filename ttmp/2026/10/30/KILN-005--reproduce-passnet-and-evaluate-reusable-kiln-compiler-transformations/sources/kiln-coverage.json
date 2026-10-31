@@ -4,10 +4,10 @@
   "coverage_scope": "Cumulative original replay evidence across recorded compiler snapshots; not a uniform full-corpus release evaluation",
   "tasks_total": 200,
   "graphs_total": 2060,
-  "tasks_verified": 11,
-  "graphs_verified": 206,
-  "graphs_in_complete_tasks": 141,
-  "tasks_remaining": 189,
+  "tasks_verified": 15,
+  "graphs_verified": 227,
+  "graphs_in_complete_tasks": 162,
+  "tasks_remaining": 185,
   "records": [
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/62/91/6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8",
@@ -726,10 +726,66 @@
       "graphs": 6,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "softmax-cohort-v1/task-025/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmseg/OCRNet_R101/_decomposed/OCRNet_R101_start388_end392_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "b3b22d343dbbb19d6c6e2b371f6271c94f60d762a8836900cc0ca182654c741b"
+      },
       "limitations": []
     },
     {
@@ -1023,10 +1079,42 @@
       "graphs": 3,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "softmax-cohort-v1/task-041/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/OFA-Sys_chinese-clip-vit-huge-patch14/_decomposed/OFA-Sys_chinese-clip-vit-huge-patch14_start21_end31_4": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/OFA-Sys_chinese-clip-vit-huge-patch14/_decomposed/OFA-Sys_chinese-clip-vit-huge-patch14_start21_end31_4": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/OFA-Sys_chinese-clip-vit-huge-patch14/_decomposed/OFA-Sys_chinese-clip-vit-huge-patch14_start21_end31_4": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "b3b22d343dbbb19d6c6e2b371f6271c94f60d762a8836900cc0ca182654c741b"
+      },
       "limitations": []
     },
     {
@@ -1259,12 +1347,44 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/49/3a/493a4cf6118db35eb2234e677dc14b51003af05af290b1b527064f0168c8e339",
       "graphs": 3,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 3,
+      "evidence": "softmax-cohort-v1/task-059/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/convit_base/_decomposed/convit_base_start158_end166_27": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/timm/convit_base/_decomposed/convit_base_start158_end166_27": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/convit_base/_decomposed/convit_base_start158_end166_27": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "b3b22d343dbbb19d6c6e2b371f6271c94f60d762a8836900cc0ca182654c741b"
+      },
       "limitations": []
     },
     {
@@ -1697,12 +1817,68 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/40/9e/409ecaf3640856cae02af82bd3c33072b91df1ff89b7dfcbd511c07319f91c1d",
       "graphs": 6,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 6,
+      "evidence": "softmax-cohort-v1/task-066/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/ultralytics/yolo11l/_decomposed/yolo11l_start272_end275_4": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "b3b22d343dbbb19d6c6e2b371f6271c94f60d762a8836900cc0ca182654c741b"
+      },
       "limitations": []
     },
     {
@@ -1854,10 +2030,402 @@
       "graphs": 48,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "softmax-cohort-v1/task-075/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start21_end29_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start21_end29_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start21_end29_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start1999_end2007_62": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/1/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start21_end29_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start1999_end2007_62": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start1999_end2007_62": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start21_end29_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MobileViTModel/_decomposed/hf-tiny-model-private_tiny-random-MobileViTModel_start152_end160_12": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start21_end29_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start1999_end2007_62": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MobileViTModel/_decomposed/hf-tiny-model-private_tiny-random-MobileViTModel_start93_end101_6": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start397_end405_45": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start397_end405_45": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/vinvino02_glpn-nyu/_decomposed/vinvino02_glpn-nyu_start149_end157_15": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start21_end29_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/apple_mobilevit-small/_decomposed/apple_mobilevit-small_start93_end101_14": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start1999_end2007_62": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start397_end405_45": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start21_end29_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start21_end29_5": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start149_end157_25": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start109_end117_23": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start279_end287_54": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/apple_mobilevit-x-small/_decomposed/apple_mobilevit-x-small_start323_end331_44": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/nvidia_mit-b0/_decomposed/nvidia_mit-b0_start197_end205_37": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "b3b22d343dbbb19d6c6e2b371f6271c94f60d762a8836900cc0ca182654c741b"
+      },
       "limitations": []
     },
     {
@@ -2030,12 +2598,68 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/24/25/242508dbd43d0d312d52bcb1aa06377b04274e3a8a28b9f64502abc3d0a9ebe4",
       "graphs": 6,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 6,
+      "evidence": "softmax-cohort-v1/task-086/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/timm/skresnet18.ra_in1k/_decomposed/skresnet18.ra_in1k_start126_end129_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "b3b22d343dbbb19d6c6e2b371f6271c94f60d762a8836900cc0ca182654c741b"
+      },
       "limitations": []
     },
     {
@@ -2770,10 +3394,66 @@
       "graphs": 6,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "softmax-cohort-v1/task-137/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/mmpose/pose_resnest_101/_decomposed/pose_resnest_101_start105_end112_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "b3b22d343dbbb19d6c6e2b371f6271c94f60d762a8836900cc0ca182654c741b"
+      },
       "limitations": []
     },
     {
@@ -3565,12 +4245,68 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/bb/a1/bba1b98e9239211050b3e22a4c159ff38d3a3d78e9c3ffdcdd40800d7e672b09",
       "graphs": 6,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 6,
+      "evidence": "softmax-cohort-v1/task-174/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start375_end378_7": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "b3b22d343dbbb19d6c6e2b371f6271c94f60d762a8836900cc0ca182654c741b"
+      },
       "limitations": []
     },
     {
@@ -3746,10 +4482,66 @@
       "graphs": 6,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "softmax-cohort-v1/task-183/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/microsoft_trocr-small-printed/_decomposed/microsoft_trocr-small-printed_start348_end355_9": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/trocr-base-handwritten/_decomposed/trocr-base-handwritten_start347_end354_17": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/microsoft_trocr-small-printed/_decomposed/microsoft_trocr-small-printed_start348_end355_9": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/trocr-base-handwritten/_decomposed/trocr-base-handwritten_start347_end354_17": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/trocr-base-handwritten/_decomposed/trocr-base-handwritten_start347_end354_17": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_trocr-small-printed/_decomposed/microsoft_trocr-small-printed_start348_end355_9": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "b3b22d343dbbb19d6c6e2b371f6271c94f60d762a8836900cc0ca182654c741b"
+      },
       "limitations": []
     },
     {
@@ -3905,10 +4697,43 @@
       "graphs": 3,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "softmax-cohort-v1/task-193/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/polejowska_cdetr-cd45rb-s/_decomposed/polejowska_cdetr-cd45rb-s_start1232_end1238_13": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/polejowska_cdetr-cd45rb-s/_decomposed/polejowska_cdetr-cd45rb-s_start1232_end1238_13": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/polejowska_cdetr-cd45rb-s/_decomposed/polejowska_cdetr-cd45rb-s_start937_end943_7": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1",
+        "kiln-pattern-multi-output/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "b3b22d343dbbb19d6c6e2b371f6271c94f60d762a8836900cc0ca182654c741b"
+      },
       "limitations": []
     },
     {

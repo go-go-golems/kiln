@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Stage the exact source snapshot; reject remote differences before evaluation."""
-import json,shlex,subprocess,sys,tempfile
+import argparse,json,shlex,subprocess,sys,tempfile
 from pathlib import Path
 p=Path(__file__).resolve().parents[1];repo=next(d for d in p.parents if (d/'integrations/passnet').exists());sys.path.insert(0,str(repo/'integrations/passnet'))
 from evaluate_tasks import snapshot
+parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--receipt',required=True);args=parser.parse_args()
+if Path(args.receipt).name!=args.receipt:raise ValueError('Receipt must be a new basename')
+if (p/'sources'/args.receipt).exists():raise ValueError('Preserve earlier source verification')
 expected=snapshot(repo);base='/home/manuel/passnet-kiln/KILN-005'
 with tempfile.NamedTemporaryFile(mode='w') as names:
  names.write('\n'.join(expected['files'])+'\n');names.flush()
@@ -17,5 +20,5 @@ for name,digest in expected['files'].items():
  import hashlib
  if hashlib.sha256(subprocess.check_output(['git','show',revision+':'+name],cwd=repo)).hexdigest()!=digest:raise ValueError('Source is not committed: '+name)
 receipt={'revision':revision,'snapshot':expected,'remote_matches':True}
-(p/'sources/softmax-cohort-source-verification.json').write_text(json.dumps(receipt,indent=2)+'\n')
+(p/'sources'/args.receipt).write_text(json.dumps(receipt,indent=2)+'\n')
 print(revision,expected['sha256'],len(expected['files']),'source files match')

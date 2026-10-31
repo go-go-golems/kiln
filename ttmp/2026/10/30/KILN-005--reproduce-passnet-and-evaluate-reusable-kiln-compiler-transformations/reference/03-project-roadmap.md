@@ -20,13 +20,13 @@ The target is evaluation across all 200 PassBench tasks and 2,060 variants with 
 | Workspace and acquisition | Complete | Worktree, ticket, pinned paper/code/dataset and materialization receipts |
 | Intern design | Progress edition delivered | Updated technical guide with actual final architecture and verified reMarkable delivery |
 | Original baselines | Full exploratory audit complete; controlled measurements pending | All task results, isolated reruns, settings reconciled, official aggregation |
-| Basic integration | Six complete tasks / 76 variants verified under declared modified protocols | Matching/checking/score evidence with protocol identity |
+| Basic integration | Fifteen complete tasks / 227 individually passing graphs, cumulative modified-protocol evidence | Matching/checking/score evidence with protocol identity |
 | Precision and layouts | Active | Real-task FP16/BF16, stride/layout and stream correctness |
-| Operation coverage | Mostly pending | Task dependency matrix and implementation/tests for all required operations |
+| Operation coverage | Active: 1,122 graph imports / 61 complete families; broader execution qualification pending | Task dependency matrix and implementation/tests for all required operations |
 | Full benchmark integration | Pending | Every task/variant accounted for with integrity/correctness/scoring |
 | Controlled measurements | Pending | Isolated timing, stability checks, provenance and complete comparisons |
-| Original PassAgent | Pending | Recorded model/budget/trajectories on declared task set |
-| Kiln meta-optimization | Scalar pilot positive; two conditional-policy studies complete without improvement | Fixed train/held-out split, reusable policies/passes and measured generalization |
+| Original PassAgent | Awaiting requested model/provider configuration | Recorded model/budget/trajectories on declared task set |
+| Kiln meta-optimization | Reusable scalar/conditional/selective/region policies measured; latest canonical study selects unchanged baseline | Fixed train/held-out split, reusable policies/passes and measured generalization |
 | Reports and delivery | Ongoing | Milestone vault reports committed/pushed and updated guide editions |
 | Completion audit | Pending | Requirement-by-requirement current-state evidence |
 
@@ -34,9 +34,10 @@ Teacher trajectory generation/student fine-tuning remains a separate expensive r
 
 ## Priority change: start reusable-policy optimization before full corpus support
 
-The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is eleven complete tasks containing 141 graphs, with 206 individually passing graphs including partial tasks. Translation succeeds for 1029 graphs and 51 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
+The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is fifteen complete tasks containing 162 graphs, with 227 individually passing graphs including partial tasks. Translation succeeds for 1,122 graphs and 61 complete tasks; the first ten-family/93-variant softmax cohort accepts four families/21 graphs; a separate rerun of the same membership is testing the functional-default matching repair. Compilation and numerical eligibility remain separate gates for the broader set.
 
-The immediate critical path is:
+The initial self-optimization dependency sequence is implemented and measured through held-out confirmation; broader external-agent synthesis remains open:
+
 
 1. Freeze an eligible real-graph corpus and split by graph/model family into training and held-out sets; keep every variant of a family on one side.
 2. Measure unchanged Kiln with fixed hardware, schedules/settings and correctness criteria. Record compile time, kernel identities and end-to-end/GPU latency separately.
@@ -45,7 +46,7 @@ The immediate critical path is:
 5. Search policies only on training graphs, select one policy and evaluate it unchanged on held-out graphs. Report correctness failures and compile-cost changes.
 6. Extend the same harness to generated reusable policies and transformation programs; use original PassBench for external comparisons.
 
-The existing default is fused work <= 1.02 × original work. An initial scalar-threshold study now selects 1.25 and measures 1.0186x family-balanced held-out e2e speedup on seven FP32 development graphs; only one held-out executable changes. Two subsequent bounded-policy studies have measured generated conditional programs without an improvement; new rewrite algorithms and an external agent comparison remain unmeasured. Direct FX-to-Kiln experiments avoid the per-task matcher-authoring step, but are separate from PassBench acceptance and scores. Unrelated missing operator implementation is deferred while this path is built.
+The existing default is fused work <= 1.02 × original work. An initial scalar-threshold study now selects 1.25 and measures 1.0186x family-balanced held-out e2e speedup on seven FP32 development graphs; only one held-out executable changes. Two subsequent bounded-policy studies have measured generated conditional programs without an improvement; new rewrite algorithms and an external agent comparison remain unmeasured. Direct FX-to-Kiln experiments avoid the per-task matcher-authoring step, but are separate from PassBench acceptance and scores. With this experiment harness established, missing source operators and complete-family qualification have resumed alongside the remaining synthesis work. Historical results are preserved in the dated checkpoints below.
 
 ### Fresh conditional-policy checkpoint
 
@@ -116,3 +117,7 @@ Core e0f64dc canonicalizes reduction names before code emission and fixes spawn-
 ### Softmax source checkpoint
 
 Source softmax reuses the existing stable compiler primitive with explicit conversion/axis contracts. All 45 FX tests and 99 CUDA fixture comparisons pass. Import eligibility is now 1,122 graphs/61 complete families. A frozen ten-family/93-graph original-evaluator cohort is the next acceptance gate; strict cumulative acceptance remains eleven complete tasks/206 individual graphs pending that audit. See design 14 and diary Step 122.
+
+### First original softmax cohort audited
+
+All ten families/93 variants compile, execute their original evaluator attempts and score. Strict audit accepts four complete families/21 graphs; the remaining 72 variants fail structural matching. Cumulative coverage is now 15/200 complete tasks, 227/2,060 individually accepted graphs and 162 graphs in complete tasks. The real FX/Dynamo default-argument mismatch is repaired in d71eccd and passes 46 FX tests. The same membership is running separately as softmax-cohort-v2; its result is pending. Source snapshots and failed attempts remain preserved. Design 14 and diary Step 124 own this gate.

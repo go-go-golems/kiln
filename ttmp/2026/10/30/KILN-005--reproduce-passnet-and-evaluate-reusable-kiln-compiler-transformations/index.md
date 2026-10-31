@@ -25,12 +25,17 @@ WhenToUse: ""
 
 ## Overview
 
-<!-- Provide a brief overview of the ticket, its goals, and current status -->
+Reproduce the original PassNet experiment independently, then evaluate Kiln-generated implementations and reusable compiler transformations through its benchmark. The work includes pinned source/dataset acquisition, compiler and runtime support, original-evaluator qualification, controlled measurements, agent synthesis and durable technical reporting. The goal remains active; import eligibility, fixture checks, benchmark acceptance and optimization results are separate evidence categories.
 
 ## Key Links
 
-- **Related Files**: See frontmatter RelatedFiles field
-- **External Sources**: See frontmatter ExternalSources field
+- [Project phases and current completion gates](reference/03-project-roadmap.md)
+- [Intern architecture and implementation guide](design-doc/01-passnet-reproduction-and-kiln-integration-intern-guide.md)
+- [Detailed chronological diary](reference/01-detailed-investigation-diary.md)
+- [Latest published compiler-study report](reference/15-milestone-report-canonical-emission-reliable-test-gates-and-transpose-exports.md)
+- [Softmax source contracts and qualification](design-doc/14-softmax-source-contracts-and-complete-family-qualification.md)
+- [Cumulative original-evaluator coverage ledger](sources/kiln-coverage.json)
+- Source papers, dataset receipts, archived references and experiment evidence: `sources/`.
 
 ## Status
 
@@ -50,7 +55,7 @@ See [changelog.md](./changelog.md) for recent changes and decisions.
 
 ## Structure
 
-- design/ - Architecture and design documents
+- design-doc/ - Architecture and design documents
 - reference/ - Prompt packs, API contracts, context summaries
 - playbooks/ - Command sequences and test procedures
 - scripts/ - Temporary code and tooling
