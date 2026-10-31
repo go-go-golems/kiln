@@ -12,6 +12,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ['corpus','artifacts','measurements','source-verification','output']:parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--selection-commit',required=True)
+    parser.add_argument('--renaming-audit',type=Path,help='Optional training-only diagnostic; never changes selection or aliases')
     args=parser.parse_args();repo=Path(__file__).resolve().parents[2]
     read=lambda path:json.loads(path.read_text())
     manifest=read(args.corpus/'manifest.json');freeze=read(args.corpus/'candidate-freeze.json')
@@ -34,6 +35,12 @@ def main():
     if not summary['source_verification_matches']:raise ValueError('Remote source mismatch')
     summary['limitations']=[text for text in summary['limitations'] if not text.startswith('Profitability-policy selection preserves')]
     summary['limitations'].append('Read candidate definitions and accepted decisions for actual rewrite behavior; model-optimal local subset selection is not global compiler or latency optimality, nor external-model synthesis.')
+    if args.renaming_audit:
+        audit=read(args.renaming_audit)
+        if [r['graph'] for r in audit['records']]!=[r['graph'] for r in manifest['variants'] if r['split']=='train']:raise ValueError('Renaming diagnostic is not the complete training population')
+        count=audit['exact_changes_equal_after_normalization'][selection['selected_policy']]
+        summary['selected_training_generated_name_contrasts']=count
+        summary['limitations'].append(f'Training-only diagnostic: {count} selected artifact changes equal baseline after entry/reduction identifier renaming; frozen timing aliases and selection were not changed, so nuisance contrasts limit interpretation.')
     args.output.write_text(json.dumps(summary,indent=2)+'\n')
     print(json.dumps({k:v for k,v in summary.items() if k!='records'},indent=2))
 

@@ -23,8 +23,9 @@ for index,record in enumerate(manifest['variants']):
  row={'graph':record['graph'],'bindings':{}}
  for name,receipt in receipts.items():
   compiled=receipt['records'][index];artifact=json.loads((artifacts/name/compiled['artifact']).read_text())
-  row['bindings'][name]={'exact_fingerprint':compiled['fingerprint'],'normalized_cuda_signature':signature(artifact)}
+  row['bindings'][name]={'exact_fingerprint':compiled['fingerprint'],'normalized_cuda_signature':signature(artifact),'kernel_identities':compiled['kernel_identities']}
  rows.append(row)
 counts={name:sum(row['bindings'][name]['exact_fingerprint']!=row['bindings']['baseline']['exact_fingerprint'] and row['bindings'][name]['normalized_cuda_signature']==row['bindings']['baseline']['normalized_cuda_signature'] for row in rows) for name in receipts}
-result={'scope':'Training-only descriptive CUDA renaming audit; no timing/confirmation inspection, no changed measurement aliases or selection','normalization':'Only kernel entry symbol and generated r-number reduction identifiers; CUDA ABI/buffers/dispatch/source otherwise retained','exact_changes_equal_after_normalization':counts,'records':rows}
+equal_ids={name:sum(row['bindings'][name]['exact_fingerprint']!=row['bindings']['baseline']['exact_fingerprint'] and row['bindings'][name]['normalized_cuda_signature']==row['bindings']['baseline']['normalized_cuda_signature'] and row['bindings'][name]['kernel_identities']==row['bindings']['baseline']['kernel_identities'] for row in rows) for name in receipts}
+result={'scope':'Training-only descriptive CUDA renaming audit; no timing/confirmation inspection, no changed measurement aliases or selection','normalization':'Only kernel entry symbol and generated r-number reduction identifiers; CUDA ABI/buffers/dispatch/source otherwise retained','exact_changes_equal_after_normalization':counts,'normalized_matches_with_equal_kernel_identities':equal_ids,'records':rows}
 (s/'region-training-cuda-renaming-audit.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(counts,indent=2))

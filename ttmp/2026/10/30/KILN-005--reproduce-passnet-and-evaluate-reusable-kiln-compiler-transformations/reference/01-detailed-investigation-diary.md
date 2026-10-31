@@ -5082,3 +5082,50 @@ See Steps110–112 and the user's instruction to reassess architectural problems
 
 ### Technical details
 - Explicit highest-precision FP32 reference remains fixed. No confirmation artifacts or timing enter the naming diagnostic or policy selection.
+
+## Step 114: Complete region confirmation and retain the naming limitation
+
+All eight confirmation graphs qualify, but region-work measures 0.9900990594274756 end-to-end and 0.9865479028062627 stream elapsed: approximately one percent more end-to-end time. The default remains unchanged. The complete study is verified and the training-only naming diagnostic is attached as an interpretation limitation, without changing aliases, selection or measurements.
+
+### Prompt Context
+See Steps110–113 and the user's requirements for complete measured implementation and milestone technical reports.
+**Assistant interpretation:** Finish the frozen experiment, document negative evidence and prioritize the discovered identity issue before more small-margin searches.
+**Inferred user intent:** Improve compiler optimization and the reliability of the feedback used to drive it.
+**Commit (selection):**cff6a69 — research(passnet): commit region selection and audit generated name contrasts.
+
+### What I did
+- Ran script 212 in the existing dedicated confirmation tmux job, collected EXIT_CODE=0 and all eight records.
+- Ran the shared final verifier through script 213 with the pre-confirmation selection commit.
+- Extended the analysis verifier with an optional training-only naming diagnostic, requiring complete training membership; this adds limitations but changes no timing, alias or ranking rule.
+- Wrote reference 14 as a 2284-word textbook analysis and updated guide Section 33, design 12 and roadmap.
+
+### Why
+- Local model optimality, numerical correctness, measured generalization and evidence identity are separate claims. The negative result and naming issue both affect the next research step.
+
+### What worked
+- All eight confirmation graphs qualify without replacement/filtering. Source, declaration, artifact, reference and committed-selection checks pass.
+- The exhaustive planner and CUDA evidence remain valid independently of the negative latency result.
+- The naming audit reads training artifacts only; eight selected training changes match baseline after its limited renaming, with the frozen exact-identity experiment preserved.
+
+### What didn't work
+- Region-work does not improve the complete confirmation aggregate. A DistilBERT graph measures 0.9101974823882665; the others are near one.
+- The selected program accepts no retained-producer partial mutation on either split, so no measured partial-fusion benefit is established.
+- Generated-name nuisance contrasts limit interpretation of the small positive training margin. No machine-code equivalence or production canonicalization is claimed by the diagnostic.
+
+### What I learned
+- Conservative exact source identity can still create irrelevant independent timing contrasts when emitted identifiers vary with compiler construction history.
+
+### What was tricky to build
+- Optional diagnostic data belongs in interpretation/verification after frozen evaluation, not in a retrospective replacement selector. The measured compiler remains pinned to 114d90b while the later analysis code records the additional limitation.
+
+### What warrants a second pair of eyes
+- Review the limited normalization, unchanged experiment rules and distinction between model proof and latency claims.
+
+### What should be done in the future
+- Publish reference 14, then canonicalize generated reduction names and align artifact/evidence identities before a new declaration. Continue original PassAgent and remaining benchmark support.
+
+### Code review instructions
+- Run script 213 with cff6a69; inspect summary.json, training renaming audit, selection commit and reference 14. Historical scripts remain associated with their pinned revisions.
+
+### Technical details
+- Original coverage stays eleven tasks/206 graphs and import eligibility 1029/51. Native reference compatibility remains separate from explicit highest-precision FP32 research. No updated reMarkable export is attempted while approval remains pending.

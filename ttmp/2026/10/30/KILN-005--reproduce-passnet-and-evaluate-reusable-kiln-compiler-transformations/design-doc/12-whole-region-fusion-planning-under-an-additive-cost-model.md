@@ -114,3 +114,8 @@ Review the implementation, exhaustive test and current policy interpreter first,
 ## CUDA and declaration checkpoint
 
 Core implementation is committed as 4523355. The 36 region fixture artifacts pass all108 CUDA comparisons on GB10. Training controls match unchanged/default across twelve graphs and expose69 multi-consumer attempts. All twelve candidate programs and the explicit highest-precision FP32 reference protocol are frozen before confirmation compilation. Shared verify_host_source.py and verify_study.py consolidate the source/commit/reference checks previously repeated in ticket scripts. Full artifact compilation and policy measurements remain pending at this checkpoint.
+
+
+## Completed evaluation and identity limitation
+
+All 240 artifacts qualify from 114d90b. Region-work is selected at 1.0086653425198444 and committed in cff6a69 before confirmation. All eight confirmation graphs qualify; end-to-end ratio0.9900990594274756 and stream ratio0.9865479028062627 are negative. No selected partial fusions occur on either split. A training-only diagnostic preserves CUDA ABI/buffers/dispatch while normalizing only entry/reduction names; eight selected changes then equal baseline. No frozen alias/ranking rule is altered. Reference14 and shared verifier/script 213 retain this limitation explicitly. Canonical compiler identifiers and matching evidence keys must be established before another small-margin search.

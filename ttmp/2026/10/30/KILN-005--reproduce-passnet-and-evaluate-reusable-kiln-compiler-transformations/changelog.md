@@ -69,3 +69,7 @@ Completed rich twelve-policy study: 240 qualified artifacts, native TF32 referen
 ## 2026-10-31
 
 Implemented opt-in selective consumer fusion with shared inlining, retained-producer cost guard and bounded consumer programs;29 core files and108 CUDA comparisons pass. Fresh240-artifact study selects policy before confirmation but regresses to0.972049x; default unchanged. Guide Section32 and report13 preserve evidence and diagnosis.
+
+## 2026-10-31
+
+Implemented local model-optimal whole-region fusion planner with canonical region API;30 compiler files,280 exhaustive cases and108 CUDA comparisons pass. Frozen240-artifact fresh study confirms no speedup (0.990099x). Training-only generated-name audit identifies nuisance contrasts; canonical naming/evidence identity is next. Report14 and guide Section33 document scope.

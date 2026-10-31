@@ -102,3 +102,8 @@ The twelve-policy/twenty-source rich study is complete. All 240 artifacts qualif
 ### Selective-consumer capability and fresh confirmation
 
 Selective consumer fusion is implemented in the existing rule factory (51b45eb), with retained-producer accounting, 29 passing compiler test files and 108/108 CUDA fixtures. The complete v6 study compiles 240 artifacts and selects select-edge100-total125 before confirmation (731e834). All eight confirmation graphs qualify but measure0.9720486952136568 end-to-end and 0.975410682956454 stream elapsed, a regression. The default remains unchanged. This completes task pgyz's capability/lifetime/fresh-corpus requirements; it does not complete broader pass synthesis or original reproduction. Future cost-model/partition hypotheses must use a new declared population. See design 11/reference 13 and scripts199/200.
+
+
+### Whole-region planner and evidence identity
+
+The local additive-model planner is implemented (4523355), exhaustive 280-case oracle and 108 CUDA comparisons pass, and all 240 v7 artifacts qualify (114d90b). Training selection is committed in cff6a69. Confirmation passes all eight graphs but measures 0.9900990594274756 end-to-end/0.9865479028062627 stream elapsed, so the default is unchanged. A training-only audit finds eight selected changes equivalent after generated entry/reduction-name normalization; aliases/selection remain frozen. Next: canonicalize generated names and align code/evidence identity before a fresh declaration. Original reproduction/support/synthesis tasks remain open. See design 12/reference 14 and scripts213/214.
