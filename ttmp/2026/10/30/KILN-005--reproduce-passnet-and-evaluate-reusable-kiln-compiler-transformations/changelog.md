@@ -146,3 +146,7 @@ Isolated task10 export failure to convolution accumulation; native CUDA FP16 mat
 ## 2026-10-31
 
 Reassessed all148 diary checkpoints/design series and authored6303-word reference22; archived supplied meta-compiler study, selected R2E-Gym native-task direction, and preserved full-shape CUDA evidence contradicting smaller oracle inference. No production or coverage change (diary149).
+
+## 2026-10-31
+
+Published complete6303-word reassessment reference22 append-only to go-go-parc; vault5347eea is pushed and exact committed/body bytes verified. Source/evidence d3e37fb; overall goal remains active (diary150).
