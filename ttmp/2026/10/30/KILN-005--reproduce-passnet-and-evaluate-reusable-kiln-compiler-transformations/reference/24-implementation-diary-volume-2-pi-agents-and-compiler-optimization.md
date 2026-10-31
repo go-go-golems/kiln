@@ -4235,3 +4235,56 @@ This step collects the last terminal band of the frozen uniform qualification. T
 
 ### Technical details
 - Snapshot `7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740` (revision `0c17cee`) for all three bands.
+
+## Step 247: Calibrate the cost model (P3b go/no-go) and find a cost-gated strategy
+
+This step runs the research track's go/no-go check from reference 45 §B5: does Kiln's analytic cost model rank measured PassBench GPU times? Across 1,391 accepted graphs it does (Spearman 0.93 with the a100 model, 0.90 with the measured gb10 spec). It also largely predicts the *paired* effect of the fixed transformation program on the same graphs. It predicted the task 101/83 wins and the task 25 regression, and missed task 106.
+
+The fixed program's transfer loss therefore came from its `workOf` thresholds (consumer work allowed to double), not from the cost model. A retrospective, parameter-free gate ("apply only where predicted cost decreases") would have turned the transfer families' GPU-time ratio from 1.041 into 0.863. Reference 47 reports this, with its limits stated.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 243.
+**Assistant interpretation:** Advance P3b while the GPU queue runs: measure whether the cost model can drive policy decisions.
+**Inferred user intent:** Move the research question forward with evidence rather than more agent search over a blind grammar.
+**Commit (code):** aa5c18d — "Calibrate the cost model against PassBench timings; analyze a cost-gated policy"
+
+### What I did
+- Script 664:
+  - `664-predict-program-cost.mjs` compiles a job list through `compileScript` (a100, separate contraction, optionally applying a transformation program like `kiln-export.mjs`). For every `tile.kernel` in `run.at("tile")` it reports `estimate(analyze(...), map, a100).us`, the same under `SPECS.gb10`, `workOf(schedule(...))` and the mapping.
+  - `664-calibrate-cost-model.py` joins this with `[Performance][compiled|eager]` medians parsed from each band's `benchmark.log`. Graph order is asserted against the manifest. It computes Spearman correlations overall and within families.
+- Script 665 does the same for `fixed-policy-passbench-v1/{baseline,candidate}` on graphs whose artifact kernel identities and rows differ, applying `fixed-program.json` to the candidate scripts.
+- Computed the cost-gated counterfactual from the two measured arms (family-balanced geometric means).
+
+### Why
+- Reference 45 made calibration a precondition for further policy search. The paired test is the decisive one, because a policy chooses between alternatives for the *same* graph.
+
+### What worked
+- Absolute: `spearman_a100_model_vs_measured 0.931`, `gb10 0.898`, `work 0.912`, `median_within_family_spearman_gb10 0.916` (66 families), `median_ratio_measured_over_gb10_model 1.073`, `median_e2e_minus_gpu_us 12.9`. All 1,391 graphs predicted without errors.
+- Paired, 49 changed graphs: ρ = 0.57 (a100), 0.61 (gb10), 0.53 (work); sign agreement 15 of 20 on measured changes beyond ±2 %. Task 25: measured 2.25–3.71, a100-predicted 2.71–3.06. Task 106: measured 1.00–1.88, predicted 0.07–0.26.
+- Counterfactual on transfer families: always-apply 1.0414 against cost-gated 0.8634 (a100 and gb10 identical) and work-gated 0.8648.
+
+### What didn't work
+- 665 crashed once on reporting (`TypeError: object of type 'int' has no len()`). The predictor returns kernel *counts*, not lists; I fixed the print.
+- The review's B5 recommendation "add a GB10 target spec" was wrong. `targets.js` already contains a measured `gb10` spec (2026-10-20 DGX Spark probe). The gap is only that the qualification runs schedule with `--target a100`. The review text is left as written; this entry is the correction.
+
+### What I learned
+- The analytic model is much better than the policy grammar that consumed it. The fusion policies' features are `workOf`-derived, while the schedule model, which predicts measured effects, was never consulted by any transformation decision.
+- Dispatch overhead (about 13 µs median) is a first-order term for small graphs, independent of kernel quality.
+
+### What was tricky to build
+- Paired prediction must recompile the candidate with the same transformation program and the same staged script. Otherwise predicted and measured differences come from different programs. The predictor reuses `prepareOptimizationProgram` and `applyOptimizationProgram`, so it follows exactly the kiln-export path.
+
+### What warrants a second pair of eyes
+- The counterfactual is retrospective and in GPU time only. It needs a held-out three-arm run (baseline, always, gated) scored with the official scorer before it can be claimed.
+- Task 106's misprediction (1 → 2 kernels, predicted 4–14× faster) is the model's clearest error and should be explained before the gate is trusted on similar structures.
+
+### What should be done in the future
+- Implement the gate as a compiler strategy (compile with and without a transformation, keep the cheaper predicted program, and record the decision in the artifact). Then freeze a held-out three-arm study on fresh accepted families with changed executables.
+- Investigate task 106's kernels against the model.
+- Consider scheduling with `--target gb10` (the hardware that runs), measured as its own experiment.
+
+### Code review instructions
+- `scripts/664-predict-program-cost.mjs`, `664-calibrate-cost-model.py`, `665-paired-cost-model-check.py`; results in `sources/cost-model-calibration-v1/`; summary in reference 47.
+
+### Technical details
+- Sign threshold ±2 %. Family-balanced GM = geometric mean over families of each family's geometric mean over changed graphs. Unchanged graphs are excluded from the paired analysis.
