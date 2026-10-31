@@ -558,3 +558,55 @@ See Steps 168–169 for the user's research-first direction, six-lane preference
 ### Technical details
 - Target a100 remains the scheduling proxy; the experimental hardware is GB10.
 - Training-only compilation, separate contraction. No held-out performance claim or full-corpus coverage promotion.
+
+## Step 171: Measure actual GLM policies on GB10; baseline wins
+
+Completed the first real Pi/GLM proposal-to-GPU experiment. All candidates were eligible after correctness and timing checks, but none improved the training aggregate: attempt two scored 0.8876853334, attempt three 0.9593722814, and attempt four shared the baseline executable at 1.0. The existing selector retained baseline. This is a negative optimization result with a functioning fast proposal pipeline.
+
+### Prompt Context
+See Steps 168–169 for research-first priorities, six concurrent lanes and external payload approval.
+**Assistant interpretation:** Measure actual proposals and use results to direct the next experiment.
+**Inferred user intent:** Concrete optimization findings, including informative failures.
+**Previous commit:** 7cfaff7 — Compile GLM policies and identify novel development executables.
+
+### What I did
+- Added script 451 to reuse the established freeze, compilation and measurement path with the actual model policies and unchanged/default controls.
+- Qualified five policies across twenty graphs, then measured only the twelve development training graphs on bling.
+- Used existing scripts 438 and 439 for staging and isolated GPU execution, then collected measurement.json and run.json.
+- Ran the existing select_policy.py to compute the family-balanced end-to-end objective.
+
+### Why
+- Fresh baseline measurements in the same isolated run provide the relevant performance comparison.
+- Reusing the established evaluator avoids constructing another benchmark.
+
+### What worked
+- All 100 policy–graph compilations passed. All twelve training graphs completed GPU evaluation.
+- Every candidate remained eligible with no recorded selection failures.
+- GPU owner exited successfully, its container was absent afterward, and no GPU compute process remained.
+- The ranking reproducibly selects baseline: attempt two 0.8876853334471824, attempt three 0.9593722814179808, attempt four 1.0 by executable identity.
+
+### What didn't work
+- No aggregate optimization improvement was found. The new executable cases did not translate into a better reusable policy.
+- A guessed script filename was absent; used the actual existing 439-run-policy-search-evaluation.py instead.
+
+### What I learned
+- Native GLM proposals are operationally useful, but the current structural-only prompt and fusion grammar produced regressions or aliases.
+- The next research step should expose measured feedback and diversify transformations rather than repeat blind threshold proposals.
+
+### What was tricky to build
+- The existing evaluator qualifies the full declared corpus before training measurement. Compiling its twenty graphs does not make this a fresh confirmation study; the reused population is development data.
+
+### What warrants a second pair of eyes
+- This is the modified highest-precision FP32 compiler-policy experiment, not an official PassBench score or full200 reproduction.
+- Results are one development batch; they do not establish a general ranking of model providers.
+
+### What should be done in the future
+- Run six exploratory lanes with concrete hypotheses and measured feedback, including transformations beyond the saturated fusion threshold.
+- Publish the substantive agent experiment milestone with its negative outcome and research implications.
+
+### Code review instructions
+- Read pi-policy-train-results-v1/selection.json, measurement.json and run.json; inspect script 451 and the original model artifacts.
+
+### Technical details
+- GB10, twenty warmups, one hundred trials, three repeats, original stability criteria and explicit separate-contraction reference protocol.
+- No fresh held-out performance claim; no production compiler change promoted.

@@ -1,0 +1,28 @@
+{
+  "format": "kiln-fusion-policy/1",
+  "id": "attempt-0002",
+  "kind": "decision-tree",
+  "tree": {
+    "else": {
+      "else": {
+        "threshold": 1.02
+      },
+      "if": {
+        "feature": "producerElements",
+        "op": "lt",
+        "value": 500000
+      },
+      "then": {
+        "threshold": 1.02
+      }
+    },
+    "if": {
+      "feature": "producerElements",
+      "op": "lt",
+      "value": 4096
+    },
+    "then": {
+      "threshold": 0.999
+    }
+  }
+}
