@@ -2575,3 +2575,50 @@ Read reference/28 and the linked source/audit files. Inspect task52/corpus/000.k
 
 ### Technical details
 The new design note is a ticket document, not a benchmark result. Accepted coverage remains45/200 complete tasks and454/2060 graphs pending the active cohort.
+
+## Step 211: Qualify eight complete families after FX canonicalization
+
+The eight-family,51-graph original PassBench replay finished with all51 graphs matched and correct at t=-5. All eight families are fully accepted. Cumulative modified-protocol coverage reaches53/200 tasks and505/2060 graphs. This result establishes that the pad and hardtanh canonicalization changes transferred across every variant in the frozen cohort, while compiler performance remains mixed.
+
+### Prompt Context
+The user requested broad batched work, measurement, detailed diary evidence and milestone reports.
+**Assistant interpretation:** Convert the live structural matcher cohort into audited complete-family acceptance, then publish the result and limitations.
+**Inferred user intent:** Track real coverage progress rather than import-only estimates.
+
+### What I did
+- Collected terminal logs with script603 and verified source snapshot SHA256 against the staged checkout.
+- Audited all eight task families and51 graphs through original matching, execution and t=-5 numerical checks.
+- Preserved the previous coverage ledger and added the terminal run to the ordered coverage builder.
+- Inspected original aggregate scores per family.
+
+### Why
+The first-graph local structural census was a hypothesis. Complete-family original-evaluator replay is the evidence required to count support across every shape and dtype in these tasks.
+
+### What worked
+- Accepted indices and graph counts:142/4,106/6,165/6,163/2,149/18,144/6,159/6,83/3. Total8/8 families,51/51 graphs.
+- Aggregate scores respectively0.7837843,1.3834135,1.0805106,0.8866295,1.5750879,1.7709251,1.1407275,0.2688383. These remain original scorer outputs, not kernel-only speedups.
+- Cumulative accepted evidence:53/200 tasks,505/2060 graphs.
+
+### What didn't work
+- Several correct families score below eager, especially task83 at0.2688383; correctness and profitability are separate.
+- This cohort covers eight selected families. It is not a uniform full200-task replay from one compiler revision.
+
+### What I learned
+A central FX canonicalizer can produce a large coverage gain from already implemented operator semantics. The step from first-graph structural match to complete-family acceptance was confirmed for this cohort, but must be retested for other operators and task families.
+
+### What was tricky to build
+The coverage builder orders source snapshots so newer exact logs supersede older no-match evidence without silently rewriting the historical run. Each task still requires all frozen graph members to pass.
+
+### What warrants a second pair of eyes
+- Review score and timing stability on the low-scoring accepted families before claiming performance improvement.
+- Confirm the revised normalizer has no unintended match expansion beyond its explicit call signatures.
+
+### What should be done in the future
+- Publish an Obsidian technical milestone report covering the operator batch, canonicalization, accepted coverage and remaining numerical/compiler limitations.
+- Diagnose remaining compile failures and task52's low-precision linear mismatch; resume self-optimization measurements on a larger qualified population.
+
+### Code review instructions
+Read normalized-matcher-task-audit-v1.json, the eight task benchmark logs, coverage-before-normalized-matcher-v1.json and kiln-coverage.json. Rebuild coverage with script21.
+
+### Technical details
+The eight-family replay source revisiondd73529; source snapshot SHA256 584f3b91f8d071a3641ab04d8233bf4c131f7e127054f27e1a5d24a7ca7564db. The original PassBench scorer and t=-5 numerical curve were retained under the declared modified integration protocol.

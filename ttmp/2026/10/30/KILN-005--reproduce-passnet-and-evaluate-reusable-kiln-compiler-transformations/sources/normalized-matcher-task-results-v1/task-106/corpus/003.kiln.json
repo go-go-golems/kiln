@@ -1,0 +1,163 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-106/corpus/003.kiln.js",
+  "sha256": "33444b09bc7996486de35da860e320337304fc1534467bc01b7db15e9abfa999",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    128,
+    24,
+    64,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    96,
+    24,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    96
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    128,
+    96,
+    64,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    128,
+    96,
+    64,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 12582912,
+   "bytes": 50331648
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 2304,
+   "bytes": 9216
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 96,
+   "bytes": 384
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 50331648,
+   "bytes": 201326592
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 50331648,
+   "bytes": 201326592
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_ew_conv2d_reduce__q7onj2ikb6",
+   "identity": "q7onj2ikb6",
+   "row": "TPB=64,COARSEN=2",
+   "reads": [
+    2,
+    1,
+    0,
+    3
+   ],
+   "writes": 4,
+   "grid": 393216,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65535,
+    7,
+    1
+   ],
+   "shape": [
+    128,
+    96,
+    64,
+    64
+   ],
+   "inShapes": [
+    [
+     96
+    ],
+    [
+     96,
+     24,
+     1,
+     1
+    ],
+    [
+     128,
+     24,
+     64,
+     64
+    ],
+    [
+     128,
+     96,
+     64,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_cast_ew_conv2d_reduce__q7onj2ikb6(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in3 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in1 = 0.0f, in2 = 0.0f, v6 = 0.0f, v7 = 0.0f, v8 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((128 * bid) + (64 * j)) + tid);\n        if ((e < 50331648)) {\n            in3 = src0[((e / 4096) % 96)];\n            in0 = src3[((((4096 * ((e / 4096) % 96)) + (64 * ((e / 64) % 64))) + (e % 64)) + (393216 * (e / 393216)))];\n            v0 = in0;\n            v1 = ((v0) < (0.0f) ? 1.0f : 0.0f);\n            v2 = ((v1) > 0.0f ? (0.0f) : (v0));\n            v3 = ((v2) > (6.0f) ? 1.0f : 0.0f);\n            v4 = ((v3) > 0.0f ? (6.0f) : (v2));\n            v5 = v4;\n            acc2 = 0.0f;\n            for (int r0 = 0; r0 < 24; r0 += 1) {\n                acc1 = 0.0f;\n                for (int r1 = 0; r1 < 1; r1 += 1) {\n                    acc0 = 0.0f;\n                    for (int r2 = 0; r2 < 1; r2 += 1) {\n                        in1 = src2[(((((((98304 * (((e / 4096) % 96) / 96)) + (64 * ((e / 64) % 64))) + (e % 64)) + (98304 * (e / 393216))) + (4096 * r0)) + (64 * r1)) + r2)];\n                        in2 = src1[((((24 * ((e / 4096) % 96)) + r0) + r1) + r2)];\n                        v6 = __fmul_rn(in1, in2);\n                        acc0 = (acc0 + v6);\n                    }\n                    acc1 = (acc1 + acc0);\n                }\n                acc2 = (acc2 + acc1);\n            }\n            v7 = __fadd_rn(acc2, in3);\n            v8 = __fmul_rn(v5, v7);\n            dst[((((4096 * ((e / 4096) % 96)) + (64 * ((e / 64) % 64))) + (e % 64)) + (393216 * (e / 393216)))] = v8;\n        }\n    }\n}"
+  }
+ ]
+}

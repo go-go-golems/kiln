@@ -1,0 +1,105 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-163/corpus/000.kiln.js",
+  "sha256": "4a168837894c163a2ed4b80cbbac7ead25afbf8ffcaa4da994e9090849362906",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    124,
+    1536
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    1,
+    249,
+    768
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 190464,
+   "bytes": 380928
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 249,
+   "bytes": 996,
+   "name": null,
+   "data": "AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAAAA"
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 191232,
+   "bytes": 382464
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_pad_cast_gelu__1x4ofevc4oi",
+   "identity": "1x4ofevc4oi",
+   "row": "TPB=128",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 1494,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1494,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    249,
+    768
+   ],
+   "inShapes": [
+    [
+     1,
+     124,
+     1536
+    ],
+    [
+     1,
+     249,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_pad_cast_gelu__1x4ofevc4oi(const __nv_bfloat16* __restrict__ src0, const float* __restrict__ src1, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 191232)) {\n        in0 = src1[(e / 768)];\n        in1 = __bfloat162float(src0[((1536 * (((((1536 * (((min(max((e % 768), 0), 767) + (768 * min(max((e / 768), 0), 247))) / 1536) % 124)) + (768 * (((min(max((e % 768), 0), 767) + (768 * min(max((e / 768), 0), 247))) / 768) % 2))) + (min(max((e % 768), 0), 767) % 768)) / 1536) % 124)) + (((768 * (((min(max((e % 768), 0), 767) + (768 * min(max((e / 768), 0), 247))) / 768) % 2)) + (min(max((e % 768), 0), 767) % 768)) % 1536))]);\n        v0 = in1;\n        v1 = ((v0 * 0.5f) * (1.0f + erff(v0 * 0.7071067811865476f)));\n        v2 = __bfloat162float(__float2bfloat16_rn(v1));\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        v4 = ((in0) > 0.0f ? (v3) : (0.0f));\n        v5 = __bfloat162float(__float2bfloat16_rn(v4));\n        dst[((e % 768) + (768 * (e / 768)))] = __float2bfloat16_rn(v5);\n    }\n}"
+  }
+ ]
+}
