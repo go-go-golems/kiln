@@ -1,0 +1,34 @@
+ok   sim evidence id is sim:rtx5090
+ok   a simulator record validates
+ok   sim record: valid, simulated, derived counts, content id of the kernel
+ok   activation MAP=tiled,BM=32,BN=16,BK=8 → MAP=tiled,BM=32,BN=16,BK=8
+ok   the same measurement is stored once (content-hash id)
+ok   newest record defines the current content id: the older one is stale
+ok   a compile observes the real content id: the other one is stale
+ok   a record from an older code generator is stale (kiln-codegen/3 now)
+ok   a record whose id is not its content hash is refused
+ok   kiln-evidence/2 round trip: 3 added
+ok   a kiln-evidence/1 row imports as a legacy record: partial, never decisive
+ok   no evidence: the model decides (model)
+ok   measuring the program stores valid records
+ok   measured favourite: by evidence (confirms the model)
+ok   simulator: a faster measured option overrides the model (separated from the model's choice MAP=tiled,BM=32,BN=16,BK=8)
+ok   only a non-favourite measured: evidence defers to the model
+ok   favourite measured with n = 2 < minReps: still the model
+ok   separated intervals switch: separated from the model's choice MAP=tiled,BM=32,BN=16,BK=8
+ok   overlapping intervals keep the model: evidence within noise: best TPB=64 overlaps MAP=tiled,BM=32,BN=16,BK=8
+ok   wall-clock records are partial and never decide
+ok   pinned-partial: MAP pinned; the rest by model
+ok   a honoured pin activates
+ok   a pin that did not materialise fails activation: pins MAP=tiled not honoured: MAP=row
+ok   …and makes the record invalid
+ok   a kernel pin the kernel does not match fails activation
+ok   two kernels, one identity: k_a, k_b
+ok   they share a content id
+ok   one record, decisive for both kernels
+ok   context {"preset":"W-18","project":"poly","params":{"elements":4096,"degree":3},"script":"16733bcbd7d6d2f61c563fa29c79fbf775d861d82c9e4737d08d91c3920393b1"}
+ok   degree 3 and degree 4 are different kernel identities
+ok   the measured record carries the context and validates
+ok   a value a record cannot hold is left out
+ok   no context given, none recorded
+all evidence checks pass

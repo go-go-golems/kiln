@@ -1,0 +1,179 @@
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: thread: exported artifacts must not depend on freshR history
++ actual - expected
+... Skipped lines
+
+  {
+    buffers: [
+      {
+        bytes: 204,
+        dtype: 'f32',
+...
+          '        acc0 = 0.0f;\n' +
++         '        for (int r97 = 0; r97 < 17; r97 += 1) {\n' +
++         '            in0 = src0[((17 * e) + r97)];\n' +
+-         '        for (int r0 = 0; r0 < 17; r0 += 1) {\n' +
+-         '            in0 = src0[((17 * e) + r0)];\n' +
+          '            acc0 = (acc0 + in0);\n' +
+          '        }\n' +
+          '        dst[e] = acc0;\n' +
+          '    }\n' +
+          '}',
+...
+          '        v_acc0 = 0.0;\n' +
++         '        for (var n_r97: i32 = 0i; n_r97 < 17i; n_r97 = n_r97 + 1i) {\n' +
++         '            v_in0 = b0[((17i * n_e) + n_r97)];\n' +
+-         '        for (var n_r0: i32 = 0i; n_r0 < 17i; n_r0 = n_r0 + 1i) {\n' +
+-         '            v_in0 = b0[((17i * n_e) + n_r0)];\n' +
+          '            v_acc0 = (v_acc0 + v_in0);\n' +
+          '        }\n' +
+          '        bout[n_e] = v_acc0;\n' +
+          '    }\n' +
+          '}',
+
+    at file:///home/manuel/code/wesen/kiln/worktrees/passnet/packages/kiln/test/canonical-emission.mjs:12:9
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: {
+    format: 'kiln-program/1',
+    name: 'canonical',
+    codegen: 'kiln-codegen/2',
+    target: null,
+    params: {},
+    source: null,
+    inputs: [ { name: 'x', buffer: 0, shape: [ 3, 17 ], dtype: 'f32' } ],
+    outputs: [ { name: 'out', buffer: 1, shape: [ 3, 1 ], dtype: 'f32' } ],
+    buffers: [
+      { id: 0, dtype: 'f32', elements: 51, bytes: 204 },
+      { id: 1, dtype: 'f32', elements: 3, bytes: 12 }
+    ],
+    kernels: [
+      {
+        name: 'k_reduce_reduce__1p3rewu91md',
+        identity: '1p3rewu91md',
+        row: 'TPB=1024',
+        reads: [ 0 ],
+        writes: 1,
+        grid: 1,
+        block: 1024,
+        smemBytes: 0,
+        dispatch: [ 1, 1, 1 ],
+        shape: [ 3, 1 ],
+        inShapes: [ [ 3, 17 ] ],
+        inDtypes: [ 'f32' ],
+        wgsl: '@group(0) @binding(0) var<storage, read> b0: array<f32>;\n' +
+          '@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n' +
+          '\n' +
+          '@compute @workgroup_size(1024)\n' +
+          'fn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n' +
+          '    let tid: i32 = i32(lid);\n' +
+          '    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n' +
+          '    if (bid >= 1i) { return; }\n' +
+          '    var v_acc0: f32 = 0.0;\n' +
+          '    var v_in0: f32 = 0.0;\n' +
+          '    var n_e: i32 = 0i;\n' +
+          '    n_e = ((1024i * bid) + tid);\n' +
+          '    if (n_e < 3i) {\n' +
+          '        v_acc0 = 0.0;\n' +
+          '        for (var n_r97: i32 = 0i; n_r97 < 17i; n_r97 = n_r97 + 1i) {\n' +
+          '            v_in0 = b0[((17i * n_e) + n_r97)];\n' +
+          '            v_acc0 = (v_acc0 + v_in0);\n' +
+          '        }\n' +
+          '        bout[n_e] = v_acc0;\n' +
+          '    }\n' +
+          '}',
+        cuda: 'extern "C" __global__ void __launch_bounds__(1024) k_reduce_reduce__1p3rewu91md(const float* __restrict__ src0, float* __restrict__ dst) {\n' +
+          '    const int tid = threadIdx.x;\n' +
+          '    const int bid = blockIdx.x;\n' +
+          '    float acc0 = 0.0f, in0 = 0.0f;\n' +
+          '    int e = 0;\n' +
+          '    e = ((1024 * bid) + tid);\n' +
+          '    if ((e < 3)) {\n' +
+          '        acc0 = 0.0f;\n' +
+          '        for (int r97 = 0; r97 < 17; r97 += 1) {\n' +
+          '            in0 = src0[((17 * e) + r97)];\n' +
+          '            acc0 = (acc0 + in0);\n' +
+          '        }\n' +
+          '        dst[e] = acc0;\n' +
+          '    }\n' +
+          '}'
+      }
+    ]
+  },
+  expected: {
+    format: 'kiln-program/1',
+    name: 'canonical',
+    codegen: 'kiln-codegen/2',
+    target: null,
+    params: {},
+    source: null,
+    inputs: [ { name: 'x', buffer: 0, shape: [ 3, 17 ], dtype: 'f32' } ],
+    outputs: [ { name: 'out', buffer: 1, shape: [ 3, 1 ], dtype: 'f32' } ],
+    buffers: [
+      { id: 0, dtype: 'f32', elements: 51, bytes: 204 },
+      { id: 1, dtype: 'f32', elements: 3, bytes: 12 }
+    ],
+    kernels: [
+      {
+        name: 'k_reduce_reduce__1p3rewu91md',
+        identity: '1p3rewu91md',
+        row: 'TPB=1024',
+        reads: [ 0 ],
+        writes: 1,
+        grid: 1,
+        block: 1024,
+        smemBytes: 0,
+        dispatch: [ 1, 1, 1 ],
+        shape: [ 3, 1 ],
+        inShapes: [ [ 3, 17 ] ],
+        inDtypes: [ 'f32' ],
+        wgsl: '@group(0) @binding(0) var<storage, read> b0: array<f32>;\n' +
+          '@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n' +
+          '\n' +
+          '@compute @workgroup_size(1024)\n' +
+          'fn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n' +
+          '    let tid: i32 = i32(lid);\n' +
+          '    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n' +
+          '    if (bid >= 1i) { return; }\n' +
+          '    var v_acc0: f32 = 0.0;\n' +
+          '    var v_in0: f32 = 0.0;\n' +
+          '    var n_e: i32 = 0i;\n' +
+          '    n_e = ((1024i * bid) + tid);\n' +
+          '    if (n_e < 3i) {\n' +
+          '        v_acc0 = 0.0;\n' +
+          '        for (var n_r0: i32 = 0i; n_r0 < 17i; n_r0 = n_r0 + 1i) {\n' +
+          '            v_in0 = b0[((17i * n_e) + n_r0)];\n' +
+          '            v_acc0 = (v_acc0 + v_in0);\n' +
+          '        }\n' +
+          '        bout[n_e] = v_acc0;\n' +
+          '    }\n' +
+          '}',
+        cuda: 'extern "C" __global__ void __launch_bounds__(1024) k_reduce_reduce__1p3rewu91md(const float* __restrict__ src0, float* __restrict__ dst) {\n' +
+          '    const int tid = threadIdx.x;\n' +
+          '    const int bid = blockIdx.x;\n' +
+          '    float acc0 = 0.0f, in0 = 0.0f;\n' +
+          '    int e = 0;\n' +
+          '    e = ((1024 * bid) + tid);\n' +
+          '    if ((e < 3)) {\n' +
+          '        acc0 = 0.0f;\n' +
+          '        for (int r0 = 0; r0 < 17; r0 += 1) {\n' +
+          '            in0 = src0[((17 * e) + r0)];\n' +
+          '            acc0 = (acc0 + in0);\n' +
+          '        }\n' +
+          '        dst[e] = acc0;\n' +
+          '    }\n' +
+          '}'
+      }
+    ]
+  },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.13.0

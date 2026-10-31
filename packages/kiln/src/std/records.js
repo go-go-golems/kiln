@@ -8,7 +8,7 @@ import { seedOf } from "./program.js";
 import { canonRow } from "./tile.js";
 
 /** Bumped whenever emit.js or kernel.js change the code they generate for the same kernel. */
-export const CODEGEN_VERSION = "kiln-codegen/2"; // 2: WGSL tanh clamps its argument (NaN on Metal)
+export const CODEGEN_VERSION = "kiln-codegen/3"; // 3: deterministic reduction binders in Kernel IR and all emitted sources
 export const APP = "kiln-workbench/0.1";
 /** The seed every measurement generates kernel inputs from (kernelInputs(kern, INPUT_SEED)). */
 export const INPUT_SEED = 1;

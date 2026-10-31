@@ -24,10 +24,12 @@ for (const f of files) {
   const t0 = performance.now();
   const r = spawnSync(process.execPath, [join(root, f)], { cwd: resolve(root, ".."), encoding: "utf8", maxBuffer: 64 << 20 });
   const ms = (performance.now() - t0).toFixed(0);
-  const ok = r.status === 0 && !r.signal;
+  const ok = !r.error && r.status === 0 && !r.signal;
   if (!ok) failed++;
-  console.log(`${ok ? "ok  " : "FAIL"} ${f.padEnd(18)} ${ms.padStart(6)} ms${ok ? "" : `  (exit ${r.status ?? r.signal})`}`);
+  const failure = r.error ? `spawn ${r.error.code || "error"}` : `exit ${r.status ?? r.signal}`;
+  console.log(`${ok ? "ok  " : "FAIL"} ${f.padEnd(18)} ${ms.padStart(6)} ms${ok ? "" : `  (${failure})`}`);
   if (!ok || verbose) process.stdout.write((r.stdout || "") + (r.stderr || ""));
+  if (r.error) console.error(r.error.message);
 }
 if (skip.size) console.log(`skipped: ${[...skip].join(", ")}`);
 console.log(failed ? `${failed} of ${files.length} FAILED` : `all ${files.length} passed`);

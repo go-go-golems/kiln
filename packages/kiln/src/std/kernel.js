@@ -11,6 +11,7 @@ import { numel, strides, hash, inKey } from "../core/util.js";
 import * as IX from "../core/ix.js";
 import { reducer, FNS } from "./fns.js";
 import { analyze, launch, stagedOf, canonRow } from "./tile.js";
+import { displayNames } from "./loop.js";
 
 export const kx = { num: (v) => ({ k: "num", v: +v }), v: (n) => ({ k: "var", n }), op: (fn, ...a) => ({ k: "op", fn, a }) };
 const V = IX.V, C = IX.C;
@@ -54,7 +55,7 @@ function emitNest(kb, stmts, ctx) {
       if (ctx.onReduce && ctx.onReduce(st, next, ctx)) { i++; continue; }
       ctx.vals.set(st.name, kx.v(kb.let(kx.num(reducer(st.fn).init), ctx.nm(st.name))));
     } else if (st.s === "for" && st.kind === "reduce") {
-      const v = ctx.nm(st.v);
+      const v = ctx.nm(ctx.redName(st.v));
       kb.for(v, 0, st.n, 1, (rv) => emitNest(kb, st.body, { ...ctx, env: { ...ctx.env, [st.v]: rv } }));
     } else if (st.s === "acc") {
       const acc = ctx.vals.get(st.name);
@@ -68,6 +69,11 @@ const opnd = (o, ctx) => (o.ref != null ? ctx.vals.get(o.ref) ?? (() => { throw 
 function baseCtx(an, kb, P) {
   const ctx = {
     env: {}, vals: new Map(), nm: (n) => n,
+    redName: (n) => {
+      const name=an.reductionNames[n];
+      if(!name)throw new KilnError("MaterializeError", `reduction ${n} has no canonical binder`);
+      return name.v;
+    },
     flat: (c, i, idx) => an.flat(i, idx.map((e) => IX.subst(e, c.env))),
     load: null, onFree: null, onReduce: null, write: null,
   };
@@ -157,7 +163,7 @@ function matRow(an, kn) {
     if (!loopSt || loopSt.s !== "for") return false;
     const acc = kb.let(kx.num(reducer(init.fn).init), init.name);
     c.vals.set(init.name, kx.v(acc));
-    kb.for(loopSt.v, V("tid"), loopSt.n, T, (rv) => emitNest(kb, loopSt.body, { ...c, env: { ...c.env, [loopSt.v]: rv }, onReduce: null }));
+    kb.for(c.nm(c.redName(loopSt.v)), V("tid"), loopSt.n, T, (rv) => emitNest(kb, loopSt.body, { ...c, env: { ...c.env, [loopSt.v]: rv }, onReduce: null }));
     treeCombine(kb, T, init.fn, acc);
     return true;
   };
@@ -243,7 +249,11 @@ function matTiled(an, kn) {
 // ----------------------------------------------------------------------------- materialize
 export function materialize(node) {
   const a = node.attrs;
-  const an = analyze(a.expr, a.shape, a.inShapes);
+  const analysis = analyze(a.expr, a.shape, a.inShapes);
+  // Keep globally fresh Loop IR symbols for substitution/analysis, but bind
+  // deterministic per-kernel names before any source/evidence is emitted.
+  // Do not modify the cached analysis or schedule shared with other materializers.
+  const an = {...analysis,reductionNames:displayNames(analysis.sched)};
   const kn = a.map;
   const L = launch(an, kn);
   const kb = kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : matThread(an, kn);

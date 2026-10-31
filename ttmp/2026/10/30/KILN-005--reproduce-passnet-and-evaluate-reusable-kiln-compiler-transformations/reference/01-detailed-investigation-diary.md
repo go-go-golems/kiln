@@ -5175,3 +5175,56 @@ See Step103 for the user's verbatim vault publication instruction and Step114 fo
 
 ### Technical details
 - Overall goal remains active and incomplete. Original coverage is eleven tasks/206 graphs; import eligibility1029/51. No original or modified measurements are retrospectively overwritten.
+
+## Step 116: Bind canonical reduction names and fail closed on spawn errors
+
+The materializer now uses deterministic per-kernel reduction binders while retaining globally fresh Loop IR symbols for substitution and analysis. CUDA, WGSL and simulator output share canonical Kernel IR. Code generation advances to /3 and older /2 evidence becomes stale. The observed v7 training replay resolves all eight known name-only contrasts into exact artifact aliases, preserving mathematical kernel identities and historical timing/ranking.
+
+The investigation also exposed an unrelated validation defect: this environment can return spawnSync status0 with error EPERM. The old runner ignored that error and could report an unexecuted child as passing. The runner is fixed, has an injected status-zero error regression, and the current32-file compiler boundary is rerun with real subprocess permission.
+
+### Prompt Context
+See the user's requirements to implement missing pieces, reassess architecture and maintain a detailed diary; Step115 identifies generated-name identity as the next priority.
+**Assistant interpretation:** Repair the concrete feedback-quality defect before another optimization claim.
+**Inferred user intent:** Ensure optimization evidence distinguishes real computation changes from compiler construction history.
+
+### What I did
+- Reused displayNames(schedule) at the Kernel IR materialization boundary without changing fresh Loop IR binders or mutating cached analysis.
+- Updated common serial and cooperative row reduction binding; scalar temporary/register-tile naming stays separate.
+- Bumped CODEGEN_VERSION to kiln-codegen/3 and updated export/evidence boundary tests, explicitly checking stale /2 records.
+- Added isolated-process artifact/Kernel IR/content tests covering five cases plus actual add-one semantic changes.
+- Fixed run-node-tests.mjs and added success/failure/status-zero-spawn-error fault injection.
+- Saved scripts217–222 and design13; rebuilt24 observed training artifacts without timing or confirmation reads.
+
+### Why
+- Source regex normalization would hide the symptom after code generation. Structural binding fixes all emitters and their content identities together.
+- Same-process tests can conceal the defect through alpha-normalized expression interning; independent workers are required.
+
+### What worked
+- The real pre-fix failure shows `thread: exported artifacts must not depend on freshR history`, with r97 versus r0 in the loop/address. After the repair all five fresh-process cases and semantic-separation checks pass.
+- The corrected runner actually executes all32 compiler files successfully with subprocess permission. Targeted /2-staleness and current policy tests also pass.
+- All24 training replay artifacts compile; all original mathematical identities are preserved. Eight known name-only contrasts resolve exactly, yielding ten aliases and two distinct pairs across twelve graphs.
+- All36 new codegen/3 GPU fixture artifacts compile with normal reference checking; CUDA execution is pending.
+
+### What didn't work
+- The first regression attempt failed `SyntaxError: Unexpected end of JSON input` because child creation was refused. A probe records status0 plus `spawnSync /home/manuel/.nvm/versions/node/v26.13.0/bin/node EPERM` and empty output. Explicit spawn-error checks and a permitted rerun reveal the intended compiler failure.
+- Historical status-only green logs cannot establish execution in a spawn-restricted context; this does not prove all historical runs were blocked. Current verification is replaced by the actual32-file run.
+- No latency improvement or new original benchmark coverage is claimed by this repair.
+
+### What I learned
+- Freshness belongs in substitution symbols, while canonical names belong at the emitted binding boundary. Mathematical identity alone does not guarantee source/evidence identity.
+
+### What was tricky to build
+- Original-symbol environment keys must map to canonical emitted variables without capture, including nested reductions and register-tiled contexts. Cached schedules must remain unmodified.
+- A spawn error can coexist with status0 here, so exit-status-only validation is unsound.
+
+### What warrants a second pair of eyes
+- Review nested binding substitution, all mapping paths, codegen/evidence version invalidation and the fresh-process oracle's actual execution.
+
+### What should be done in the future
+- Execute the108 CUDA fixture comparisons, then declare a fresh /3 optimization evaluation. Continue original PassAgent and remaining corpus support separately.
+
+### Code review instructions
+- Read design13, kernel.js materialize/baseCtx/emitNest/rowReduce, records.js and the corrected runner. Inspect the pre-fix diff, spawn probe,32-file log and replay verification.
+
+### Technical details
+- No compatibility alias, source regex rewrite or retrospective timing/ranking update is introduced. Old experiments remain pinned. Mathematical kernel identities and program schema are unchanged; evidence/codegen version advances explicitly.

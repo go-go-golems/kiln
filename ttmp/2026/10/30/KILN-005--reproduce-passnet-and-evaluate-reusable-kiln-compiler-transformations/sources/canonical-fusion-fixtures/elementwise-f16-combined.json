@@ -1,0 +1,173 @@
+{
+ "format": "kiln-program/1",
+ "name": "elementwise-f16-combined",
+ "codegen": "kiln-codegen/3",
+ "target": null,
+ "params": {},
+ "source": {
+  "path": "elementwise-f16.kiln.js",
+  "sha256": "96ed683a8228a7a38f8c94425ff85acf94e59276cadf3a362e7e887bb270af29",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "x",
+   "buffer": 0,
+   "shape": [
+    4,
+    32
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "y",
+   "buffer": 1,
+   "shape": [
+    4,
+    32
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "z",
+   "buffer": 2,
+   "shape": [
+    4,
+    32
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "a",
+   "buffer": 3,
+   "shape": [
+    4,
+    32
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "b",
+   "buffer": 4,
+   "shape": [
+    4,
+    32
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 128,
+   "bytes": 256
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 128,
+   "bytes": 256
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 128,
+   "bytes": 256
+  },
+  {
+   "id": 3,
+   "dtype": "f16",
+   "elements": 128,
+   "bytes": 256
+  },
+  {
+   "id": 4,
+   "dtype": "f16",
+   "elements": 128,
+   "bytes": 256
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_a__1ufyltbezt6",
+   "identity": "1ufyltbezt6",
+   "row": "TPB=1024",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 3,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ],
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_a__1ufyltbezt6(const __half* __restrict__ src0, const __half* __restrict__ src1, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, in1 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f, v8 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = __half2float(src1[((e % 32) + (32 * (e / 32)))]);\n        v0 = in0;\n        v1 = expf(v0);\n        v2 = __half2float(__float2half_rn(v1));\n        v3 = __half2float(__float2half_rn(v2));\n        v4 = v3;\n        in1 = __half2float(src0[((e % 32) + (32 * (e / 32)))]);\n        v5 = in1;\n        v6 = __fadd_rn(v4, v5);\n        v7 = __half2float(__float2half_rn(v6));\n        v8 = __half2float(__float2half_rn(v7));\n        dst[((e % 32) + (32 * (e / 32)))] = __float2half_rn(v8);\n    }\n}"
+  },
+  {
+   "name": "k_b__fpbalfgtk4",
+   "identity": "fpbalfgtk4",
+   "row": "TPB=1024",
+   "reads": [
+    2,
+    0
+   ],
+   "writes": 4,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    32
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ],
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_b__fpbalfgtk4(const __half* __restrict__ src0, const __half* __restrict__ src1, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, in1 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f, v8 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        in0 = __half2float(src1[((e % 32) + (32 * (e / 32)))]);\n        v0 = in0;\n        v1 = expf(v0);\n        v2 = __half2float(__float2half_rn(v1));\n        v3 = __half2float(__float2half_rn(v2));\n        v4 = v3;\n        in1 = __half2float(src0[((e % 32) + (32 * (e / 32)))]);\n        v5 = in1;\n        v6 = __fmul_rn(v4, v5);\n        v7 = __half2float(__float2half_rn(v6));\n        v8 = __half2float(__float2half_rn(v7));\n        dst[((e % 32) + (32 * (e / 32)))] = __float2half_rn(v8);\n    }\n}"
+  }
+ ]
+}
