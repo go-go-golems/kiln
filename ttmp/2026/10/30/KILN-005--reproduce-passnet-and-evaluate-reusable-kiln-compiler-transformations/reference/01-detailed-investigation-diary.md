@@ -333,3 +333,46 @@ See Step 3 for source provenance and full implementation scope.
 
 ### Technical details
 - Independent implementation against existing Kiln N API; no upstream source copied. Current dtype/layout restrictions are temporary coverage errors, not benchmark filtering policy.
+
+## Step 8: Verify first FX/Kiln/CUDA/PyTorch execution round-trip
+
+Compiled the importer-generated ReLU/broadcast-add script through the actual Kiln export CLI using supported Node on bling.local. Implemented the initial TorchProgram execution bridge and verified CUDA numerical output on default and non-default streams. This is a real GPU integration result, but still a synthetic graph rather than a matched/scored PassBench task.
+
+### Prompt Context
+See prior steps for full benchmark and upstream provenance requirements.
+**Assistant interpretation:** Validate executable compiler/runtime boundaries before expanding graph coverage.
+**Inferred user intent:** Establish correctness with measured execution evidence.
+
+### What I did
+- Staged current Kiln source on DGX Spark and installed frozen pnpm dependencies with lifecycle scripts disabled.
+- Exported generated script using scripts/kiln-export.mjs --target a100; compiler end-to-end check passed at loop level.
+- Added integrations/passnet/runtime.py and smoke_cuda.py. Bridge validates input metadata, allocates outputs and per-call scratch, preserves input/output aliases, and passes current stream and caller-owned pointers.
+- Executed CUDA smoke with original Kiln launcher via PYTHONPATH, without copying or modifying launcher source.
+
+### Why
+- GPU checks resolve uncertainty left by CPU serialization tests and reference interpretation.
+
+### What worked
+- Export succeeded with one kernel. GPU smoke exited 0 and printed PASS on default and non-default streams at FP32 rtol 1.3e-6, atol 1e-5.
+- Reference baseline advanced to four completed tasks at observation; materialization advanced through four shards.
+
+### What didn't work
+- No new failures. PassBench matcher/scorer, real-task batch_norm and reduced precision remain pending.
+
+### What I learned
+- Existing Kiln NVRTC launcher can consume PyTorch pointers on GB10 without a custom compiled extension for this workload.
+
+### What was tricky to build
+- Scratch must be per invocation and recorded on its execution stream. Outputs aliasing inputs must reuse storage rather than allocating a different pointer.
+
+### What warrants a second pair of eyes
+- Multi-kernel and concurrent-stream lifetime behavior, context selection and program close while work is outstanding require further validation.
+
+### What should be done in the future
+- Complete genuine task lowering and integrity-compatible PassBench integration, then report official correctness/score and runtime overhead.
+
+### Code review instructions
+- Review runtime.py and smoke_cuda.py with runtime/python/kiln_launch.py; inspect sources/kiln-cuda-smoke.txt for exact evidence limits.
+
+### Technical details
+- Bridge independently implemented against existing Kiln launcher and public PyTorch storage/stream APIs. No PyTorch or PassNet source copied. a100 controls scheduling only; NVRTC compiles for detected SM121.

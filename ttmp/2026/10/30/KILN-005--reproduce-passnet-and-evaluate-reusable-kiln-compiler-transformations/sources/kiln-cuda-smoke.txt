@@ -1,0 +1,11 @@
+Commit input: c921e79 plus runtime.py/smoke_cuda.py in next checkpoint
+Host: bling.local, GB10 SM121
+Node 26.8.1, pnpm 12.4.1; frozen-lockfile install, ignore-scripts
+Export target a100 is a scheduling proxy; launcher NVRTC detects actual GPU architecture.
+Export: end-to-end check ok at loop; one CUDA program exported.
+GPU container: localhost:5000/playback-redaction:base-26.05
+Command: PYTHONPATH=/work/kiln/runtime/python python smoke_cuda.py /work/relu-add.json
+Exit: 0
+PASS: imported ReLU/add CUDA output on default and non-default streams
+Tolerance: rtol=1.3e-6, atol=1e-5
+Not a PassBench matched/scored result.
