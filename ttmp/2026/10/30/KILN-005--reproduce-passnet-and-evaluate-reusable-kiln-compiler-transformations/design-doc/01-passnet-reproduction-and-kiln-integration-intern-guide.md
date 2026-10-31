@@ -205,3 +205,9 @@ A full implementation needs typed storage and arithmetic conversion rules, chann
 The transformation changes call syntax rather than tensor arithmetic. It neither evaluates function bodies nor relaxes dtype/shape predicates. It validates every call before mutation, rejects unsupported signatures, records changed node identities and is idempotent. Tests reproduce the actual positional/keyword mismatch, demonstrate one match after normalization, and check exact output preservation for the tested graph.
 
 Original AST source validation remains applicable to generated pass modules. They should contain ordinary functional patterns, not explicit graph construction. Integration setup owns normalization outside generated code and must record module identity and changed-node receipts. Numerical, dtype, dispatch and reverse-order checks must remain active. A successful unit test of normalization does not establish that the rest of PassBench accepts the CUDA launcher; that still requires execution evidence.
+
+## 17. First complete task result
+
+All six variants of task 6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8 now pass numerical, dtype and stability checks under the declared normalized/record-stream integration protocol. The original scorer parsed six results and reported aggregate 0.8495327431059172. This is slower than eager in this run and is not a full-benchmark result. Earlier overlapping run failed BF16 stability; both attempts are retained.
+
+Reproduce using scripts 16–20 and review sources/first-task-isolated.log plus first-task-score.json. Script 21 generates complete denominator accounting: one of 200 tasks, six of 2,060 graphs verified; the remaining 199 tasks are not yet verified. The task uses dtype-dispatched artifacts and runtime metadata validation. This is execution support for one fixed task family, not demonstrated generalization of a learned compiler policy.

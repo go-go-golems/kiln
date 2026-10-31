@@ -1664,3 +1664,46 @@ Original controlled measurement and full-task evidence requirements.
 
 ### Technical details
 - Original evaluator stability checks retained unchanged under declared normalized/metadata integration protocol.
+
+## Step 40: Complete first six-variant task with official scoring
+
+The isolated run completed all six first-task variants successfully under the declared normalized/stream-metadata integration protocol. Original scorer parsed six samples and produced aggregate 0.8495327431059172. This is one supported task on DGX Spark, not unchanged-protocol reproduction or full corpus success.
+
+### Prompt Context
+Original full-task evaluation, controlled evidence and milestone documentation requirements.
+**Assistant interpretation:** Verify every variant and retain complete denominator accounting.
+**Inferred user intent:** See concrete progress toward all 200 tasks.
+
+### What I did
+- Verified six replacements, six success statuses and no failed statuses in first-task-isolated.log.
+- Confirmed exploratory reference container resumed: paused=false, running=true.
+- Ran original scorer with p=0/fpdb=0.1, archived complete log and score.
+- Added script 21 and kiln-coverage.json accounting for all 200 tasks/2060 graphs.
+
+### Why
+- Successful dtype smoke checks do not establish original checker acceptance across task variants; this run closes that gate for one task.
+
+### What worked
+- All six numerical/dtype/stability checks passed. Scorer parsed six samples, aggregate 0.8495327431059172; tolerance-1 ES approximately 0.850.
+- Coverage explicitly records 1/200 tasks and 6/2060 graphs verified; 199 tasks remain not verified.
+
+### What didn't work
+- No failure in isolated rerun. Earlier non-isolated stability failure remains archived; no failed run discarded from history.
+
+### What I learned
+- Correctness coverage is now complete for first task, while current runtime remains slower than eager on this measurement.
+
+### What was tricky to build
+- Isolation uses a confirmed owned container and automatic resume; paused baseline task timings remain exploratory, not final baseline evidence.
+
+### What warrants a second pair of eyes
+- Result is hardware/software-port and modified matching/metadata protocol; final comparisons need repeated isolated measurement and exact image/compilation provenance.
+
+### What should be done in the future
+- Publish second milestone report/update guide, extend corpus task coverage and run reusable policy experiments without filtering unsupported cases.
+
+### Code review instructions
+- Inspect first-task-isolated.log, first-task-score.json and scripts 18–21; regenerate coverage.
+
+### Technical details
+- Four FP16, one FP32, one BF16 variants; graph shape [1000,128]. Full remaining benchmark and agents/meta-optimization remain incomplete.
