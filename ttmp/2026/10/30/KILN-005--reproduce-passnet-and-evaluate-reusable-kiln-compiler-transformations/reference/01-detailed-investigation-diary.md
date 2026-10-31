@@ -5129,3 +5129,49 @@ See Steps110–113 and the user's requirements for complete measured implementat
 
 ### Technical details
 - Original coverage stays eleven tasks/206 graphs and import eligibility 1029/51. Native reference compatibility remains separate from explicit highest-precision FP32 research. No updated reMarkable export is attempted while approval remains pending.
+
+## Step 115: Publish region planning proof and exact-source evidence findings
+
+The completed region study and report are committed in d3e51e3. A new append-only vault article is committed and pushed as30bb836; its body exactly matches reference14. The final training diagnostic also records that all eight selected renaming matches have identical per-kernel identity lists. This locates the observed discrepancy between already-equal kernel identities and noncanonical emitted source, rather than establishing a new mathematical kernel difference.
+
+### Prompt Context
+See Step103 for the user's verbatim vault publication instruction and Step114 for the completed experiment. Earlier reMarkable approval remains pending; no new export is attempted.
+**Assistant interpretation:** Publish the substantive planner milestone with measured limitations and exact continuation evidence.
+**Inferred user intent:** Preserve technical reports and research provenance while directing the next implementation toward a verified feedback-quality defect.
+**Commit (report):**d3e51e3 — research(passnet): complete region evaluation and document naming confounds.
+**Commit (vault):**30bb836 — docs(kiln): explain region planning proof and generated name evidence.
+
+### What I did
+- Published ARTICLE - Kiln - Whole Region Fusion Planning and Evidence Identity.md under the dated vault folder; staged only this note and pushed main.
+- Saved scripts215/216 for append-only publication and exact source-body/committed-note/remote-tracking verification.
+- Recorded kernel identity lists in the descriptive training audit and verified eight selected normalized matches retain equal lists.
+- Added follow-up task rg2o for canonical generated identifiers and aligned artifact/evidence identity before a fresh study.
+
+### Why
+- The local model proof and negative measurement are both durable results. Reliable identity is prerequisite to using small timing changes as optimization feedback.
+
+### What worked
+- Vault push c3afa76..30bb836 main -> main; only the new169-line article is committed.
+- Publication body equality and committed/pushed note checks pass. Unrelated dropcut-studio edits remain unstaged.
+- Training-only naming diagnostics, frozen study result and original source/selection commitments remain separate and reviewable.
+
+### What didn't work
+- No improved default or new native PassBench acceptance is established. Updated-guide delivery still awaits explicit renewed approval after the earlier automatic-review rejection.
+
+### What I learned
+- Equal kernel identities can coexist with different emitted-source hashes when generated reduction names leak construction history. Canonical emission should be addressed before broadening timing-based search.
+
+### What was tricky to build
+- Later diagnostic/verification code is separately committed from the measured compiler; report metadata records implementation, compilation, selection and publication revisions.
+
+### What warrants a second pair of eyes
+- Review source normalization scope, proof assumptions and the relationship between kernel identity, generated code and evidence cache keys before implementing canonicalization.
+
+### What should be done in the future
+- Canonicalize emitted reduction identifiers using compiler structure, validate renaming invariance and semantic-change separation, then declare a fresh population before new timing. Continue original PassAgent and remaining full benchmark support.
+
+### Code review instructions
+- Read reference14 and the vault article; run script216 for publication and script213 with cff6a69 for the study. Task rg2o defines the next implementation boundary.
+
+### Technical details
+- Overall goal remains active and incomplete. Original coverage is eleven tasks/206 graphs; import eligibility1029/51. No original or modified measurements are retrospectively overwritten.
