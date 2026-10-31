@@ -460,6 +460,11 @@ class Context:
         return source
 
 
+def expect(expr, meta):
+    """Bind a value to the source graph's recorded type; Kiln checks it while tracing (nn.expect)."""
+    return f'N.expect({expr}, {json.dumps(meta["shape"])}, {json.dumps(DTYPES[meta["dtype"]])})'
+
+
 def import_graph(graph):
     if graph.get('format') != 'kiln-fx/1':
         raise ValueError('Expected kiln-fx/1')
@@ -496,12 +501,14 @@ def import_graph(graph):
         lowered = spec.lower(Call(name, node['kind'], target, args, kwargs, node['args'], meta, ctx))
         expr = lowered.expr
         if isinstance(expr, list):
+            if not isinstance(meta, (list, tuple)) or len(meta) != len(expr) or any(not isinstance(m, dict) or m.get('dtype') not in DTYPES for m in meta):
+                raise ValueError(f'{name}: supported floating result metadata required for every output')
             ctx.bind_value(name, [f'{var}_{j}' for j in range(len(expr))])
-            lines.extend(f'const {var}_{j} = {item};' for j, item in enumerate(expr))
+            lines.extend(f'const {var}_{j} = {expect(item, meta[j])};' for j, item in enumerate(expr))
             continue
         if not isinstance(meta, dict) or meta.get('dtype') not in DTYPES:
             raise ValueError(f'{name}: supported floating result metadata required')
-        lines.append(f'const {var} = {expr};')
+        lines.append(f'const {var} = {expect(expr, meta)};')
         ctx.bind_value(name, var)
         if lowered.mutates in ctx.inputs:
             index = ctx.inputs[lowered.mutates]

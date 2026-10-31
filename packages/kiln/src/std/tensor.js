@@ -159,7 +159,11 @@ function weakScalar(value) {
   return false;
 }
 function elementwiseDtype(xs) {
-  const dtypes = [...new Set(xs.filter((x) => !weakScalar(x)).map((x) => x.type.dtype || "f32"))];
+  // PyTorch promotion within the floating category: dimensioned tensors dominate 0-dim tensors,
+  // which dominate Python scalars (splat constants). Only the highest-priority group decides.
+  const tensors = xs.filter((x) => !weakScalar(x));
+  const dimensioned = tensors.filter((x) => x.type.shape.length > 0);
+  const dtypes = [...new Set((dimensioned.length ? dimensioned : tensors).map((x) => x.type.dtype || "f32"))];
   if (dtypes.length === 1 && ["f16", "bf16"].includes(dtypes[0])) return dtypes[0];
   return "f32";
 }
@@ -213,6 +217,13 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
     if(b.type.shape.length!==1||b.type.shape[0]!==shape[1])throw new KilnError("ShapeError","conv2d bias shape mismatch");
     return k.tensor(shape);
   }, eval: ({ x,w,b,stride,padding,dilation,groups }) => conv2dReference(x,w,b,{stride,padding,dilation,groups}), print: "conv2d({x}, {w}, {b})" })
+  .op("expect", { args: ["x"], attrs: { shape: [], dtype: "f32" }, traits: ["pure"], infer: ({ x, shape, dtype }) => {
+    // The source framework's recorded type for this value (e.g. FX tensor_meta). Kiln's own type
+    // rules must agree; a self-consistency check cannot detect a frontend rule that differs.
+    if (x.type.shape.join() !== shape.join() || (x.type.dtype || "f32") !== dtype)
+      throw new KilnError("TypeError", `expected (${shape.join(", ")}) ${dtype} from the source graph, Kiln inferred (${x.type.shape.join(", ")}) ${x.type.dtype || "f32"}`);
+    return x.type;
+  }, eval: ({ x }) => x, print: "expect({x}, {dtype})" })
   .op("cast", { args: ["x"], attrs: { dtype: "f32" }, traits: ["pure"], infer: ({ x, dtype }) => {
     if (!["f32", "f16", "bf16"].includes(dtype)) throw new KilnError("TypeError", `unsupported floating cast: ${dtype}`);
     return k.tensor(x.type.shape, dtype);
@@ -301,6 +312,7 @@ export const N = {
     return nn.conv2d(x,w,b || tensor.const({value:0,shape:[w.type.shape[0]]}),options);
   },
   cast: (x, dtype) => nn.cast(x, { dtype }),
+  expect: (x, shape, dtype) => nn.expect(x, { shape, dtype }),
   ew: (f, ...xs) => nn.ew(xs.map(nv), { fn: f }),
   add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b), div: (a, b) => N.ew("div", a, b),
   max: (a, b) => N.ew("max", a, b), min: (a, b) => N.ew("min", a, b), pow: (a, b) => N.ew("pow", a, b),
@@ -356,8 +368,14 @@ export const decompositions = [
   decompose("nn.concat", ({xs,axis,out}) => lowerConcat(T,tensor,xs,axis,out.type.dtype)),
   decompose("nn.bilinear", ({x,size}) => lowerBilinear(T,x,size)),
   decompose("nn.conv2d", ({x,w,b,stride,padding,dilation,groups}) => lowerConv2d(T,x,w,b,{stride,padding,dilation,groups})),
+  decompose("nn.expect", ({ x }) => x),
   decompose("nn.cast", ({ x, dtype }) => tensor.ew([x], { fn: dtype === "f32" ? "copy" : "round_" + dtype, dtype })),
-  decompose("nn.ew", ({ xs, fn }) => T.ew(fn, ...xs)),
+  // Broadcasting turns a 0-dim operand into a dimensioned view, so tensor.ew would re-infer its
+  // dtype without the nn-level 0-dim rule. Keep the frontend's dtype when the two disagree.
+  decompose("nn.ew", ({ xs, fn, out }) => {
+    const e = T.ew(fn, ...xs);
+    return e.type.dtype === out.type.dtype ? e : tensor.ew(e.args, { ...e.attrs, dtype: out.type.dtype });
+  }),
   decompose("nn.linear", ({x,w}) => lowerLinear(T,x,w)),
   decompose("nn.matmul", ({a,b}) => lowerMatmul(T,a,b)),
   decompose("nn.rms_norm", ({ x, w, eps }) => {

@@ -3,12 +3,13 @@
 
 For every graph, record sha256 of the generated Kiln script, its input/output metadata, or the
 exact first import error. A behavior-preserving importer refactor must reproduce the census
-exactly (compare with --compare); intended changes must be listed explicitly.
+exactly (compare with --compare); intended changes must be listed explicitly. Comparison is
+on the script core: the script with N.expect(...) type bindings removed.
 
 usage: 661-import-script-census.py --output census.json [--workers N]
        661-import-script-census.py --compare baseline.json candidate.json
 """
-import argparse, hashlib, json, sys
+import argparse, hashlib, json, re, sys
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
@@ -18,6 +19,14 @@ UPSTREAM = TICKET / 'sources/upstream'
 sys.path.insert(0, str(ROOT / 'integrations/passnet'))
 
 
+EXPECT = re.compile(r'^(const \S+ = )N\.expect\((.*), \[[0-9, ]*\], "(?:f32|f16|bf16)"\);$', re.M)
+
+
+def core(script):
+    """The script without nn.expect type bindings: what it computes, independent of its checks."""
+    return EXPECT.sub(r'\1\2;', script)
+
+
 def one(graph):
     from corpus import translate_graph
     try:
@@ -25,6 +34,7 @@ def one(graph):
     except Exception as error:
         return graph, {'status': 'blocked', 'error': f'{type(error).__name__}: {error}'}
     return graph, {'status': 'imported', 'script_sha256': hashlib.sha256(result['script'].encode()).hexdigest(),
+                   'script_core_sha256': hashlib.sha256(core(result['script']).encode()).hexdigest(),
                    'metadata_sha256': hashlib.sha256(json.dumps({k: result[k] for k in ('inputs', 'input_dtypes', 'output_structure', 'input_mutations')}, sort_keys=True).encode()).hexdigest()}
 
 
@@ -43,7 +53,12 @@ def census(output, workers):
 
 def compare(baseline, candidate):
     a, b = (json.loads(Path(p).read_text())['records'] for p in (baseline, candidate))
-    changed = sorted(g for g in a.keys() | b.keys() if a.get(g) != b.get(g))
+    def comparable(record):
+        """Compare computations: a census without expect bindings has core == script."""
+        if not record or record['status'] != 'imported': return record
+        return {'status': 'imported', 'core': record.get('script_core_sha256', record['script_sha256']),
+                'metadata_sha256': record['metadata_sha256']}
+    changed = sorted(g for g in a.keys() | b.keys() if comparable(a.get(g)) != comparable(b.get(g)))
     for graph in changed:
         print(graph, '\n  before', a.get(graph), '\n  after ', b.get(graph))
     print(len(changed), 'changed of', len(a))

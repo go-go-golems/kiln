@@ -232,5 +232,19 @@ class OwnedActivationTests(unittest.TestCase):
             import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
 
 
+class ExpectBindingTests(unittest.TestCase):
+    def test_every_value_is_bound_to_its_fx_type(self):
+        import torch
+        from fx_trace import trace_module
+        from fx_export import export_graph
+        class M(torch.nn.Module):
+            def forward(self, x, s):
+                a, b = (x * s).chunk(2, dim=1)
+                return a + 1, b
+        script = import_graph(export_graph(trace_module(M()), [torch.randn(2, 4).half(), torch.tensor(2.0)]))['script']
+        self.assertIn('const v2 = N.expect(N.mul(v0, v1), [2, 4], "f16");', script)
+        self.assertIn('N.expect(N.slice(v2, 1, 0, 2), [2, 2], "f16")', script)
+
+
 if __name__ == '__main__':
     unittest.main()
