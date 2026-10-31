@@ -760,3 +760,50 @@ See Steps 168–169 and 173 for research-first priorities, concurrency and think
 ### Technical details
 - Fixed development population and modified explicit FP32 protocol; no default compiler promotion.
 - Baseline and candidate share measurements only when their executable fingerprints are identical.
+
+## Step 175: Publish the repeated selective-fusion result as a technical article
+
+Published a 2,280-word textbook-style article explaining the actual Pi/GLM pipeline, six-lane experiment, repeated positive result and matrix/layout scheduling hypothesis. The new vault article was committed and pushed as 2d407b6b700461b54b542130364c37edab2d1eaa. Earlier reports and unrelated vault changes remain untouched.
+
+### Prompt Context
+See the standing milestone report request and Steps 168–174 for current research direction.
+**Assistant interpretation:** Preserve the substantive result in a self-contained technical explanation.
+**Inferred user intent:** Make the research understandable and reusable beyond the session.
+**Evidence commit:** d1f1b42 — Repeat selective fusion gain and identify matrix scheduling effects.
+
+### What I did
+- Applied the Obsidian vault-writing and textbook-authoring skills.
+- Created reference 25 through docmgr and wrote a source copy with the same article body.
+- Defined graph, pass, policy and scheduling concepts before tracing a concrete measured example.
+- Included architecture, policy JSON, objective equation, proposed algorithm pseudocode, evidence locations and limits.
+- Verified both aggregate values against selection receipts, then committed and pushed the new vault article.
+
+### Why
+- The repeated improvement is a meaningful milestone, while its mixed per-graph behavior needs careful explanation.
+
+### What worked
+- Both recorded aggregate values match the article's rounded results.
+- Vault push succeeded to main at 2d407b6b700461b54b542130364c37edab2d1eaa.
+
+### What didn't work
+- No publication failure occurred. cp -n emitted a portability warning; the new file was copied and committed successfully.
+- No claim of unseen-family generalization, native PassBench scoring or arbitrary compiler-pass synthesis was added.
+
+### What I learned
+- The explanatory sequence is clearest when policy semantics precede the distinction between executable novelty and measured improvement.
+
+### What was tricky to build
+- The report distinguishes observed schedule changes from a causal explanation that still requires ablation.
+
+### What warrants a second pair of eyes
+- Review the concentration of gain in one graph and the proposed matrix/layout-aware rule.
+
+### What should be done in the future
+- Implement and measure a targeted compiler hypothesis; test additional graph families and thinking levels.
+
+### Code review instructions
+- Read reference 25 or the vault article, then follow its evidence table to the actual measurements and generated schedules.
+
+### Technical details
+- Vault path: Projects/2026/10/31/ARTICLE - Kiln - Six GLM Lanes and Matrix Layout Fusion.md.
+- Article body: 2,280 whitespace-delimited words, one Mermaid diagram, concrete JSON and proposed pseudocode.
