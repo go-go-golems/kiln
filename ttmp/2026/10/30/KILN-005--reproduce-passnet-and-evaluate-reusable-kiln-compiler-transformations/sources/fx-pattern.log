@@ -1,0 +1,30 @@
+PATTERN graph():
+    %mean : [num_users=1] = placeholder[target=mean]
+    %variance : [num_users=1] = placeholder[target=variance]
+    %bias : [num_users=1] = placeholder[target=bias]
+    %weight : [num_users=1] = placeholder[target=weight]
+    %x : [num_users=1] = placeholder[target=x]
+    %relu : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%x,), kwargs = {inplace: False})
+    %batch_norm : [num_users=1] = call_function[target=torch.nn.functional.batch_norm](args = (%relu, %mean, %variance), kwargs = {weight: %weight, bias: %bias, training: False, momentum: 0.1, eps: 1e-05})
+    %dropout : [num_users=1] = call_function[target=torch.nn.functional.dropout](args = (%batch_norm,), kwargs = {p: 0.0, training: False, inplace: False})
+    return dropout
+DYNAMO graph():
+    %l_in_4_ : torch.Tensor [num_users=1] = placeholder[target=L_in_4_]
+    %l_in_0_ : torch.Tensor [num_users=1] = placeholder[target=L_in_0_]
+    %l_in_1_ : torch.Tensor [num_users=1] = placeholder[target=L_in_1_]
+    %l_in_3_ : torch.Tensor [num_users=1] = placeholder[target=L_in_3_]
+    %l_in_2_ : torch.Tensor [num_users=1] = placeholder[target=L_in_2_]
+    %tmp_4 : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%l_in_4_,), kwargs = {inplace: False})
+    %tmp_5 : [num_users=1] = call_function[target=torch.nn.functional.batch_norm](args = (%tmp_4, %l_in_0_, %l_in_1_, %l_in_3_, %l_in_2_, False, 0.1, 1e-05), kwargs = {})
+    %tmp_6 : [num_users=1] = call_function[target=torch.nn.functional.dropout](args = (%tmp_5,), kwargs = {p: 0.0, training: False})
+    return (tmp_6,)
+placeholder 'L_in_4_' () {}
+placeholder 'L_in_0_' () {}
+placeholder 'L_in_1_' () {}
+placeholder 'L_in_3_' () {}
+placeholder 'L_in_2_' () {}
+call_function <function relu at 0xf08740dcc860> (l_in_4_,) {'inplace': False}
+call_function <function batch_norm at 0xf08740dcd8a0> (tmp_4, l_in_0_, l_in_1_, l_in_3_, l_in_2_, False, 0.1, 1e-05) {}
+call_function <function dropout at 0xf08740dcc400> (tmp_5,) {'p': 0.0, 'training': False}
+output 'output' ((tmp_6,),) {}
+MATCHES 0

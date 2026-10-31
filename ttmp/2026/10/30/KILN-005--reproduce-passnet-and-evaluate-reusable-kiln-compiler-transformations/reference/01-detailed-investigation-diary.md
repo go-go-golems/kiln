@@ -546,3 +546,43 @@ See Step 11: preserve intermediate scripts for reports.
 
 ### Technical details
 - No upstream evaluator code changed or copied. Runs are explicitly exploratory and non-isolated.
+
+## Step 13: Identify exact pattern mismatch
+
+Saved and ran scripts/08-inspect-fx-pattern.py, capturing symbolic pattern and Dynamo graphs without evaluator modifications. The matcher mismatch is structural: symbolic_trace canonicalizes batch_norm to kwargs and inserts dropout inplace=False, while Dynamo retains positional batch_norm arguments and omits the dropout default.
+
+### Prompt Context
+See Step 11 for intermediate-script preservation.
+**Assistant interpretation:** Diagnose from exact graph evidence.
+**Inferred user intent:** Fix integration faithfully.
+
+### What I did
+- Captured node targets, args and kwargs in sources/fx-pattern.log using the existing remote PyTorch container.
+
+### Why
+- Mathematically equivalent source code does not guarantee exact FX structural equivalence.
+
+### What worked
+- Diagnostic completed successfully and reproduced MATCHES 0.
+
+### What didn't work
+- Existing generated pass still cannot match. Replacement correctness/integrity execution remains untested.
+
+### What I learned
+- Pattern trace has batch_norm args (relu,mean,variance), kwargs weight/bias/training/momentum/eps; Dynamo has eight positional args and no kwargs.
+- Pattern dropout includes inplace=False; Dynamo does not.
+
+### What was tricky to build
+- Need produce structurally faithful pattern without changing original evaluator or weakening matching.
+
+### What warrants a second pair of eyes
+- Any explicit FX pattern construction must retain documented pass function signature and argument mapping.
+
+### What should be done in the future
+- Implement exact graph pattern construction and rerun the original evaluator; preserve all failures.
+
+### Code review instructions
+- Compare scripts/08-inspect-fx-pattern.py and sources/fx-pattern.log with scripts/06-write-pass-module.py.
+
+### Technical details
+- Independent diagnostic uses public FX SubgraphMatcher and torch.compile backend callback. No upstream code modified or copied.
