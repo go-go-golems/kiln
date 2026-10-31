@@ -73,3 +73,50 @@ See Step 159 for the Pi/LunaRoute request and diary requirements.
 ### Technical details
 - Wire format: kiln-native-policy-rpc/1 ready record, then requests with id/tool/arguments and responses with id/result.
 - No implicit retry, resumption, provider access, evaluator invocation or production compiler change is introduced.
+
+## Step 161: Implement pre-execution accounting for native Pi submissions
+
+Added a framework-facing policy tool boundary that accounts for submissions in an awaited assistant-message hook before tool execution. This addresses the argument-validation ordering discovered in Step 159. The implementation is independently tested but is not yet installed into a running Pi session.
+
+### Prompt Context
+See Step 159 for the authored Pi/LunaRoute request and Step 160 for diary rotation.
+**Assistant interpretation:** Preserve the trusted proposal budget when moving from the old XML protocol to native tool calls.
+**Inferred user intent:** Obtain reliable, faster agent experiments without losing experimental accountability.
+**Previous commit:** a96df7a — Begin owned policy RPC transport and second implementation diary.
+
+### What I did
+- Added PiPolicyTools in integrations/passnet/pi_policy_tools.mjs.
+- Stored results by tool call ID before execution and returned those results without a second submission.
+- Charged truncated assistant submissions with null arguments, preventing their policy bodies from being admitted.
+- Added focused tests for multiple calls, invalid arguments, exhausted budget termination, truncated replies, unaccounted execution and duplicate IDs.
+
+### Why
+- Pi validates arguments before its tool execution hook; charging only inside execution would miss invalid submissions.
+- Native multi-call responses are permitted in this new protocol, with each submission charged individually.
+
+### What worked
+- Node 26 ran pi_policy_tools.test.mjs successfully (one passing test-file receipt, containing two cases).
+- The fake RPC observed two charges before execution and no additional charge when returning a stored result.
+
+### What didn't work
+- No test failure occurred. These tests do not prove SDK hook installation, provider limits, or real task execution.
+
+### What I learned
+- Separating the accounting boundary from SDK setup allows direct tests of the important ordering contract without making a provider call.
+
+### What was tricky to build
+- Truncated messages may still contain recognizable calls. Their attempts must be charged without accepting partially generated policy bodies.
+
+### What warrants a second pair of eyes
+- The eventual owner must await observe, serialize messages and stop provider requests after exhaustion. terminate on tool results alone is insufficient when framework validation rejects a call.
+
+### What should be done in the future
+- Install this boundary in the Pi SDK owner with the RPC transport, hard request/token limits and retained event traces.
+- Verify actual SDK event ordering with a controlled provider, then run the requested LunaRoute experiment.
+
+### Code review instructions
+- Read PiPolicyTools.observe before execute, then run node --test integrations/passnet/pi_policy_tools.test.mjs using Node 26.
+
+### Technical details
+- Complete submission bodies are admitted only for stopReason stop or toolUse; other stop reasons submit null to the trusted task.
+- This checkpoint changes no compiler artifacts, coverage counts, benchmark results or previous comparison evidence.
