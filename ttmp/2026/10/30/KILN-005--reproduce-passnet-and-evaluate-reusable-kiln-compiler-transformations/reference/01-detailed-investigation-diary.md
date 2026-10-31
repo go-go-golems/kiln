@@ -2169,3 +2169,44 @@ Original complete benchmark target; unsupported variants must remain visible.
 
 ### Technical details
 - Candidate implementation only; verified coverage remains 2/200 and no GPU correctness claim for new precision path.
+
+## Step 52: Detect actual FP16 task numerical mismatch
+
+Existing compile completed with three kernels, but costly compiler reference evaluation was skipped (~1006M estimated operations). Source-based CUDA comparison failed; this is a real precision mismatch, not task support. Preserve unchanged evidence and diagnose stages next.
+
+### Prompt Context
+Original correctness and full-task requirements; no weakened tolerances.
+**Assistant interpretation:** Test actual compiled graph against original source and keep failures visible.
+**Inferred user intent:** Faithful numerical behavior before scoring.
+
+### What I did
+- Polled completed export process; saved actual third-task artifact and compile diagnostics.
+- Added check_third_task_cuda.py and ran original model comparison with FP16 baseline rtol 1e-3/atol 1e-5.
+
+### Why
+- Successful compilation and small fixtures cannot establish real-shape reduced-precision correctness.
+
+### What worked
+- Actual graph exported and CUDA program executed.
+
+### What didn't work
+- 508/73728 elements mismatched (0.7%); maximum absolute difference 0.125, maximum relative difference 0.066650390625.
+- Compiler check was skipped due estimated cost, not passed. Shell launch returned after printing failed Python log; log assertion is authoritative failure evidence.
+
+### What I learned
+- Need isolate convolution, bias/activation/residual rounding and resize to determine first divergence; no causal conclusion yet.
+
+### What was tricky to build
+- Third task resize is [24,24] after residual already [1,128,24,24], so identity-resize behavior is one useful diagnostic boundary.
+
+### What warrants a second pair of eyes
+- Convolution accumulation order, bias fusion and source precision semantics on actual CUDA backend.
+
+### What should be done in the future
+- Save staged-output diagnostic scripts, compare every intermediate with PyTorch and fix source semantics without loosening checker tolerances.
+
+### Code review instructions
+- Inspect third-task source/artifact, third-task-gpu.log, third-compile.log and check_third_task_cuda.py.
+
+### Technical details
+- Verified benchmark coverage remains 2/200; this numerical failure is not an external blocker and implementation work continues.
