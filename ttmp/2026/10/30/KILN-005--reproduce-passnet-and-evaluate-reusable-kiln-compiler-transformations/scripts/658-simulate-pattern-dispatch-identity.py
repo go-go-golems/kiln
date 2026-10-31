@@ -60,7 +60,7 @@ def main():
     p.add_argument('--plan', type=Path, required=True)
     p.add_argument('--upstream', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
-    p.add_argument('--task', type=int, action='append', required=True)
+    p.add_argument('--task', type=int, action='append', help='plan task index; default: every plan task')
     p.add_argument('--trace', choices=('dynamo', 'symbolic'), default='dynamo')
     a = p.parse_args()
     if a.output.exists():
@@ -68,12 +68,17 @@ def main():
     plan = json.loads(a.plan.read_text())
     by_index = {t['index']: t for t in plan['tasks']}
     report = {'format': 'kiln-pattern-identity-simulation/1', 'plan': str(a.plan), 'trace': a.trace, 'tasks': []}
-    for index in a.task:
+    for index in a.task or list(by_index):
         task = by_index[index]
         corpus = a.output / f'task{index:03d}' / 'corpus'
         passes = a.output / f'task{index:03d}' / 'passes'
-        export_task(a.upstream, task['sample'], corpus)
-        generate(corpus, a.upstream, passes, corpus)
+        try:
+            export_task(a.upstream, task['sample'], corpus)
+            generate(corpus, a.upstream, passes, corpus)
+        except Exception as error:
+            report['tasks'].append({'index': index, 'error': f'{type(error).__name__}: {error}'})
+            print(index, 'generation error:', type(error).__name__, error, flush=True)
+            continue
         names = json.loads((passes / 'sorted_output_pass_rule_names.json').read_text())
         rules = []
         for name in names:
@@ -86,7 +91,11 @@ def main():
         graphs = []
         for record in read_manifest(corpus)['variants']:
             if a.trace == 'dynamo':
-                gm = dynamo_graph(a.upstream / record['graph'])
+                try:
+                    gm = dynamo_graph(a.upstream / record['graph'])
+                except Exception as error:
+                    graphs.append({'graph': record['graph'], 'capture_error': f'{type(error).__name__}: {error}'[:500], 'ok': False})
+                    continue
             else:
                 gm = torch.fx.symbolic_trace(load_module(a.upstream / record['graph'] / 'model.py').GraphModule())
                 eliminate_dead_code(gm.graph)  # TorchDynamo captures only live nodes
@@ -106,10 +115,11 @@ def main():
                            'rule_errors': errors, 'ok': applied == record['specialization'][0] and count == 1})
         report['tasks'].append({'index': index, 'graphs': len(graphs), 'rules': len(rules),
                                 'identity_ok': sum(g['ok'] for g in graphs),
-                                'permuted': sum(g['output_permutation'] != sorted(g['output_permutation']) for g in graphs),
+                                'permuted': sum(g.get('output_permutation', [0]) != sorted(g.get('output_permutation', [0])) for g in graphs),
                                 'records': graphs})
         print(index, f"{report['tasks'][-1]['identity_ok']}/{len(graphs)} identity ok;", len(rules), 'rules;',
               report['tasks'][-1]['permuted'], 'permuted', flush=True)
+        (a.output / 'simulation.json').write_text(json.dumps(report, indent=2) + '\n')  # incremental
     (a.output / 'simulation.json').write_text(json.dumps(report, indent=2) + '\n')
 
 
