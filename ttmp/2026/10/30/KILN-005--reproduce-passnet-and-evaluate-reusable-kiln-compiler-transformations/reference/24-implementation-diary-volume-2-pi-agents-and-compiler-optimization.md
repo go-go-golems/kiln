@@ -2960,9 +2960,10 @@ The cumulative53-task ledger spans historical snapshots. It cannot establish cur
 ### What worked
 - The frozen plans contain56 ordinary unverified tasks/561 graphs, two large unverified tasks/522 graphs, and53 regression tasks/431 graphs. All111 task indices are distinct; exact membership hashes and source-audit/ledger hashes are recorded.
 - Python syntax compilation, shell syntax checking, plan accounting and `git diff --check` passed.
+- Committed the plans as `0c17cee`, staged the exact source snapshot `7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740` and all1,514 graph source directories on bling, verified the remote snapshot, and launched tmux session `kiln-uniform-importable-v1`. The first task, index4, exported and compiled successfully and entered GPU evaluation at this checkpoint. The staging receipt is in the study source directory.
 
 ### What didn't work
-The first freeze script draft incorrectly summed each band dictionary as though it were a task row and raised `KeyError: 'graphs'`. Correcting the nested sum produced the expected1,514-graph declaration. No new GPU result exists at this checkpoint.
+The first freeze script draft incorrectly summed each band dictionary as though it were a task row and raised `KeyError: 'graphs'`. Correcting the nested sum produced the expected1,514-graph declaration. No accepted GPU result from this new run exists at this checkpoint.
 
 ### What I learned
 The large two families account for nearly half of the pending graph variants. Separating them for scheduling preserves all task variants while allowing the ordinary families to produce a broad early result.
