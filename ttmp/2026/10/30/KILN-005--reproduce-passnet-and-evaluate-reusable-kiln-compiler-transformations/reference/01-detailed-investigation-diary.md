@@ -1497,3 +1497,44 @@ Original full compiler support and source semantics requirements.
 
 ### Technical details
 - Independent implementation, no upstream code copied; no full normalization reproduction claim.
+
+## Step 36: Generate candidate low-precision normalization and preserve launch failure
+
+Saved a reproducible source-derived normalization export script and CUDA comparison driver. Both FP16/BF16 source programs were generated, and nine integration unit tests passed. Remote compilation is still being observed; no numerical normalization result is claimed.
+
+### Prompt Context
+Original goal: complete genuine task variants with documented provenance and scripts.
+**Assistant interpretation:** Validate explicit FP32 accumulation lowering for low-precision normalization.
+**Inferred user intent:** Correct full-task dtype coverage.
+
+### What I did
+- Saved script 16 loading pinned first-task GraphModule and emitting candidate FP16/BF16 programs.
+- Added check_batchnorm_precision_cuda.py with nontrivial statistics/affine inputs and dtype-specific tolerances.
+- Added importer tests checking FP32 internal casts and typed output casts.
+
+### Why
+- Separately rounded low-precision elementary operations do not match normalization accumulation semantics.
+
+### What worked
+- Both source files generated; nine integration CPU tests passed.
+
+### What didn't work
+- GPU comparison was started before dependent remote compilation completed: FileNotFoundError /work/batchnorm-f16.json. This is orchestration failure, not numerical evidence. Must wait for artifact-producing command completion before rerun.
+
+### What I learned
+- Observation yielding does not mean a dependency finished; dependent execution must remain sequential.
+
+### What was tricky to build
+- Actual low-precision source dtype metadata must coexist with FP32 internal arithmetic and runtime statistics.
+
+### What warrants a second pair of eyes
+- Candidate normalization code remains unverified on GPU and should not be described as supported yet.
+
+### What should be done in the future
+- Poll existing compilation handle, then rerun comparison only after exports succeed; inspect numerical failures if any.
+
+### Code review instructions
+- Inspect script 16, candidate fx_import.py and check_batchnorm_precision_cuda.py. Reproduce in dependency order.
+
+### Technical details
+- Generated from pinned FP32 first-task operation structure with FP16/BF16 example metadata; not yet the complete six-variant benchmark run.

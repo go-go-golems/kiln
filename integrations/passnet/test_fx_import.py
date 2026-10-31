@@ -24,6 +24,16 @@ class ImportTests(unittest.TestCase):
             self.assertEqual(set(result['input_dtypes'].values()),{name})
             self.assertIn('"'+name+'"',result['script'])
 
+    def test_normalization_accumulation_casts(self):
+        class Model(torch.nn.Module):
+            def forward(self,mean,var,bias,weight,x):
+                return torch.nn.functional.batch_norm(x,mean,var,weight,bias,False,0.1,1e-5)
+        for dtype,name in [(torch.float16,'f16'),(torch.bfloat16,'bf16')]:
+            values=(torch.zeros(3,dtype=dtype),torch.ones(3,dtype=dtype),torch.zeros(3,dtype=dtype),torch.ones(3,dtype=dtype),torch.randn(2,3).to(dtype))
+            result=import_graph(export_graph(symbolic_trace(Model()),values))
+            self.assertIn('N.cast(v4, "f32")',result['script'])
+            self.assertIn(', "'+name+'")',result['script'])
+
     def test_dtype_and_layout_rejected(self):
         class Model(torch.nn.Module):
             def forward(self, x):
