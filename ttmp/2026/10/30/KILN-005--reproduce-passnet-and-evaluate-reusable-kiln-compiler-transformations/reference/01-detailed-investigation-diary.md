@@ -709,3 +709,44 @@ Original goal requests milestone textbook-style technical reports and vault comm
 
 ### Technical details
 - Append-only vault addition; task-specific staging only; successful remote push verified from command result.
+
+## Step 17: Census complete evaluation requirements
+
+Added and executed a static AST census over all 200 tasks and 2,060 graphs. This provides explicit operation/dtype requirements for extending Kiln beyond the initial bridge. It does not narrow the goal to supported cases.
+
+### Prompt Context
+User authorizes implementing missing Kiln pieces and preserving intermediate scripts.
+**Assistant interpretation:** Ground capability priorities in the actual evaluation corpus.
+**Inferred user intent:** Implement broad support with traceable requirements.
+
+### What I did
+- Added scripts/09-inventory-operators.py and sources/operator-inventory.json.
+- Counted calls, normalized tensor methods, arithmetic/subscript syntax and input/weight dtypes; updated guide section 15.
+
+### Why
+- Operator names and dtype needs must come from the pinned evaluation set rather than preliminary assumptions.
+
+### What worked
+- Census covered 200 tasks and 2,060 graphs. FP16/BF16/FP32 metadata occurs in 728/733/569 graphs; int64 in 170, bool in three (nonexclusive).
+- Full reference run remains live, with seven task completions observed.
+
+### What didn't work
+- First draft counted only calls and retained temporary receiver names; inspection showed it omitted Python arithmetic and fragmented method counts. Corrected census before committing.
+
+### What I learned
+- conv2d, concatenation, indexing, views, reductions and embeddings require major new capability work. Static syntax counts are not dynamic kernel counts.
+
+### What was tricky to build
+- Negative literals and slice constructors must not be mistaken for runtime tensor operations; census retains raw syntax categories explicitly.
+
+### What warrants a second pair of eyes
+- Dtype metadata counts overlap and do not characterize intermediate promotion. AST receiver normalization assumes non-torch attribute calls are tensor-like; inspect per-graph records before treating counts as definitive semantic coverage.
+
+### What should be done in the future
+- Build task-dependency coverage matrix and implement dtype/storage/layout extensions with end-to-end tests; continue matcher resolution.
+
+### Code review instructions
+- Run scripts/09-inventory-operators.py and inspect inventory plus guide section 15.
+
+### Technical details
+- Standard-library AST only; no upstream source execution or implementation copying.

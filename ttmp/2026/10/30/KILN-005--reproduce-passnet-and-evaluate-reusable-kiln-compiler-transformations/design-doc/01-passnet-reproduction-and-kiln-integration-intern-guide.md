@@ -187,3 +187,13 @@ All 14 Parquet shards were size/SHA256 verified and materialized into 2,067,810 
 The full reference run is exploratory: synthetic GPU checks and integration tests overlapped it. Preserve its logs for correctness/failure diagnosis, but obtain isolated measurements before reporting comparative speedups. Capture exact GPU/software/image identity and active workload state with final measurements. Model-agent runs, reusable policy learning and held-out evaluation have not yet been executed.
 
 This edition documents an ongoing implementation. It does not claim completion of FP16/BF16 support, full corpus operation/layout coverage, original pass matching/scoring, fine-tuning reproduction, compiler meta-optimization or final performance comparisons. Those remain explicit project requirements. The delivered progress edition is useful for an intern to inspect the current boundaries and continue from reproducible scripts; a later edition must replace this status with verified results.
+
+## 15. Measured static corpus requirements
+
+scripts/09-inventory-operators.py parses all 2,060 source graphs without importing or executing them. It normalizes tensor method receiver names and counts Python arithmetic/subscript syntax as well as calls. Full per-graph records are in sources/operator-inventory.json. This is a static occurrence census; it does not measure dynamic invocation counts or prove compiler coverage.
+
+Input/weight metadata mentions FP16 in 728 graphs, BF16 in 733 and FP32 in 569; 170 graphs mention int64 and three mention bool. Counts are nonexclusive because one graph can have several dtypes. A compiler supporting only floating arithmetic still needs integer indexing and Boolean masking semantics for complete coverage.
+
+Static counts include 686 conv2d calls, 666 cat calls, 455 view calls, 346 mean calls, 340 batch_norm calls, 263 reshape calls, 243 transpose calls, 231 embedding calls and 200 dtype conversions. Python subscript and arithmetic syntax are counted separately; slice constructors and negative dimension literals are not GPU kernels. Prioritize capability work by complete task dependencies, not raw frequency alone: adding one operation does not unlock a task if its other operations remain unsupported.
+
+A full implementation needs typed storage and arithmetic conversion rules, channel/spatial indexing, integer gather/embedding, layout views/copies, concatenation, convolution and reductions. Each extension must define reference evaluation, shape/type inference, lowering, emission/runtime representation and numerical tests. Preserve rejected tasks in the declared benchmark denominator while these capabilities are developed.
