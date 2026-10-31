@@ -34,7 +34,7 @@ Teacher trajectory generation/student fine-tuning remains a separate expensive r
 
 ## Priority change: start reusable-policy optimization before full corpus support
 
-The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is eleven complete tasks containing 141 graphs, with 206 individually passing graphs including partial tasks. Translation succeeds for 984 graphs and 43 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
+The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is eleven complete tasks containing 141 graphs, with 206 individually passing graphs including partial tasks. Translation succeeds for 1029 graphs and 51 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
 
 The immediate critical path is:
 
@@ -85,3 +85,10 @@ The full selective-input rerun is terminal: seven variants compile, the next BF1
 Separate-rounding scalar operations are implemented through IR and CUDA intrinsics, while global defaults remain unchanged. The 63-variant complete-task cohort is terminal: all compile/evaluate/score, 62 nominally pass and three additional task families are complete. Cumulative coverage is 11 tasks /206 individual graphs; complete tasks contain 141 graphs. One BF16 RepViT variant remains a nominal failure. Design 09, the intern guide Section 29 and contraction-verified-facts.json own the details, including archived remote source overrides.
 
 The previous 12 training graphs have no reductions, fanout or duplicate internal kernels even before fusion. Before another reusable transformation study, freeze a new official-training-source corpus containing reductions and matrix operations, preserve a fixed numerical contract, demonstrate changed implementations on training, and evaluate the selected policy on fresh confirmation models. Original PassAgent and the remaining full-corpus compiler support remain separate open requirements.
+
+
+### Rich-corpus self-optimization declaration
+
+Functional LayerNorm reuses the existing compiler primitive after validated flattening; 126 independent CUDA comparisons pass. Import eligibility is now 1029 graphs/51 complete families, while original accepted coverage stays 11/206. A failed metadata selection is preserved, and the unchanged declared envelope succeeds after this missing operator is added.
+
+The new corpus contains twelve training and eight fresh exact-model confirmation sources, balanced between reductions and matrices. Training has eighteen reductions and eleven fanout kernels, in contrast with none in the prior set. Unchanged/default controls agree and twelve reusable profitability programs are frozen before confirmation IR compilation or any new GPU timing. Full compilation, training selection and confirmation are the next gate (task mg15); this is not yet an optimization result.

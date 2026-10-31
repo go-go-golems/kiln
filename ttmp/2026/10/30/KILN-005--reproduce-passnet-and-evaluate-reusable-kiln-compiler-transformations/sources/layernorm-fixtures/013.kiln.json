@@ -1,0 +1,201 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/layernorm-fixtures/013.kiln.js",
+  "sha256": "bcc81866daf52307f52b7501c65e185c12f40defd2c0e78a45f32b3ad7673ad1",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    17
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    17
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    2,
+    17
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 34,
+   "bytes": 68
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 17,
+   "bytes": 36
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 2,
+   "bytes": 8
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 2,
+   "bytes": 8
+  },
+  {
+   "id": 4,
+   "dtype": "f16",
+   "elements": 34,
+   "bytes": 68
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_reshape_layer_norm_reduce__1hanbka5uj6",
+   "identity": "1hanbka5uj6",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 2,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    1
+   ],
+   "inShapes": [
+    [
+     2,
+     17
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_reshape_layer_norm_reduce__1hanbka5uj6(const __half* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 2)) {\n        acc0 = 0.0f;\n        for (int r38 = 0; r38 < 17; r38 += 1) {\n            in0 = __half2float(src0[((17 * ((((17 * e) + r38) / 17) % 2)) + (r38 % 17))]);\n            v0 = in0;\n            acc0 = (acc0 + v0);\n        }\n        v1 = (acc0 / 17.0f);\n        dst[e] = v1;\n    }\n}"
+  },
+  {
+   "name": "k_cast_reshape_layer_norm_reduce_2__3p39vopohi",
+   "identity": "3p39vopohi",
+   "row": "TPB=1024",
+   "reads": [
+    2,
+    0
+   ],
+   "writes": 3,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    1
+   ],
+   "inShapes": [
+    [
+     2,
+     1
+    ],
+    [
+     2,
+     17
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_reshape_layer_norm_reduce_2__3p39vopohi(const float* __restrict__ src0, const __half* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in1 = 0.0f, acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 2)) {\n        in1 = src0[e];\n        acc0 = 0.0f;\n        for (int r39 = 0; r39 < 17; r39 += 1) {\n            in0 = __half2float(src1[((17 * ((((17 * e) + r39) / 17) % 2)) + (r39 % 17))]);\n            v0 = in0;\n            v1 = __fsub_rn(v0, in1);\n            v2 = __fmul_rn(v1, v1);\n            acc0 = (acc0 + v2);\n        }\n        v3 = (acc0 / 17.0f);\n        v4 = __fadd_rn(v3, 0.00001f);\n        v5 = rsqrtf(v4);\n        dst[e] = v5;\n    }\n}"
+  },
+  {
+   "name": "k_cast_reshape_layer_norm__2dckmmcwtbj",
+   "identity": "2dckmmcwtbj",
+   "row": "TPB=1024",
+   "reads": [
+    1,
+    3,
+    2,
+    0
+   ],
+   "writes": 4,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    17
+   ],
+   "inShapes": [
+    [
+     17
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     2,
+     17
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f32",
+    "f32",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_reshape_layer_norm__2dckmmcwtbj(const __half* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const __half* __restrict__ src3, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, in2 = 0.0f, v2 = 0.0f, in3 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 34)) {\n        in0 = __half2float(src3[((17 * ((((17 * ((((e % 17) + (17 * (e / 17))) / 17) % 2)) + ((e % 17) % 17)) / 17) % 2)) + (((e % 17) % 17) % 17))]);\n        v0 = in0;\n        in1 = src2[((((e % 17) + (17 * (e / 17))) / 17) % 2)];\n        v1 = __fsub_rn(v0, in1);\n        in2 = src1[((((e % 17) + (17 * (e / 17))) / 17) % 2)];\n        v2 = __fmul_rn(v1, in2);\n        in3 = __half2float(src0[(((e % 17) % 17) % 17)]);\n        v3 = in3;\n        v4 = __fmul_rn(v2, v3);\n        v5 = __fadd_rn(v4, 0.0f);\n        v6 = __half2float(__float2half_rn(v5));\n        v7 = __half2float(__float2half_rn(v6));\n        dst[((e % 17) + (17 * (e / 17)))] = __float2half_rn(v7);\n    }\n}"
+  }
+ ]
+}

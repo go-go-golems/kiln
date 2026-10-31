@@ -1,6 +1,6 @@
 import copy
 import unittest
-from propose_policy import propose
+from propose_policy import propose,propose_rich
 
 
 class ProposalTests(unittest.TestCase):
@@ -29,3 +29,15 @@ class ProposalTests(unittest.TestCase):
     def test_nonfinite_features_rejected(self):
         manifest,receipt=self.inputs();receipt['records'][0]['decisions'][0]['originalWork']=float('inf')
         with self.assertRaisesRegex(ValueError,'feature'):propose(manifest,receipt)
+
+    def test_rich_proposals_preserve_controls_and_ignore_confirmation(self):
+        manifest,receipt=self.inputs();manifest['numerical_policy']=receipt['numerical_policy']={'contraction':'separate'}
+        controls=[{'format':'kiln-fusion-policy/1','id':'baseline','kind':'unchanged'},
+                  {'format':'kiln-fusion-policy/1','id':'default','kind':'threshold','max_work_growth':1.02}]
+        result=propose_rich(manifest,receipt,controls)
+        changed=copy.deepcopy(receipt);changed['records'][1].update(status='failed',decisions=[{'untrusted':float('nan')}])
+        self.assertEqual(result,propose_rich(manifest,changed,controls));self.assertEqual(result['policies'][:2],controls)
+        self.assertEqual(len(result['policies']),12)
+        self.assertTrue(any(p.get('max_work_growth')==1.25 for p in result['policies']))
+        receipt['numerical_policy']={'contraction':'allow'}
+        with self.assertRaisesRegex(ValueError,'fixed'):propose_rich(manifest,receipt,controls)

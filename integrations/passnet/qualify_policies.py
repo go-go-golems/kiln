@@ -16,9 +16,14 @@ def qualify(corpus,artifacts):
     if 'baseline' not in policies or 'default' not in policies:raise ValueError('Unchanged/default equivalence controls required')
     receipts={name:json.loads((artifacts/name/'compile-receipt.json').read_text()) for name in policies}
     baseline=receipts['baseline'];hashes={};semantics={};changes={};fingerprints={}
+    numerical_policy=manifest.get('numerical_policy',{'contraction':'allow'})
+    if plan.get('numerical_policy')!=numerical_policy:raise ValueError('Declared numerical contract mismatch')
     if declared['baseline']['kind']!='unchanged' or declared['default']['kind']!='threshold' or declared['default'].get('max_work_growth')!=1.02:raise ValueError('Unchanged and explicit default controls required')
     expected=[r['graph'] for r in manifest['variants']]
     for name,receipt in receipts.items():
+        if receipt.get('format')!='kiln-policy-compilation/2':raise ValueError('Expected explicit numerical/scope compilation receipt v2')
+        if receipt.get('phase')!='all':raise ValueError('Incomplete compilation scope; full declared corpus required')
+        if receipt.get('numerical_policy')!=numerical_policy:raise ValueError('Compiler numerical contract mismatch')
         if receipt['policy']!=declared[name] or declared[name]['id']!=name:raise ValueError('Declared policy differs from compiled policy')
         if receipt['target']!=baseline['target']:raise ValueError('Compiler target mismatch')
         if receipt['membership_sha256']!=identity or receipt['reference_domain_sha256']!=baseline['reference_domain_sha256']:raise ValueError('Compiler configuration mismatch')
@@ -29,6 +34,7 @@ def qualify(corpus,artifacts):
             if artifact['compiler_policy']!=declared[name]:raise ValueError('Artifact policy differs from declaration')
             if len(artifact['kernels'])!=record['kernel_count']:raise ValueError('Kernel count mismatch')
             if artifact['source']['sha256']!=manifest['variants'][index]['source_sha256']:raise ValueError('Source hash mismatch')
+            if artifact['source'].get('contraction')!=numerical_policy['contraction']:raise ValueError('Artifact numerical contract mismatch')
             if [k['identity'] for k in artifact['kernels']]!=record['kernel_identities']:raise ValueError('Kernel identity mismatch')
             hashes[name].append(hashlib.sha256(raw).hexdigest())
             for key in ['name','source','compiler_policy']:artifact.pop(key,None)
@@ -43,7 +49,7 @@ def qualify(corpus,artifacts):
     groups={}
     for index,digest in enumerate(semantics['baseline']):groups.setdefault(digest,[]).append(manifest['variants'][index])
     cross_split=[{'graphs':[r['graph'] for r in rows],'splits':[r['split'] for r in rows]} for rows in groups.values() if len({r['split'] for r in rows})>1]
-    return {'membership_sha256':identity,'default_equals_unchanged':True,'artifact_sha256':hashes,
+    return {'membership_sha256':identity,'numerical_policy':numerical_policy,'default_equals_unchanged':True,'artifact_sha256':hashes,
             'semantic_sha256':semantics,'changes':changes,'cross_split_baseline_aliases':cross_split,
             'scope':'Structural qualification only; exact aliases must not be described as independent performance contrasts'}
 

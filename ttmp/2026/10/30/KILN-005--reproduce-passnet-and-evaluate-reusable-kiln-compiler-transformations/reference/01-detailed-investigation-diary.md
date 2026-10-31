@@ -4291,3 +4291,152 @@ See the earlier coverage question in Step 89 and instructions to document proven
 ### Technical details
 - Measured snapshot SHA256 a30e6315edbe82dade9f7cacc80fde08f0653dcb0e512d8aedc512a520a7d655; original nominal criterion t=-5 and original score p=0/fpdb=0.1.
 - No evaluation job remains running at this checkpoint. The detailed report distinguishes qualification, mathematical oracles, cumulative support and future optimization research.
+
+
+## Step 97: Publish the numerical-contract milestone and preserve the first rich-selection failure
+
+Report 11 is published append-only to the vault, committed/pushed as c9d8b43, and guide Progress 07 is uploaded to reMarkable. The next structural selection attempt retains its declared strong model exclusions and resource envelope but cannot fill the reduction quota. Its partial sources, audit checkpoint and failure log are preserved rather than renamed as a completed study.
+
+### Prompt Context
+See the earlier user instructions to publish textbook milestone reports, commit/push the vault and retain diary/scripts/source material.
+**Assistant interpretation:** Complete the measured milestone delivery and make the next experiment depend on real structural opportunity.
+**Inferred user intent:** Maintain reproducible technical reports and avoid optimization studies with no reachable useful transformation.
+**Commit (code):** 20db6e2 — eleven-task evidence and source-snapshot reconstruction.
+
+### What I did
+- Published the approximately 2200-word report through saved script 163 and committed only the new vault note, preserving unrelated vault changes.
+- Uploaded guide/design 09/report 11 as Progress 07; related the report's primary source and evidence files with docmgr.
+- Added a general metadata/resource selector and fixed six-train/four-confirmation quotas per reduction/matrix category.
+- Attempted the declared 4096-task scan with all evaluation/prior-study exact models excluded.
+
+### Why
+- The earlier training population has no reductions, fanout or internal duplicate kernels. New policies need a richer workload distribution.
+- Failed eligibility scans are research evidence and cannot be silently replaced by a passing-subset claim.
+
+### What worked
+- Vault: c9d8b43 pushed, `72db096..c9d8b43 main -> main`.
+- Delivery: `OK: uploaded KILN-005 PassNet Intern Guide Progress 07.pdf -> /ai/2026/10/31/KILN-005`.
+- Source-model/split isolation and metadata-only selection tests pass.
+
+### What didn't work
+- The first selector exhausts its bound with ten matrix and only two reduction sources; it raises `Selection incomplete; preserve partial audit`.
+- Its last saved checkpoint covers 4065 tasks and includes 115 unsupported functional LayerNorm attempts. The initial selector did not flush the final partial interval on failure; the next implementation repairs that audit boundary.
+- The captured selector-after-failure.py includes the repair and is explicitly not claimed as the byte-identical originally executed selector.
+
+### What I learned
+- The missing LayerNorm import blocks a useful reduction population. Relaxing model exclusions or claiming another flat workload study would not address it.
+
+### What was tricky to build
+- Selection must distinguish source eligibility from actual IR opportunity and from measurement. Partial output has no completed manifest and is not added to training results.
+
+### What warrants a second pair of eyes
+- Review the declared eligibility envelope, exclusion population and honest labeling of the incomplete attempt.
+
+### What should be done in the future
+- Add LayerNorm using existing compiler primitives, qualify it, retry the same declared selection in a new directory and inspect training IR only.
+
+### Code review instructions
+- Start with prepare_study.py, rich-study-selection-v5.json and the preserved policy-corpus-v5 failure artifacts.
+
+### Technical details
+- No GPU candidate or confirmation timing was collected during this failed attempt. The original report's scope remains numerical qualification, not a claimed self-optimization speedup.
+
+## Step 98: Reuse existing LayerNorm lowering and qualify a richer source corpus
+
+Functional LayerNorm now lowers through existing N.layer_norm after validating and flattening normalized trailing dimensions. All 126 independent CUDA comparisons pass. The unchanged selection envelope then fills twenty sources, with balanced training/confirmation quotas and explicit source/importer hashes. The full import audit increases eligibility to 1029 graphs/51 complete families without changing original accepted task counts.
+
+### Prompt Context
+See prior instructions to implement needed Kiln components, document provenance and consolidate architecture.
+**Assistant interpretation:** Add the missing source semantics that directly unlock a meaningful optimization population.
+**Inferred user intent:** Progress towards reusable compiler improvement without duplicating existing compiler algorithms.
+
+### What I did
+- Added fx_norm_ops.py for functional/torch/ATen LayerNorm binding, static normalized-shape checks, optional affine identities, FP32 opmath and output restoration.
+- Reused existing N.layer_norm with [rows,width] input and flattened affine vectors; no new normalization implementation was ported.
+- Archived official PyTorch API definitions/docstrings, native v2.9.1 source and license with URL/SHA256 provenance in sources/pytorch/layer-norm.
+- Saved scripts 165–171 for acquisition, 21 fixture exports/compilation, 126 CUDA comparisons, full import audit and a new-directory selection retry.
+- Added source-model exclusion, split independence, resource-bound and durable failure-audit tests. Extended corpus metadata with generated tensor-variable shapes for matrix work bounds.
+
+### Why
+- Flattening the validated normalized suffix implements multidimensional semantics with the existing reduction primitive and avoids an architectural fork.
+- The retry retains the original salt, quotas, model exclusions and volume bounds; only the missing source operation is added.
+
+### What worked
+- All 21 fixture artifacts compile with ordinary checking and separate rounding; all 126 CUDA comparisons pass across seven forms, three dtypes, three seeds and random/constant inputs, with unchanged input checks.
+- Maximum absolute errors: FP32 4.76837158203125e-7; FP16 0.00048828125; BF16 zero.
+- Full import audit: 1029/2060 graphs, 51/200 complete eligible families. These are import counts only; original replay acceptance remains 11/206.
+- Successful source selection after 888 tasks: six reduction and six matrix training graphs, plus four of each for confirmation. Membership f3df1ddadef41f31d9b88ab9953c7c7a2a6cd3bffa75bb830159205b40848ad0.
+- Training-only IR has 34 fused kernels, 18 reductions and 11 multi-consumer kernels; unfused has 215 kernels, 18 reductions and 13 multi-consumer kernels. No exact internal duplicates are found.
+
+### What didn't work
+- Direct official documentation downloads returned `HTTP Error 403: Forbidden`. Retrieval failures are recorded; official pinned Python API docstrings/native sources were archived instead, and documentation pages were read through the web tool.
+- The first negative unit fixture modified encoded kwargs at the wrong nesting level, producing an unsupported-encoding error. The fixture was corrected; implementation semantics were not changed to satisfy that error.
+- Mixed affine precision and native tuple-statistic outputs remain explicitly unsupported. Original PassBench matching/acceptance for the new operator has not been established by fixtures.
+
+### What I learned
+- Compound frontend operators must count as reduction structure in eligibility even if generated source contains no literal N.sum. Actual training IR confirms the expected structures.
+
+### What was tricky to build
+- Optional affine parameters need shape-correct identities, normalized suffixes must match exactly, and casts must preserve source operation boundaries. Selection source/importer hashes are checked before and after scanning.
+
+### What warrants a second pair of eyes
+- Review flattening order, dtype/affine restrictions, and whether the declared source population supports the intended generalization claims. Exact-model exclusions do not imply unrelated architectures.
+
+### What should be done in the future
+- Use the richer fixed corpus for reusable-policy learning and evaluate newly imported benchmark tasks separately from fixture/source eligibility.
+
+### Code review instructions
+- Start with fx_norm_ops.py, test_fx_norm_ops.py, layernorm-cuda.json, the two rich-selection attempts and rich-training-loop-opportunities.json.
+
+### Technical details
+- No native normalization code copied. CUDA fixtures use the existing bridge and fixed contraction separate; source reference/runtime inputs and numerical tolerances retain their declared behavior.
+
+## Step 99: Freeze balanced reusable policies from training evidence
+
+Unchanged/default controls compile on all twelve training sources and have identical executable fingerprints. Their trace now contains genuine profitability rejections near the default boundary. Twelve reusable scalar/conditional programs and the full measurement procedure are frozen before confirmation IR compilation or new GPU timing. Qualification now requires explicit numerical/scope receipts, and the compiler driver verifies committed sources and frozen declarations around every candidate.
+
+### Prompt Context
+See the user's request to streamline towards self-optimization, together with provenance, diary and commit instructions.
+**Assistant interpretation:** Move from structural qualification to an actual new training-selection/confirmation experiment.
+**Inferred user intent:** Learn reusable compiler decisions on workloads that can exercise them, without treating a configured harness as an optimization result.
+
+### What I did
+- Added training-only compilation scope and a fixed corpus numerical contract to compile_policy.mjs. Restricted reference sampling to constrained defaults, preserving explicit data and avoiding repeated positive-domain transforms.
+- Added propose_rich with unchanged/default controls, seven scalar policies and three bounded conditional programs. Candidate generation ignores confirmation records and has a regression test for poisoned held-out traces.
+- Saved scripts 172–174 for training controls, candidate/procedure freeze and complete source-verified compilation.
+- Introduced kiln-policy-compilation/2 receipts with explicit phase/numerical policy; full qualification rejects training-only scope or mismatched numerical contracts. Old receipts remain tied to their pinned implementation revisions rather than adapted.
+- Expanded source snapshots to include package TypeScript and integration MJS. GPU measurement records native numerical flags without modifying them.
+- Added design 10, updated guide Section 30/roadmap, and added task mg15 for the complete rich-corpus study.
+
+### Why
+- Training has 260 attempted decisions: 181 accepted and 79 rejected, including twenty modest work increases around 1.0264–1.1424. The fixed grammar tests both restrictions and relaxations on actual opportunities.
+- Numerical configuration must agree between plan, corpus, receipt and executable provenance; it cannot become a candidate-dependent correctness relaxation.
+
+### What worked
+- Twelve training controls compile; explicit default equals unchanged under contraction separate. No confirmation IR is compiled during this stage.
+- Twelve programs are frozen with training cutoffs producerElements=2048 and originalWork=1694208. The candidate-freeze file binds source membership, policies, reference domains and measurement plan.
+- Full Python integration tests pass at the declaration boundary, including scope/numerical mismatch rejection and confirmation-independent generation.
+
+### What didn't work
+- No GPU policy timing, selected compiler improvement or confirmation result is claimed at this checkpoint. Complete artifact qualification and measurement are still required.
+- The grammar is authored by the current Codex session from training evidence, not an external PassAgent invocation. It changes existing fusion profitability and does not claim a novel graph mutation.
+
+### What I learned
+- Richer data exposes real choices before introducing a more complex compiler algorithm. Compiler traces can distinguish an absent opportunity from an unprofitable candidate.
+
+### What was tricky to build
+- Baseline/default control JSON remains immutable while later proposals are frozen. Training-scope receipts cannot accidentally pass a full-corpus gate.
+- The fixed contract is carried through the standard pipeline and artifact source provenance while executable aliases ignore metadata-only differences.
+
+### What warrants a second pair of eyes
+- Review source exclusion/split independence, freeze hashes, default equivalence and unchanged original-replay correctness. Treat exact source aliases as shared evidence and report any confirmation failures.
+
+### What should be done in the future
+- Compile/qualify every declared policy, measure training only, commit one selection, then time only baseline and the selected policy on the eight confirmation sources.
+
+### Code review instructions
+- Start with design 10, proposals.json/measurement-plan.json/candidate-freeze.json, compile_policy.mjs, qualify_policies.py and measure_policy.py. Script 174 enforces the committed-source/declaration boundary.
+
+### Technical details
+- Budget: 20 warmups, 100 trials, three repeats, IQR/median <=0.2, at most two retries; seed 42. Selection is family-balanced geometric mean synchronized end-to-end ratio with baseline-first exact ties and compile-cost coefficient zero.
+- Confirmation models remain uncompiled until the candidate/procedure freeze. The complete project scope, including original PassAgent and all 200-task support, remains open.

@@ -1,0 +1,182 @@
+{
+  "format": "kiln-policy-proposals/1",
+  "training_membership_sha256": "f3df1ddadef41f31d9b88ab9953c7c7a2a6cd3bffa75bb830159205b40848ad0",
+  "training_graphs": [
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmseg/Twins_svt-s_fpn/_decomposed/Twins_svt-s_fpn_start691_end695_10",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-BertForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-BertForSequenceClassification_start106_end109_11",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/google_pegasus-xsum/_decomposed/google_pegasus-xsum_start39_end44_4",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/Finnish-NLP_electra-base-generator-finnish/_decomposed/Finnish-NLP_electra-base-generator-finnish_start19_end23_4",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NezhaForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NezhaForSequenceClassification_start10_end13_2",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-af-eo/_decomposed/opus-mt-af-eo_start18_end24_3",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-SwinForImageClassification/_decomposed/hf-tiny-model-private_tiny-random-SwinForImageClassification_start43_end48_9",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-AlbertForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-AlbertForSequenceClassification_start140_end143_7",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/vit_giant_patch16_gap_224.in22k_ijepa/_decomposed/vit_giant_patch16_gap_224.in22k_ijepa_start25_end27_6",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/yujiepan_tiny-random-SwinModel/_decomposed/yujiepan_tiny-random-SwinModel_start70_end73_0",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/transformers-auto-model/ms-marco-TinyBERT-L4/_decomposed/ms-marco-TinyBERT-L4_start101_end104_8",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-BeitModel/_decomposed/hf-tiny-model-private_tiny-random-BeitModel_start54_end57_14"
+  ],
+  "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f",
+  "candidate_budget": 12,
+  "cuts": {
+    "producer_median": 2048,
+    "work_median": 1694208
+  },
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "policies": [
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "baseline",
+      "kind": "unchanged",
+      "provenance": {
+        "method": "Unchanged/default controls for the fixed-numerical-contract rich corpus"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "default",
+      "kind": "threshold",
+      "max_work_growth": 1.02,
+      "provenance": {
+        "method": "Unchanged/default controls for the fixed-numerical-contract rich corpus"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "disabled",
+      "kind": "threshold",
+      "max_work_growth": 0,
+      "provenance": {
+        "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+        "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "scalar100",
+      "kind": "threshold",
+      "max_work_growth": 1.0,
+      "provenance": {
+        "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+        "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "scalar105",
+      "kind": "threshold",
+      "max_work_growth": 1.05,
+      "provenance": {
+        "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+        "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "scalar110",
+      "kind": "threshold",
+      "max_work_growth": 1.1,
+      "provenance": {
+        "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+        "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "scalar125",
+      "kind": "threshold",
+      "max_work_growth": 1.25,
+      "provenance": {
+        "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+        "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "scalar150",
+      "kind": "threshold",
+      "max_work_growth": 1.5,
+      "provenance": {
+        "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+        "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "scalar200",
+      "kind": "threshold",
+      "max_work_growth": 2.0,
+      "provenance": {
+        "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+        "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "tree-fanout-relaxed",
+      "kind": "decision-tree",
+      "tree": {
+        "if": {
+          "feature": "consumerCount",
+          "op": "ge",
+          "value": 2
+        },
+        "then": {
+          "threshold": 1.25
+        },
+        "else": {
+          "threshold": 1.02
+        }
+      },
+      "provenance": {
+        "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+        "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "tree-small-relaxed",
+      "kind": "decision-tree",
+      "tree": {
+        "if": {
+          "feature": "producerElements",
+          "op": "le",
+          "value": 2048
+        },
+        "then": {
+          "threshold": 1.25
+        },
+        "else": {
+          "threshold": 1.02
+        }
+      },
+      "provenance": {
+        "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+        "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "tree-high-work-strict",
+      "kind": "decision-tree",
+      "tree": {
+        "if": {
+          "feature": "originalWork",
+          "op": "ge",
+          "value": 1694208
+        },
+        "then": {
+          "threshold": 1.0
+        },
+        "else": {
+          "threshold": 1.25
+        }
+      },
+      "provenance": {
+        "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+        "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+      }
+    }
+  ]
+}

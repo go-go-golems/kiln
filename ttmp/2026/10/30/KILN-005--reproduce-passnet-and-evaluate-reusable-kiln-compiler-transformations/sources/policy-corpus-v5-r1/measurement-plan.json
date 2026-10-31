@@ -1,0 +1,38 @@
+{
+  "format": "kiln-policy-measurement-plan/1",
+  "membership_sha256": "f3df1ddadef41f31d9b88ab9953c7c7a2a6cd3bffa75bb830159205b40848ad0",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "candidate_ids": [
+    "baseline",
+    "default",
+    "disabled",
+    "scalar100",
+    "scalar105",
+    "scalar110",
+    "scalar125",
+    "scalar150",
+    "scalar200",
+    "tree-fanout-relaxed",
+    "tree-small-relaxed",
+    "tree-high-work-strict"
+  ],
+  "seed": 42,
+  "warmup": 20,
+  "trials": 100,
+  "repeats": 3,
+  "max_iqr_fraction": 0.2,
+  "max_retries": 2,
+  "inputs": "Original source replay, exact metadata/output checks, dtype nominal tolerances and unchanged inputs",
+  "order": "Seeded shuffle of distinct fingerprints; exact executable aliases share evidence",
+  "metrics": [
+    "synchronized end-to-end ms",
+    "CUDA-event stream elapsed ms including dispatch gaps"
+  ],
+  "selection": "Training-only family-balanced geometric mean end-to-end ratio to unchanged fixed-contract Kiln; exact ties retain declaration order with baseline first; compile-cost coefficient 0",
+  "heldout": "Only baseline and committed training selection measured on eight fresh exact models; no timing-based replacement or filtering",
+  "scope": "Fresh exact models relative to all evaluation models and prior policy corpora; architecture relatives may remain; metadata-restricted FP32 population",
+  "proposal_provenance": "Balanced grammar authored by Codex from training-only structural/fusion evidence; no external PassAgent/model invocation",
+  "source_contract": "Separate elementary FP32 arithmetic across baseline and all candidates; native library/reduction equivalence still requires runtime checks"
+}

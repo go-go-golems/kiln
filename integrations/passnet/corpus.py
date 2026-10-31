@@ -87,6 +87,7 @@ def translate_graph(upstream, graph, metadata_mode, *, input_order=None):
     result['reference_constraints']=constraints
     result['script']=attach_reference_data(result['script'],result['inputs'],constraints)
     result["tensor_nodes"] = {node["id"]: node["tensor_meta"] for node in exported["nodes"] if isinstance(node.get("tensor_meta"), dict)}
+    result["tensor_variables"] = {f'v{i}': node['tensor_meta'] for i,node in enumerate(exported['nodes']) if isinstance(node.get('tensor_meta'),dict)}
     return result
 
 

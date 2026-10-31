@@ -7,7 +7,13 @@ Topics:
 DocType: reference
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://packages/kiln/src/std/emmy.js
+      Note: Numerical policy in standard compiler pipeline
+    - Path: repo://ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/contraction-verified-facts.json
+      Note: Bound qualification counts and exact source evidence
+    - Path: repo://ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/training-loop-opportunities.json
+      Note: Training-only evidence for broadening the next optimization population
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-10-31T02:15:51.393675091-04:00

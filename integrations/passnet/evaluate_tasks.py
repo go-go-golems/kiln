@@ -10,7 +10,7 @@ from pathlib import Path
 
 def snapshot(kiln):
     files=set()
-    for pattern in ['packages/*/src/**/*.js','packages/*/src/**/*.mjs','runtime/python/**/*.py','integrations/passnet/*.py']:
+    for pattern in ['packages/*/src/**/*.js','packages/*/src/**/*.mjs','packages/*/src/**/*.ts','runtime/python/**/*.py','integrations/passnet/*.py','integrations/passnet/*.mjs']:
         files.update(kiln.glob(pattern))
     files.update(kiln/name for name in ['apps/workbench/src/compile.js','scripts/kiln-export.mjs','pnpm-lock.yaml'])
     rows={str(p.relative_to(kiln)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(files)}

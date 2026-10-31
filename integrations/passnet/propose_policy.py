@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 
 
-def propose(manifest, receipt):
+def _training_evidence(manifest, receipt):
     if receipt['membership_sha256'] != manifest['membership_sha256']:
         raise ValueError('Trace membership mismatch')
     expected = [r['graph'] for r in manifest['variants'] if r['split'] == 'train']
@@ -28,6 +28,11 @@ def propose(manifest, receipt):
             value = d[key]
             if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value < float('inf'):
                 raise ValueError('Invalid compiler feature')
+    return expected,rows,features
+
+
+def propose(manifest, receipt):
+    expected,rows,features=_training_evidence(manifest,receipt)
     def quantile(key, numerator, denominator):
         values = sorted(d[key] for d in features)
         return values[(len(values)-1)*numerator//denominator]
@@ -60,6 +65,33 @@ def propose(manifest, receipt):
     return {'format': 'kiln-policy-proposals/1', 'training_membership_sha256': manifest['membership_sha256'],
             'training_graphs': expected, 'training_trace_sha256': trace_hash,
             'candidate_budget': 12, 'cuts': cuts, 'policies': policies}
+
+
+def propose_rich(manifest, receipt, controls):
+    """Balanced restrictions/relaxations after training-only structural analysis."""
+    expected,rows,features=_training_evidence(manifest,receipt)
+    if manifest.get('numerical_policy')!={'contraction':'separate'} or receipt.get('numerical_policy')!=manifest['numerical_policy']:
+        raise ValueError('Rich study requires a fixed separate-rounding contract')
+    if [p.get('id') for p in controls]!=['baseline','default'] or controls[0].get('kind')!='unchanged' or controls[1].get('kind')!='threshold' or controls[1].get('max_work_growth')!=1.02:
+        raise ValueError('Preserve unchanged/default controls')
+    cuts={name:sorted(d[feature] for d in features)[(len(features)-1)//2]
+          for name,feature in [('producer_median','producerElements'),('work_median','originalWork')]}
+    evidence=[{'graph':r['graph'],'decisions':r['decisions']} for r in rows]
+    trace_hash=hashlib.sha256(json.dumps(evidence,sort_keys=True).encode()).hexdigest()
+    policies=json.loads(json.dumps(controls))
+    provenance={'method':'Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call',
+                'training_trace_sha256':trace_hash}
+    for name,ratio in [('disabled',0),('scalar100',1.0),('scalar105',1.05),('scalar110',1.1),('scalar125',1.25),('scalar150',1.5),('scalar200',2.0)]:
+        policies.append({'format':'kiln-fusion-policy/1','id':name,'kind':'threshold','max_work_growth':ratio,'provenance':dict(provenance)})
+    for name,feature,op,value,yes,no in [
+        ('tree-fanout-relaxed','consumerCount','ge',2,1.25,1.02),
+        ('tree-small-relaxed','producerElements','le',cuts['producer_median'],1.25,1.02),
+        ('tree-high-work-strict','originalWork','ge',cuts['work_median'],1.0,1.25)]:
+        policies.append({'format':'kiln-fusion-policy/1','id':name,'kind':'decision-tree',
+                         'tree':{'if':{'feature':feature,'op':op,'value':value},'then':{'threshold':yes},'else':{'threshold':no}},'provenance':dict(provenance)})
+    return {'format':'kiln-policy-proposals/1','training_membership_sha256':manifest['membership_sha256'],
+            'training_graphs':expected,'training_trace_sha256':trace_hash,'candidate_budget':12,'cuts':cuts,
+            'numerical_policy':manifest['numerical_policy'],'policies':policies}
 
 
 def main():

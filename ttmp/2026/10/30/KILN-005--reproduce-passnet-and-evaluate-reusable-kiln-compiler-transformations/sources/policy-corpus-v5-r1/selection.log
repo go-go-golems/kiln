@@ -1,0 +1,171 @@
+SCAN 1 {}
+SCAN 33 {}
+SCAN 65 {'reduction': 1, 'matrix': 1}
+SCAN 97 {'reduction': 1, 'matrix': 1}
+SCAN 129 {'reduction': 1, 'matrix': 2}
+SCAN 161 {'reduction': 1, 'matrix': 3}
+SCAN 193 {'reduction': 1, 'matrix': 4}
+SCAN 225 {'reduction': 1, 'matrix': 4}
+SCAN 257 {'reduction': 1, 'matrix': 5}
+SCAN 289 {'reduction': 2, 'matrix': 5}
+SCAN 321 {'reduction': 2, 'matrix': 5}
+SCAN 353 {'reduction': 2, 'matrix': 5}
+SCAN 385 {'reduction': 4, 'matrix': 5}
+SCAN 417 {'reduction': 4, 'matrix': 5}
+SCAN 449 {'reduction': 4, 'matrix': 5}
+SCAN 481 {'reduction': 4, 'matrix': 5}
+SCAN 513 {'reduction': 4, 'matrix': 5}
+SCAN 545 {'reduction': 4, 'matrix': 6}
+SCAN 577 {'reduction': 5, 'matrix': 6}
+SCAN 609 {'reduction': 6, 'matrix': 6}
+SCAN 641 {'reduction': 6, 'matrix': 6}
+SCAN 673 {'reduction': 7, 'matrix': 7}
+SCAN 705 {'reduction': 8, 'matrix': 7}
+SCAN 737 {'reduction': 9, 'matrix': 8}
+Traceback (most recent call last):
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/passes/shape_prop.py", line 177, in run_node
+    result = super().run_node(n)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/interpreter.py", line 297, in run_node
+    return getattr(self, n.op)(n.target, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/interpreter.py", line 380, in call_function
+    return target(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_compile.py", line 54, in inner
+    return disable_fn(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/utils/_stats.py", line 29, in wrapper
+    return fn(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1428, in __torch_dispatch__
+    return self.dispatch(func, types, args, kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 2207, in dispatch
+    return self._cached_dispatch_impl(func, types, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1576, in _cached_dispatch_impl
+    output = self._dispatch_impl(func, types, args, kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 2912, in _dispatch_impl
+    self.wrap_meta_outputs_with_default_device_logic(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        r, func, flat_args, device=kwargs.get("device")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 3040, in wrap_meta_outputs_with_default_device_logic
+    return tree_map(wrap, r)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/utils/_pytree.py", line 1539, in tree_map
+    return treespec.unflatten(map(func, *flat_args))
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/utils/_pytree.py", line 1280, in unflatten
+    leaves = list(leaves)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 3017, in wrap
+    ) = FakeTensor._find_common_device(func, flat_args)
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1017, in _find_common_device
+    merge_devices(arg)
+    ~~~~~~~~~~~~~^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1012, in merge_devices
+    raise RuntimeError(
+        f"Unhandled FakeTensor Device Propagation for {func}, found two different devices {common_device}, {t.device}"
+    )
+RuntimeError: Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices cpu, cuda:0
+Traceback (most recent call last):
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/passes/shape_prop.py", line 177, in run_node
+    result = super().run_node(n)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/interpreter.py", line 297, in run_node
+    return getattr(self, n.op)(n.target, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/interpreter.py", line 380, in call_function
+    return target(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_compile.py", line 54, in inner
+    return disable_fn(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/utils/_stats.py", line 29, in wrapper
+    return fn(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1428, in __torch_dispatch__
+    return self.dispatch(func, types, args, kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 2207, in dispatch
+    return self._cached_dispatch_impl(func, types, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1576, in _cached_dispatch_impl
+    output = self._dispatch_impl(func, types, args, kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 2912, in _dispatch_impl
+    self.wrap_meta_outputs_with_default_device_logic(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        r, func, flat_args, device=kwargs.get("device")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 3040, in wrap_meta_outputs_with_default_device_logic
+    return tree_map(wrap, r)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/utils/_pytree.py", line 1539, in tree_map
+    return treespec.unflatten(map(func, *flat_args))
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/utils/_pytree.py", line 1280, in unflatten
+    leaves = list(leaves)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 3017, in wrap
+    ) = FakeTensor._find_common_device(func, flat_args)
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1017, in _find_common_device
+    merge_devices(arg)
+    ~~~~~~~~~~~~~^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1012, in merge_devices
+    raise RuntimeError(
+        f"Unhandled FakeTensor Device Propagation for {func}, found two different devices {common_device}, {t.device}"
+    )
+RuntimeError: Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices cpu, cuda:0
+Traceback (most recent call last):
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/passes/shape_prop.py", line 177, in run_node
+    result = super().run_node(n)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/interpreter.py", line 297, in run_node
+    return getattr(self, n.op)(n.target, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/interpreter.py", line 380, in call_function
+    return target(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_compile.py", line 54, in inner
+    return disable_fn(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/utils/_stats.py", line 29, in wrapper
+    return fn(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1428, in __torch_dispatch__
+    return self.dispatch(func, types, args, kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 2207, in dispatch
+    return self._cached_dispatch_impl(func, types, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1576, in _cached_dispatch_impl
+    output = self._dispatch_impl(func, types, args, kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 2912, in _dispatch_impl
+    self.wrap_meta_outputs_with_default_device_logic(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        r, func, flat_args, device=kwargs.get("device")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 3040, in wrap_meta_outputs_with_default_device_logic
+    return tree_map(wrap, r)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/utils/_pytree.py", line 1539, in tree_map
+    return treespec.unflatten(map(func, *flat_args))
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/utils/_pytree.py", line 1280, in unflatten
+    leaves = list(leaves)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 3017, in wrap
+    ) = FakeTensor._find_common_device(func, flat_args)
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1017, in _find_common_device
+    merge_devices(arg)
+    ~~~~~~~~~~~~~^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/_subclasses/fake_tensor.py", line 1012, in merge_devices
+    raise RuntimeError(
+        f"Unhandled FakeTensor Device Propagation for {func}, found two different devices {common_device}, {t.device}"
+    )
+RuntimeError: Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices cpu, cuda:0
+SCAN 769 {'reduction': 9, 'matrix': 8}
+SCAN 801 {'reduction': 10, 'matrix': 9}
+SCAN 833 {'reduction': 10, 'matrix': 9}
+SCAN 865 {'reduction': 10, 'matrix': 9}
+SCAN 888 {'reduction': 10, 'matrix': 10}
+FROZEN 20 graphs {'reduction': 10, 'matrix': 10} f3df1ddadef41f31d9b88ab9953c7c7a2a6cd3bffa75bb830159205b40848ad0

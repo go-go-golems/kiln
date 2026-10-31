@@ -1,0 +1,45 @@
+{
+  "scope": "Independent source binding to existing Kiln layer_norm after flattening normalized dimensions; no native normalization code ported",
+  "sources": [
+    {
+      "file": "layer_norm-v2.9.1.cpp",
+      "url": "https://raw.githubusercontent.com/pytorch/pytorch/v2.9.1/aten/src/ATen/native/layer_norm.cpp",
+      "sha256": "a36a8d8520a279913fc2eb78250e60d0d1012a367e3b1f90e1a43ce79c31f08b",
+      "bytes": 14068
+    },
+    {
+      "file": "layer_norm_kernel-v2.9.1.cu",
+      "url": "https://raw.githubusercontent.com/pytorch/pytorch/v2.9.1/aten/src/ATen/native/cuda/layer_norm_kernel.cu",
+      "sha256": "76c658445ba6a20c9f0298295a00f822fc1429385af8de34a6519b566b8576c5",
+      "bytes": 68786
+    },
+    {
+      "file": "functional-v2.9.1.py",
+      "url": "https://raw.githubusercontent.com/pytorch/pytorch/v2.9.1/torch/nn/functional.py",
+      "sha256": "5e96bb0880a4c6f4c0ae34c00a894e152412e68f6ffd073d2b442907eedeb5fa",
+      "bytes": 244561
+    },
+    {
+      "file": "normalization-v2.9.1.py",
+      "url": "https://raw.githubusercontent.com/pytorch/pytorch/v2.9.1/torch/nn/modules/normalization.py",
+      "sha256": "40345630f4974fca9c6c3c40f43716a6205b4ffcabc2b48e49cc2942a70dd7c0",
+      "bytes": 15233
+    },
+    {
+      "file": "LICENSE",
+      "url": "https://raw.githubusercontent.com/pytorch/pytorch/v2.9.1/LICENSE",
+      "sha256": "a8a2c6b67cf8a597ffaa5c82380a6bd1b82629c0417e00673d8013d662eb500a",
+      "bytes": 3464
+    }
+  ],
+  "retrieval_failures": [
+    {
+      "url": "https://docs.pytorch.org/docs/2.9/generated/torch.nn.functional.layer_norm.html",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "url": "https://docs.pytorch.org/docs/2.9/generated/torch.nn.LayerNorm.html",
+      "error": "HTTP Error 403: Forbidden"
+    }
+  ]
+}
