@@ -501,3 +501,48 @@ Saved the previously interactive first-task export procedure as scripts/04-expor
 
 ### Technical details
 - No upstream code copied; the script loads the pinned upstream GraphModule explicitly.
+
+## Step 12: Exercise untouched PassBench pass interface
+
+Added reproducible pass-module generation and original-evaluator launch scripts. The first integration attempt failed pattern matching before replacement execution. This is useful boundary evidence, not a successful benchmark result.
+
+### Prompt Context
+See Step 11: preserve intermediate scripts for reports.
+**Assistant interpretation:** Validate original matcher and integrity behavior without evaluator edits.
+**Inferred user intent:** Obtain scientifically valid end-to-end scoring.
+
+### What I did
+- Added scripts/06-write-pass-module.py and 07-run-passbench-fp32.sh; generated stable module-level replacement function using existing TorchProgram.
+- Ran original pass_mgr on the genuine first FP32 graph in remote tmux passnet-kiln-match.
+- Archived full sources/kiln-match.log.
+
+### Why
+- CUDA correctness alone does not prove matcher/evaluator compatibility.
+
+### What worked
+- Pass module loaded; original evaluator ran and preserved failure diagnostics.
+- Materialization reached 1,624,710 records in observation; baseline reached six task completions.
+
+### What didn't work
+- `[PassMgrBackend] Pass KilnBatchNorm failed to match.`
+- `RuntimeError: [PassMgrBackend] No passes modified the graph.`
+- Original evaluator marked compiled execution failed. No fallback or integrity bypass was added.
+
+### What I learned
+- Need inspect actual Dynamo graph and traced pattern before modifying the pattern.
+- GPU smoke/integration runs overlapped the exploratory full baseline. Existing performance results cannot support controlled final comparisons; rerun isolated before claims.
+
+### What was tricky to build
+- Source-level operation equivalence is not sufficient for exact FX matcher structure and kwargs.
+
+### What warrants a second pair of eyes
+- Matcher normalization and replacement callable acceptance remain unverified.
+
+### What should be done in the future
+- Save graph inspection diagnostic script, resolve pattern mismatch, then execute original integrity/correctness/scoring paths.
+
+### Code review instructions
+- Inspect scripts/06 and 07 with sources/kiln-match.log and original pass_mgr_backend.py.
+
+### Technical details
+- No upstream evaluator code changed or copied. Runs are explicitly exploratory and non-isolated.
