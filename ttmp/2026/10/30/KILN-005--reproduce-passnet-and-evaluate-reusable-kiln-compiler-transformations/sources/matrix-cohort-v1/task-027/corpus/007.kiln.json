@@ -1,0 +1,133 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../matrix-cohort-v1/task-027/corpus/007.kiln.js",
+  "sha256": "fe044c67127ad3083b7e5e65b1d9ce36d474f781f1077927cac33b102e4391c2"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    64,
+    2048
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    11008,
+    2048
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1,
+    64,
+    11008
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 3,
+   "shape": [
+    1,
+    64,
+    11008
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 131072,
+   "bytes": 262144
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 22544384,
+   "bytes": 45088768
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 704512,
+   "bytes": 1409024
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 704512,
+   "bytes": 1409024
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_linear_ew_reduce__sdp0f6ullo",
+   "identity": "sdp0f6ullo",
+   "row": "MAP=tiled,BM=32,BN=32,BK=8,TM=2,TN=2",
+   "reads": [
+    2,
+    1,
+    0
+   ],
+   "writes": 3,
+   "grid": 688,
+   "block": 256,
+   "smemBytes": 2048,
+   "dispatch": [
+    688,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    64,
+    11008
+   ],
+   "inShapes": [
+    [
+     1,
+     64,
+     11008
+    ],
+    [
+     11008,
+     2048
+    ],
+    [
+     1,
+     64,
+     2048
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(256) k_cast_linear_ew_reduce__sdp0f6ullo(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, const __nv_bfloat16* __restrict__ src2, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float sA0[256];\n    __shared__ float sB0[256];\n    float acc_0_0 = 0.0f, acc_0_1 = 0.0f, acc_1_0 = 0.0f, acc_1_1 = 0.0f, tv = 0.0f, g0 = 0.0f, g1 = 0.0f, a0_0 = 0.0f, a0_1 = 0.0f, b0_0 = 0.0f, b0_1 = 0.0f, v0_0_0 = 0.0f, v1_0_0 = 0.0f, v2_0_0 = 0.0f, v0_0_1 = 0.0f, v1_0_1 = 0.0f, v2_0_1 = 0.0f, v0_1_0 = 0.0f, v1_1_0 = 0.0f, v2_1_0 = 0.0f, v0_1_1 = 0.0f, v1_1_1 = 0.0f, v2_1_1 = 0.0f, in0_0_0 = 0.0f, v3_0_0 = 0.0f, v4_0_0 = 0.0f, v5_0_0 = 0.0f, v6_0_0 = 0.0f, in0_0_1 = 0.0f, v3_0_1 = 0.0f, v4_0_1 = 0.0f, v5_0_1 = 0.0f, v6_0_1 = 0.0f, in0_1_0 = 0.0f, v3_1_0 = 0.0f, v4_1_0 = 0.0f, v5_1_0 = 0.0f, v6_1_0 = 0.0f, in0_1_1 = 0.0f, v3_1_1 = 0.0f, v4_1_1 = 0.0f, v5_1_1 = 0.0f, v6_1_1 = 0.0f;\n    int bz = 0, bm = 0, bn = 0, ty = 0, tx = 0, rr = 0, kq = 0;\n    bz = (bid / 688);\n    bm = ((bid / 344) % 2);\n    bn = (bid % 344);\n    ty = (tid / 16);\n    tx = (tid % 16);\n    acc_0_0 = 0.0f;\n    acc_0_1 = 0.0f;\n    acc_1_0 = 0.0f;\n    acc_1_1 = 0.0f;\n    for (int k0 = 0; k0 < 2048; k0 += 8) {\n        for (int la = tid; la < 256; la += 256) {\n            rr = (la / 8);\n            kq = (la % 8);\n            tv = 0.0f;\n            if (((((32 * bm) + rr) < 64) && ((k0 + kq) < 2048))) {\n                g0 = __bfloat162float(src2[((((65536 * bm) + k0) + kq) + (2048 * rr))]);\n                tv = g0;\n            }\n            sA0[(kq + (8 * rr))] = tv;\n        }\n        for (int lb = tid; lb < 256; lb += 256) {\n            rr = (lb / 8);\n            kq = (lb % 8);\n            tv = 0.0f;\n            if (((((32 * bn) + rr) < 11008) && ((k0 + kq) < 2048))) {\n                g1 = __bfloat162float(src1[((((65536 * bn) + k0) + kq) + (2048 * rr))]);\n                tv = g1;\n            }\n            sB0[((32 * kq) + rr)] = tv;\n        }\n        __syncthreads();\n        for (int kk = 0; kk < 8; kk += 1) {\n            if (((k0 + kk) < 2048)) {\n                a0_0 = sA0[(kk + (16 * ty))];\n                a0_1 = sA0[((kk + (16 * ty)) + 8)];\n                b0_0 = sB0[((32 * kk) + (2 * tx))];\n                b0_1 = sB0[(((32 * kk) + (2 * tx)) + 1)];\n                v0_0_0 = b0_0;\n                v1_0_0 = a0_0;\n                v2_0_0 = (v0_0_0 * v1_0_0);\n                acc_0_0 = (acc_0_0 + v2_0_0);\n                v0_0_1 = b0_1;\n                v1_0_1 = a0_0;\n                v2_0_1 = (v0_0_1 * v1_0_1);\n                acc_0_1 = (acc_0_1 + v2_0_1);\n                v0_1_0 = b0_0;\n                v1_1_0 = a0_1;\n                v2_1_0 = (v0_1_0 * v1_1_0);\n                acc_1_0 = (acc_1_0 + v2_1_0);\n                v0_1_1 = b0_1;\n                v1_1_1 = a0_1;\n                v2_1_1 = (v0_1_1 * v1_1_1);\n                acc_1_1 = (acc_1_1 + v2_1_1);\n            }\n        }\n        __syncthreads();\n    }\n    if (((((32 * bm) + (2 * ty)) < 64) && (((32 * bn) + (2 * tx)) < 11008))) {\n        in0_0_0 = __bfloat162float(src0[((((352256 * bm) + (32 * bn)) + (2 * tx)) + (22016 * ty))]);\n        v3_0_0 = __bfloat162float(__float2bfloat16_rn(acc_0_0));\n        v4_0_0 = __bfloat162float(__float2bfloat16_rn(v3_0_0));\n        v5_0_0 = (in0_0_0 * v4_0_0);\n        v6_0_0 = __bfloat162float(__float2bfloat16_rn(v5_0_0));\n        dst[((((352256 * bm) + (32 * bn)) + (2 * tx)) + (22016 * ty))] = __float2bfloat16_rn(v6_0_0);\n    }\n    if (((((32 * bm) + (2 * ty)) < 64) && ((((32 * bn) + (2 * tx)) + 1) < 11008))) {\n        in0_0_1 = __bfloat162float(src0[(((((352256 * bm) + (32 * bn)) + (2 * tx)) + (22016 * ty)) + 1)]);\n        v3_0_1 = __bfloat162float(__float2bfloat16_rn(acc_0_1));\n        v4_0_1 = __bfloat162float(__float2bfloat16_rn(v3_0_1));\n        v5_0_1 = (in0_0_1 * v4_0_1);\n        v6_0_1 = __bfloat162float(__float2bfloat16_rn(v5_0_1));\n        dst[(((((352256 * bm) + (32 * bn)) + (2 * tx)) + (22016 * ty)) + 1)] = __float2bfloat16_rn(v6_0_1);\n    }\n    if ((((((32 * bm) + (2 * ty)) + 1) < 64) && (((32 * bn) + (2 * tx)) < 11008))) {\n        in0_1_0 = __bfloat162float(src0[(((((352256 * bm) + (32 * bn)) + (2 * tx)) + (22016 * ty)) + 11008)]);\n        v3_1_0 = __bfloat162float(__float2bfloat16_rn(acc_1_0));\n        v4_1_0 = __bfloat162float(__float2bfloat16_rn(v3_1_0));\n        v5_1_0 = (in0_1_0 * v4_1_0);\n        v6_1_0 = __bfloat162float(__float2bfloat16_rn(v5_1_0));\n        dst[(((((352256 * bm) + (32 * bn)) + (2 * tx)) + (22016 * ty)) + 11008)] = __float2bfloat16_rn(v6_1_0);\n    }\n    if ((((((32 * bm) + (2 * ty)) + 1) < 64) && ((((32 * bn) + (2 * tx)) + 1) < 11008))) {\n        in0_1_1 = __bfloat162float(src0[(((((352256 * bm) + (32 * bn)) + (2 * tx)) + (22016 * ty)) + 11009)]);\n        v3_1_1 = __bfloat162float(__float2bfloat16_rn(acc_1_1));\n        v4_1_1 = __bfloat162float(__float2bfloat16_rn(v3_1_1));\n        v5_1_1 = (in0_1_1 * v4_1_1);\n        v6_1_1 = __bfloat162float(__float2bfloat16_rn(v5_1_1));\n        dst[(((((352256 * bm) + (32 * bn)) + (2 * tx)) + (22016 * ty)) + 11009)] = __float2bfloat16_rn(v6_1_1);\n    }\n}"
+  }
+ ]
+}

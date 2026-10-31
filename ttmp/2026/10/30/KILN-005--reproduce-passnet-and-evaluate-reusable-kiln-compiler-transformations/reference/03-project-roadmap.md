@@ -34,7 +34,7 @@ Teacher trajectory generation/student fine-tuning remains a separate expensive r
 
 ## Priority change: start reusable-policy optimization before full corpus support
 
-The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is six complete tasks containing 76 graphs, plus two passing variants of an incomplete task (78 individually passing graphs). Translation succeeds for 984 graphs and 43 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
+The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is eight complete tasks containing 84 graphs, with 144 individually passing graphs including partial tasks. Translation succeeds for 984 graphs and 43 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
 
 The immediate critical path is:
 
@@ -63,3 +63,8 @@ SiLU/sigmoid lowering and conservative fresh-single-use functionalization increa
 Matrix semantics, faithful in-place tracing and source-derived canonical matchers are implemented. Independent CUDA fixtures pass 126/126 comparisons. Source-role binding and matcher specificity fixes restore the complete 30-variant residual task under t=-5. The current six complete tasks / 78 individually passing graphs are the corrected nominal coverage; 984 graphs / 43 complete families are import eligibility only.
 
 The shared runner has frozen all newly complete families relative to the activation audit: 14 tasks / 151 variants. Its execution is in progress on bling.local; source and membership hashes are checked at phase boundaries. Original PassAgent, the remaining compiler semantics, controlled full-corpus comparisons and broader transformation synthesis remain open. The full scope has not been reduced to this cohort.
+
+
+### First matrix cohort result
+
+The 14-task / 151-variant cohort is complete: two additional complete tasks, 68 passing variants, 20 evaluated nonqualifying variants and 63 unexecuted variants from four compiler failures. After overlap accounting, cumulative coverage is 8/200 complete tasks and 144/2060 individually passing graphs. Source eligibility remains 984/43. All four compile-blocked families are retained in a separate 63-variant reference-domain rerun; that result is pending. Guide Section 26 and matrix-cohort-v1-audit.json own the details.

@@ -1,0 +1,118 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../matrix-cohort-v1/task-160/corpus/001.kiln.js",
+  "sha256": "de772b79acd30f4babe73f2585db82dd7e530107105964156fd226720176dec0"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    16,
+    4,
+    64,
+    400
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    16,
+    4,
+    400,
+    400
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    16,
+    256,
+    20,
+    20
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 1638400,
+   "bytes": 3276800
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 10240000,
+   "bytes": 20480000
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 1638400,
+   "bytes": 3276800
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_matmul_reshape_reduce__1cz5oflrr9t",
+   "identity": "1cz5oflrr9t",
+   "row": "MAP=row,TPB=1024",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 1638400,
+   "block": 1024,
+   "smemBytes": 4096,
+   "dispatch": [
+    65535,
+    26,
+    1
+   ],
+   "shape": [
+    16,
+    256,
+    20,
+    20
+   ],
+   "inShapes": [
+    [
+     16,
+     4,
+     400,
+     400
+    ],
+    [
+     16,
+     4,
+     64,
+     400
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_matmul_reshape_reduce__1cz5oflrr9t(const __half* __restrict__ src0, const __half* __restrict__ src1, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[1024];\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, v2 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, sv14 = 0.0f, sv15 = 0.0f, sv16 = 0.0f, sv17 = 0.0f, sv18 = 0.0f, sv19 = 0.0f, v3 = 0.0f, v4 = 0.0f;\n    acc0 = 0.0f;\n    for (int r7 = tid; r7 < 400; r7 += 1024) {\n        in0 = __half2float(src0[((((640000 * ((((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400))) / 102400) % 16)) + (160000 * ((((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400))) / 25600) % 4))) + (((20 * ((bid / 20) % 20)) + (bid % 20)) % 400)) + (400 * r7))]);\n        v0 = in0;\n        in1 = __half2float(src1[((((102400 * ((((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400))) / 102400) % 16)) + (25600 * ((((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400))) / 25600) % 4))) + (400 * ((((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400))) / 400) % 64))) + r7)]);\n        v1 = in1;\n        v2 = (v0 * v1);\n        acc0 = (acc0 + v2);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 512)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 512)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 256)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 256)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 128)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 128)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 64)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 64)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 32)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 16)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 8)];\n        s_red[tid] = (sv12 + sv13);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv14 = s_red[tid];\n        sv15 = s_red[(tid + 4)];\n        s_red[tid] = (sv14 + sv15);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv16 = s_red[tid];\n        sv17 = s_red[(tid + 2)];\n        s_red[tid] = (sv16 + sv17);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv18 = s_red[tid];\n        sv19 = s_red[(tid + 1)];\n        s_red[tid] = (sv18 + sv19);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    v3 = __half2float(__float2half_rn(acc0));\n    v4 = __half2float(__float2half_rn(v3));\n    if ((tid == 0)) {\n        dst[((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400)))] = __float2half_rn(v4);\n    }\n}"
+  }
+ ]
+}

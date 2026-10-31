@@ -1,0 +1,152 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../matrix-cohort-v1/task-141/corpus/002.kiln.js",
+  "sha256": "0d20c1d7edc8310260c7cc8a779f6b35d50c3eb2f48b0cf391e6e4fc5229c292"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    768,
+    196
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    196,
+    196
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    196
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    1,
+    196,
+    768
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    1,
+    196,
+    768
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 150528,
+   "bytes": 301056
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 38416,
+   "bytes": 76832
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 196,
+   "bytes": 392
+  },
+  {
+   "id": 3,
+   "dtype": "f16",
+   "elements": 150528,
+   "bytes": 301056
+  },
+  {
+   "id": 4,
+   "dtype": "f16",
+   "elements": 150528,
+   "bytes": 301056
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_linear_ew_reduce__t8qxtyj9n",
+   "identity": "t8qxtyj9n",
+   "row": "MAP=tiled,BM=128,BN=16,BK=8,TN=2",
+   "reads": [
+    3,
+    2,
+    1,
+    0
+   ],
+   "writes": 4,
+   "grid": 96,
+   "block": 1024,
+   "smemBytes": 4608,
+   "dispatch": [
+    96,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    196,
+    768
+   ],
+   "inShapes": [
+    [
+     1,
+     196,
+     768
+    ],
+    [
+     196
+    ],
+    [
+     196,
+     196
+    ],
+    [
+     1,
+     768,
+     196
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f16",
+    "f16",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_linear_ew_reduce__t8qxtyj9n(const __half* __restrict__ src0, const __half* __restrict__ src1, const __half* __restrict__ src2, const __half* __restrict__ src3, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float sA0[1024];\n    __shared__ float sB0[128];\n    float acc_0_0 = 0.0f, acc_0_1 = 0.0f, tv = 0.0f, g0 = 0.0f, g1 = 0.0f, a0_0 = 0.0f, b0_0 = 0.0f, b0_1 = 0.0f, v1_0_0 = 0.0f, v2_0_0 = 0.0f, v3_0_0 = 0.0f, v1_0_1 = 0.0f, v2_0_1 = 0.0f, v3_0_1 = 0.0f, in1_0_0 = 0.0f, v0_0_0 = 0.0f, in0_0_0 = 0.0f, v4_0_0 = 0.0f, v5_0_0 = 0.0f, v6_0_0 = 0.0f, v7_0_0 = 0.0f, v8_0_0 = 0.0f, in1_0_1 = 0.0f, v0_0_1 = 0.0f, in0_0_1 = 0.0f, v4_0_1 = 0.0f, v5_0_1 = 0.0f, v6_0_1 = 0.0f, v7_0_1 = 0.0f, v8_0_1 = 0.0f;\n    int bz = 0, bm = 0, bn = 0, ty = 0, tx = 0, rr = 0, kq = 0;\n    bz = (bid / 96);\n    bm = ((bid / 48) % 2);\n    bn = (bid % 48);\n    ty = (tid / 8);\n    tx = (tid % 8);\n    acc_0_0 = 0.0f;\n    acc_0_1 = 0.0f;\n    for (int k0 = 0; k0 < 196; k0 += 8) {\n        for (int la = tid; la < 1024; la += 1024) {\n            rr = (la / 8);\n            kq = (la % 8);\n            tv = 0.0f;\n            if (((((128 * bm) + rr) < 196) && ((k0 + kq) < 196))) {\n                g0 = __half2float(src2[((((25088 * bm) + k0) + kq) + (196 * rr))]);\n                tv = g0;\n            }\n            sA0[(kq + (8 * rr))] = tv;\n        }\n        for (int lb = tid; lb < 128; lb += 1024) {\n            rr = (lb / 8);\n            kq = (lb % 8);\n            tv = 0.0f;\n            if (((((16 * bn) + rr) < 768) && ((k0 + kq) < 196))) {\n                g1 = __half2float(src3[((((3136 * bn) + k0) + kq) + (196 * rr))]);\n                tv = g1;\n            }\n            sB0[((16 * kq) + rr)] = tv;\n        }\n        __syncthreads();\n        for (int kk = 0; kk < 8; kk += 1) {\n            if (((k0 + kk) < 196)) {\n                a0_0 = sA0[(kk + (8 * ty))];\n                b0_0 = sB0[((16 * kk) + (2 * tx))];\n                b0_1 = sB0[(((16 * kk) + (2 * tx)) + 1)];\n                v1_0_0 = a0_0;\n                v2_0_0 = b0_0;\n                v3_0_0 = (v1_0_0 * v2_0_0);\n                acc_0_0 = (acc_0_0 + v3_0_0);\n                v1_0_1 = a0_0;\n                v2_0_1 = b0_1;\n                v3_0_1 = (v1_0_1 * v2_0_1);\n                acc_0_1 = (acc_0_1 + v3_0_1);\n            }\n        }\n        __syncthreads();\n    }\n    if (((((128 * bm) + ty) < 196) && (((16 * bn) + (2 * tx)) < 768))) {\n        in1_0_0 = __half2float(src1[((128 * bm) + ty)]);\n        v0_0_0 = in1_0_0;\n        in0_0_0 = __half2float(src0[((((98304 * bm) + (16 * bn)) + (2 * tx)) + (768 * ty))]);\n        v4_0_0 = (v0_0_0 + acc_0_0);\n        v5_0_0 = __half2float(__float2half_rn(v4_0_0));\n        v6_0_0 = __half2float(__float2half_rn(v5_0_0));\n        v7_0_0 = (in0_0_0 * v6_0_0);\n        v8_0_0 = __half2float(__float2half_rn(v7_0_0));\n        dst[((((98304 * bm) + (16 * bn)) + (2 * tx)) + (768 * ty))] = __float2half_rn(v8_0_0);\n    }\n    if (((((128 * bm) + ty) < 196) && ((((16 * bn) + (2 * tx)) + 1) < 768))) {\n        in1_0_1 = __half2float(src1[((128 * bm) + ty)]);\n        v0_0_1 = in1_0_1;\n        in0_0_1 = __half2float(src0[(((((98304 * bm) + (16 * bn)) + (2 * tx)) + (768 * ty)) + 1)]);\n        v4_0_1 = (v0_0_1 + acc_0_1);\n        v5_0_1 = __half2float(__float2half_rn(v4_0_1));\n        v6_0_1 = __half2float(__float2half_rn(v5_0_1));\n        v7_0_1 = (in0_0_1 * v6_0_1);\n        v8_0_1 = __half2float(__float2half_rn(v7_0_1));\n        dst[(((((98304 * bm) + (16 * bn)) + (2 * tx)) + (768 * ty)) + 1)] = __float2half_rn(v8_0_1);\n    }\n}"
+  }
+ ]
+}

@@ -3,10 +3,10 @@
   "protocol": "kiln-normalized-fx/1 + kiln-dispatch-record-stream/1",
   "tasks_total": 200,
   "graphs_total": 2060,
-  "tasks_verified": 6,
-  "graphs_verified": 78,
-  "graphs_in_complete_tasks": 76,
-  "tasks_remaining": 194,
+  "tasks_verified": 8,
+  "graphs_verified": 144,
+  "graphs_in_complete_tasks": 84,
+  "tasks_remaining": 192,
   "records": [
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/62/91/6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8",
@@ -247,11 +247,31 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/a7/d9/a7d99c6a81dbbaa99f255700a7082e003406dd9dbf254c2c983921124de55263",
       "graphs": 2,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
+      "status": "verified_modified_protocol",
+      "verified_graphs": 2,
+      "evidence": "matrix-cohort-v1/task-007/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/opus-mt-NORTH_EU-NORTH_EU/_decomposed/opus-mt-NORTH_EU-NORTH_EU_start213_end222_20": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/opus-mt-NORTH_EU-NORTH_EU/_decomposed/opus-mt-NORTH_EU-NORTH_EU_start213_end222_20": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1"
+      ],
       "limitations": []
     },
     {
@@ -694,10 +714,126 @@
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/08/b8/08b8a5e223a87d4e2871a8dd7d77a8629dda33725a5a0fa4db2a967ea3d3ef89",
       "graphs": 14,
       "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
+      "verified_graphs": 11,
+      "evidence": "matrix-cohort-v1/task-027/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/google/gemma-1.1-2b-it/_decomposed/gemma-1.1-2b-it_start100_end102_12": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start159_end161_22": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start159_end161_22": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start159_end161_22": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start159_end161_22": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1"
+      ],
       "limitations": []
     },
     {
@@ -1163,11 +1299,63 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/84/71/8471159a97f4c5e0e63addae3ea37f9a5fefe55808ef354224662165c3ef3051",
       "graphs": 6,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
+      "status": "verified_modified_protocol",
+      "verified_graphs": 6,
+      "evidence": "matrix-cohort-v1/task-074/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/mmseg/CGNet/_decomposed/CGNet_start28_end32_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/mmseg/CGNet/_decomposed/CGNet_start28_end32_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/mmseg/CGNet/_decomposed/CGNet_start28_end32_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/mmseg/CGNet/_decomposed/CGNet_start28_end32_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/mmseg/CGNet/_decomposed/CGNet_start28_end32_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/mmseg/CGNet/_decomposed/CGNet_start28_end32_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1"
+      ],
       "limitations": []
     },
     {
@@ -1354,10 +1542,86 @@
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/29/91/299158a00f835a0d5c5947f232f093efd116958328572b16310dcc426b106176",
       "graphs": 9,
       "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
+      "verified_graphs": 7,
+      "evidence": "matrix-cohort-v1/task-093/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start288_end290_12": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start288_end290_12": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start288_end290_12": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start288_end290_12": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start288_end290_12": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start288_end290_12": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start288_end290_12": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start288_end290_12": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start288_end290_12": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1"
+      ],
       "limitations": []
     },
     {
@@ -1605,9 +1869,61 @@
       "graphs": 6,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
+      "evidence": "matrix-cohort-v1/task-118/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1"
+      ],
       "limitations": []
     },
     {
@@ -1635,7 +1951,7 @@
       "graphs": 4,
       "status": "not_verified",
       "verified_graphs": 2,
-      "evidence": "seventh-task-original-evaluator.log",
+      "evidence": "matrix-cohort-v1/task-121/benchmark.log",
       "graph_results": {
         "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/google/bigbird-roberta-base/_decomposed/bigbird-roberta-base_start0_end2_0": {
           "success": true,
@@ -1870,10 +2186,62 @@
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/57/ce/57cefd942138dbaa5984bb1549e782fb21980682ab46bc4008db5237d70fb8a0",
       "graphs": 6,
       "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
+      "verified_graphs": 5,
+      "evidence": "matrix-cohort-v1/task-141/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/timm/gmlp_s16_224.ra3_in1k/_decomposed/gmlp_s16_224.ra3_in1k_start12_end15_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/timm/gmlp_s16_224.ra3_in1k/_decomposed/gmlp_s16_224.ra3_in1k_start12_end15_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/timm/gmlp_s16_224.ra3_in1k/_decomposed/gmlp_s16_224.ra3_in1k_start12_end15_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/timm/gmlp_s16_224.ra3_in1k/_decomposed/gmlp_s16_224.ra3_in1k_start12_end15_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/timm/gmlp_s16_224.ra3_in1k/_decomposed/gmlp_s16_224.ra3_in1k_start12_end15_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/timm/gmlp_s16_224.ra3_in1k/_decomposed/gmlp_s16_224.ra3_in1k_start12_end15_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1"
+      ],
       "limitations": []
     },
     {
@@ -2058,10 +2426,38 @@
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/58/8a586520e1bb88066353e657ab7cb1ed73f8d699968ab0dc3122e974911a193d",
       "graphs": 3,
       "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
+      "verified_graphs": 2,
+      "evidence": "matrix-cohort-v1/task-157/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/timm/convit_base/_decomposed/convit_base_start152_end155_25": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/convit_base/_decomposed/convit_base_start152_end155_25": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/convit_base/_decomposed/convit_base_start152_end155_25": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1"
+      ],
       "limitations": []
     },
     {
@@ -2088,10 +2484,278 @@
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/11/76/1176b0b68d5bfc2747b6b08bd8e463e7c32ca3a45c667360b067bf8eab7a21ae",
       "graphs": 33,
       "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
+      "verified_graphs": 31,
+      "evidence": "matrix-cohort-v1/task-160/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/ultralytics/yolo11n/_decomposed/yolo11n_start145_end147_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/ultralytics/yolo11l/_decomposed/yolo11l_start275_end277_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/ultralytics/yolo11l/_decomposed/yolo11l_start275_end277_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/ultralytics/yolo11l/_decomposed/yolo11l_start275_end277_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/8/samples/ultralytics/yolo11x/_decomposed/yolo11x_start275_end277_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmseg/GCNet_R101/_decomposed/GCNet_R101_start357_end359_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/ultralytics/yolo11l/_decomposed/yolo11l_start275_end277_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/ultralytics/yolo11x/_decomposed/yolo11x_start275_end277_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/mmpose/S-ViPNAS-Res50/_decomposed/S-ViPNAS-Res50_start174_end176_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/mmseg/GCNet_R101/_decomposed/GCNet_R101_start357_end359_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/ultralytics/yolo11n/_decomposed/yolo11n_start145_end147_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/ultralytics/yolo11l/_decomposed/yolo11l_start275_end277_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/mmpose/S-ViPNAS-Res50/_decomposed/S-ViPNAS-Res50_start18_end20_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/mmpose/S-ViPNAS-Res50/_decomposed/S-ViPNAS-Res50_start337_end339_26": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmpose/S-ViPNAS-Res50/_decomposed/S-ViPNAS-Res50_start174_end176_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmpose/S-ViPNAS-Res50/_decomposed/S-ViPNAS-Res50_start337_end339_26": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/ultralytics/yolo11l/_decomposed/yolo11l_start275_end277_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/mmpose/S-ViPNAS-Res50/_decomposed/S-ViPNAS-Res50_start174_end176_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/ultralytics/yolo11n/_decomposed/yolo11n_start145_end147_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/ultralytics/yolo11n/_decomposed/yolo11n_start145_end147_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/ultralytics/yolo11l/_decomposed/yolo11l_start275_end277_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/mmseg/GCNet_R101/_decomposed/GCNet_R101_start357_end359_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmpose/S-ViPNAS-Res50/_decomposed/S-ViPNAS-Res50_start337_end339_26": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/mmseg/GCNet_R101/_decomposed/GCNet_R101_start357_end359_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/mmpose/S-ViPNAS-Res50/_decomposed/S-ViPNAS-Res50_start174_end176_16": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/ultralytics/yolo11n/_decomposed/yolo11n_start145_end147_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/ultralytics/yolo11n/_decomposed/yolo11n_start145_end147_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/ultralytics/yolo11x/_decomposed/yolo11x_start275_end277_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/ultralytics/yolo11l/_decomposed/yolo11l_start275_end277_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/ultralytics/yolo11x/_decomposed/yolo11x_start275_end277_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/ultralytics/yolo11l/_decomposed/yolo11l_start275_end277_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/ultralytics/yolo11n/_decomposed/yolo11n_start145_end147_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/mmpose/S-ViPNAS-Res50/_decomposed/S-ViPNAS-Res50_start18_end20_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1"
+      ],
       "limitations": []
     },
     {
@@ -2338,10 +3002,54 @@
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/a0/66/a0661812bbf394f717f33dfb71e98d07de89e8929ad003a25de61de79fc8c43c",
       "graphs": 5,
       "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
+      "verified_graphs": 2,
+      "evidence": "matrix-cohort-v1/task-185/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/Rajaram1996_Hubert_emotion/_decomposed/Rajaram1996_Hubert_emotion_start18_end21_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/Aniemore_unispeech-sat-emotion-russian-resd/_decomposed/Aniemore_unispeech-sat-emotion-russian-resd_start38_end41_14": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-UniSpeechSatForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-UniSpeechSatForSequenceClassification_start10_end13_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/anton-l_distilhubert-ft-common-language/_decomposed/anton-l_distilhubert-ft-common-language_start17_end20_2": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-UniSpeechSatForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-UniSpeechSatForSequenceClassification_start10_end13_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1"
+      ],
       "limitations": []
     },
     {

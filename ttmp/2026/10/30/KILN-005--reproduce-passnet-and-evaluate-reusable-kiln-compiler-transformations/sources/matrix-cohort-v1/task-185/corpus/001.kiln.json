@@ -1,0 +1,180 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../matrix-cohort-v1/task-185/corpus/001.kiln.js",
+  "sha256": "ec736871c4e593f656c91edc22cd958e80187b0dbc6dcba511c1973d258d0c3c"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    249,
+    512
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1024,
+    512
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1024
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 3,
+   "shape": [
+    1,
+    249,
+    1024
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "out1",
+   "buffer": 4,
+   "shape": [
+    1,
+    1024,
+    249
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 127488,
+   "bytes": 254976
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 524288,
+   "bytes": 1048576
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 1024,
+   "bytes": 2048
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 254976,
+   "bytes": 509952
+  },
+  {
+   "id": 4,
+   "dtype": "bf16",
+   "elements": 254976,
+   "bytes": 509952
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__bbh1lrxuzn",
+   "identity": "bbh1lrxuzn",
+   "row": "MAP=tiled,BM=32,BN=16,BK=8,TN=2",
+   "reads": [
+    2,
+    1,
+    0
+   ],
+   "writes": 3,
+   "grid": 512,
+   "block": 256,
+   "smemBytes": 1536,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    249,
+    1024
+   ],
+   "inShapes": [
+    [
+     1024
+    ],
+    [
+     1024,
+     512
+    ],
+    [
+     1,
+     249,
+     512
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(256) k_out0__bbh1lrxuzn(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, const __nv_bfloat16* __restrict__ src2, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float sA0[256];\n    __shared__ float sB0[128];\n    float acc_0_0 = 0.0f, acc_0_1 = 0.0f, tv = 0.0f, g0 = 0.0f, g1 = 0.0f, a0_0 = 0.0f, b0_0 = 0.0f, b0_1 = 0.0f, v1_0_0 = 0.0f, v2_0_0 = 0.0f, v3_0_0 = 0.0f, v1_0_1 = 0.0f, v2_0_1 = 0.0f, v3_0_1 = 0.0f, in0_0_0 = 0.0f, v0_0_0 = 0.0f, v4_0_0 = 0.0f, v5_0_0 = 0.0f, v6_0_0 = 0.0f, in0_0_1 = 0.0f, v0_0_1 = 0.0f, v4_0_1 = 0.0f, v5_0_1 = 0.0f, v6_0_1 = 0.0f;\n    int bz = 0, bm = 0, bn = 0, ty = 0, tx = 0, rr = 0, kq = 0;\n    bz = (bid / 512);\n    bm = ((bid / 64) % 8);\n    bn = (bid % 64);\n    ty = (tid / 8);\n    tx = (tid % 8);\n    acc_0_0 = 0.0f;\n    acc_0_1 = 0.0f;\n    for (int k0 = 0; k0 < 512; k0 += 8) {\n        for (int la = tid; la < 256; la += 256) {\n            rr = (la / 8);\n            kq = (la % 8);\n            tv = 0.0f;\n            if (((((32 * bm) + rr) < 249) && ((k0 + kq) < 512))) {\n                g0 = __bfloat162float(src2[((((16384 * bm) + k0) + kq) + (512 * rr))]);\n                tv = g0;\n            }\n            sA0[(kq + (8 * rr))] = tv;\n        }\n        for (int lb = tid; lb < 128; lb += 256) {\n            rr = (lb / 8);\n            kq = (lb % 8);\n            tv = 0.0f;\n            if (((((16 * bn) + rr) < 1024) && ((k0 + kq) < 512))) {\n                g1 = __bfloat162float(src1[((((8192 * bn) + k0) + kq) + (512 * rr))]);\n                tv = g1;\n            }\n            sB0[((16 * kq) + rr)] = tv;\n        }\n        __syncthreads();\n        for (int kk = 0; kk < 8; kk += 1) {\n            if (((k0 + kk) < 512)) {\n                a0_0 = sA0[(kk + (8 * ty))];\n                b0_0 = sB0[((16 * kk) + (2 * tx))];\n                b0_1 = sB0[(((16 * kk) + (2 * tx)) + 1)];\n                v1_0_0 = b0_0;\n                v2_0_0 = a0_0;\n                v3_0_0 = (v1_0_0 * v2_0_0);\n                acc_0_0 = (acc_0_0 + v3_0_0);\n                v1_0_1 = b0_1;\n                v2_0_1 = a0_0;\n                v3_0_1 = (v1_0_1 * v2_0_1);\n                acc_0_1 = (acc_0_1 + v3_0_1);\n            }\n        }\n        __syncthreads();\n    }\n    if (((((32 * bm) + ty) < 249) && (((16 * bn) + (2 * tx)) < 1024))) {\n        in0_0_0 = __bfloat162float(src0[((16 * bn) + (2 * tx))]);\n        v0_0_0 = in0_0_0;\n        v4_0_0 = (v0_0_0 + acc_0_0);\n        v5_0_0 = __bfloat162float(__float2bfloat16_rn(v4_0_0));\n        v6_0_0 = __bfloat162float(__float2bfloat16_rn(v5_0_0));\n        dst[((((32768 * bm) + (16 * bn)) + (2 * tx)) + (1024 * ty))] = __float2bfloat16_rn(v6_0_0);\n    }\n    if (((((32 * bm) + ty) < 249) && ((((16 * bn) + (2 * tx)) + 1) < 1024))) {\n        in0_0_1 = __bfloat162float(src0[(((16 * bn) + (2 * tx)) + 1)]);\n        v0_0_1 = in0_0_1;\n        v4_0_1 = (v0_0_1 + acc_0_1);\n        v5_0_1 = __bfloat162float(__float2bfloat16_rn(v4_0_1));\n        v6_0_1 = __bfloat162float(__float2bfloat16_rn(v5_0_1));\n        dst[(((((32768 * bm) + (16 * bn)) + (2 * tx)) + (1024 * ty)) + 1)] = __float2bfloat16_rn(v6_0_1);\n    }\n}"
+  },
+  {
+   "name": "k_out1__adgwu28ae6",
+   "identity": "adgwu28ae6",
+   "row": "TPB=64,COARSEN=2",
+   "reads": [
+    3
+   ],
+   "writes": 4,
+   "grid": 1992,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    1992,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1024,
+    249
+   ],
+   "inShapes": [
+    [
+     1,
+     249,
+     1024
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out1__adgwu28ae6(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((128 * bid) + (64 * j)) + tid);\n        if ((e < 254976)) {\n            in0 = __bfloat162float(src0[((1024 * (e % 249)) + (e / 249))]);\n            dst[((e % 249) + (249 * (e / 249)))] = __float2bfloat16_rn(in0);\n        }\n    }\n}"
+  }
+ ]
+}

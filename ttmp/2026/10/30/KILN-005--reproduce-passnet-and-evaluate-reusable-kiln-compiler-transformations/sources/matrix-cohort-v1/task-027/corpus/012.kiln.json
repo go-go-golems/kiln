@@ -1,0 +1,194 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../matrix-cohort-v1/task-027/corpus/012.kiln.js",
+  "sha256": "119390406c8d8bb984befd3724c4489adf096c1a38a96f6050e394b00dfc6604"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    512,
+    17,
+    512
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    256,
+    512
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    512,
+    17,
+    256
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    256
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    512,
+    17,
+    256
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 5,
+   "shape": [
+    512,
+    17,
+    256
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 4456448,
+   "bytes": 17825792
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 131072,
+   "bytes": 524288
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 2228224,
+   "bytes": 8912896
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 256,
+   "bytes": 1024
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 2228224,
+   "bytes": 8912896
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 2228224,
+   "bytes": 8912896
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__1rk54uxpmpo",
+   "identity": "1rk54uxpmpo",
+   "row": "TPB=64,COARSEN=4",
+   "reads": [
+    2,
+    3
+   ],
+   "writes": 4,
+   "grid": 8704,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    8704,
+    1,
+    1
+   ],
+   "shape": [
+    512,
+    17,
+    256
+   ],
+   "inShapes": [
+    [
+     512,
+     17,
+     256
+    ],
+    [
+     256
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 8704i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    for (var n_j: i32 = 0i; n_j < 4i; n_j = n_j + 1i) {\n        n_e = (((256i * bid) + (64i * n_j)) + tid);\n        if (n_e < 2228224i) {\n            v_in0 = b0[(((256i * ((n_e / 256i) % 17i)) + (n_e % 256i)) + (4352i * (n_e / 4352i)))];\n            v_in1 = b1[(n_e % 256i)];\n            v_v0 = (v_in0 * v_in1);\n            bout[(((256i * ((n_e / 256i) % 17i)) + (n_e % 256i)) + (4352i * (n_e / 4352i)))] = v_v0;\n        }\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out0__1rk54uxpmpo(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 4; j += 1) {\n        e = (((256 * bid) + (64 * j)) + tid);\n        if ((e < 2228224)) {\n            in0 = src0[(((256 * ((e / 256) % 17)) + (e % 256)) + (4352 * (e / 4352)))];\n            in1 = src1[(e % 256)];\n            v0 = (in0 * in1);\n            dst[(((256 * ((e / 256) % 17)) + (e % 256)) + (4352 * (e / 4352)))] = v0;\n        }\n    }\n}"
+  },
+  {
+   "name": "k_out1__1e19rhq0ms9",
+   "identity": "1e19rhq0ms9",
+   "row": "MAP=tiled,BM=32,BN=64,BK=16,TM=8,TN=2",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 5,
+   "grid": 2048,
+   "block": 128,
+   "smemBytes": 6144,
+   "dispatch": [
+    2048,
+    1,
+    1
+   ],
+   "shape": [
+    512,
+    17,
+    256
+   ],
+   "inShapes": [
+    [
+     256,
+     512
+    ],
+    [
+     512,
+     17,
+     512
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read_write> bout: array<f32>;\nvar<workgroup> sA0: array<f32, 512>;\nvar<workgroup> sB0: array<f32, 1024>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 2048i) { return; }\n    var v_acc_0_0: f32 = 0.0;\n    var v_acc_0_1: f32 = 0.0;\n    var v_acc_1_0: f32 = 0.0;\n    var v_acc_1_1: f32 = 0.0;\n    var v_acc_2_0: f32 = 0.0;\n    var v_acc_2_1: f32 = 0.0;\n    var v_acc_3_0: f32 = 0.0;\n    var v_acc_3_1: f32 = 0.0;\n    var v_acc_4_0: f32 = 0.0;\n    var v_acc_4_1: f32 = 0.0;\n    var v_acc_5_0: f32 = 0.0;\n    var v_acc_5_1: f32 = 0.0;\n    var v_acc_6_0: f32 = 0.0;\n    var v_acc_6_1: f32 = 0.0;\n    var v_acc_7_0: f32 = 0.0;\n    var v_acc_7_1: f32 = 0.0;\n    var v_tv: f32 = 0.0;\n    var v_g0: f32 = 0.0;\n    var v_g1: f32 = 0.0;\n    var v_a0_0: f32 = 0.0;\n    var v_a0_1: f32 = 0.0;\n    var v_a0_2: f32 = 0.0;\n    var v_a0_3: f32 = 0.0;\n    var v_a0_4: f32 = 0.0;\n    var v_a0_5: f32 = 0.0;\n    var v_a0_6: f32 = 0.0;\n    var v_a0_7: f32 = 0.0;\n    var v_b0_0: f32 = 0.0;\n    var v_b0_1: f32 = 0.0;\n    var v_v0_0_0: f32 = 0.0;\n    var v_v1_0_0: f32 = 0.0;\n    var v_v2_0_0: f32 = 0.0;\n    var v_v0_0_1: f32 = 0.0;\n    var v_v1_0_1: f32 = 0.0;\n    var v_v2_0_1: f32 = 0.0;\n    var v_v0_1_0: f32 = 0.0;\n    var v_v1_1_0: f32 = 0.0;\n    var v_v2_1_0: f32 = 0.0;\n    var v_v0_1_1: f32 = 0.0;\n    var v_v1_1_1: f32 = 0.0;\n    var v_v2_1_1: f32 = 0.0;\n    var v_v0_2_0: f32 = 0.0;\n    var v_v1_2_0: f32 = 0.0;\n    var v_v2_2_0: f32 = 0.0;\n    var v_v0_2_1: f32 = 0.0;\n    var v_v1_2_1: f32 = 0.0;\n    var v_v2_2_1: f32 = 0.0;\n    var v_v0_3_0: f32 = 0.0;\n    var v_v1_3_0: f32 = 0.0;\n    var v_v2_3_0: f32 = 0.0;\n    var v_v0_3_1: f32 = 0.0;\n    var v_v1_3_1: f32 = 0.0;\n    var v_v2_3_1: f32 = 0.0;\n    var v_v0_4_0: f32 = 0.0;\n    var v_v1_4_0: f32 = 0.0;\n    var v_v2_4_0: f32 = 0.0;\n    var v_v0_4_1: f32 = 0.0;\n    var v_v1_4_1: f32 = 0.0;\n    var v_v2_4_1: f32 = 0.0;\n    var v_v0_5_0: f32 = 0.0;\n    var v_v1_5_0: f32 = 0.0;\n    var v_v2_5_0: f32 = 0.0;\n    var v_v0_5_1: f32 = 0.0;\n    var v_v1_5_1: f32 = 0.0;\n    var v_v2_5_1: f32 = 0.0;\n    var v_v0_6_0: f32 = 0.0;\n    var v_v1_6_0: f32 = 0.0;\n    var v_v2_6_0: f32 = 0.0;\n    var v_v0_6_1: f32 = 0.0;\n    var v_v1_6_1: f32 = 0.0;\n    var v_v2_6_1: f32 = 0.0;\n    var v_v0_7_0: f32 = 0.0;\n    var v_v1_7_0: f32 = 0.0;\n    var v_v2_7_0: f32 = 0.0;\n    var v_v0_7_1: f32 = 0.0;\n    var v_v1_7_1: f32 = 0.0;\n    var v_v2_7_1: f32 = 0.0;\n    var v_v3_0_0: f32 = 0.0;\n    var v_v3_0_1: f32 = 0.0;\n    var v_v3_1_0: f32 = 0.0;\n    var v_v3_1_1: f32 = 0.0;\n    var v_v3_2_0: f32 = 0.0;\n    var v_v3_2_1: f32 = 0.0;\n    var v_v3_3_0: f32 = 0.0;\n    var v_v3_3_1: f32 = 0.0;\n    var v_v3_4_0: f32 = 0.0;\n    var v_v3_4_1: f32 = 0.0;\n    var v_v3_5_0: f32 = 0.0;\n    var v_v3_5_1: f32 = 0.0;\n    var v_v3_6_0: f32 = 0.0;\n    var v_v3_6_1: f32 = 0.0;\n    var v_v3_7_0: f32 = 0.0;\n    var v_v3_7_1: f32 = 0.0;\n    var n_bz: i32 = 0i;\n    var n_bm: i32 = 0i;\n    var n_bn: i32 = 0i;\n    var n_ty: i32 = 0i;\n    var n_tx: i32 = 0i;\n    var n_rr: i32 = 0i;\n    var n_kq: i32 = 0i;\n    n_bz = (bid / 4i);\n    n_bm = 0i;\n    n_bn = (bid % 4i);\n    n_ty = (tid / 32i);\n    n_tx = (tid % 32i);\n    v_acc_0_0 = 0.0;\n    v_acc_0_1 = 0.0;\n    v_acc_1_0 = 0.0;\n    v_acc_1_1 = 0.0;\n    v_acc_2_0 = 0.0;\n    v_acc_2_1 = 0.0;\n    v_acc_3_0 = 0.0;\n    v_acc_3_1 = 0.0;\n    v_acc_4_0 = 0.0;\n    v_acc_4_1 = 0.0;\n    v_acc_5_0 = 0.0;\n    v_acc_5_1 = 0.0;\n    v_acc_6_0 = 0.0;\n    v_acc_6_1 = 0.0;\n    v_acc_7_0 = 0.0;\n    v_acc_7_1 = 0.0;\n    for (var n_k0: i32 = 0i; n_k0 < 512i; n_k0 = n_k0 + 16i) {\n        for (var n_la: i32 = tid; n_la < 512i; n_la = n_la + 128i) {\n            n_rr = (n_la / 16i);\n            n_kq = (n_la % 16i);\n            v_tv = 0.0;\n            if ((((32i * n_bm) + n_rr) < 17i) && ((n_k0 + n_kq) < 512i)) {\n                v_g0 = b1[(((((16384i * n_bm) + (8704i * n_bz)) + n_k0) + n_kq) + (512i * n_rr))];\n                v_tv = v_g0;\n            }\n            sA0[(n_kq + (16i * n_rr))] = v_tv;\n        }\n        for (var n_lb: i32 = tid; n_lb < 1024i; n_lb = n_lb + 128i) {\n            n_rr = (n_lb / 16i);\n            n_kq = (n_lb % 16i);\n            v_tv = 0.0;\n            if ((((64i * n_bn) + n_rr) < 256i) && ((n_k0 + n_kq) < 512i)) {\n                v_g1 = b0[((((32768i * n_bn) + n_k0) + n_kq) + (512i * n_rr))];\n                v_tv = v_g1;\n            }\n            sB0[((64i * n_kq) + n_rr)] = v_tv;\n        }\n        workgroupBarrier();\n        for (var n_kk: i32 = 0i; n_kk < 16i; n_kk = n_kk + 1i) {\n            if ((n_k0 + n_kk) < 512i) {\n                v_a0_0 = sA0[(n_kk + (128i * n_ty))];\n                v_a0_1 = sA0[((n_kk + (128i * n_ty)) + 16i)];\n                v_a0_2 = sA0[((n_kk + (128i * n_ty)) + 32i)];\n                v_a0_3 = sA0[((n_kk + (128i * n_ty)) + 48i)];\n                v_a0_4 = sA0[((n_kk + (128i * n_ty)) + 64i)];\n                v_a0_5 = sA0[((n_kk + (128i * n_ty)) + 80i)];\n                v_a0_6 = sA0[((n_kk + (128i * n_ty)) + 96i)];\n                v_a0_7 = sA0[((n_kk + (128i * n_ty)) + 112i)];\n                v_b0_0 = sB0[((64i * n_kk) + (2i * n_tx))];\n                v_b0_1 = sB0[(((64i * n_kk) + (2i * n_tx)) + 1i)];\n                v_v0_0_0 = v_b0_0;\n                v_v1_0_0 = v_a0_0;\n                v_v2_0_0 = (v_v0_0_0 * v_v1_0_0);\n                v_acc_0_0 = (v_acc_0_0 + v_v2_0_0);\n                v_v0_0_1 = v_b0_1;\n                v_v1_0_1 = v_a0_0;\n                v_v2_0_1 = (v_v0_0_1 * v_v1_0_1);\n                v_acc_0_1 = (v_acc_0_1 + v_v2_0_1);\n                v_v0_1_0 = v_b0_0;\n                v_v1_1_0 = v_a0_1;\n                v_v2_1_0 = (v_v0_1_0 * v_v1_1_0);\n                v_acc_1_0 = (v_acc_1_0 + v_v2_1_0);\n                v_v0_1_1 = v_b0_1;\n                v_v1_1_1 = v_a0_1;\n                v_v2_1_1 = (v_v0_1_1 * v_v1_1_1);\n                v_acc_1_1 = (v_acc_1_1 + v_v2_1_1);\n                v_v0_2_0 = v_b0_0;\n                v_v1_2_0 = v_a0_2;\n                v_v2_2_0 = (v_v0_2_0 * v_v1_2_0);\n                v_acc_2_0 = (v_acc_2_0 + v_v2_2_0);\n                v_v0_2_1 = v_b0_1;\n                v_v1_2_1 = v_a0_2;\n                v_v2_2_1 = (v_v0_2_1 * v_v1_2_1);\n                v_acc_2_1 = (v_acc_2_1 + v_v2_2_1);\n                v_v0_3_0 = v_b0_0;\n                v_v1_3_0 = v_a0_3;\n                v_v2_3_0 = (v_v0_3_0 * v_v1_3_0);\n                v_acc_3_0 = (v_acc_3_0 + v_v2_3_0);\n                v_v0_3_1 = v_b0_1;\n                v_v1_3_1 = v_a0_3;\n                v_v2_3_1 = (v_v0_3_1 * v_v1_3_1);\n                v_acc_3_1 = (v_acc_3_1 + v_v2_3_1);\n                v_v0_4_0 = v_b0_0;\n                v_v1_4_0 = v_a0_4;\n                v_v2_4_0 = (v_v0_4_0 * v_v1_4_0);\n                v_acc_4_0 = (v_acc_4_0 + v_v2_4_0);\n                v_v0_4_1 = v_b0_1;\n                v_v1_4_1 = v_a0_4;\n                v_v2_4_1 = (v_v0_4_1 * v_v1_4_1);\n                v_acc_4_1 = (v_acc_4_1 + v_v2_4_1);\n                v_v0_5_0 = v_b0_0;\n                v_v1_5_0 = v_a0_5;\n                v_v2_5_0 = (v_v0_5_0 * v_v1_5_0);\n                v_acc_5_0 = (v_acc_5_0 + v_v2_5_0);\n                v_v0_5_1 = v_b0_1;\n                v_v1_5_1 = v_a0_5;\n                v_v2_5_1 = (v_v0_5_1 * v_v1_5_1);\n                v_acc_5_1 = (v_acc_5_1 + v_v2_5_1);\n                v_v0_6_0 = v_b0_0;\n                v_v1_6_0 = v_a0_6;\n                v_v2_6_0 = (v_v0_6_0 * v_v1_6_0);\n                v_acc_6_0 = (v_acc_6_0 + v_v2_6_0);\n                v_v0_6_1 = v_b0_1;\n                v_v1_6_1 = v_a0_6;\n                v_v2_6_1 = (v_v0_6_1 * v_v1_6_1);\n                v_acc_6_1 = (v_acc_6_1 + v_v2_6_1);\n                v_v0_7_0 = v_b0_0;\n                v_v1_7_0 = v_a0_7;\n                v_v2_7_0 = (v_v0_7_0 * v_v1_7_0);\n                v_acc_7_0 = (v_acc_7_0 + v_v2_7_0);\n                v_v0_7_1 = v_b0_1;\n                v_v1_7_1 = v_a0_7;\n                v_v2_7_1 = (v_v0_7_1 * v_v1_7_1);\n                v_acc_7_1 = (v_acc_7_1 + v_v2_7_1);\n            }\n        }\n        workgroupBarrier();\n    }\n    if ((((32i * n_bm) + (8i * n_ty)) < 17i) && (((64i * n_bn) + (2i * n_tx)) < 256i)) {\n        v_v3_0_0 = v_acc_0_0;\n        bout[(((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty))] = v_v3_0_0;\n    }\n    if ((((32i * n_bm) + (8i * n_ty)) < 17i) && ((((64i * n_bn) + (2i * n_tx)) + 1i) < 256i)) {\n        v_v3_0_1 = v_acc_0_1;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 1i)] = v_v3_0_1;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 1i) < 17i) && (((64i * n_bn) + (2i * n_tx)) < 256i)) {\n        v_v3_1_0 = v_acc_1_0;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 256i)] = v_v3_1_0;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 1i) < 17i) && ((((64i * n_bn) + (2i * n_tx)) + 1i) < 256i)) {\n        v_v3_1_1 = v_acc_1_1;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 257i)] = v_v3_1_1;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 2i) < 17i) && (((64i * n_bn) + (2i * n_tx)) < 256i)) {\n        v_v3_2_0 = v_acc_2_0;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 512i)] = v_v3_2_0;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 2i) < 17i) && ((((64i * n_bn) + (2i * n_tx)) + 1i) < 256i)) {\n        v_v3_2_1 = v_acc_2_1;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 513i)] = v_v3_2_1;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 3i) < 17i) && (((64i * n_bn) + (2i * n_tx)) < 256i)) {\n        v_v3_3_0 = v_acc_3_0;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 768i)] = v_v3_3_0;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 3i) < 17i) && ((((64i * n_bn) + (2i * n_tx)) + 1i) < 256i)) {\n        v_v3_3_1 = v_acc_3_1;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 769i)] = v_v3_3_1;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 4i) < 17i) && (((64i * n_bn) + (2i * n_tx)) < 256i)) {\n        v_v3_4_0 = v_acc_4_0;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 1024i)] = v_v3_4_0;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 4i) < 17i) && ((((64i * n_bn) + (2i * n_tx)) + 1i) < 256i)) {\n        v_v3_4_1 = v_acc_4_1;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 1025i)] = v_v3_4_1;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 5i) < 17i) && (((64i * n_bn) + (2i * n_tx)) < 256i)) {\n        v_v3_5_0 = v_acc_5_0;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 1280i)] = v_v3_5_0;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 5i) < 17i) && ((((64i * n_bn) + (2i * n_tx)) + 1i) < 256i)) {\n        v_v3_5_1 = v_acc_5_1;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 1281i)] = v_v3_5_1;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 6i) < 17i) && (((64i * n_bn) + (2i * n_tx)) < 256i)) {\n        v_v3_6_0 = v_acc_6_0;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 1536i)] = v_v3_6_0;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 6i) < 17i) && ((((64i * n_bn) + (2i * n_tx)) + 1i) < 256i)) {\n        v_v3_6_1 = v_acc_6_1;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 1537i)] = v_v3_6_1;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 7i) < 17i) && (((64i * n_bn) + (2i * n_tx)) < 256i)) {\n        v_v3_7_0 = v_acc_7_0;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 1792i)] = v_v3_7_0;\n    }\n    if (((((32i * n_bm) + (8i * n_ty)) + 7i) < 17i) && ((((64i * n_bn) + (2i * n_tx)) + 1i) < 256i)) {\n        v_v3_7_1 = v_acc_7_1;\n        bout[((((((8192i * n_bm) + (64i * n_bn)) + (4352i * n_bz)) + (2i * n_tx)) + (2048i * n_ty)) + 1793i)] = v_v3_7_1;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out1__1e19rhq0ms9(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float sA0[512];\n    __shared__ float sB0[1024];\n    float acc_0_0 = 0.0f, acc_0_1 = 0.0f, acc_1_0 = 0.0f, acc_1_1 = 0.0f, acc_2_0 = 0.0f, acc_2_1 = 0.0f, acc_3_0 = 0.0f, acc_3_1 = 0.0f, acc_4_0 = 0.0f, acc_4_1 = 0.0f, acc_5_0 = 0.0f, acc_5_1 = 0.0f, acc_6_0 = 0.0f, acc_6_1 = 0.0f, acc_7_0 = 0.0f, acc_7_1 = 0.0f, tv = 0.0f, g0 = 0.0f, g1 = 0.0f, a0_0 = 0.0f, a0_1 = 0.0f, a0_2 = 0.0f, a0_3 = 0.0f, a0_4 = 0.0f, a0_5 = 0.0f, a0_6 = 0.0f, a0_7 = 0.0f, b0_0 = 0.0f, b0_1 = 0.0f, v0_0_0 = 0.0f, v1_0_0 = 0.0f, v2_0_0 = 0.0f, v0_0_1 = 0.0f, v1_0_1 = 0.0f, v2_0_1 = 0.0f, v0_1_0 = 0.0f, v1_1_0 = 0.0f, v2_1_0 = 0.0f, v0_1_1 = 0.0f, v1_1_1 = 0.0f, v2_1_1 = 0.0f, v0_2_0 = 0.0f, v1_2_0 = 0.0f, v2_2_0 = 0.0f, v0_2_1 = 0.0f, v1_2_1 = 0.0f, v2_2_1 = 0.0f, v0_3_0 = 0.0f, v1_3_0 = 0.0f, v2_3_0 = 0.0f, v0_3_1 = 0.0f, v1_3_1 = 0.0f, v2_3_1 = 0.0f, v0_4_0 = 0.0f, v1_4_0 = 0.0f, v2_4_0 = 0.0f, v0_4_1 = 0.0f, v1_4_1 = 0.0f, v2_4_1 = 0.0f, v0_5_0 = 0.0f, v1_5_0 = 0.0f, v2_5_0 = 0.0f, v0_5_1 = 0.0f, v1_5_1 = 0.0f, v2_5_1 = 0.0f, v0_6_0 = 0.0f, v1_6_0 = 0.0f, v2_6_0 = 0.0f, v0_6_1 = 0.0f, v1_6_1 = 0.0f, v2_6_1 = 0.0f, v0_7_0 = 0.0f, v1_7_0 = 0.0f, v2_7_0 = 0.0f, v0_7_1 = 0.0f, v1_7_1 = 0.0f, v2_7_1 = 0.0f, v3_0_0 = 0.0f, v3_0_1 = 0.0f, v3_1_0 = 0.0f, v3_1_1 = 0.0f, v3_2_0 = 0.0f, v3_2_1 = 0.0f, v3_3_0 = 0.0f, v3_3_1 = 0.0f, v3_4_0 = 0.0f, v3_4_1 = 0.0f, v3_5_0 = 0.0f, v3_5_1 = 0.0f, v3_6_0 = 0.0f, v3_6_1 = 0.0f, v3_7_0 = 0.0f, v3_7_1 = 0.0f;\n    int bz = 0, bm = 0, bn = 0, ty = 0, tx = 0, rr = 0, kq = 0;\n    bz = (bid / 4);\n    bm = 0;\n    bn = (bid % 4);\n    ty = (tid / 32);\n    tx = (tid % 32);\n    acc_0_0 = 0.0f;\n    acc_0_1 = 0.0f;\n    acc_1_0 = 0.0f;\n    acc_1_1 = 0.0f;\n    acc_2_0 = 0.0f;\n    acc_2_1 = 0.0f;\n    acc_3_0 = 0.0f;\n    acc_3_1 = 0.0f;\n    acc_4_0 = 0.0f;\n    acc_4_1 = 0.0f;\n    acc_5_0 = 0.0f;\n    acc_5_1 = 0.0f;\n    acc_6_0 = 0.0f;\n    acc_6_1 = 0.0f;\n    acc_7_0 = 0.0f;\n    acc_7_1 = 0.0f;\n    for (int k0 = 0; k0 < 512; k0 += 16) {\n        for (int la = tid; la < 512; la += 128) {\n            rr = (la / 16);\n            kq = (la % 16);\n            tv = 0.0f;\n            if (((((32 * bm) + rr) < 17) && ((k0 + kq) < 512))) {\n                g0 = src1[(((((16384 * bm) + (8704 * bz)) + k0) + kq) + (512 * rr))];\n                tv = g0;\n            }\n            sA0[(kq + (16 * rr))] = tv;\n        }\n        for (int lb = tid; lb < 1024; lb += 128) {\n            rr = (lb / 16);\n            kq = (lb % 16);\n            tv = 0.0f;\n            if (((((64 * bn) + rr) < 256) && ((k0 + kq) < 512))) {\n                g1 = src0[((((32768 * bn) + k0) + kq) + (512 * rr))];\n                tv = g1;\n            }\n            sB0[((64 * kq) + rr)] = tv;\n        }\n        __syncthreads();\n        for (int kk = 0; kk < 16; kk += 1) {\n            if (((k0 + kk) < 512)) {\n                a0_0 = sA0[(kk + (128 * ty))];\n                a0_1 = sA0[((kk + (128 * ty)) + 16)];\n                a0_2 = sA0[((kk + (128 * ty)) + 32)];\n                a0_3 = sA0[((kk + (128 * ty)) + 48)];\n                a0_4 = sA0[((kk + (128 * ty)) + 64)];\n                a0_5 = sA0[((kk + (128 * ty)) + 80)];\n                a0_6 = sA0[((kk + (128 * ty)) + 96)];\n                a0_7 = sA0[((kk + (128 * ty)) + 112)];\n                b0_0 = sB0[((64 * kk) + (2 * tx))];\n                b0_1 = sB0[(((64 * kk) + (2 * tx)) + 1)];\n                v0_0_0 = b0_0;\n                v1_0_0 = a0_0;\n                v2_0_0 = (v0_0_0 * v1_0_0);\n                acc_0_0 = (acc_0_0 + v2_0_0);\n                v0_0_1 = b0_1;\n                v1_0_1 = a0_0;\n                v2_0_1 = (v0_0_1 * v1_0_1);\n                acc_0_1 = (acc_0_1 + v2_0_1);\n                v0_1_0 = b0_0;\n                v1_1_0 = a0_1;\n                v2_1_0 = (v0_1_0 * v1_1_0);\n                acc_1_0 = (acc_1_0 + v2_1_0);\n                v0_1_1 = b0_1;\n                v1_1_1 = a0_1;\n                v2_1_1 = (v0_1_1 * v1_1_1);\n                acc_1_1 = (acc_1_1 + v2_1_1);\n                v0_2_0 = b0_0;\n                v1_2_0 = a0_2;\n                v2_2_0 = (v0_2_0 * v1_2_0);\n                acc_2_0 = (acc_2_0 + v2_2_0);\n                v0_2_1 = b0_1;\n                v1_2_1 = a0_2;\n                v2_2_1 = (v0_2_1 * v1_2_1);\n                acc_2_1 = (acc_2_1 + v2_2_1);\n                v0_3_0 = b0_0;\n                v1_3_0 = a0_3;\n                v2_3_0 = (v0_3_0 * v1_3_0);\n                acc_3_0 = (acc_3_0 + v2_3_0);\n                v0_3_1 = b0_1;\n                v1_3_1 = a0_3;\n                v2_3_1 = (v0_3_1 * v1_3_1);\n                acc_3_1 = (acc_3_1 + v2_3_1);\n                v0_4_0 = b0_0;\n                v1_4_0 = a0_4;\n                v2_4_0 = (v0_4_0 * v1_4_0);\n                acc_4_0 = (acc_4_0 + v2_4_0);\n                v0_4_1 = b0_1;\n                v1_4_1 = a0_4;\n                v2_4_1 = (v0_4_1 * v1_4_1);\n                acc_4_1 = (acc_4_1 + v2_4_1);\n                v0_5_0 = b0_0;\n                v1_5_0 = a0_5;\n                v2_5_0 = (v0_5_0 * v1_5_0);\n                acc_5_0 = (acc_5_0 + v2_5_0);\n                v0_5_1 = b0_1;\n                v1_5_1 = a0_5;\n                v2_5_1 = (v0_5_1 * v1_5_1);\n                acc_5_1 = (acc_5_1 + v2_5_1);\n                v0_6_0 = b0_0;\n                v1_6_0 = a0_6;\n                v2_6_0 = (v0_6_0 * v1_6_0);\n                acc_6_0 = (acc_6_0 + v2_6_0);\n                v0_6_1 = b0_1;\n                v1_6_1 = a0_6;\n                v2_6_1 = (v0_6_1 * v1_6_1);\n                acc_6_1 = (acc_6_1 + v2_6_1);\n                v0_7_0 = b0_0;\n                v1_7_0 = a0_7;\n                v2_7_0 = (v0_7_0 * v1_7_0);\n                acc_7_0 = (acc_7_0 + v2_7_0);\n                v0_7_1 = b0_1;\n                v1_7_1 = a0_7;\n                v2_7_1 = (v0_7_1 * v1_7_1);\n                acc_7_1 = (acc_7_1 + v2_7_1);\n            }\n        }\n        __syncthreads();\n    }\n    if (((((32 * bm) + (8 * ty)) < 17) && (((64 * bn) + (2 * tx)) < 256))) {\n        v3_0_0 = acc_0_0;\n        dst[(((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty))] = v3_0_0;\n    }\n    if (((((32 * bm) + (8 * ty)) < 17) && ((((64 * bn) + (2 * tx)) + 1) < 256))) {\n        v3_0_1 = acc_0_1;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 1)] = v3_0_1;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 1) < 17) && (((64 * bn) + (2 * tx)) < 256))) {\n        v3_1_0 = acc_1_0;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 256)] = v3_1_0;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 1) < 17) && ((((64 * bn) + (2 * tx)) + 1) < 256))) {\n        v3_1_1 = acc_1_1;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 257)] = v3_1_1;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 2) < 17) && (((64 * bn) + (2 * tx)) < 256))) {\n        v3_2_0 = acc_2_0;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 512)] = v3_2_0;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 2) < 17) && ((((64 * bn) + (2 * tx)) + 1) < 256))) {\n        v3_2_1 = acc_2_1;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 513)] = v3_2_1;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 3) < 17) && (((64 * bn) + (2 * tx)) < 256))) {\n        v3_3_0 = acc_3_0;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 768)] = v3_3_0;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 3) < 17) && ((((64 * bn) + (2 * tx)) + 1) < 256))) {\n        v3_3_1 = acc_3_1;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 769)] = v3_3_1;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 4) < 17) && (((64 * bn) + (2 * tx)) < 256))) {\n        v3_4_0 = acc_4_0;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 1024)] = v3_4_0;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 4) < 17) && ((((64 * bn) + (2 * tx)) + 1) < 256))) {\n        v3_4_1 = acc_4_1;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 1025)] = v3_4_1;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 5) < 17) && (((64 * bn) + (2 * tx)) < 256))) {\n        v3_5_0 = acc_5_0;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 1280)] = v3_5_0;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 5) < 17) && ((((64 * bn) + (2 * tx)) + 1) < 256))) {\n        v3_5_1 = acc_5_1;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 1281)] = v3_5_1;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 6) < 17) && (((64 * bn) + (2 * tx)) < 256))) {\n        v3_6_0 = acc_6_0;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 1536)] = v3_6_0;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 6) < 17) && ((((64 * bn) + (2 * tx)) + 1) < 256))) {\n        v3_6_1 = acc_6_1;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 1537)] = v3_6_1;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 7) < 17) && (((64 * bn) + (2 * tx)) < 256))) {\n        v3_7_0 = acc_7_0;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 1792)] = v3_7_0;\n    }\n    if ((((((32 * bm) + (8 * ty)) + 7) < 17) && ((((64 * bn) + (2 * tx)) + 1) < 256))) {\n        v3_7_1 = acc_7_1;\n        dst[((((((8192 * bm) + (64 * bn)) + (4352 * bz)) + (2 * tx)) + (2048 * ty)) + 1793)] = v3_7_1;\n    }\n}"
+  }
+ ]
+}

@@ -4015,3 +4015,58 @@ See the earlier user instructions to publish milestone reports, commit/push the 
 ### Technical details
 - Scorer configuration: p=0, fpdb=0.1, original sample identity; input and score SHA256 are recorded by the wrapper.
 - Publication body matches the ticket report at the publication checkpoint; later cohort results will receive their own dated update.
+
+
+## Step 92: Audit all 151 variants and prepare a shared reference-domain correction
+
+The first matrix cohort is terminal and fully collected. Ten families reach evaluation; four stop during compilation. Score recovery succeeds on every evaluated family. The strict audit adds two complete tasks and yields cumulative coverage of eight complete tasks and 144 individually passing graphs after accounting for the repeated four-variant linear task. The compile failures are preserved while a separate frozen rerun tests a shared synthetic-input-domain correction.
+
+### Prompt Context
+See Step 89 for the coverage question and earlier instructions to implement missing pieces, reassess architecture and retain evidence.
+**Assistant interpretation:** Advance measured support without treating import, process exit or relaxed numerical checks as acceptance.
+**Inferred user intent:** Reach reusable optimization on a reliable and growing workload population.
+**Commit (code):** 40a2371 — milestone publication and verified original-scorer wrapper.
+
+### What I did
+- Confirmed run.json status complete, all 14 records present, missing tmux handle and no active evaluation Docker container before staging the score-only helper.
+- Ran script 138: all ten evaluated families score successfully; original score failures remain in their original phase receipts/logs.
+- Collected the complete 8.3 MB cohort and ran summarize_task_run.py against pinned source membership.
+- Extended coverage script 21 to consume explicitly ordered terminal cohorts, retaining old evidence when a family has no new evaluated log.
+- Refactored reference-domain inference into shared helpers, reused by source translation and policy-domain export. Configured existing Project.data for established positive variance inputs only.
+- Saved scripts 140–141 defining/launching all four compile-blocked families, not a passing subset.
+
+### Why
+- The default synthetic reference sampler includes negative values; inference batch normalization requires a valid running-variance domain. The hypothesis must be checked through a new run with ordinary correctness gates enabled.
+- One source-derived mechanism is preferable to per-task no-check flags or custom compiler forks.
+
+### What worked
+- Independent original cohort audit: 14 tasks /151 graphs; 2 fully accepted tasks, 68 nominally accepted graphs, 63 unexecuted graphs. The remaining 20 evaluated graphs do not qualify.
+- Additional complete task indices are 7 and 74. Every original cohort member remains visible in the audit.
+- Cumulative ledger: 8/200 tasks, 144/2060 individually accepted graphs; complete tasks contain 84 graphs.
+- Full Python integration suite: 65 tests pass, including canonical variance binding and rejection of unsupported sign-domain inference.
+
+### What didn't work
+- Compile stops: task 51 first BF16 eca_botnext variant; task 60 later FP16 mixnet variant; task 82 first BF16 RepViT variant; task 182 first FP32 CoAtNet variant. Each failing compiler log reports `end-to-end check FAILED`.
+- Task 185 includes an original evaluator eager_fail; other numerical/matching failures remain in the audit. Successful process exit is not acceptance.
+- No successful compiler-domain rerun is claimed at this checkpoint.
+
+### What I learned
+- Larger import eligibility exposes numerical behavior, source failures and invalid synthetic validation domains as separate obstacles. They need separate evidence and fixes.
+
+### What was tricky to build
+- Canonical argument permutations must apply to variance-domain names as well as runtime bindings. The shared helper follows only direct placeholders and supported sign-preserving views/casts.
+- Unknown reference domains preserve an explicit diagnostic and ordinary checks without changing mathematical import eligibility. No source-value constants enter generated kernels.
+
+### What warrants a second pair of eyes
+- Review the reference-only nature of Project.data and whether source casts preserve the intended variance-domain proof. Review cumulative overlap accounting for task 121.
+
+### What should be done in the future
+- Execute the four-family/63-variant rerun and inspect its actual compiler and original-evaluator results.
+- Diagnose remaining numerical discrepancies and add broader compiler interventions to the existing training/confirmation framework after qualification.
+
+### Code review instructions
+- Start with matrix-cohort-v1-audit.json, the original run receipt, shared reference_domains.py and corpus.translate_graph. Script 140 reproduces the exact rerun membership.
+
+### Technical details
+- Original frozen remote source snapshot SHA256: c06547a73b7864bc2e6604bac86f3984f843ece2f36584ed6693af16fbda23f2.
+- Reference-only positive transform: abs(value)+0.1; original GPU replay inputs, original scorer p=0/fpdb=0.1 and nominal t=-5 remain unchanged.

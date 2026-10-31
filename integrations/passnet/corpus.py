@@ -77,6 +77,15 @@ def translate_graph(upstream, graph, metadata_mode, *, input_order=None):
         values = [torch.randn(c.shape).to(getattr(torch, c.dtype.split('.')[-1])) for c in metadata]
         exported = export_graph(traced, values)
     result = import_graph(exported)
+    from reference_domains import ReferenceDomainError,constraints_for_graph,attach_reference_data
+    try:constraints=constraints_for_graph(traced)
+    except ReferenceDomainError as error:
+        # Domain inference is independent of mathematical import coverage.
+        # Preserve uncertainty and leave the compiler's normal check enabled.
+        constraints=[]
+        result['reference_domain_diagnostic']=str(error)
+    result['reference_constraints']=constraints
+    result['script']=attach_reference_data(result['script'],result['inputs'],constraints)
     result["tensor_nodes"] = {node["id"]: node["tensor_meta"] for node in exported["nodes"] if isinstance(node.get("tensor_meta"), dict)}
     return result
 
@@ -107,7 +116,9 @@ def export_task(upstream, sample, directory, metadata_mode="fake"):
         script = f'{i:03d}.kiln.js'
         (directory / script).write_text(result['script'])
         records.append({'graph': graph, 'script': script, 'inputs': result['inputs'],
-                        'input_dtypes': result['input_dtypes'], 'output_structure': result['output_structure']})
+                        'input_dtypes': result['input_dtypes'], 'output_structure': result['output_structure'],
+                        'reference_constraints':result['reference_constraints'],
+                        'reference_domain_diagnostic':result.get('reference_domain_diagnostic')})
     manifest = {'format': FORMAT, 'sample': sample, 'metadata_mode': metadata_mode, 'variants': records}
     (directory / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     read_manifest(directory)

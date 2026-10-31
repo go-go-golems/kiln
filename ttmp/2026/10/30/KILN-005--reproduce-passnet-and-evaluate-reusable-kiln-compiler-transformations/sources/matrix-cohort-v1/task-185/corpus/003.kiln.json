@@ -1,0 +1,178 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../matrix-cohort-v1/task-185/corpus/003.kiln.js",
+  "sha256": "320ac423167b11c05f52ba3cf1093e0859e43f005b65ea83ee44052bd5463b7b"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    249,
+    512
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    768,
+    512
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    768
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 3,
+   "shape": [
+    1,
+    249,
+    768
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 4,
+   "shape": [
+    1,
+    768,
+    249
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 127488,
+   "bytes": 509952
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 393216,
+   "bytes": 1572864
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 768,
+   "bytes": 3072
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 191232,
+   "bytes": 764928
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 191232,
+   "bytes": 764928
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__2eaonbtpkt1",
+   "identity": "2eaonbtpkt1",
+   "row": "MAP=tiled,BM=128,BN=16,BK=8,TN=2",
+   "reads": [
+    2,
+    1,
+    0
+   ],
+   "writes": 3,
+   "grid": 96,
+   "block": 1024,
+   "smemBytes": 4608,
+   "dispatch": [
+    96,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    249,
+    768
+   ],
+   "inShapes": [
+    [
+     768
+    ],
+    [
+     768,
+     512
+    ],
+    [
+     1,
+     249,
+     512
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read> b2: array<f32>;\n@group(0) @binding(3) var<storage, read_write> bout: array<f32>;\nvar<workgroup> sA0: array<f32, 1024>;\nvar<workgroup> sB0: array<f32, 128>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 96i) { return; }\n    var v_acc_0_0: f32 = 0.0;\n    var v_acc_0_1: f32 = 0.0;\n    var v_tv: f32 = 0.0;\n    var v_g0: f32 = 0.0;\n    var v_g1: f32 = 0.0;\n    var v_a0_0: f32 = 0.0;\n    var v_b0_0: f32 = 0.0;\n    var v_b0_1: f32 = 0.0;\n    var v_v1_0_0: f32 = 0.0;\n    var v_v2_0_0: f32 = 0.0;\n    var v_v3_0_0: f32 = 0.0;\n    var v_v1_0_1: f32 = 0.0;\n    var v_v2_0_1: f32 = 0.0;\n    var v_v3_0_1: f32 = 0.0;\n    var v_in0_0_0: f32 = 0.0;\n    var v_v0_0_0: f32 = 0.0;\n    var v_v4_0_0: f32 = 0.0;\n    var v_v5_0_0: f32 = 0.0;\n    var v_in0_0_1: f32 = 0.0;\n    var v_v0_0_1: f32 = 0.0;\n    var v_v4_0_1: f32 = 0.0;\n    var v_v5_0_1: f32 = 0.0;\n    var n_bz: i32 = 0i;\n    var n_bm: i32 = 0i;\n    var n_bn: i32 = 0i;\n    var n_ty: i32 = 0i;\n    var n_tx: i32 = 0i;\n    var n_rr: i32 = 0i;\n    var n_kq: i32 = 0i;\n    n_bz = (bid / 96i);\n    n_bm = ((bid / 48i) % 2i);\n    n_bn = (bid % 48i);\n    n_ty = (tid / 8i);\n    n_tx = (tid % 8i);\n    v_acc_0_0 = 0.0;\n    v_acc_0_1 = 0.0;\n    for (var n_k0: i32 = 0i; n_k0 < 512i; n_k0 = n_k0 + 8i) {\n        for (var n_la: i32 = tid; n_la < 1024i; n_la = n_la + 1024i) {\n            n_rr = (n_la / 8i);\n            n_kq = (n_la % 8i);\n            v_tv = 0.0;\n            if ((((128i * n_bm) + n_rr) < 249i) && ((n_k0 + n_kq) < 512i)) {\n                v_g0 = b2[((((65536i * n_bm) + n_k0) + n_kq) + (512i * n_rr))];\n                v_tv = v_g0;\n            }\n            sA0[(n_kq + (8i * n_rr))] = v_tv;\n        }\n        for (var n_lb: i32 = tid; n_lb < 128i; n_lb = n_lb + 1024i) {\n            n_rr = (n_lb / 8i);\n            n_kq = (n_lb % 8i);\n            v_tv = 0.0;\n            if ((((16i * n_bn) + n_rr) < 768i) && ((n_k0 + n_kq) < 512i)) {\n                v_g1 = b1[((((8192i * n_bn) + n_k0) + n_kq) + (512i * n_rr))];\n                v_tv = v_g1;\n            }\n            sB0[((16i * n_kq) + n_rr)] = v_tv;\n        }\n        workgroupBarrier();\n        for (var n_kk: i32 = 0i; n_kk < 8i; n_kk = n_kk + 1i) {\n            if ((n_k0 + n_kk) < 512i) {\n                v_a0_0 = sA0[(n_kk + (8i * n_ty))];\n                v_b0_0 = sB0[((16i * n_kk) + (2i * n_tx))];\n                v_b0_1 = sB0[(((16i * n_kk) + (2i * n_tx)) + 1i)];\n                v_v1_0_0 = v_b0_0;\n                v_v2_0_0 = v_a0_0;\n                v_v3_0_0 = (v_v1_0_0 * v_v2_0_0);\n                v_acc_0_0 = (v_acc_0_0 + v_v3_0_0);\n                v_v1_0_1 = v_b0_1;\n                v_v2_0_1 = v_a0_0;\n                v_v3_0_1 = (v_v1_0_1 * v_v2_0_1);\n                v_acc_0_1 = (v_acc_0_1 + v_v3_0_1);\n            }\n        }\n        workgroupBarrier();\n    }\n    if ((((128i * n_bm) + n_ty) < 249i) && (((16i * n_bn) + (2i * n_tx)) < 768i)) {\n        v_in0_0_0 = b0[((16i * n_bn) + (2i * n_tx))];\n        v_v0_0_0 = v_in0_0_0;\n        v_v4_0_0 = (v_v0_0_0 + v_acc_0_0);\n        v_v5_0_0 = v_v4_0_0;\n        bout[((((98304i * n_bm) + (16i * n_bn)) + (2i * n_tx)) + (768i * n_ty))] = v_v5_0_0;\n    }\n    if ((((128i * n_bm) + n_ty) < 249i) && ((((16i * n_bn) + (2i * n_tx)) + 1i) < 768i)) {\n        v_in0_0_1 = b0[(((16i * n_bn) + (2i * n_tx)) + 1i)];\n        v_v0_0_1 = v_in0_0_1;\n        v_v4_0_1 = (v_v0_0_1 + v_acc_0_1);\n        v_v5_0_1 = v_v4_0_1;\n        bout[(((((98304i * n_bm) + (16i * n_bn)) + (2i * n_tx)) + (768i * n_ty)) + 1i)] = v_v5_0_1;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_out0__2eaonbtpkt1(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float sA0[1024];\n    __shared__ float sB0[128];\n    float acc_0_0 = 0.0f, acc_0_1 = 0.0f, tv = 0.0f, g0 = 0.0f, g1 = 0.0f, a0_0 = 0.0f, b0_0 = 0.0f, b0_1 = 0.0f, v1_0_0 = 0.0f, v2_0_0 = 0.0f, v3_0_0 = 0.0f, v1_0_1 = 0.0f, v2_0_1 = 0.0f, v3_0_1 = 0.0f, in0_0_0 = 0.0f, v0_0_0 = 0.0f, v4_0_0 = 0.0f, v5_0_0 = 0.0f, in0_0_1 = 0.0f, v0_0_1 = 0.0f, v4_0_1 = 0.0f, v5_0_1 = 0.0f;\n    int bz = 0, bm = 0, bn = 0, ty = 0, tx = 0, rr = 0, kq = 0;\n    bz = (bid / 96);\n    bm = ((bid / 48) % 2);\n    bn = (bid % 48);\n    ty = (tid / 8);\n    tx = (tid % 8);\n    acc_0_0 = 0.0f;\n    acc_0_1 = 0.0f;\n    for (int k0 = 0; k0 < 512; k0 += 8) {\n        for (int la = tid; la < 1024; la += 1024) {\n            rr = (la / 8);\n            kq = (la % 8);\n            tv = 0.0f;\n            if (((((128 * bm) + rr) < 249) && ((k0 + kq) < 512))) {\n                g0 = src2[((((65536 * bm) + k0) + kq) + (512 * rr))];\n                tv = g0;\n            }\n            sA0[(kq + (8 * rr))] = tv;\n        }\n        for (int lb = tid; lb < 128; lb += 1024) {\n            rr = (lb / 8);\n            kq = (lb % 8);\n            tv = 0.0f;\n            if (((((16 * bn) + rr) < 768) && ((k0 + kq) < 512))) {\n                g1 = src1[((((8192 * bn) + k0) + kq) + (512 * rr))];\n                tv = g1;\n            }\n            sB0[((16 * kq) + rr)] = tv;\n        }\n        __syncthreads();\n        for (int kk = 0; kk < 8; kk += 1) {\n            if (((k0 + kk) < 512)) {\n                a0_0 = sA0[(kk + (8 * ty))];\n                b0_0 = sB0[((16 * kk) + (2 * tx))];\n                b0_1 = sB0[(((16 * kk) + (2 * tx)) + 1)];\n                v1_0_0 = b0_0;\n                v2_0_0 = a0_0;\n                v3_0_0 = (v1_0_0 * v2_0_0);\n                acc_0_0 = (acc_0_0 + v3_0_0);\n                v1_0_1 = b0_1;\n                v2_0_1 = a0_0;\n                v3_0_1 = (v1_0_1 * v2_0_1);\n                acc_0_1 = (acc_0_1 + v3_0_1);\n            }\n        }\n        __syncthreads();\n    }\n    if (((((128 * bm) + ty) < 249) && (((16 * bn) + (2 * tx)) < 768))) {\n        in0_0_0 = src0[((16 * bn) + (2 * tx))];\n        v0_0_0 = in0_0_0;\n        v4_0_0 = (v0_0_0 + acc_0_0);\n        v5_0_0 = v4_0_0;\n        dst[((((98304 * bm) + (16 * bn)) + (2 * tx)) + (768 * ty))] = v5_0_0;\n    }\n    if (((((128 * bm) + ty) < 249) && ((((16 * bn) + (2 * tx)) + 1) < 768))) {\n        in0_0_1 = src0[(((16 * bn) + (2 * tx)) + 1)];\n        v0_0_1 = in0_0_1;\n        v4_0_1 = (v0_0_1 + acc_0_1);\n        v5_0_1 = v4_0_1;\n        dst[(((((98304 * bm) + (16 * bn)) + (2 * tx)) + (768 * ty)) + 1)] = v5_0_1;\n    }\n}"
+  },
+  {
+   "name": "k_out1__17g9bwpsipz",
+   "identity": "17g9bwpsipz",
+   "row": "TPB=128",
+   "reads": [
+    3
+   ],
+   "writes": 4,
+   "grid": 1494,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1494,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    768,
+    249
+   ],
+   "inShapes": [
+    [
+     1,
+     249,
+     768
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1494i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((128i * bid) + tid);\n    if (n_e < 191232i) {\n        v_in0 = b0[((768i * (n_e % 249i)) + (n_e / 249i))];\n        bout[((n_e % 249i) + (249i * (n_e / 249i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out1__17g9bwpsipz(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 191232)) {\n        in0 = src0[((768 * (e % 249)) + (e / 249))];\n        dst[((e % 249) + (249 * (e / 249)))] = in0;\n    }\n}"
+  }
+ ]
+}

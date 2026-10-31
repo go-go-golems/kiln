@@ -7,6 +7,14 @@ sys.path.insert(0,str(p/'sources/upstream'))
 from pass_bench import analysis_util
 inventory=json.loads((p/'sources/evaluation-inventory.json').read_text())
 evidence={0:'first-task-isolated.log',1:'second-task-isolated.log',2:'third-task-isolated-v2.log',11:'fourth-task-canonical-priority-fixed.log',198:'fifth-task-isolated.log',143:'sixth-task-isolated.log',121:'seventh-task-original-evaluator.log'}
+# Explicit ordered runs: only an evaluated log may supersede earlier evidence.
+for run_name in ['matrix-cohort-v1']:
+    run_path=p/'sources'/run_name/'run.json'
+    run=json.loads(run_path.read_text())
+    if run['status']!='complete':raise ValueError('Coverage requires a terminal cohort')
+    for case in run['records']:
+        log=Path(run_name)/case['directory']/'benchmark.log'
+        if (p/'sources'/log).exists():evidence[case['index']]=str(log)
 records=[]
 for i,sample in enumerate(inventory['samples']):
     expected=(p/'sources/upstream'/sample['sample']/'graph_list.txt').read_text().splitlines()
