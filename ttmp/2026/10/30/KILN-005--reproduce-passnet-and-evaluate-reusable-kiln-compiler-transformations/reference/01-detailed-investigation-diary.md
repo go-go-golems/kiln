@@ -1834,3 +1834,45 @@ Original complete corpus coverage and reusable pass requirements.
 
 ### Technical details
 - No performance claim; GPU comparison success is a separate gate from complete PassBench task support.
+
+## Step 44: Audit and score complete second task
+
+Archived complete isolated second-task evaluator log and audited exact expected graph membership, one replacement and one successful status per graph. All twelve variants passed under declared integration protocol. Official scorer parsed twelve samples and reported aggregate 0.8227679072232458. Full-goal work remains incomplete.
+
+### Prompt Context
+Original full corpus accounting and integrity requirements.
+**Assistant interpretation:** Prove graph membership, not merely count success messages.
+**Inferred user intent:** Trustworthy coverage progression.
+
+### What I did
+- Added script 27 scoring the unchanged isolated log with p=0/fpdb=0.1.
+- Improved script 21 to parse Processing blocks, reject unexpected/duplicate graphs and compute coverage only from exact per-graph outcomes.
+- Updated coverage ledger to 2/200 tasks and 18/2060 graphs.
+
+### Why
+- Counts alone could validate duplicated or unrelated graph runs.
+
+### What worked
+- Twelve expected second-task graphs each matched once and succeeded. Official aggregate 0.8227679072232458.
+- All original task denominators remain visible; 198 tasks are not verified.
+
+### What didn't work
+- Vault milestone publication remains awaiting explicit destination approval after automatic review rejected it twice; no workaround attempted. Benchmark work continued independently.
+
+### What I learned
+- Coverage identity checks should be part of evidence generation, not manually inferred from a task name.
+
+### What was tricky to build
+- Incomplete log transfers must not promote task status; ledger requires complete expected membership and successful statuses.
+
+### What warrants a second pair of eyes
+- Scores remain hardware/software-port, modified protocol results; neither task is faster than eager in current aggregate measurements.
+
+### What should be done in the future
+- Publish pending report after approval, extend compiler operation coverage and conduct agent/meta-optimization experiments.
+
+### Code review instructions
+- Inspect scripts 21/27, second-task-isolated.log, second-task-score.json and kiln-coverage.json.
+
+### Technical details
+- No original evaluator/scorer file edits; matching/stream metadata policy remains explicitly declared. Remaining 198 tasks and final controlled comparisons are incomplete.
