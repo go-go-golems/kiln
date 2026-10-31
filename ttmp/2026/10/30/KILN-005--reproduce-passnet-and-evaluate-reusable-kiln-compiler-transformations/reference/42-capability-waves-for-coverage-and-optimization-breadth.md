@@ -32,6 +32,8 @@ At this checkpoint, **131 complete task families and 1,668 graphs are import eli
 
 Q1 and Q2 may exchange order after Q0 reveals the actual first shared failure. The old typed frontier found 119 graph first failures across 18 families and 17 captured-constant first failures across three families; those are **first-error counts**, not a prediction of accepted tasks. Q2 should use one spatial primitive where possible, rather than three unrelated pool implementations. Q4 may run earlier if the mutation replay reveals a large, shared alias defect. The implementation order is a response to evidence, while the capability boundaries remain stable.
 
+The current-source importer census in `sources/current-capability-wave-frontier-v1.json` sharpens that choice. All blocked variants of 18 tasks first fail on typed inputs (119 graphs); eight tasks first fail on reduction/contraction operations (52 graphs); eight first fail on spatial operations (25 graphs). Fourteen tasks (59 graphs) first fail during a **local driver probe**. That group requires a bling reclassification before it can be ranked as missing Kiln capability. These counts are upper bounds on immediate family gain: a later unsupported operation may appear when the first blocker is removed. They do not predict external PassBench acceptance.
+
 ## One batch loop
 
 1. Freeze a source snapshot and list the first unsupported or incorrect stage for all 200 tasks. Group by **shared semantic or IR cause**; estimate how many *complete* families a capability could unlock. Preserve the full failing set rather than counting only easy shapes.

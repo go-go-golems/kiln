@@ -3441,3 +3441,44 @@ Read reference42 beside reference38, reference41 and the typed frontier source J
 
 ### Technical details
 The remote status observation showed `START 173 evaluate` in the frozen uniform run's owner log, with all three tmux sessions alive. This is progress evidence only; no task173 result or terminal run ledger was inspected in this step.
+
+## Step 231: Rank complete-family yield from the current importer snapshot
+
+Reference42 calls for a current residual census before choosing the next broad capability wave. I wrote script652 against the latest full 2,060-graph import audit. It groups first errors by cross-layer capability and computes the number of tasks whose *every blocked variant* has the same first-blocker group. This improves the prior graph-only ranking while retaining the important first-error limitation.
+
+### Prompt Context
+**User prompt:** See Step230 for the verbatim planning request; the active project goal asks us to implement and measure the full Kiln/PassNet integration.
+**Assistant interpretation:** Turn the new broad plan into a reproducible next-wave decision using the current corpus, without disturbing the live GPU qualification.
+**Inferred user intent:** Select high-yield implementation work that also increases the range of reusable optimization strategies.
+
+### What I did
+- Added `scripts/652-rank-current-capability-waves.py`, consuming `sources/input-mutation-wave-import-v1.json` and writing `sources/current-capability-wave-frontier-v1.json`.
+- Ran the script over all2,060 graph records and updated reference42 with the leading complete-family first-blocker counts.
+- Rechecked the live uniform tmux session on bling; its owner log had advanced to task188 evaluation. I left the serial GPU queues unchanged.
+
+### Why
+119 blocked typed graphs is a useful workload estimate but does not say whether a complete PassBench task becomes import eligible. A task is complete only when all its variants import. Grouping by task and retaining mixed blockers helps choose a broad compiler feature rather than adding a single operation for one graph.
+
+### What worked
+The census reproduced131/200 complete import tasks and1,668/2,060 imported graphs. It found18 tasks with exclusively typed-input first blockers,14 with local-driver-probe first blockers, eight reduction/contraction, eight spatial, four dropout/effects, four other bindings, three captured constants and smaller groups. The output retains all task rows and exact first-error strings for audit. `git diff --check` passed.
+
+### What didn't work
+No GPU acceptance result is available for the new families. The local-driver group cannot be interpreted as a compiler gap; it needs the pinned remote environment. A first-error census can also conceal subsequent blockers, so the reported possible complete-task gains are upper bounds.
+
+### What I learned
+Typed indexing remains the largest confirmed compiler capability frontier by complete-family first-blocker count. The reduction and spatial groups are tied at eight possible complete families each, while the fourteen local-driver families may change the ranking once traced on bling.
+
+### What was tricky to build
+The audit records one first error per graph, not an exhaustive operator inventory. The script therefore labels family gain as possible and only counts a task for a group when every blocked variant currently falls in that group. It preserves the exact error distribution so later reclassification can be checked.
+
+### What warrants a second pair of eyes
+Inspect the classification of normalization and shape-propagation failures before treating either as a precise implementation estimate. Re-run a remote import audit for the local-driver group when GPU capacity permits.
+
+### What should be done in the future
+Let the frozen qualification finish; reclassify local-driver first failures on bling; then implement typed values and data-dependent indexing as one cross-layer wave, unless external failures identify a stronger shared barrier.
+
+### Code review instructions
+Run script652 and inspect `sources/current-capability-wave-frontier-v1.json` beside the full input-mutation import audit. Confirm every task has all its graph variants and that `single_first_blocker_tasks` is treated as an upper bound.
+
+### Technical details
+The current audit contains392 blocked graphs in29 distinct first-error messages. Script652 does not invoke FX tracing or the GPU; it is a deterministic projection of the frozen full-corpus importer audit.
