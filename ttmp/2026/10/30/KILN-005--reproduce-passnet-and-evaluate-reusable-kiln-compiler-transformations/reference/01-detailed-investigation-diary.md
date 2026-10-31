@@ -202,3 +202,48 @@ See Steps 1–3 for task and provenance instructions.
 
 ### Technical details
 - No upstream evaluator changes or compiler ports in this step.
+
+## Step 5: Complete first reference task and start full evaluation
+
+Verified the terminal execution receipt for the six-variant first task, archived its raw log, and launched full 200-task Inductor/eager evaluation. Started complete Parquet materialization in tmux after verifying the schema.
+
+### Prompt Context
+See Steps 1–3 for original scope and source provenance instructions.
+**Assistant interpretation:** Move from environment smoke checks to genuine benchmark evidence and semantics-driven implementation.
+**Inferred user intent:** Reproduce and extend the complete system, preserving experimental validity.
+
+### What I did
+- Verified reference process exit 0, elapsed 26.82248568534851 seconds, six success statuses and zero failed statuses.
+- Archived sources/reference-smoke logs and receipt.
+- Started remote tmux passnet-reference-full, using the untouched evaluator with 20 warmups and 100 trials.
+- Inspected Parquet schema: optional string path, content, source_folder; sampled an actual file-content record.
+- Started local tmux passnet-materialize with per-file SHA256 manifests and duplicate/path checks.
+- Documented real first-task ReLU/inference batch_norm/disabled dropout semantics in guide section 11.
+
+### Why
+- Full evaluation and actual graph semantics establish the baseline and implementation target without substituting synthetic workloads.
+
+### What worked
+- Complete first task passed numerical and dtype checks across its six variants.
+- Temporary PyArrow tooling is available at /tmp/passnet-tools; no host Python installation was modified.
+
+### What didn't work
+- No new failures in this checkpoint. Full evaluation and materialization are not yet complete.
+
+### What I learned
+- The first task requires inference batch normalization and tuple output semantics, including FP16/BF16 behavior.
+
+### What was tricky to build
+- Dataset path prefixes differ from benchmark checkout layout; materialization preserves original paths rather than inventing a mapping before corpus inspection.
+
+### What warrants a second pair of eyes
+- Batch normalization channel broadcasting and intermediate precision must match PyTorch. No port has yet been implemented.
+
+### What should be done in the future
+- Poll both live tmux workloads; analyze full results with official scoring, then implement the typed FX importer and CUDA bridge.
+
+### Code review instructions
+- Review scripts/03-materialize-dataset.py and sources/reference-smoke; compare guide section 11 with pinned model.py.
+
+### Technical details
+- Full evaluation compares each compiled graph to eager within the original evaluator, preserving its checks. Hardware/software deviations remain as documented in Step 3.

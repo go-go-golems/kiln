@@ -1,0 +1,25 @@
+[
+  {
+    "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/62/91/6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8",
+    "compiler": "inductor",
+    "command": [
+      "/usr/bin/python",
+      "-m",
+      "pass_bench.torch.test_compiler",
+      "--allow-list",
+      "/work/upstream/samples/hf_subgraphs_v2/fusible_subgraphs/62/91/6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8/graph_list.txt",
+      "--model-path-prefix",
+      "/work/upstream",
+      "--compiler",
+      "inductor",
+      "--device",
+      "cuda",
+      "--warmup",
+      "20",
+      "--trials",
+      "100"
+    ],
+    "returncode": 0,
+    "elapsed_seconds": 26.82248568534851
+  }
+]
