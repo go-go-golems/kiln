@@ -3207,3 +3207,50 @@ See the user's streamlined self-optimization request in Step 71.
 
 ### Technical details
 - JavaScript pipeline/reference/export cost and CUDA program-load cost are separate fields. Selection optimizes synchronized end-to-end latency with compile-cost coefficient zero for this pilot. CUDA event measurements are stream elapsed time including dispatch gaps, not pure kernel-only duration.
+
+## Step 75: Select a reusable fusion threshold from training measurements
+
+The isolated training study completed correctness checks and three repeated timing rounds for every distinct executable on all three training graphs. Family-balanced selection chose maxWorkGrowth=1.25, with a training end-to-end score of 1.1174679569686872 relative to unchanged Kiln. Held-out timing has not run and was not used for selection.
+
+### Prompt Context
+See the prioritized self-optimization objective in Step 71 and frozen protocol in Step 74.
+**Assistant interpretation:** Record the chosen compiler policy before observing held-out performance.
+**Inferred user intent:** Demonstrate reusable compiler optimization with a controlled train/test boundary.
+**Commit (compiler and frozen protocol):** 7a20a9b.
+
+### What I did
+- Saved isolated training and selection drivers 74/75.
+- Measured synchronized end-to-end and CUDA stream elapsed latency using original source replay inputs, fixed plan, randomized repeat order and artifact deduplication.
+- Checked source outputs and input preservation for each distinct executable before timing.
+- Ran the training-only family-balanced selector and archived raw samples, retries, selection and isolation log.
+
+### Why
+- A policy must be chosen from training feedback alone; held-out results must not become another search objective.
+
+### What worked
+- All distinct training executables passed correctness and completed stable measurement rounds.
+- Selected relaxed125; relaxed2 ties exactly because its executables are identical, so declared order prefers the lower threshold.
+- Training family-balanced scores: relaxed125/relaxed2 1.1174679569686872; unchanged/strict/default 1.0; disabled 0.3226752368174381.
+- LINKX normalization median end-to-end latency: unchanged 0.024178 ms, relaxed 0.019362 ms. The two residual/mean training graphs are unchanged for relaxed policy and share exact artifact timing evidence.
+- Reference container was verified running/unpaused after the driver exited.
+
+### What didn't work
+- No correctness/stability failures in this training run. No held-out result or broad compiler improvement is claimed yet.
+
+### What I learned
+- Allowing some repeated normalization work can save a launch and intermediate storage on this hardware; the old work guard's conservative estimate has measurable headroom in this training case.
+
+### What was tricky to build
+- Identical policy artifacts must not compete through timing noise. They share one qualified executable measurement, with aliases explicit in the receipt.
+
+### What warrants a second pair of eyes
+- Small development corpus, warm repeated inputs and single-device timing limit generality. The score is relative to unchanged Kiln, not eager or the official PassBench metric.
+
+### What should be done in the future
+- Measure only unchanged Kiln and this selected policy on the frozen held-out set, then report exact membership, correctness, artifact changes and timing uncertainty.
+
+### Code review instructions
+- Inspect policy-measurements-v1/train.json and selection.json, select_policy.py, and the frozen measurement plan before looking at held-out data.
+
+### Technical details
+- Three training graphs across two families; 20 warmups, 100 trials, three repeats and IQR gate retained. Compile-cost coefficient is zero. This is scalar policy tuning, not a newly synthesized rewriting algorithm or completed recursive compiler improvement.
