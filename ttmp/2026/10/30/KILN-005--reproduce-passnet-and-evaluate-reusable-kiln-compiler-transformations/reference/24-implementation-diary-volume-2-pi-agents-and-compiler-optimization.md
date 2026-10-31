@@ -2349,3 +2349,51 @@ Read parallel-port-task-audit-v1.json, parallel-port-failure-taxonomy-v1.json, t
 
 ### Technical details
 The first run used compiler source revision898fd0f. The second delta uses929a375. Both retain the original nominal t=-5 numerical check. Neither run supports a claim of uniform full-corpus coverage.
+
+## Step 206: Audit the seven-family second-blocker replay
+
+The delta run finished and accepted two complete families, task113 and task105, each with two graphs. Five more graphs in task52 passed nominal t=-5 although that family failed overall. Cumulative accepted coverage is44/200 complete tasks and436/2060 graphs. This remains a cumulative modified-protocol ledger across compiler snapshots, not a uniform full benchmark run.
+
+### Prompt Context
+The user asked for broader batched coverage and benchmark results while preserving detailed implementation evidence.
+**Assistant interpretation:** Collect the terminal delta and update coverage from individual original-evaluator log evidence.
+**Inferred user intent:** Know which new operator support actually improves end-to-end task acceptance.
+
+### What I did
+- Collected the terminal seven-family run with script590; verified remote source snapshot and all task records.
+- Inspected every task's acceptance summary and task52's per-graph numerical curve.
+- Preserved the previous coverage ledger, added the delta run to the ordered coverage builder, and rebuilt the cumulative count.
+
+### Why
+A task with some correct graphs cannot be reported as fully supported. The published benchmark uses multiple shapes and dtypes per task, so complete-family acceptance is the decisive unit.
+
+### What worked
+- Task113:2/2 accepted, score1.729523353470545.
+- Task105:2/2 accepted, score4.211696003986995.
+- Total across this delta:2/7 complete tasks,9/33 individual graphs accepted at t=-5.
+- Cumulative accepted evidence:44/200 tasks,436/2060 graphs.
+
+### What didn't work
+- Task52 had nine executed/matched graphs but only five passed t=-5; at least one example passed t=-3 and failed t=-5, so the family is not accepted. No tolerance was relaxed.
+- Task83 failed pattern matching; tasks47,195 and146 had incomplete execution after compiler-stage failures.17 graphs were unexecuted.
+
+### What I learned
+The view and scalar ports do yield new fully accepted tasks, but matching, compiler checks and low-precision numerical tolerance now dominate the newly imported population. The next large gain likely requires diagnosing these three classes rather than another list of front-end op names.
+
+### What was tricky to build
+The task52 log's execution status `correct` is weaker than the nominal numerical threshold; the per-graph `correct_at['-5']` field controls acceptance. The coverage builder uses matching==1, execution success and the t=-5 result together.
+
+### What warrants a second pair of eyes
+- Examine task52's low-precision error distribution and dtype-specific operations before changing any arithmetic order.
+- Diagnose task107's max-pool pattern mismatch from actual target FX; pattern and source operator names alone are insufficient.
+
+### What should be done in the future
+- Capture representative Dynamo target graphs in a separate diagnostic and compare normalized pattern/target structure.
+- Diagnose end-to-end compiler failures for task31,177,47,195,146; separate resource limits from numerical checks.
+- Reevaluate changed compiler variants on held-out families with the same evaluator and fixed tolerance.
+
+### Code review instructions
+Review parallel-port-delta-task-audit-v1.json, task52 benchmark.log, and kiln-coverage.json. Regenerate using script21 only after confirming terminal run.json and source snapshot match the staging receipt.
+
+### Technical details
+Delta source revision929a375; snapshot SHA256 ecaa01c28bb0f2d10851c8dcf95d0eccf72ecbbef7d1bfaf19db204499c38ad7. The original scorer reported the task scores; no local approximation was substituted.
