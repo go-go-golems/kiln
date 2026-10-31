@@ -215,3 +215,53 @@ See Step 159 for the authored Pi/LunaRoute request.
 - The gate forwards existing options but overrides maxTokens and maxRetries.
 - Failure recording is conservative: reservations occur before recording or provider dispatch, with no automatic refund.
 - No new optimization, benchmark coverage or end-to-end agent result is claimed.
+
+
+## Step 164: Assemble and initialize the actual Pi policy session
+
+Connected the policy accounting boundary and inference gate to an actual Pi SDK session. The setup check selected lunaroute/glm-5.3-flash through openai-completions and verified exactly three active tools. No inference prompt was sent. The remaining work is the owned RPC client, bounded run lifecycle and real policy batch.
+
+### Prompt Context
+See Step 159 for the authored Pi request.
+**Assistant interpretation:** Move from isolated components to the installed SDK.
+**Inferred user intent:** A functioning fast agent pipeline with preserved experiment controls.
+**Previous commit:** a9fbd49 — Bound Pi inference admission outside extension hooks.
+
+### What I did
+- Added pi_policy_session.mjs using the installed SDK, explicit LunaRoute extension, native tools and retained-event callbacks.
+- Disabled automatic compaction and retry settings and excluded unrelated tools, skills, prompt templates and context files.
+- Installed the inference gate on session.agent.streamFunction.
+- Saved script 445 and the successful setup receipt under sources/pi-policy-session-setup-v1.
+
+### Why
+- Actual session construction verifies API assumptions that isolated component tests cannot establish.
+- Explicit tool selection prevents the policy agent from using unrelated coding or provider web tools.
+
+### What worked
+- Node syntax validation passed.
+- Script 445 completed successfully with the installed SDK and provider; active tools were finish, inspect_training and submit_policy.
+- The selected API is openai-completions, matching the inspected retry implementation.
+
+### What didn't work
+- The first sandboxed setup failed: Credential store read failed for lunaroute: EROFS: read-only file system, mkdir '/home/manuel/.pi/agent/auth.json.lock'. Retrying with authorized escalation allowed Pi's normal credential-store lock. No credential values were read or printed by our code.
+- Setup success does not verify actual message hooks, request payload token limits or end-to-end policy submission.
+
+### What I learned
+- SDK session initialization requires credential-store locking even without an inference request.
+
+### What was tricky to build
+- Provider registration and exact tool selection must complete before choosing the model and installing the gate. Setup asserts the resulting allowlist.
+
+### What warrants a second pair of eyes
+- Confirm isolation after session startup hooks and verify final provider payload limits during the actual run.
+- The caller must provide RPC serialization, durable trace storage and wall-clock cancellation.
+
+### What should be done in the future
+- Connect the owned RPC process, retain actual policy traces and run the bounded development batch.
+
+### Code review instructions
+- Inspect createPolicySession and script 445; the source receipt explicitly labels setup-only success.
+
+### Technical details
+- Settings are in memory; authentication is resolved internally by Pi.
+- The module imports the installed SDK and TypeBox through explicit package resolution, without installing another framework or copying upstream implementation code.
