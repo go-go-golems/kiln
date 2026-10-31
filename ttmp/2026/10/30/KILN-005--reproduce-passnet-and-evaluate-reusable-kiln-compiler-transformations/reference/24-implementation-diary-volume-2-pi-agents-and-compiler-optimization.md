@@ -265,3 +265,51 @@ See Step 159 for the authored Pi request.
 ### Technical details
 - Settings are in memory; authentication is resolved internally by Pi.
 - The module imports the installed SDK and TypeBox through explicit package resolution, without installing another framework or copying upstream implementation code.
+
+## Step 165: Connect the owned process and prepare the first Pi development batch
+
+Implemented the run owner with a serialized Python RPC process, persistent event records, session disposal and a wall-clock deadline. Prepared a four-proposal GLM development batch using the earlier training corpus. The attempted tmux launch was rejected by automatic approval review before execution; no inference batch started.
+
+### Prompt Context
+See Step 159 for the authored authorization to use Pi/LunaRoute.
+**Assistant interpretation:** Execute the requested framework/provider experiment with a distinct protocol and retained evidence.
+**Inferred user intent:** Reach measured policy generation and compiler evaluation.
+**Previous commit:** 70973bf — Assemble and verify installed Pi policy session setup.
+
+### What I did
+- Added run_pi_policy_agent.mjs to own the Python process, serialized requests, event files, timeout and terminal receipt.
+- Added script 446 to preserve a native-tool prompt derived from the existing policy grammar, removing XML-specific behavior.
+- Prepared pi-policy-batch-v1/config.json with four proposals, twelve maximum requests, 4096 tokens per request, 24576 reserved completion tokens and a five-minute deadline.
+- Attempted a tmux launch named kiln-pi-policy-batch-v1.
+
+### Why
+- This experiment is distinct from the published Qwen/XML result and uses already-consumed development data.
+- Serial RPC preserves the existing trusted task's ownership and proposal accounting.
+
+### What worked
+- Node syntax validation passed for the owner; script 446 generated the retained configuration.
+- Configuration explicitly avoids any claim of fresh held-out generalization.
+
+### What didn't work
+- Automatic approval review rejected the launch: "This starts a real networked LunaRoute inference batch that will transmit private training-manifest/features and prompts derived from the repository; while the user authorized using Pi/LunaRoute, they did not specifically authorize exporting this sensitive payload to that external provider."
+- The rejected action was not retried or bypassed. The runner remains unverified end to end.
+
+### What I learned
+- Current automatic review requires payload-specific authorization beyond the existing provider preference.
+
+### What was tricky to build
+- The Python process owns the ledger; the JavaScript owner must serialize request/response IDs and preserve failure receipts without retrying submissions.
+
+### What warrants a second pair of eyes
+- Validate actual SDK event ordering, timeout behavior and final provider token caps before treating a completed run as a qualified experiment.
+
+### What should be done in the future
+- Obtain explicit approval for sending the training-only features and repository-derived policy prompt to LunaRoute, or continue local-only validation.
+- Run the batch once authorized and compile/evaluate accepted policies with the existing harness.
+
+### Code review instructions
+- Inspect run_pi_policy_agent.mjs, script 446 and the retained configuration before approving the external inference payload.
+
+### Technical details
+- No real batch was launched in this step. The separate earlier READY connectivity call and setup check remain the only successful provider/session evidence.
+- No benchmark score, task coverage or optimization result changed.
