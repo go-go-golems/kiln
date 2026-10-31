@@ -3400,3 +3400,44 @@ Read script651, the staging and queue receipts, script641, `input-mutation-wave-
 
 ### Technical details
 The remote queue script lives in the staged mutation directory as `queue.py`, with `queue.log` for scheduling and `owner.log` for the actual GPU runner. Its dependencies are scalar5 and structural3 complete task records; those checks do not assert numerical acceptance. The mutation run is frozen to the earlier source revision even though later documentation commits may advance the branch.
+
+## Step 230: Recast the coverage roadmap as compiler capability waves
+
+The next planning request calls for broad progress in coverage and in the range of optimizations Kiln can learn. I reviewed the current execution plan, the latest mutation-wave evidence and the typed-input frontier, then wrote reference42 as a capability-wave plan. It keeps the 200-task corpus goal separate from the earlier research milestone of showing held-out gains from reusable compiler strategies.
+
+### Prompt Context
+**User prompt (verbatim):** "can we write doiwn a plan on how to proceed to make broad progress (and handle details later on?) for coverage and thus also the breadth of optimization strategies and compiler passes we can target / design"
+**Assistant interpretation:** Specify large shared compiler capabilities, their expected coverage experiments and the optimization strategy families each unlock, while deferring per-operator investigations to the relevant wave.
+**Inferred user intent:** Keep implementation ambitious and coherent, avoid a long sequence of tiny fixes, and reach self-optimization experiments before full corpus support.
+
+### What I did
+- Read reference38, the current task list, the latest diary checkpoint and `sources/b1-typed-constant-frontier-v1.json`.
+- Checked the remote tmux status using `ssh -o BatchMode=yes -o HostKeyAlias=bling.local -o ConnectTimeout=8 manuel@bling ...`: uniform, breadth and mutation sessions were live; the uniform owner log had advanced to task173 evaluation.
+- Added reference42 and linked it from the ticket index. The plan groups work into qualification, typed indexing, spatial neighborhoods, reductions/contractions, effects/layouts and the attention/irregular tail. It specifies one broad batch loop and a strategy portfolio.
+
+### Why
+Operator-by-operator planning obscures cross-layer requirements. Exact integer indexing, shared spatial-window lowering and effect-aware storage each span FX import, Kiln IR, code generation and PyTorch dispatch. Grouping them by capability provides a larger implementation unit and a clearer basis for choosing a compiler pass experiment.
+
+### What worked
+The plan uses current measured boundaries:131 complete import-eligible tasks/1,668 graphs, historical53 accepted complete tasks/505 accepted graphs across snapshots, and three queued GPU studies. It explicitly avoids summing different source snapshots as a current acceptance figure. It connects six strategy families to the capability waves and defines two independent milestones: breadth and held-out optimization generalization.
+
+### What didn't work
+No implementation or GPU experiment was run in this planning step. The current residual frontier is a first-error census, so it cannot yet predict exact accepted-family gains from each future wave.
+
+### What I learned
+The next batch choice should be made from the uniform external failure census and a current residual import census, while the first two strategy comparisons can run on already correct families. Full 200-task support should remain the corpus target, not a gate before testing self-optimization.
+
+### What was tricky to build
+The 131-family import figure, 53-family historical acceptance figure and frozen111-family GPU study describe different evidence levels and snapshots. Reference42 keeps them distinct so the plan does not imply an unmeasured coverage gain.
+
+### What warrants a second pair of eyes
+Review the Q1 versus Q2 ordering after the frozen qualification and the expected complete-family yield of the current residual census. Inspect whether the proposed shared spatial-window representation fits adaptive pooling and unfold before implementation.
+
+### What should be done in the future
+Audit the queued GPU runs; compute a current first-failure and complete-family-yield census; implement the highest-yield coherent capability wave; run selective-fusion and reduction/scheduling comparisons on frozen, disjoint task splits.
+
+### Code review instructions
+Read reference42 beside reference38, reference41 and the typed frontier source JSON. Check the remote run ledgers before treating any queued family as accepted.
+
+### Technical details
+The remote status observation showed `START 173 evaluate` in the frozen uniform run's owner log, with all three tmux sessions alive. This is progress evidence only; no task173 result or terminal run ledger was inspected in this step.

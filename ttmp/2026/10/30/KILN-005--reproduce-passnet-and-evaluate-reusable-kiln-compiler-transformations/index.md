@@ -30,6 +30,7 @@ Reproduce the original PassNet experiment independently, then evaluate Kiln-gene
 ## Key Links
 
 - [Project phases and current completion gates](reference/03-project-roadmap.md)
+- [Capability waves for coverage and optimization breadth](reference/42-capability-waves-for-coverage-and-optimization-breadth.md)
 - [Intern architecture and implementation guide](design-doc/01-passnet-reproduction-and-kiln-integration-intern-guide.md)
 - [Detailed chronological diary](reference/01-detailed-investigation-diary.md)
 - [Latest qualification and original-agent audit report](reference/21-singleton-view-qualification-and-audited-original-agent-failure.md)
