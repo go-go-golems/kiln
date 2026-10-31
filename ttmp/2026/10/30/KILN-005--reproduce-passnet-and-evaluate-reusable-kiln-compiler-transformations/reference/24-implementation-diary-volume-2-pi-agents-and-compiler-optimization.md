@@ -3608,3 +3608,45 @@ Start with reference43; follow its numbered code map. Review Step233 for the exa
 
 ### Technical details
 The guide is an evidence/index document rather than a new experimental declaration. Its latest remote observation was ordinary56 complete, large band running with one task record and task73 evaluating, regression absent.
+
+## Step 235: Collect and audit the terminal ordinary qualification band
+
+After freezing the expert review revision, I continued independent evidence work without changing its compiler source. The remote uniform qualification had completed the 56-task ordinary band and was evaluating its second large task. I collected the terminal ordinary band, verified the frozen plan and source snapshot, ran the original-evaluator task auditor, and classified its graph failures. The result is32 fully accepted task families and479 individually accepted graphs out of56 families/561 graphs on this one frozen source snapshot.
+
+### Prompt Context
+**User prompt:** See Step233 for the expert handoff request; the active project goal still asks for PassNet/Kiln implementation and measurement.
+**Assistant interpretation:** Preserve the review commit while auditing already completed GPU evidence through the declared protocol.
+**Inferred user intent:** Obtain trustworthy broad coverage results without disturbing the expert's architecture review or the serial GPU queue.
+
+### What I did
+- Verified on bling that `pending-ordinary/run.json` was `complete` with56 task records, `pending-large` was running with two task records and task130 evaluating, and the regression band was absent. All three owning/dependent tmux sessions were live.
+- Added script655 to collect a terminal uniform band, compare its run plan and source snapshot against the frozen staging receipt, invoke `summarize_task_run.py` and archive the raw task directories with a SHA256 receipt.
+- Collected ordinary evidence (about60 MB before compression), audited every source `graph_list.txt`, all561 result records, matching, execution and `t=-5` numerical decisions; archived all raw evidence as a3,184,264-byte tarball.
+- Added script656 to classify individual failures from audited outcomes and exact evaluator-log diagnostics. Wrote reference44 and linked it from the ticket index.
+
+### Why
+The prior 53 accepted families were cumulative across compiler snapshots. This frozen band supplies a new current-snapshot denominator and exposes shared integration failures before any optimization decision is made.
+
+### What worked
+The collector verified source snapshot SHA256 `7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740` and exact plan equality. The auditor found56 complete task records,561 declared/evaluated graph variants,32 fully accepted families,479 accepted graphs and zero unexecuted graphs. The raw archive SHA256 is `61b55928009b4ecdc809c943dd76e2d9f59f178d5595015327075481ff5282a0`; the audit SHA256 is `ea8694e80d9ffe142d08db54d158d70669444be7bcd381348f135f16b61255f7`.
+
+### What didn't work
+The first coarse failure categorization grouped all39 non-executing graphs together, obscuring two distinct integration causes. I inspected representative blocks, then revised script656 to classify16 dispatch specialization misses,21 no-replacement matcher failures and two dead-code pattern failures. The remaining43 graphs matched and executed but failed nominal numerical tolerance. The uniform 111-task study is still incomplete; no combined current-snapshot total is claimed.
+
+### What I learned
+Two families (tasks6 and24) have dispatch-only failures in this band, and two (79 and128) have matcher-only failures. These are potential high-yield shared integration repairs. Task185 combines a dispatch miss and numerical failures. All43 numerical failures pass at `t=1`, but only26 pass at `t=-4` and40 at `t=-3`; the original nominal `t=-5` gate remains authoritative.
+
+### What was tricky to build
+The evaluator's parsed status `eager_fail` describes several different failure modes. The raw logs distinguish `No compiled program for input metadata and constants`, `No passes modified the graph` and the dead-code `SubgraphMatcher` exception. Script656 reads each block aligned with the auditor's graph order, then asserts its accepted count equals the audited total.
+
+### What warrants a second pair of eyes
+Review the generated-pass specialization binding for tasks6/24/185 and the source-pattern normalization for tasks79/128 before altering shared dispatch or matcher behavior. Inspect whether the numerical failures cluster by one precision mechanism or several independent source semantics.
+
+### What should be done in the future
+Collect and audit the large and regression bands when terminal. Repair the shared dispatch/matcher causes on a new source revision, then replay affected complete families through the original checker; do not alter the frozen uniform study. Produce the next vault milestone report after all111 families have current-snapshot outcomes.
+
+### Code review instructions
+Read reference44 and its audit/failure-summary JSON, then inspect task-006, task-079 and task-128 evaluator blocks in the raw archive. Run script656 against the collected directory to reproduce failure counts. Compare the plan and snapshot hashes to the staging receipt.
+
+### Technical details
+The study used the modified FX matching integration, original external numerical checker and scorer, A100 scheduling proxy on GB10, separate contraction and an explicitly bypassed Kiln internal synthetic check. It is not an untouched-paper reproduction or a policy comparison. The raw local directory is left untracked for further diagnosis; the hashed tarball is the portable evidence artifact.

@@ -1,0 +1,1376 @@
+{
+  "format": "kiln-uniform-ordinary-failure-summary/1",
+  "source": "sources/uniform-importable-qualification-v1/pending-ordinary-audit.json",
+  "tasks_with_failures": 24,
+  "graph_outcomes": {
+    "accepted": 479,
+    "dispatch_specialization_miss": 16,
+    "nominal_numerical_failure": 43,
+    "matcher_no_replacement": 21,
+    "matcher_dead_code_pattern": 2
+  },
+  "outcomes_by_dtype": {
+    "accepted": {
+      "float16": 172,
+      "bfloat16": 178,
+      "float32": 129
+    },
+    "dispatch_specialization_miss": {
+      "float16": 6,
+      "float32": 8,
+      "bfloat16": 2
+    },
+    "nominal_numerical_failure": {
+      "bfloat16": 12,
+      "float32": 20,
+      "float16": 11
+    },
+    "matcher_no_replacement": {
+      "bfloat16": 6,
+      "float32": 10,
+      "float16": 5
+    },
+    "matcher_dead_code_pattern": {
+      "float16": 1,
+      "bfloat16": 1
+    }
+  },
+  "nominal_numerical_failures_accepted_at_looser_tolerance": {
+    "1": 43,
+    "-4": 26,
+    "-3": 40
+  },
+  "tasks": [
+    {
+      "index": 6,
+      "source_family": "timm/dpn107.mx_in1k",
+      "graphs": 66,
+      "accepted_graphs": 53,
+      "failure_counts": {
+        "dispatch_specialization_miss": 13
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+          "dtype": "float16",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+          "dtype": "float32",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+          "dtype": "bfloat16",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+          "dtype": "float32",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+          "dtype": "float32",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+          "dtype": "float32",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+          "dtype": "float16",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+          "dtype": "float32",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+          "dtype": "float16",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+          "dtype": "float16",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+          "dtype": "float16",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+          "dtype": "float32",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+          "dtype": "float32",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        }
+      ]
+    },
+    {
+      "index": 14,
+      "source_family": "mmseg/Twins_svt-b_fpn",
+      "graphs": 3,
+      "accepted_graphs": 1,
+      "failure_counts": {
+        "nominal_numerical_failure": 2
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmseg/Twins_svt-b_fpn/_decomposed/Twins_svt-b_fpn_start917_end924_17",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmseg/Twins_svt-b_fpn/_decomposed/Twins_svt-b_fpn_start917_end924_17",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 24,
+      "source_family": "transformers-auto-model/Aniemore_unispeech-sat-emotion-russian-resd",
+      "graphs": 4,
+      "accepted_graphs": 2,
+      "failure_counts": {
+        "dispatch_specialization_miss": 2
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/galsenai_hubert-large-ls960-ft-waxal-keyword-spotting/_decomposed/galsenai_hubert-large-ls960-ft-waxal-keyword-spotting_start221_end224_6",
+          "dtype": "float16",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/galsenai_hubert-large-ls960-ft-waxal-keyword-spotting/_decomposed/galsenai_hubert-large-ls960-ft-waxal-keyword-spotting_start221_end224_6",
+          "dtype": "bfloat16",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "source_family": "mmpose/rtmpose-l",
+      "graphs": 14,
+      "accepted_graphs": 11,
+      "failure_counts": {
+        "nominal_numerical_failure": 3
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start297_end299_5",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 52,
+      "source_family": "transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher",
+      "graphs": 9,
+      "accepted_graphs": 5,
+      "failure_counts": {
+        "nominal_numerical_failure": 4
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start253_end264_5",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start253_end264_5",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start253_end264_5",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start253_end264_5",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 72,
+      "source_family": "mmpose/ipr_resnet_50",
+      "graphs": 9,
+      "accepted_graphs": 6,
+      "failure_counts": {
+        "nominal_numerical_failure": 3
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmpose/ipr_resnet_50/_decomposed/ipr_resnet_50_start181_end184_4",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmpose/ipr_resnet_50/_decomposed/ipr_resnet_50_start181_end184_4",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmpose/ipr_resnet_50/_decomposed/ipr_resnet_50_start181_end184_4",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 79,
+      "source_family": "mmseg/APCNet_R101",
+      "graphs": 21,
+      "accepted_graphs": 0,
+      "failure_counts": {
+        "matcher_no_replacement": 21
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start396_end400_6",
+          "dtype": "bfloat16",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start364_end368_2",
+          "dtype": "bfloat16",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start364_end368_2",
+          "dtype": "float32",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start428_end432_10",
+          "dtype": "bfloat16",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start364_end368_2",
+          "dtype": "float32",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start396_end400_6",
+          "dtype": "float32",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start364_end368_2",
+          "dtype": "float16",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/1/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start428_end432_10",
+          "dtype": "float16",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start460_end464_14",
+          "dtype": "float32",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start428_end432_10",
+          "dtype": "float16",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start428_end432_10",
+          "dtype": "float32",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start364_end368_2",
+          "dtype": "float32",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start396_end400_6",
+          "dtype": "float16",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start428_end432_10",
+          "dtype": "bfloat16",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start364_end368_2",
+          "dtype": "bfloat16",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start460_end464_14",
+          "dtype": "float32",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start364_end368_2",
+          "dtype": "bfloat16",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start428_end432_10",
+          "dtype": "float16",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start396_end400_6",
+          "dtype": "float32",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start460_end464_14",
+          "dtype": "float32",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmseg/APCNet_R101/_decomposed/APCNet_R101_start428_end432_10",
+          "dtype": "float32",
+          "kind": "matcher_no_replacement",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        }
+      ]
+    },
+    {
+      "index": 82,
+      "source_family": "timm/repvit_m0_9.dist_300e_in1k",
+      "graphs": 6,
+      "accepted_graphs": 5,
+      "failure_counts": {
+        "nominal_numerical_failure": 1
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/timm/repvit_m0_9.dist_300e_in1k/_decomposed/repvit_m0_9.dist_300e_in1k_start375_end377_20",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 88,
+      "source_family": "mmseg/K-Net_fcn",
+      "graphs": 3,
+      "accepted_graphs": 2,
+      "failure_counts": {
+        "nominal_numerical_failure": 1
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/mmseg/K-Net_fcn/_decomposed/K-Net_fcn_start199_end209_3",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 93,
+      "source_family": "transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher",
+      "graphs": 9,
+      "accepted_graphs": 7,
+      "failure_counts": {
+        "nominal_numerical_failure": 2
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start288_end290_12",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher/_decomposed/hf-tiny-model-private_tiny-random-EfficientFormerForImageClassificationWithTeacher_start288_end290_12",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 95,
+      "source_family": "mmseg/K-Net_fcn",
+      "graphs": 3,
+      "accepted_graphs": 2,
+      "failure_counts": {
+        "nominal_numerical_failure": 1
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmseg/K-Net_fcn/_decomposed/K-Net_fcn_start212_end222_4",
+          "dtype": "float16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 110,
+      "source_family": "timm/coat_tiny",
+      "graphs": 21,
+      "accepted_graphs": 20,
+      "failure_counts": {
+        "nominal_numerical_failure": 1
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/coat_lite_medium.in1k/_decomposed/coat_lite_medium.in1k_start1036_end1046_66",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 118,
+      "source_family": "transformers-auto-model/face-parsing",
+      "graphs": 6,
+      "accepted_graphs": 0,
+      "failure_counts": {
+        "nominal_numerical_failure": 6
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77",
+          "dtype": "float16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/face-parsing/_decomposed/face-parsing_start2114_end2118_77",
+          "dtype": "float16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 121,
+      "source_family": "transformers-auto-model/google/bigbird-roberta-base",
+      "graphs": 4,
+      "accepted_graphs": 2,
+      "failure_counts": {
+        "nominal_numerical_failure": 2
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/google/bigbird-roberta-base/_decomposed/bigbird-roberta-base_start0_end2_0",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/google/bigbird-roberta-base/_decomposed/bigbird-roberta-base_start0_end2_0",
+          "dtype": "float16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 128,
+      "source_family": "transformers-auto-model/upernet-convnext-tiny",
+      "graphs": 2,
+      "accepted_graphs": 0,
+      "failure_counts": {
+        "matcher_dead_code_pattern": 2
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/upernet-convnext-tiny/_decomposed/upernet-convnext-tiny_start55_end62_14",
+          "dtype": "float16",
+          "kind": "matcher_dead_code_pattern",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/upernet-convnext-tiny/_decomposed/upernet-convnext-tiny_start55_end62_14",
+          "dtype": "bfloat16",
+          "kind": "matcher_dead_code_pattern",
+          "status": "eager_fail",
+          "matches": 0,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        }
+      ]
+    },
+    {
+      "index": 133,
+      "source_family": "mmpose/S-ViPNAS-Res50",
+      "graphs": 20,
+      "accepted_graphs": 16,
+      "failure_counts": {
+        "nominal_numerical_failure": 4
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/mmseg/GCNet_R101/_decomposed/GCNet_R101_start359_end362_3",
+          "dtype": "float16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/mmpose/S-ViPNAS-Res50/_decomposed/S-ViPNAS-Res50_start176_end179_17",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmseg/GCNet_R101/_decomposed/GCNet_R101_start359_end362_3",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmpose/S-ViPNAS-Res50/_decomposed/S-ViPNAS-Res50_start20_end23_4",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 141,
+      "source_family": "timm/gmlp_s16_224.ra3_in1k",
+      "graphs": 6,
+      "accepted_graphs": 5,
+      "failure_counts": {
+        "nominal_numerical_failure": 1
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/timm/gmlp_s16_224.ra3_in1k/_decomposed/gmlp_s16_224.ra3_in1k_start12_end15_3",
+          "dtype": "float16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 148,
+      "source_family": "mmpose/simcc_S-ViPNAS-MobileNetV3",
+      "graphs": 9,
+      "accepted_graphs": 8,
+      "failure_counts": {
+        "nominal_numerical_failure": 1
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/8/samples/mmpose/simcc_S-ViPNAS-MobileNetV3/_decomposed/simcc_S-ViPNAS-MobileNetV3_start329_end331_3",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 157,
+      "source_family": "timm/convit_base",
+      "graphs": 3,
+      "accepted_graphs": 2,
+      "failure_counts": {
+        "nominal_numerical_failure": 1
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/convit_base/_decomposed/convit_base_start152_end155_25",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 160,
+      "source_family": "ultralytics/yolo11n",
+      "graphs": 33,
+      "accepted_graphs": 31,
+      "failure_counts": {
+        "nominal_numerical_failure": 2
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/ultralytics/yolo11n/_decomposed/yolo11n_start145_end147_3",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/ultralytics/yolo11l/_decomposed/yolo11l_start275_end277_5",
+          "dtype": "float32",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 178,
+      "source_family": "ultralytics/yolo11l-obb",
+      "graphs": 6,
+      "accepted_graphs": 5,
+      "failure_counts": {
+        "nominal_numerical_failure": 1
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/ultralytics/yolo11l-obb/_decomposed/yolo11l-obb_start587_end593_0",
+          "dtype": "float16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 185,
+      "source_family": "transformers-auto-model/Rajaram1996_Hubert_emotion",
+      "graphs": 5,
+      "accepted_graphs": 2,
+      "failure_counts": {
+        "nominal_numerical_failure": 2,
+        "dispatch_specialization_miss": 1
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-UniSpeechSatForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-UniSpeechSatForSequenceClassification_start10_end13_2",
+          "dtype": "float16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/anton-l_distilhubert-ft-common-language/_decomposed/anton-l_distilhubert-ft-common-language_start17_end20_2",
+          "dtype": "float32",
+          "kind": "dispatch_specialization_miss",
+          "status": "eager_fail",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": false,
+            "1": false
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-UniSpeechSatForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-UniSpeechSatForSequenceClassification_start10_end13_2",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 186,
+      "source_family": "torchaudio/hubert_large",
+      "graphs": 2,
+      "accepted_graphs": 0,
+      "failure_counts": {
+        "nominal_numerical_failure": 2
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchaudio/hubert_large/_decomposed/hubert_large_start14_end17_6",
+          "dtype": "float16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/torchaudio/hubert_large/_decomposed/hubert_large_start14_end17_6",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": true,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    },
+    {
+      "index": 188,
+      "source_family": "transformers-auto-model/gagan3012_swin_arocr_tiny",
+      "graphs": 4,
+      "accepted_graphs": 1,
+      "failure_counts": {
+        "nominal_numerical_failure": 3
+      },
+      "failures": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/gagan3012_swin_arocr_tiny/_decomposed/gagan3012_swin_arocr_tiny_start914_end920_28",
+          "dtype": "float16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/gagan3012_swin_arocr_tiny/_decomposed/gagan3012_swin_arocr_tiny_start458_end464_15",
+          "dtype": "bfloat16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/gagan3012_swin_arocr_tiny/_decomposed/gagan3012_swin_arocr_tiny_start458_end464_15",
+          "dtype": "float16",
+          "kind": "nominal_numerical_failure",
+          "status": "correct",
+          "matches": 1,
+          "correct_at": {
+            "-5": false,
+            "-4": false,
+            "-3": true,
+            "1": true
+          }
+        }
+      ]
+    }
+  ]
+}
