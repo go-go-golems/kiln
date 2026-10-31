@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/scripts/375-run-original-passagent-smoke.py", line 11, in <module>
+    state={'format':'kiln-original-passagent-smoke/1','status':'running','command':command,'driver_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),'dataset_sha256':hashlib.sha256(dataset.read_bytes()).hexdigest(),'population':'Shipping one-task/one-graph operational smoke, separate from official200/2060','model_context':40960,'original_runner_max_tokens':131072,'timing_condition':'Local BF16 model resident on same DGX; inference and evaluator serial within agent; no isolated compiler timing claim','results':[]}
+                                                                                                                                                                                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1021, in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passagent-shipping-smoke.jsonl'

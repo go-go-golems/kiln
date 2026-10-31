@@ -147,3 +147,8 @@ The seven-variant mismatch is traced to functional LayerNorm keyword-versus-posi
 ## Complete LayerNorm matching-repair replay
 
 All seven variants of the frozen targeted task qualify after f1e5518: one replacement, successful execution and nominal t=-5 correctness for every graph. Script325 verifies164 committed source files, all seven artifacts, complete membership and scorer/log identity. The existing coverage builder now reports27/200 complete tasks and338/2060 individual graphs, with273 inside complete tasks. Import eligibility remains1196/69. The initial seven matching failures and35 unexecuted variants from two compile-check failures stay archived. Reference19 and diary138 explain the full milestone; original PassAgent and full native/support scope remain open.
+
+
+### Original-agent operational milestone
+
+The pinned unquantized local provider now serves real tool calls, and the unchanged original PassAgent has invoked the original evaluator and received a genuine no-match rejection. Its50-step shipping smoke remains active at this checkpoint; terminal candidate results and the full official population are separate gates. Design18/reference20 and diary Steps140–143 own model/runtime identities, full200/2060 membership, failures and publication evidence. Kiln coverage is unchanged. The final image corrects shell execution configuration while retaining exactly the audited source layers.

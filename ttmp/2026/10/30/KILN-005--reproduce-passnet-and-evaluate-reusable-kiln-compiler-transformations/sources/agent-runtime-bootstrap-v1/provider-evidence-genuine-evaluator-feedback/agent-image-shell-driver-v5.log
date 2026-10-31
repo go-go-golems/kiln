@@ -1,0 +1,39 @@
+{
+  "format": "kiln-original-agent-shell-image/1",
+  "status": "complete",
+  "source_image": "sha256:e5c039c27c487f6c15b9f2d90bfb4c326d986b2731a2be83eece2e039e231ab6",
+  "tag": "kiln005-passagent:torch26.05-shell-v5",
+  "reason": "Docker commit retained container /bin/true ENTRYPOINT despite empty change. Explicit /usr/bin/env executes the original supplied CMD. No evaluator/source edits.",
+  "driver_sha256": "ca9186880754d51467e0939fe60ce4027711e22aeba282cf7144f873ce8af28f",
+  "image_id": "sha256:0f8b8235cfda1daed9b1cddfa9162ad320403b90d2d715ed2a8b16cc2861e913",
+  "startup_probe": {
+    "command": [
+      "docker",
+      "run",
+      "--rm",
+      "sha256:0f8b8235cfda1daed9b1cddfa9162ad320403b90d2d715ed2a8b16cc2861e913",
+      "/bin/bash",
+      "-lc",
+      "test -d /workspace/passnet/pass_agent && printf original-shell-startup-ok"
+    ],
+    "stdout": "original-shell-startup-ok",
+    "stderr": ""
+  },
+  "source_layers_identical": true,
+  "datasets": [
+    {
+      "original": "passagent-shipping-smoke.jsonl",
+      "output": "passagent-shipping-smoke-shell-v5.jsonl",
+      "tasks": 1,
+      "sha256": "2f4a704479a4bbb79417334ba9ee240d68b32d778f0911ef1a6373f1e3832c63",
+      "change": "docker_image only"
+    },
+    {
+      "original": "passagent-evaluation-200.jsonl",
+      "output": "passagent-evaluation-200-shell-v5.jsonl",
+      "tasks": 200,
+      "sha256": "d0a9fb1892f8c8a9c67799274c9d67b914ba91c5123bf0b54552c914fdf83a5b",
+      "change": "docker_image only"
+    }
+  ]
+}
