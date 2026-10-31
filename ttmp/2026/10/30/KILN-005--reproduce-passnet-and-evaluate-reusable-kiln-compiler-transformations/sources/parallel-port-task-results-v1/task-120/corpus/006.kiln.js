@@ -1,0 +1,24 @@
+project("passnet").program(({v0, v1, v2, v3, v4, v5, v6}) => {
+const v7 = N.conv2d(v0, v1, v2, {"stride": [1, 1], "padding": [0, 0], "dilation": [1, 1], "groups": 1});
+const v8 = N.cast(N.sigmoid(N.cast(v7, "f32")), "bf16");
+const v9 = N.mul(v3, v8);
+const v10 = N.concat([v4, v5], 1);
+const v11 = N.concat([v6, v9], 1);
+const v12 = N.reshape(v10, [512, 2, 20, 64, 48]);
+const v13 = N.transpose(v12, 1, 2);
+const v14 = N.reshape(v13, [512, 20, 2, 64, 48]);
+const v15 = N.reshape(v14, [512, 40, 64, 48]);
+const v16 = N.reshape(v11, [512, 2, 40, 32, 24]);
+const v17 = N.transpose(v16, 1, 2);
+const v18 = N.reshape(v17, [512, 40, 2, 32, 24]);
+const v19 = N.reshape(v18, [512, 80, 32, 24]);
+const v20_0 = N.slice(v15, 1, 0, 20);
+const v20_1 = N.slice(v15, 1, 20, 40);
+const v21 = v20_0;
+const v22 = v20_1;
+const v23_0 = N.slice(v19, 1, 0, 40);
+const v23_1 = N.slice(v19, 1, 40, 80);
+const v24 = v23_0;
+const v25 = v23_1;
+return {out0: v21, out1: v24, out2: v22, out3: v25};
+}, {v0: k.tensor([512, 10, 1, 1], "bf16"), v1: k.tensor([40, 10, 1, 1], "bf16"), v2: k.tensor([40], "bf16"), v3: k.tensor([512, 40, 32, 24], "bf16"), v4: k.tensor([512, 20, 64, 48], "bf16"), v5: k.tensor([512, 20, 64, 48], "bf16"), v6: k.tensor([512, 40, 32, 24], "bf16")});

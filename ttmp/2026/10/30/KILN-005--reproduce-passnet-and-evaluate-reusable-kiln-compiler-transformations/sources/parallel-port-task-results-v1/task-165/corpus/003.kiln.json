@@ -1,0 +1,271 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-165/corpus/003.kiln.js",
+  "sha256": "959450c3ab292d0bf2bdd07f9fc2b21c3a18b0cb22af07218353e35e4af81785",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    16,
+    112,
+    112
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    1,
+    16,
+    113,
+    113
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 7,
+   "shape": [
+    1,
+    32,
+    112,
+    112
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 200704,
+   "bytes": 401408
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 1,
+   "bytes": 4
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 1,
+   "bytes": 4
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 204304,
+   "bytes": 408608
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 200704,
+   "bytes": 802816
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 200704,
+   "bytes": 802816
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128,
+   "name": null,
+   "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8="
+  },
+  {
+   "id": 7,
+   "dtype": "bf16",
+   "elements": 401408,
+   "bytes": 802816
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_max_pool2d_reduce__pk7a41ta4l",
+   "identity": "pk7a41ta4l",
+   "row": "TPB=128",
+   "reads": [
+    3
+   ],
+   "writes": 4,
+   "grid": 1568,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1568,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    16,
+    112,
+    112,
+    1
+   ],
+   "inShapes": [
+    [
+     1,
+     16,
+     113,
+     113
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_cast_max_pool2d_reduce__pk7a41ta4l(const __nv_bfloat16* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 200704)) {\n        acc0 = __int_as_float(0xff800000);\n        for (int r0 = 0; r0 < 4; r0 += 1) {\n            in0 = __bfloat162float(src0[(((((113 * ((((((448 * ((e / 112) % 112)) + (4 * (e % 112))) + (50176 * (e / 12544))) + r0) / 2) % 2)) + ((((((448 * ((e / 112) % 112)) + (4 * (e % 112))) + (50176 * (e / 12544))) + r0) / 4) % 112)) + (113 * ((((((448 * ((e / 112) % 112)) + (4 * (e % 112))) + (50176 * (e / 12544))) + r0) / 448) % 112))) + (12769 * ((((((448 * ((e / 112) % 112)) + (4 * (e % 112))) + (50176 * (e / 12544))) + r0) / 50176) % 16))) + (r0 % 2))]);\n            v0 = in0;\n            v1 = ((v0) > (0.0f) ? 1.0f : 0.0f);\n            v2 = ((v0) < (1.0f) ? 1.0f : 0.0f);\n            v3 = ((v2) > 0.0f ? (0.0f) : (1.0f));\n            v4 = ((v1) > 0.0f ? (0.0f) : (v3));\n            acc0 = fmaxf(acc0, v4);\n        }\n        dst[(((112 * ((e / 112) % 112)) + (e % 112)) + (12544 * (e / 12544)))] = acc0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_max_pool2d_reduce_2__lhg7cfe23t",
+   "identity": "lhg7cfe23t",
+   "row": "TPB=128",
+   "reads": [
+    3
+   ],
+   "writes": 5,
+   "grid": 1568,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1568,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    16,
+    112,
+    112,
+    1
+   ],
+   "inShapes": [
+    [
+     1,
+     16,
+     113,
+     113
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_cast_max_pool2d_reduce_2__lhg7cfe23t(const __nv_bfloat16* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 200704)) {\n        acc0 = __int_as_float(0xff800000);\n        for (int r0 = 0; r0 < 4; r0 += 1) {\n            in0 = __bfloat162float(src0[(((((113 * ((((((448 * ((e / 112) % 112)) + (4 * (e % 112))) + (50176 * (e / 12544))) + r0) / 2) % 2)) + ((((((448 * ((e / 112) % 112)) + (4 * (e % 112))) + (50176 * (e / 12544))) + r0) / 4) % 112)) + (113 * ((((((448 * ((e / 112) % 112)) + (4 * (e % 112))) + (50176 * (e / 12544))) + r0) / 448) % 112))) + (12769 * ((((((448 * ((e / 112) % 112)) + (4 * (e % 112))) + (50176 * (e / 12544))) + r0) / 50176) % 16))) + (r0 % 2))]);\n            v0 = in0;\n            acc0 = fmaxf(acc0, v0);\n        }\n        dst[(((112 * ((e / 112) % 112)) + (e % 112)) + (12544 * (e / 12544)))] = acc0;\n    }\n}"
+  },
+  {
+   "name": "k_concat_ew_max_pool2d__yj6o2o53ac",
+   "identity": "yj6o2o53ac",
+   "row": "TPB=64",
+   "reads": [
+    4,
+    5,
+    2,
+    0,
+    1,
+    6
+   ],
+   "writes": 7,
+   "grid": 6272,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    6272,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    32,
+    112,
+    112
+   ],
+   "inShapes": [
+    [
+     1,
+     16,
+     112,
+     112,
+     1
+    ],
+    [
+     1,
+     16,
+     112,
+     112,
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1,
+     16,
+     112,
+     112
+    ],
+    [
+     1
+    ],
+    [
+     1,
+     32,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "bf16",
+    "bf16",
+    "bf16",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_concat_ew_max_pool2d__yj6o2o53ac(const float* __restrict__ src0, const float* __restrict__ src1, const __nv_bfloat16* __restrict__ src2, const __nv_bfloat16* __restrict__ src3, const __nv_bfloat16* __restrict__ src4, const float* __restrict__ src5, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in1 = 0.0f, in3 = 0.0f, in0 = 0.0f, in2 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, in4 = 0.0f, in5 = 0.0f, v6 = 0.0f, v7 = 0.0f, v8 = 0.0f, v9 = 0.0f, v10 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 401408)) {\n        in1 = __bfloat162float(src4[0]);\n        in3 = __bfloat162float(src2[0]);\n        in0 = src5[(e / 12544)];\n        in2 = __bfloat162float(src3[(((12544 * min(max(((e / 12544) + (-16)), 0), 15)) + (112 * ((e / 112) % 112))) + (e % 112))]);\n        v0 = fmaxf(in2, 0.0f);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        v2 = __fmul_rn(in1, v1);\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        v4 = __fadd_rn(v3, in3);\n        v5 = __bfloat162float(__float2bfloat16_rn(v4));\n        in4 = src0[(((12544 * min(max((e / 12544), 0), 15)) + (112 * ((e / 112) % 112))) + (e % 112))];\n        in5 = src1[(((12544 * min(max((e / 12544), 0), 15)) + (112 * ((e / 112) % 112))) + (e % 112))];\n        v6 = ((in4) > 0.0f ? (__int_as_float(0x7fc00000)) : (in5));\n        v7 = __bfloat162float(__float2bfloat16_rn(v6));\n        v8 = __bfloat162float(__float2bfloat16_rn(v7));\n        v9 = ((in0) > 0.0f ? (v5) : (v8));\n        v10 = __bfloat162float(__float2bfloat16_rn(v9));\n        dst[(((112 * ((e / 112) % 112)) + (e % 112)) + (12544 * (e / 12544)))] = __float2bfloat16_rn(v10);\n    }\n}"
+  }
+ ]
+}

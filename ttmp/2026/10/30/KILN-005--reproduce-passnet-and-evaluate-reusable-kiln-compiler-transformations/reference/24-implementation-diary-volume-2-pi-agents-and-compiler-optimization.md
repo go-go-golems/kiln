@@ -2302,3 +2302,50 @@ Read the v1–v4 parallel-port-family-import audits and the original graph_list 
 
 ### Technical details
 The v4 audit covers exactly201 graphs across24 task families. It is importer evidence only. Static views preserve dtype and do not gain fresh ownership; ten mutated placeholder graphs remain unsupported.
+
+## Step 205: Record the first parallel-port replay and launch the seven-family delta
+
+The first16-family PassBench replay is terminal. Three complete families (23 graphs) passed matching and original numerical checks. Thirteen families did not qualify:66 executed graphs failed to match a generated pass, and69 graphs were unexecuted after earlier compiler failures. Cumulative accepted coverage is42/200 tasks and427/2060 graphs. A separate seven-family,33-graph delta replay is live from the committed second-blocker compiler snapshot.
+
+### Prompt Context
+The user asked for broad, parallel coverage expansion with measured results and detailed diary evidence.
+**Assistant interpretation:** Preserve complete failure evidence from the first broad run, then evaluate the newly unlocked families without rerunning the same16 families immediately.
+**Inferred user intent:** Convert importer progress into credible task acceptance and use failures to choose the next compiler work.
+
+### What I did
+- Collected the terminal16-family run with script579 and summarized it using the existing original acceptance audit. Updated coverage builder with the exact replay logs after preserving the previous ledger.
+- Script591 classified task outcomes and captured compiler log tails. Its `eager_fail` status originates from the upstream log parser; inspected benchmark logs show `No passes modified the graph` for the66 executed failures, so these are currently matching failures rather than proof of eager numerical failure.
+- Script586 froze the23-family import population; script587 selected only the seven newly complete families,33 graphs. Scripts588–590 stage, run and collect the delta. The source checkout snapshot was verified and the tmux job launched.
+
+### Why
+Compilation, matching and numerical correctness must be diagnosed separately. Replaying only the new seven families uses GPU time on untested work while preserving the original16-family result as a separate source snapshot.
+
+### What worked
+- Three complete families accepted: task indices102 (10 graphs),136 (4),120 (9).
+- Cumulative original-replay coverage now42/200 complete tasks and427/2060 accepted graphs under the declared modified protocol.
+- Seven-family delta source snapshot SHA256:ecaa01c28bb0f2d10851c8dcf95d0eccf72ecbbef7d1bfaf19db204499c38ad7. The job was observed live with five task records at the latest check.
+
+### What didn't work
+- The first broad replay yielded only3/16 accepted families despite16/16 importability. Matching failed for66 executed graphs. Other tasks failed during compilation, including end-to-end checker failures, leaving69 unexecuted.
+- The delta replay is not terminal; no acceptance count from it is claimed.
+
+### What I learned
+Import coverage substantially overestimates benchmark acceptance. The next high-value work is source-pattern/Dynamo graph matching and compiler numerical diagnostics, rather than only porting more operators.
+
+### What was tricky to build
+- The upstream parser names no-pass-match results `eager_fail`; the underlying log must be inspected before assigning cause.
+- A compile-stage failure prevents an entire task from reaching PassBench; these graphs cannot be counted as incorrect numerical comparisons or as matching failures.
+
+### What warrants a second pair of eyes
+- Inspect task107 generated max-pool patterns and the target Dynamo graph to identify exact matcher divergence.
+- Inspect task31 and177 failed end-to-end compiler checks separately from matching results.
+
+### What should be done in the future
+- Collect the same live seven-family delta when terminal, audit every graph, and update coverage only for accepted complete tasks.
+- Capture target FX graphs for representative no-match cases in a diagnostic run without altering the published evaluator, then test a minimal matching fix.
+
+### Code review instructions
+Read parallel-port-task-audit-v1.json, parallel-port-failure-taxonomy-v1.json, task107/benchmark.log and task031/corpus/002.kiln.compile.log. Compare the coverage snapshot to the current kiln-coverage.json.
+
+### Technical details
+The first run used compiler source revision898fd0f. The second delta uses929a375. Both retain the original nominal t=-5 numerical check. Neither run supports a claim of uniform full-corpus coverage.

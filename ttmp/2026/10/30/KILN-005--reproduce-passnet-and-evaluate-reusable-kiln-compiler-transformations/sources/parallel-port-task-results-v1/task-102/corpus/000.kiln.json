@@ -1,0 +1,192 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-102/corpus/000.kiln.js",
+  "sha256": "ce08b03246697fe0aaf08613c16714044f9640b74f219125f5845a1b9fdf9127",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    512,
+    768
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    512,
+    768
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    768
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    768
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 5,
+   "shape": [
+    1,
+    512,
+    768
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 393216,
+   "bytes": 786432
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 393216,
+   "bytes": 786432
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 768,
+   "bytes": 1536
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 768,
+   "bytes": 1536
+  },
+  {
+   "id": 4,
+   "dtype": "bf16",
+   "elements": 393216,
+   "bytes": 786432
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 393216,
+   "bytes": 1572864
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew__1mwocdyov1g",
+   "identity": "1mwocdyov1g",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 4,
+   "grid": 6144,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    6144,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    512,
+    768
+   ],
+   "inShapes": [
+    [
+     1,
+     512,
+     768
+    ],
+    [
+     1,
+     512,
+     768
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_ew__1mwocdyov1g(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 393216)) {\n        in0 = __bfloat162float(src0[((e % 768) + (768 * (e / 768)))]);\n        in1 = __bfloat162float(src1[((e % 768) + (768 * (e / 768)))]);\n        v0 = __fadd_rn(in0, in1);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        dst[((e % 768) + (768 * (e / 768)))] = __float2bfloat16_rn(v1);\n    }\n}"
+  },
+  {
+   "name": "k_ew_cast_reduce_reduce__lkqp1appmd",
+   "identity": "lkqp1appmd",
+   "row": "MAP=row,TPB=256,STAGE=all",
+   "reads": [
+    3,
+    4,
+    2
+   ],
+   "writes": 5,
+   "grid": 512,
+   "block": 256,
+   "smemBytes": 10240,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    512,
+    768
+   ],
+   "inShapes": [
+    [
+     768
+    ],
+    [
+     1,
+     512,
+     768
+    ],
+    [
+     768
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(256) k_ew_cast_reduce_reduce__lkqp1appmd(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, const __nv_bfloat16* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_in2[768];\n    __shared__ float s_in1[768];\n    __shared__ float s_in0[768];\n    __shared__ float s_red[256];\n    float g0 = 0.0f, g1 = 0.0f, g2 = 0.0f, acc0 = 0.0f, in2 = 0.0f, v1 = 0.0f, v2 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, sv14 = 0.0f, sv15 = 0.0f, v3 = 0.0f, v4 = 0.0f, acc1 = 0.0f, in3 = 0.0f, v6 = 0.0f, v7 = 0.0f, v8 = 0.0f, v9 = 0.0f, v10 = 0.0f, v11 = 0.0f, sv16 = 0.0f, sv17 = 0.0f, sv18 = 0.0f, sv19 = 0.0f, sv20 = 0.0f, sv21 = 0.0f, sv22 = 0.0f, sv23 = 0.0f, sv24 = 0.0f, sv25 = 0.0f, sv26 = 0.0f, sv27 = 0.0f, sv28 = 0.0f, sv29 = 0.0f, sv30 = 0.0f, sv31 = 0.0f, v12 = 0.0f, v13 = 0.0f, v14 = 0.0f, v15 = 0.0f, in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v5 = 0.0f, v16 = 0.0f, v17 = 0.0f, v18 = 0.0f, in4 = 0.0f, v19 = 0.0f;\n    for (int t2 = tid; t2 < 768; t2 += 256) {\n        g0 = __bfloat162float(src2[t2]);\n        s_in2[t2] = g0;\n    }\n    for (int t1 = tid; t1 < 768; t1 += 256) {\n        g1 = __bfloat162float(src1[((768 * bid) + t1)]);\n        s_in1[t1] = g1;\n    }\n    for (int t0 = tid; t0 < 768; t0 += 256) {\n        g2 = __bfloat162float(src0[t0]);\n        s_in0[t0] = g2;\n    }\n    __syncthreads();\n    acc0 = 0.0f;\n    for (int r0 = tid; r0 < 768; r0 += 256) {\n        in2 = s_in1[r0];\n        v1 = in2;\n        v2 = v1;\n        acc0 = (acc0 + v2);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 128)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 128)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 64)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 64)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 32)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 16)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 8)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 4)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 2)];\n        s_red[tid] = (sv12 + sv13);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv14 = s_red[tid];\n        sv15 = s_red[(tid + 1)];\n        s_red[tid] = (sv14 + sv15);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    v3 = __fmul_rn(acc0, 0.0013020833333333333f);\n    v4 = v3;\n    acc1 = 0.0f;\n    for (int r1 = tid; r1 < 768; r1 += 256) {\n        in3 = s_in1[r1];\n        v6 = in3;\n        v7 = __fsub_rn(v6, v4);\n        v8 = v7;\n        v9 = (v8 * v8);\n        v10 = v9;\n        v11 = v10;\n        acc1 = (acc1 + v11);\n    }\n    __syncthreads();\n    s_red[tid] = acc1;\n    __syncthreads();\n    if ((tid < 128)) {\n        sv16 = s_red[tid];\n        sv17 = s_red[(tid + 128)];\n        s_red[tid] = (sv16 + sv17);\n    }\n    __syncthreads();\n    if ((tid < 64)) {\n        sv18 = s_red[tid];\n        sv19 = s_red[(tid + 64)];\n        s_red[tid] = (sv18 + sv19);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv20 = s_red[tid];\n        sv21 = s_red[(tid + 32)];\n        s_red[tid] = (sv20 + sv21);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv22 = s_red[tid];\n        sv23 = s_red[(tid + 16)];\n        s_red[tid] = (sv22 + sv23);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv24 = s_red[tid];\n        sv25 = s_red[(tid + 8)];\n        s_red[tid] = (sv24 + sv25);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv26 = s_red[tid];\n        sv27 = s_red[(tid + 4)];\n        s_red[tid] = (sv26 + sv27);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv28 = s_red[tid];\n        sv29 = s_red[(tid + 2)];\n        s_red[tid] = (sv28 + sv29);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv30 = s_red[tid];\n        sv31 = s_red[(tid + 1)];\n        s_red[tid] = (sv30 + sv31);\n    }\n    __syncthreads();\n    acc1 = s_red[0];\n    v12 = __fmul_rn(acc1, 0.0013020833333333333f);\n    v13 = v12;\n    v14 = __fadd_rn(v13, 1e-7f);\n    v15 = sqrtf(v14);\n    for (int q = tid; q < 768; q += 256) {\n        in0 = s_in2[q];\n        in1 = s_in1[q];\n        v0 = in1;\n        v5 = __fsub_rn(v0, v4);\n        v16 = (v5 / v15);\n        v17 = v16;\n        v18 = __fmul_rn(in0, v17);\n        in4 = s_in0[q];\n        v19 = __fadd_rn(v18, in4);\n        dst[((768 * bid) + q)] = v19;\n    }\n}"
+  }
+ ]
+}

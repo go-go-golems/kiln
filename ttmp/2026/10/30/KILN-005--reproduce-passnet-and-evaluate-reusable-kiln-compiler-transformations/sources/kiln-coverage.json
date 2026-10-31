@@ -4,10 +4,10 @@
   "coverage_scope": "Cumulative original replay evidence across recorded compiler snapshots; not a uniform full-corpus release evaluation",
   "tasks_total": 200,
   "graphs_total": 2060,
-  "tasks_verified": 39,
-  "graphs_verified": 404,
-  "graphs_in_complete_tasks": 335,
-  "tasks_remaining": 161,
+  "tasks_verified": 42,
+  "graphs_verified": 427,
+  "graphs_in_complete_tasks": 358,
+  "tasks_remaining": 158,
   "records": [
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/62/91/6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8",
@@ -3297,12 +3297,100 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/6d/74/6d74acb0499f40a1f34cca7f16ae4f2d7bdc09c6cd785e580b1bea41c896abad",
       "graphs": 10,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 10,
+      "evidence": "parallel-port-task-results-v1/task-102/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/transformers-auto-model/microsoft_deberta-base/_decomposed/microsoft_deberta-base_start4_end17_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/transformers-auto-model/microsoft_deberta-base/_decomposed/microsoft_deberta-base_start4_end17_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/transformers-auto-model/microsoft_deberta-base/_decomposed/microsoft_deberta-base_start4_end17_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/transformers-auto-model/microsoft_deberta-base/_decomposed/microsoft_deberta-base_start4_end17_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/transformers-auto-model/microsoft_deberta-base/_decomposed/microsoft_deberta-base_start4_end17_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/transformers-auto-model/microsoft_deberta-base/_decomposed/microsoft_deberta-base_start4_end17_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/microsoft_deberta-base/_decomposed/microsoft_deberta-base_start4_end17_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/microsoft_deberta-base/_decomposed/microsoft_deberta-base_start4_end17_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/transformers-auto-model/microsoft_deberta-base/_decomposed/microsoft_deberta-base_start4_end17_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/microsoft_deberta-base/_decomposed/microsoft_deberta-base_start4_end17_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed"
+      },
       "limitations": []
     },
     {
@@ -3399,10 +3487,66 @@
       "graphs": 6,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "parallel-port-task-results-v1/task-106/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/timm/starnet_s1.in1k/_decomposed/starnet_s1.in1k_start8_end11_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/starnet_s1.in1k/_decomposed/starnet_s1.in1k_start8_end11_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/timm/starnet_s1.in1k/_decomposed/starnet_s1.in1k_start8_end11_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/timm/starnet_s1.in1k/_decomposed/starnet_s1.in1k_start8_end11_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/timm/starnet_s1.in1k/_decomposed/starnet_s1.in1k_start8_end11_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/timm/starnet_s1.in1k/_decomposed/starnet_s1.in1k_start8_end11_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed"
+      },
       "limitations": []
     },
     {
@@ -3410,10 +3554,162 @@
       "graphs": 18,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "parallel-port-task-results-v1/task-107/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/timm/resnetv2_18d.ra4_e3600_r224_in1k/_decomposed/resnetv2_18d.ra4_e3600_r224_in1k_start6_end8_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/timm/resnetv2_18d.ra4_e3600_r224_in1k/_decomposed/resnetv2_18d.ra4_e3600_r224_in1k_start6_end8_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/timm/resnetv2_18d.ra4_e3600_r224_in1k/_decomposed/resnetv2_18d.ra4_e3600_r224_in1k_start6_end8_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/1/samples/timm/resnetv2_18d.ra4_e3600_r224_in1k/_decomposed/resnetv2_18d.ra4_e3600_r224_in1k_start6_end8_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/timm/resnetv2_18d.ra4_e3600_r224_in1k/_decomposed/resnetv2_18d.ra4_e3600_r224_in1k_start6_end8_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/resnetv2_18d.ra4_e3600_r224_in1k/_decomposed/resnetv2_18d.ra4_e3600_r224_in1k_start6_end8_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/resnetv2_101.a1h_in1k/_decomposed/resnetv2_101.a1h_in1k_start0_end2_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed"
+      },
       "limitations": []
     },
     {
@@ -3607,12 +3903,93 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/df/56/df5699a965dac8f108178647d2ebc725010eed38423aff34bc08a1b1c3a3e728",
       "graphs": 9,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 9,
+      "evidence": "parallel-port-task-results-v1/task-120/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start68_end87_9": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start68_end87_9": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start68_end87_9": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start68_end87_9": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start68_end87_9": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start68_end87_9": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/8/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start68_end87_9": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start68_end87_9": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/mmpose/LiteHRNet-18/_decomposed/LiteHRNet-18_start68_end87_9": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1",
+        "kiln-pattern-multi-output/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed"
+      },
       "limitations": []
     },
     {
@@ -3953,12 +4330,52 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/ae/5b/ae5bbd4df3aaf8155dc65d9405f0c23b4221456ae5dd7b48b55c55a4db7c11b8",
       "graphs": 4,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 4,
+      "evidence": "parallel-port-task-results-v1/task-136/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/torchaudio/wavlm_base/_decomposed/wavlm_base_start100_end112_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchaudio/wavlm_large/_decomposed/wavlm_large_start121_end133_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchaudio/wavlm_base/_decomposed/wavlm_base_start100_end112_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/torchaudio/wavlm_large/_decomposed/wavlm_large_start121_end133_5": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed"
+      },
       "limitations": []
     },
     {
@@ -4157,10 +4574,51 @@
       "graphs": 4,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "parallel-port-task-results-v1/task-142/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-Swinv2ForImageClassification/_decomposed/hf-tiny-model-private_tiny-random-Swinv2ForImageClassification_start0_end9_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/gagan3012_swin_arocr_tiny/_decomposed/gagan3012_swin_arocr_tiny_start0_end9_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-Swinv2ForImageClassification/_decomposed/hf-tiny-model-private_tiny-random-Swinv2ForImageClassification_start0_end9_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/gagan3012_swin_arocr_tiny/_decomposed/gagan3012_swin_arocr_tiny_start0_end9_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1",
+        "kiln-pattern-multi-output/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed"
+      },
       "limitations": []
     },
     {
@@ -4208,10 +4666,66 @@
       "graphs": 6,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "parallel-port-task-results-v1/task-144/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start2_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start2_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start2_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start2_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/1/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start2_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start2_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed"
+      },
       "limitations": []
     },
     {
@@ -4263,10 +4777,162 @@
       "graphs": 18,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "parallel-port-task-results-v1/task-149/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/mmseg/ERFNet/_decomposed/ERFNet_start73_end78_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmseg/ERFNet/_decomposed/ERFNet_start73_end78_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmseg/ERFNet/_decomposed/ERFNet_start1_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/mmseg/ERFNet/_decomposed/ERFNet_start7_end12_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/mmseg/ERFNet/_decomposed/ERFNet_start1_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/mmseg/ERFNet/_decomposed/ERFNet_start1_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmseg/ERFNet/_decomposed/ERFNet_start7_end12_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmseg/ERFNet/_decomposed/ERFNet_start7_end12_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmseg/ERFNet/_decomposed/ERFNet_start1_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/mmseg/ERFNet/_decomposed/ERFNet_start7_end12_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/mmseg/ERFNet/_decomposed/ERFNet_start1_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/mmseg/ERFNet/_decomposed/ERFNet_start73_end78_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/mmseg/ERFNet/_decomposed/ERFNet_start73_end78_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmseg/ERFNet/_decomposed/ERFNet_start7_end12_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmseg/ERFNet/_decomposed/ERFNet_start73_end78_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/mmseg/ERFNet/_decomposed/ERFNet_start73_end78_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/mmseg/ERFNet/_decomposed/ERFNet_start1_end6_0": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/mmseg/ERFNet/_decomposed/ERFNet_start7_end12_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed"
+      },
       "limitations": []
     },
     {
@@ -4471,10 +5137,66 @@
       "graphs": 6,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "parallel-port-task-results-v1/task-159/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/timm/rexnet_100.nav_in1k/_decomposed/rexnet_100.nav_in1k_start37_end41_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/timm/rexnet_100.nav_in1k/_decomposed/rexnet_100.nav_in1k_start37_end41_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/timm/rexnet_100.nav_in1k/_decomposed/rexnet_100.nav_in1k_start37_end41_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/timm/rexnet_100.nav_in1k/_decomposed/rexnet_100.nav_in1k_start37_end41_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/rexnet_100.nav_in1k/_decomposed/rexnet_100.nav_in1k_start37_end41_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/rexnet_100.nav_in1k/_decomposed/rexnet_100.nav_in1k_start37_end41_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed"
+      },
       "limitations": []
     },
     {
@@ -4787,10 +5509,34 @@
       "graphs": 2,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "parallel-port-task-results-v1/task-163/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/anton-l_sew-mid-100k-ft-common-language/_decomposed/anton-l_sew-mid-100k-ft-common-language_start740_end744_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/anton-l_sew-mid-100k-ft-common-language/_decomposed/anton-l_sew-mid-100k-ft-common-language_start740_end744_8": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed"
+      },
       "limitations": []
     },
     {
@@ -4809,10 +5555,66 @@
       "graphs": 6,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "parallel-port-task-results-v1/task-165/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start14_end19_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start14_end19_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start14_end19_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start14_end19_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start14_end19_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start14_end19_1": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed"
+      },
       "limitations": []
     },
     {
