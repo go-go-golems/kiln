@@ -7141,3 +7141,64 @@ See Step149 for the actual authored framework, reassessment and design-study req
 - Native submission payload maximum16384 UTF-8 bytes; duplicate keys and nonfinite JSON are rejected. The host fixes the numerical policy from agreeing manifest/receipt data.
 - Ledger files distinguish request reservation, result and unique accepted artifact. A finished task refuses new submissions; existing directories cannot be silently resumed or overwritten.
 - All new source remains within the PassNet integration, alongside the existing policy harness. No compiler production semantics, shared DGX checkout or original evaluator changed.
+
+## Step 152: Implement the native model loop and commit its isolated DGX launch inputs
+
+The preceding turn committed the trusted task boundary and final-source compiler replay in7854633, constituting implementation progress. This step connects that boundary to a bounded model loop using selected R2E-Gym components. Seven controlled-provider tests pass. The real model run is the next validation step and is explicitly not claimed by these tests.
+
+The run lifecycle stages committed inputs in an isolated DGX directory, verifies framework/model identity, starts an owned model container, executes a small proposal batch and releases that container. This prevents the smoke run from mutating the shared compiler or leaving inference resident during later timing.
+
+### Prompt Context
+See Step149 for the authored agent-framework and project-assessment requests.
+**User prompt (verbatim):** "have you created a design doc about all this new optimization stuff?"
+**Assistant interpretation:** Keep the current optimization architecture and implemented/planned boundaries documented in an accessible design document while continuing implementation.
+**Inferred user intent:** Make the research direction and its operational design reviewable as it develops.
+**Previous implementation commit:**7854633e94c591f47cd005f9d256826228e71f8f.
+
+### What I did
+- Added run_native_policy_agent.py with explicit local HTTP inference, R2E Action parsing, R2E TrajectoryStep records and native task dispatch.
+- Added seven loop/accounting tests using controlled responses and explicitly labeled framework doubles.
+- Added scripts428/429 for committed-source staging, pinned component/model verification, owned server execution and shutdown.
+- Extended design20 with the driver contract, budget definitions, failure handling and a lifecycle diagram; linked it in response to the user's question.
+- Inspected live DGX state: only the existing registry container was running; the GPU compute-process query was empty; the pinned agent interpreter exists.
+
+### Why
+- The original R2E Agent.run assumes repository repair and hard-coded tools. Reusing its Action and trajectory-step components preserves useful infrastructure without fabricating a repository task.
+- Explicit completion and step budgets avoid inheriting the original runner's ambiguous token accounting or hidden retries.
+- A small operational model run should precede the scientific comparison, while retaining the distinction between operational success and compiler improvement.
+
+### What worked
+- python3 -m unittest discover -s integrations/passnet -p test_native_policy_agent.py -v: seven tests passed.
+- Python syntax compilation passed for the driver and both staging/lifecycle scripts.
+- Controlled tests verify raw response retention, missing-usage rejection, no retry after a provider timeout, final-request token capping, rejection of partial/multiple actions and accounting of malformed submission arguments.
+
+### What didn't work
+- No unexpected executed test failure occurred. The provider-timeout test deliberately raises "controlled timeout" and verifies exactly one request.
+- Full R2E integration and actual inference remain untested at this source checkpoint. Tests using doubles do not establish framework compatibility.
+
+### What I learned
+- A native task needs explicit stopping/evidence fields rather than the repository framework's reward, patch and Docker trajectory assumptions.
+- Completion-token budget, prompt-token cost and server context capacity are different quantities; the new receipt records them without conflating their limits.
+
+### What was tricky to build
+- Truncated model completions may contain partial policy text. They are retained as evidence but cannot invoke the task.
+- Redirect handling must reject a redirect before making the redirected request, not merely check the final URL. The local transport disables redirects and proxy inheritance.
+- The staged source set includes the actual policy/evidence dependencies and verifies their committed bytes before transfer.
+
+### What warrants a second pair of eyes
+- Review the exact framework component reuse and the narrower local provider scope before interpreting the driver as a full unchanged R2E runner.
+- Review stop conditions and raw-response/usage accounting against the real server response during the smoke.
+- Review the owned-container identity checks and resource-release receipt before any GPU performance evaluation.
+
+### What should be done in the future
+- Run and collect the real two-proposal smoke from this committed source checkpoint, then compile accepted artifacts and proceed to the declared baseline comparison.
+- Keep task f5d9 open until the complete equal-budget experiment and fresh confirmation exist.
+
+### Code review instructions
+- Read run_native_policy_agent.py, test_native_policy_agent.py and design20's native-driver section.
+- Follow scripts428/429 from bundle verification through shutdown; inspect the forthcoming remote run receipt and raw per-step records.
+
+### Technical details
+- Initial smoke configuration: local Qwen3-30B-A3B BF16,40960-token server context, thinking enabled, two proposal slots, eight steps,4096 tokens per reply,16384 completion tokens total,180-second per-request timeout, no automatic retries.
+- Framework pin remains0d94c4eb9431cd195c55a7ea3abd54006c9a1735. R2E module hashes are derived from the archived source tarball.
+- Historical twelve-graph training features are operational inputs; no held-out measurements or new performance results are exposed or claimed.

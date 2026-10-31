@@ -91,3 +91,29 @@ Script426 exercises the boundary on the previously observed v8-r2 training popul
 Inspection of pinned R2E-Gym `0d94c4eb9431cd195c55a7ea3abd54006c9a1735` shows that `Agent.run` expects a `RepoEnv`, repository commit/test-patch metadata and repository command installation. `Agent.model_query` chooses hard-coded tool sets for the supported scaffolds. `Trajectory` also contains required Docker and patch fields. Consequently the native integration cannot honestly be implemented as a prompt change on the original runner or by inventing a fake repository repair task. The separate driver should reuse applicable query/action/trajectory-step components and implement the small native lifecycle explicitly. Any changed provider, parsing or retry behavior must be recorded. The unchanged original PassAgent configuration remains separate.
 
 The next step is to connect model actions to this task, retain raw requests/responses and usage, and feed accepted artifacts into the existing compilation and qualification harness. Artifact identity deduplication is already implemented; deduplication of distinct policies that lower to identical complete executables still belongs to the compiler/evaluation phase. The initial local-model experiment should batch proposals, stop serving, verify resource release, and then perform isolated correctness/timing evaluation. Training feedback can inform a later proposal batch after measurement; no concurrent serving/timing result should be promoted as an isolated compiler speedup.
+
+## Native agent driver and experiment lifecycle
+
+`run_native_policy_agent.py` now provides the separate proposal loop. It reuses pinned R2E-Gym `Action` parsing and `TrajectoryStep` records; it does not invoke the repository-editing `Agent.run`, assign a placeholder reward or fabricate Docker/patch fields for a repository trajectory. Model requests use the local OpenAI-compatible HTTP endpoint with an explicit model name. There are no automatic retries, inherited proxy settings or provider redirects. This initial provider implementation accepts loopback HTTP endpoints only and uses a dummy local key; external-provider credential handling is not implemented.
+
+The prompt defines the complete bounded policy grammar and the meaning of its features. The host declares a proposal count, model-step count, per-response token limit and cumulative completion-token budget. Every model request consumes a step; all returned prompt/completion usage is retained separately. The cumulative hard token limit applies to completion tokens, not the sum of repeated input-context tokens. The server's context limit remains a separate bound. A response without consistent usage information cannot execute a tool. A response stopped by a length limit is retained but its partial action is not executed. Invalid or multiple action blocks consume a model step; a recognized submission with duplicate parameters reaches the task as an invalid proposal and consumes a proposal slot.
+
+For each step the driver writes the exact JSON request, raw provider response and R2E trajectory-step record. Its final result reports the stopping condition, token usage, proposal ledger summary and `evaluation_status: not_run`. Finishing a batch does not select or promote a compiler policy. The first batch can use structural evidence and validation feedback; an adaptive experiment can alternate separately recorded proposal and training-measurement batches. That later feedback protocol must be fixed before comparison and must expose no confirmation data.
+
+```mermaid
+flowchart TD
+    A[Freeze sources, training population, grammar and budgets] --> B[Start pinned model server]
+    B --> C[Inspect training features and propose policy JSON]
+    C --> D[Trusted validation and charged proposal ledger]
+    D --> C
+    D --> E[Freeze accepted optimization artifacts]
+    E --> F[Stop owned server and verify resource release]
+    F --> G[Compile and deduplicate complete executables]
+    G --> H[Isolated training correctness and timing]
+    H --> I[Select and freeze one candidate]
+    I --> J[Fresh confirmation and declared comparison]
+```
+
+Scripts428/429 implement an operational smoke-run lifecycle on the DGX. The staging script refuses uncommitted input bytes and creates a separate source directory; it does not mutate the shared compiler checkout. The owning process verifies every bundle file, hashes the installed R2E Action/Trajectory modules against the archived pinned source, rehashes the full model artifact, and checks for existing GPU activity. It starts one named local model container, runs a two-proposal batch on previously observed training data, then stops only its verified container and records process/resource state. This operational run does not establish a new benchmark population or a policy speedup. Its results must be recorded separately from the later equal-budget experiment.
+
+The implementation has seven controlled-provider loop tests covering token/step stopping, missing usage, response retention, partial/malformed actions, no hidden query retry and explicit local provider selection. These tests use doubles for framework objects; the DGX smoke is required to verify the installed R2E components and real model response together. At this source checkpoint that smoke has not yet run.
