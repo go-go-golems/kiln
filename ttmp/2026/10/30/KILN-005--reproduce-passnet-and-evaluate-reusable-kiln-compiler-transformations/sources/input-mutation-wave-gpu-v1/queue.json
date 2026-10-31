@@ -1,0 +1,17 @@
+{
+  "format": "kiln-dependent-task-queue/1",
+  "study": "input-mutation-wave-gpu-v1",
+  "tmux_session": "kiln-input-mutation-wave-v1",
+  "wait_session": "kiln-breadth-replays-v1",
+  "require": [
+    {"study": "scalar-layout-batch-gpu-v1", "tasks": 5},
+    {"study": "stack-unbind-batch-gpu-v1", "tasks": 3}
+  ],
+  "script": "scripts/651-queue-task-plan-after.py",
+  "script_commit": "9dbf477",
+  "script_sha256": "10b351329a22e117c5e2acc4e837297c9fb46e9e937b663b367caa7d91d70f1e",
+  "remote_queue_log": "/home/manuel/passnet-kiln/KILN-005/sources/input-mutation-wave-gpu-v1/queue.log",
+  "remote_owner_log": "/home/manuel/passnet-kiln/KILN-005/sources/input-mutation-wave-gpu-v1/owner.log",
+  "observed_state": "uniform, breadth and mutation tmux sessions live; mutation run.json absent",
+  "status": "queued"
+}

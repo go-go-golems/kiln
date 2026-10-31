@@ -3359,3 +3359,44 @@ Read reference41, `fx_import.py` mutation branches and output flattening, `dispa
 
 ### Technical details
 The before audit SHA256 is `e805d42b062e355bd0337952686672d7d79ba51a12e1220066e5eca5f398c2a2`; the after audit SHA256 is `2ba985d0cd78862f287580be8b34c3a01fed78e92368c4ec1ec8ccfc1659ca16`. Compiler settings were A100 schedule target, separate contraction, Node26.13.0 and explicit internal synthetic-check bypass. The external PassBench numerical checker has not yet run on this source snapshot.
+
+## Step 229: Stage and queue the twelve-family mutation replay
+
+The guarded mutation wave's local compiler and pattern results are committed as `5df0172`. I staged its complete96-variant task plan on bling from that exact revision and launched a dependent tmux queue. The mutation queue waits for the earlier scalar/layout and structural replay queue to end and checks both result ledgers before it starts GPU work.
+
+### Prompt Context
+**User prompt:** See Step222 for broad coverage progress and the active project goal for implementation and measurement.
+**Assistant interpretation:** Carry the mutation wave from local compilation to a frozen external correctness run without disturbing the existing timed studies.
+**Inferred user intent:** Turn a large importer gain into a measured PassBench result with all graph variants counted.
+
+### What I did
+- Ran shared script641 for `input-mutation-wave-task-plan-v1.json`, staging 12 tasks/96 graphs at `/home/manuel/passnet-kiln/KILN-005/sources/input-mutation-wave-gpu-v1`. It verified committed source revision `5df01726d2088ea48bcd65cc84cf1ded33da626b`, source snapshot `ee38ebec1a74298702a769e575d6d17572c3ece2fa7a53fd569679e660c09195`, and plan SHA256 `731d923d01b5c50634da93137dbfd00a85b3b897e3b3b91429092523ef0d095f`.
+- Added reusable script651 to wait for a named tmux session, verify prerequisite `run.json` task counts, then launch one staged task plan in the existing pinned image path. Syntax-check and committed it as `9dbf477`; the remote copy matched SHA256 `10b351329a22e117c5e2acc4e837297c9fb46e9e937b663b367caa7d91d70f1e`.
+- Started `kiln-input-mutation-wave-v1` in tmux, waiting for `kiln-breadth-replays-v1`. Rechecked the uniform, breadth and mutation sessions: all live; mutation `results/run.json` absent; uniform task168 in evaluation at that observation.
+
+### Why
+The three GPU studies must run sequentially. The source revision, graph membership and prerequisite task counts are part of the result contract. A waiting queue can begin the mutation replay promptly after the earlier studies finish while refusing to proceed if either prior run terminates incomplete.
+
+### What worked
+Remote source and plan hashes matched their local receipts. The dependent queue was live and did not start the mutation GPU workload early. The exact staging and queue receipts are in `sources/input-mutation-wave-gpu-v1/`.
+
+### What didn't work
+No staging or queue failure occurred. External mutation correctness and task scores remain unmeasured.
+
+### What I learned
+The existing task-plan staging path handles a compiler capability with public output aliases and hidden effects without special remote-corpus logic. The original PassBench checker remains the decisive gate.
+
+### What was tricky to build
+The mutation queue must wait for the earlier breadth queue, which itself waits for the frozen111-task run. It checks the five-family and three-family `run.json` files after the breadth session exits, so an earlier failed queue cannot silently trigger a new timed run.
+
+### What warrants a second pair of eyes
+Inspect the mutation replay's source match count, CUDA writeback and returned aliases in the original evaluator. Its local compiler success is weaker than external numerical acceptance.
+
+### What should be done in the future
+Audit each run after its own `status=complete` and full task count; do not combine the three source snapshots into one uniform acceptance statistic. Classify shared mutation failures before changing the effect path.
+
+### Code review instructions
+Read script651, the staging and queue receipts, script641, `input-mutation-wave-task-plan-v1.json` and reference41. Inspect both prerequisite tmux sessions and their terminal run files before interpreting the mutation replay.
+
+### Technical details
+The remote queue script lives in the staged mutation directory as `queue.py`, with `queue.log` for scheduling and `owner.log` for the actual GPU runner. Its dependencies are scalar5 and structural3 complete task records; those checks do not assert numerical acceptance. The mutation run is frozen to the earlier source revision even though later documentation commits may advance the branch.
