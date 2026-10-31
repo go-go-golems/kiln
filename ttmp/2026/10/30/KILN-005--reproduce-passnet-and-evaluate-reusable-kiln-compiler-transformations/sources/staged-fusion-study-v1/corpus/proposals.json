@@ -1,0 +1,33 @@
+{
+  "policies": [
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "baseline",
+      "kind": "unchanged"
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "default",
+      "kind": "threshold",
+      "max_work_growth": 1.02
+    },
+    {
+      "consumer_tree": {
+        "threshold": 2
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "glm-28",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.02
+      }
+    },
+    {
+      "format": "kiln-transformation-program/1",
+      "id": "staged-fusion",
+      "kind": "scheduling-fusion"
+    }
+  ],
+  "training_membership_sha256": "d236540b3b5ff4a62df035920d91602fe34df10c1d51b1facb2d8e535c3218e9",
+  "provenance": "Manually derived staged transformation informed by measured GLM policy; development comparison."
+}
