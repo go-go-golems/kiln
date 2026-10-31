@@ -131,7 +131,7 @@ export function broadcastMap(from, to) {
 }
 
 // ----------------------------------------------------------------------------- dialects
-const T_ = (shape) => k.tensor(shape);
+const T_ = (shape, dtype = "f32") => k.tensor(shape, dtype);
 const sameAs = ({ x }) => x.type;
 
 export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like op set, each with reference semantics")
@@ -145,9 +145,9 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
   .op("gelu", { args: ["x"], attrs: { approximate: "tanh" }, infer: sameAs, eval: ({ x }) => ewRef("mul", [ewRef("mul", [x, 0.5]), ewRef("add", [1, ewRef("tanh", [ewRef("mul", [0.7978845608, ewRef("add", [x, ewRef("mul", [0.044715, ewRef("mul", [x, ewRef("mul", [x, x])])])])])])])]), print: "gelu({x})" })
   .op("silu", { args: ["x"], infer: sameAs, eval: ({ x }) => ewRef("mul", [x, ewRef("sigmoid", [x])]), print: "silu({x})" })
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1, keepdim: true }, infer: ({ x, axis, keepdim }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(keepdim ? s.map((d, i) => (i === a ? 1 : d)) : s.filter((_, i) => i !== a)); }, eval: ({ x, fn, axis, keepdim }) => reduceRef(fn, x, axis, keepdim), print: "{fn}({x}, axis={axis})" })
-  .op("transpose", { args: ["x"], attrs: { d0: -2, d1: -1 }, infer: ({ x, d0, d1 }) => { const s = x.type.shape.slice(); const n = s.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; [s[i], s[j]] = [s[j], s[i]]; return T_(s); }, eval: ({ x, d0, d1, type }) => { const n = asT(x).shape.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; return viewRef(x, type.shape, IX.map(n, (a) => { const b = a.slice(); [b[i], b[j]] = [b[j], b[i]]; return b; })); }, print: "transpose({x}, {d0}, {d1})" })
-  .op("reshape", { args: ["x"], attrs: { shape: [] }, infer: ({ x, shape }) => { if (numel(shape) !== numel(x.type.shape)) throw new KilnError("ShapeError", `reshape (${x.type.shape}) → (${shape}): sizes differ`); return T_(shape); }, eval: ({ x, shape }) => new Tensor(shape, asT(x).data.slice()), print: "reshape({x}, {shape})" })
-  .op("slice", { args: ["x"], attrs: { axis: 0, start: 0, end: 1 }, infer: ({ x, axis, start, end }) => { const s = x.type.shape.slice(); const a = axis < 0 ? s.length + axis : axis; s[a] = end - start; return T_(s); }, eval: ({ x, axis, start, type }) => { const n = asT(x).shape.length; const a = axis < 0 ? n + axis : axis; return viewRef(x, type.shape, IX.map(n, (c) => c.map((v, i) => (i === a ? v.add(start) : v)))); }, print: "{x}[{axis}: {start}..{end}]" });
+  .op("transpose", { args: ["x"], attrs: { d0: -2, d1: -1 }, infer: ({ x, d0, d1 }) => { const s = x.type.shape.slice(); const n = s.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; [s[i], s[j]] = [s[j], s[i]]; return T_(s, x.type.dtype); }, eval: ({ x, d0, d1, type }) => { const n = asT(x).shape.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; return viewRef(x, type.shape, IX.map(n, (a) => { const b = a.slice(); [b[i], b[j]] = [b[j], b[i]]; return b; })); }, print: "transpose({x}, {d0}, {d1})" })
+  .op("reshape", { args: ["x"], attrs: { shape: [] }, infer: ({ x, shape }) => { if (numel(shape) !== numel(x.type.shape)) throw new KilnError("ShapeError", `reshape (${x.type.shape}) → (${shape}): sizes differ`); return T_(shape, x.type.dtype); }, eval: ({ x, shape }) => new Tensor(shape, asT(x).data.slice()), print: "reshape({x}, {shape})" })
+  .op("slice", { args: ["x"], attrs: { axis: 0, start: 0, end: 1 }, infer: ({ x, axis, start, end }) => { const s = x.type.shape.slice(); const a = axis < 0 ? s.length + axis : axis; s[a] = end - start; return T_(s, x.type.dtype); }, eval: ({ x, axis, start, type }) => { const n = asT(x).shape.length; const a = axis < 0 ? n + axis : axis; return viewRef(x, type.shape, IX.map(n, (c) => c.map((v, i) => (i === a ? v.add(start) : v)))); }, print: "{x}[{axis}: {start}..{end}]" });
 
 export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, reduction and index-map primitives")
   .op("const", { attrs: { value: 0, shape: [], data: null }, traits: ["pure", "any-ir"], infer: ({ shape, data }) => T_(data ? data.shape : shape),
@@ -156,7 +156,7 @@ export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, redu
   .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add" }, traits: ["pure"], infer: ({ xs }) => xs[0].type, eval: ({ xs, fn }) => ewRef(fn, xs),
     validate: ({ args }) => args.every((a) => a.type.shape.join() === args[0].type.shape.join()) || "elementwise inputs must share a shape (insert views)", print: "{fn}({xs})" })
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1 }, traits: ["pure"], infer: ({ x, axis }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(s.map((d, i) => (i === a ? 1 : d))); }, eval: ({ x, fn, axis }) => reduceRef(fn, x, axis), print: "{fn}({x}, axis={axis})" })
-  .op("view", { args: ["x"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ shape }) => T_(shape), eval: ({ x, shape, map }) => viewRef(x, shape, map),
+  .op("view", { args: ["x"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, shape }) => T_(shape, x.type.dtype), eval: ({ x, shape, map }) => viewRef(x, shape, map),
     print: ({ x, map }) => `${x}[${map.exprs.map((e) => IX.print(e)).join(", ")}]` });
 
 // constants: splat values lift to tensor.const; data constants carry a Tensor

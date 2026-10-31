@@ -1082,3 +1082,43 @@ Original implementation scope and explicit environment-read notification constra
 
 ### Technical details
 - Independent generated-copy fixture; original graph benchmark precision support remains incomplete. No upstream code copied.
+
+## Step 26: Preserve view dtypes and use authoritative artifact widths
+
+Found view type inference silently discarded source dtype. Updated reshape/transpose/slice and tensor.view to preserve it, and replaced artifact's u8-versus-f32 size assumption with dtypeBytes-based four-byte alignment. Kernel output typing remains incomplete; no full low-precision graph execution claim.
+
+### Prompt Context
+Original scope includes all compiler changes needed for the actual corpus.
+**Assistant interpretation:** Propagate type information without changing source computation.
+**Inferred user intent:** Avoid incorrect pointer/storage interpretation.
+
+### What I did
+- Updated std/tensor.js view inference and std/export.js buffer byte allocation.
+- Added view-dtypes.mjs covering f32/f16/bf16/u8/i64 and four view forms.
+
+### Why
+- Views must retain storage element type; byte counts must derive from explicit type widths.
+
+### What worked
+- Local Node v26.13.0 view test passed.
+
+### What didn't work
+- No new failures; broader export regression and lowered kernel output typing still pending.
+
+### What I learned
+- Frontend view dtype loss occurs before backend codegen, so emitter support alone cannot fix it.
+
+### What was tricky to build
+- Preserve existing four-byte buffer alignment while using two-byte low-precision and eight-byte integer logical storage widths.
+
+### What warrants a second pair of eyes
+- Shape-changing view semantics and storage aliasing remain distinct from dtype preservation. No broader layout support is claimed.
+
+### What should be done in the future
+- Run export/compiler regressions; propagate typed kernel outputs and explicit rounding boundaries.
+
+### Code review instructions
+- Review view-dtypes.mjs, std/tensor.js and std/export.js. Test currently proves graph type preservation, not CUDA execution for these views.
+
+### Technical details
+- Independent edits to existing Kiln implementation; no upstream source copied.

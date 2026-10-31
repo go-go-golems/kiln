@@ -1,13 +1,13 @@
 // kiln-program/1: a compiled program as a consumer loads it. Kernels in launch order, the buffer each argument reads
 // and each kernel writes, the dispatch geometry, and the identity that ties every kernel back to its record.
-import { numel } from "../core/util.js";
+import { numel, dtypeBytes } from "../core/util.js";
 import { KilnError } from "../core/kiln.js";
 import { CODEGEN_VERSION } from "./records.js";
 
 export const PROGRAM_FORMAT = "kiln-program/1";
 
 const cname = (s) => String(s || "kernel").replace(/[^\w]/g, "_");
-const words = (dtype, n) => (dtype === "u8" ? Math.ceil(n / 4) : n);
+const storageBytes = (dtype, n) => Math.max(4, Math.ceil(n * dtypeBytes(dtype) / 4) * 4);
 const base64 = (bytes) => { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(s); };
 
 /**
@@ -32,7 +32,7 @@ export function exportProgram(run, prog, { name, params = {}, target = null, sou
   const buffers = [], byNode = new Map();
   const add = (nodeId, dtype, shape, extra = {}) => {
     const id = buffers.length, elements = numel(shape);
-    buffers.push({ id, dtype, elements, bytes: Math.max(4, words(dtype, elements) * 4), ...extra });
+    buffers.push({ id, dtype, elements, bytes: storageBytes(dtype, elements), ...extra });
     byNode.set(nodeId, id);
     return id;
   };
