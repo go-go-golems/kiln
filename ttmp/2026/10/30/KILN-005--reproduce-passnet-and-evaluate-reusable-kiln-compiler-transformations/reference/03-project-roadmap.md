@@ -46,3 +46,9 @@ The immediate critical path is:
 6. Extend the same harness to generated reusable policies and transformation programs; use original PassBench for external comparisons.
 
 The existing default is fused work <= 1.02 × original work. An initial scalar-threshold study now selects 1.25 and measures 1.0186x family-balanced held-out e2e speedup on seven FP32 development graphs; only one held-out executable changes. No generated decision program, new rewrite algorithm or agent comparison has been measured yet. Direct FX-to-Kiln experiments avoid the per-task matcher-authoring step, but are separate from PassBench acceptance and scores. Unrelated missing operator implementation is deferred while this path is built.
+
+### Fresh conditional-policy checkpoint
+
+The second direct policy study is complete: eight bounded policies compiled on 20 fresh official-training-source graphs (12 train, eight held-out). Every candidate aliases baseline on training, so selection retained unchanged Kiln; all 20 replay checks and stable timing runs qualified. This is a negative optimization result, not full PassBench acceptance. Design 07 and policy-measurements-v2/verified-facts.json own details.
+
+Original-source Inductor reference attempts are complete for all 200 tasks / 2,060 variants. The upstream tolerance-one audit accepts 2,039 variants and 191 complete tasks. Historical timing overlap and different hardware/software prevent a final paper-comparable performance claim. Controlled baseline reruns, original PassAgent evaluation and remaining Kiln task support remain open.

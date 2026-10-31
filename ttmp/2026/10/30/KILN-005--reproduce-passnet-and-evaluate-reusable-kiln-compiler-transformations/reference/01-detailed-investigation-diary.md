@@ -3439,3 +3439,51 @@ See Step 78 and the standing self-optimization, evidence and diary requirements.
 
 ### Technical details
 - Existing global default stays 1.02. Fresh direct study and full PassBench accepted coverage remain distinct. The original reference log's 2,041 success labels are execution labels; the upstream tolerance checker must determine numerical correctness.
+
+## Step 80: Complete confirmation and audit all original reference variants
+
+The fresh study completed with unchanged Kiln selected and all eight confirmation graphs qualified. No compiler improvement is claimed. Independently, exact membership and the original tolerance-one checker were applied to the completed 200-task reference logs, yielding 2,039 numerically accepted variants and 191 complete accepted tasks. These are Inductor reference results, not Kiln coverage.
+
+### Prompt Context
+See Steps 78–79, the user's coverage clarification and standing milestone documentation requirements.
+**Assistant interpretation:** Finish the registered negative experiment, audit the broader reference evidence, and explain the implications accurately.
+**Inferred user intent:** Preserve both successful infrastructure and unsuccessful optimization hypotheses with traceable measurements.
+**Commit (selection fixed before confirmation):** b1d6dc8.
+
+### What I did
+- Completed and archived heldout.json; added scripts 88–89 to reproduce summary and verify artifact/control identities, selection, exact membership, repeat counts and timing stability.
+- Added script 90 to extract training-only opportunity traces for the next proposal study.
+- Archived all 200 reference logs and their execution receipt in reference-full-logs.tar.gz, with file hashes and exact expected graph checks in reference-full-audit.json. Script 85 invokes pinned upstream analysis_util rather than reimplementing its numerical criterion.
+- Updated the intern guide and roadmap, and prepared the next technical report explaining the conditional policy language, negative selection result and original-reference audit.
+
+### Why
+- Execution success is weaker than numerical acceptance. Likewise, an expressive policy language is weaker than evidence that it improves generated code. Both distinctions affect research conclusions.
+
+### What worked
+- All eight confirmation graphs passed replay correctness and stable three-repeat timing. Summary selects baseline with exactly 1.0 relative speedup and zero changed selected artifacts.
+- Script 89 independently recomputed the study evidence. Selection SHA256 remains 7e8268bacf28b161a4a6c2cb7a7b827f70b556ae68fa39df11b798e367c4235c.
+- Reference audit verifies exactly 200 tasks / 2,060 unique variants; 2,039 pass upstream tolerance one, 191 tasks pass every variant. Execution-success labels count 2,041, including two numerical failures.
+- Default training traces contain 70 accepted and zero rejected profitability decisions. Ten programs have one kernel, two have two kernels.
+
+### What didn't work
+- Staging selection directly into the container-created remote results directory failed: `rsync: [receiver] mkstemp "/home/manuel/passnet-kiln/KILN-005/policy-measurements-v2/.selection.json.3tatRb" failed: Permission denied (13)` and rsync code 23. Saved driver 87 stages identical selection bytes through the existing Docker mount; no broad permission change was needed. Verified the failed confirmation handle was absent before rerunning with a new raw log.
+- A report fact-check assertion that every training program had one kernel failed with `AssertionError`. Inspecting all receipts showed ten one-kernel and two two-kernel programs. Corrected the draft before publication and saved the exact histogram/traces in training-opportunities.json.
+- Upstream parser labels all 19 execution failures eager_fail, while explicit raw log messages identify 16 eager and three compiled execution failures. Preserved both classifications instead of treating the parser label as causal evidence.
+
+### What I learned
+- This training corpus has no rejected profitability decisions for a relaxed policy to reverse. Multi-kernel programs can remain due to matcher or output restrictions even when all observed profitability guards accept.
+
+### What was tricky to build
+- Separate observed execution labels, original numerical checker results, raw failure reasons and final timing validity. The original reference run was historically interrupted or overlapped development, so its timing is exploratory despite complete membership.
+
+### What warrants a second pair of eyes
+- Confirm exact model separation is not presented as architecture independence; baseline-versus-itself timing is not an optimization result; original Inductor acceptance counts are not Kiln support counts. No hardware-matched reproduction or final full-corpus performance claim is justified.
+
+### What should be done in the future
+- Design the next synthesis experiment around training transformation opportunities, with a new declared proposal budget and confirmation boundary. Continue controlled baseline work, original PassAgent reproduction and broader Kiln support separately.
+
+### Code review instructions
+- Run scripts 88–90. Extract the saved reference archive and run script 85 with the pinned upstream path. Review report facts against summary.json, training-opportunities.json and reference-full-audit.json.
+
+### Technical details
+- The shared summarizer now uses source-neutral scope text instead of incorrectly asserting every future corpus comes from evaluation tasks or every policy is scalar. Historical saved summaries remain intact. Global compiler default remains 1.02; current accepted Kiln PassBench coverage remains five tasks / 73 graphs.

@@ -1,0 +1,44 @@
+Fri Oct 30 23:37:00 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.178.04             Driver Version: 580.178.04     CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GB10                    On  |   0000000F:01:00.0 Off |                  N/A |
+| N/A   32C    P8              4W /  N/A  | Not Supported          |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A            2422      G   /usr/lib/xorg/Xorg                      126MiB |
+|    0   N/A  N/A            2628      G   /usr/bin/gnome-shell                     18MiB |
++-----------------------------------------------------------------------------------------+
+START train graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start146_end150_4
+Traceback (most recent call last):
+  File "/work/kiln/integrations/passnet/measure_policy.py", line 139, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/work/kiln/integrations/passnet/measure_policy.py", line 89, in main
+    named=get_input_dict(argparse.Namespace(model_path=str(source),device='cuda'))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 119, in get_input_dict
+    inputs_params = utils.load_converted_from_text(f"{args.model_path}")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/utils.py", line 210, in load_converted_from_text
+    input_info = list(convert_meta_classes_to_tensors(f"{file_path}/input_meta.py"))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/utils.py", line 256, in convert_meta_classes_to_tensors
+    tensor_meta_attrs_list = [
+                             ^
+  File "/work/upstream/pass_bench/torch/utils.py", line 323, in _get_classes
+    spec.loader.exec_module(unnamed)
+  File "<frozen importlib._bootstrap_external>", line 991, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 1128, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1186, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/hgnetv2_b0.ssld_stage1_in22k_in1k/_decomposed/hgnetv2_b0.ssld_stage1_in22k_in1k_start146_end150_4/input_meta.py'

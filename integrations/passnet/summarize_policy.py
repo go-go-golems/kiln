@@ -47,8 +47,8 @@ def summarize(corpus,training,selection,heldout):
             'heldout_family_balanced_e2e_speedup':None if failures else balanced(families),
             'heldout_family_balanced_stream_elapsed_speedup':None if failures else balanced(stream_families),
             'changed_heldout_artifacts':sum(r['artifact_changed'] for r in rows),'records':rows,
-            'limitations':['Small FP32 development corpus drawn from evaluation tasks; not an untouched paper benchmark.',
-             'Scalar threshold selection, not a newly synthesized rewriting algorithm.',
+            'limitations':['Small FP32 development corpus; consult the frozen measurement plan for its source population and eligibility restrictions.',
+             'Profitability-policy selection preserves the existing fusion rewrite; it does not synthesize a new graph mutation.',
              'Identical executable fingerprints share measurements; unchanged graphs are not independent performance contrasts.',
              'Three warm repeats on one GB10; repeat ranges are descriptive and not strong statistical confidence.',
              'Direct compiler metrics are relative to unchanged Kiln, not eager or official PassBench scores.']}
