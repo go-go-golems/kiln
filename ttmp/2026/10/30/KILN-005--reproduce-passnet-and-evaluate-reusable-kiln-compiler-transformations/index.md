@@ -37,6 +37,7 @@ Reproduce the original PassNet experiment independently, then evaluate Kiln-gene
 - [Resident expert architecture review and direction](reference/45-resident-expert-architecture-review-and-direction.md) — verified defects, structural recommendations and the P0–P3 plan
 - [Kiln PassNet system guide for new interns](design-doc/22-kiln-passnet-system-guide-for-new-interns.md)
 - [Uniform 111-family PassBench qualification result](reference/46-uniform-111-family-passbench-qualification-result.md) — 86/111 complete families on one frozen snapshot, every failure named
+- [Cost model calibration and a cost-gated transformation counterfactual](reference/47-cost-model-calibration-and-a-cost-gated-transformation-counterfactual.md) — model predicts paired effects; gating would have turned the fixed program's transfer loss into a gain (retrospective)
 - [Intern architecture and implementation guide](design-doc/01-passnet-reproduction-and-kiln-integration-intern-guide.md)
 - [Detailed chronological diary](reference/01-detailed-investigation-diary.md)
 - [Latest qualification and original-agent audit report](reference/21-singleton-view-qualification-and-audited-original-agent-failure.md)
