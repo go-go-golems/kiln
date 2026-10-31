@@ -2210,3 +2210,50 @@ Original correctness and full-task requirements; no weakened tolerances.
 
 ### Technical details
 - Verified benchmark coverage remains 2/200; this numerical failure is not an external blocker and implementation work continues.
+
+## Step 53: Preserve stage-by-stage FP16 diagnostic
+
+Compiled an explicitly diagnostic graph exposing convolution, ReLU, residual and resize separately. Started GPU comparisons against each PyTorch intermediate and alternate FP32/bias-order hypotheses. No causal conclusion or fix is claimed before the diagnostic finishes.
+
+### Prompt Context
+Original numerical correctness and intermediate script preservation requirements.
+**Assistant interpretation:** Isolate first divergence without loosening tolerances.
+**Inferred user intent:** Correct source semantics rather than mask error.
+
+### What I did
+- Saved script 34 generating stage outputs and diagnose_third_task_cuda.py.
+- Confirmed diagnostic export completed (five kernels); costly loop reference again skipped.
+- Started stage comparisons plus FP32 accumulation and post-narrowing bias hypotheses.
+
+### Why
+- Final mismatch alone cannot identify convolution, fusion, bias or resize as cause.
+
+### What worked
+- Diagnostic export completed and GPU process is being observed.
+
+### What didn't work
+- Original failure from Step 52 remains unresolved; no new terminal diagnostic result yet.
+
+### What I learned
+- Exposing stages changes fusion/kernel boundaries, so compare this diagnostic with original fused artifact after any fix.
+
+### What was tricky to build
+- Compare later stages both cumulatively and relative to Kiln's own earlier output to separate propagated error from new local error.
+
+### What warrants a second pair of eyes
+- Bias-add precision/order is a hypothesis only; actual cuDNN/PyTorch behavior needs evidence.
+
+### What should be done in the future
+- Poll same GPU handle, archive report and artifacts, fix first established divergence and rerun original graph.
+
+### Code review instructions
+- Inspect script 34 and diagnose_third_task_cuda.py; no benchmark tolerance/config changes introduced.
+
+### Technical details
+- Separate diagnostic process disables TF32 only for its alternate FP32 oracle; benchmark configuration is unchanged. Verified coverage remains 2/200.
+
+### Completed diagnostic outcome
+- First divergence: convolution 180 failing elements; later stages have zero local error when compared against Kiln preceding outputs.
+- PyTorch FP16 biased convolution exactly equals FP16 bias-free convolution followed by FP16 bias addition for this test (zero differing elements).
+- Kiln versus FP32-narrow oracle has ten failing elements; biased PyTorch half versus that oracle has 185. Bias boundary is established as material, but accumulation-order residuals may remain.
+- Next change must narrow convolution before bias addition, then rerun original fused graph rather than only stage diagnostic.
