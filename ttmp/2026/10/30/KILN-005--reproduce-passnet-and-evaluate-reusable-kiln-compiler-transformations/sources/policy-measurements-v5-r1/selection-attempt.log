@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/select_policy.py", line 44, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/select_policy.py", line 37, in main
+    data=json.loads(args.training.read_text());ranking=rank_training(data)
+                                                       ~~~~~~~~~~~~~^^^^^^
+  File "/home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/select_policy.py", line 24, in rank_training
+    if baseline['status']!='measured':raise ValueError('Unchanged compiler baseline is not qualified')
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Unchanged compiler baseline is not qualified

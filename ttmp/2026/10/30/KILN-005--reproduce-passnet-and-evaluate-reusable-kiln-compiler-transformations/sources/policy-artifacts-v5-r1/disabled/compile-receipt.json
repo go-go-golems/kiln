@@ -1,0 +1,3666 @@
+{
+  "format": "kiln-policy-compilation/2",
+  "membership_sha256": "f3df1ddadef41f31d9b88ab9953c7c7a2a6cd3bffa75bb830159205b40848ad0",
+  "reference_domain_sha256": "de834185118d0d3b117076d59c69c3720cbd93e0fe8272f55628280c1ba21eda",
+  "policy": {
+    "format": "kiln-fusion-policy/1",
+    "id": "disabled",
+    "kind": "threshold",
+    "max_work_growth": 0,
+    "provenance": {
+      "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+      "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+    }
+  },
+  "policy_node_count": 1,
+  "target": "a100",
+  "phase": "all",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "records": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmseg/Twins_svt-s_fpn/_decomposed/Twins_svt-s_fpn_start691_end695_10",
+      "split": "train",
+      "script": "000.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "000.kiln.json",
+      "fingerprint": "da8adef745fbcc82c5ef4b05cf1efebadbf8f8c3006a29b56036b109ded1e996",
+      "kernel_count": 24,
+      "kernel_identities": [
+        "1rhprhrfbc",
+        "23jrgeoy3v4",
+        "1mem2ch7qjx",
+        "167w8pmah5q",
+        "nvrgjw77cm",
+        "10t6jmxxqq5",
+        "2ed06hwl3cs",
+        "z5gortc00w",
+        "167w8pmah5q",
+        "nvrgjw77cm",
+        "sambyldrat",
+        "1bay0d74l03",
+        "10t6jmxxqq5",
+        "pji20eiqa1",
+        "1pe2n1kok5x",
+        "1w6jfq97em7",
+        "pji20eiqa1",
+        "1pe2n1kok5x",
+        "1w6jfq97em7",
+        "xuvmh2kay3",
+        "1lstwntty0c",
+        "23jrgeoy3v4",
+        "13mhusodozc",
+        "13mhusodozc"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 131072,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 0.046277538532518654,
+            "bad": 0,
+            "n": 131072,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          },
+          {
+            "name": "out2",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 0.046277538532518654,
+            "bad": 0,
+            "n": 131072,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 9437184,
+          "fusedWork": 6291456,
+          "consumerCount": 2,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 6291456,
+          "fusedWork": 3145728,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 7995392,
+          "fusedWork": 4849664,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 7995392,
+          "fusedWork": 4849664,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3158016,
+          "fusedWork": 3145728,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 9699328,
+          "fusedWork": 6553600,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 7995392,
+          "fusedWork": 4849664,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3158016,
+          "fusedWork": 3145728,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 9699328,
+          "fusedWork": 6553600,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 6425600,
+          "fusedWork": 3279872,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1583104,
+          "fusedWork": 1576960,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 13568,
+          "fusedWork": 7424,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 13568,
+          "fusedWork": 7424,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1714176,
+          "fusedWork": 1708032,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 4983808,
+          "fusedWork": 1838080,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 12976128,
+          "fusedWork": 11534336,
+          "consumerCount": 2,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 6425600,
+          "fusedWork": 3279872,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1583104,
+          "fusedWork": 1576960,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1714176,
+          "fusedWork": 1708032,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 9702400,
+          "fusedWork": 6556672,
+          "consumerCount": 2,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 6291456,
+          "fusedWork": 3145728,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 112.87760200000001
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-BertForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-BertForSequenceClassification_start106_end109_11",
+      "split": "train",
+      "script": "001.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "001.kiln.json",
+      "fingerprint": "a8802d573ab4c5dc2ee8c5144d1c38a2bb0737b975ffd13ff685116fc8a018b5",
+      "kernel_count": 12,
+      "kernel_identities": [
+        "s5gn8pgj7j",
+        "chl5ogxm01",
+        "19miev8bqkw",
+        "114x8n61hbe",
+        "xhlv7g766",
+        "5aaqxdrg9e",
+        "2aai9emt21i",
+        "1cw7jz4q14j",
+        "22bqitu8pwp",
+        "zg062f3qmt",
+        "s5gn8pgj7j",
+        "16tkqbeext"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.0000019073486328125,
+            "maxRel": 0.0007637828043843497,
+            "bad": 0,
+            "n": 2048,
+            "first": -1,
+            "message": "max abs diff 1.91e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 98304,
+          "fusedWork": 49152,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 124928,
+          "fusedWork": 75776,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 124928,
+          "fusedWork": 75776,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 49920,
+          "fusedWork": 49152,
+          "consumerCount": 1,
+          "producerElements": 32,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 124928,
+          "fusedWork": 75776,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 925696,
+          "fusedWork": 876544,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3301376,
+          "fusedWork": 1728512,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3997696,
+          "fusedWork": 2424832,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1597440,
+          "fusedWork": 1572864,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3235840,
+          "fusedWork": 1662976,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 860160,
+          "fusedWork": 811008,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 24.895781
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/google_pegasus-xsum/_decomposed/google_pegasus-xsum_start39_end44_4",
+      "split": "train",
+      "script": "002.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "002.kiln.json",
+      "fingerprint": "d3b944ef0bedcaf21e7b9cc8ad0306467b001710d25eb7fc515bf8fd58f0bd72",
+      "kernel_count": 13,
+      "kernel_identities": [
+        "1d7pm3eu5nl",
+        "iywoi1yr8",
+        "1ozto1imv4c",
+        "kuood05c47",
+        "qgyyvfpf8l",
+        "20pm1bw6hak",
+        "1unnw0745hq",
+        "1qy3i82oj62",
+        "29ztzcjmq4n",
+        "146fuwug5gq",
+        "gg64rj3bqo",
+        "iywoi1yr8",
+        "1d7pm3eu5nl"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~98M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 491520,
+          "fusedWork": 245760,
+          "consumerCount": 1,
+          "producerElements": 10240,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 624640,
+          "fusedWork": 378880,
+          "consumerCount": 1,
+          "producerElements": 10240,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 624640,
+          "fusedWork": 378880,
+          "consumerCount": 1,
+          "producerElements": 10240,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 270336,
+          "fusedWork": 245760,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 624640,
+          "fusedWork": 378880,
+          "consumerCount": 1,
+          "producerElements": 10240,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 136683520,
+          "fusedWork": 136437760,
+          "consumerCount": 1,
+          "producerElements": 10240,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 524410880,
+          "fusedWork": 272752640,
+          "consumerCount": 1,
+          "producerElements": 10485760,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 639631360,
+          "fusedWork": 387973120,
+          "consumerCount": 1,
+          "producerElements": 10485760,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 276824064,
+          "fusedWork": 251658240,
+          "consumerCount": 1,
+          "producerElements": 1048576,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 513925120,
+          "fusedWork": 262266880,
+          "consumerCount": 1,
+          "producerElements": 10485760,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 126197760,
+          "fusedWork": 125952000,
+          "consumerCount": 1,
+          "producerElements": 10240,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 15.681115999999975
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/Finnish-NLP_electra-base-generator-finnish/_decomposed/Finnish-NLP_electra-base-generator-finnish_start19_end23_4",
+      "split": "train",
+      "script": "003.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "003.kiln.json",
+      "fingerprint": "1336a95726513e186a0642e9b96b32fdfb0024d7391cddb2e801c11832202310",
+      "kernel_count": 13,
+      "kernel_identities": [
+        "ldgjk8fp43",
+        "3uoilppj8k",
+        "2zaa3fcyee",
+        "24cj0i8musp",
+        "1gybizjnalr",
+        "1bfci1945z7",
+        "11m7lffq58i",
+        "1ebopf1ujq4",
+        "2l3nt7u0ek",
+        "ci71v10ggw",
+        "1v4ou837zxn",
+        "3uoilppj8k",
+        "ht05yzk71r"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4864,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0.00003814697265625,
+            "maxRel": 0.004121908534022408,
+            "bad": 0,
+            "n": 4864,
+            "first": -1,
+            "message": "max abs diff 3.81e-5"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 233472,
+          "fusedWork": 116736,
+          "consumerCount": 1,
+          "producerElements": 4864,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 296704,
+          "fusedWork": 179968,
+          "consumerCount": 1,
+          "producerElements": 4864,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 296704,
+          "fusedWork": 179968,
+          "consumerCount": 1,
+          "producerElements": 4864,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 122880,
+          "fusedWork": 116736,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 296704,
+          "fusedWork": 179968,
+          "consumerCount": 1,
+          "producerElements": 4864,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 16362496,
+          "fusedWork": 16245760,
+          "consumerCount": 1,
+          "producerElements": 4864,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 62317568,
+          "fusedWork": 32433152,
+          "consumerCount": 1,
+          "producerElements": 1245184,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 75956224,
+          "fusedWork": 46071808,
+          "consumerCount": 1,
+          "producerElements": 1245184,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 31457280,
+          "fusedWork": 29884416,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 61072384,
+          "fusedWork": 31187968,
+          "consumerCount": 1,
+          "producerElements": 1245184,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 15117312,
+          "fusedWork": 15000576,
+          "consumerCount": 1,
+          "producerElements": 4864,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 49.59713399999998
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NezhaForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NezhaForSequenceClassification_start10_end13_2",
+      "split": "train",
+      "script": "004.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "004.kiln.json",
+      "fingerprint": "daff873eca8770178e0272a525a33602d338bb76e915b755b0e0656587d95d56",
+      "kernel_count": 12,
+      "kernel_identities": [
+        "emb8nrbhon",
+        "15qubpfedrz",
+        "19miev8bqkw",
+        "4c4k1174wz",
+        "nfqp2hhu1t",
+        "22gc721bth6",
+        "2vk5s6a8cr",
+        "1cw7jz4q14j",
+        "crt15xtxmt",
+        "1erm42utan9",
+        "emb8nrbhon",
+        "29qizp9wmph"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.0000019073486328125,
+            "maxRel": 0.00014496955604056459,
+            "bad": 0,
+            "n": 1440,
+            "first": -1,
+            "message": "max abs diff 1.91e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 69120,
+          "fusedWork": 34560,
+          "consumerCount": 1,
+          "producerElements": 1440,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 87840,
+          "fusedWork": 53280,
+          "consumerCount": 1,
+          "producerElements": 1440,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 87840,
+          "fusedWork": 53280,
+          "consumerCount": 1,
+          "producerElements": 1440,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 35328,
+          "fusedWork": 34560,
+          "consumerCount": 1,
+          "producerElements": 32,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 87840,
+          "fusedWork": 53280,
+          "consumerCount": 1,
+          "producerElements": 1440,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 650880,
+          "fusedWork": 616320,
+          "consumerCount": 1,
+          "producerElements": 1440,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2321280,
+          "fusedWork": 1215360,
+          "consumerCount": 1,
+          "producerElements": 46080,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2810880,
+          "fusedWork": 1704960,
+          "consumerCount": 1,
+          "producerElements": 46080,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1130496,
+          "fusedWork": 1105920,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2275200,
+          "fusedWork": 1169280,
+          "consumerCount": 1,
+          "producerElements": 46080,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 604800,
+          "fusedWork": 570240,
+          "consumerCount": 1,
+          "producerElements": 1440,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 16.118960000000015
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-af-eo/_decomposed/opus-mt-af-eo_start18_end24_3",
+      "split": "train",
+      "script": "005.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "005.kiln.json",
+      "fingerprint": "e3f1905c3b547f05b730cb1d3ff10c3cbf80023d02d752831165ef99c7fcdf9f",
+      "kernel_count": 14,
+      "kernel_identities": [
+        "nb8n3i6x4a",
+        "1lgl9yeygwr",
+        "fghri9uuxa",
+        "202paib5det",
+        "2vvtxtmxqm",
+        "1l7qs67v9er",
+        "29ypuxcrb65",
+        "115wvnrx4fl",
+        "xpxgcaud0t",
+        "1pe2n1kok5x",
+        "vj2ord6kh1",
+        "q594nvkalg",
+        "fghri9uuxa",
+        "1lgl9yeygwr"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~117M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 1204224,
+          "fusedWork": 602112,
+          "consumerCount": 1,
+          "producerElements": 25088,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1530368,
+          "fusedWork": 928256,
+          "consumerCount": 1,
+          "producerElements": 25088,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1530368,
+          "fusedWork": 928256,
+          "consumerCount": 1,
+          "producerElements": 25088,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 614400,
+          "fusedWork": 602112,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1530368,
+          "fusedWork": 928256,
+          "consumerCount": 1,
+          "producerElements": 25088,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 167888896,
+          "fusedWork": 167286784,
+          "consumerCount": 1,
+          "producerElements": 25088,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 642553856,
+          "fusedWork": 334272512,
+          "consumerCount": 1,
+          "producerElements": 12845056,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 783548416,
+          "fusedWork": 475267072,
+          "consumerCount": 1,
+          "producerElements": 12845056,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 314572800,
+          "fusedWork": 308281344,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 629708800,
+          "fusedWork": 321427456,
+          "consumerCount": 1,
+          "producerElements": 12845056,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 155043840,
+          "fusedWork": 154441728,
+          "consumerCount": 1,
+          "producerElements": 25088,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 13.196563000000026
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-SwinForImageClassification/_decomposed/hf-tiny-model-private_tiny-random-SwinForImageClassification_start43_end48_9",
+      "split": "train",
+      "script": "006.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "006.kiln.json",
+      "fingerprint": "6152184f0e361e39145f9e9c03c30447ffa52b6ae40d73a590ec49c365056397",
+      "kernel_count": 23,
+      "kernel_identities": [
+        "eiirl9e656",
+        "1a65rq82po3",
+        "20cp5sb6cve",
+        "9194trcda5",
+        "15apr50bgup",
+        "1jp9315ysqf",
+        "1684pjcvp89",
+        "1mngp5121l6",
+        "1zzk5g6t2tw",
+        "15apr50bgup",
+        "1jp9315ysqf",
+        "sambyldrat",
+        "1bay0d74l03",
+        "1684pjcvp89",
+        "11wvsxkngtf",
+        "1ky9jaa2cno",
+        "hwa63ei8ie",
+        "11wvsxkngtf",
+        "1ky9jaa2cno",
+        "hwa63ei8ie",
+        "3pxit03h6r",
+        "2fjlmsvnv8s",
+        "20cp5sb6cve"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4096,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 2.384185791015625e-7,
+            "maxRel": 0.0010389758146774192,
+            "bad": 0,
+            "n": 4096,
+            "first": -1,
+            "message": "max abs diff 2.38e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 196608,
+          "fusedWork": 98304,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 249856,
+          "fusedWork": 151552,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 249856,
+          "fusedWork": 151552,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 98688,
+          "fusedWork": 98304,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 303104,
+          "fusedWork": 204800,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 249856,
+          "fusedWork": 151552,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 98688,
+          "fusedWork": 98304,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 303104,
+          "fusedWork": 204800,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 203776,
+          "fusedWork": 105472,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 59392,
+          "fusedWork": 53248,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 13568,
+          "fusedWork": 7424,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 13568,
+          "fusedWork": 7424,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 63488,
+          "fusedWork": 57344,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 158720,
+          "fusedWork": 60416,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 405504,
+          "fusedWork": 360448,
+          "consumerCount": 2,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 203776,
+          "fusedWork": 105472,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 59392,
+          "fusedWork": 53248,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 63488,
+          "fusedWork": 57344,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 306176,
+          "fusedWork": 207872,
+          "consumerCount": 2,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 196608,
+          "fusedWork": 98304,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 249856,
+          "fusedWork": 151552,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 35.251417000000004
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-AlbertForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-AlbertForSequenceClassification_start140_end143_7",
+      "split": "train",
+      "script": "007.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "007.kiln.json",
+      "fingerprint": "d98a5d11d218ebafc2748568b39979acaeca4b44eca657115452ae87fff21451",
+      "kernel_count": 23,
+      "kernel_identities": [
+        "1i8cr8kbwpi",
+        "1ojhqme1uzb",
+        "1l1ueqktics",
+        "1vipgo0mfg9",
+        "z3ha4ipcz0",
+        "thcxhnptlr",
+        "bncaeqggp3",
+        "1p0hocgxiek",
+        "1vipgo0mfg9",
+        "z3ha4ipcz0",
+        "462u5cw3bn",
+        "ghd8y3de4k",
+        "thcxhnptlr",
+        "1p6v73xn1ui",
+        "mlm7xo0nqz",
+        "1tevq331use",
+        "1p6v73xn1ui",
+        "mlm7xo0nqz",
+        "1tevq331use",
+        "9acqomd64",
+        "8s5gx99dnw",
+        "1ojhqme1uzb",
+        "1n0nqkogiw4"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 1.4901161193847656e-7,
+            "maxRel": 0.00003581738860861147,
+            "bad": 0,
+            "n": 36,
+            "first": -1,
+            "message": "max abs diff 1.49e-7"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 4.76837158203125e-7,
+            "maxRel": 0.003324911742775166,
+            "bad": 0,
+            "n": 18432,
+            "first": -1,
+            "message": "max abs diff 4.77e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 884736,
+          "fusedWork": 442368,
+          "consumerCount": 1,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1124352,
+          "fusedWork": 681984,
+          "consumerCount": 1,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1124352,
+          "fusedWork": 681984,
+          "consumerCount": 1,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 443232,
+          "fusedWork": 442368,
+          "consumerCount": 1,
+          "producerElements": 36,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1363968,
+          "fusedWork": 921600,
+          "consumerCount": 1,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1124352,
+          "fusedWork": 681984,
+          "consumerCount": 1,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 443232,
+          "fusedWork": 442368,
+          "consumerCount": 1,
+          "producerElements": 36,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1363968,
+          "fusedWork": 921600,
+          "consumerCount": 1,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 909312,
+          "fusedWork": 466944,
+          "consumerCount": 1,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 241664,
+          "fusedWork": 229376,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 27136,
+          "fusedWork": 14848,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 27136,
+          "fusedWork": 14848,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 260096,
+          "fusedWork": 247808,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 706560,
+          "fusedWork": 264192,
+          "consumerCount": 1,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1824768,
+          "fusedWork": 1622016,
+          "consumerCount": 2,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 909312,
+          "fusedWork": 466944,
+          "consumerCount": 1,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 241664,
+          "fusedWork": 229376,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 260096,
+          "fusedWork": 247808,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1370112,
+          "fusedWork": 927744,
+          "consumerCount": 2,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 884736,
+          "fusedWork": 442368,
+          "consumerCount": 1,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1124352,
+          "fusedWork": 681984,
+          "consumerCount": 1,
+          "producerElements": 18432,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 28.94064800000001
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/vit_giant_patch16_gap_224.in22k_ijepa/_decomposed/vit_giant_patch16_gap_224.in22k_ijepa_start25_end27_6",
+      "split": "train",
+      "script": "008.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "008.kiln.json",
+      "fingerprint": "633c9bdaafd9a4e0d70c1dd3e10a10293e7495518fe6dbb64636a2b60d5b6470",
+      "kernel_count": 22,
+      "kernel_identities": [
+        "1q4m2twhh6s",
+        "267xwabeizv",
+        "28ibewuue78",
+        "14sl6cmqxx3",
+        "10bbw59lp0v",
+        "1lpda2l9j8i",
+        "e994g1vdef",
+        "85gw7dsxcm",
+        "14sl6cmqxx3",
+        "10bbw59lp0v",
+        "q4zyo3fb07",
+        "q4do3upltl",
+        "1lpda2l9j8i",
+        "1r6voa2wn7w",
+        "j5v09bb0zj",
+        "6dqh5rga1p",
+        "1r6voa2wn7w",
+        "j5v09bb0zj",
+        "6dqh5rga1p",
+        "28g7fo8ctdk",
+        "1gj65zb9fb4",
+        "267xwabeizv"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 275968,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0.0000011920928955078125,
+            "maxRel": 0.017045649131451554,
+            "bad": 0,
+            "n": 275968,
+            "first": -1,
+            "message": "max abs diff 1.19e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 13246464,
+          "fusedWork": 6623232,
+          "consumerCount": 1,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 16834048,
+          "fusedWork": 10210816,
+          "consumerCount": 1,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 16834048,
+          "fusedWork": 10210816,
+          "consumerCount": 1,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 6657024,
+          "fusedWork": 6623232,
+          "consumerCount": 1,
+          "producerElements": 1408,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 20421632,
+          "fusedWork": 13798400,
+          "consumerCount": 1,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 16834048,
+          "fusedWork": 10210816,
+          "consumerCount": 1,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 6657024,
+          "fusedWork": 6623232,
+          "consumerCount": 1,
+          "producerElements": 1408,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 20421632,
+          "fusedWork": 13798400,
+          "consumerCount": 1,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 13524784,
+          "fusedWork": 6901552,
+          "consumerCount": 1,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3319456,
+          "fusedWork": 3314752,
+          "consumerCount": 1,
+          "producerElements": 196,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 10388,
+          "fusedWork": 5684,
+          "consumerCount": 1,
+          "producerElements": 196,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 10388,
+          "fusedWork": 5684,
+          "consumerCount": 1,
+          "producerElements": 196,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3595424,
+          "fusedWork": 3590720,
+          "consumerCount": 1,
+          "producerElements": 196,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 10489136,
+          "fusedWork": 3865904,
+          "consumerCount": 1,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 27320832,
+          "fusedWork": 24285184,
+          "consumerCount": 2,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 13524784,
+          "fusedWork": 6901552,
+          "consumerCount": 1,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3319456,
+          "fusedWork": 3314752,
+          "consumerCount": 1,
+          "producerElements": 196,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3595424,
+          "fusedWork": 3590720,
+          "consumerCount": 1,
+          "producerElements": 196,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 20423984,
+          "fusedWork": 13800752,
+          "consumerCount": 2,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 13246464,
+          "fusedWork": 6623232,
+          "consumerCount": 1,
+          "producerElements": 275968,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 68.04468099999997
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/yujiepan_tiny-random-SwinModel/_decomposed/yujiepan_tiny-random-SwinModel_start70_end73_0",
+      "split": "train",
+      "script": "009.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "009.kiln.json",
+      "fingerprint": "2404ae0b90a4d6760532688a3c00f2d5328ffd930af47845d06cc8be5b502103",
+      "kernel_count": 12,
+      "kernel_identities": [
+        "1h325u46h6e",
+        "2ct2ji0vyt2",
+        "19miev8bqkw",
+        "i3167g53g3",
+        "3i0tkpxa40",
+        "2lc4cl9fa0",
+        "1ihxabmislj",
+        "1cw7jz4q14j",
+        "1of8tcmapp0",
+        "fv79lkyf6j",
+        "1h325u46h6e",
+        "zup9yqntfh"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.0000019073486328125,
+            "maxRel": 0.0007637828043843497,
+            "bad": 0,
+            "n": 2048,
+            "first": -1,
+            "message": "max abs diff 1.91e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 98304,
+          "fusedWork": 49152,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 124928,
+          "fusedWork": 75776,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 124928,
+          "fusedWork": 75776,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 49920,
+          "fusedWork": 49152,
+          "consumerCount": 1,
+          "producerElements": 32,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 124928,
+          "fusedWork": 75776,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 925696,
+          "fusedWork": 876544,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3301376,
+          "fusedWork": 1728512,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3997696,
+          "fusedWork": 2424832,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1597440,
+          "fusedWork": 1572864,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3235840,
+          "fusedWork": 1662976,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 860160,
+          "fusedWork": 811008,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 21.542192999999997
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/transformers-auto-model/ms-marco-TinyBERT-L4/_decomposed/ms-marco-TinyBERT-L4_start101_end104_8",
+      "split": "train",
+      "script": "010.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "010.kiln.json",
+      "fingerprint": "094247f18b02a801d7ef07558762e5a040c22ee4933f81dd490c8263b286ff8e",
+      "kernel_count": 23,
+      "kernel_identities": [
+        "tbav5b7xuh",
+        "1jk4ohy45q3",
+        "267jq6m5fu1",
+        "197h3t2uy9w",
+        "nniyh2xd5",
+        "1s98f8l5qbo",
+        "18ymdpauwxb",
+        "1p7a9ah04oz",
+        "197h3t2uy9w",
+        "nniyh2xd5",
+        "15ikjhkz09m",
+        "1do35bff5kx",
+        "1s98f8l5qbo",
+        "mk8ga497yc",
+        "17a663nzws5",
+        "1wtlot84z74",
+        "mk8ga497yc",
+        "17a663nzws5",
+        "1wtlot84z74",
+        "1x4ucllqas",
+        "ksw0ci13ya",
+        "1jk4ohy45q3",
+        "1fv9ny6wuay"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 5.960464477539062e-7,
+            "maxRel": 0.0007461473746616663,
+            "bad": 0,
+            "n": 9984,
+            "first": -1,
+            "message": "max abs diff 5.96e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 15575040,
+          "fusedWork": 239616,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 30670848,
+          "fusedWork": 15335424,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 38977536,
+          "fusedWork": 23642112,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 38977536,
+          "fusedWork": 23642112,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 15342912,
+          "fusedWork": 15335424,
+          "consumerCount": 1,
+          "producerElements": 312,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 47284224,
+          "fusedWork": 31948800,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 38977536,
+          "fusedWork": 23642112,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 15342912,
+          "fusedWork": 15335424,
+          "consumerCount": 1,
+          "producerElements": 312,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 47284224,
+          "fusedWork": 31948800,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 31334400,
+          "fusedWork": 15998976,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 7749632,
+          "fusedWork": 7700480,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 108544,
+          "fusedWork": 59392,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 108544,
+          "fusedWork": 59392,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 8388608,
+          "fusedWork": 8339456,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 24305664,
+          "fusedWork": 8970240,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 63258624,
+          "fusedWork": 56229888,
+          "consumerCount": 2,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 31334400,
+          "fusedWork": 15998976,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 7749632,
+          "fusedWork": 7700480,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 8388608,
+          "fusedWork": 8339456,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 47308800,
+          "fusedWork": 31973376,
+          "consumerCount": 2,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 30670848,
+          "fusedWork": 15335424,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 38977536,
+          "fusedWork": 23642112,
+          "consumerCount": 1,
+          "producerElements": 638976,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 120.46017000000006
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-BeitModel/_decomposed/hf-tiny-model-private_tiny-random-BeitModel_start54_end57_14",
+      "split": "train",
+      "script": "011.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "011.kiln.json",
+      "fingerprint": "27333eaedf1ee36345fcb6d79f4538f8ea4f81aba273246781209a8ed1e21fd7",
+      "kernel_count": 24,
+      "kernel_identities": [
+        "y09h7eila0",
+        "13ow3rhihwm",
+        "6nnxttjldj",
+        "by0y5pqrhk",
+        "5juj8sr84o",
+        "20vhudp2fpq",
+        "dqhrl84gtn",
+        "2ab3w1i73hx",
+        "14ywmc9043d",
+        "yevj323e9",
+        "20vhudp2fpq",
+        "dqhrl84gtn",
+        "1y8z5xrtcyv",
+        "1l2yaz19w1s",
+        "2ab3w1i73hx",
+        "t6gt27awnv",
+        "1cw7jz4q14j",
+        "24nlrqy97lk",
+        "t6gt27awnv",
+        "1cw7jz4q14j",
+        "24nlrqy97lk",
+        "tnbh95dd",
+        "8bam4ga0fy",
+        "by0y5pqrhk"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 4.76837158203125e-7,
+            "maxRel": 0.00008981603657307607,
+            "bad": 0,
+            "n": 7232,
+            "first": -1,
+            "message": "max abs diff 4.77e-7"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 7232,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 347136,
+          "fusedWork": 173568,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 441152,
+          "fusedWork": 267584,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 441152,
+          "fusedWork": 267584,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 174336,
+          "fusedWork": 173568,
+          "consumerCount": 1,
+          "producerElements": 32,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 535168,
+          "fusedWork": 361600,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 441152,
+          "fusedWork": 267584,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 174336,
+          "fusedWork": 173568,
+          "consumerCount": 1,
+          "producerElements": 32,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 535168,
+          "fusedWork": 361600,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 357080,
+          "fusedWork": 183512,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 95824,
+          "fusedWork": 90400,
+          "consumerCount": 1,
+          "producerElements": 226,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 11978,
+          "fusedWork": 6554,
+          "consumerCount": 1,
+          "producerElements": 226,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 11978,
+          "fusedWork": 6554,
+          "consumerCount": 1,
+          "producerElements": 226,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 103056,
+          "fusedWork": 97632,
+          "consumerCount": 1,
+          "producerElements": 226,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 277528,
+          "fusedWork": 103960,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 715968,
+          "fusedWork": 636416,
+          "consumerCount": 2,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 357080,
+          "fusedWork": 183512,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 95824,
+          "fusedWork": 90400,
+          "consumerCount": 1,
+          "producerElements": 226,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 103056,
+          "fusedWork": 97632,
+          "consumerCount": 1,
+          "producerElements": 226,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 537880,
+          "fusedWork": 364312,
+          "consumerCount": 2,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 347136,
+          "fusedWork": 173568,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 535168,
+          "fusedWork": 361600,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 441152,
+          "fusedWork": 267584,
+          "consumerCount": 1,
+          "producerElements": 7232,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 29.553803000000016
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/ms-marco-TinyBERT-L2/_decomposed/ms-marco-TinyBERT-L2_start15_end18_2",
+      "split": "heldout",
+      "script": "012.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "012.kiln.json",
+      "fingerprint": "09fc22a457c33fc3922f0a2ed6476224a6005142ea2c71116745c02c15198f6c",
+      "kernel_count": 12,
+      "kernel_identities": [
+        "1xl3w6opuf0",
+        "11dxesjaoq9",
+        "270xobga1hm",
+        "tgwxgdwtj9",
+        "1f69w6g1t7t",
+        "269ordtqleb",
+        "1bszi1budwk",
+        "1c5pab4itm8",
+        "7l82pb351b",
+        "wuynv8comj",
+        "1xl3w6opuf0",
+        "l17a59anj9"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.0000152587890625,
+            "maxRel": 0.0012094441772538033,
+            "bad": 0,
+            "n": 8704,
+            "first": -1,
+            "message": "max abs diff 1.53e-5"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 417792,
+          "fusedWork": 208896,
+          "consumerCount": 1,
+          "producerElements": 8704,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 530944,
+          "fusedWork": 322048,
+          "consumerCount": 1,
+          "producerElements": 8704,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 530944,
+          "fusedWork": 322048,
+          "consumerCount": 1,
+          "producerElements": 8704,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 211968,
+          "fusedWork": 208896,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 530944,
+          "fusedWork": 322048,
+          "consumerCount": 1,
+          "producerElements": 8704,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 14796800,
+          "fusedWork": 14587904,
+          "consumerCount": 1,
+          "producerElements": 8704,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 55810048,
+          "fusedWork": 29071360,
+          "consumerCount": 1,
+          "producerElements": 1114112,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 67960832,
+          "fusedWork": 41222144,
+          "consumerCount": 1,
+          "producerElements": 1114112,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 27131904,
+          "fusedWork": 26738688,
+          "consumerCount": 1,
+          "producerElements": 16384,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 54695936,
+          "fusedWork": 27957248,
+          "consumerCount": 1,
+          "producerElements": 1114112,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 13682688,
+          "fusedWork": 13473792,
+          "consumerCount": 1,
+          "producerElements": 8704,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 56.05179700000008
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/deit_tiny_distilled_patch16_224.fb_in1k/_decomposed/deit_tiny_distilled_patch16_224.fb_in1k_start259_end263_7",
+      "split": "heldout",
+      "script": "013.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "013.kiln.json",
+      "fingerprint": "49d0633fbce742a8173d45cc4d616d5c13f9d16dd9021649fcffa443308ab5b9",
+      "kernel_count": 24,
+      "kernel_identities": [
+        "13wz8y1y8dk",
+        "13kw87cwjpc",
+        "109ay5kssgd",
+        "up7tlv7ej4",
+        "saohlz9gl",
+        "ap0bn6qmzj",
+        "1p93wxibzqs",
+        "1ewd94nzgkk",
+        "up7tlv7ej4",
+        "saohlz9gl",
+        "118vpuewzsb",
+        "1j8b5ro2iyy",
+        "ap0bn6qmzj",
+        "wu87kko8ra",
+        "14qfx6di8ol",
+        "266xz7qnxs9",
+        "wu87kko8ra",
+        "14qfx6di8ol",
+        "266xz7qnxs9",
+        "fv33r34frk",
+        "1krfiffk870",
+        "13kw87cwjpc",
+        "254n1rzk3ax",
+        "nipinxh8j8"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 2.384185791015625e-7,
+            "maxRel": 0.00005732146671776062,
+            "bad": 0,
+            "n": 192,
+            "first": -1,
+            "message": "max abs diff 2.38e-7"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 2.384185791015625e-7,
+            "maxRel": 0.00000520970249340607,
+            "bad": 0,
+            "n": 192,
+            "first": -1,
+            "message": "max abs diff 2.38e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 921600,
+          "fusedWork": 9216,
+          "consumerCount": 2,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1824768,
+          "fusedWork": 912384,
+          "consumerCount": 1,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2318976,
+          "fusedWork": 1406592,
+          "consumerCount": 1,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2318976,
+          "fusedWork": 1406592,
+          "consumerCount": 1,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 916992,
+          "fusedWork": 912384,
+          "consumerCount": 1,
+          "producerElements": 192,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2813184,
+          "fusedWork": 1900800,
+          "consumerCount": 1,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2318976,
+          "fusedWork": 1406592,
+          "consumerCount": 1,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 916992,
+          "fusedWork": 912384,
+          "consumerCount": 1,
+          "producerElements": 192,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2813184,
+          "fusedWork": 1900800,
+          "consumerCount": 1,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1865160,
+          "fusedWork": 952776,
+          "consumerCount": 1,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 464112,
+          "fusedWork": 459360,
+          "consumerCount": 1,
+          "producerElements": 198,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 10494,
+          "fusedWork": 5742,
+          "consumerCount": 1,
+          "producerElements": 198,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 10494,
+          "fusedWork": 5742,
+          "consumerCount": 1,
+          "producerElements": 198,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 502128,
+          "fusedWork": 497376,
+          "consumerCount": 1,
+          "producerElements": 198,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1446984,
+          "fusedWork": 534600,
+          "consumerCount": 1,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3763584,
+          "fusedWork": 3345408,
+          "consumerCount": 2,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1865160,
+          "fusedWork": 952776,
+          "consumerCount": 1,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 464112,
+          "fusedWork": 459360,
+          "consumerCount": 1,
+          "producerElements": 198,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 502128,
+          "fusedWork": 497376,
+          "consumerCount": 1,
+          "producerElements": 198,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2815560,
+          "fusedWork": 1903176,
+          "consumerCount": 2,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1824768,
+          "fusedWork": 912384,
+          "consumerCount": 1,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2318976,
+          "fusedWork": 1406592,
+          "consumerCount": 1,
+          "producerElements": 38016,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 37.111846000000014
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/arxyzan_data2vec-beit-base/_decomposed/arxyzan_data2vec-beit-base_start796_end800_5",
+      "split": "heldout",
+      "script": "014.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "014.kiln.json",
+      "fingerprint": "0fe31c48790d7af002a2fc1b57f643f3ece15055a05d606b04b43d6189cc439f",
+      "kernel_count": 25,
+      "kernel_identities": [
+        "1y0qbf8sahy",
+        "1760rv96ytf",
+        "z1252550j",
+        "21vx00ujnql",
+        "nip7rvbjjh",
+        "1eahk10kmrh",
+        "2g0z6aazeat",
+        "116x7rtyg4z",
+        "f0ry134oth",
+        "240bbhgj5uc",
+        "1eahk10kmrh",
+        "2g0z6aazeat",
+        "4qragaehmu",
+        "1jlzszjezos",
+        "116x7rtyg4z",
+        "n8l259gkzz",
+        "20qsyukfoxq",
+        "29pfkdjt4uh",
+        "n8l259gkzz",
+        "20qsyukfoxq",
+        "29pfkdjt4uh",
+        "5oysuoyona",
+        "17c1ctoz33f",
+        "21vx00ujnql",
+        "10fez2akxho"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.0000022649765014648438,
+            "maxRel": 0.012223793782831642,
+            "bad": 0,
+            "n": 151296,
+            "first": -1,
+            "message": "max abs diff 2.26e-6"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 2.682209014892578e-7,
+            "maxRel": 0.0000031023209894500584,
+            "bad": 0,
+            "n": 768,
+            "first": -1,
+            "message": "max abs diff 2.68e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 7262208,
+          "fusedWork": 3631104,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 9229056,
+          "fusedWork": 5597952,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 9229056,
+          "fusedWork": 5597952,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3649536,
+          "fusedWork": 3631104,
+          "consumerCount": 1,
+          "producerElements": 768,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 11195904,
+          "fusedWork": 7564800,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 9229056,
+          "fusedWork": 5597952,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 3649536,
+          "fusedWork": 3631104,
+          "consumerCount": 1,
+          "producerElements": 768,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 11195904,
+          "fusedWork": 7564800,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 7415868,
+          "fusedWork": 3784764,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1823432,
+          "fusedWork": 1818704,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 10441,
+          "fusedWork": 5713,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 10441,
+          "fusedWork": 5713,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1974728,
+          "fusedWork": 1970000,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 5751612,
+          "fusedWork": 2120508,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 14978304,
+          "fusedWork": 13314048,
+          "consumerCount": 2,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 7415868,
+          "fusedWork": 3784764,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1823432,
+          "fusedWork": 1818704,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1974728,
+          "fusedWork": 1970000,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 11198268,
+          "fusedWork": 7567164,
+          "consumerCount": 2,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 7262208,
+          "fusedWork": 3631104,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 9229056,
+          "fusedWork": 5597952,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 11195904,
+          "fusedWork": 7564800,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 9229056,
+          "fusedWork": 5597952,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 77.37172800000008
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/sheshkar_cmon2/_decomposed/sheshkar_cmon2_start0_end3_0",
+      "split": "heldout",
+      "script": "015.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "015.kiln.json",
+      "fingerprint": "dbfa204510c2655c4349811174a5cb8317e8c197a4b369fc30992cfa13477bd3",
+      "kernel_count": 22,
+      "kernel_identities": [
+        "4v1uifqijj",
+        "3idvgv7mva",
+        "272bgum4z1v",
+        "176oogt3jct",
+        "e5uci0gjj9",
+        "12wd2mopukd",
+        "8kvje0e4cc",
+        "1eiazvetaec",
+        "176oogt3jct",
+        "e5uci0gjj9",
+        "1io6rx32oda",
+        "1tdv86thkk2",
+        "12wd2mopukd",
+        "sps7w2zve",
+        "2l3nt7u0ek",
+        "on777loq9z",
+        "sps7w2zve",
+        "2l3nt7u0ek",
+        "on777loq9z",
+        "2f5nheipijt",
+        "1cmwsdwkp5r",
+        "3idvgv7mva"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 4.76837158203125e-7,
+            "maxRel": 0.00027525360234839484,
+            "bad": 0,
+            "n": 2048,
+            "first": -1,
+            "message": "max abs diff 4.77e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 98304,
+          "fusedWork": 49152,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 124928,
+          "fusedWork": 75776,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 124928,
+          "fusedWork": 75776,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 55296,
+          "fusedWork": 49152,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 151552,
+          "fusedWork": 102400,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 124928,
+          "fusedWork": 75776,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 55296,
+          "fusedWork": 49152,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 151552,
+          "fusedWork": 102400,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 100448,
+          "fusedWork": 51296,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 24896,
+          "fusedWork": 24704,
+          "consumerCount": 1,
+          "producerElements": 8,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 424,
+          "fusedWork": 232,
+          "consumerCount": 1,
+          "producerElements": 8,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 424,
+          "fusedWork": 232,
+          "consumerCount": 1,
+          "producerElements": 8,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 26944,
+          "fusedWork": 26752,
+          "consumerCount": 1,
+          "producerElements": 8,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 77920,
+          "fusedWork": 28768,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 202752,
+          "fusedWork": 180224,
+          "consumerCount": 2,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 100448,
+          "fusedWork": 51296,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 24896,
+          "fusedWork": 24704,
+          "consumerCount": 1,
+          "producerElements": 8,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 26944,
+          "fusedWork": 26752,
+          "consumerCount": 1,
+          "producerElements": 8,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 151648,
+          "fusedWork": 102496,
+          "consumerCount": 2,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 98304,
+          "fusedWork": 49152,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 124928,
+          "fusedWork": 75776,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 26.438838000000032
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/amurienne_kellag-m2m100-v0.2/_decomposed/amurienne_kellag-m2m100-v0.2_start38_end44_5",
+      "split": "heldout",
+      "script": "016.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "016.kiln.json",
+      "fingerprint": "2ab431073121be347a499ab001b868d846e1eec9e5bd7c690c86fce07833e44e",
+      "kernel_count": 14,
+      "kernel_identities": [
+        "40hprc27zs",
+        "1af91jhuaql",
+        "1scvdur9xb3",
+        "16j49ajgsgy",
+        "kuood05c47",
+        "1git2vizosy",
+        "16cbx1oeigf",
+        "1pl4wfakty9",
+        "6z6gu7i8x0",
+        "29ztzcjmq4n",
+        "2d1pqavgnry",
+        "10e998f2uoa",
+        "1scvdur9xb3",
+        "1af91jhuaql"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~145M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 737280,
+          "fusedWork": 368640,
+          "consumerCount": 1,
+          "producerElements": 15360,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 936960,
+          "fusedWork": 568320,
+          "consumerCount": 1,
+          "producerElements": 15360,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 936960,
+          "fusedWork": 568320,
+          "consumerCount": 1,
+          "producerElements": 15360,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 393216,
+          "fusedWork": 368640,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 936960,
+          "fusedWork": 568320,
+          "consumerCount": 1,
+          "producerElements": 15360,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 205025280,
+          "fusedWork": 204656640,
+          "consumerCount": 1,
+          "producerElements": 15360,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 786616320,
+          "fusedWork": 409128960,
+          "consumerCount": 1,
+          "producerElements": 15728640,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 959447040,
+          "fusedWork": 581959680,
+          "consumerCount": 1,
+          "producerElements": 15728640,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 402653184,
+          "fusedWork": 377487360,
+          "consumerCount": 1,
+          "producerElements": 1048576,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 770887680,
+          "fusedWork": 393400320,
+          "consumerCount": 1,
+          "producerElements": 15728640,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 189296640,
+          "fusedWork": 188928000,
+          "consumerCount": 1,
+          "producerElements": 15360,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 11.614884000000075
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/facebook_data2vec-vision-large/_decomposed/facebook_data2vec-vision-large_start129_end132_18",
+      "split": "heldout",
+      "script": "017.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "017.kiln.json",
+      "fingerprint": "1a0033d69e1dc7a39dc7f189242582064522cba374162f04e82a9f09ea4b181d",
+      "kernel_count": 24,
+      "kernel_identities": [
+        "12sf9boxftw",
+        "cppe9g6851",
+        "i5wrwmbr1t",
+        "115gmxc130e",
+        "1b9tr1pfwp6",
+        "p7uonzkeo1",
+        "1hdh5vzu4ed",
+        "118vtuijcie",
+        "1ch1t93jbn4",
+        "mmv7g1yq4x",
+        "p7uonzkeo1",
+        "1hdh5vzu4ed",
+        "4qragaehmu",
+        "1jlzszjezos",
+        "118vtuijcie",
+        "22azi9x8wei",
+        "29ztzcjmq4n",
+        "htq3ofwv25",
+        "22azi9x8wei",
+        "29ztzcjmq4n",
+        "htq3ofwv25",
+        "1iyi0j5n70g",
+        "1kjjjsc4c9i",
+        "115gmxc130e"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 201728,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0.0000019073486328125,
+            "maxRel": 0.007694388391843758,
+            "bad": 0,
+            "n": 201728,
+            "first": -1,
+            "message": "max abs diff 1.91e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 9682944,
+          "fusedWork": 4841472,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 12305408,
+          "fusedWork": 7463936,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 12305408,
+          "fusedWork": 7463936,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 4866048,
+          "fusedWork": 4841472,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 14927872,
+          "fusedWork": 10086400,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 12305408,
+          "fusedWork": 7463936,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 4866048,
+          "fusedWork": 4841472,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 14927872,
+          "fusedWork": 10086400,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 9887036,
+          "fusedWork": 5045564,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2428616,
+          "fusedWork": 2423888,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 10441,
+          "fusedWork": 5713,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 10441,
+          "fusedWork": 5713,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2630344,
+          "fusedWork": 2625616,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 7668028,
+          "fusedWork": 2826556,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 19971072,
+          "fusedWork": 17752064,
+          "consumerCount": 2,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 9887036,
+          "fusedWork": 5045564,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2428616,
+          "fusedWork": 2423888,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 2630344,
+          "fusedWork": 2625616,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 14930236,
+          "fusedWork": 10088764,
+          "consumerCount": 2,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 9682944,
+          "fusedWork": 4841472,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 14927872,
+          "fusedWork": 10086400,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 12305408,
+          "fusedWork": 7463936,
+          "consumerCount": 1,
+          "producerElements": 201728,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 66.43728499999997
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-af-es/_decomposed/opus-mt-af-es_start43_end46_7",
+      "split": "heldout",
+      "script": "018.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "018.kiln.json",
+      "fingerprint": "92a56b50b9a65ddcc2fe8a31513c1ccb75527245a7df243805464a1a335f1c9e",
+      "kernel_count": 12,
+      "kernel_identities": [
+        "sznbs2wkur",
+        "1954ntj7qw1",
+        "2vvtxtmxqm",
+        "1ny07mo4q2r",
+        "1kyg2ya0aaf",
+        "1k9qg954wj3",
+        "19w00y1grki",
+        "1pe2n1kok5x",
+        "25ak8yzsscn",
+        "477r6v9x7i",
+        "sznbs2wkur",
+        "6353kbyijj"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~81M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 835584,
+          "fusedWork": 417792,
+          "consumerCount": 1,
+          "producerElements": 17408,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1061888,
+          "fusedWork": 644096,
+          "consumerCount": 1,
+          "producerElements": 17408,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1061888,
+          "fusedWork": 644096,
+          "consumerCount": 1,
+          "producerElements": 17408,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 430080,
+          "fusedWork": 417792,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 1061888,
+          "fusedWork": 644096,
+          "consumerCount": 1,
+          "producerElements": 17408,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 116494336,
+          "fusedWork": 116076544,
+          "consumerCount": 1,
+          "producerElements": 17408,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 445853696,
+          "fusedWork": 231944192,
+          "consumerCount": 1,
+          "producerElements": 8912896,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 543686656,
+          "fusedWork": 329777152,
+          "consumerCount": 1,
+          "producerElements": 8912896,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 220200960,
+          "fusedWork": 213909504,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 436940800,
+          "fusedWork": 223031296,
+          "consumerCount": 1,
+          "producerElements": 8912896,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 107581440,
+          "fusedWork": 107163648,
+          "consumerCount": 1,
+          "producerElements": 17408,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 12.082102000000077
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ROMANCE-en/_decomposed/opus-mt-ROMANCE-en_start235_end242_20",
+      "split": "heldout",
+      "script": "019.kiln.js",
+      "policy": "disabled",
+      "status": "compiled",
+      "artifact": "019.kiln.json",
+      "fingerprint": "1a3bedc1b178ed51aa62b71f57a2b556fc69646c0920ddfc53993f046073bd3b",
+      "kernel_count": 15,
+      "kernel_identities": [
+        "brd6hvfs24",
+        "fjirmi4js9",
+        "163s3vxmzt6",
+        "1ae11ph06v3",
+        "1iayqta1x4t",
+        "2vvtxtmxqm",
+        "23klqql31ll",
+        "2ab7cmwauio",
+        "1x6y5s2wwcy",
+        "2e1p5ubedpk",
+        "1pe2n1kok5x",
+        "qlafxldojf",
+        "1rib7mrfu53",
+        "1ae11ph06v3",
+        "fjirmi4js9"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~74M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 761856,
+          "fusedWork": 380928,
+          "consumerCount": 1,
+          "producerElements": 15872,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 968192,
+          "fusedWork": 587264,
+          "consumerCount": 1,
+          "producerElements": 15872,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 968192,
+          "fusedWork": 587264,
+          "consumerCount": 1,
+          "producerElements": 15872,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 393216,
+          "fusedWork": 380928,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 968192,
+          "fusedWork": 587264,
+          "consumerCount": 1,
+          "producerElements": 15872,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 106215424,
+          "fusedWork": 105834496,
+          "consumerCount": 1,
+          "producerElements": 15872,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 406513664,
+          "fusedWork": 211478528,
+          "consumerCount": 1,
+          "producerElements": 8126464,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 495714304,
+          "fusedWork": 300679168,
+          "consumerCount": 1,
+          "producerElements": 8126464,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 201326592,
+          "fusedWork": 195035136,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 398387200,
+          "fusedWork": 203352064,
+          "consumerCount": 1,
+          "producerElements": 8126464,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        },
+        {
+          "originalWork": 98088960,
+          "fusedWork": 97708032,
+          "consumerCount": 1,
+          "producerElements": 15872,
+          "accepted": false,
+          "reason": "policy disabled: profitability rejected"
+        }
+      ],
+      "compile_ms": 11.79095499999994
+    }
+  ]
+}

@@ -1,0 +1,278 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "016.kiln.js",
+  "sha256": "df8b08c678d77a26c281bbd42c69050aafcde2ecc930089b9cdf781e60b933a0",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1024
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1024,
+    1024
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1,
+    1,
+    15,
+    16
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    1,
+    15,
+    1024
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    1,
+    15,
+    1024
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 5,
+   "shape": [
+    1,
+    1,
+    15,
+    15
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 6,
+   "shape": [
+    1,
+    16,
+    15,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out2",
+   "buffer": 7,
+   "shape": [
+    1,
+    16,
+    15,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 1024,
+   "bytes": 4096
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 1048576,
+   "bytes": 4194304
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 240,
+   "bytes": 960
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 15360,
+   "bytes": 61440
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 15360,
+   "bytes": 61440
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 225,
+   "bytes": 900
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 15360,
+   "bytes": 61440
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 15360,
+   "bytes": 61440
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__40hprc27zs",
+   "identity": "40hprc27zs",
+   "row": "TPB=1024",
+   "reads": [
+    2
+   ],
+   "writes": 5,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1,
+    15,
+    15
+   ],
+   "inShapes": [
+    [
+     1,
+     1,
+     15,
+     16
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 225i) {\n        v_in0 = b0[((16i * ((((n_e % 15i) + (15i * (n_e / 15i))) / 15i) % 15i)) + ((n_e % 15i) % 15i))];\n        bout[((n_e % 15i) + (15i * (n_e / 15i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_out0__40hprc27zs(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 225)) {\n        in0 = src0[((16 * ((((e % 15) + (15 * (e / 15))) / 15) % 15)) + ((e % 15) % 15))];\n        dst[((e % 15) + (15 * (e / 15)))] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_out1__1af91jhuaql",
+   "identity": "1af91jhuaql",
+   "row": "TPB=64",
+   "reads": [
+    4
+   ],
+   "writes": 6,
+   "grid": 240,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    240,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    16,
+    15,
+    64
+   ],
+   "inShapes": [
+    [
+     1,
+     15,
+     1024
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 240i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 15360i) {\n        v_in0 = b0[((1024i * (((((1024i * ((n_e / 64i) % 15i)) + (n_e % 64i)) + (64i * (n_e / 960i))) / 1024i) % 15i)) + (((n_e % 64i) + (64i * (n_e / 960i))) % 1024i))];\n        bout[(((64i * ((n_e / 64i) % 15i)) + (n_e % 64i)) + (960i * (n_e / 960i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out1__1af91jhuaql(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 15360)) {\n        in0 = src0[((1024 * (((((1024 * ((e / 64) % 15)) + (e % 64)) + (64 * (e / 960))) / 1024) % 15)) + (((e % 64) + (64 * (e / 960))) % 1024))];\n        dst[(((64 * ((e / 64) % 15)) + (e % 64)) + (960 * (e / 960)))] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_out2__1cdtxj8v0n5",
+   "identity": "1cdtxj8v0n5",
+   "row": "MAP=row,TPB=128",
+   "reads": [
+    0,
+    1,
+    3
+   ],
+   "writes": 7,
+   "grid": 15360,
+   "block": 128,
+   "smemBytes": 512,
+   "dispatch": [
+    15360,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    16,
+    15,
+    64
+   ],
+   "inShapes": [
+    [
+     1024
+    ],
+    [
+     1024,
+     1024
+    ],
+    [
+     1,
+     15,
+     1024
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out2__1cdtxj8v0n5(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[128];\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, v2 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, in2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f;\n    acc0 = 0.0f;\n    for (int r745 = tid; r745 < 1024; r745 += 128) {\n        in0 = src2[((1024 * (((((1024 * ((bid / 64) % 15)) + (bid % 64)) + (64 * (bid / 960))) / 1024) % 15)) + r745)];\n        v0 = in0;\n        in1 = src1[((1024 * (((bid % 64) + (64 * (bid / 960))) % 1024)) + r745)];\n        v1 = in1;\n        v2 = __fmul_rn(v0, v1);\n        acc0 = (acc0 + v2);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 64)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 64)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 32)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 16)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 8)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 4)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 2)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 1)];\n        s_red[tid] = (sv12 + sv13);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    in2 = src0[(((bid % 64) + (64 * (bid / 960))) % 1024)];\n    v3 = in2;\n    v4 = __fadd_rn(acc0, v3);\n    v5 = v4;\n    if ((tid == 0)) {\n        dst[(((64 * ((bid / 64) % 15)) + (bid % 64)) + (960 * (bid / 960)))] = v5;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "baseline",
+  "kind": "unchanged",
+  "provenance": {
+   "method": "Unchanged/default controls for the fixed-numerical-contract rich corpus"
+  }
+ }
+}

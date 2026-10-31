@@ -1,0 +1,142 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "009.kiln.js",
+  "sha256": "ec61f7c0f52aba54c31de60957b8f5613946f085a4f4119a831455e7a2433ea8",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    32
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    32,
+    32
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    16,
+    4,
+    32
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 3,
+   "shape": [
+    16,
+    4,
+    4,
+    8
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 1024,
+   "bytes": 4096
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 2048,
+   "bytes": 8192
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 2048,
+   "bytes": 8192
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_linear_ew_reduce__18jgyyiwia3",
+   "identity": "18jgyyiwia3",
+   "row": "MAP=row,TPB=64",
+   "reads": [
+    0,
+    1,
+    2
+   ],
+   "writes": 3,
+   "grid": 2048,
+   "block": 64,
+   "smemBytes": 256,
+   "dispatch": [
+    2048,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    4,
+    4,
+    8
+   ],
+   "inShapes": [
+    [
+     32
+    ],
+    [
+     32,
+     32
+    ],
+    [
+     16,
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_cast_linear_ew_reduce__18jgyyiwia3(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[64];\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, v2 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, in2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f;\n    acc0 = 0.0f;\n    for (int r329 = tid; r329 < 32; r329 += 64) {\n        in0 = src2[(((128 * ((((((8 * ((bid / 32) % 4)) + (32 * ((bid / 8) % 4))) + (bid % 8)) + (128 * (bid / 128))) / 128) % 16)) + (32 * ((((((8 * ((bid / 32) % 4)) + (32 * ((bid / 8) % 4))) + (bid % 8)) + (128 * (bid / 128))) / 32) % 4))) + r329)];\n        v0 = in0;\n        in1 = src1[((32 * (((8 * ((bid / 32) % 4)) + (bid % 8)) % 32)) + r329)];\n        v1 = in1;\n        v2 = __fmul_rn(v0, v1);\n        acc0 = (acc0 + v2);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 32)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 32)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 16)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 8)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 4)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 2)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 1)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    in2 = src0[(((8 * ((bid / 32) % 4)) + (bid % 8)) % 32)];\n    v3 = in2;\n    v4 = __fadd_rn(acc0, v3);\n    v5 = v4;\n    if ((tid == 0)) {\n        dst[((((32 * ((bid / 32) % 4)) + (8 * ((bid / 8) % 4))) + (bid % 8)) + (128 * (bid / 128)))] = v5;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "scalar110",
+  "kind": "threshold",
+  "max_work_growth": 1.1,
+  "provenance": {
+   "method": "Fixed balanced grammar authored by Codex after training-only structural/trace analysis; no timing feedback or external LLM call",
+   "training_trace_sha256": "0939110f3005375cf684cba4080bf1ea5add0753b4cd1e15b917d9488a06f99f"
+  }
+ }
+}

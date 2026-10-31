@@ -4440,3 +4440,54 @@ See the user's request to streamline towards self-optimization, together with pr
 ### Technical details
 - Budget: 20 warmups, 100 trials, three repeats, IQR/median <=0.2, at most two retries; seed 42. Selection is family-balanced geometric mean synchronized end-to-end ratio with baseline-first exact ties and compile-cost coefficient zero.
 - Confirmation models remain uncompiled until the candidate/procedure freeze. The complete project scope, including original PassAgent and all 200-task support, remains open.
+
+## Step 100: Qualify the rich artifacts and preserve a native-reference failure
+
+All 240 artifacts compile from committed b4a4102 sources and pass structural qualification. Training then completes on all twelve declared graphs, but unchanged Kiln fails comparison on two matrix graphs. Selection correctly refuses the run. Diagnostic contrasts establish that these disagreements come from native TF32-enabled matrix precision, rather than an inaccurate Kiln result. No confirmation timing has occurred.
+
+A separate v5-r2 declaration retains every source and candidate and explicitly configures the research reference to full-precision FP32. This is a modified compiler-policy experiment, not a repaired native PassBench result. It reuses the exact qualified binaries and keeps the failed native run intact.
+
+### Prompt Context
+See Step 99 for the self-optimization request. The user additionally asked, verbatim: "didn't we use to have more before?" The response distinguished import eligibility from verified execution and explained prior retractions.
+**Assistant interpretation:** Continue the frozen study while preserving numerical and reporting distinctions.
+**Inferred user intent:** Reach reusable optimization results backed by trustworthy evidence.
+**Commit (code):** b4a4102 — feat(passnet): qualify LayerNorm and freeze a structurally rich policy study.
+
+### What I did
+- Executed script 174: twelve policies times twenty sources, all successful; default equals unchanged, no cross-split baseline executable aliases.
+- Saved staging/training/diagnostic scripts 175–177 and raw training, compilation and FP64 contrast evidence.
+- Ran select_policy.py on completed training; it refuses baseline correctness failures, leaving no selection.json.
+- Froze v5-r2 with scripts 178–180: unchanged membership/candidates/binaries, explicit highest-precision native reference and wrapper hash checked before execution.
+
+### Why
+- Two matrix references use reduced precision in the actual container. Changing or filtering their results inside v5-r1 would invalidate its frozen protocol.
+- A separately declared full-precision reference tests the compiler-policy question against FP32 semantics while retaining the unresolved native benchmark limitation.
+
+### What worked
+- All 240 compilations and structural qualification pass. The native run completes all twelve training records; ten baselines qualify.
+- Pegasus: compiled versus FP64 maximum absolute error 2.192114911814258e-8, versus highest-precision PyTorch 2.9802322387695312e-8. Opus: corresponding maxima 1.5018985360937265e-8 and 3.725290298461914e-8.
+- Original backend settings are recorded: float32 precision high, matmul TF32 allowed. Full-precision diagnostic settings are restored after each contrast.
+
+### What didn't work
+- Native Pegasus comparison: 4921/10240 mismatches, maximum absolute difference 7.242336869239807e-5.
+- Native Opus comparison: 6893/25088 mismatches, maximum absolute difference 3.949180245399475e-5.
+- Selection raises `ValueError: Unchanged compiler baseline is not qualified`. The complete traceback is archived in policy-measurements-v5-r1/selection-attempt.log.
+- No original PassBench acceptance or optimization gain follows from these diagnostics.
+
+### What I learned
+- An accurate FP32 implementation can disagree with a reduced-precision native reference under tight elementwise tolerances. Recording the reference backend flags makes that distinction testable.
+
+### What was tricky to build
+- The modified reference must remain an explicit execution wrapper and frozen plan rather than an implicit compiler or benchmark change. Candidate generation stays unchanged despite observed training failures.
+
+### What warrants a second pair of eyes
+- Review the protocol-change label, unchanged source membership/candidate hashes, untouched native evidence and the distinction between FP32 research correctness and native PassBench compatibility.
+
+### What should be done in the future
+- Run the declared v5-r2 training procedure, commit a training-only selection if qualified, then measure baseline and selected policy on all eight confirmation graphs. Resolve native benchmark compatibility separately.
+
+### Code review instructions
+- Read rich-matrix-numerics.json, policy-measurements-v5-r1/train.json and selection-attempt.log, followed by scripts 178–180 and both candidate-freeze files.
+
+### Technical details
+- Source/artifact compilation revision b4a4102; membership f3df1ddadef41f31d9b88ab9953c7c7a2a6cd3bffa75bb830159205b40848ad0. Fixed contraction separate; existing correctness tolerances and 20/100/3 timing budget unchanged. Native TF32 precision remains untouched in the original evaluator.
