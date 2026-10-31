@@ -3191,3 +3191,44 @@ Read `fx_layout.py` stack/unbind lowerings, `fx_import.py` dispatch, `test_fx_la
 
 ### Technical details
 The source-doc archive SHA256 is `c06afeb34bccf128b7f32adfa5b48d4a114249d3dfa7213c7bcfb746546359ae`. The local compile archive is `sources/stack-unbind-batch-local-compile-v1.tar.gz`. The full audit SHA256 is `e805d42b062e355bd0337952686672d7d79ba51a12e1220066e5eca5f398c2a2`; the prior scalar audit SHA256 is `7094df646a22657ff37c4c2797037627577b2b0ddbfa8ce23de1c8ffd5fddbdd`. The frozen remote111-task GPU study uses the earlier source snapshot and is unaffected.
+
+## Step 225: Consolidate GPU staging and freeze the structural replay
+
+The stack/unbind batch is committed but has only local compiler evidence. I replaced the next staging copy with one task-plan-driven script and used it to stage all25 structural variants on bling. The existing frozen111-task GPU study remained live, so no second timed GPU job was launched.
+
+### Prompt Context
+**User prompt:** See Step222 for broad coverage progress, and the earlier request to consolidate architecture when work starts to sprawl.
+**Assistant interpretation:** Prepare GPU replay for the new complete families through one reusable staging path.
+**Inferred user intent:** Reach external numerical evidence quickly without accumulating another hand-edited remote harness for every batch.
+
+### What I did
+- Checked the remote tmux session `kiln-uniform-importable-v1`; it was live, with task93 entering evaluation at the start of this step.
+- Added `scripts/641-stage-task-plan-gpu.py` and `scripts/642-run-task-plan-gpu.sh`. The stage tool accepts a frozen task plan and study name, verifies each graph-list hash, checks that the Kiln source snapshot matches committed files, copies exactly those sources and task graph directories, and recomputes the source snapshot remotely. The runner accepts a study directory and checks for an active GPU compute process before PassBench evaluation.
+- Committed the reusable scripts as `51b1ca5` before staging. Then staged task indices65,112,150 with all25 graph variants at `/home/manuel/passnet-kiln/KILN-005/sources/stack-unbind-batch-gpu-v1`. The local receipt is `sources/stack-unbind-batch-gpu-v1/staging.json`.
+
+### Why
+Scripts624 and633 already held similar one-off source-copy logic. A plan-driven staging path avoids a third copy and supports subsequent batches through the same source and graph-membership checks. The active timed study should remain the only GPU workload until it completes.
+
+### What worked
+Python and shell syntax checks passed. Staging verified committed revision `51b1ca57090d033dfc45e6e1549a657c7257aef5` against remote source snapshot `871d897aba8cc11531b925bfd682be9490efe82fa4af8e1e8aeb29512d03fd9e`. The plan hash is `f36f49f45944cc63ce3d6c7d2c12a53a90efd4ad5f651dfedbdd1accb596fc06`; all25 variants are present. No GPU run was started.
+
+### What didn't work
+The first `git add` attempt failed with `fatal: Unable to create '/home/manuel/code/wesen/kiln/.git/worktrees/passnet/index.lock': Read-only file system`. The managed sandbox mounted the shared Git metadata read-only for that call. Retrying the authorized add and commit with escalated execution succeeded. No source or staging operation failed.
+
+### What I learned
+The source snapshot contract and task-plan membership hashes are sufficient to stage a new complete-family replay without copying compiler-specific logic. The historical staging scripts remain evidence of prior runs; script641 is the reusable path for new cohorts.
+
+### What was tricky to build
+Remote source verification must follow package symlink creation, because the staged snapshot imports the workbench and compiler packages. Plan paths must stay inside the ticket and the remote study name must be a simple slug. The staging tool validates both before any copy.
+
+### What warrants a second pair of eyes
+Check the generic runner's GPU-idle guard and pinned image against the active run's protocol before launching. The staged snapshot differs from the frozen111-task snapshot by the scalar/layout and structural batches, so their results should not be pooled as one uniform release count.
+
+### What should be done in the future
+Let the frozen timed qualification finish. Launch the five-family scalar replay, then the three-family structural replay in separate tmux sessions. Collect all graph-level correctness and task scores and update the accepted ledger only for complete accepted tasks.
+
+### Code review instructions
+Read scripts641–642, the structural staging receipt, both task plans, and `evaluate_tasks.snapshot`. Compare remote source hashes and graph-list membership before interpreting future results.
+
+### Technical details
+The staging receipt format is `kiln-task-plan-gpu-staging/1`. Its full file-hash snapshot and plan hash are retained in the ticket. The generic runner uses pinned image `sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba`, with the frozen plan's target A100, separate contraction, internal synthetic check bypass and PassBench t=-5 setting. The stage command does not launch tmux or use the GPU.
