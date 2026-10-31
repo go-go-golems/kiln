@@ -1652,3 +1652,55 @@ See Step182 for the authored request to continue implementation and expand the p
 ### Technical details
 - Four nodes for the measured program: two selective exposure nodes, one cleanup node and one decomposition node. Existing total limit31 remains unchanged.
 - No copied upstream code, new model inference, GPU run, coverage increase or default pipeline change. Coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 193: Freeze eight additional pointwise models and compile the fixed pair
+
+Selected eight FP32 pointwise-convolution graphs before observing their compiler or timing outcomes. Selection excludes exact models in the 200-task evaluation set and prior tracked corpus manifests. Both unchanged Kiln and the fixed pointwise composition compile all eight graphs; all eight executable fingerprints change. CUDA correctness and performance remain pending.
+
+### Prompt Context
+See Step182 for the authored continuation request. The automatic goal reminder is continuation metadata, not a new user quotation.
+**Assistant interpretation:** Test whether the measured compiler change transfers beyond its development family.
+**Inferred user intent:** Obtain generalizable compiler results without expanding experimental infrastructure unnecessarily.
+**Fixed compiler commit:** 8fcfdf6 — Expose measured pointwise composition through shared agent program interface.
+
+### What I did
+- Script494 declares the fixed program, exact-model exclusions and metadata limits before scanning the upstream training list in salted order.
+- Selected one graph each from mmseg/PIDNet-s, mmpose/2xmspn_50, mmpose/pose_seresnet_101, timm/test_efficientnet.r160_in1k, timm/dla102.in1k, torchvision/deeplabv3_mobilenet_v3_large, timm/xception41p.ra3_in1k and timm/xception65p.ra3_in1k.
+- Script495 invokes the existing compile_policy.mjs with existing reference domains. Script496 corrects a rejected baseline declaration without touching candidate results; script497 compares the complete pair.
+
+### Why
+- The previous no-convolution controls cannot establish positive transfer. Additional convolution programs are needed before considering default promotion.
+- Reusing the existing compilation and reference checks keeps this experiment focused on the compiler transformation.
+
+### What worked
+- Sixteen of sixteen builds succeeded after the control declaration correction.
+- All eight executable fingerprints differ; kernel counts baseline/candidate are4/5,1/2,1/1,1/1,1/2,1/1,1/2,1/2.
+- Three graphs per variant passed the protected end-to-end reference check. Five per variant triggered the existing reference-work size skip, preserved verbatim in receipts.
+- The fixed program and membership were declared before compilation. No compiler failures or timing results were used to replace selected graphs.
+
+### What didn't work
+- Script495 initially used kind baseline, but the accepted unchanged-pipeline kind is unchanged. compile_policy.mjs rejected the request with TypeError: Unknown policy kind. The invalid policy and log remain baseline-invalid-v1.json and baseline-invalid-v1.log; compilation.json preserves the first return code.
+- Script496 supplies the unchanged kind and baseline-recovery.json records success. The already successful candidate was not rerun or overwritten.
+- Initial inspection also guessed two script filenames incorrectly; listing the scripts resolved these read-only lookup failures.
+
+### What I learned
+- This fixed transformation changes every selected graph, including small single-kernel cases. Performance regression checks matter even when the kernel count stays the same.
+- The convolution multiply count used for metadata selection is smaller than the interpreter's estimated total reference work; a64-million-product cap does not imply every reference evaluation runs.
+
+### What was tricky to build
+- Exact model exclusion must inspect both the evaluation population and prior tracked corpus manifests. Related architectures still remain and are explicitly allowed; this is not architecture-disjoint confirmation.
+
+### What warrants a second pair of eyes
+- Five size-skipped graphs need native CUDA correctness. Compilation receipts do not establish numerical acceptance or latency improvement.
+- Selection is restricted to FP32, zero-padded1x1 convolution, one convolution per graph and bounded volumes; it does not qualify complete task families or expand the reported coverage.
+
+### What should be done in the future
+- Run the fixed pair against original replay inputs on bling with declared numerical settings, repeated randomized-order timing and unchanged tolerances. Keep all eight results, including numerical or timing failures.
+
+### Code review instructions
+- Inspect pointwise-transfer-v1/declaration.json, scan-audit.json, corpus/manifest.json, both compile receipts and comparison.json. Scripts494–496 intentionally preserve prior output directories; do not rerun them over the frozen experiment.
+
+### Technical details
+- Bounds: at most2 million elements in any tensor and64 million convolution multiply products; FP32 only. Local import uses PyTorch2.11.0+cu130, compilation Node26.13.0, targetA100 proxy, contraction separate.
+- No new LLM calls, GPU measurements, default promotion or coverage increase in this step. Coverage remains34 complete tasks and375 accepted graphs.
