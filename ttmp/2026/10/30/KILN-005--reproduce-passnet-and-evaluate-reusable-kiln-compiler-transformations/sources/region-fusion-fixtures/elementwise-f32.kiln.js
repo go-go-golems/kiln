@@ -1,0 +1,1 @@
+project("selective-fixture").program(({x,y,z})=>{const p=N.cast(N.exp(N.cast(x,"f32")),"f32");return {a:N.cast(N.add(N.cast(p,"f32"),N.cast(y,"f32")),"f32"),b:N.cast(N.mul(N.cast(p,"f32"),N.cast(z,"f32")),"f32")};}, {x:k.tensor([4,32],"f32"),y:k.tensor([4,32],"f32"),z:k.tensor([4,32],"f32")});

@@ -119,6 +119,30 @@ def propose_selective(manifest, receipt, controls):
             'training_multiple_consumer_decisions':sum(f['consumerCount']>1 for f in features),'policies':policies}
 
 
+def propose_region(manifest, receipt, controls):
+    """Whole-region model variants fixed from training-only structural evidence."""
+    expected,rows,features=_training_evidence(manifest,receipt)
+    if manifest.get('numerical_policy')!={'contraction':'separate'} or receipt.get('numerical_policy')!=manifest['numerical_policy']:
+        raise ValueError('Region proposals require a fixed separate numerical contract')
+    if receipt.get('phase')!='train':raise ValueError('Region proposals require training-only compilation')
+    if [p['id'] for p in controls]!=['baseline','default']:raise ValueError('Expected immutable unchanged/default controls')
+    evidence=[{'graph':r['graph'],'decisions':r['decisions']} for r in rows]
+    trace_hash=hashlib.sha256(json.dumps(evidence,sort_keys=True).encode()).hexdigest()
+    policies=json.loads(json.dumps(controls))
+    provenance={'method':'Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation',
+                'training_trace_sha256':trace_hash}
+    for name,ratio in [('scalar100',1.0),('scalar125',1.25)]:
+        policies.append({'format':'kiln-fusion-policy/1','id':name,'kind':'threshold','max_work_growth':ratio,'provenance':dict(provenance)})
+    for name,launch,materialization in [('region-work',0,0),('region-launch4096',4096,0),('region-launch32768',32768,0),
+                                      ('region-launch262144',262144,0),('region-material1',0,1),('region-material12',0,12),
+                                      ('region-mixed32768',32768,12),('region-mixed262144',262144,12)]:
+        policies.append({'format':'kiln-fusion-policy/1','id':name,'kind':'region','max_work_growth':1.02,
+                         'launch_work':launch,'materialization_work':materialization,'provenance':dict(provenance)})
+    return {'format':'kiln-policy-proposals/1','training_membership_sha256':manifest['membership_sha256'],'training_graphs':expected,
+            'training_trace_sha256':trace_hash,'candidate_budget':12,'numerical_policy':manifest['numerical_policy'],
+            'training_multiple_consumer_decisions':sum(f['consumerCount']>1 for f in features),'policies':policies}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ['corpus', 'receipt', 'output']:

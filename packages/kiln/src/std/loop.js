@@ -330,32 +330,39 @@ export function inlineInto(c, p) {
   return { expr: rw(c.attrs.expr, {}), args, origin: [...new Set([...(p.attrs.origin || []), ...(c.attrs.origin || [])])] };
 }
 const kernelWork = (n) => workOf(schedule(n.attrs.expr, n.attrs.shape));
-export function createFusionRule({maxWorkGrowth=1.02, decide=null, selectConsumer=null, onDecision=null}={}) {
+export { chooseFusionSubset } from "./fusion.js";
+export function createFusionRule(options={}) {
+  if(!options||typeof options!=="object"||Array.isArray(options)||Object.keys(options).some(k=>!["maxWorkGrowth","decide","selectConsumers","onDecision"].includes(k)))throw new TypeError("Unknown fusion rule option; use selectConsumers for region selection");
+  const {maxWorkGrowth=1.02,decide=null,selectConsumers=null,onDecision=null}=options;
   if (!Number.isFinite(maxWorkGrowth) || maxWorkGrowth<0) throw new TypeError("maxWorkGrowth must be finite and nonnegative");
   if (decide!==null && typeof decide!=="function") throw new TypeError("fusion decide must be a function");
-  if (selectConsumer!==null && typeof selectConsumer!=="function") throw new TypeError("fusion consumer selector must be a function");
+  if (selectConsumers!==null && typeof selectConsumers!=="function") throw new TypeError("fusion region selector must be a function");
   if (onDecision!==null && typeof onDecision!=="function") throw new TypeError("fusion observer must be a function");
   return k.rule("merge_loop_ops")
   .match(P.op("loop.kernel").as("p").where(({ p, graph }) => !graph.isOutput(p.id) && p.users.length > 0 && p.users.every((u) => u.is("loop.kernel"))))
   .mutate(({ p, tx, skip }) => {
-    const consumers=p.users,selected=[];
+    const consumers=p.users,replacements=[],edges=[];
     // Plan against the same graph before editing any consumer. Cost features
     // describe one proposed edge substitution, not a removed producer.
+    const producerWork=selectConsumers?kernelWork(p):null,producerElements=numel(p.attrs.shape);
     for (const [consumerIndex,u] of consumers.entries()) {
       const replacement=inlineInto(u,p);
-      if (selectConsumer) {
-        const features=Object.freeze({producerWork:kernelWork(p),consumerWork:kernelWork(u),
+      replacements.push(replacement);
+      if (selectConsumers) {
+        edges.push(Object.freeze({producerWork,consumerWork:kernelWork(u),
           fusedConsumerWork:workOf(schedule(replacement.expr,u.attrs.shape)),
           consumerCount:consumers.length,consumerIndex,
-          producerElements:numel(p.attrs.shape),consumerElements:numel(u.attrs.shape)});
-        const chosen=selectConsumer(features);
-        if (typeof chosen!=="boolean") throw new TypeError("fusion consumer selector must return a Boolean");
-        if (!chosen) continue;
+          producerElements,consumerElements:numel(u.attrs.shape)}));
       }
-      selected.push({consumer:u,replacement});
     }
-    if (!selected.length) skip("fusion consumer selector selected no consumers");
-    for (const {consumer,replacement} of selected) tx.set(consumer,{args:replacement.args,attrs:{expr:replacement.expr,origin:replacement.origin}});
+    const region=selectConsumers?Object.freeze({producerWork,producerElements,consumers:Object.freeze(edges)}):null;
+    const selected=selectConsumers?selectConsumers(region):consumers.map((_,i)=>i);
+    if(!Array.isArray(selected)||new Set(selected).size!==selected.length||selected.some(i=>!Number.isSafeInteger(i)||i<0||i>=consumers.length))throw new TypeError("fusion region selector must return distinct valid consumer indices");
+    if (!selected.length) skip("fusion region selector selected no consumers");
+    for (const i of selected) {
+      const replacement=replacements[i];
+      tx.set(consumers[i],{args:replacement.args,attrs:{expr:replacement.expr,origin:replacement.origin}});
+    }
   })
   .guard(({ before, after, root }) => {
     const users = before.users(root);

@@ -1,0 +1,206 @@
+{
+ "format": "kiln-program/1",
+ "name": "nested-bf16-work",
+ "codegen": "kiln-codegen/2",
+ "target": null,
+ "params": {},
+ "source": {
+  "path": "nested-bf16.kiln.js",
+  "sha256": "f5ebf4fb45c4bb7e7562476b943038a8eebd2f0fbbd53b659117ac849076f5f8",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "x",
+   "buffer": 0,
+   "shape": [
+    4,
+    32
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "y",
+   "buffer": 1,
+   "shape": [
+    4,
+    1
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "z",
+   "buffer": 2,
+   "shape": [
+    4,
+    1
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "a",
+   "buffer": 4,
+   "shape": [
+    1,
+    1
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "b",
+   "buffer": 5,
+   "shape": [
+    4,
+    1
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 128,
+   "bytes": 256
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 4,
+   "bytes": 8
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 4,
+   "bytes": 8
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 4,
+   "bytes": 16
+  },
+  {
+   "id": 4,
+   "dtype": "bf16",
+   "elements": 1,
+   "bytes": 4
+  },
+  {
+   "id": 5,
+   "dtype": "bf16",
+   "elements": 4,
+   "bytes": 8
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_ew_reduce_reduce__cj38uksxv5",
+   "identity": "cj38uksxv5",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    0
+   ],
+   "writes": 3,
+   "grid": 4,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    4,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    1
+   ],
+   "inShapes": [
+    [
+     4,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(32) k_cast_ew_reduce_reduce__cj38uksxv5(const __nv_bfloat16* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f;\n    acc0 = 0.0f;\n    for (int r18 = tid; r18 < 32; r18 += 32) {\n        in0 = __bfloat162float(src0[((32 * bid) + r18)]);\n        v0 = in0;\n        v1 = __fmul_rn(v0, v0);\n        acc0 = (acc0 + v1);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    if ((tid == 0)) {\n        dst[bid] = acc0;\n    }\n}"
+  },
+  {
+   "name": "k_a__6shr3j1qcw",
+   "identity": "6shr3j1qcw",
+   "row": "TPB=1024",
+   "reads": [
+    3
+   ],
+   "writes": 4,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     4,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (out)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_a__6shr3j1qcw(const float* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 1)) {\n        acc0 = 0.0f;\n        for (int r426 = 0; r426 < 4; r426 += 1) {\n            in0 = src0[r426];\n            v0 = __bfloat162float(__float2bfloat16_rn(in0));\n            v1 = __bfloat162float(__float2bfloat16_rn(v0));\n            v2 = v1;\n            v3 = __fadd_rn(v2, v2);\n            acc0 = (acc0 + v3);\n        }\n        v4 = __bfloat162float(__float2bfloat16_rn(acc0));\n        v5 = __bfloat162float(__float2bfloat16_rn(v4));\n        dst[0] = __float2bfloat16_rn(v5);\n    }\n}"
+  },
+  {
+   "name": "k_b__7kd58kw5s0",
+   "identity": "7kd58kw5s0",
+   "row": "TPB=1024",
+   "reads": [
+    2,
+    3
+   ],
+   "writes": 5,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    1
+   ],
+   "inShapes": [
+    [
+     4,
+     1
+    ],
+    [
+     4,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_b__7kd58kw5s0(const __nv_bfloat16* __restrict__ src0, const float* __restrict__ src1, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, in1 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 4)) {\n        in0 = src1[e];\n        v0 = __bfloat162float(__float2bfloat16_rn(in0));\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        v2 = v1;\n        in1 = __bfloat162float(src0[e]);\n        v3 = in1;\n        v4 = __fmul_rn(v2, v3);\n        v5 = __bfloat162float(__float2bfloat16_rn(v4));\n        v6 = __bfloat162float(__float2bfloat16_rn(v5));\n        dst[e] = __float2bfloat16_rn(v6);\n    }\n}"
+  }
+ ]
+}

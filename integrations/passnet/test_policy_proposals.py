@@ -1,6 +1,6 @@
 import copy
 import unittest
-from propose_policy import propose,propose_rich,propose_selective
+from propose_policy import propose,propose_rich,propose_selective,propose_region
 
 
 class ProposalTests(unittest.TestCase):
@@ -55,3 +55,14 @@ class ProposalTests(unittest.TestCase):
         controls[0]['kind']='changed';self.assertEqual(result['policies'][0]['kind'],'unchanged')
         receipt['phase']='all'
         with self.assertRaisesRegex(ValueError,'training-only'):propose_selective(manifest,receipt,result['policies'][:2])
+
+    def test_region_programs_are_frozen_from_training_only(self):
+        manifest,receipt=self.inputs();manifest['numerical_policy']=receipt['numerical_policy']={'contraction':'separate'};receipt['phase']='train'
+        controls=[{'format':'kiln-fusion-policy/1','id':'baseline','kind':'unchanged'},
+                  {'format':'kiln-fusion-policy/1','id':'default','kind':'threshold','max_work_growth':1.02}]
+        result=propose_region(manifest,receipt,controls)
+        changed=copy.deepcopy(receipt);changed['records'][1].update(status='failed',decisions=[{'untrusted':float('nan')}])
+        self.assertEqual(result,propose_region(manifest,changed,controls));self.assertEqual(result['policies'][:2],controls)
+        self.assertEqual(len(result['policies']),12);self.assertEqual(sum(p['kind']=='region' for p in result['policies']),8)
+        receipt['phase']='all'
+        with self.assertRaisesRegex(ValueError,'training-only'):propose_region(manifest,receipt,controls)

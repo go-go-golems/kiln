@@ -4903,3 +4903,49 @@ See Step 103 for the user's verbatim vault commit/push instruction and earlier r
 
 ### Technical details
 - Compiler default unchanged. Original coverage remains eleven complete tasks/206 graphs, import eligibility1029/51. The broader goal is incomplete and has not been marked complete or blocked.
+
+## Step 110: Implement whole-region model planning and consolidate selection
+
+The compiler now compares empty, complete and model-optimal retained-producer subsets through one frozen region callback. The additive model admits an O(m) local search: all proper subsets retain the same kernels and materialized outputs, so selecting every negative consumer-work delta minimizes their variable term. Complete fusion is evaluated separately because it removes the producer. This proves only the stated local model optimum, not GPU profitability.
+
+### Prompt Context
+See the user's instruction to streamline self-optimization, implement missing Kiln pieces and reassess architectural sprawl; Step 109 records the preceding negative confirmation. Automatic goal continuation is not interpreted as new authorization for the blocked device export.
+**Assistant interpretation:** Address independent-edge myopia with a complete affected-region comparison and evaluate it on fresh models.
+**Inferred user intent:** Improve reusable compiler decisions without accumulating redundant transformation/evaluation implementations.
+
+### What I did
+- Added pure chooseFusionSubset in std/fusion.js with launch/materialization priors, admissibility, finite-cost validation and original-first ties.
+- Replaced the individual selectConsumer factory option with canonical selectConsumers(region); old option names now fail explicitly. Updated current tests/interpreter/driver without a compatibility alias. Historical experiment scripts remain pinned to their original revisions.
+- Added a bounded region policy kind and training-only region proposal grammar. Consolidated controls/freezing into shared prepare_controls.py/freeze_study.py.
+- Promoted the independent GPU fixture equations from script 189 into shared check_fusion_cuda.py, preserving seeds, tolerances and input assertions.
+- Wrote design 12 and saved scripts 203–208. Selected fresh v7 sources excluding all earlier study models/programs and all evaluation models.
+
+### Why
+- Independent edge selection can reject every individually growing edge even when their joint producer removal is profitable. A single region callback handles both existing per-edge programs and new whole-region planning.
+
+### What worked
+- Exhaustive enumeration agrees with the linear planner in 280 deterministic scenarios with up to seven consumers and varied bounds/weights.
+- All 30 compiler test files and the 74 then-existing Python integration tests pass. Six targeted proposal tests pass after adding the new region test.
+- All 36 new region fixture artifacts compile with normal reference checking. GPU validation is pending at this checkpoint.
+- Fresh source selection completes after 2255 tasks, with twelve training/eight confirmation graphs. Membership9cdb2cf0b136d36491e5a3cf9057219866531921a84b26dacfa42261467e55c1.
+
+### What didn't work
+- No GPU improvement or original benchmark acceptance is established by the local model proof. The native-reference limitations remain unchanged.
+
+### What I learned
+- Retained-producer partial subsets share constant launch/materialization terms under this local model. Only the complete candidate receives producer-elimination credit.
+
+### What was tricky to build
+- Work-growth filtering must precede plan choice; derived cost overflow must fail; direct selected-cost summation avoids subtracting large nearly equal totals. Region and edge programs must use one graph snapshot and immutable parameter closures.
+
+### What warrants a second pair of eyes
+- Review the model assumptions, exhaustive oracle, strict removal of the old callback and separation between surrogate coefficients and calibrated hardware timing.
+
+### What should be done in the future
+- Execute CUDA fixtures, compile training controls, freeze all candidates/reference settings, then complete full compilation and training/confirmation with a committed selection.
+
+### Code review instructions
+- Start with design 12, fusion.js, fusion-region.mjs and createFusionRule. Script205 runs the compiler/policy/Python boundary; scripts203/204 preserve fixture/source construction.
+
+### Technical details
+- No external algorithm source copied. The local search is derived from Kiln's own additive work model. Core pipeline defaults and original benchmark coverage remain unchanged. New launch/materialization weights are declared surrogate-work priors, not nanosecond estimates.

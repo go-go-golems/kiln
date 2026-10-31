@@ -4,7 +4,7 @@ import { Tensor } from "../core/util.js";
 import { roundToDtype } from "../core/dtypes.js";
 import * as IX from "../core/ix.js";
 import { nn, tensor, N, T, weight, decompose, decomposition, optimization, composeViews } from "./tensor.js";
-import { loop, E, schedule, printNest, lift, fuse, stamp, mergeLoopOps, createFusionRule, inlineInto, workOf, runSerial, freshR, printE, liftEw, liftReduce, liftView } from "./loop.js";
+import { loop, E, schedule, printNest, lift, fuse, stamp, mergeLoopOps, createFusionRule, chooseFusionSubset, inlineInto, workOf, runSerial, freshR, printE, liftEw, liftReduce, liftView } from "./loop.js";
 import { tile, tilePass, scheduleRule, costPrior, analyze, estimate, timeModel, launch, KNOBS, MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, canonRow, forkTree, legalMaps } from "./tile.js";
 import { kern, kernelPass, materialize, materializeRule, dropRedundantSyncs, KB, kx, printKernelBody } from "./kernel.js";
 import { gpu, emitPass, emitRule, programOf, simulateKernel, kernelInputs, referenceAt } from "./program.js";
@@ -21,7 +21,7 @@ export const std = {
   N, T, nn, tensor, weight, decompose, Tensor,
   emmy: { pipeline, defaultDecide, IRS, passes, dialects },
   frontend: { decomposition, optimization, composeViews },
-  loop: { dialect: loop, E, schedule, printNest, lift, fuse, stamp, mergeLoopOps, createFusionRule, inlineInto, workOf, runSerial, freshR, printE, liftEw, liftReduce, liftView },
+  loop: { dialect: loop, E, schedule, printNest, lift, fuse, stamp, mergeLoopOps, createFusionRule, chooseFusionSubset, inlineInto, workOf, runSerial, freshR, printE, liftEw, liftReduce, liftView },
   tile: { dialect: tile, pass: tilePass, rule: scheduleRule, costPrior, analyze, estimate, timeModel, launch, KNOBS, MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, canonRow, forkTree, legalMaps },
   kernel: { dialect: kern, pass: kernelPass, materialize, rule: materializeRule, dropRedundantSyncs, KB, kx, print: printKernelBody },
   gpu: { dialect: gpu, pass: emitPass, rule: emitRule, programOf, simulateKernel, kernelInputs, referenceAt, toCuda, toWgsl, toSim },
