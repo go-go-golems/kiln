@@ -8,4 +8,4 @@
 - [x] Design and implement an opt-in selective-consumer fusion transformation with shared legality/inlining primitives; validate retained-producer lifetime and obtain a fresh declared evaluation corpus before measuring generalization. <!-- t:pgyz -->
 - [x] Implement whole-region fusion planning with a single selection interface, prove model-optimal local subset selection against exhaustive search, and evaluate frozen policies on fresh training/confirmation models without changing prior results. <!-- t:acho -->
 - [x] Canonicalize generated reduction identifiers and align kernel/source/evidence identity; verify renaming-invariant artifacts and semantic-change separation, then use a fresh declaration before further small-margin optimization claims. <!-- t:rg2o -->
-- [ ] Freeze and evaluate unseen-family confirmation for singleton reshape canonicalization, preserving baseline/candidate source snapshots and all numerical failures <!-- t:p4wv -->
+- [x] Freeze and evaluate unseen-family confirmation for singleton reshape canonicalization, preserving baseline/candidate source snapshots and all numerical failures <!-- t:p4wv -->

@@ -89,3 +89,11 @@ Complete repaired softmax qualification under d71eccd: all ten families/93 varia
 ## 2026-10-31
 
 fed37d1 singleton reshape canonicalization passes all 93 original comparison variants; target median 703.734 -> 20.4884 ms, observed family-balanced old/new ratio 1.064442x. Separate new source cohort passes 3 tasks/14 variants, raising cumulative coverage to 24 tasks/313 graphs. Preserve native 60/63 fixture outcome and document development-only inference in report 17.
+
+## 2026-10-31
+
+Completed p4wv fixed-source confirmation: 20/20 fresh exact models qualify; 40 artifacts and 23,400 samples independently audited. Observed 1.053746x e2e / 1.059878x stream, retaining 10 slower families. Report18 explains FP32 research scope; official cumulative coverage unchanged at24 tasks/313 graphs.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/reference/18-milestone-report-fixed-compiler-confirmation-across-twenty-fresh-model-families.md — Full technical analysis and experimental limits

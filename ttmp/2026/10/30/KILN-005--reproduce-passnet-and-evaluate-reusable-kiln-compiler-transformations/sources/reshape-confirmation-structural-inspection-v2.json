@@ -1,0 +1,4342 @@
+{
+  "format": "kiln-confirmation-structural-inspection/1",
+  "scope": "Post-confirmation descriptive inspection; no candidate changes, no generated-code execution or causal performance attribution",
+  "records": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/Mahmoud8_mah-efficient_mlm_m0.40/_decomposed/Mahmoud8_mah-efficient_mlm_m0.40_start310_end312_13",
+      "model": "transformers-auto-model/Mahmoud8_mah-efficient_mlm_m0.40",
+      "category": "reduction",
+      "e2e_speedup": 1.3711069494768553,
+      "stream_speedup": 1.4400527442687503,
+      "kernel_count_changed": true,
+      "schedule_or_layout_changed": true,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 4,
+          "buffer_count": 8,
+          "kernels": [
+            {
+              "row": "TPB=128",
+              "grid": 512,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                512,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                64,
+                1024
+              ],
+              "inShapes": [
+                [
+                  1,
+                  64,
+                  1024
+                ],
+                [
+                  1,
+                  64,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=1024",
+              "grid": 64,
+              "block": 1024,
+              "smemBytes": 4096,
+              "dispatch": [
+                64,
+                1,
+                1
+              ],
+              "shape": [
+                64,
+                1
+              ],
+              "inShapes": [
+                [
+                  1,
+                  64,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=1024",
+              "grid": 64,
+              "block": 1024,
+              "smemBytes": 4096,
+              "dispatch": [
+                64,
+                1,
+                1
+              ],
+              "shape": [
+                64,
+                1
+              ],
+              "inShapes": [
+                [
+                  64,
+                  1
+                ],
+                [
+                  1,
+                  64,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=128",
+              "grid": 512,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                512,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                64,
+                1024
+              ],
+              "inShapes": [
+                [
+                  1024
+                ],
+                [
+                  1024
+                ],
+                [
+                  64,
+                  1
+                ],
+                [
+                  64,
+                  1
+                ],
+                [
+                  1,
+                  64,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 2,
+          "buffer_count": 6,
+          "kernels": [
+            {
+              "row": "TPB=128",
+              "grid": 512,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                512,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                64,
+                1024
+              ],
+              "inShapes": [
+                [
+                  1,
+                  64,
+                  1024
+                ],
+                [
+                  1,
+                  64,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=512",
+              "grid": 64,
+              "block": 512,
+              "smemBytes": 2048,
+              "dispatch": [
+                64,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                64,
+                1024
+              ],
+              "inShapes": [
+                [
+                  1024
+                ],
+                [
+                  1024
+                ],
+                [
+                  1,
+                  64,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/nvidia_mit-b1/_decomposed/nvidia_mit-b1_start335_end340_24",
+      "model": "transformers-auto-model/nvidia_mit-b1",
+      "category": "reduction",
+      "e2e_speedup": 1.141560116041689,
+      "stream_speedup": 1.0949671897289586,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": true,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=1024",
+              "grid": 256,
+              "block": 1024,
+              "smemBytes": 4096,
+              "dispatch": [
+                256,
+                1,
+                1
+              ],
+              "shape": [
+                256,
+                1
+              ],
+              "inShapes": [
+                [
+                  1,
+                  256,
+                  512
+                ],
+                [
+                  1,
+                  256,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=512",
+              "grid": 256,
+              "block": 512,
+              "smemBytes": 2048,
+              "dispatch": [
+                256,
+                1,
+                1
+              ],
+              "shape": [
+                256,
+                1
+              ],
+              "inShapes": [
+                [
+                  256,
+                  1
+                ],
+                [
+                  1,
+                  256,
+                  512
+                ],
+                [
+                  1,
+                  256,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=64",
+              "grid": 2048,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                512,
+                16,
+                16
+              ],
+              "inShapes": [
+                [
+                  512
+                ],
+                [
+                  512
+                ],
+                [
+                  256,
+                  1
+                ],
+                [
+                  256,
+                  1
+                ],
+                [
+                  1,
+                  256,
+                  512
+                ],
+                [
+                  1,
+                  256,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=512",
+              "grid": 256,
+              "block": 512,
+              "smemBytes": 2048,
+              "dispatch": [
+                256,
+                1,
+                1
+              ],
+              "shape": [
+                256,
+                1
+              ],
+              "inShapes": [
+                [
+                  1,
+                  256,
+                  512
+                ],
+                [
+                  1,
+                  256,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=512",
+              "grid": 256,
+              "block": 512,
+              "smemBytes": 2048,
+              "dispatch": [
+                256,
+                1,
+                1
+              ],
+              "shape": [
+                256,
+                1
+              ],
+              "inShapes": [
+                [
+                  256,
+                  1
+                ],
+                [
+                  1,
+                  256,
+                  512
+                ],
+                [
+                  1,
+                  256,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=64",
+              "grid": 2048,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                512,
+                16,
+                16
+              ],
+              "inShapes": [
+                [
+                  512
+                ],
+                [
+                  512
+                ],
+                [
+                  256,
+                  1
+                ],
+                [
+                  256,
+                  1
+                ],
+                [
+                  1,
+                  256,
+                  512
+                ],
+                [
+                  1,
+                  256,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-SCANDINAVIA-SCANDINAVIA/_decomposed/opus-mt-SCANDINAVIA-SCANDINAVIA_start18_end24_3",
+      "model": "transformers-auto-model/opus-mt-SCANDINAVIA-SCANDINAVIA",
+      "category": "matrix",
+      "e2e_speedup": 1.0063521868947025,
+      "stream_speedup": 1.0021798531073374,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 3,
+          "buffer_count": 8,
+          "kernels": [
+            {
+              "row": "TPB=64",
+              "grid": 18,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                18,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                1,
+                33,
+                33
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  33,
+                  33
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=64",
+              "grid": 264,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                264,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                33,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  33,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 16896,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                16896,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                33,
+                64
+              ],
+              "inShapes": [
+                [
+                  512
+                ],
+                [
+                  512,
+                  512
+                ],
+                [
+                  1,
+                  33,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 3,
+          "buffer_count": 8,
+          "kernels": [
+            {
+              "row": "TPB=64",
+              "grid": 18,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                18,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                1,
+                33,
+                33
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  33,
+                  33
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=64",
+              "grid": 264,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                264,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                33,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  33,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 16896,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                16896,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                33,
+                64
+              ],
+              "inShapes": [
+                [
+                  512
+                ],
+                [
+                  512,
+                  512
+                ],
+                [
+                  1,
+                  33,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/microsoft_table-transformer-detection/_decomposed/microsoft_table-transformer-detection_start478_end481_4",
+      "model": "transformers-auto-model/microsoft_table-transformer-detection",
+      "category": "reduction",
+      "e2e_speedup": 1.2575827702181492,
+      "stream_speedup": 1.3507501410474272,
+      "kernel_count_changed": true,
+      "schedule_or_layout_changed": true,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 5,
+          "buffer_count": 10,
+          "kernels": [
+            {
+              "row": "TPB=512",
+              "grid": 313,
+              "block": 512,
+              "smemBytes": 0,
+              "dispatch": [
+                313,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                625,
+                256
+              ],
+              "inShapes": [
+                [
+                  1,
+                  625,
+                  256
+                ],
+                [
+                  1,
+                  625,
+                  256
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=256",
+              "grid": 625,
+              "block": 256,
+              "smemBytes": 1024,
+              "dispatch": [
+                625,
+                1,
+                1
+              ],
+              "shape": [
+                625,
+                1
+              ],
+              "inShapes": [
+                [
+                  1,
+                  625,
+                  256
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=256",
+              "grid": 625,
+              "block": 256,
+              "smemBytes": 1024,
+              "dispatch": [
+                625,
+                1,
+                1
+              ],
+              "shape": [
+                625,
+                1
+              ],
+              "inShapes": [
+                [
+                  625,
+                  1
+                ],
+                [
+                  1,
+                  625,
+                  256
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=512",
+              "grid": 313,
+              "block": 512,
+              "smemBytes": 0,
+              "dispatch": [
+                313,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                625,
+                256
+              ],
+              "inShapes": [
+                [
+                  256
+                ],
+                [
+                  256
+                ],
+                [
+                  625,
+                  1
+                ],
+                [
+                  625,
+                  1
+                ],
+                [
+                  1,
+                  625,
+                  256
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=512",
+              "grid": 313,
+              "block": 512,
+              "smemBytes": 0,
+              "dispatch": [
+                313,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                625,
+                256
+              ],
+              "inShapes": [
+                [
+                  1,
+                  625,
+                  256
+                ],
+                [
+                  1,
+                  625,
+                  256
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 3,
+          "buffer_count": 8,
+          "kernels": [
+            {
+              "row": "TPB=512",
+              "grid": 313,
+              "block": 512,
+              "smemBytes": 0,
+              "dispatch": [
+                313,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                625,
+                256
+              ],
+              "inShapes": [
+                [
+                  1,
+                  625,
+                  256
+                ],
+                [
+                  1,
+                  625,
+                  256
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 625,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                625,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                625,
+                256
+              ],
+              "inShapes": [
+                [
+                  256
+                ],
+                [
+                  256
+                ],
+                [
+                  1,
+                  625,
+                  256
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=512",
+              "grid": 313,
+              "block": 512,
+              "smemBytes": 0,
+              "dispatch": [
+                313,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                625,
+                256
+              ],
+              "inShapes": [
+                [
+                  1,
+                  625,
+                  256
+                ],
+                [
+                  1,
+                  625,
+                  256
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmpose/ViTPose-S/_decomposed/ViTPose-S_start17_end19_4",
+      "model": "mmpose/ViTPose-S",
+      "category": "reduction",
+      "e2e_speedup": 0.9945717993079585,
+      "stream_speedup": 0.9985935194923353,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 4,
+          "buffer_count": 8,
+          "kernels": [
+            {
+              "row": "TPB=128,COARSEN=2",
+              "grid": 4608,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                4608,
+                1,
+                1
+              ],
+              "shape": [
+                16,
+                192,
+                384
+              ],
+              "inShapes": [
+                [
+                  16,
+                  192,
+                  384
+                ],
+                [
+                  16,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 3072,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                3072,
+                1,
+                1
+              ],
+              "shape": [
+                3072,
+                1
+              ],
+              "inShapes": [
+                [
+                  16,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 3072,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                3072,
+                1,
+                1
+              ],
+              "shape": [
+                3072,
+                1
+              ],
+              "inShapes": [
+                [
+                  3072,
+                  1
+                ],
+                [
+                  16,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=128,COARSEN=2",
+              "grid": 4608,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                4608,
+                1,
+                1
+              ],
+              "shape": [
+                16,
+                192,
+                384
+              ],
+              "inShapes": [
+                [
+                  384
+                ],
+                [
+                  384
+                ],
+                [
+                  3072,
+                  1
+                ],
+                [
+                  3072,
+                  1
+                ],
+                [
+                  16,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 4,
+          "buffer_count": 8,
+          "kernels": [
+            {
+              "row": "TPB=128,COARSEN=2",
+              "grid": 4608,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                4608,
+                1,
+                1
+              ],
+              "shape": [
+                16,
+                192,
+                384
+              ],
+              "inShapes": [
+                [
+                  16,
+                  192,
+                  384
+                ],
+                [
+                  16,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 3072,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                3072,
+                1,
+                1
+              ],
+              "shape": [
+                3072,
+                1
+              ],
+              "inShapes": [
+                [
+                  16,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 3072,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                3072,
+                1,
+                1
+              ],
+              "shape": [
+                3072,
+                1
+              ],
+              "inShapes": [
+                [
+                  3072,
+                  1
+                ],
+                [
+                  16,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=128,COARSEN=2",
+              "grid": 4608,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                4608,
+                1,
+                1
+              ],
+              "shape": [
+                16,
+                192,
+                384
+              ],
+              "inShapes": [
+                [
+                  384
+                ],
+                [
+                  384
+                ],
+                [
+                  3072,
+                  1
+                ],
+                [
+                  3072,
+                  1
+                ],
+                [
+                  16,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/Aleksandar_distilbert-srb-ner-setimes/_decomposed/Aleksandar_distilbert-srb-ner-setimes_start143_end145_12",
+      "model": "transformers-auto-model/Aleksandar_distilbert-srb-ner-setimes",
+      "category": "reduction",
+      "e2e_speedup": 0.9998533287281709,
+      "stream_speedup": 0.9993864983791487,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=1024",
+              "grid": 2048,
+              "block": 1024,
+              "smemBytes": 4096,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                2048,
+                1
+              ],
+              "inShapes": [
+                [
+                  16,
+                  128,
+                  768
+                ],
+                [
+                  16,
+                  128,
+                  768
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 2048,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                2048,
+                1
+              ],
+              "inShapes": [
+                [
+                  2048,
+                  1
+                ],
+                [
+                  16,
+                  128,
+                  768
+                ],
+                [
+                  16,
+                  128,
+                  768
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=128,COARSEN=2",
+              "grid": 6144,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                6144,
+                1,
+                1
+              ],
+              "shape": [
+                16,
+                128,
+                768
+              ],
+              "inShapes": [
+                [
+                  768
+                ],
+                [
+                  768
+                ],
+                [
+                  2048,
+                  1
+                ],
+                [
+                  2048,
+                  1
+                ],
+                [
+                  16,
+                  128,
+                  768
+                ],
+                [
+                  16,
+                  128,
+                  768
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=1024",
+              "grid": 2048,
+              "block": 1024,
+              "smemBytes": 4096,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                2048,
+                1
+              ],
+              "inShapes": [
+                [
+                  16,
+                  128,
+                  768
+                ],
+                [
+                  16,
+                  128,
+                  768
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 2048,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                2048,
+                1
+              ],
+              "inShapes": [
+                [
+                  2048,
+                  1
+                ],
+                [
+                  16,
+                  128,
+                  768
+                ],
+                [
+                  16,
+                  128,
+                  768
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=128,COARSEN=2",
+              "grid": 6144,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                6144,
+                1,
+                1
+              ],
+              "shape": [
+                16,
+                128,
+                768
+              ],
+              "inShapes": [
+                [
+                  768
+                ],
+                [
+                  768
+                ],
+                [
+                  2048,
+                  1
+                ],
+                [
+                  2048,
+                  1
+                ],
+                [
+                  16,
+                  128,
+                  768
+                ],
+                [
+                  16,
+                  128,
+                  768
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/facebook_deit-small-distilled-patch16-224/_decomposed/facebook_deit-small-distilled-patch16-224_start12_end15_2",
+      "model": "transformers-auto-model/facebook_deit-small-distilled-patch16-224",
+      "category": "matrix",
+      "e2e_speedup": 1.0,
+      "stream_speedup": 1.0,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": true,
+      "variants": {
+        "baseline": {
+          "kernel_count": 1,
+          "buffer_count": 4,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=32",
+              "grid": 76032,
+              "block": 32,
+              "smemBytes": 128,
+              "dispatch": [
+                65535,
+                2,
+                1
+              ],
+              "shape": [
+                1,
+                6,
+                198,
+                64
+              ],
+              "inShapes": [
+                [
+                  384
+                ],
+                [
+                  384,
+                  384
+                ],
+                [
+                  1,
+                  198,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 1,
+          "buffer_count": 4,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=32",
+              "grid": 76032,
+              "block": 32,
+              "smemBytes": 128,
+              "dispatch": [
+                65535,
+                2,
+                1
+              ],
+              "shape": [
+                1,
+                6,
+                198,
+                64
+              ],
+              "inShapes": [
+                [
+                  384
+                ],
+                [
+                  384,
+                  384
+                ],
+                [
+                  1,
+                  198,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ar-de/_decomposed/opus-mt-ar-de_start235_end242_20",
+      "model": "transformers-auto-model/opus-mt-ar-de",
+      "category": "matrix",
+      "e2e_speedup": 0.9983370153674348,
+      "stream_speedup": 1.0094487991209635,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 4,
+          "buffer_count": 10,
+          "kernels": [
+            {
+              "row": "TPB=1024",
+              "grid": 1,
+              "block": 1024,
+              "smemBytes": 0,
+              "dispatch": [
+                1,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                1,
+                1,
+                51
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  51
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=128",
+              "grid": 204,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                204,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                51,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  51,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=64",
+              "grid": 8,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                8,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                1,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  8,
+                  1,
+                  64
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 26112,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                26112,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                51,
+                64
+              ],
+              "inShapes": [
+                [
+                  512
+                ],
+                [
+                  512,
+                  512
+                ],
+                [
+                  1,
+                  51,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 4,
+          "buffer_count": 10,
+          "kernels": [
+            {
+              "row": "TPB=1024",
+              "grid": 1,
+              "block": 1024,
+              "smemBytes": 0,
+              "dispatch": [
+                1,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                1,
+                1,
+                51
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  51
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=128",
+              "grid": 204,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                204,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                51,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  51,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=64",
+              "grid": 8,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                8,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                1,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  8,
+                  1,
+                  64
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 26112,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                26112,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                51,
+                64
+              ],
+              "inShapes": [
+                [
+                  512
+                ],
+                [
+                  512,
+                  512
+                ],
+                [
+                  1,
+                  51,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/vit_gigantic_patch14_clip_224.laion2b/_decomposed/vit_gigantic_patch14_clip_224.laion2b_start217_end219_8",
+      "model": "timm/vit_gigantic_patch14_clip_224.laion2b",
+      "category": "reduction",
+      "e2e_speedup": 1.4512110622401637,
+      "stream_speedup": 1.470993180717455,
+      "kernel_count_changed": true,
+      "schedule_or_layout_changed": true,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 4,
+          "buffer_count": 8,
+          "kernels": [
+            {
+              "row": "TPB=128",
+              "grid": 3341,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                3341,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                257,
+                1664
+              ],
+              "inShapes": [
+                [
+                  1,
+                  257,
+                  1664
+                ],
+                [
+                  1,
+                  257,
+                  1664
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=1024",
+              "grid": 257,
+              "block": 1024,
+              "smemBytes": 4096,
+              "dispatch": [
+                257,
+                1,
+                1
+              ],
+              "shape": [
+                257,
+                1
+              ],
+              "inShapes": [
+                [
+                  1,
+                  257,
+                  1664
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=512",
+              "grid": 257,
+              "block": 512,
+              "smemBytes": 2048,
+              "dispatch": [
+                257,
+                1,
+                1
+              ],
+              "shape": [
+                257,
+                1
+              ],
+              "inShapes": [
+                [
+                  257,
+                  1
+                ],
+                [
+                  1,
+                  257,
+                  1664
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=128",
+              "grid": 3341,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                3341,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                257,
+                1664
+              ],
+              "inShapes": [
+                [
+                  1664
+                ],
+                [
+                  1664
+                ],
+                [
+                  257,
+                  1
+                ],
+                [
+                  257,
+                  1
+                ],
+                [
+                  1,
+                  257,
+                  1664
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 2,
+          "buffer_count": 6,
+          "kernels": [
+            {
+              "row": "TPB=128",
+              "grid": 3341,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                3341,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                257,
+                1664
+              ],
+              "inShapes": [
+                [
+                  1,
+                  257,
+                  1664
+                ],
+                [
+                  1,
+                  257,
+                  1664
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=512,STAGE=all",
+              "grid": 257,
+              "block": 512,
+              "smemBytes": 22016,
+              "dispatch": [
+                257,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                257,
+                1664
+              ],
+              "inShapes": [
+                [
+                  1664
+                ],
+                [
+                  1664
+                ],
+                [
+                  1,
+                  257,
+                  1664
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-ElectraForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-ElectraForSequenceClassification_start111_end119_6",
+      "model": "transformers-auto-model/hf-tiny-model-private_tiny-random-ElectraForSequenceClassification",
+      "category": "matrix",
+      "e2e_speedup": 0.9981638942927714,
+      "stream_speedup": 1.0003516201173208,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 3,
+          "buffer_count": 6,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=512",
+              "grid": 2048,
+              "block": 512,
+              "smemBytes": 2048,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                4,
+                512,
+                512
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  512
+                ],
+                [
+                  1,
+                  4,
+                  512,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64,STAGE=all",
+              "grid": 2048,
+              "block": 64,
+              "smemBytes": 2304,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                4,
+                512,
+                1
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  512,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 16384,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                16384,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                512,
+                32
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  512,
+                  8
+                ],
+                [
+                  1,
+                  4,
+                  512,
+                  512
+                ],
+                [
+                  1,
+                  4,
+                  512,
+                  1
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 3,
+          "buffer_count": 6,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=512",
+              "grid": 2048,
+              "block": 512,
+              "smemBytes": 2048,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                4,
+                512,
+                512
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  512
+                ],
+                [
+                  1,
+                  4,
+                  512,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64,STAGE=all",
+              "grid": 2048,
+              "block": 64,
+              "smemBytes": 2304,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                4,
+                512,
+                1
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  512,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 16384,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                16384,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                512,
+                32
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  512,
+                  8
+                ],
+                [
+                  1,
+                  4,
+                  512,
+                  512
+                ],
+                [
+                  1,
+                  4,
+                  512,
+                  1
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/optimum_hubert-base-superb-ks/_decomposed/optimum_hubert-base-superb-ks_start378_end380_3",
+      "model": "transformers-auto-model/optimum_hubert-base-superb-ks",
+      "category": "reduction",
+      "e2e_speedup": 0.9966652771988328,
+      "stream_speedup": 1.0020790179290489,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 1,
+          "buffer_count": 2,
+          "kernels": [
+            {
+              "row": "TPB=1024",
+              "grid": 1,
+              "block": 1024,
+              "smemBytes": 0,
+              "dispatch": [
+                1,
+                1,
+                1
+              ],
+              "shape": [
+                13,
+                1,
+                1
+              ],
+              "inShapes": [
+                [
+                  13
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 1,
+          "buffer_count": 2,
+          "kernels": [
+            {
+              "row": "TPB=1024",
+              "grid": 1,
+              "block": 1024,
+              "smemBytes": 0,
+              "dispatch": [
+                1,
+                1,
+                1
+              ],
+              "shape": [
+                13,
+                1,
+                1
+              ],
+              "inShapes": [
+                [
+                  13
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/mmpose/ViTPose-S-simple/_decomposed/ViTPose-S-simple_start244_end250_2",
+      "model": "mmpose/ViTPose-S-simple",
+      "category": "reduction",
+      "e2e_speedup": 0.9988435014247395,
+      "stream_speedup": 0.999821023426045,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 6144,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                6144,
+                1,
+                1
+              ],
+              "shape": [
+                6144,
+                1
+              ],
+              "inShapes": [
+                [
+                  32,
+                  192,
+                  384
+                ],
+                [
+                  32,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 6144,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                6144,
+                1,
+                1
+              ],
+              "shape": [
+                6144,
+                1
+              ],
+              "inShapes": [
+                [
+                  6144,
+                  1
+                ],
+                [
+                  32,
+                  192,
+                  384
+                ],
+                [
+                  32,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=128",
+              "grid": 18432,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                18432,
+                1,
+                1
+              ],
+              "shape": [
+                32,
+                384,
+                16,
+                12
+              ],
+              "inShapes": [
+                [
+                  384
+                ],
+                [
+                  384
+                ],
+                [
+                  6144,
+                  1
+                ],
+                [
+                  6144,
+                  1
+                ],
+                [
+                  32,
+                  192,
+                  384
+                ],
+                [
+                  32,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 6144,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                6144,
+                1,
+                1
+              ],
+              "shape": [
+                6144,
+                1
+              ],
+              "inShapes": [
+                [
+                  32,
+                  192,
+                  384
+                ],
+                [
+                  32,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 6144,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                6144,
+                1,
+                1
+              ],
+              "shape": [
+                6144,
+                1
+              ],
+              "inShapes": [
+                [
+                  6144,
+                  1
+                ],
+                [
+                  32,
+                  192,
+                  384
+                ],
+                [
+                  32,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=128",
+              "grid": 18432,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                18432,
+                1,
+                1
+              ],
+              "shape": [
+                32,
+                384,
+                16,
+                12
+              ],
+              "inShapes": [
+                [
+                  384
+                ],
+                [
+                  384
+                ],
+                [
+                  6144,
+                  1
+                ],
+                [
+                  6144,
+                  1
+                ],
+                [
+                  32,
+                  192,
+                  384
+                ],
+                [
+                  32,
+                  192,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/ultralytics/yolo12n/_decomposed/yolo12n_start230_end236_6",
+      "model": "ultralytics/yolo12n",
+      "category": "matrix",
+      "e2e_speedup": 1.0000055221117186,
+      "stream_speedup": 1.0,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 2,
+          "buffer_count": 4,
+          "kernels": [
+            {
+              "row": "TPB=128",
+              "grid": 400,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                400,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                400,
+                4,
+                32
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  32,
+                  400
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 51200,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                51200,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                128,
+                20,
+                20
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  400,
+                  400
+                ],
+                [
+                  1,
+                  4,
+                  32,
+                  400
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 2,
+          "buffer_count": 4,
+          "kernels": [
+            {
+              "row": "TPB=128",
+              "grid": 400,
+              "block": 128,
+              "smemBytes": 0,
+              "dispatch": [
+                400,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                400,
+                4,
+                32
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  32,
+                  400
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 51200,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                51200,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                128,
+                20,
+                20
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  400,
+                  400
+                ],
+                [
+                  1,
+                  4,
+                  32,
+                  400
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/Helsinki-NLP_opus-mt-en-zh/_decomposed/Helsinki-NLP_opus-mt-en-zh_start23_end29_3",
+      "model": "transformers-auto-model/Helsinki-NLP_opus-mt-en-zh",
+      "category": "matrix",
+      "e2e_speedup": 1.0050122278989806,
+      "stream_speedup": 1.0,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 3,
+          "buffer_count": 8,
+          "kernels": [
+            {
+              "row": "TPB=1024",
+              "grid": 1,
+              "block": 1024,
+              "smemBytes": 0,
+              "dispatch": [
+                1,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                1,
+                12,
+                12
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  12,
+                  13
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=64",
+              "grid": 96,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                96,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                12,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  12,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 6144,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                6144,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                12,
+                64
+              ],
+              "inShapes": [
+                [
+                  512
+                ],
+                [
+                  512,
+                  512
+                ],
+                [
+                  1,
+                  12,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 3,
+          "buffer_count": 8,
+          "kernels": [
+            {
+              "row": "TPB=1024",
+              "grid": 1,
+              "block": 1024,
+              "smemBytes": 0,
+              "dispatch": [
+                1,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                1,
+                12,
+                12
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  12,
+                  13
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=64",
+              "grid": 96,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                96,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                12,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  12,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 6144,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                6144,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                8,
+                12,
+                64
+              ],
+              "inShapes": [
+                [
+                  512
+                ],
+                [
+                  512,
+                  512
+                ],
+                [
+                  1,
+                  12,
+                  512
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/monoelectra-large/_decomposed/monoelectra-large_start706_end709_11",
+      "model": "transformers-auto-model/monoelectra-large",
+      "category": "reduction",
+      "e2e_speedup": 1.0004925299622394,
+      "stream_speedup": 1.0094947369933613,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=1024",
+              "grid": 2048,
+              "block": 1024,
+              "smemBytes": 4096,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                2048,
+                1
+              ],
+              "inShapes": [
+                [
+                  16,
+                  128,
+                  1024
+                ],
+                [
+                  16,
+                  128,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 2048,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                2048,
+                1
+              ],
+              "inShapes": [
+                [
+                  2048,
+                  1
+                ],
+                [
+                  16,
+                  128,
+                  1024
+                ],
+                [
+                  16,
+                  128,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=64",
+              "grid": 256,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                256,
+                1,
+                1
+              ],
+              "shape": [
+                16,
+                1024
+              ],
+              "inShapes": [
+                [
+                  1024
+                ],
+                [
+                  1024
+                ],
+                [
+                  2048,
+                  1
+                ],
+                [
+                  2048,
+                  1
+                ],
+                [
+                  16,
+                  128,
+                  1024
+                ],
+                [
+                  16,
+                  128,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=1024",
+              "grid": 2048,
+              "block": 1024,
+              "smemBytes": 4096,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                2048,
+                1
+              ],
+              "inShapes": [
+                [
+                  16,
+                  128,
+                  1024
+                ],
+                [
+                  16,
+                  128,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 2048,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                2048,
+                1,
+                1
+              ],
+              "shape": [
+                2048,
+                1
+              ],
+              "inShapes": [
+                [
+                  2048,
+                  1
+                ],
+                [
+                  16,
+                  128,
+                  1024
+                ],
+                [
+                  16,
+                  128,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=64",
+              "grid": 256,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                256,
+                1,
+                1
+              ],
+              "shape": [
+                16,
+                1024
+              ],
+              "inShapes": [
+                [
+                  1024
+                ],
+                [
+                  1024
+                ],
+                [
+                  2048,
+                  1
+                ],
+                [
+                  2048,
+                  1
+                ],
+                [
+                  16,
+                  128,
+                  1024
+                ],
+                [
+                  16,
+                  128,
+                  1024
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/transformers-auto-model/nickmuchi_yolos-small-plant-disease-detection/_decomposed/nickmuchi_yolos-small-plant-disease-detection_start29_end31_2",
+      "model": "transformers-auto-model/nickmuchi_yolos-small-plant-disease-detection",
+      "category": "reduction",
+      "e2e_speedup": 1.0517928675396742,
+      "stream_speedup": 1.0549614308125406,
+      "kernel_count_changed": true,
+      "schedule_or_layout_changed": true,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 4,
+          "buffer_count": 12,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 1125,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                1125,
+                1,
+                1
+              ],
+              "shape": [
+                1125,
+                1
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1125,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 1125,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                1125,
+                1,
+                1
+              ],
+              "shape": [
+                1125,
+                1
+              ],
+              "inShapes": [
+                [
+                  1125,
+                  1
+                ],
+                [
+                  1,
+                  1125,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=64",
+              "grid": 6750,
+              "block": 64,
+              "smemBytes": 0,
+              "dispatch": [
+                6750,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                1125,
+                384
+              ],
+              "inShapes": [
+                [
+                  384
+                ],
+                [
+                  384
+                ],
+                [
+                  1125,
+                  1
+                ],
+                [
+                  1125,
+                  1
+                ],
+                [
+                  1,
+                  1125,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=1024",
+              "grid": 4641,
+              "block": 1024,
+              "smemBytes": 0,
+              "dispatch": [
+                4641,
+                1,
+                1
+              ],
+              "shape": [
+                11,
+                1,
+                1125,
+                384
+              ],
+              "inShapes": [
+                [
+                  11,
+                  1,
+                  1,
+                  384
+                ],
+                [
+                  11,
+                  1,
+                  1024,
+                  384
+                ],
+                [
+                  1,
+                  1,
+                  1125,
+                  1
+                ],
+                [
+                  11,
+                  1,
+                  100,
+                  384
+                ],
+                [
+                  1,
+                  1,
+                  1125,
+                  1
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 2,
+          "buffer_count": 10,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=128,STAGE=all",
+              "grid": 1125,
+              "block": 128,
+              "smemBytes": 5120,
+              "dispatch": [
+                1125,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                1125,
+                384
+              ],
+              "inShapes": [
+                [
+                  384
+                ],
+                [
+                  384
+                ],
+                [
+                  1,
+                  1125,
+                  384
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "TPB=1024",
+              "grid": 4641,
+              "block": 1024,
+              "smemBytes": 0,
+              "dispatch": [
+                4641,
+                1,
+                1
+              ],
+              "shape": [
+                11,
+                1,
+                1125,
+                384
+              ],
+              "inShapes": [
+                [
+                  11,
+                  1,
+                  1,
+                  384
+                ],
+                [
+                  11,
+                  1,
+                  1024,
+                  384
+                ],
+                [
+                  1,
+                  1,
+                  1125,
+                  1
+                ],
+                [
+                  11,
+                  1,
+                  100,
+                  384
+                ],
+                [
+                  1,
+                  1,
+                  1125,
+                  1
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32",
+                "f32",
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/google_electra_base_generator/_decomposed/google_electra_base_generator_start23_end32_5",
+      "model": "transformers-auto-model/google_electra_base_generator",
+      "category": "matrix",
+      "e2e_speedup": 0.988936036460789,
+      "stream_speedup": 1.0032572904935073,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 1024,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                1024,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                4,
+                16,
+                1,
+                16
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  64,
+                  16
+                ],
+                [
+                  1,
+                  4,
+                  16,
+                  64
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=32",
+              "grid": 64,
+              "block": 32,
+              "smemBytes": 128,
+              "dispatch": [
+                64,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                4,
+                16,
+                16
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  16
+                ],
+                [
+                  1,
+                  4,
+                  16,
+                  1,
+                  16
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=32",
+              "grid": 4096,
+              "block": 32,
+              "smemBytes": 128,
+              "dispatch": [
+                4096,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                16,
+                256
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  16,
+                  64
+                ],
+                [
+                  1,
+                  4,
+                  16,
+                  16
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 1024,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                1024,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                4,
+                16,
+                1,
+                16
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  64,
+                  16
+                ],
+                [
+                  1,
+                  4,
+                  16,
+                  64
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=32",
+              "grid": 64,
+              "block": 32,
+              "smemBytes": 128,
+              "dispatch": [
+                64,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                4,
+                16,
+                16
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  16
+                ],
+                [
+                  1,
+                  4,
+                  16,
+                  1,
+                  16
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=32",
+              "grid": 4096,
+              "block": 32,
+              "smemBytes": 128,
+              "dispatch": [
+                4096,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                16,
+                256
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  16,
+                  64
+                ],
+                [
+                  1,
+                  4,
+                  16,
+                  16
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/google_electra_base_discriminator/_decomposed/google_electra_base_discriminator_start22_end31_5",
+      "model": "transformers-auto-model/google_electra_base_discriminator",
+      "category": "matrix",
+      "e2e_speedup": 0.973412890847372,
+      "stream_speedup": 0.9762719389623562,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=tiled,BM=16,BN=32,BK=8,TM=2,TN=2",
+              "grid": 96,
+              "block": 128,
+              "smemBytes": 1536,
+              "dispatch": [
+                96,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                12,
+                64,
+                1,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  12,
+                  64,
+                  64
+                ],
+                [
+                  1,
+                  12,
+                  64,
+                  64
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 768,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                768,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                12,
+                64,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  64
+                ],
+                [
+                  1,
+                  12,
+                  64,
+                  1,
+                  64
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 49152,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                49152,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                64,
+                768
+              ],
+              "inShapes": [
+                [
+                  1,
+                  12,
+                  64,
+                  64
+                ],
+                [
+                  1,
+                  12,
+                  64,
+                  64
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 3,
+          "buffer_count": 7,
+          "kernels": [
+            {
+              "row": "MAP=tiled,BM=16,BN=32,BK=8,TM=2,TN=2",
+              "grid": 96,
+              "block": 128,
+              "smemBytes": 1536,
+              "dispatch": [
+                96,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                12,
+                64,
+                1,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  12,
+                  64,
+                  64
+                ],
+                [
+                  1,
+                  12,
+                  64,
+                  64
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 768,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                768,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                12,
+                64,
+                64
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  64
+                ],
+                [
+                  1,
+                  12,
+                  64,
+                  1,
+                  64
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=128",
+              "grid": 49152,
+              "block": 128,
+              "smemBytes": 512,
+              "dispatch": [
+                49152,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                64,
+                768
+              ],
+              "inShapes": [
+                [
+                  1,
+                  12,
+                  64,
+                  64
+                ],
+                [
+                  1,
+                  12,
+                  64,
+                  64
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MobileBertForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-MobileBertForSequenceClassification_start154_end162_28",
+      "model": "transformers-auto-model/hf-tiny-model-private_tiny-random-MobileBertForSequenceClassification",
+      "category": "matrix",
+      "e2e_speedup": 0.9923605414273995,
+      "stream_speedup": 0.9849362889155818,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 2,
+          "buffer_count": 5,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=32,STAGE=reused",
+              "grid": 180,
+              "block": 32,
+              "smemBytes": 488,
+              "dispatch": [
+                180,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                4,
+                45,
+                45
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  45
+                ],
+                [
+                  1,
+                  4,
+                  45,
+                  45
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 5760,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                5760,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                45,
+                128
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  45,
+                  32
+                ],
+                [
+                  1,
+                  4,
+                  45,
+                  45
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 2,
+          "buffer_count": 5,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=32,STAGE=reused",
+              "grid": 180,
+              "block": 32,
+              "smemBytes": 488,
+              "dispatch": [
+                180,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                4,
+                45,
+                45
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  45
+                ],
+                [
+                  1,
+                  4,
+                  45,
+                  45
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 5760,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                5760,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                45,
+                128
+              ],
+              "inShapes": [
+                [
+                  1,
+                  4,
+                  45,
+                  32
+                ],
+                [
+                  1,
+                  4,
+                  45,
+                  45
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/aubmindlab_aragpt2-mega-detector-long/_decomposed/aubmindlab_aragpt2-mega-detector-long_start23_end31_5",
+      "model": "transformers-auto-model/aubmindlab_aragpt2-mega-detector-long",
+      "category": "matrix",
+      "e2e_speedup": 0.994448436522102,
+      "stream_speedup": 0.9824024041945142,
+      "kernel_count_changed": false,
+      "schedule_or_layout_changed": false,
+      "cuda_bodies_equal_ignoring_entry_names": false,
+      "variants": {
+        "baseline": {
+          "kernel_count": 2,
+          "buffer_count": 5,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=32",
+              "grid": 312,
+              "block": 32,
+              "smemBytes": 128,
+              "dispatch": [
+                312,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                12,
+                26,
+                26
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  26
+                ],
+                [
+                  1,
+                  12,
+                  26,
+                  26
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 19968,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                19968,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                26,
+                768
+              ],
+              "inShapes": [
+                [
+                  1,
+                  12,
+                  26,
+                  64
+                ],
+                [
+                  1,
+                  12,
+                  26,
+                  26
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "kernel_count": 2,
+          "buffer_count": 5,
+          "kernels": [
+            {
+              "row": "MAP=row,TPB=32",
+              "grid": 312,
+              "block": 32,
+              "smemBytes": 128,
+              "dispatch": [
+                312,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                12,
+                26,
+                26
+              ],
+              "inShapes": [
+                [
+                  1,
+                  1,
+                  1,
+                  26
+                ],
+                [
+                  1,
+                  12,
+                  26,
+                  26
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            },
+            {
+              "row": "MAP=row,TPB=64",
+              "grid": 19968,
+              "block": 64,
+              "smemBytes": 256,
+              "dispatch": [
+                19968,
+                1,
+                1
+              ],
+              "shape": [
+                1,
+                26,
+                768
+              ],
+              "inShapes": [
+                [
+                  1,
+                  12,
+                  26,
+                  64
+                ],
+                [
+                  1,
+                  12,
+                  26,
+                  26
+                ]
+              ],
+              "inDtypes": [
+                "f32",
+                "f32"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

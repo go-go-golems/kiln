@@ -131,3 +131,9 @@ The d71eccd rerun is terminal and verified: all ten families/93 variants satisfy
 Compiler fed37d1 preserves direct unit-axis coordinates and exposes the attention epilogue as a tiled contraction. All 93 unchanged comparison variants pass original nominal checks. The targeted median falls from 703.734 to 20.4884 ms (34.3479x); the observed family-balanced old/new ratio is 1.06444x, with no held-out or paired-statistical claim. Native independent fixtures remain 60/63, with the old/new FP32 tail reference mismatch preserved.
 
 The separate public-reshape cohort passes all three families/14 variants. Cumulative original replay coverage reaches 24 tasks/313 individual graphs; complete tasks contain 248 graphs. Import eligibility is 1,136 graphs/64 complete families. Reference 17, design 15, diary Step 128 and both verified-facts receipts own the evidence. Fresh unseen-family confirmation and original PassAgent remain open.
+
+## Fixed-source fresh-model confirmation checkpoint
+
+Task p4wv is complete: all20 declared exact-model confirmation graphs qualify, with all40 artifacts and23400 raw timing samples independently audited. The observed family-balanced ratios are1.053746x end-to-end and1.059878x stream elapsed. Nine families are faster,ten slower andone is an exact alias. Gains concentrate in the reduction stratum (1.115219x); matrix aggregate is0.995662x. Reference18/design16 own the experiment and its scope. No native PassBench score or architecture-disjoint confidence claim is inferred.
+
+These graphs come from the official training list and do not expand the cumulative evaluation coverage of24 tasks/313 graphs or import eligibility1136/64. The bounded confirmation is finished; original PassAgent setup, full operation/dtype/layout coverage, native precision compatibility, uniform current-release evaluation and approved updated device delivery remain active. Any next policy tuned on this population requires a fresh confirmation set.

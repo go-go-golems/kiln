@@ -448,3 +448,11 @@ The inspected attention epilogue previously gave both loads syntactic dependence
 All 33 compiler test files and 49 FX tests pass. Native CUDA fixtures remain 60/63, and separate precision diagnostics preserve the old/new FP32 tail mismatch instead of relaxing tolerances. Original benchmark numerical validation remains a separate unchanged gate.
 
 Shared public/ATen/method reshape binding raises import eligibility to 1,136/64. Its separate three-family/14-variant original run fully qualifies, increasing cumulative acceptance to 24 tasks/313 graphs. No new evaluator is introduced: explicit plan/run arguments reuse the existing orchestration and acceptance implementation.
+
+## 38. Fresh exact-model confirmation of the fixed reshape compiler change
+
+After the candidate was fixed, a separate all-heldout population selected ten matrix and ten reduction graphs from twenty exact models, excluding290 previously exposed/evaluation model identities. The initial memory envelope selected only19 families and remains archived. An explicit broader metadata declaration filled20 before any selected source was compiled or timed. Design16 explains this amendment and isolated production/dependency controls.
+
+Both compiler versions receive identical programs and unchanged fusion settings. All40 artifacts qualify. Original source inputs and a declared highest-precision FP32 reference validate all20 graphs; all117 timing blocks are stable. Script296 independently recomputes every median/IQR from23400 samples and verifies frozen source/artifact identity. The aggregate is1.053746x end-to-end and1.059878x stream elapsed. Reduction-group gains drive the result:1.115219x versus0.995662x for matrix graphs. Nine graph ratios are faster,ten slower,one an exact artifact alias.
+
+Read reference18 before using this as compiler-improvement evidence. It is fresh exact-model confirmation under a bounded FP32 research protocol, not architecture-disjoint evaluation or native benchmark scoring. Later tuning needs new confirmation data. Cumulative official replay remains24/200 complete tasks and313/2060 graphs, while1136/64 are import eligibility. Original PassAgent and full native/support coverage remain open.

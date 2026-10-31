@@ -77,3 +77,11 @@ The reference package path is explicit and separately hashed, allowing synthetic
 All forty artifacts compile successfully: twenty graphs under each isolated compiler. Production inventories and identical Acorn bytes are checked, and exact artifact fingerprints are independently compared with their executable structures. Nineteen graph pairs change exact executable structure; one pair aliases. No graph is replaced or removed, and no confirmation correctness or timing outcome has been observed before this qualification is committed.
 
 The common execution code and every source/declaration byte are frozen in confirmation-freeze.json. The source staging script verifies the exact common runtime on the DGX before measurement. Both variants then use original input replay, strict output checking, randomized paired repeat blocks and the fixed full-FP32 reference mode.
+
+## Complete measured confirmation and independent audit
+
+The v2 measurement is terminal and fully qualifies: twenty families, forty artifacts and no compile, reference, correctness or stability failures. Independent script 296 verifies 161 frozen execution source files, both 86-file production inventories, original input/model sources, every executable fingerprint and all 23,400 raw timing samples. There are 39 distinct groups and 117 repeat blocks, with zero retries and no cross-graph exact artifact aliases.
+
+The observed family-balanced ratios are 1.0537461946178859 end-to-end and 1.0598777633326413 stream elapsed. Nine family ratios are faster, ten slower and one aliases exactly. The declared matrix stratum averages 0.995662114193021 end-to-end and the reduction stratum 1.115218734190397. These descriptive values retain the regressions; they are not calibrated confidence claims or native PassBench scores.
+
+Reference 18 explains attribution and limitations. The entire population is now observed and cannot be reused as unseen confirmation for a later tuned candidate. Task p4wv is complete after this audit. Overall evaluation coverage remains24 tasks/313 graphs; these twenty training-list graphs do not alter the official denominator or numerator.
