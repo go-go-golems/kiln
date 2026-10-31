@@ -6027,3 +6027,51 @@ See Steps 130–131 and task p4wv; the authored objective requires reproducible 
 
 ### Technical details
 - This advances setup/validation of p4wv; its measurement requirement remains open. Original benchmark coverage and native precision limitations remain unchanged.
+
+## Step 133: Qualify all forty confirmation artifacts before CUDA measurement
+
+Both isolated compiler trees successfully compile all twenty declared confirmation graphs. No artifact is missing and no compiler failure occurs. Production source inventories, parser bytes, generated source hashes, numerical policy and executable fingerprint consistency are checked. Nineteen graph pairs change exact executable structure; one pair aliases exactly. This is structural qualification, not performance evidence.
+
+The execution sources and all corpus/declaration bytes are frozen before these artifacts are measured. Staging reuses the same source snapshot and original trusted source directories, with a remote byte verification before GPU execution. Both compilers retain the fixed production sources chosen before the source scan.
+
+### Prompt Context
+See Steps 130–132 and task p4wv; the authored objective requires complete reproducible implementation and measurement with preserved evidence and appropriate commits.
+**Assistant interpretation:** Commit complete qualified artifacts before timing and retain every declared graph without post-compilation selection.
+**Inferred user intent:** Make fresh-family results attributable to the compiler change and keep failures or aliases from becoming misleading optimization evidence.
+
+### What I did
+- Script 292 freezes the exact execution source revision and all selected source/declaration files, then invokes both isolated compiler CLIs.
+- Verified the complete forty-artifact pair: numerical policy/source hashes, role metadata and consistency between exact fingerprints and executable structures.
+- Retained the complete source pair receipts and logs; no artifact or timing-based graph replacement occurs.
+- Saved scripts 294/295 for exact source/artifact staging, original source transfer and the fixed CUDA measurement invocation.
+
+### Why
+- Confirmation can only be interpreted after all source, compiler, dependency and membership controls are explicit.
+- Exact aliases must share measurements; counting separate timing jitter for the unchanged pair would manufacture a contrast.
+
+### What worked
+- Both compiler processes return zero and preserve their declared production snapshots.
+- All forty artifacts qualify, with no compile failures. Nineteen pairs differ and one aliases.
+- Independent fixture validation remains qualified with two complete graphs, demonstrating the same compile/runtime/alias path without confirmation feedback.
+
+### What didn't work
+- No confirmation numerical or timing result exists yet; structural changes alone do not establish a benefit.
+- Native PassBench acceptance and the existing native precision failures remain separate from this highest-FP32 research protocol.
+
+### What I learned
+- A fixed-source experiment can share the existing compiler and sampler while preserving a distinct, honest qualification contract instead of inventing a policy-search training phase.
+
+### What was tricky to build
+- Production source, current execution source, parser dependencies and upstream model code are separate identities; each is retained rather than using one repository hash as a proxy for every input.
+
+### What warrants a second pair of eyes
+- Review source inventories, complete compile membership, exact alias body checks and the frozen execution snapshot before starting CUDA measurement.
+
+### What should be done in the future
+- Commit qualified artifacts, stage/verify the same runtime and execute every selected family at unchanged correctness/stability rules. Disable aggregate speedup on any retained failure and complete p4wv only after independent full-result verification.
+
+### Code review instructions
+- Read pair-compile-receipt.json, pair-qualification.json, confirmation-freeze.json, source population verification, scripts 292/294/295 and design 16.
+
+### Technical details
+- All twenty exact models remain the fixed confirmation population. Overall benchmark coverage remains unchanged; no whole-goal completion is claimed.

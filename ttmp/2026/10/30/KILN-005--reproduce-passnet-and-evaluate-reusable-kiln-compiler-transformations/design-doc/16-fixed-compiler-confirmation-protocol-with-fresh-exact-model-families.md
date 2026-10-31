@@ -71,3 +71,9 @@ The broader v2 scan fills both quotas after 2,950 tasks: twenty unique exact mod
 An independent two-graph synthetic fixture exercises the complete isolated compilation and CUDA measurement path before confirmation compilation. Both graphs qualify. One exact executable aliases across both compiler versions and shares one measurement; the other changes structure. Fixture timings are not optimization evidence and are not used to tune candidate production source or the confirmation budget.
 
 The reference package path is explicit and separately hashed, allowing synthetic model data to use the unchanged PassBench input replay code. Source and dependency pinning, exact alias checks, complete repeat budgets and failure-to-aggregate behavior are validated before the selected population is compiled.
+
+## Pre-measurement compilation qualification
+
+All forty artifacts compile successfully: twenty graphs under each isolated compiler. Production inventories and identical Acorn bytes are checked, and exact artifact fingerprints are independently compared with their executable structures. Nineteen graph pairs change exact executable structure; one pair aliases. No graph is replaced or removed, and no confirmation correctness or timing outcome has been observed before this qualification is committed.
+
+The common execution code and every source/declaration byte are frozen in confirmation-freeze.json. The source staging script verifies the exact common runtime on the DGX before measurement. Both variants then use original input replay, strict output checking, randomized paired repeat blocks and the fixed full-FP32 reference mode.

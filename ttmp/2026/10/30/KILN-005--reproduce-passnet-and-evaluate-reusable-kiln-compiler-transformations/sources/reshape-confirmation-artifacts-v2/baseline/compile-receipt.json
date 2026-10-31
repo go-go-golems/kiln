@@ -1,0 +1,751 @@
+{
+  "format": "kiln-policy-compilation/2",
+  "membership_sha256": "cc554758196f86c52856850e4a923ed264959fab43eacc7416828a9e1207d41a",
+  "reference_domain_sha256": "4a3734ae9cc5b2ae55dfed1d8362a503d14e36673d351bb38cd2485253a9bbc8",
+  "policy": {
+    "format": "kiln-fusion-policy/1",
+    "id": "baseline",
+    "kind": "unchanged",
+    "provenance": "Unchanged fusion policy in the separately pinned compiler source version; not a policy-search candidate"
+  },
+  "policy_node_count": 0,
+  "target": "a100",
+  "phase": "all",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "records": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/Mahmoud8_mah-efficient_mlm_m0.40/_decomposed/Mahmoud8_mah-efficient_mlm_m0.40_start310_end312_13",
+      "split": "heldout",
+      "script": "000.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "000.kiln.json",
+      "fingerprint": "53bca4c8ad828b91852af6bc3a8fe8dcd511257d6e5e5c438c6ec7c66c9b6e00",
+      "kernel_count": 4,
+      "kernel_identities": [
+        "23cfbszuw6m",
+        "mbilufm32o",
+        "1686nyi56j0",
+        "k1aipoirr"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 65536,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0.0000012516975402832031,
+            "maxRel": 0.08297804528849184,
+            "bad": 0,
+            "n": 65536,
+            "first": -1,
+            "message": "max abs diff 1.25e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 91.70806999999999
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/nvidia_mit-b1/_decomposed/nvidia_mit-b1_start335_end340_24",
+      "split": "heldout",
+      "script": "001.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "001.kiln.json",
+      "fingerprint": "ca5f77961ed9ca5c6df8f8291f1d3e44905a38acf9b288d9c31c7fdfd08aa218",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "1tj3f92pu9e",
+        "17ns1sflov",
+        "7lp6p020o4"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 0.046277538532518654,
+            "bad": 0,
+            "n": 131072,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 91.05150499999999
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-SCANDINAVIA-SCANDINAVIA/_decomposed/opus-mt-SCANDINAVIA-SCANDINAVIA_start18_end24_3",
+      "split": "heldout",
+      "script": "002.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "002.kiln.json",
+      "fingerprint": "6f4675579133c0c3925e6b408ec236cbeec10564b8b87620e5c7381cff63a1fa",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "hffdjrjq44",
+        "1nw2uki8va8",
+        "bfepk2kh9i"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1089,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 16896,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out2",
+            "ok": true,
+            "maxAbs": 0.0001678466796875,
+            "maxRel": 0.0021414709204357948,
+            "bad": 0,
+            "n": 16896,
+            "first": -1,
+            "message": "max abs diff 1.68e-4"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 122.55289800000003
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/microsoft_table-transformer-detection/_decomposed/microsoft_table-transformer-detection_start478_end481_4",
+      "split": "heldout",
+      "script": "003.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "003.kiln.json",
+      "fingerprint": "5770e87142e27181534e2d55fab6497c2057142469942880a73f874a3efcf476",
+      "kernel_count": 5,
+      "kernel_identities": [
+        "uxg642hizo",
+        "4njwr39818",
+        "1recj5tp950",
+        "183d8gjuuv1",
+        "uxg642hizo"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 160000,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 7.748603820800781e-7,
+            "maxRel": 0.006041957792870423,
+            "bad": 0,
+            "n": 160000,
+            "first": -1,
+            "message": "max abs diff 7.75e-7"
+          },
+          {
+            "name": "out2",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 0.004115225769201386,
+            "bad": 0,
+            "n": 160000,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 53.362908000000004
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmpose/ViTPose-S/_decomposed/ViTPose-S_start17_end19_4",
+      "split": "heldout",
+      "script": "004.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "004.kiln.json",
+      "fingerprint": "f2331608978c5811fdce7b4febeaa0d44c7d7abc007a6cda486d98f7c9128b33",
+      "kernel_count": 4,
+      "kernel_identities": [
+        "7pwqh846t1",
+        "1yfjh5myugb",
+        "1lz34tmf37j",
+        "nqs2ifrxh8"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 0.0543519367158058,
+            "bad": 0,
+            "n": 1179648,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1179648,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 171.08406899999994
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/Aleksandar_distilbert-srb-ner-setimes/_decomposed/Aleksandar_distilbert-srb-ner-setimes_start143_end145_12",
+      "split": "heldout",
+      "script": "005.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "005.kiln.json",
+      "fingerprint": "f1302b12d2c60fb9a1baee677ccaf4404ebd5baff92e7c6b30f79f139bf52462",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "1d7t1vuf3hj",
+        "vbrfmk5v8p",
+        "25fzceigxmb"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.000001430511474609375,
+            "maxRel": 0.3583864016635328,
+            "bad": 0,
+            "n": 1572864,
+            "first": -1,
+            "message": "max abs diff 1.43e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 238.119467
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/facebook_deit-small-distilled-patch16-224/_decomposed/facebook_deit-small-distilled-patch16-224_start12_end15_2",
+      "split": "heldout",
+      "script": "006.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "006.kiln.json",
+      "fingerprint": "16a290e2834dabf616cd65ea36b49ee92ed502c0344eecc41a3acd99303d6ba3",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "22g29cnlhlm"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~176M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 7.052606999999966
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ar-de/_decomposed/opus-mt-ar-de_start235_end242_20",
+      "split": "heldout",
+      "script": "007.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "007.kiln.json",
+      "fingerprint": "0295397182d6c1c12ae29089fca8ed7676fe66f3787cef6b61624dd19c5c0a85",
+      "kernel_count": 4,
+      "kernel_identities": [
+        "1lje5haf67v",
+        "urapewziom",
+        "163s3vxmzt6",
+        "2647urwr71y"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~80M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 9.237365999999952
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/vit_gigantic_patch14_clip_224.laion2b/_decomposed/vit_gigantic_patch14_clip_224.laion2b_start217_end219_8",
+      "split": "heldout",
+      "script": "008.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "008.kiln.json",
+      "fingerprint": "fe4d9aaf6f97642363df0688bdb7af9f0c58e4a4ae9013a3f41ad783b924a91c",
+      "kernel_count": 4,
+      "kernel_identities": [
+        "2gjhmhrbxx1",
+        "1t7kfxr3ge",
+        "dpuyuai61x",
+        "1a9ls4qf8q7"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 427648,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0.0000016689300537109375,
+            "maxRel": 0.02321254206087668,
+            "bad": 0,
+            "n": 427648,
+            "first": -1,
+            "message": "max abs diff 1.67e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 75.12566300000003
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-ElectraForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-ElectraForSequenceClassification_start111_end119_6",
+      "split": "heldout",
+      "script": "009.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "009.kiln.json",
+      "fingerprint": "48adb34733470204be26f0feaba4bc23fd4ce1bbbd34235fcabb952d5a6278ea",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "vm5ai5hcbs",
+        "2aj28mlnobo",
+        "29jdghoy620"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~84M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 23.02846199999999
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/optimum_hubert-base-superb-ks/_decomposed/optimum_hubert-base-superb-ks_start378_end380_3",
+      "split": "heldout",
+      "script": "010.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "010.kiln.json",
+      "fingerprint": "9148f7553a5b394e7c67ef324271359fa94d682d346e906e86cd83d7d0231899",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "19j05xeysyq"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 13,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 5.270873000000051
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/mmpose/ViTPose-S-simple/_decomposed/ViTPose-S-simple_start244_end250_2",
+      "split": "heldout",
+      "script": "011.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "011.kiln.json",
+      "fingerprint": "4b1cf5a3d0d045df4661fb4a9efc3390164add65b0b96c5bb5cbbfa91a5f23e6",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "1ogcu98aye6",
+        "1gl7nhz31ts",
+        "17fkyone8dg"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 0.0543519367158058,
+            "bad": 0,
+            "n": 2359296,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 647.7910119999999
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/ultralytics/yolo12n/_decomposed/yolo12n_start230_end236_6",
+      "split": "heldout",
+      "script": "012.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "012.kiln.json",
+      "fingerprint": "0b1845d87b52f20b23eeb2477dc1c99e492a1acec64d6b067e4eb6bd82e64f5a",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "19eugtqcn0d",
+        "2ecz67etbhu"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~123M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 11.84741299999996
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/Helsinki-NLP_opus-mt-en-zh/_decomposed/Helsinki-NLP_opus-mt-en-zh_start23_end29_3",
+      "split": "heldout",
+      "script": "013.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "013.kiln.json",
+      "fingerprint": "fd1fc1ea6df8c316de29addbc4c8f3f7e29c27694e566a9bd48341ad1c17fc7d",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "1476mx51kbj",
+        "1f6c9l5xit1",
+        "1z5ofzb4tjk"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 144,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 6144,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out2",
+            "ok": true,
+            "maxAbs": 0.0001373291015625,
+            "maxRel": 0.0021414709204357948,
+            "bad": 0,
+            "n": 6144,
+            "first": -1,
+            "message": "max abs diff 1.37e-4"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 58.22020999999995
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/monoelectra-large/_decomposed/monoelectra-large_start706_end709_11",
+      "split": "heldout",
+      "script": "014.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "014.kiln.json",
+      "fingerprint": "e454c2b74e931641ee883c16e658c70d700fc246015f8a26abccaa2c80016ee6",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "2f31ye97wam",
+        "ee39gifgsu",
+        "1sdpn92grt8"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.000001430511474609375,
+            "maxRel": 0.0014596024194324275,
+            "bad": 0,
+            "n": 16384,
+            "first": -1,
+            "message": "max abs diff 1.43e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 133.14798099999985
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/transformers-auto-model/nickmuchi_yolos-small-plant-disease-detection/_decomposed/nickmuchi_yolos-small-plant-disease-detection_start29_end31_2",
+      "split": "heldout",
+      "script": "015.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "015.kiln.json",
+      "fingerprint": "ae50ae1e3e9331117206ed873fd49e0e7376980b61509478ecb1896335584190",
+      "kernel_count": 4,
+      "kernel_identities": [
+        "15msuj69o2r",
+        "1cglt4rah8",
+        "1v6beb4e6m7",
+        "egq9mprkfq"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 8.344650268554688e-7,
+            "maxRel": 0.010274609222531783,
+            "bad": 0,
+            "n": 432000,
+            "first": -1,
+            "message": "max abs diff 8.34e-7"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 4752000,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 165.40856000000008
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/google_electra_base_generator/_decomposed/google_electra_base_generator_start23_end32_5",
+      "split": "heldout",
+      "script": "016.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "016.kiln.json",
+      "fingerprint": "4073f0bbc7a9e3319213d998b9083f6c46334a760633e195cb55ad855efec0d1",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "162ymlomgu3",
+        "1p6jg0e0wl8",
+        "1bqf4v5t0ct"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 1.1920928955078125e-7,
+            "maxRel": 0.00008176240035738348,
+            "bad": 0,
+            "n": 4096,
+            "first": -1,
+            "message": "max abs diff 1.19e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 47.29010900000026
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/google_electra_base_discriminator/_decomposed/google_electra_base_discriminator_start22_end31_5",
+      "split": "heldout",
+      "script": "017.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "017.kiln.json",
+      "fingerprint": "a5b61f4eb91b5dd123f063e22badeef2e3abad8fe2de37482f4b1cbea9e1aae9",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "5vvn72sn3y",
+        "41ij9wsank",
+        "1oqz83ooy63"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 1.4901161193847656e-7,
+            "maxRel": 0.11219540206943991,
+            "bad": 0,
+            "n": 49152,
+            "first": -1,
+            "message": "max abs diff 1.49e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 198.93821200000002
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MobileBertForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-MobileBertForSequenceClassification_start154_end162_28",
+      "split": "heldout",
+      "script": "018.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "018.kiln.json",
+      "fingerprint": "f2d60defb51f038c09d81e1c5478f492bf1506a97b23e8423af687820c2dd766",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "wto9p4d9ul",
+        "20n4yn9kz1s"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 8.940696716308594e-8,
+            "maxRel": 0.0036187299808564687,
+            "bad": 0,
+            "n": 5760,
+            "first": -1,
+            "message": "max abs diff 8.94e-8"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 42.67055299999993
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/aubmindlab_aragpt2-mega-detector-long/_decomposed/aubmindlab_aragpt2-mega-detector-long_start23_end31_5",
+      "split": "heldout",
+      "script": "019.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "019.kiln.json",
+      "fingerprint": "2ccabdb04cddd88cb28b7b6c98c288814a570e54c82804478653a8c076500eaa",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "231tbzecyg3",
+        "2bwdy71urxs"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 1.1920928955078125e-7,
+            "maxRel": 0.000331253125882713,
+            "bad": 0,
+            "n": 19968,
+            "first": -1,
+            "message": "max abs diff 1.19e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 49.32405599999993
+    }
+  ]
+}
