@@ -1538,3 +1538,46 @@ Original goal: complete genuine task variants with documented provenance and scr
 
 ### Technical details
 - Generated from pinned FP32 first-task operation structure with FP16/BF16 example metadata; not yet the complete six-variant benchmark run.
+
+## Step 37: Validate low-precision imported normalization on GPU
+
+Existing export process completed successfully for both candidates; only then reran CUDA comparison. Imported FP16/BF16 normalization with FP32 internal arithmetic passed dtype-specific PyTorch tolerances on nontrivial statistics/affine inputs. Full six-variant evaluator acceptance is still pending.
+
+### Prompt Context
+Original genuine-task coverage requirement; prior launch failure in Step 36.
+**Assistant interpretation:** Confirm dependency completion before numerical verification.
+**Inferred user intent:** Correct full-task dtype support with evidence.
+
+### What I did
+- Polled original export handle: exit 0, both loop checks passed, two kernels each.
+- Ran check_batchnorm_precision_cuda.py, archived both exports and result log.
+- Inspected all six first-task weight metadata files: every activation is [1000,128], channel vectors [128], with four FP16, one FP32 and one BF16 variants.
+
+### Why
+- Dtype dispatch is valid only after verifying complete variant shapes/metadata, not assuming batch labels imply shapes.
+
+### What worked
+- FP16 max_abs_error 0.001953125 within rtol 1e-3/atol 1e-5.
+- BF16 max_abs_error 0.0 within rtol 1.6e-2/atol 1e-5.
+- Original baseline reached 37 completed tasks at observation.
+
+### What didn't work
+- No failures in the correctly sequenced rerun. Prior missing-artifact launch remains recorded in Step 36.
+
+### What I learned
+- Variant batch labels do not change this graph's activation shape; all first-task variants can use one artifact per dtype.
+
+### What was tricky to build
+- Explicit FP32 casts must encompass statistics, affine parameters and activation, with narrowing only at output.
+
+### What warrants a second pair of eyes
+- Numerical tests on random parameters are not original evaluator acceptance; original constraints, matching and score path remain required.
+
+### What should be done in the future
+- Generate dtype-dispatching pass, run all six variants under declared modified protocol, then score and document full task results.
+
+### Code review instructions
+- Review candidate importer cast lowering and sources/batchnorm-precision-check.log with archived artifact dtypes.
+
+### Technical details
+- Source-derived graph shape and exact dtype output verified on GB10. No source code copied; full task support not yet claimed.

@@ -65,8 +65,6 @@ def import_graph(graph):
                   '_operator.mul':'mul', 'torch.mul':'mul', 'aten.mul.Tensor':'mul',
                   '_operator.sub':'sub', '_operator.truediv':'div'}
         if target == 'torch.nn.functional.batch_norm':
-            if meta.get('dtype') != 'torch.float32':
-                raise ValueError(f'{name}: reduced-precision batch_norm accumulation is not implemented')
             # Public PyTorch functional signature: input, mean, var, weight, bias,
             # training=False, momentum=0.1, eps=1e-5. Inference only.
             fields = ['input', 'running_mean', 'running_var', 'weight', 'bias', 'training', 'momentum', 'eps']
@@ -93,16 +91,17 @@ def import_graph(graph):
                 source_id = next((key for key,val in values.items() if val == value), None)
                 if source_id is None or metadata[source_id]['shape'] != [shape[1]]:
                     raise ValueError(f'{name}: invalid channel vector {field}')
-                return f'N.reshape({value}, {json.dumps(channels)})'
+                return f'N.reshape(N.cast({value}, "f32"), {json.dumps(channels)})'
             mean, variance = channel('running_mean'), channel('running_var')
             weight, bias = channel('weight', True), channel('bias', True)
             eps = bound.get('eps', '1e-5')
             epsilon = json.loads(eps)
             if not isinstance(epsilon, (int,float)) or epsilon < 0:
                 raise ValueError(f'{name}: invalid epsilon')
-            expr = f'N.div(N.sub({bound["input"]}, {mean}), N.sqrt(N.add({variance}, {eps})))'
+            expr = f'N.div(N.sub(N.cast({bound["input"]}, "f32"), {mean}), N.sqrt(N.add({variance}, {eps})))'
             if weight: expr = f'N.mul({expr}, {weight})'
             if bias: expr = f'N.add({expr}, {bias})'
+            expr = f'N.cast({expr}, {json.dumps(dtype_names[meta["dtype"]])})'
         elif target == 'torch.nn.functional.dropout':
             bound = dict(zip(['input','p','training','inplace'], args)); bound.update(kwargs)
             if bound.get('training', 'true') != 'false' or bound.get('inplace', 'false') != 'false':
