@@ -4768,3 +4768,47 @@ See Steps 104–105 for the new transformation/evaluation objective.
 
 ### Technical details
 - Artifact compiler revision d324850; all twelve candidate IDs and twenty sources remain frozen. CUDA fixture evidence remains 108/108, while original benchmark coverage remains unchanged.
+
+## Step 107: Commit selective training selection before fresh confirmation
+
+All declared candidates qualify on twelve training graphs under the fixed full-precision research reference. The unchanged training-only objective selects select-edge100-total125 with family-balanced end-to-end ratio 1.0145415112270293. Its edge105 counterpart aliases its measured training behavior and ties exactly; declaration order selects edge100. No confirmation GPU timing has occurred.
+
+### Prompt Context
+See Steps 104–106 for the selective-fusion research objective and fixed procedure.
+**Assistant interpretation:** Commit the observed training choice before using the fresh confirmation set.
+**Inferred user intent:** Separate candidate selection from generalization evidence.
+
+### What I did
+- Collected completed policy-measurements-v6/train.json and driver log from the same terminal tmux job.
+- Ran select_policy.py with the entire frozen candidate set and twelve training graphs; saved selection.json.
+- Verified the remote measurement source snapshot exactly matches compilation snapshot 9ed3c57ddc5a24b1226a99d1eaf3669fbe68b8ddc5eef508a323f7b235ffc52d.
+
+### Why
+- The best training result is subject to selection bias and cannot establish improvement until evaluated without adaptation on confirmation sources.
+
+### What worked
+- All candidates are eligible; no baseline or candidate graph is filtered out.
+- Selected ratio 1.0145415112270293; scalar125 ratio 0.9981317672312094; the most permissive partial variants score 0.96831385220784.
+- Alias sharing produces exact ties rather than independent noisy measurements of identical executable fingerprints.
+
+### What didn't work
+- The winning policy accepts no retained-producer partial mutations on training. It cannot be credited with a training speedup caused specifically by accepted partial fusion. Other candidates do exercise the capability, and their slower results remain visible.
+- Training performance alone is not a generalization claim.
+
+### What I learned
+- Rejecting expensive fanout inlining can be useful even when permitting partial fusion is not. The implemented capability and the selected program's actual behavior must be reported separately.
+
+### What was tricky to build
+- The confirmation phase must load this committed selection, rather than ranking candidates again after observing confirmation measurements.
+
+### What warrants a second pair of eyes
+- Review the exact tie, executable aliases and absence of accepted partial training mutations in the selected candidate.
+
+### What should be done in the future
+- Execute script 197 on all eight confirmation graphs with baseline and the committed selection only; report any failures and both timing metrics.
+
+### Code review instructions
+- Inspect policy-measurements-v6/selection.json, train.json, per-policy compile decisions and selective-remote-source-verification.json.
+
+### Technical details
+- The reference remains explicitly modified highest-precision FP32, with separate arithmetic in all compiler variants. Original benchmark acceptance is unchanged.

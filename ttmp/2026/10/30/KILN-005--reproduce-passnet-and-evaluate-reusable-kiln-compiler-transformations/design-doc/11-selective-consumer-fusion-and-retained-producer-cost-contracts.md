@@ -7,7 +7,15 @@ Topics:
 DocType: design-doc
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://integrations/passnet/fusion_policy.mjs
+      Note: Bounded consumer and aggregate policy programs
+    - Path: repo://packages/kiln/src/std/loop.js
+      Note: Selective mutation and retained-producer aggregate cost
+    - Path: repo://packages/kiln/test/selective-fusion.mjs
+      Note: Lifetime accounting and rollback regression
+    - Path: repo://ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/selective-fusion-cuda.json
+      Note: Complete independent CUDA correctness evidence
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-10-31T03:37:40.569598617-04:00
