@@ -152,3 +152,10 @@ All seven variants of the frozen targeted task qualify after f1e5518: one replac
 ### Original-agent operational milestone
 
 The pinned unquantized local provider now serves real tool calls, and the unchanged original PassAgent has invoked the original evaluator and received a genuine no-match rejection. Its50-step shipping smoke remains active at this checkpoint; terminal candidate results and the full official population are separate gates. Design18/reference20 and diary Steps140–143 own model/runtime identities, full200/2060 membership, failures and publication evidence. Kiln coverage is unchanged. The final image corrects shell execution configuration while retaining exactly the audited source layers.
+
+
+### Terminal original-agent audit and singleton import expansion
+
+The shipping50-step original-agent run is terminal: seven evaluator calls all reject matching with the0.1 penalty; original top-level reward1.0 is a placeholder and is excluded. Design18/diary145 and original-agent-smoke-terminal-v1/verified-facts.json own the result. An original argument-tracing asymmetry is confirmed locally and on the exact DGX image for CPU/CUDA and original shapes; paper-version behavior remains open. Serving is now stopped.
+
+Static singleton views reuse existing reshape, with57 FX tests passing. Import eligibility reaches1251 graphs/76 complete families, with no regressions. Every newly complete family is frozen in singleton-view-source-cohort-plan.json (seven tasks/55 variants). CUDA/original evaluation qualification is pending; accepted coverage remains27 complete tasks/338 individual graphs. Design15 and diary144 own semantics/provenance.

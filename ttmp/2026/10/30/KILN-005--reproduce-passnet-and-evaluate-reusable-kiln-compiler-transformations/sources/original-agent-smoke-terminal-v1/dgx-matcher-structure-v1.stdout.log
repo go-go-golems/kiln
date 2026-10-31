@@ -1,0 +1,115 @@
+{
+  "format": "kiln-original-matcher-dgx-confirmation/1",
+  "torch": "2.12.0a0+5aff3928d8.nv26.05",
+  "gpu": "NVIDIA GB10",
+  "candidate_sha256": "05bd3b32c87b04002973d176c238b62505e0931098b4da7a786ffa67b7bbb7b7",
+  "original_tracer_sha256": "5d6dbabb16efdfe9ce28dd8ef410e40f25daa225f6bd1acf35933475efe0cbbd",
+  "normalizer_sha256": "3265dd03bc04ba2d61356dc754a7e8542dd812bc0bb2633135eb54e40ba20999",
+  "records": [
+    {
+      "device": "cpu",
+      "shapes": "small",
+      "input_shapes": [
+        [
+          1,
+          3,
+          5,
+          5
+        ],
+        [
+          4
+        ],
+        [
+          4,
+          3,
+          3,
+          3
+        ]
+      ],
+      "ordinary_matches": 1,
+      "original_forced_matches": 0,
+      "dynamo_graph": "graph():\n    %l_in_0_ : torch.Tensor [num_users=1] = placeholder[target=L_in_0_]\n    %l_w_1_ : torch.Tensor [num_users=1] = placeholder[target=L_w_1_]\n    %l_w_0_ : torch.Tensor [num_users=1] = placeholder[target=L_w_0_]\n    %tmp_0 : [num_users=1] = call_function[target=torch.conv2d](args = (%l_in_0_, %l_w_1_, %l_w_0_, (2, 2), (1, 1), (1, 1), 1), kwargs = {})\n    %tmp_1 : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%tmp_0,), kwargs = {inplace: True})\n    return (tmp_1,)",
+      "original_forced_graph": "graph():\n    %in_0 : [num_users=1] = placeholder[target=in_0]\n    %w_0 : [num_users=1] = placeholder[target=w_0]\n    %w_1 : [num_users=1] = placeholder[target=w_1]\n    %conv2d : [num_users=1] = call_function[target=torch.conv2d](args = (%in_0, %w_1, %w_0, (2, 2), (1, 1), (1, 1), 1), kwargs = {})\n    %relu : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%conv2d, True), kwargs = {})\n    return relu",
+      "both_normalized_matches": 1
+    },
+    {
+      "device": "cpu",
+      "shapes": "original",
+      "input_shapes": [
+        [
+          1,
+          96,
+          56,
+          56
+        ],
+        [
+          192
+        ],
+        [
+          192,
+          96,
+          3,
+          3
+        ]
+      ],
+      "ordinary_matches": 1,
+      "original_forced_matches": 0,
+      "dynamo_graph": "graph():\n    %l_in_0_ : torch.Tensor [num_users=1] = placeholder[target=L_in_0_]\n    %l_w_1_ : torch.Tensor [num_users=1] = placeholder[target=L_w_1_]\n    %l_w_0_ : torch.Tensor [num_users=1] = placeholder[target=L_w_0_]\n    %tmp_0 : [num_users=1] = call_function[target=torch.conv2d](args = (%l_in_0_, %l_w_1_, %l_w_0_, (2, 2), (1, 1), (1, 1), 1), kwargs = {})\n    %tmp_1 : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%tmp_0,), kwargs = {inplace: True})\n    return (tmp_1,)",
+      "original_forced_graph": "graph():\n    %in_0 : [num_users=1] = placeholder[target=in_0]\n    %w_0 : [num_users=1] = placeholder[target=w_0]\n    %w_1 : [num_users=1] = placeholder[target=w_1]\n    %conv2d : [num_users=1] = call_function[target=torch.conv2d](args = (%in_0, %w_1, %w_0, (2, 2), (1, 1), (1, 1), 1), kwargs = {})\n    %relu : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%conv2d, True), kwargs = {})\n    return relu",
+      "both_normalized_matches": 1
+    },
+    {
+      "device": "cuda",
+      "shapes": "small",
+      "input_shapes": [
+        [
+          1,
+          3,
+          5,
+          5
+        ],
+        [
+          4
+        ],
+        [
+          4,
+          3,
+          3,
+          3
+        ]
+      ],
+      "ordinary_matches": 1,
+      "original_forced_matches": 0,
+      "dynamo_graph": "graph():\n    %l_in_0_ : torch.Tensor [num_users=1] = placeholder[target=L_in_0_]\n    %l_w_1_ : torch.Tensor [num_users=1] = placeholder[target=L_w_1_]\n    %l_w_0_ : torch.Tensor [num_users=1] = placeholder[target=L_w_0_]\n    %tmp_0 : [num_users=1] = call_function[target=torch.conv2d](args = (%l_in_0_, %l_w_1_, %l_w_0_, (2, 2), (1, 1), (1, 1), 1), kwargs = {})\n    %tmp_1 : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%tmp_0,), kwargs = {inplace: True})\n    return (tmp_1,)",
+      "original_forced_graph": "graph():\n    %in_0 : [num_users=1] = placeholder[target=in_0]\n    %w_0 : [num_users=1] = placeholder[target=w_0]\n    %w_1 : [num_users=1] = placeholder[target=w_1]\n    %conv2d : [num_users=1] = call_function[target=torch.conv2d](args = (%in_0, %w_1, %w_0, (2, 2), (1, 1), (1, 1), 1), kwargs = {})\n    %relu : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%conv2d, True), kwargs = {})\n    return relu",
+      "both_normalized_matches": 1
+    },
+    {
+      "device": "cuda",
+      "shapes": "original",
+      "input_shapes": [
+        [
+          1,
+          96,
+          56,
+          56
+        ],
+        [
+          192
+        ],
+        [
+          192,
+          96,
+          3,
+          3
+        ]
+      ],
+      "ordinary_matches": 1,
+      "original_forced_matches": 0,
+      "dynamo_graph": "graph():\n    %l_in_0_ : torch.Tensor [num_users=1] = placeholder[target=L_in_0_]\n    %l_w_1_ : torch.Tensor [num_users=1] = placeholder[target=L_w_1_]\n    %l_w_0_ : torch.Tensor [num_users=1] = placeholder[target=L_w_0_]\n    %tmp_0 : [num_users=1] = call_function[target=torch.conv2d](args = (%l_in_0_, %l_w_1_, %l_w_0_, (2, 2), (1, 1), (1, 1), 1), kwargs = {})\n    %tmp_1 : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%tmp_0,), kwargs = {inplace: True})\n    return (tmp_1,)",
+      "original_forced_graph": "graph():\n    %in_0 : [num_users=1] = placeholder[target=in_0]\n    %w_0 : [num_users=1] = placeholder[target=w_0]\n    %w_1 : [num_users=1] = placeholder[target=w_1]\n    %conv2d : [num_users=1] = call_function[target=torch.conv2d](args = (%in_0, %w_1, %w_0, (2, 2), (1, 1), (1, 1), 1), kwargs = {})\n    %relu : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%conv2d, True), kwargs = {})\n    return relu",
+      "both_normalized_matches": 1
+    }
+  ],
+  "scope": "Structural diagnostic using original source/tracer; no generated kernel execution or evaluator modification"
+}

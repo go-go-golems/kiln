@@ -1,0 +1,55 @@
+{
+  "format": "kiln-original-passagent-smoke/1",
+  "status": "complete",
+  "cwd": "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passnet-pristine/pass_agent",
+  "command": [
+    "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/agent-locked-venv/bin/python",
+    "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passnet-pristine/pass_agent/examples/run_pass_agent_demo.py",
+    "--llm-name",
+    "openai/Qwen3-30B-A3B",
+    "--llm-base-url",
+    "http://127.0.0.1:8041/v1",
+    "--openai-api-key",
+    "EMPTY",
+    "--anthropic-api-key",
+    "EMPTY",
+    "--dataset",
+    "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passagent-shipping-smoke-shell-v5.jsonl",
+    "--config",
+    "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/passnet-pristine/pass_agent/configs",
+    "--max-steps",
+    "50",
+    "--k",
+    "1",
+    "--temperature",
+    "0",
+    "--max-workers",
+    "1",
+    "--traj-dir",
+    "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v5",
+    "--exp-name",
+    "original-shipping-smoke-v5"
+  ],
+  "driver_sha256": "3e26883ec9a36bad1ad35327364e842221731bfeb14e565a2333053c3bafd88e",
+  "dataset_sha256": "2f4a704479a4bbb79417334ba9ee240d68b32d778f0911ef1a6373f1e3832c63",
+  "population": "Shipping one-task/one-graph operational smoke, separate from official200/2060",
+  "model_context": 40960,
+  "original_runner_max_tokens": 131072,
+  "timing_condition": "Local BF16 model resident on same DGX; inference and evaluator serial within agent; no isolated compiler timing claim",
+  "results": [
+    {
+      "path": "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v5/original-shipping-smoke-v5.jsonl",
+      "bytes": 114434,
+      "lines": 1,
+      "sha256": "c686fbb80952f0aaeb3b2aa767ff4c6a483a802083af07b4cece996614983c0c"
+    },
+    {
+      "path": "/home/manuel/passnet-kiln/KILN-005/sources/agent-runtime-bootstrap-v1/original-agent-smoke-v5/original-shipping-smoke-v5_completions.jsonl",
+      "bytes": 195144,
+      "lines": 1,
+      "sha256": "8a99c6e96ba34078ba4c8eaacd87bcd2517dd9c6a745ab93b8200b0dd67de672"
+    }
+  ],
+  "returncode": 0,
+  "elapsed_seconds": 1086.2246398240095
+}

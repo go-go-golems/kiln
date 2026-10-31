@@ -1,0 +1,43 @@
+{
+  "format": "kiln-original-pattern-structure/1",
+  "torch_version": "2.11.0+cu130",
+  "device": "cpu",
+  "input_shapes": [
+    [
+      1,
+      3,
+      5,
+      5
+    ],
+    [
+      4
+    ],
+    [
+      4,
+      3,
+      3,
+      3
+    ]
+  ],
+  "candidate_sha256": "05bd3b32c87b04002973d176c238b62505e0931098b4da7a786ffa67b7bbb7b7",
+  "raw_matches": 1,
+  "original_forced_matches": 0,
+  "original_forced_pattern": "graph():\n    %in_0 : [num_users=1] = placeholder[target=in_0]\n    %w_0 : [num_users=1] = placeholder[target=w_0]\n    %w_1 : [num_users=1] = placeholder[target=w_1]\n    %conv2d : [num_users=1] = call_function[target=torch.conv2d](args = (%in_0, %w_1, %w_0, (2, 2), (1, 1), (1, 1), 1), kwargs = {})\n    %relu : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%conv2d, True), kwargs = {})\n    return relu",
+  "original_tracer_source_sha256": "5d6dbabb16efdfe9ce28dd8ef410e40f25daa225f6bd1acf35933475efe0cbbd",
+  "normalized_matches": 1,
+  "pattern_changes": [
+    {
+      "node": "relu",
+      "target": "torch.nn.functional.relu"
+    }
+  ],
+  "graph_changes": [
+    {
+      "node": "tmp_1",
+      "target": "torch.nn.functional.relu"
+    }
+  ],
+  "raw_pattern": "graph():\n    %in_0 : [num_users=1] = placeholder[target=in_0]\n    %w_0 : [num_users=1] = placeholder[target=w_0]\n    %w_1 : [num_users=1] = placeholder[target=w_1]\n    %conv2d : [num_users=1] = call_function[target=torch.conv2d](args = (%in_0, %w_1, %w_0, (2, 2), (1, 1), (1, 1), 1), kwargs = {})\n    %relu : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%conv2d,), kwargs = {inplace: True})\n    return relu",
+  "raw_dynamo_graph": "graph():\n    %l_in_0_ : torch.Tensor [num_users=1] = placeholder[target=L_in_0_]\n    %l_w_1_ : torch.Tensor [num_users=1] = placeholder[target=L_w_1_]\n    %l_w_0_ : torch.Tensor [num_users=1] = placeholder[target=L_w_0_]\n    %tmp_0 : [num_users=1] = call_function[target=torch.conv2d](args = (%l_in_0_, %l_w_1_, %l_w_0_, (2, 2), (1, 1), (1, 1), 1), kwargs = {})\n    %tmp_1 : [num_users=1] = call_function[target=torch.nn.functional.relu](args = (%tmp_0,), kwargs = {inplace: True})\n    return (tmp_1,)",
+  "scope": "Diagnostic only. Small CPU shapes, original source body and saved pattern; no generated kernel or evaluator mutation."
+}

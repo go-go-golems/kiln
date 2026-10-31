@@ -5,6 +5,53 @@ require additional compiler support. No PyTorch implementation copied.
 """
 import json
 
+SINGLETON_FUNCTIONS = {
+    'torch.unsqueeze', 'aten.unsqueeze.default', 'torch.squeeze',
+    'aten.squeeze.default', 'aten.squeeze.dim', 'aten.squeeze.dims',
+}
+SINGLETON_METHODS = {'unsqueeze', 'squeeze'}
+
+
+def lower_singleton_view(target,args,kwargs,output,resolve,literal):
+    """Insert/remove singleton axes without granting fresh-storage ownership."""
+    operation='unsqueeze' if 'unsqueeze' in target else 'squeeze'
+    first='self' if target.startswith('aten.') or target in SINGLETON_METHODS else 'input'
+    no_dim=target=='aten.squeeze.default'
+    fields=[first] if no_dim else [first,'dim']
+    if len(args)>len(fields) or set(kwargs)-set(fields):
+        raise ValueError(f'{operation}: unsupported arguments')
+    bound=dict(zip(fields,args))
+    if set(bound)&set(kwargs):raise ValueError(f'{operation}: duplicate argument')
+    bound.update(kwargs)
+    if first not in bound:raise ValueError(f'{operation}: input required')
+    source=resolve(bound[first]);shape=source['shape'];rank=len(shape)
+    if operation=='unsqueeze':
+        if 'dim' not in bound:raise ValueError('unsqueeze: dimension required')
+        axis=literal(bound['dim'])
+        if type(axis) is not int or not -rank-1<=axis<=rank:
+            raise ValueError('unsqueeze: static integer dimension out of range')
+        axis%=rank+1
+        expected=shape[:axis]+[1]+shape[axis:]
+    else:
+        if 'dim' not in bound:
+            if target in ('aten.squeeze.dim','aten.squeeze.dims'):
+                raise ValueError('squeeze: dimension required by ATen overload')
+            axes=list(range(rank))
+        else:
+            dims=literal(bound['dim'])
+            if target=='aten.squeeze.dim' and type(dims) is not int:
+                raise ValueError('squeeze: ATen dim overload requires one integer')
+            if target=='aten.squeeze.dims' and not isinstance(dims,list):
+                raise ValueError('squeeze: ATen dims overload requires integer list')
+            dims=[dims] if type(dims) is int else dims
+            effective_rank=max(1,rank)
+            if not isinstance(dims,list) or any(type(d) is not int or not -effective_rank<=d<effective_rank for d in dims):
+                raise ValueError('squeeze: static integer dimensions out of range')
+            axes=[d%effective_rank for d in dims]
+            if len(set(axes))!=len(axes):raise ValueError('squeeze: duplicate dimensions')
+        expected=[size for axis,size in enumerate(shape) if size!=1 or axis not in axes]
+    return lower_reshape(bound[first],expected,source,output)
+
 
 def lower_transpose(value, dim0, dim1, source, output):
     """One value-semantic binding for method, torch and ATen transpose."""

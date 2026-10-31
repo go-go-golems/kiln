@@ -6651,3 +6651,107 @@ See the earlier request for a detailed project report in the go-go-parc vault, w
 - New note: Projects/2026/10/31/ARTICLE - Kiln - Original PassAgent Execution and Experimental Identity.md.
 - Original server and agent remain in their existing named tmux sessions; no second inference job or isolated compiler benchmark was started.
 - Accepted Kiln replay remains27 complete tasks/338 individual graphs (273 in complete tasks), distinct from1196/69 import eligibility and the200/2060 official evaluation population.
+
+## Step 144: Import singleton views through shared reshape semantics
+
+While the original agent ran unchanged, local CPU work added static unsqueeze/squeeze binding over existing Kiln reshape. All57 FX tests pass, and full-corpus import eligibility rises to1251 graphs/76 complete families without regressions. Seven newly complete families retain all55 variants in a frozen execution plan; acceptance remains27/338 pending CUDA and original evaluator checks.
+
+### Prompt Context
+See earlier requests to implement missing Kiln pieces, preserve provenance/scripts, reassess architectural sprawl and retain the entire200-task goal. This continuation follows the active goal; runtime metadata is not a new authored user request.
+**Assistant interpretation:** Make independent compiler progress without modifying the active reference experiment or overlapping GPU work.
+**Inferred user intent:** Advance complete support using reusable compiler semantics and explicit evidence gates.
+
+### What I did
+- Extended fx_indexing.py with one singleton-view binder for public, method and ATen source forms, reusing lower_reshape and its metadata contract.
+- Consolidated repeated source operand lookup for matrix, normalization and new layout binding in fx_import.py.
+- Added semantic/malformed-input/ownership/FX-Dynamo tests and archived primary source contracts plus121 independent source probes.
+- Scripts389–392 preserve source acquisition, validation, the complete2060-graph audit and every newly complete task in original membership.
+
+### Why
+- The existing reshape operation already expresses static singleton insertion/removal. A separate compiler operation or duplicate layout module would add unnecessary infrastructure.
+- Source views alias storage; granting new ownership through them could make later in-place functionalization incorrect.
+
+### What worked
+- All57 FX tests pass under Torch2.11.0+cu130. Equivalent source spellings produce identical scripts, with no extra argument-normalization rule.
+- Import audit:1196→1251 eligible graphs,69→76 complete families,55 newly imported graphs and zero regressions.
+- All seven newly complete families/55 variants are frozen without dtype or shape filtering. Native/execution acceptance is still open.
+
+### What didn't work
+- First targeted test run exhausted Dynamo's per-code cache: torch._dynamo hit config.recompile_limit (8); the ninth independent capture produced no graph (AssertionError: 0 != 1). Resetting Dynamo between independent capture cases fixes the test isolation, without changing matcher predicates.
+- Direct urllib download of the official PyTorch unsqueeze page returned HTTP403. The tagged v2.9.1 upstream docstring source and exact installed docstrings are archived instead.
+- The validation shell was initially authored in repository scripts while invoked through the ticket path, causing No such file or directory. It was moved to the intended ticket scripts directory before execution; the final retained script succeeds.
+
+### What I learned
+- The old audit has55 method unsqueeze blockers, six public-function blockers and two squeeze blockers. Resolving a first blocker does not guarantee all such graphs become importable; exactly55 new graphs now qualify.
+- Empty squeeze axes are a no-op, selected non-unit axes remain unchanged, and scalar axis0/-1 is accepted. Explicit None differs from an omitted argument.
+
+### What was tricky to build
+- Negative axes use rank+1 for insertion and max(1,rank) for removal. Duplicate axes must be detected after normalization.
+- Views remain excluded from fresh ownership even when their input was freshly allocated; this preserves the conservative alias contract.
+
+### What warrants a second pair of eyes
+- Review scalar/empty-axis cases, ATen overload validation, output metadata checks and ownership tests before CUDA qualification.
+
+### What should be done in the future
+- Validate independent CUDA fixtures and the complete frozen seven-family cohort from committed source, with serving unloaded. Count only original nominal correctness as acceptance.
+
+### Code review instructions
+- Start with lower_singleton_view, shared operand_spec, test_fx_singleton_views.py, singleton-view-import-delta.json and its frozen task plan.
+
+### Technical details
+- Official PyTorch2.9 API references: https://docs.pytorch.org/docs/2.9/generated/torch.unsqueeze.html and https://docs.pytorch.org/docs/2.9/generated/torch.squeeze.html.
+- No source algorithm was copied; dimension binding independently reuses existing Kiln reshape and its singleton coordinate canonicalization.
+
+## Step 145: Audit the terminal original-agent run and release serving resources
+
+The original50-step trajectory is terminal and fully collected. Seven evaluator calls all reject matching with score0.1; the top-level reward1.0 is an explicit placeholder in original source. Structural diagnostics find an argument-form asymmetry in the original tracer on both local CPU and the exact DGX runtime, so the rejection must not be attributed solely to model quality. The owned server is stopped before subsequent GPU compiler validation.
+
+### Prompt Context
+See Steps140–143 and the original reproduction/self-optimization objective. The prior goal turn made progress through operational source/provider qualification and publication; this turn verifies the specific live run, then preserves its terminal evidence.
+**Assistant interpretation:** Establish actual benchmark outcomes rather than interpreting process completion or placeholder reward as success.
+**Inferred user intent:** Obtain scientifically meaningful original-agent evidence before comparing it with Kiln-native optimization.
+
+### What I did
+- Script393 requires terminal receipt and missing original tmux session before copying complete trajectory, completions, logs and source identities.
+- Script394 extracts seven evaluator Score data JSON records, cross-checks the serialized best score, and saves best pass files without executing their kernel.
+- Script396 compares ordinary FX tracing, original argument-forcing tracing and normalized graph structure on small CPU shapes.
+- Script395 checks exact owned server identity and terminal agent state before stopping the model server; the shutdown receipt is preserved.
+
+### Why
+- Original _calculate_reward returns1.0 unconditionally; aggregating that field would invent a successful reference result.
+- The original diagnostic path and actual replacement path use different pattern tracers. A no-specific-failure diagnostic does not prove that the actual matching representation is equivalent.
+
+### What worked
+- Terminal run:50 steps,1086.2246 seconds, exit_reason abs_step_limit,30 editor calls, seven evaluator calls,13 missing-function-call responses.
+- All evaluator calls explicitly reject matching and score0.10000000000000002. Serialized best score agrees. No accepted implementation is claimed.
+- The best serialized pass is preserved; its convolution Triton function is empty. This is independently insufficient for kernel correctness.
+- Local CPU probe: ordinary FX/Dynamo match count1, original argument-forced pattern count0. ReLU kwargs inplace=True becomes positional True only in the forced pattern. Max prompt count34415 stays below configured40960 context; no observed context overflow is claimed.
+- Script398 confirms all four exact-image cases (CPU/CUDA × small/original shapes): ordinary match1, original forced match0, both-normalized match1. Original evaluator source remains unchanged; the normalization is only a diagnostic control.
+- Owned serving container025b74f4 is stopped after collection, with image/model identity checks and zero stop-command error.
+
+### What didn't work
+- The original trajectory's reward1.0 is unsupported as a performance result: test_output is Reward calculation not yet implemented and original source documents the unconditional stub.
+- Every observed candidate fails matching. Source-tracer asymmetry is demonstrated locally and on exact DGX Torch2.12/GPU task shapes. Paper-version confirmation remains open; no broad matcher fix is silently applied.
+- Thirteen responses contain no function call. Their agent feedback is preserved, without inventing a cause from context limits or treating them as successful steps.
+
+### What I learned
+- Process success, trajectory presence, actual tool score and accepted kernel correctness are four distinct gates.
+- A failure-aware reference experiment can reveal a framework/runtime issue that must be separated from the generated candidate's own incomplete computation.
+
+### What was tricky to build
+- The original best snapshot is serialized inside output_patch rather than exposed as ordinary files after container teardown. Extraction preserves the content and records hashes; candidate code is parsed but its empty kernel is not executed.
+
+### What warrants a second pair of eyes
+- Verify original custom_replacement.py force_args_symbolic_trace versus DiagnosticMatcher, compare the exact DGX graph records, and retain the distinction between a matching defect and the saved empty kernel.
+
+### What should be done in the future
+- Preserve the confirmed actual-runtime mismatch and check paper-version behavior, retain the unchanged reference result, and declare any repaired evaluator protocol separately.
+- Continue original200-task accounting, remaining compiler support, reusable synthesis and pending requested delivery. The full goal remains active.
+
+### Code review instructions
+- Start with original-agent-smoke-terminal-v1/verified-facts.json, complete JSONL files, best-snapshot, cpu-pattern-structure-v2.json and release receipt.
+- Inspect original runtime _calculate_reward and original custom_replacement.py beside scripts393–396. No upstream source is modified.
+
+### Technical details
+- Model artifact remains available under remote sources; the server process is stopped rather than deleting weights or changing the original experimental inputs.
+- The first-feedback vault article remains historically accurate. A later milestone report should include the terminal audit and exact-runtime diagnosis.

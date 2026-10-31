@@ -3,7 +3,7 @@
 Independent lowering against Kiln N APIs. No upstream implementation copied.
 """
 import json
-from fx_indexing import lower_index,lower_transpose,lower_reshape
+from fx_indexing import lower_index,lower_transpose,lower_reshape,lower_singleton_view,SINGLETON_FUNCTIONS,SINGLETON_METHODS
 from fx_linalg import FUNCTIONS as LINALG_FUNCTIONS, METHODS as LINALG_METHODS, lower_linalg
 from fx_norm_ops import LAYER_NORM,lower_layer_norm,SOFTMAX,lower_softmax
 
@@ -51,6 +51,12 @@ def import_graph(graph):
         if v is None or isinstance(v, (str, int, float, bool)):
             return json.dumps(v)
         raise ValueError(f'Invalid argument: {v}')
+
+    def operand_spec(value):
+        source=next((key for key,val in values.items() if val==value),None)
+        if source is None or not isinstance(metadata[source],dict):
+            raise ValueError('operand must reference a tensor')
+        return metadata[source]
 
     for i, node in enumerate(graph['nodes']):
         name = node['id']
@@ -102,23 +108,13 @@ def import_graph(graph):
                 raise ValueError(f'{name}: in-place arithmetic requires fresh single-use producer')
             expr=f'N.{inplace_binary}({args[0]}, {args[1]})'
         elif linalg:
-            def operand_spec(value):
-                source=next((key for key,val in values.items() if val==value),None)
-                if source is None or not isinstance(metadata[source],dict):raise ValueError(f'{name}: matrix operand must reference a tensor')
-                return metadata[source]
             expr=lower_linalg(linalg,args,kwargs,meta,operand_spec)
         elif target in SOFTMAX or (node['kind']=='call_method' and target=='softmax'):
-            def softmax_spec(value):
-                source=next((key for key,val in values.items() if val==value),None)
-                if source is None or not isinstance(metadata[source],dict):raise ValueError('softmax: operand must reference a tensor')
-                return metadata[source]
-            expr=lower_softmax('torch.softmax' if node['kind']=='call_method' else target,args,kwargs,meta,softmax_spec,literal)
+            expr=lower_softmax('torch.softmax' if node['kind']=='call_method' else target,args,kwargs,meta,operand_spec,literal)
         elif target in LAYER_NORM:
-            def norm_spec(value):
-                source=next((key for key,val in values.items() if val==value),None)
-                if source is None or not isinstance(metadata[source],dict):raise ValueError('layer_norm: operand must reference a tensor')
-                return metadata[source]
-            expr=lower_layer_norm(target,args,kwargs,meta,norm_spec,literal)
+            expr=lower_layer_norm(target,args,kwargs,meta,operand_spec,literal)
+        elif target in SINGLETON_FUNCTIONS or (node['kind']=='call_method' and target in SINGLETON_METHODS):
+            expr=lower_singleton_view(target,args,kwargs,meta,operand_spec,literal)
         elif activation:
             first='self' if target.startswith('aten.') else 'input'
             fields=[first,'approximate'] if activation=='gelu' else [first,'inplace'] if activation=='silu' else [first]
