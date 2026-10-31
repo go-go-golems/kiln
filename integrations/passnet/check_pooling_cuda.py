@@ -14,7 +14,7 @@ def main():
         try:
             x=torch.tensor(row['input']['data'],device='cuda',dtype=dtypes[row['dtype']]).reshape(row['input']['shape'])
             original=x.clone();expected=torch.nn.functional.avg_pool2d(x,**row['options'])
-            program=TorchProgram(args.fixtures/row['artifact']);actual=program(x)['out']
+            program=TorchProgram(args.fixtures/row['artifact'],include_paths=['/usr/local/cuda/include']);actual=program(x)['out']
             torch.testing.assert_close(x,original,rtol=0,atol=0)
             torch.testing.assert_close(actual,expected,rtol=1.3e-6 if row['dtype']=='f32' else 0,atol=1e-5 if row['dtype']=='f32' else 0)
             torch.cuda.synchronize();result.update(status='passed',max_abs_error=(actual-expected).abs().max().item())

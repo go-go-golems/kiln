@@ -1390,3 +1390,52 @@ See Step 182 for the authored request to continue implementing and expand the po
 ### Technical details
 - Public reference: https://docs.pytorch.org/docs/main/generated/torch.nn.functional.avg_pool2d.html.
 - No PyTorch implementation code copied. Scripts preserve source provenance and oracle generation for reproduction.
+
+## Step 188: Execute 312 average-pooling programs successfully on GB10
+
+All 312 exported average-pooling programs passed against native PyTorch CUDA: 288 FP32, twelve FP16 and twelve BF16. Every recorded maximum absolute error was zero on the deterministic oracle inputs. This verifies generated indexing/masking/reduction behavior for the declared fixture grid, not original PassBench task acceptance or arbitrary input distributions.
+
+### Prompt Context
+See Step 182 and Step 187 for the active implementation and measurement direction.
+**Assistant interpretation:** Complete the GPU check of the newly added compiler operation.
+**Inferred user intent:** Establish actual executable behavior before counting new benchmark support.
+**Compiler commit:** 23f36b23605a8706e98f60baa2ea3ec9b7613fec — Add average pooling semantics, tensor lowering and FX import.
+
+### What I did
+- Exported the 288 FP32 oracle programs and twelve additional cases for each low-precision dtype using script 476.
+- Used loop IR for compiled-program reference interpretation and retained generated CUDA artifacts.
+- Added scripts 477–479 to stage the exact runtime/checker/fixtures, run under the established CUDA container on an idle GB10 and collect terminal results.
+- Preserved failed export attempts alongside the successful v3 artifacts and source hashes.
+
+### Why
+- Reference decomposition tests do not verify generated GPU addressing or storage casts. Native CUDA comparisons close that gap for these fixtures.
+
+### What worked
+- Loop-level reference checks passed for all exports. GPU run returned zero with status complete.
+- 312/312 CUDA comparisons passed; 288 f32, twelve f16, twelve bf16. Low-precision comparisons required exact equality; f32 used rtol=1.3e-6 and atol=1e-5 and nevertheless observed zero error.
+- Input immutability was checked for every fixture.
+
+### What didn't work
+- Initial exporter attempted run.graph.eval on final GPU IR and failed: EvalError: gpu.kernel (n17) has no eval: it can be compiled but not interpreted. Corrected it to run.at("loop").eval.
+- The second export completed artifact generation but failed at the final revision subprocess with spawnSync git EPERM. Preserved that attempt and reran in a separate v3 directory with the required sandbox escalation. No failed attempt was relabeled successful.
+
+### What I learned
+- The existing pipeline's evaluable loop checkpoint is the appropriate local reference boundary; final GPU nodes are executable artifacts rather than interpreted operations.
+
+### What was tricky to build
+- Precision evidence depends on both data and runtime versions. These fixtures use small deterministic quarter-valued inputs, so zero error does not establish identical reduction behavior on arbitrary floating-point inputs or large windows.
+
+### What warrants a second pair of eyes
+- Runtime PyTorch is 2.12.0a0+5aff3928d8.nv26.05 in the existing container, while semantic source inspection was pinned to v2.9.1. This is not a claim of exact paper environment reproduction.
+- The 41 newly imported real graphs include existing convolution and normalization computations. Those can still fail numerical/reference checks independently of pooling.
+
+### What should be done in the future
+- Compile and qualify real pooling graph families through the original evaluator, retain failures, and add broader numerical inputs where relevant. Measure end-to-end performance before optimizing the current static-mask decomposition.
+- Add max/adaptive pooling after the average-pooling round-trip establishes the reusable lowering needs.
+
+### Code review instructions
+- Inspect sources/avg-pooling-cuda-results-v1/{run,results,summary}.json, the exact staged checker hashes, and the v1/v2 failure receipts. Do not include archive tarballs when reviewing source changes.
+
+### Technical details
+- NVIDIA GB10; scheduling proxy a100; separate contraction; container sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba.
+- sources/avg-pooling-cuda-fixtures-v3/manifest.json records the compiler revision and every fixture. Sources and intermediate scripts remain in the ticket.
