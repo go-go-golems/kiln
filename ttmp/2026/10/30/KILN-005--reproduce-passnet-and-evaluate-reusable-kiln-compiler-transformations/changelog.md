@@ -44,3 +44,12 @@ Committed bounded feature-policy interpreter and fresh 12/8 study: all 160 compi
 ### Related Files
 
 - /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/reference/08-milestone-report-bounded-fusion-programs-and-a-negative-confirmation-result.md — Conditional policy design and measured negative result
+
+## 2026-10-31
+
+Completed adaptive training-derived fusion study with no improvement; added SiLU/sigmoid and conservative fresh-single-use activation functionalization. Import eligibility now 912/2060 graphs across 36 tasks; task 143 verified in all three dtypes, bringing accepted coverage to 6 tasks/76 graphs. All 47 Python tests and 18 CUDA fixture comparisons pass. Technical report pushed to vault at 9f2e915; updated guide delivery in progress.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/fx_import.py — Typed activation and ownership lowering
+- /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/reference/09-milestone-report-adaptive-policy-synthesis-and-activation-coverage.md — Measured synthesis result and compiler extension report

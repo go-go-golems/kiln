@@ -3717,3 +3717,51 @@ See the standing user instructions permitting missing Kiln features, requiring r
 
 ### Technical details
 - No new evaluator protocol was introduced. Task 143 uses kiln-normalized-fx/1 and kiln-dispatch-record-stream/1. GPU remains GB10/NVIDIA PyTorch alpha, with A100 scheduling-cost proxy; paper reproduction limitations remain. Sources and scripts retain both intermediate activation audit checkpoints.
+
+## Step 86: Publish the synthesis/activation report and guide Progress 05
+
+Published a roughly 2,080-word technical report connecting the unsuccessful adaptive policy search to the subsequent activation and ownership work. The new dated Obsidian note is committed and pushed; the guide bundle is delivered as a distinct edition. The report preserves the different denominators for import eligibility and verified PassBench execution.
+
+### Prompt Context
+See the standing user requirements for textbook-style milestone reports, vault commit/push, detailed diary and updated intern-guide delivery.
+**Assistant interpretation:** Publish the completed experiment and implementation milestone with enough technical detail for independent review.
+**Inferred user intent:** Keep durable research explanations alongside code, raw sources, scripts and measured results.
+**Commit (compiler/integration milestone):** 09abb7c.
+**Commit (vault):** 9f2e915.
+
+### What I did
+- Authored report 09 with training-only proposal generation, fixed budget, structural qualification, negative ranking, activation arithmetic, ownership reasoning, exact coverage and reproduction references.
+- Related the report through docmgr and updated the ticket changelog.
+- Added the exact PyTorch operation-type header and license to the primary-source archive; regenerated provenance and reran source/artifact evidence binding.
+- Updated the guide's opening and current Section 24; marked superseded checkpoints as historical to avoid contradictory current counts.
+- Created today's vault note under Projects/2026/10/31 without changing historical notes or unrelated user changes.
+
+### Why
+- The milestone combines reusable experimental infrastructure with a real extension to source semantics. Neither should be presented as full PassNet reproduction or a new performance win.
+
+### What worked
+- Vault push completed `929c296..9f2e915 main -> main`.
+- Device receipt: `OK: uploaded KILN-005 PassNet Intern Guide Progress 05.pdf -> /ai/2026/10/31/KILN-005`.
+- Source provenance verifies all six archived references, including the Half/BFloat16 -> float operation-type definitions.
+- Evidence verifier 114 passes; report facts match six tasks / 76 accepted graphs and 912 graphs / 36 complete importable tasks.
+
+### What didn't work
+- No publication/upload failure. Public documentation HTML changed a small amount when refreshed; the new exact hashes are recorded, and prior downloaded bytes remain in commit history. Raw diagnostic-log whitespace is intentionally preserved.
+
+### What I learned
+- Reporting structural sensitivity and unsuccessful performance results together makes it possible to distinguish a failed hypothesis from a failed experiment harness.
+
+### What was tricky to build
+- Explain fresh storage and whole-graph use counts precisely without claiming general alias analysis or unrestricted PyTorch mutation semantics.
+
+### What warrants a second pair of eyes
+- Scope of the fresh-producing whitelist, exact rounding boundaries, the below-eager task score and the distinction between deterministic synthesis and external LLM/PassAgent evaluation.
+
+### What should be done in the future
+- Extend qualified linear/matmul and other high-impact source operations; validate compiler support rather than assuming frontend API names imply full PyTorch semantics. Choose the next optimization intervention beyond the exhausted strict-fusion grammar.
+
+### Code review instructions
+- Read report 09 and guide Section 24; run verifiers 99 and 114, and inspect the canonical coverage ledger. The new vault report body matches the ticket report body.
+
+### Technical details
+- reMarkable receipt proves cloud delivery, not physical synchronization. Unrelated root sources and unrelated vault changes remain unstaged. The overall project remains active and incomplete.

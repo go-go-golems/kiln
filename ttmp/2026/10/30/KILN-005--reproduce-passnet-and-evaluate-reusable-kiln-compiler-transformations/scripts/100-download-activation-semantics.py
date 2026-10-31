@@ -7,6 +7,7 @@ from urllib.request import urlopen,Request
 from urllib.error import HTTPError
 root=Path(__file__).resolve().parents[1]/'sources/pytorch/activations';root.mkdir(parents=True,exist_ok=True)
 urls={
+ 'OpMathType-v2.9.1.h':'https://raw.githubusercontent.com/pytorch/pytorch/v2.9.1/aten/src/ATen/OpMathType.h',
  'LICENSE-v2.9.1.txt':'https://raw.githubusercontent.com/pytorch/pytorch/v2.9.1/LICENSE',
  'silu-2.9.html':'https://docs.pytorch.org/docs/2.9/generated/torch.nn.functional.silu.html',
  'sigmoid-2.9.html':'https://docs.pytorch.org/docs/2.9/generated/torch.sigmoid.html',
