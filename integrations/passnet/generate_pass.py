@@ -26,6 +26,35 @@ class Pattern:
     returns: list          # returned node indices in this source's order
 
 
+def inplace_call(value):
+    if not isinstance(value,ast.Call):return False
+    if isinstance(value.func,ast.Name) and value.func.id=='kiln_iadd':return True
+    if isinstance(value.func,ast.Attribute) and value.func.attr.endswith('_') and not value.func.attr.startswith('_'):return True
+    return any(k.arg=='inplace' and isinstance(k.value,ast.Constant) and k.value.value is True for k in value.keywords)
+
+
+def drop_dead_statements(function):
+    """Remove source statements that do not reach the return, and `x = None` cleanups.
+
+    A source GraphModule may compute values it never returns. The matcher refuses
+    patterns with dead code, and TorchDynamo captures only live nodes, so the pattern
+    must be the live computation. A dead in-place operation is observable and refused.
+    """
+    *body,ret=function.body
+    live={n.id for n in ast.walk(ret) if isinstance(n,ast.Name)};kept=[]
+    for statement in reversed(body):
+        if isinstance(statement,ast.Assign) and isinstance(statement.value,ast.Constant) and statement.value.value is None:
+            continue
+        if not isinstance(statement,ast.Assign):raise ValueError(f'Unsupported pattern statement {type(statement).__name__}')
+        targets={n.id for t in statement.targets for n in ast.walk(t) if isinstance(n,ast.Name)}
+        if targets&live:
+            live=(live-targets)|{n.id for n in ast.walk(statement.value) if isinstance(n,ast.Name)}
+            kept.append(statement)
+        elif inplace_call(statement.value):
+            raise ValueError('Dead in-place source statement has an observable effect')
+    function.body=[*reversed(kept),ret]
+
+
 def extract_pattern(source,arity):
     tree=ast.parse(source)
     classes=[n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='GraphModule']
@@ -54,6 +83,7 @@ def extract_pattern(source,arity):
                 raise ValueError('Automatic match tracing currently supports explicit in-place addition only')
             return ast.copy_location(ast.Assign(targets=[node.target],value=ast.Call(func=ast.Name(id='kiln_iadd',ctx=ast.Load()),args=[ast.Name(id=node.target.id,ctx=ast.Load()),self.visit(node.value)],keywords=[])),node)
     function=PreserveAdd().visit(function)
+    drop_dead_statements(function)
     imports=[ast.ImportFrom(module='operator',names=[ast.alias(name='iadd',asname='kiln_iadd')],level=0)]+[copy.deepcopy(n) for n in tree.body if isinstance(n,(ast.Import,ast.ImportFrom))]
     module=ast.fix_missing_locations(ast.Module(body=imports+[function],type_ignores=[]))
     text=ast.unparse(module)+'\n';namespace={};exec(compile(module,'<trusted-passnet-pattern>','exec'),namespace)
@@ -66,7 +96,8 @@ def extract_pattern(source,arity):
         if node.op!='placeholder':
             torch.fx.node.map_arg(node.args,observe)
             for _,value in sorted(node.kwargs.items()):torch.fx.node.map_arg(value,observe)
-    if len(used)!=len(placeholders):raise ValueError('Unused source arguments need an explicit matching contract')
+    # Arguments without a live use are not part of the computation: they are neither
+    # matched nor passed to the replacement (order selects the live source arguments).
     order=[placeholders.index(node) for node in used]
     args.args=[args.args[index] for index in order]
     text=ast.unparse(module)+'\n'
@@ -134,7 +165,7 @@ def generate(directory,upstream,output,runtime_directory):
         canonical=translate_graph(upstream,record['graph'],'fake',input_order=pattern.order)
         scripts[record['script']]=canonical['script']
         record.update(inputs=canonical['inputs'],input_dtypes=canonical['input_dtypes'],output_structure=reorder_outputs(canonical['output_structure'],permutation),input_mutations=canonical['input_mutations'],reference_constraints=canonical['reference_constraints'],reference_domain_diagnostic=canonical.get('reference_domain_diagnostic'),
-                      source_input_order=pattern.order,source_sha256=hashlib.sha256(canonical['script'].encode()).hexdigest(),output_permutation=permutation)
+                      source_input_order=pattern.order,source_arity=len(record['inputs']),source_sha256=hashlib.sha256(canonical['script'].encode()).hexdigest(),output_permutation=permutation)
         record['specialization']=[identity]
         records.append({'graph':record['graph'],'pattern':identity,'output_permutation':permutation,'source_input_order':pattern.order,'source_model_sha256':hashlib.sha256(source.encode()).hexdigest()})
     output.mkdir(parents=True)

@@ -27,6 +27,28 @@ class PatternExtractionTests(unittest.TestCase):
         self.assertEqual(ab.key,ba.key);self.assertEqual(ab.returns,list(reversed(ba.returns)))
         self.assertEqual(extract_pattern(self.source('v=x*2\n  return (v,)'),1).key,extract_pattern(self.source('v=x*2\n  return v'),1).key)
 
+    def test_dead_source_code_is_not_part_of_the_pattern(self):
+        source='import torch\nclass GraphModule(torch.nn.Module):\n def forward(self,x,y,z):\n  u=x+y;  x = y = None\n  dead=torch.relu(z);  z = dead = None\n  return (u,)\n'
+        pattern=extract_pattern(source,3)
+        self.assertEqual(pattern.args,['x','y']);self.assertEqual(pattern.order,[0,1])
+        self.assertNotIn('relu',pattern.text);self.assertNotIn('None',pattern.text)
+        self.assertEqual(pattern.key,extract_pattern(self.source('u=x+x\n  return (u,)').replace('x+x','x+y').replace('forward(self,x)','forward(self,x,y)'),2).key)
+        effect='import torch\nclass GraphModule(torch.nn.Module):\n def forward(self,x,y):\n  u=x+y\n  y+=x\n  return (u,)\n'
+        with self.assertRaisesRegex(ValueError,'observable'):extract_pattern(effect,2)
+
+    def test_dead_source_code_and_arguments_leave_the_program(self):
+        import tempfile
+        from pathlib import Path
+        from corpus import translate_graph
+        with tempfile.TemporaryDirectory() as temporary:
+            graph=Path(temporary)/'g';graph.mkdir()
+            (graph/'model.py').write_text('import torch\nclass GraphModule(torch.nn.Module):\n def forward(self,in_0,in_1,in_2):\n  u=in_0*in_2\n  dead=torch.relu(in_1)\n  return (u,)\n')
+            (graph/'input_meta.py').write_text('\n'.join(f'class Meta{i}:\n name="in_{i}"\n shape=[2,3]\n dtype="torch.float32"\n' for i in range(3)))
+            (graph/'weight_meta.py').write_text('')
+            result=translate_graph(Path(temporary),'g','fake',input_order=[0,2])
+            self.assertEqual(list(result['inputs']),['v0','v1']);self.assertNotIn('relu',result['script'])
+            with self.assertRaisesRegex(ValueError,'omits a live'):translate_graph(Path(temporary),'g','fake',input_order=[0])
+
     def test_output_permutation_assigns_duplicate_returns(self):
         from generate_pass import output_permutation,reorder_outputs
         self.assertEqual(output_permutation([4,4,5],[5,4,4]),[1,2,0])
@@ -93,7 +115,7 @@ class PatternExtractionTests(unittest.TestCase):
         import json,tempfile
         from pathlib import Path
         from generate_pass import generate
-        from corpus import load_module,canonical_order_inputs,source_order_inputs
+        from corpus import load_module,canonical_order_inputs
         from dispatch import CorpusDispatch
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);corpus=root/'corpus';corpus.mkdir();upstream=root/'upstream';records=[]
@@ -119,7 +141,7 @@ class PatternExtractionTests(unittest.TestCase):
             for row in rows:
                 expected=load_module(upstream/row['graph']/'model.py').GraphModule()(*inputs)[0]
                 canonical=canonical_order_inputs(row,inputs)
-                self.assertTrue(all(a is b for a,b in zip(source_order_inputs(row,canonical),inputs)))
+                self.assertEqual(len(canonical),len(inputs))
                 # one-output rules return the bare tensor, as their traced pattern does
                 actual=dispatch(*canonical,specialization=row['specialization'])
                 torch.testing.assert_close(actual,expected,rtol=0,atol=0)

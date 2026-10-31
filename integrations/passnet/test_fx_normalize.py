@@ -134,6 +134,22 @@ class NormalizeTests(unittest.TestCase):
 
 
 
+class SpellingAliasTests(unittest.TestCase):
+    def test_functional_and_method_sigmoid_match_after_normalization(self):
+        from torch.fx.passes.utils.matcher_utils import SubgraphMatcher
+        from fx_normalize import normalize_arguments
+        def pattern(x):return torch.nn.functional.sigmoid(x.reshape(2,-1))
+        traced=torch.fx.symbolic_trace(pattern)          # records call_method sigmoid
+        self.assertIn('sigmoid',[n.target for n in traced.graph.nodes if n.op=='call_method'])
+        graph=torch.fx.Graph();x=graph.placeholder('x')    # TorchDynamo spelling
+        y=graph.call_method('reshape',(x,2,-1));graph.output(graph.call_function(torch.nn.functional.sigmoid,(y,)))
+        dynamo=torch.fx.GraphModule(torch.nn.Module(),graph)
+        self.assertEqual(SubgraphMatcher(traced.graph,match_output=False,match_placeholder=False).match(dynamo.graph),[])
+        self.assertTrue(normalize_arguments(traced));self.assertTrue(normalize_arguments(dynamo))
+        self.assertEqual(len(SubgraphMatcher(traced.graph,match_output=False,match_placeholder=False).match(dynamo.graph)),1)
+        torch.testing.assert_close(traced(torch.ones(4)),torch.sigmoid(torch.ones(2,2)))
+
+
 class PatternTraceTests(unittest.TestCase):
     def test_explicit_iadd_retained(self):
         from fx_normalize import trace_pattern

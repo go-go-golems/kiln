@@ -29,8 +29,8 @@ def read_manifest(directory):
             raise ValueError('Duplicate graph identity')
         graphs.add(record['graph'])
         order=record.get('source_input_order')
-        if order is not None and (not isinstance(order,list) or any(type(i) is not int for i in order) or sorted(order)!=list(range(len(record.get('inputs',{}))))):
-            raise ValueError('Source input order must be an exact argument permutation')
+        if order is not None and (not isinstance(order,list) or any(type(i) is not int or i<0 for i in order) or len(set(order))!=len(order) or len(order)!=len(record.get('inputs',{}))):
+            raise ValueError('Source input order must select distinct live source arguments, one per program input')
         script = Path(record['script'])
         if script.name != str(script) or not script.name.endswith('.kiln.js'):
             raise ValueError('Script must be a local .kiln.js filename')
@@ -55,11 +55,14 @@ def translate_graph(upstream, graph, metadata_mode, *, input_order=None):
     if len({c.name for c in metadata}) != len(metadata):
         raise ValueError(f'{graph}: duplicate input metadata')
     traced = trace_module(model)
+    eliminate_dead_code(traced.graph)
     if input_order is not None:
         from torch.fx import Graph,GraphModule
         placeholders=[n for n in traced.graph.nodes if n.op=='placeholder']
-        if sorted(input_order)!=list(range(len(placeholders))) or len(metadata)!=len(placeholders):
-            raise ValueError('Input binding order must be an exact source-argument permutation')
+        if len(set(input_order))!=len(input_order) or any(not 0<=i<len(placeholders) for i in input_order) or len(metadata)!=len(placeholders):
+            raise ValueError('Input binding order must select distinct source arguments')
+        if any(placeholders[i].users for i in range(len(placeholders)) if i not in input_order):
+            raise ValueError('Input binding order omits a live source argument')
         canonical=Graph();mapping={}
         for index in input_order:
             old=placeholders[index];mapping[old]=canonical.placeholder(old.target,type_expr=old.type)
@@ -91,19 +94,26 @@ def translate_graph(upstream, graph, metadata_mode, *, input_order=None):
     return result
 
 
-def source_order_inputs(record,inputs):
-    """Map canonical program arguments back to the trusted source signature."""
-    order=record.get('source_input_order',list(range(len(inputs))))
-    if sorted(order)!=list(range(len(inputs))):raise ValueError('Invalid source input binding order')
-    result=[None]*len(inputs)
-    for canonical,source in enumerate(order):result[source]=inputs[canonical]
-    return result
+def eliminate_dead_code(graph):
+    """Remove FX nodes that do not reach the output; refuse to remove an in-place call.
+
+    Dead source computation is not part of the graph's semantics (TorchDynamo does not
+    capture it), but a dead mutation would be an observable effect.
+    """
+    import operator
+    inplace={getattr(operator,'i'+n) for n in ['add','sub','mul','truediv','floordiv','mod','pow','matmul','and','or','xor','lshift','rshift']}
+    for node in reversed(list(graph.nodes)):
+        if node.op in ('call_function','call_method') and not node.users:
+            name=node.target if isinstance(node.target,str) else getattr(node.target,'__name__','')
+            if node.target in inplace or (name.endswith('_') and not name.startswith('_')) or node.kwargs.get('inplace') is True:
+                raise ValueError(f'{node.name}: dead in-place operation has an observable effect')
+            graph.erase_node(node)
 
 
 def canonical_order_inputs(record,inputs):
-    """Map source replay arguments into a generated program's canonical order."""
+    """Select a generated program's inputs, in canonical order, from the source arguments."""
     order=record.get('source_input_order',list(range(len(inputs))))
-    if sorted(order)!=list(range(len(inputs))):raise ValueError('Invalid canonical input binding order')
+    if len(set(order))!=len(order) or any(not 0<=i<len(inputs) for i in order):raise ValueError('Invalid canonical input binding order')
     return [inputs[index] for index in order]
 
 
