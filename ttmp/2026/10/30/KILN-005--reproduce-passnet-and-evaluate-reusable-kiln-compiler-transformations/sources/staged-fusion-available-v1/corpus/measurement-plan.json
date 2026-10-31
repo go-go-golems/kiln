@@ -1,0 +1,33 @@
+{
+  "format": "kiln-policy-measurement-plan/1",
+  "membership_sha256": "c67af7ec18bf0fd9c9dc00fc7f3888df731916ba1270de512eba05ac246b7874",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "reference_backend_numerics": {
+    "float32_matmul_precision": "highest"
+  },
+  "protocol_scope": "Modified full-precision FP32 compiler-policy research; not native PassBench acceptance",
+  "candidate_ids": [
+    "baseline",
+    "default",
+    "staged-fusion"
+  ],
+  "seed": 42,
+  "warmup": 20,
+  "trials": 100,
+  "repeats": 3,
+  "max_iqr_fraction": 0.2,
+  "max_retries": 2,
+  "inputs": "Original source replay, nominal dtype tolerances, output structure and unchanged inputs",
+  "order": "Seeded shuffle of distinct fingerprints; exact executable aliases share evidence",
+  "metrics": [
+    "synchronized end-to-end ms",
+    "CUDA-event stream elapsed ms including dispatch gaps"
+  ],
+  "selection": "Training-only family-balanced geometric mean end-to-end ratio to unchanged Kiln; exact ties preserve declaration order; compile-cost coefficient zero",
+  "heldout": "Only baseline and committed training selection; all 13 confirmation graphs retained without replacement or filtering",
+  "scope": "Fixed staged-fusion confirmation on all ten available fresh exact models; architecture relatives may remain",
+  "proposal_provenance": "Fixed prior development winner, transferred without adaptation.",
+  "source_contract": "Separate elementary FP32 arithmetic and highest-precision native matrix reference, fixed across candidates"
+}

@@ -1054,3 +1054,49 @@ See Steps 169 and 179 for research-first direction and the requirement to test g
 ### Technical details
 - v1 max_graphs_per_task=8; v2=64. Both target ten graphs per category with zero training graphs.
 - No fresh confirmation performance measurement has occurred.
+
+## Step 181: Freeze all thirteen available fresh models for fixed confirmation
+
+The broader metadata scan exhausted its declared envelope without reaching twenty models. Its final audit contains thirteen selected models: eight matrix and five reduction. Froze every one in a separately declared confirmation population before compilation or timing. Earlier commentary used intermediate counts of ten; the final audit and frozen manifest supersede those counts.
+
+### Prompt Context
+**User prompt (verbatim):** "what do you think is the best to tackle next?"
+**Assistant interpretation:** Prioritize the next research work while continuing the active experiment.
+**Inferred user intent:** Focus effort on useful compiler discoveries and generalization.
+**Recommendation:** Confirm this fixed transformation, then expose transformation composition to six agents with measured feedback; compare thinking levels within that experiment.
+
+### What I did
+- Verified the original v2 selection process terminated with Selection incomplete; preserve partial audit.
+- Added script 462 to reconstruct all selected records, asserting translated source equality with the preserved scan outputs.
+- Declared a revised sample size based only on exhausted metadata availability and froze all thirteen graphs as heldout.
+- Recorded the fixed prior transformation and transferred selection before outcomes.
+
+### Why
+- Using all available eligible models avoids discarding examples to satisfy balanced quotas. The revised population is explicitly distinct from the failed twenty-model plan.
+- Confirmation should precede broader transformation search and default promotion.
+
+### What worked
+- Script 462 completed with thirteen records, eight matrix and five reduction.
+- Source scripts match the prior metadata selection, and all records retain source-file identities.
+
+### What didn't work
+- The v2 selector did not reach ten per category. No compiler or performance outcome influenced this population revision.
+- Earlier ten-model commentary was inaccurate because it used a progress count; final audit shows thirteen.
+
+### What I learned
+- A complete scan has more authoritative counts than its last inspected progress message.
+
+### What was tricky to build
+- The population's revised size must be distinguished from performance-based candidate replacement. Every eligible model in the final scan is retained.
+
+### What warrants a second pair of eyes
+- Review exclusion and selection scope: exact model disjointness, supported metadata-restricted FP32, possible architecture relatives.
+
+### What should be done in the future
+- Compile and measure the fixed transformation without adapting it to confirmation outcomes; then develop agent-facing transformation composition.
+
+### Code review instructions
+- Inspect script 462, staged-fusion-available-v1/declaration.json, corpus/manifest.json and selection.json.
+
+### Technical details
+- No fresh confirmation performance result yet. The full project remains active; full200 support and native protocol work are separate unfinished requirements.
