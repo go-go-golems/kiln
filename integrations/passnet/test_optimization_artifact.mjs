@@ -34,3 +34,14 @@ assert.notEqual(pointwise.artifact_sha256,optimizationArtifact({...sequence,kind
 assert.equal(pointwise.artifact_sha256,optimizationArtifact({...sequence,id:'renamed',expose:{...stage,id:'other',provenance:{author:'test'}}},{contraction:'separate'}).artifact_sha256);
 assert.throws(()=>optimizationArtifact({...sequence,numerical_policy:{contraction:'allow'}},{contraction:'separate'}),/Invalid/);
 console.log('pointwise composition contract, identity and host numerical policy passed');
+
+// A cost gate wraps exactly one program; its identity is the inner identity plus the rule.
+const gated={format:'kiln-transformation-program/1',id:'gate',kind:'cost-gated',program:sequence};
+const gatedArtifact=optimizationArtifact(gated,{contraction:'separate'});
+assert.equal(gatedArtifact.artifact.action_contract,'kiln-predicted-cost-gate/1+kiln-pointwise-staged-fusion/1');
+assert.equal(gatedArtifact.artifact.input_ir,'kiln-tensor/1');
+assert.notEqual(gatedArtifact.artifact_sha256,pointwise.artifact_sha256);
+assert.equal(gatedArtifact.artifact_sha256,optimizationArtifact({...gated,id:'other',program:{...sequence,id:'renamed'}},{contraction:'separate'}).artifact_sha256);
+assert.throws(()=>optimizationArtifact({...gated,program:gated},{contraction:'separate'}),/Nested/);
+assert.throws(()=>optimizationArtifact({...gated,margin:0.1},{contraction:'separate'}),/Unknown/);
+console.log('cost-gate contract, identity and nesting rejection passed');

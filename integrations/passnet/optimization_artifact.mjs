@@ -13,20 +13,15 @@ export function optimizationArtifact(policy, numericalPolicy) {
   // Validate before dropping metadata: forbidden fields must not disappear.
   canonicalJSON(policy);
   prepareOptimizationProgram(policy);
-  const program = JSON.parse(canonicalJSON(policy));
-  delete program.provenance;
-  // Names affect diagnostics, not the policy's executable decisions.
-  program.id = 'artifact-policy';
-  if (['fusion-sequence', 'pointwise-fusion-sequence'].includes(program.kind)) {
-    for (const stage of ['expose', 'cleanup']) {
-      program[stage].id = stage;
-      delete program[stage].provenance;
-    }
-  }
+  const program = anonymize(JSON.parse(canonicalJSON(policy)), 'artifact-policy');
+  // A cost gate chooses between the untransformed and the inner compilation; its contract
+  // is the inner program's contract plus the selection rule.
+  const acting = program.kind === 'cost-gated' ? program.program : program;
+  const contract = acting.kind === 'pointwise-fusion-sequence' ? 'kiln-pointwise-staged-fusion/1' : acting.format === 'kiln-transformation-program/1' ? 'kiln-staged-loop-fusion/1' : 'kiln-loop-fusion/1';
   const artifact = {
     format: 'kiln-optimization-artifact/1',
-    input_ir: program.kind === 'pointwise-fusion-sequence' ? 'kiln-tensor/1' : 'kiln-loop/1',
-    action_contract: program.kind === 'pointwise-fusion-sequence' ? 'kiln-pointwise-staged-fusion/1' : program.format === 'kiln-transformation-program/1' ? 'kiln-staged-loop-fusion/1' : 'kiln-loop-fusion/1',
+    input_ir: acting.kind === 'pointwise-fusion-sequence' ? 'kiln-tensor/1' : 'kiln-loop/1',
+    action_contract: program.kind === 'cost-gated' ? `kiln-predicted-cost-gate/1+${contract}` : contract,
     feature_contract: 'kiln-loop-fusion-features/1',
     numerical_policy: {...numericalPolicy},
     applicability: {pipeline: 'emmy', static_shapes: true},
@@ -34,6 +29,17 @@ export function optimizationArtifact(policy, numericalPolicy) {
     program,
   };
   return {artifact, artifact_sha256: sha256Hex(canonicalJSON(artifact))};
+}
+
+// Names and provenance affect diagnostics, not the program's executable decisions.
+function anonymize(program, id) {
+  delete program.provenance;
+  program.id = id;
+  if (['fusion-sequence', 'pointwise-fusion-sequence'].includes(program.kind)) {
+    for (const stage of ['expose', 'cleanup']) anonymize(program[stage], stage);
+  }
+  if (program.kind === 'cost-gated') anonymize(program.program, 'gated');
+  return program;
 }
 
 // One request per process. Importing this module never consumes stdin.

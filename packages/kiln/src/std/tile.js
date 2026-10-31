@@ -360,5 +360,15 @@ export const costPrior = k.decide.cost(({ knobs, node, ctx }) => {
   return estimate(an, knobs, ctx.target).us;
 }, { name: "model" }).for("schedule");
 
+/** The analytic model's predicted time (µs) of every scheduled kernel in a Tile IR graph, summed. */
+export function predictedCost(tileGraph, t) {
+  let us = 0;
+  for (const n of tileGraph.nodes.values()) {
+    if (n.name !== "tile.kernel") continue;
+    us += estimate(analyze(n.attrs.expr, n.attrs.shape, n.attrs.inShapes), n.attrs.map, t).us;
+  }
+  return us;
+}
+
 export const tilePass = k.pass("tile/schedule").short("t").rules(scheduleRule).knobs(...KNOBS)
   .describe("choose a GPU mapping for every kernel: a fork decided by pins, evidence, then the cost model");

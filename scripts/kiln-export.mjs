@@ -23,6 +23,7 @@ import { fileURLToPath } from "node:url";
 import { params as paramSet } from "../packages/kiln/src/core/kiln.js";
 import { SPECS, WEBGPU_DEFAULT, target as mkTarget } from "../packages/kiln/src/std/targets.js";
 import { exportProgram } from "../packages/kiln/src/std/export.js";
+import { predictedCost } from "../packages/kiln/src/std/tile.js";
 import { compileScript, endToEnd } from "../apps/workbench/src/compile.js";
 import { prepareOptimizationProgram, applyOptimizationProgram } from "../integrations/passnet/transformation_program.mjs";
 
@@ -63,12 +64,30 @@ function scriptPath(o) {
   return join(PRESETS, f);
 }
 
-function compileOne(pins) {
-  const c = compileScript(text, { params: paramSet([]), target, pins, contraction: o.contraction, matmulPrecision: o.matmulPrecision,
-    transformPipeline: preparedProgram ? (pipe, { project, target }) => {
+function compileWith(pins, prepared) {
+  return compileScript(text, { params: paramSet([]), target, pins, contraction: o.contraction, matmulPrecision: o.matmulPrecision,
+    transformPipeline: prepared ? (pipe, { project, target }) => {
       if (project._pipe) throw new TypeError("optimization programs require the standard pipeline");
-      return applyOptimizationProgram(pipe, target, preparedProgram);
+      return applyOptimizationProgram(pipe, target, prepared);
     } : null });
+}
+
+function compileOne(pins) {
+  let c = compileWith(pins, preparedProgram?.gate ? null : preparedProgram), decision = null;
+  if (preparedProgram?.gate) {
+    // cost-gated: keep the transformed program only if the model predicts it is cheaper
+    const transformed = compileWith(pins, preparedProgram.inner);
+    if (c.ok && transformed.ok) {
+      const baseline_us = predictedCost(c.run.at("tile"), target), transformed_us = predictedCost(transformed.run.at("tile"), target);
+      const chosen = transformed_us < baseline_us ? "transformed" : "baseline";
+      decision = { gate: preparedProgram.gate, chosen, predicted_us: { baseline: baseline_us, transformed: transformed_us } };
+      if (chosen === "transformed") c = transformed;
+    } else if (c.ok !== transformed.ok) {
+      // only one side compiled: the gate has nothing to compare, and records why
+      if (transformed.ok) c = transformed;
+      decision = { gate: preparedProgram.gate, chosen: c === transformed ? "transformed" : "baseline", reason: `${c === transformed ? "untransformed" : "transformed"} compilation failed` };
+    }
+  }
   const at = Object.entries(pins).map(([k, v]) => `${k}=${v}`).join(" ");
   for (const d of c.diags || []) process.stderr.write(`${at}: ${d.level}${d.line ? ` line ${d.line}` : ""}: ${d.message}\n`);
   if (!c.ok || !c.prog) { process.stderr.write(`${at}: compile failed\n`); process.exit(1); }
@@ -84,6 +103,7 @@ function compileOne(pins) {
   const values = Object.fromEntries([...c.project._params].map((p) => [p.name, c.params.get(p)]));
   const program = exportProgram(c.run, c.prog, { name: o.name || c.project.name, params: values, target, source: { ...source, internal_check: internalCheck } });
   if (optimizationProgram) program.compiler_policy = optimizationProgram;
+  if (decision) program.compiler_policy_decision = decision;
   process.stderr.write(`${at}: ${program.kernels.map((k) => `${k.name} ${k.row}`).join("; ")}\n`);
   return program;
 }
