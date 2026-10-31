@@ -150,3 +150,11 @@ Reassessed all148 diary checkpoints/design series and authored6303-word referenc
 ## 2026-10-31
 
 Published complete6303-word reassessment reference22 append-only to go-go-parc; vault5347eea is pushed and exact committed/body bytes verified. Source/evidence d3e37fb; overall goal remains active (diary150).
+
+## 2026-10-31
+
+Implemented trusted native policy proposal tools, canonical optimization artifacts and charged invalid/duplicate proposal accounting. Final-source operational replay passed on twelve historical training graphs (36 compilations); external LLM, isolated timing and fresh confirmation remain open under task f5d9.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/native_policy_task.py — Native proposal boundary and host-owned ledger

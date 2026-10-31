@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "records": [
+    {
+      "command": [
+        "node",
+        "integrations/passnet/test_optimization_artifact.mjs"
+      ],
+      "returncode": 0,
+      "log": "00.txt",
+      "sha256": "909ce124f7bc921fda8f20e315ee64121282c35a4029c63341ad8a6606eb1c70"
+    },
+    {
+      "command": [
+        "/home/manuel/.pyenv/versions/3.13.2/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integrations/passnet",
+        "-p",
+        "test_native_policy_task.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "log": "01.txt",
+      "sha256": "ef477b7e1e3a3e15a034fdd07397ccd0bd5c8f5bc0f1698a818562f640a2f480"
+    },
+    {
+      "command": [
+        "node",
+        "integrations/passnet/test_fusion_policy.mjs"
+      ],
+      "returncode": 0,
+      "log": "02.txt",
+      "sha256": "d2abdc6d3075c8dd1d8fc2d304f0f18250a23e3f61e607d12cba895fa7dbb018"
+    },
+    {
+      "command": [
+        "/home/manuel/.pyenv/versions/3.13.2/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "integrations/passnet",
+        "-p",
+        "test_policy_proposals.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "log": "03.txt",
+      "sha256": "bf52e37be59a074ba3efc6b76e70a2ff687037eb47291daa54431c864f2ed1fc"
+    },
+    {
+      "command": [
+        "/home/manuel/.pyenv/versions/3.13.2/bin/python3",
+        "/home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/scripts/426-check-native-policy-task.py",
+        "--output",
+        "/home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/native-policy-task-check-v2"
+      ],
+      "returncode": 0,
+      "log": "04.txt",
+      "sha256": "dcbfa80d081a4cc5837ec87572bdb8a1e56aa39f5b803a72e1b3d8467dc4caff"
+    }
+  ]
+}

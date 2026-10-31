@@ -7073,3 +7073,71 @@ See Step149 for the user's authored detailed report, textbook/no-analogy, commit
 ### Technical details
 - Vault note: Projects/2026/10/31/ARTICLE - Kiln - Project Reassessment and the Path to Agent-Generated Compiler Strategies.md.
 - Publishing used the user's explicit vault commit/push authorization. Unrelated dropcut-studio changes were not staged.
+
+## Step 151: Implement the trusted native policy task and replay its artifacts through Kiln
+
+The previous turn completed the requested project reassessment and verified its vault publication, which is concrete progress. This continuation begins the proposed native agent experiment by implementing its trusted proposal boundary. The new task exposes approved training features and accepts bounded policy JSON, while the evaluator retains numerical settings, compilation and timing. It reuses the current policy interpreter and evidence canonicalization rather than adding another compiler or generic storage layer.
+
+The boundary passed focused tests and a real compilation check over twelve previously used training graphs. The default artifact reproduces the default compiler's executables exactly; disabling fusion changes all twelve executables while preserving the existing compiler reference checks. No external model, native CUDA measurement or fresh confirmation ran in this checkpoint.
+
+### Prompt Context
+See Step149 for the actual authored framework, reassessment and design-study requests, and earlier entries for the continuing implementation and detailed-diary instructions. The automatic continuation is runtime metadata, not a new authored quotation.
+**Assistant interpretation:** Move from the completed assessment into a bounded native policy experiment through the existing compiler and evaluator.
+**Inferred user intent:** Reach reusable compiler self-optimization while keeping experimental boundaries and provenance reviewable.
+**Starting commit:** e673200edf09d86a316c44bbf276fb26b6893e0e.
+
+### What I did
+- Rechecked Git state, current policy/compiler APIs, design20 and the latest diary entries. The unrelated root sources directory remains untouched.
+- Read the pinned R2E-Gym Agent, Action and Trajectory implementations from the already archived source tarball.
+- Added optimization_artifact.mjs using existing prepareFusionPolicy, canonicalJSON and sha256Hex; no external algorithm was ported.
+- Added native_policy_task.py with training projection, fixed numerical settings, strict submission parsing, proposal accounting and evaluator-owned request/result/artifact records.
+- Added focused adversarial/identity tests and retained scripts426/427 for real compiler replay and validation capture.
+- Extended design20 with the implemented contract and the remaining framework integration; kept the complete external-agent comparison open in docmgr.
+
+### Why
+- Reusing Agent.run unchanged would require repository repair metadata and its hard-coded tools, which do not describe a native compiler policy task.
+- A common submission boundary allows an LLM and simple search baselines to use the same grammar and budget semantics.
+- Rejected and repeated proposals must count toward the declared search budget; artifact acceptance must not be confused with numerical or performance success.
+
+### What worked
+- Artifact tests verify identity under policy renaming/provenance changes, separation under program/numerical changes, detached input data and executable policy reconstruction.
+- Seven native task tests cover training-only projection, invalid and duplicate proposal accounting, forbidden controls, validator infrastructure failure, malformed tool arguments, host input isolation and run preservation.
+- Existing fusion interpreter/compiler tests and six deterministic proposal tests passed.
+- Script426 final-source check v2 compiles twelve training graphs three times: default, default artifact replay and disabled artifact. All thirty-six compiler reference checks pass; default replay aliases all twelve executables and disabled fusion changes all twelve.
+- Script427 retains complete focused-check output and the command/result receipt in native-policy-boundary-validation-v1.
+
+### What didn't work
+- No unexpected executed validation failure occurred. The malformed-JSON and missing-validator cases are intentional negative tests, not successful proposals.
+- Code review found that a non-object submit_policy argument initially returned an argument error before reserving a proposal slot. The dispatch order was corrected and a regression test added before the final-source v2 integration check.
+- Pinned Agent.run cannot accept this native task directly: it accesses env.runtime.commit.get_patch and repository-specific command installation. The separate driver remains implementation work; no fake RepoEnv was introduced.
+
+### What I learned
+- Reusing a framework requires identifying reusable components individually. R2E's full repository-editing lifecycle is not already a general compiler-agent lifecycle.
+- Policy identity and executable identity differ: names/provenance can be normalized before compilation, while different policy programs can still produce identical kernels and require later executable deduplication.
+- The existing canonical JSON implementation works directly under Node26 and avoids a second cross-language canonicalization specification.
+
+### What was tricky to build
+- Training receipts contain paths, diagnostics and potentially held-out rows. An explicit projection exposes only the four approved numeric features and ordinal training examples.
+- The task reserves each request before validator execution and distinguishes rejected policy data from infrastructure failures. Both consume budget, but neither is accepted compiler evidence.
+- The first operational receipt v1 predates the malformed-argument dispatch correction. It remains historical; v2 and script427 are the final-source validation. No historical receipt was overwritten.
+
+### What warrants a second pair of eyes
+- Review the trusted-host assumption: the callable tool boundary is not a filesystem sandbox for an agent independently granted shell access.
+- Review initial feature/action version declarations and the limited contraction field before treating the envelope as a complete semantic contract.
+- Review future driver step/token/retry accounting and authoritative measurement results before running an equal-budget comparison.
+
+### What should be done in the future
+- Implement the separate native R2E component-based driver and record actual model requests, responses and token usage.
+- Freeze a policy-sensitive study declaration, compare LLM proposals with threshold and seeded-random baselines, isolate serving from timing, and freeze selection before new confirmation.
+- Continue the original full200 support, numerical compatibility and unchanged reference reproduction tracks. This checkpoint does not complete them or the pending reMarkable delivery.
+
+### Code review instructions
+- Start with native_policy_task.py and optimization_artifact.mjs, then their tests and the appended design20 checkpoint.
+- Under Node26 run node integrations/passnet/test_optimization_artifact.mjs and python3 -m unittest discover -s integrations/passnet -p test_native_policy_task.py -v.
+- Inspect native-policy-task-check-v2/result.json and the retained compilation receipts. Script426 accepts a new --output directory for reproduction; existing output directories are preserved.
+
+### Technical details
+- Artifact format: kiln-optimization-artifact/1; program format remains kiln-fusion-policy/1. Limits remain31 nodes, depth6 and maximum work growth2.
+- Native submission payload maximum16384 UTF-8 bytes; duplicate keys and nonfinite JSON are rejected. The host fixes the numerical policy from agreeing manifest/receipt data.
+- Ledger files distinguish request reservation, result and unique accepted artifact. A finished task refuses new submissions; existing directories cannot be silently resumed or overwritten.
+- All new source remains within the PassNet integration, alongside the existing policy harness. No compiler production semantics, shared DGX checkout or original evaluator changed.
