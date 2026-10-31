@@ -3274,3 +3274,44 @@ Read script643, the queue receipt, scripts625/634/642, all three task plans and 
 
 ### Technical details
 The queue's owner log is `/home/manuel/passnet-kiln/KILN-005/sources/breadth-replays-v1/owner.log`. The uniform session was still active when the queue was launched; neither later `results/run.json` existed. The queue uses `sg docker -c` for the two evaluation runners and does not run a second timed job while uniform tmux exists.
+
+## Step 227: Define the mutation capability at the FX and PyTorch runtime boundary
+
+The first-error census showed that input mutation is a larger next capability than another small operator binding. I audited the affected source models and documented a functionalization design with explicit final-value outputs, input writeback and returned alias identity. This is a design checkpoint; no mutation lowering is claimed yet.
+
+### Prompt Context
+**User prompt:** The active goal requests broad PassNet support, source provenance, design docs and implementation. See Step222 for the broad-coverage request.
+**Assistant interpretation:** Identify the common semantic requirement behind mutation-blocked families before changing the importer or runtime.
+**Inferred user intent:** Expand coverage with a coherent compiler capability that can later support effect-aware optimization passes.
+
+### What I did
+- Added script644 and ran it over the current 2,060-graph import audit. It groups mutation-related first failures, reads each materialized `model.py` and records source mutation calls, operands and source hashes in `sources/mutation-source-patterns-v1.json`.
+- The first audit left ten positional `hardtanh(..., True)` calls unclassified. I added that source signature and the missing `relu_` first failures, then reran it. The final audit found143 variants across19 task families,55 distinct model source hashes,135 first-mutated input operands and8 first-mutated temporaries.
+- Inspected representative EfficientNet and ResNet source fragments and the existing `fx_import.py`, `generate_pass.py`, `dispatch.py`, `runtime.py`, `evaluate_tasks.py` and pinned PassBench evaluator. Read the official PyTorch2.9 `add_`, SiLU and functionalization API pages; archived their exact HTML and hashes using script645. Wrote reference40 with the proposed IR/manifest/runtime contract and evidence sequence.
+
+### Why
+An input mutation changes caller-owned storage, and a source function may return that same tensor object. The existing importer only accepts mutations on fresh single-use compiler values. Treating a source input mutation as a pure expression would leave repeated benchmark calls with different state and could break returned alias identity.
+
+### What worked
+The source audit identifies the first-error split:45 SiLU,42 ReLU,35 augmented addition,10 hardtanh,3 true division,6 method `relu_` and2 function `torch.relu_`. It resolved all first-mutated operands after the positional hardtanh fix. The pinned PyTorch functionalization documentation explicitly describes pure intermediate operations followed by input copyback to preserve semantics. Reference40 maps that semantic contract to the existing Kiln FX importer and PyTorch runtime.
+
+### What didn't work
+The first AST audit classified only135 variants and marked ten hardtanh operands unknown because their `inplace=True` argument is positional. The corrected script classifies all143 mutation-related variants. No GPU correctness or PassBench result follows from this source-only analysis.
+
+### What I learned
+Most mutation first blockers are source-input effects, not merely in-place calls on temporary values. The current PassBench `make_model_call` binds one input dictionary and reuses its tensors over warmups and trials; correct writeback and returned alias identity are therefore part of evaluation behavior. The current `TorchProgram` can launch on the caller's CUDA stream, so a separate hidden output followed by stream-ordered copyback is an initial safe execution path.
+
+### What was tricky to build
+The source AST identifies likely mutation operands but cannot establish complete alias relations. Reference40 therefore defines explicit storage identity and version tracking in the importer and rejects unsupported overlapping view mutation. The runtime must return the original input tensor object for public outputs that alias it; equal values in a fresh tensor do not preserve the source behavior.
+
+### What warrants a second pair of eyes
+Review whether source-derived FX pattern matching preserves each mutation/alias contract and whether duplicate public/hidden outputs share one Kiln artifact buffer. Verify the proposed writeback ordering under pinned PyTorch2.9 and the original PassBench evaluator before accepting any mutation family.
+
+### What should be done in the future
+Implement reference40's effect metadata, pure value lowering, hidden final-value outputs, same-stream input writeback and output-alias reconstruction. Then run one full import census and complete-family GPU replay. Compare effect-aware fusion and storage reuse only after correctness.
+
+### Code review instructions
+Read reference40, scripts644–645, the source audit JSON, the official-doc archive receipt, `fx_import.py`, `dispatch.py`, `runtime.py` and PassBench `test_compiler.py`/`make_model_call`.
+
+### Technical details
+The official PyTorch2.9 source-doc archive SHA256 is `11125100e1ff713680c7561469f7c473163ee11e15e5dbf6e4750d15058a66ba`. The audit is source AST plus the current importer first-error list; it is not a runtime alias analysis. The official functionalization API is documented at `https://docs.pytorch.org/docs/2.9/generated/torch.func.functionalize.html` and describes an input copyback after pure computation.

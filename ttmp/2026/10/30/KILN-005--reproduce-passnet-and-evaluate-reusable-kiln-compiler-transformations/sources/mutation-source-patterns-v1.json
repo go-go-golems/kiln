@@ -1,0 +1,2047 @@
+{
+  "format": "kiln-mutation-source-audit/1",
+  "blocked_graphs": 143,
+  "tasks": 19,
+  "distinct_source_models": 55,
+  "first_errors": {
+    "itruediv: in-place arithmetic requires fresh single-use producer": 3,
+    "iadd: in-place arithmetic requires fresh single-use producer": 35,
+    "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise": 45,
+    "hardtanh: inplace scalar operation requires fresh single-use producer": 10,
+    "relu: inplace operation requires fresh single-use producer": 42,
+    "relu_: unsupported target torch.relu_; implement semantic lowering": 2,
+    "relu_: unsupported tensor method relu_": 6
+  },
+  "first_mutation_operand": {
+    "input": 135,
+    "other": 8
+  },
+  "records": [
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a1/97/a197e09cf465b6cf27c9d52f3f115a6655d9aba6925d3b6b736d5c268833015f",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/convit_base/_decomposed/convit_base_start106_end110_16",
+      "first_error": "itruediv: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "4d2ed709177bc9c492e92e59de552cb15600a06a33e3abdaecc5eedcc4e6d9bd",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Div",
+          "operand": "in_0",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a1/97/a197e09cf465b6cf27c9d52f3f115a6655d9aba6925d3b6b736d5c268833015f",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/convit_base/_decomposed/convit_base_start106_end110_16",
+      "first_error": "itruediv: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "6e493c2cca80493ac260fe991c7847c42fd0c9516dd76faa8f0d8b5b0c761912",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Div",
+          "operand": "in_0",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a1/97/a197e09cf465b6cf27c9d52f3f115a6655d9aba6925d3b6b736d5c268833015f",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/timm/convit_base/_decomposed/convit_base_start106_end110_16",
+      "first_error": "itruediv: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "6e493c2cca80493ac260fe991c7847c42fd0c9516dd76faa8f0d8b5b0c761912",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Div",
+          "operand": "in_0",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/9d/3e/9d3e1c616ca9c1f110a16a243e26353d57677d813bbb50f453a5cb96b4885bc7",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/timm/resnet10t.c3_in1k/_decomposed/resnet10t.c3_in1k_start23_end26_7",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "12e8ee381ce9178840027a84ac09638cee018603338e3df4b9dae92f13bb43ef",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_6",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/9d/3e/9d3e1c616ca9c1f110a16a243e26353d57677d813bbb50f453a5cb96b4885bc7",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/timm/resnet10t.c3_in1k/_decomposed/resnet10t.c3_in1k_start23_end26_7",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "accb654d2e605fa2ad97e5a5caf3f369b454163f3e482f1588b87aed0175ef7b",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_6",
+          "source_line": 15
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/9d/3e/9d3e1c616ca9c1f110a16a243e26353d57677d813bbb50f453a5cb96b4885bc7",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/timm/resnet10t.c3_in1k/_decomposed/resnet10t.c3_in1k_start23_end26_7",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "12e8ee381ce9178840027a84ac09638cee018603338e3df4b9dae92f13bb43ef",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_6",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/9d/3e/9d3e1c616ca9c1f110a16a243e26353d57677d813bbb50f453a5cb96b4885bc7",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/resnet10t.c3_in1k/_decomposed/resnet10t.c3_in1k_start23_end26_7",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "12e8ee381ce9178840027a84ac09638cee018603338e3df4b9dae92f13bb43ef",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_6",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/9d/3e/9d3e1c616ca9c1f110a16a243e26353d57677d813bbb50f453a5cb96b4885bc7",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/timm/resnet10t.c3_in1k/_decomposed/resnet10t.c3_in1k_start23_end26_7",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "12e8ee381ce9178840027a84ac09638cee018603338e3df4b9dae92f13bb43ef",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_6",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/9d/3e/9d3e1c616ca9c1f110a16a243e26353d57677d813bbb50f453a5cb96b4885bc7",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/timm/resnet10t.c3_in1k/_decomposed/resnet10t.c3_in1k_start23_end26_7",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "accb654d2e605fa2ad97e5a5caf3f369b454163f3e482f1588b87aed0175ef7b",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_6",
+          "source_line": 15
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/torchvision/efficientnet_b0/_decomposed/efficientnet_b0_start244_end248_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "6777138cc2a0bfb309e4ed5e9b58cef91f7e63a7e718a6e3d1b6cf6affe8b161",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/torchvision/efficientnet_b0/_decomposed/efficientnet_b0_start244_end248_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "6777138cc2a0bfb309e4ed5e9b58cef91f7e63a7e718a6e3d1b6cf6affe8b161",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/torchvision/efficientnet_b2/_decomposed/efficientnet_b2_start353_end357_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "b958a40acb7a874bd067492f127e3aa2cd4f520813d5c5932aaef6c26f370d7b",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/torchvision/efficientnet_b4/_decomposed/efficientnet_b4_start497_end501_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "a49fb3876b17daf0bf4b52e6af6ded41cfbbe1f6ffa64c74950819890cee1af9",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/torchvision/efficientnet_b2/_decomposed/efficientnet_b2_start353_end357_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "319cfc33f409344f29f0245a9b3dd12c016493d4b639ef0447d6b5bb19306080",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/torchvision/efficientnet_b4/_decomposed/efficientnet_b4_start497_end501_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "a49fb3876b17daf0bf4b52e6af6ded41cfbbe1f6ffa64c74950819890cee1af9",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/torchvision/efficientnet_b2/_decomposed/efficientnet_b2_start353_end357_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "b958a40acb7a874bd067492f127e3aa2cd4f520813d5c5932aaef6c26f370d7b",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchvision/efficientnet_b2/_decomposed/efficientnet_b2_start353_end357_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "b958a40acb7a874bd067492f127e3aa2cd4f520813d5c5932aaef6c26f370d7b",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/torchvision/efficientnet_b2/_decomposed/efficientnet_b2_start353_end357_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "b958a40acb7a874bd067492f127e3aa2cd4f520813d5c5932aaef6c26f370d7b",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/torchvision/efficientnet_b0/_decomposed/efficientnet_b0_start244_end248_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "6777138cc2a0bfb309e4ed5e9b58cef91f7e63a7e718a6e3d1b6cf6affe8b161",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/torchvision/efficientnet_b0/_decomposed/efficientnet_b0_start244_end248_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "2fd17fafe0a185645d43ac03d63a3a7a86ca9095809b01d78cd63d62e3491073",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/torchvision/efficientnet_b6/_decomposed/efficientnet_b6_start702_end706_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "758879774f68418077a793987ec943ca460173c53763df7d44880e75c3e790ee",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/torchvision/efficientnet_b0/_decomposed/efficientnet_b0_start244_end248_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "6777138cc2a0bfb309e4ed5e9b58cef91f7e63a7e718a6e3d1b6cf6affe8b161",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/torchvision/efficientnet_b0/_decomposed/efficientnet_b0_start244_end248_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "6777138cc2a0bfb309e4ed5e9b58cef91f7e63a7e718a6e3d1b6cf6affe8b161",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/torchvision/efficientnet_b0/_decomposed/efficientnet_b0_start244_end248_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "2fd17fafe0a185645d43ac03d63a3a7a86ca9095809b01d78cd63d62e3491073",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/torchvision/efficientnet_b6/_decomposed/efficientnet_b6_start702_end706_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "88a779ef4bb9c898ec2b02a1fcf5ae08dfdf28d542d15a17e9f916d59fbeedc5",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/torchvision/efficientnet_b6/_decomposed/efficientnet_b6_start702_end706_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "758879774f68418077a793987ec943ca460173c53763df7d44880e75c3e790ee",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/torchvision/efficientnet_b4/_decomposed/efficientnet_b4_start497_end501_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "fef957d73bf4fc00ce276ead8cae5c4e01c6a495146cfc708dc80d61e0792d91",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/torchvision/efficientnet_b2/_decomposed/efficientnet_b2_start353_end357_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "319cfc33f409344f29f0245a9b3dd12c016493d4b639ef0447d6b5bb19306080",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/torchvision/efficientnet_b0/_decomposed/efficientnet_b0_start244_end248_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "6777138cc2a0bfb309e4ed5e9b58cef91f7e63a7e718a6e3d1b6cf6affe8b161",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchvision/efficientnet_b4/_decomposed/efficientnet_b4_start497_end501_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "a49fb3876b17daf0bf4b52e6af6ded41cfbbe1f6ffa64c74950819890cee1af9",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/torchvision/efficientnet_b0/_decomposed/efficientnet_b0_start244_end248_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "2fd17fafe0a185645d43ac03d63a3a7a86ca9095809b01d78cd63d62e3491073",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/54/91/5491fa3aeb78bb0d01009020bc9f4ac60c6caa88438fff4fed57cf023b0c3ff0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/mmpose/deeppose_mobilenetv2_rle/_decomposed/deeppose_mobilenetv2_rle_start148_end152_0",
+      "first_error": "hardtanh: inplace scalar operation requires fresh single-use producer",
+      "model_sha256": "ebb3efb917bec9ea1088070ec8a828b06ed9b3548a3f05e93ee96b9084ca92c9",
+      "mutations": [
+        {
+          "kind": "positional_inplace",
+          "operation": "torch.nn.functional.hardtanh",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/54/91/5491fa3aeb78bb0d01009020bc9f4ac60c6caa88438fff4fed57cf023b0c3ff0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/mmpose/deeppose_mobilenetv2_rle/_decomposed/deeppose_mobilenetv2_rle_start148_end152_0",
+      "first_error": "hardtanh: inplace scalar operation requires fresh single-use producer",
+      "model_sha256": "88c91ed4efdff4998a504a3847a3cb2c8b348e160274d9583c1eb83f998002b3",
+      "mutations": [
+        {
+          "kind": "positional_inplace",
+          "operation": "torch.nn.functional.hardtanh",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/54/91/5491fa3aeb78bb0d01009020bc9f4ac60c6caa88438fff4fed57cf023b0c3ff0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmpose/deeppose_mobilenetv2_rle/_decomposed/deeppose_mobilenetv2_rle_start148_end152_0",
+      "first_error": "hardtanh: inplace scalar operation requires fresh single-use producer",
+      "model_sha256": "04b1c364be1095771112822a1b4b575a5ee76640d7a1c7278e6c068aa7cce306",
+      "mutations": [
+        {
+          "kind": "positional_inplace",
+          "operation": "torch.nn.functional.hardtanh",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/54/91/5491fa3aeb78bb0d01009020bc9f4ac60c6caa88438fff4fed57cf023b0c3ff0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmpose/deeppose_mobilenetv2_rle/_decomposed/deeppose_mobilenetv2_rle_start148_end152_0",
+      "first_error": "hardtanh: inplace scalar operation requires fresh single-use producer",
+      "model_sha256": "07d65346aaa5624502bf3c0739d54f411d3157b3263918c9ebac197429db059d",
+      "mutations": [
+        {
+          "kind": "positional_inplace",
+          "operation": "torch.nn.functional.hardtanh",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/54/91/5491fa3aeb78bb0d01009020bc9f4ac60c6caa88438fff4fed57cf023b0c3ff0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmpose/deeppose_mobilenetv2_rle/_decomposed/deeppose_mobilenetv2_rle_start148_end152_0",
+      "first_error": "hardtanh: inplace scalar operation requires fresh single-use producer",
+      "model_sha256": "3f79e1a7de43ab018fe2d0b0e0576365b2fdb25532e3a74aefb9087b522ad8fa",
+      "mutations": [
+        {
+          "kind": "positional_inplace",
+          "operation": "torch.nn.functional.hardtanh",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/54/91/5491fa3aeb78bb0d01009020bc9f4ac60c6caa88438fff4fed57cf023b0c3ff0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/mmpose/deeppose_mobilenetv2_rle/_decomposed/deeppose_mobilenetv2_rle_start148_end152_0",
+      "first_error": "hardtanh: inplace scalar operation requires fresh single-use producer",
+      "model_sha256": "bc7c661c59bb3c10bc733f3062e69cb847648fd0e82618c357bed0352dfc8a87",
+      "mutations": [
+        {
+          "kind": "positional_inplace",
+          "operation": "torch.nn.functional.hardtanh",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/54/91/5491fa3aeb78bb0d01009020bc9f4ac60c6caa88438fff4fed57cf023b0c3ff0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmpose/deeppose_mobilenetv2_rle/_decomposed/deeppose_mobilenetv2_rle_start148_end152_0",
+      "first_error": "hardtanh: inplace scalar operation requires fresh single-use producer",
+      "model_sha256": "04b1c364be1095771112822a1b4b575a5ee76640d7a1c7278e6c068aa7cce306",
+      "mutations": [
+        {
+          "kind": "positional_inplace",
+          "operation": "torch.nn.functional.hardtanh",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/54/91/5491fa3aeb78bb0d01009020bc9f4ac60c6caa88438fff4fed57cf023b0c3ff0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/8/samples/mmpose/deeppose_mobilenetv2_rle/_decomposed/deeppose_mobilenetv2_rle_start148_end152_0",
+      "first_error": "hardtanh: inplace scalar operation requires fresh single-use producer",
+      "model_sha256": "c1cd95d768a99f9ba449e35e54394f152d887b4d1698f713b043e8c15b651724",
+      "mutations": [
+        {
+          "kind": "positional_inplace",
+          "operation": "torch.nn.functional.hardtanh",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/54/91/5491fa3aeb78bb0d01009020bc9f4ac60c6caa88438fff4fed57cf023b0c3ff0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/mmpose/deeppose_mobilenetv2_rle/_decomposed/deeppose_mobilenetv2_rle_start148_end152_0",
+      "first_error": "hardtanh: inplace scalar operation requires fresh single-use producer",
+      "model_sha256": "bc7c661c59bb3c10bc733f3062e69cb847648fd0e82618c357bed0352dfc8a87",
+      "mutations": [
+        {
+          "kind": "positional_inplace",
+          "operation": "torch.nn.functional.hardtanh",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/54/91/5491fa3aeb78bb0d01009020bc9f4ac60c6caa88438fff4fed57cf023b0c3ff0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/mmpose/deeppose_mobilenetv2_rle/_decomposed/deeppose_mobilenetv2_rle_start148_end152_0",
+      "first_error": "hardtanh: inplace scalar operation requires fresh single-use producer",
+      "model_sha256": "c1cd95d768a99f9ba449e35e54394f152d887b4d1698f713b043e8c15b651724",
+      "mutations": [
+        {
+          "kind": "positional_inplace",
+          "operation": "torch.nn.functional.hardtanh",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/cb/b3/cbb3c21bffc333cbaba3ab6e99b9792c6773ea21eae2b9283b86a5a619185ac9",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/ultralytics/yolov6l/_decomposed/yolov6l_start143_end148_12",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "e36fe5ab7aa223440ddf4ccd4ed56ce493e1d485589cdba3568e3481d68e0f86",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/cb/b3/cbb3c21bffc333cbaba3ab6e99b9792c6773ea21eae2b9283b86a5a619185ac9",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/ultralytics/yolov6l/_decomposed/yolov6l_start143_end148_12",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "b4a05934133a82666f7ae084c2a73f06f9b08a808cce846db77d8c1b0e809e26",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/cb/b3/cbb3c21bffc333cbaba3ab6e99b9792c6773ea21eae2b9283b86a5a619185ac9",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/ultralytics/yolov6l/_decomposed/yolov6l_start143_end148_12",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "b4a05934133a82666f7ae084c2a73f06f9b08a808cce846db77d8c1b0e809e26",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/cb/b3/cbb3c21bffc333cbaba3ab6e99b9792c6773ea21eae2b9283b86a5a619185ac9",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/ultralytics/yolov6l/_decomposed/yolov6l_start143_end148_12",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "b4a05934133a82666f7ae084c2a73f06f9b08a808cce846db77d8c1b0e809e26",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/cb/b3/cbb3c21bffc333cbaba3ab6e99b9792c6773ea21eae2b9283b86a5a619185ac9",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/ultralytics/yolov6l/_decomposed/yolov6l_start143_end148_12",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "e36fe5ab7aa223440ddf4ccd4ed56ce493e1d485589cdba3568e3481d68e0f86",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/cb/b3/cbb3c21bffc333cbaba3ab6e99b9792c6773ea21eae2b9283b86a5a619185ac9",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/ultralytics/yolov6l/_decomposed/yolov6l_start143_end148_12",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "b4a05934133a82666f7ae084c2a73f06f9b08a808cce846db77d8c1b0e809e26",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/f9/d7/f9d7372452a6ba77a24a5c303987e2f38903c8c56fb26560f16311cf2803122f",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start635_end640_76",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "d481fc2b3e6a9aac0da4a3882e3e43d63bd04249bbaf0f3b376c5d3d23fd167e",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_3",
+          "source_line": 8
+        },
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_4",
+          "source_line": 9
+        },
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "tmp_0",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/f9/d7/f9d7372452a6ba77a24a5c303987e2f38903c8c56fb26560f16311cf2803122f",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start635_end640_76",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "d481fc2b3e6a9aac0da4a3882e3e43d63bd04249bbaf0f3b376c5d3d23fd167e",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_3",
+          "source_line": 8
+        },
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_4",
+          "source_line": 9
+        },
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "tmp_0",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/89/5f/895fb1ccc628999dceebd393249714d32a6bc544efbc10282c0c1f5c17bdfbbd",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmseg/EncNet_R101/_decomposed/EncNet_R101_start377_end383_6",
+      "first_error": "relu_: unsupported target torch.relu_; implement semantic lowering",
+      "model_sha256": "108694cba481bb5395b139371d9b185b70eb367cced153bc2a551a55a4594172",
+      "mutations": [
+        {
+          "kind": "method",
+          "operation": "torch.relu_",
+          "operand": "tmp_3",
+          "source_line": 12
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/89/5f/895fb1ccc628999dceebd393249714d32a6bc544efbc10282c0c1f5c17bdfbbd",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmseg/EncNet_R101/_decomposed/EncNet_R101_start377_end383_6",
+      "first_error": "relu_: unsupported target torch.relu_; implement semantic lowering",
+      "model_sha256": "108694cba481bb5395b139371d9b185b70eb367cced153bc2a551a55a4594172",
+      "mutations": [
+        {
+          "kind": "method",
+          "operation": "torch.relu_",
+          "operand": "tmp_3",
+          "source_line": 12
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start396_end403_0",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "142992c88735a4b9347e10fae4e5519b43e279f674ca57980a707ecb29b02bad",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start411_end418_1",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "801338aeb2787e1561d74e593bc901484644a07920beb676d37ed2c9620df271",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start396_end403_0",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "142992c88735a4b9347e10fae4e5519b43e279f674ca57980a707ecb29b02bad",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/1/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start396_end403_0",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "142992c88735a4b9347e10fae4e5519b43e279f674ca57980a707ecb29b02bad",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start396_end403_0",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "fcbf9c4b793b26bb4805901692a9ff7c7a8d324efbfa971ece6711e04f05522d",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 7
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start411_end418_1",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "801338aeb2787e1561d74e593bc901484644a07920beb676d37ed2c9620df271",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start396_end403_0",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "fcbf9c4b793b26bb4805901692a9ff7c7a8d324efbfa971ece6711e04f05522d",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 7
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start411_end418_1",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "801338aeb2787e1561d74e593bc901484644a07920beb676d37ed2c9620df271",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start396_end403_0",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "fcbf9c4b793b26bb4805901692a9ff7c7a8d324efbfa971ece6711e04f05522d",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 7
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start411_end418_1",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "41aa943b8d2aa287449380f75c01b5165ed553cf714f260bc63d6b09853c9253",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 7
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start396_end403_0",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "142992c88735a4b9347e10fae4e5519b43e279f674ca57980a707ecb29b02bad",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start411_end418_1",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "801338aeb2787e1561d74e593bc901484644a07920beb676d37ed2c9620df271",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start411_end418_1",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "41aa943b8d2aa287449380f75c01b5165ed553cf714f260bc63d6b09853c9253",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 7
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start411_end418_1",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "801338aeb2787e1561d74e593bc901484644a07920beb676d37ed2c9620df271",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start411_end418_1",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "801338aeb2787e1561d74e593bc901484644a07920beb676d37ed2c9620df271",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start396_end403_0",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "142992c88735a4b9347e10fae4e5519b43e279f674ca57980a707ecb29b02bad",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start396_end403_0",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "142992c88735a4b9347e10fae4e5519b43e279f674ca57980a707ecb29b02bad",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmpose/rtmw-l/_decomposed/rtmw-l_start411_end418_1",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "41aa943b8d2aa287449380f75c01b5165ed553cf714f260bc63d6b09853c9253",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_1",
+          "source_line": 7
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d9/84/d9849ace78469a2d935b90ecea7d3c6228c59f7dccf1edae64bebfce4d07ed48",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/Finnish-NLP_convbert-base-generator-finnish/_decomposed/Finnish-NLP_convbert-base-generator-finnish_start18_end20_3",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "fc57e879ade1f0df27e23d42efc1939220bcfce6a6f772651ea2cd123db31ccc",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d9/84/d9849ace78469a2d935b90ecea7d3c6228c59f7dccf1edae64bebfce4d07ed48",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/Finnish-NLP_convbert-base-generator-finnish/_decomposed/Finnish-NLP_convbert-base-generator-finnish_start18_end20_3",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "fc57e879ade1f0df27e23d42efc1939220bcfce6a6f772651ea2cd123db31ccc",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/30/77/3077b42bb09a2125e6be2fc477add8bff742ffea3fcfd457eb05257d5bdd00f0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/1/samples/mmpose/pose_cspnext_l/_decomposed/pose_cspnext_l_start123_end125_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "155796a6f0a42756c9b0dd129e454d0782581b5cf66153ee14a9bb7dcb2fd1c6",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/30/77/3077b42bb09a2125e6be2fc477add8bff742ffea3fcfd457eb05257d5bdd00f0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmpose/pose_cspnext_l/_decomposed/pose_cspnext_l_start123_end125_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "155796a6f0a42756c9b0dd129e454d0782581b5cf66153ee14a9bb7dcb2fd1c6",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/30/77/3077b42bb09a2125e6be2fc477add8bff742ffea3fcfd457eb05257d5bdd00f0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/mmpose/pose_cspnext_l/_decomposed/pose_cspnext_l_start123_end125_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "155796a6f0a42756c9b0dd129e454d0782581b5cf66153ee14a9bb7dcb2fd1c6",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/30/77/3077b42bb09a2125e6be2fc477add8bff742ffea3fcfd457eb05257d5bdd00f0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/mmpose/pose_cspnext_l/_decomposed/pose_cspnext_l_start123_end125_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "155796a6f0a42756c9b0dd129e454d0782581b5cf66153ee14a9bb7dcb2fd1c6",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/30/77/3077b42bb09a2125e6be2fc477add8bff742ffea3fcfd457eb05257d5bdd00f0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmpose/pose_cspnext_l/_decomposed/pose_cspnext_l_start123_end125_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "8636d76a07f80385cd81e03ebedba264dda6ab7755cdb8b07232fe8815acc638",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/30/77/3077b42bb09a2125e6be2fc477add8bff742ffea3fcfd457eb05257d5bdd00f0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmpose/pose_cspnext_l/_decomposed/pose_cspnext_l_start123_end125_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "8636d76a07f80385cd81e03ebedba264dda6ab7755cdb8b07232fe8815acc638",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/30/77/3077b42bb09a2125e6be2fc477add8bff742ffea3fcfd457eb05257d5bdd00f0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/mmpose/pose_cspnext_l/_decomposed/pose_cspnext_l_start123_end125_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "155796a6f0a42756c9b0dd129e454d0782581b5cf66153ee14a9bb7dcb2fd1c6",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/30/77/3077b42bb09a2125e6be2fc477add8bff742ffea3fcfd457eb05257d5bdd00f0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/mmpose/pose_cspnext_l/_decomposed/pose_cspnext_l_start123_end125_3",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "155796a6f0a42756c9b0dd129e454d0782581b5cf66153ee14a9bb7dcb2fd1c6",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start28_end33_5",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "45479f9117fc137d927c9e1094e7c9fdf2932a8e38d68ef474185c64a2b8a13f",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start28_end33_5",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "65d4cafaeb3ad31cf63a360499ce38c7b68ecac13d0d1dd107c22dbb80f758d8",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start28_end33_5",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "3d2df33d2294eb14aa8eb457b7027436ed541b4ff263a79afdc1d6668cab31cf",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start28_end33_5",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "2b32c9fad8735f02d071e368b221cf7c48c8ea2f9d76e2ba3cfc10b24944c68d",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start28_end33_5",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "4c85c78e5cb370fbd0db042922531a73c3dfee4ba8a9aa3f4ec76cac48920c97",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/ogoshi2000_stance-nystromformer/_decomposed/ogoshi2000_stance-nystromformer_start30_end35_6",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "ba1b4625cc9b774a56099581826d40ef37fcb914decdb6a5498e35e2538a6a4c",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start28_end33_5",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "c2d537c52dd6ba277457aeab44627fe73f08fb21a521abbd3308bb55f96f62b5",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start28_end33_5",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "0f79d4b3596cb7df30584dd3f0e42ceb732503f07ca769f80135d96d5806d903",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start28_end33_5",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "6872d351d565b34e2417d04c73c6bd0016e0b2f2fb06a728e3810ed8176675c4",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start28_end33_5",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "6872d351d565b34e2417d04c73c6bd0016e0b2f2fb06a728e3810ed8176675c4",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/ogoshi2000_stance-nystromformer/_decomposed/ogoshi2000_stance-nystromformer_start30_end35_6",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "ba1b4625cc9b774a56099581826d40ef37fcb914decdb6a5498e35e2538a6a4c",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6a/57/6a57e173fc0d8fa7875261b734881bf4bb11397b55208315d360d5dd30f5fa13",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-NystromformerForSequenceClassification_start28_end33_5",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "0f79d4b3596cb7df30584dd3f0e42ceb732503f07ca769f80135d96d5806d903",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 9
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/be/30/be30056c62076b0617ae9fdfafd0c9c74e225fd7879ec5871d6b36e20379c789",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/8/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start278_end285_2",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "2e1891c41d60c1cbf797f735bd40a9181b2f23ae6276d9179e7d6779bb16f430",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/be/30/be30056c62076b0617ae9fdfafd0c9c74e225fd7879ec5871d6b36e20379c789",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start278_end285_2",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "2e1891c41d60c1cbf797f735bd40a9181b2f23ae6276d9179e7d6779bb16f430",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/be/30/be30056c62076b0617ae9fdfafd0c9c74e225fd7879ec5871d6b36e20379c789",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start278_end285_2",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "2e1891c41d60c1cbf797f735bd40a9181b2f23ae6276d9179e7d6779bb16f430",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/be/30/be30056c62076b0617ae9fdfafd0c9c74e225fd7879ec5871d6b36e20379c789",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start278_end285_2",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "bdf5545c0b4acf08a0b039fd5799888281bf76af51653436dc919bc215e3a161",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 7
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/be/30/be30056c62076b0617ae9fdfafd0c9c74e225fd7879ec5871d6b36e20379c789",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start278_end285_2",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "2e1891c41d60c1cbf797f735bd40a9181b2f23ae6276d9179e7d6779bb16f430",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/be/30/be30056c62076b0617ae9fdfafd0c9c74e225fd7879ec5871d6b36e20379c789",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start278_end285_2",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "2e1891c41d60c1cbf797f735bd40a9181b2f23ae6276d9179e7d6779bb16f430",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/be/30/be30056c62076b0617ae9fdfafd0c9c74e225fd7879ec5871d6b36e20379c789",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start278_end285_2",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "bdf5545c0b4acf08a0b039fd5799888281bf76af51653436dc919bc215e3a161",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 7
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/be/30/be30056c62076b0617ae9fdfafd0c9c74e225fd7879ec5871d6b36e20379c789",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start278_end285_2",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "2e1891c41d60c1cbf797f735bd40a9181b2f23ae6276d9179e7d6779bb16f430",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/be/30/be30056c62076b0617ae9fdfafd0c9c74e225fd7879ec5871d6b36e20379c789",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmpose/rtmpose-l/_decomposed/rtmpose-l_start278_end285_2",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "bdf5545c0b4acf08a0b039fd5799888281bf76af51653436dc919bc215e3a161",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_1",
+          "source_line": 7
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ee/11/ee1118a59b8d407032184aa23b489642a3937f3b1741606ef277da783ed3156d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/torchgeometric/LINKX/_decomposed/LINKX_start13_end16_4",
+      "first_error": "relu_: unsupported tensor method relu_",
+      "model_sha256": "48f8a817bdb3cfeffc4a67bb2e721132927fa84be4f8c17dc4a9dd49a6848180",
+      "mutations": [
+        {
+          "kind": "method",
+          "operation": "tmp_3.relu_",
+          "operand": "tmp_3",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ee/11/ee1118a59b8d407032184aa23b489642a3937f3b1741606ef277da783ed3156d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/torchgeometric/LINKX/_decomposed/LINKX_start13_end16_4",
+      "first_error": "relu_: unsupported tensor method relu_",
+      "model_sha256": "48f8a817bdb3cfeffc4a67bb2e721132927fa84be4f8c17dc4a9dd49a6848180",
+      "mutations": [
+        {
+          "kind": "method",
+          "operation": "tmp_3.relu_",
+          "operand": "tmp_3",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ee/11/ee1118a59b8d407032184aa23b489642a3937f3b1741606ef277da783ed3156d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/torchgeometric/LINKX/_decomposed/LINKX_start13_end16_4",
+      "first_error": "relu_: unsupported tensor method relu_",
+      "model_sha256": "48f8a817bdb3cfeffc4a67bb2e721132927fa84be4f8c17dc4a9dd49a6848180",
+      "mutations": [
+        {
+          "kind": "method",
+          "operation": "tmp_3.relu_",
+          "operand": "tmp_3",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ee/11/ee1118a59b8d407032184aa23b489642a3937f3b1741606ef277da783ed3156d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/torchgeometric/LINKX/_decomposed/LINKX_start13_end16_4",
+      "first_error": "relu_: unsupported tensor method relu_",
+      "model_sha256": "48f8a817bdb3cfeffc4a67bb2e721132927fa84be4f8c17dc4a9dd49a6848180",
+      "mutations": [
+        {
+          "kind": "method",
+          "operation": "tmp_3.relu_",
+          "operand": "tmp_3",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ee/11/ee1118a59b8d407032184aa23b489642a3937f3b1741606ef277da783ed3156d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/torchgeometric/LINKX/_decomposed/LINKX_start13_end16_4",
+      "first_error": "relu_: unsupported tensor method relu_",
+      "model_sha256": "b23ab1302fcaf9ce84bb57c7b8778f2283ed871fd5d864c88f604ebf65e68c67",
+      "mutations": [
+        {
+          "kind": "method",
+          "operation": "tmp_3.relu_",
+          "operand": "tmp_3",
+          "source_line": 12
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ee/11/ee1118a59b8d407032184aa23b489642a3937f3b1741606ef277da783ed3156d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/torchgeometric/LINKX/_decomposed/LINKX_start13_end16_4",
+      "first_error": "relu_: unsupported tensor method relu_",
+      "model_sha256": "48f8a817bdb3cfeffc4a67bb2e721132927fa84be4f8c17dc4a9dd49a6848180",
+      "mutations": [
+        {
+          "kind": "method",
+          "operation": "tmp_3.relu_",
+          "operand": "tmp_3",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/31/8a31c5d5488b5eeb1e507d07d30ea83c1f2ea0227320cf9865fc09ff23daa843",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmseg/DANet_R101/_decomposed/DANet_R101_start393_end395_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "86d620c1e8f24eb8158c4fe23c32e766f6b7019d09edebd38392d76efe96376e",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/31/8a31c5d5488b5eeb1e507d07d30ea83c1f2ea0227320cf9865fc09ff23daa843",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmseg/DANet_R101/_decomposed/DANet_R101_start393_end395_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "86d620c1e8f24eb8158c4fe23c32e766f6b7019d09edebd38392d76efe96376e",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/31/8a31c5d5488b5eeb1e507d07d30ea83c1f2ea0227320cf9865fc09ff23daa843",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmseg/DANet_R101/_decomposed/DANet_R101_start393_end395_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "86d620c1e8f24eb8158c4fe23c32e766f6b7019d09edebd38392d76efe96376e",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/31/8a31c5d5488b5eeb1e507d07d30ea83c1f2ea0227320cf9865fc09ff23daa843",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/mmseg/DANet_R101/_decomposed/DANet_R101_start393_end395_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "86d620c1e8f24eb8158c4fe23c32e766f6b7019d09edebd38392d76efe96376e",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/31/8a31c5d5488b5eeb1e507d07d30ea83c1f2ea0227320cf9865fc09ff23daa843",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmseg/DANet_R101/_decomposed/DANet_R101_start393_end395_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "d119c79d30dc15c302800c354429cf5a92be3fa0977062def589193de9568a08",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/31/8a31c5d5488b5eeb1e507d07d30ea83c1f2ea0227320cf9865fc09ff23daa843",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmseg/DANet_R101/_decomposed/DANet_R101_start393_end395_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "d119c79d30dc15c302800c354429cf5a92be3fa0977062def589193de9568a08",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c7/c8/c7c80c0127192fdc9a70e99d87563e9456d671072a090ad6d017ab273262aeb0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/timm/fasternet_l.in1k/_decomposed/fasternet_l.in1k_start290_end292_21",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "85526ab438a6f4341d3392bfade2a4210f5c9e8f2fb0447f19c3750092231d58",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c7/c8/c7c80c0127192fdc9a70e99d87563e9456d671072a090ad6d017ab273262aeb0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/fasternet_l.in1k/_decomposed/fasternet_l.in1k_start290_end292_21",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "85526ab438a6f4341d3392bfade2a4210f5c9e8f2fb0447f19c3750092231d58",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c7/c8/c7c80c0127192fdc9a70e99d87563e9456d671072a090ad6d017ab273262aeb0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/fasternet_l.in1k/_decomposed/fasternet_l.in1k_start290_end292_21",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "20b537e71f54404ce441f28ab8f9ba5aecc590c80d89f67271feb4c3ce14288a",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c7/c8/c7c80c0127192fdc9a70e99d87563e9456d671072a090ad6d017ab273262aeb0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/timm/fasternet_l.in1k/_decomposed/fasternet_l.in1k_start290_end292_21",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "85526ab438a6f4341d3392bfade2a4210f5c9e8f2fb0447f19c3750092231d58",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c7/c8/c7c80c0127192fdc9a70e99d87563e9456d671072a090ad6d017ab273262aeb0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/timm/fasternet_l.in1k/_decomposed/fasternet_l.in1k_start290_end292_21",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "20b537e71f54404ce441f28ab8f9ba5aecc590c80d89f67271feb4c3ce14288a",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/c7/c8/c7c80c0127192fdc9a70e99d87563e9456d671072a090ad6d017ab273262aeb0",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/timm/fasternet_l.in1k/_decomposed/fasternet_l.in1k_start290_end292_21",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "85526ab438a6f4341d3392bfade2a4210f5c9e8f2fb0447f19c3750092231d58",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/65/73/65730be896d111b712995ba2c56c75143d41bfa3cb7a25fe6ef5ea4f23336c9a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/transformers-auto-model/google-t5_t5-large/_decomposed/google-t5_t5-large_start1820_end1825_6",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "8929feff46b270b436051d6923603f601c7af9f8d1f089805e37a5548f3bfa99",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/65/73/65730be896d111b712995ba2c56c75143d41bfa3cb7a25fe6ef5ea4f23336c9a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/transformers-auto-model/google-t5_t5-large/_decomposed/google-t5_t5-large_start1820_end1825_6",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "8929feff46b270b436051d6923603f601c7af9f8d1f089805e37a5548f3bfa99",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/65/73/65730be896d111b712995ba2c56c75143d41bfa3cb7a25fe6ef5ea4f23336c9a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/transformers-auto-model/google-t5_t5-large/_decomposed/google-t5_t5-large_start1820_end1825_6",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "8929feff46b270b436051d6923603f601c7af9f8d1f089805e37a5548f3bfa99",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/65/73/65730be896d111b712995ba2c56c75143d41bfa3cb7a25fe6ef5ea4f23336c9a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/transformers-auto-model/google-t5_t5-large/_decomposed/google-t5_t5-large_start1820_end1825_6",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "d7956dc03323ae333a999f86ba4e0514b3e830835c1c5dae64815b99ff130013",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/65/73/65730be896d111b712995ba2c56c75143d41bfa3cb7a25fe6ef5ea4f23336c9a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/Hezam_ArabicT5_Classification/_decomposed/Hezam_ArabicT5_Classification_start1520_end1525_6",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "8929feff46b270b436051d6923603f601c7af9f8d1f089805e37a5548f3bfa99",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/65/73/65730be896d111b712995ba2c56c75143d41bfa3cb7a25fe6ef5ea4f23336c9a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/google-t5_t5-large/_decomposed/google-t5_t5-large_start1820_end1825_6",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "8929feff46b270b436051d6923603f601c7af9f8d1f089805e37a5548f3bfa99",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/65/73/65730be896d111b712995ba2c56c75143d41bfa3cb7a25fe6ef5ea4f23336c9a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/Hezam_ArabicT5_Classification/_decomposed/Hezam_ArabicT5_Classification_start1520_end1525_6",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "8929feff46b270b436051d6923603f601c7af9f8d1f089805e37a5548f3bfa99",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_1",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a4/49/a449f60bf40dad59fe2d05cc4211b1e627340e91ecfd98cbdf28bcf59ca8e3d5",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/ultralytics/yolov10l/_decomposed/yolov10l_start475_end479_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "460235831d327c5054446a2d3759541cf137bc354f03a57b3fd10a4bd31e86dd",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a4/49/a449f60bf40dad59fe2d05cc4211b1e627340e91ecfd98cbdf28bcf59ca8e3d5",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/ultralytics/yolov10l/_decomposed/yolov10l_start475_end479_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "460235831d327c5054446a2d3759541cf137bc354f03a57b3fd10a4bd31e86dd",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a4/49/a449f60bf40dad59fe2d05cc4211b1e627340e91ecfd98cbdf28bcf59ca8e3d5",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/ultralytics/yolov10l/_decomposed/yolov10l_start475_end479_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "a954673c194a0bb015e488096a8fe3791a094dc8a776c55a560ad5b48cab8afe",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a4/49/a449f60bf40dad59fe2d05cc4211b1e627340e91ecfd98cbdf28bcf59ca8e3d5",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/ultralytics/yolov10l/_decomposed/yolov10l_start475_end479_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "460235831d327c5054446a2d3759541cf137bc354f03a57b3fd10a4bd31e86dd",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a4/49/a449f60bf40dad59fe2d05cc4211b1e627340e91ecfd98cbdf28bcf59ca8e3d5",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/1/samples/ultralytics/yolov10l/_decomposed/yolov10l_start475_end479_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "460235831d327c5054446a2d3759541cf137bc354f03a57b3fd10a4bd31e86dd",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a4/49/a449f60bf40dad59fe2d05cc4211b1e627340e91ecfd98cbdf28bcf59ca8e3d5",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/ultralytics/yolov10l/_decomposed/yolov10l_start475_end479_0",
+      "first_error": "silu: inplace silu requires fresh single-use producer; mutation/alias lowering required otherwise",
+      "model_sha256": "a954673c194a0bb015e488096a8fe3791a094dc8a776c55a560ad5b48cab8afe",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.silu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/64/8b/648b0d39a18b2727df2e52c8896f97196344f9ff229e631399100ed2249c137d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start12_end16_0",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "1440c7044966c36ad3cbd24f91a9376c337f71f6acafaaf677723d6b606165ce",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_4",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/64/8b/648b0d39a18b2727df2e52c8896f97196344f9ff229e631399100ed2249c137d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start12_end16_0",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "1440c7044966c36ad3cbd24f91a9376c337f71f6acafaaf677723d6b606165ce",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_4",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/64/8b/648b0d39a18b2727df2e52c8896f97196344f9ff229e631399100ed2249c137d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start12_end16_0",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "1440c7044966c36ad3cbd24f91a9376c337f71f6acafaaf677723d6b606165ce",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_4",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/64/8b/648b0d39a18b2727df2e52c8896f97196344f9ff229e631399100ed2249c137d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start12_end16_0",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "1440c7044966c36ad3cbd24f91a9376c337f71f6acafaaf677723d6b606165ce",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_4",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/64/8b/648b0d39a18b2727df2e52c8896f97196344f9ff229e631399100ed2249c137d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start12_end16_0",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "d4f86a1d96ad11c4275f078c61aeacb4510e1a99f2677f1c164dbc253e7a54d1",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_4",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/64/8b/648b0d39a18b2727df2e52c8896f97196344f9ff229e631399100ed2249c137d",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/timm/fastvit_s12.apple_dist_in1k/_decomposed/fastvit_s12.apple_dist_in1k_start12_end16_0",
+      "first_error": "iadd: in-place arithmetic requires fresh single-use producer",
+      "model_sha256": "d4f86a1d96ad11c4275f078c61aeacb4510e1a99f2677f1c164dbc253e7a54d1",
+      "mutations": [
+        {
+          "kind": "augassign",
+          "operation": "Add",
+          "operand": "in_4",
+          "source_line": 10
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e4/e9/e4e91e94d4a5c86db34d38be4ae9bee4449da8136dd2798522f22a0f62ab0b57",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/mmseg/BiSeNetV1_R18/_decomposed/BiSeNetV1_R18_start115_end117_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "87a6d878c37f383a79811ff42474875ae03e53048f8407cef8949e6f4ba5ff18",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e4/e9/e4e91e94d4a5c86db34d38be4ae9bee4449da8136dd2798522f22a0f62ab0b57",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/mmseg/BiSeNetV1_R18/_decomposed/BiSeNetV1_R18_start115_end117_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "b8f010720376a1985652e05d74cff9dd04dc409bbd4722ab97204d2c672ea9a2",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e4/e9/e4e91e94d4a5c86db34d38be4ae9bee4449da8136dd2798522f22a0f62ab0b57",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/mmseg/BiSeNetV1_R18/_decomposed/BiSeNetV1_R18_start115_end117_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "b8f010720376a1985652e05d74cff9dd04dc409bbd4722ab97204d2c672ea9a2",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e4/e9/e4e91e94d4a5c86db34d38be4ae9bee4449da8136dd2798522f22a0f62ab0b57",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmseg/BiSeNetV1_R18/_decomposed/BiSeNetV1_R18_start115_end117_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "87a6d878c37f383a79811ff42474875ae03e53048f8407cef8949e6f4ba5ff18",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e4/e9/e4e91e94d4a5c86db34d38be4ae9bee4449da8136dd2798522f22a0f62ab0b57",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/1/samples/mmseg/BiSeNetV1_R18/_decomposed/BiSeNetV1_R18_start115_end117_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "b8f010720376a1985652e05d74cff9dd04dc409bbd4722ab97204d2c672ea9a2",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e4/e9/e4e91e94d4a5c86db34d38be4ae9bee4449da8136dd2798522f22a0f62ab0b57",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/mmseg/BiSeNetV1_R18/_decomposed/BiSeNetV1_R18_start115_end117_8",
+      "first_error": "relu: inplace operation requires fresh single-use producer",
+      "model_sha256": "b8f010720376a1985652e05d74cff9dd04dc409bbd4722ab97204d2c672ea9a2",
+      "mutations": [
+        {
+          "kind": "inplace_keyword",
+          "operation": "torch.nn.functional.relu",
+          "operand": "in_0",
+          "source_line": 8
+        }
+      ]
+    }
+  ]
+}

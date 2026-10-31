@@ -40,6 +40,8 @@ Our near-term aim is to obtain broad, externally verified task coverage and use 
 
 The ordering of P2 and P3 may change after P0's failure census. P3 is deliberately coherent: `int64` indices cannot be cast through FP32 without losing identity, and data-dependent gather cannot be represented by static index maps. The current 119 nonfloating-placeholder first failures across 18 families therefore require an IR and runtime change, not a permissive importer condition. The 17 captured-constant first failures include tensors up to 1,050,625 elements and likewise require storage rather than scalar literal expansion. Phase P5 includes the local-driver-sensitive 59 first failures, which must be reclassified on bling before attributing them to Kiln.
 
+The P2 mutation subproblem now has a source audit and implementation contract in reference40. Its current first-error inventory covers 143 variants across19 task families, primarily mutations of caller-owned inputs. That capability requires input storage writeback and returned alias identity at the PyTorch boundary, in addition to pure Kiln arithmetic. It should be implemented once across the importer, manifest and runtime.
+
 ## Optimization experiments, in parallel with coverage
 
 Use complete families already accepted by PassBench to establish a small strategy portfolio. The fixed pointwise fusion comparison changed 49 of 92 executable artifacts while retaining 92/92 correctness in both arms. Its 11 transfer families worsened in mean task score from 0.848880 to 0.822873; task effects were sharply different. This is evidence for **selective** strategies, not a globally enabled fusion policy.
