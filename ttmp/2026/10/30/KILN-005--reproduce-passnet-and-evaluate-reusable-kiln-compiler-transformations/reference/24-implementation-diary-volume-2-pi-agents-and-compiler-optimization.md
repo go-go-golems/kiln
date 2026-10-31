@@ -358,3 +358,50 @@ See Step 159 for the Pi request and Step 165 for the external launch rejection.
 ### Technical details
 - Test policy: kiln-fusion-policy/1 threshold 0.95. The fixture ID is rpc-test.
 - Earlier publication, coverage figures and benchmark outcomes remain unchanged.
+
+
+## Step 167: Verify accounting inside the actual Pi agent loop locally
+
+Ran the installed Pi SDK with a synthetic local provider and a scripted native tool response containing invalid arguments. The actual message hook charged that submission before framework validation, and the closed boundary prevented another inference dispatch. No LunaRoute request or credential access was involved.
+
+### Prompt Context
+See Step 159 for the Pi request and Step 165 for the pending external payload approval.
+**Assistant interpretation:** Test SDK event ordering locally while preserving the external launch restriction.
+**Inferred user intent:** A dependable agent integration, verified through actual execution.
+**Previous commit:** 1a13b13 — Verify real policy RPC accounting with compiler artifact validation.
+
+### What I did
+- Added script 448 with an isolated agent directory, fixture provider and scripted stream function.
+- Initialized the production session factory and replaced inference with a deterministic native call containing the wrong argument key.
+- Asserted one accounting call, one inference dispatch and closed budget state after the actual Pi loop returned.
+- Retained the fixture source and complete event/result receipt under sources/pi-local-ordering-v1.
+
+### Why
+- Component tests cannot prove installed SDK hook ordering or what happens after native argument validation fails.
+
+### What worked
+- The Node 26 script completed successfully.
+- The accounting hook received submit_policy with {wrong:1}; only one scripted inference dispatch occurred.
+- The model loop terminated despite the malformed native call, with the closed gate preventing additional dispatch.
+
+### What didn't work
+- No failure occurred. This uses a fake task callback and scripted inference; the real RPC was independently checked in Step 166. Their full composition still needs validation.
+
+### What I learned
+- The installed SDK's awaited message hook can implement pre-validation charging, and the stream gate supplies the required independent stop boundary.
+
+### What was tricky to build
+- The malformed tool never needs to execute successfully for its proposal attempt to be accounted. A provider boundary is still needed to stop the next model turn after validation failure.
+
+### What warrants a second pair of eyes
+- Inspect the retained event sequence and distinguish a scripted provider response from an LLM result.
+
+### What should be done in the future
+- Exercise the complete owner lifecycle, including real RPC and timeout/error cases. Keep external inference pending explicit payload approval.
+
+### Code review instructions
+- Start with script 448 and sources/pi-local-ordering-v1/result.json. The fixture uses a deliberately unusable loopback URL; the network stream is replaced before prompting.
+
+### Technical details
+- Provider local-fixture/model scripted, one native submit_policy call with ID invalid-1.
+- No compiler speedup, benchmark coverage change or model-quality result follows from this test.
