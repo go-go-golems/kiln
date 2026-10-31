@@ -7475,3 +7475,64 @@ See Step152 and Step155 for the authored question and continuing implementation 
 - Source revision:7776662f3b9e73336302015032529fa5e09bd07a. Model SHA256f921b42e9b6191c3ffad54532df61e57fb1477aefdb12f5a4eb496ac8828e8ad.
 - Remote owner directory:/home/manuel/passnet-kiln/KILN-005/sources/native-policy-search-model-v1. Container kiln005-native-policy-search-model-v1 is absent after completion.
 - The four-slot allowance and12-step limit were unchanged. The two-step stop reason is proposal_budget_exhausted; no retry or second batch ran.
+
+## Step 157: Qualify all candidates and select unchanged Kiln from isolated training
+
+All ten frozen policies compiled across all twenty graphs, with zero candidate compilation failures and equivalent unchanged/default controls. The isolated DGX training phase then completed all twelve graphs. The shared selector chose unchanged Kiln for threshold, random and LLM methods. This is a negative optimization result on the declared training population, not a reason to replace candidates or alter the objective.
+
+Script440 verified frozen source/artifact identities, terminal ownership evidence, executable bindings and all22800 raw timing samples. There were38 distinct measured graph/executable pairs, all correct and stable under the declared protocol. Confirmation has not yet run at this checkpoint; its candidate union is now only baseline.
+
+### Prompt Context
+See Steps155–156 for continuing user intent and the model outcome.
+**Assistant interpretation:** Complete the declared candidate evaluation and commit training-only selections before fresh confirmation.
+**Inferred user intent:** Distinguish actual compiler improvements from valid proposals, aliases and measurement noise.
+**Commit (code and freeze):**f666457e6c2e4102cef57496aefb04831bd5cf35 — Audit four-slot model failure and freeze independent search candidates.
+
+### What I did
+- Ran compile_study.py in tracked tmux session kiln-native-search-compile-v1 over ten policies and twenty graphs; retained complete artifacts and stdout.
+- Staged the immutable training bundle with script438 and ran script439 on an idle GPU in tmux kiln-native-policy-search-train-v1.
+- Collected five terminal evidence files after the owner exited and verified their remote hashes.
+- Added script440 to check all frozen input/source hashes, qualification, method membership, alias bindings, raw sample statistics, stability/retry rules and aggregate medians.
+- Ran the shared selector and saved native-policy-search-selection-v1.json before confirmation.
+
+### Why
+- Correctness and compilation success are prerequisites, not evidence of speed improvement.
+- Exact aliases must share timings and preserve baseline tie-breaking; independent timings of identical programs could otherwise select noise.
+- Per-method training selection must be immutable before the new confirmation graphs are executed.
+
+### What worked
+-200 compilations passed, with zero failures; qualification verified unchanged/default equivalence.
+- Twelve training graphs produced38 distinct measured graph/executable records. All measured records passed correctness and stability, with three100-trial repeats for both timing metrics.
+- The raw audit reproduced all medians, quartiles, means, ranges and final aggregates across22800 timing samples.
+- Threshold1.1 and1.25 tied baseline at1.0. Threshold1.0 scored0.9602354466 and0.95 scored0.8137166910 in family-balanced end-to-end speedup.
+- Random proposals3 and4 tied baseline. Random2 scored0.8102983902 and random1 scored0.6512382639. All deterministic candidates remained eligible; none improved the training aggregate.
+- Each method selected baseline. The model arm had only its unchanged fallback after the recorded four rejected submissions.
+
+### What didn't work
+- No candidate produced an aggregate training speedup. This is the actual result; no retry, extra proposal, eligibility filtering or objective change was introduced.
+- No new runtime/validation failure occurred in this checkpoint. Training success does not prove confirmation correctness or native PassBench acceptance.
+
+### What I learned
+- The four-slot deterministic search changed several executable bodies but mostly reduced profitable fusion. Other policies collapsed to exact baseline aliases.
+- The full procedure can now carry a failed model search through qualification and independent method selection without assigning it an invented reward or hiding its cost.
+
+### What was tricky to build
+- The audit must verify candidate binding maps against compiled artifacts before checking aggregate latency, because aliases share one physical measurement.
+- Source/runtime hashes must match the compilation snapshot and the remote immutable bundle. Successful process exit alone is insufficient.
+
+### What warrants a second pair of eyes
+- Review raw timing reconstruction and baseline tie-breaking. The ratios describe this small workload population and one isolated GB10 run.
+- Interpret forthcoming baseline-only confirmation as execution qualification, not independent evidence that a new optimization generalizes.
+
+### What should be done in the future
+- Commit the selection and its training evidence, then execute baseline on all eight confirmation graphs without replacement.
+- Summarize all three methods with proposal costs, protocol failure, executable aliases and negative results explicit. Improve model action reliability only in a subsequent declared experiment.
+
+### Code review instructions
+- Inspect native-policy-search-artifacts-v1/sensitivity.json and study-compile-receipt.json; then train-audit-v1.json, selection-v1.json and the complete terminal measurement.
+- Replay script440 with a new output path; select_searches recomputes the exact committed winner records from training.
+
+### Technical details
+- Shared source revision:f666457e6c2e4102cef57496aefb04831bd5cf35. Training measurement SHA2568d339bb8a1de5ecb75ebc4eb8dded149bf8f99f79cd32ff4dec2f2ab7c184426.
+- Proposal/membership/numerical declarations remain unchanged. This is the explicit highest-precision FP32 research protocol, not the native PassBench score.
+- Both model and training containers are absent, with no GPU compute processes observed after each owned run.
