@@ -313,3 +313,48 @@ See Step 159 for the authored authorization to use Pi/LunaRoute.
 ### Technical details
 - No real batch was launched in this step. The separate earlier READY connectivity call and setup check remain the only successful provider/session evidence.
 - No benchmark score, task coverage or optimization result changed.
+
+## Step 166: Verify the real policy process and validator locally
+
+Ran the actual Python RPC process against the existing training manifest and receipt, using the real Node policy validator. Invalid and duplicate submissions consumed slots, the valid policy produced one artifact, and the excess submission was rejected without creating another attempt. This advances local integration validation while the external payload approval remains pending.
+
+### Prompt Context
+See Step 159 for the Pi request and Step 165 for the external launch rejection.
+**Assistant interpretation:** Continue unaffected implementation validation without bypassing the rejected provider action.
+**Inferred user intent:** Make useful progress toward a reliable agent experiment.
+**Previous commit:** c31f3ed — Prepare owned Pi policy batch and record rejected external launch.
+
+### What I did
+- Added script 447 to drive native_policy_rpc.py with five explicit requests and a three-slot budget.
+- Retained the request stream, responses, stderr, task ledger, validated artifact and verification receipt under sources/pi-real-rpc-verification-v1.
+- Checked response IDs, terminal status, attempt count and artifact count against the actual filesystem ledger.
+
+### Why
+- Earlier transport tests used a fake task. This check exercises subprocess transport, real manifest validation, Node policy validation and persistent accounting together.
+
+### What worked
+- Script 447 passed with response statuses rejected, accepted, duplicate, budget_exhausted and finished.
+- Exactly three attempt request files and one artifact file were written. finished.json reports three attempts and one unique artifact.
+- Zero provider requests were made; no GPU evaluation occurred.
+
+### What didn't work
+- No local validation failure occurred. The external batch remains unstarted because its payload-specific approval has not arrived.
+
+### What I learned
+- The owned-process boundary preserves the existing task's invalid and duplicate accounting with real compiler artifact validation.
+
+### What was tricky to build
+- Excess submissions must receive a response without creating an extra ledger attempt; the filesystem assertions verify this distinction.
+
+### What warrants a second pair of eyes
+- This is a deterministic host-authored test policy, not an LLM-generated optimization. It proves neither Pi event ordering nor performance improvement.
+
+### What should be done in the future
+- Validate Pi with controlled local responses and verify timeout handling; execute the actual provider batch only after the required authorization.
+
+### Code review instructions
+- Inspect script 447 and sources/pi-real-rpc-verification-v1/verification.json, then compare stdout.jsonl with task attempt records.
+
+### Technical details
+- Test policy: kiln-fusion-policy/1 threshold 0.95. The fixture ID is rpc-test.
+- Earlier publication, coverage figures and benchmark outcomes remain unchanged.
