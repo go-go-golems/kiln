@@ -629,3 +629,43 @@ See Step 11 for intermediate-script and evidence preservation.
 
 ### Technical details
 - No upstream evaluator mutation or AST bypass performed. Existing generated pass remains rejected and cannot support a benchmark-success claim.
+
+## Step 15: Deliver intern guide progress edition
+
+Expanded the guide with verified GPU results, failed matcher attempts, complete corpus acquisition and remaining requirements. Delivered a distinctly named progress edition to reMarkable, preserving existing documents and annotations.
+
+### Prompt Context
+Original goal requests an intern guide stored in ticket and uploaded to reMarkable.
+**Assistant interpretation:** Deliver current useful research while retaining full implementation scope.
+**Inferred user intent:** Read the technical design on device during ongoing work.
+
+### What I did
+- Added guide sections 13–14 on verified CUDA execution, input constraints, integrity boundary, corpus completion and non-isolated exploratory measurement limitations.
+- Used remarkable-upload skill and a new document name: KILN-005 PassNet Intern Guide Progress 01.
+
+### Why
+- This is a substantive research/implementation milestone worth making available for review now.
+
+### What worked
+- remarquee upload bundle exited 0: OK: uploaded KILN-005 PassNet Intern Guide Progress 01.pdf -> /ai/2026/10/30/KILN-005.
+
+### What didn't work
+- No upload failures. Final implementation, original-protocol scoring and final guide remain incomplete.
+
+### What I learned
+- Cloud upload success proves delivery to the account, not physical device synchronization.
+
+### What was tricky to build
+- Progress edition must preserve failed experiment evidence and distinguish GPU correctness from benchmark acceptance.
+
+### What warrants a second pair of eyes
+- Intern clarity and proposed integrity protocol need review as implementation expands.
+
+### What should be done in the future
+- Write milestone vault report, commit/push only task-related vault notes, and continue implementation/measurements.
+
+### Code review instructions
+- Read guide sections 13–14 and sources/remarkable-progress-01-receipt.txt.
+
+### Technical details
+- No force overwrite, no evaluator edits, no new performance claims.
