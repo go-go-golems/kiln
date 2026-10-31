@@ -1,0 +1,136 @@
+{
+ "format": "kiln-program/1",
+ "name": "conv-fixture",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../convolution/000.kiln.js",
+  "sha256": "030eb4d8b4666b5b8ecb9ee71d2a58b2dc3087abfd40395c64fa3236c25538a8"
+ },
+ "inputs": [
+  {
+   "name": "x",
+   "buffer": 0,
+   "shape": [
+    1,
+    2,
+    5,
+    6
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "w",
+   "buffer": 1,
+   "shape": [
+    3,
+    2,
+    3,
+    2
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "b",
+   "buffer": 2,
+   "shape": [
+    3
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out",
+   "buffer": 3,
+   "shape": [
+    1,
+    3,
+    3,
+    5
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 60,
+   "bytes": 240
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 36,
+   "bytes": 144
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 3,
+   "bytes": 12
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 45,
+   "bytes": 180
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_conv2d_reduce__118tmtclbsm",
+   "identity": "118tmtclbsm",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    2,
+    1,
+    0
+   ],
+   "writes": 3,
+   "grid": 45,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    45,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    3,
+    3,
+    5
+   ],
+   "inShapes": [
+    [
+     3
+    ],
+    [
+     3,
+     2,
+     3,
+     2
+    ],
+    [
+     1,
+     2,
+     5,
+     6
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read> b2: array<f32>;\n@group(0) @binding(3) var<storage, read_write> bout: array<f32>;\nvar<workgroup> s_red: array<f32, 32>;\n\n@compute @workgroup_size(32)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 45i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_acc2: f32 = 0.0;\n    var v_acc1: f32 = 0.0;\n    var v_acc0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_in2: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var v_sv0: f32 = 0.0;\n    var v_sv1: f32 = 0.0;\n    var v_sv2: f32 = 0.0;\n    var v_sv3: f32 = 0.0;\n    var v_sv4: f32 = 0.0;\n    var v_sv5: f32 = 0.0;\n    var v_sv6: f32 = 0.0;\n    var v_sv7: f32 = 0.0;\n    var v_sv8: f32 = 0.0;\n    var v_sv9: f32 = 0.0;\n    var v_v1: f32 = 0.0;\n    v_in0 = b0[((bid / 15i) % 3i)];\n    v_acc2 = 0.0;\n    for (var n_r33: i32 = tid; n_r33 < 2i; n_r33 = n_r33 + 32i) {\n        v_acc1 = 0.0;\n        for (var n_r34: i32 = 0i; n_r34 < 3i; n_r34 = n_r34 + 1i) {\n            v_acc0 = 0.0;\n            for (var n_r35: i32 = 0i; n_r35 < 2i; n_r35 = n_r35 + 1i) {\n                v_in1 = b1[((((12i * (((((5i * ((bid / 5i) % 3i)) + (bid % 5i)) + (15i * (bid / 15i))) / 15i) % 3i)) + (6i * n_r33)) + (2i * n_r34)) + n_r35)];\n                v_in2 = b2[((((((60i * ((((((5i * ((bid / 5i) % 3i)) + (bid % 5i)) + (15i * (bid / 15i))) / 15i) % 3i) / 3i)) + (6i * (((((5i * ((bid / 5i) % 3i)) + (bid % 5i)) + (15i * (bid / 15i))) / 5i) % 3i))) + ((bid % 5i) % 5i)) + (30i * n_r33)) + (6i * n_r34)) + n_r35)];\n                v_v0 = (v_in1 * v_in2);\n                v_acc0 = (v_acc0 + v_v0);\n            }\n            v_acc1 = (v_acc1 + v_acc0);\n        }\n        v_acc2 = (v_acc2 + v_acc1);\n    }\n    workgroupBarrier();\n    s_red[tid] = v_acc2;\n    workgroupBarrier();\n    if (tid < 16i) {\n        v_sv0 = s_red[tid];\n        v_sv1 = s_red[(tid + 16i)];\n        s_red[tid] = (v_sv0 + v_sv1);\n    }\n    workgroupBarrier();\n    if (tid < 8i) {\n        v_sv2 = s_red[tid];\n        v_sv3 = s_red[(tid + 8i)];\n        s_red[tid] = (v_sv2 + v_sv3);\n    }\n    workgroupBarrier();\n    if (tid < 4i) {\n        v_sv4 = s_red[tid];\n        v_sv5 = s_red[(tid + 4i)];\n        s_red[tid] = (v_sv4 + v_sv5);\n    }\n    workgroupBarrier();\n    if (tid < 2i) {\n        v_sv6 = s_red[tid];\n        v_sv7 = s_red[(tid + 2i)];\n        s_red[tid] = (v_sv6 + v_sv7);\n    }\n    workgroupBarrier();\n    if (tid < 1i) {\n        v_sv8 = s_red[tid];\n        v_sv9 = s_red[(tid + 1i)];\n        s_red[tid] = (v_sv8 + v_sv9);\n    }\n    workgroupBarrier();\n    v_acc2 = s_red[0i];\n    v_v1 = (v_in0 + v_acc2);\n    if (tid == 0i) {\n        bout[(((5i * ((bid / 5i) % 3i)) + (bid % 5i)) + (15i * (bid / 15i)))] = v_v1;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(32) k_conv2d_reduce__118tmtclbsm(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float in0 = 0.0f, acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in1 = 0.0f, in2 = 0.0f, v0 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, v1 = 0.0f;\n    in0 = src0[((bid / 15) % 3)];\n    acc2 = 0.0f;\n    for (int r33 = tid; r33 < 2; r33 += 32) {\n        acc1 = 0.0f;\n        for (int r34 = 0; r34 < 3; r34 += 1) {\n            acc0 = 0.0f;\n            for (int r35 = 0; r35 < 2; r35 += 1) {\n                in1 = src1[((((12 * (((((5 * ((bid / 5) % 3)) + (bid % 5)) + (15 * (bid / 15))) / 15) % 3)) + (6 * r33)) + (2 * r34)) + r35)];\n                in2 = src2[((((((60 * ((((((5 * ((bid / 5) % 3)) + (bid % 5)) + (15 * (bid / 15))) / 15) % 3) / 3)) + (6 * (((((5 * ((bid / 5) % 3)) + (bid % 5)) + (15 * (bid / 15))) / 5) % 3))) + ((bid % 5) % 5)) + (30 * r33)) + (6 * r34)) + r35)];\n                v0 = (in1 * in2);\n                acc0 = (acc0 + v0);\n            }\n            acc1 = (acc1 + acc0);\n        }\n        acc2 = (acc2 + acc1);\n    }\n    __syncthreads();\n    s_red[tid] = acc2;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    acc2 = s_red[0];\n    v1 = (in0 + acc2);\n    if ((tid == 0)) {\n        dst[(((5 * ((bid / 5) % 3)) + (bid % 5)) + (15 * (bid / 15)))] = v1;\n    }\n}"
+  }
+ ]
+}

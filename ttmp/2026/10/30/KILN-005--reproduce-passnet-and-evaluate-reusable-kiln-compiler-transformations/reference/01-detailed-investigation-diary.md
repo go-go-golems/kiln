@@ -1958,3 +1958,46 @@ Original missing compiler capabilities authorization and provenance requirements
 
 ### Technical details
 - Independent primitive-based implementation, no upstream source copied. Static mask is a visible constant operand; no hidden host execution or benchmark fallback.
+
+## Step 47: Execute full compiler convolution fixtures on GB10
+
+All three convolution fixture programs compiled through the full pipeline with existing loop reference checks enabled, then passed PyTorch GPU comparisons. Standard, grouped/strided and depthwise/dilated cases are covered. This does not yet complete a new benchmark task.
+
+### Prompt Context
+Original complete implementation/measurement scope and reproducible procedures.
+**Assistant interpretation:** Validate safe padding and reductions on actual GPU before real-task expansion.
+**Inferred user intent:** Extend verified compiler primitives rather than only reference code.
+
+### What I did
+- Saved script 29 generating full convolution project sources.
+- Added check_convolution_cuda.py requiring all three artifacts before execution.
+- Compiled three artifacts, ran GPU comparisons and all compiler tests, then started archive transfer.
+
+### Why
+- Reference decomposition cannot establish scheduled kernel indexing or padding safety.
+
+### What worked
+- All exports passed loop-level end-to-end checks.
+- GPU max_abs_error: 9.5367431640625e-07, 9.5367431640625e-07, 4.76837158203125e-07.
+- All 21 compiler test files passed.
+
+### What didn't work
+- No failures in this experiment; real-task operator chain and low-precision convolution remain incomplete.
+
+### What I learned
+- Existing row scheduling can execute nested convolution reductions for these correctness fixtures; profitability has not been established.
+
+### What was tricky to build
+- Padded variants materialize an additional kernel/constant mask; standard case compiles into one reduction kernel.
+
+### What warrants a second pair of eyes
+- Large real convolution shapes may cause expensive intermediate work; mask representation and schedules need measured optimization.
+
+### What should be done in the future
+- Add interpolation, legal in-place ReLU handling and low-precision convolution; import actual third-task chain and validate all variants.
+
+### Code review instructions
+- Inspect script 29, check_convolution_cuda.py and sources/convolution artifacts plus GPU/regression logs.
+
+### Technical details
+- Tested small FP32 fixtures only; no claimed task coverage beyond 2/200, no speedup claim and no upstream source copied.
