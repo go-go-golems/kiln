@@ -7665,3 +7665,6 @@ Pi0.85.1 with the LunaRoute extension0.7.2 exposes lunaroute/glm-5.3-flash. The 
 - Pi executable package:/home/manuel/.nvm/versions/node/v24.18.0/lib/node_modules/@earendil-works/pi-coding-agent. The retained smoke runs its CLI with Node26.13.0.
 - Provider extension:/home/manuel/.pi/agent/npm/node_modules/@lunaroute/pi-extension/src/index.ts.
 - No production compiler transformation, numerical tolerance, task coverage, native benchmark score or published comparison result changed.
+
+
+Continued in [Implementation diary — volume 2](24-implementation-diary-volume-2-pi-agents-and-compiler-optimization.md), beginning with Step 160.
