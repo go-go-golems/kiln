@@ -238,3 +238,12 @@ The artifact declares tensor input IR and `kiln-pointwise-staged-fusion/1` as it
 The manually authored reference program uses selective exposure (aggregate work growth 1.02, consumer work growth 2) and threshold cleanup (1.02). Script492 verifies that its exported artifacts exactly equal all six native-evaluated pointwise candidates from Step191. That measured family improved 32.730548× relative to the prior Kiln implementation, but remains slower than eager. This is development evidence, not fresh confirmation or LLM discovery.
 
 Script493 checks the other two accepted pooling families, which contain no convolution. All eleven complete exported artifacts are identical to the default pipeline. This establishes absence of executable changes on these specific controls, not transfer to new convolution shapes. There was no additional GPU measurement or LLM inference in this checkpoint. The next experiment should freeze additional pointwise-convolution families before measuring the fixed program; only then should an agent search its policy parameters or broader compositions.
+
+
+## Agent pointwise development result (2026-10-31)
+
+Six actual Pi/LunaRoute lanes generated16 valid programs on a separate eight-model development population. All128 builds compiled, reducing to32 distinct executables including both controls. Direct full-FP32 replay accepted and measured all32. Exact aliases shared evidence rather than separate timing samples.
+
+The selected program,agent7, scores1.378308× versus unchanged Kiln and1.021549× versus the fixed pointwise composition. Its exposure policy permits aggregate work growth1.5 when producerElements>=10000, retaining1.02 below that boundary; consumer threshold2 and cleanup1.02 are unchanged. The policy produces the fixed artifact on seven graphs. On the YOLO convolution/reshape/concatenation graph it preserves tiled convolution while fusing away a separate intermediate kernel, reducing three kernels to two and measured latency31.2705→26.367 microseconds.
+
+This supplies actual agent-generated compiler-policy improvement, with a limited development scope. Three distinct programs tie by executable identity; stable declaration order selectsagent7 before confirmation. No default promotion is made. Source decisions, schedules, complete ranking and raw timings are retained in pointwise-agent-gpu-results-v1. An untouched confirmation population is the next test of this selected policy.

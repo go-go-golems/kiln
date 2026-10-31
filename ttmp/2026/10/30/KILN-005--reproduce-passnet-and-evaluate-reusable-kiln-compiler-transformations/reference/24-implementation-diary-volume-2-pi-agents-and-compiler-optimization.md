@@ -1818,3 +1818,59 @@ See Step182 for the authored implementation request and the standing authorizati
 ### Technical details
 - Node26.13.0 and the existing configured Pi/LunaRoute provider; no credentials copied into experiment outputs. Raw events remain locally while lossless gzip copies are committed because incremental event streams total roughly130MB uncompressed.
 - All inference uses the previously authorized external service and six-lane concurrency. No default compiler change or PassBench coverage increase; coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 196: Measure an agent-generated improvement over fixed pointwise fusion
+
+All32 distinct development executables pass CUDA correctness and complete three stable timing rounds. The best agent programs achieve1.378308× geometric-mean speedup over unchanged Kiln, compared with1.349233× for the fixed pointwise composition. The resulting1.021549× ratio against the fixed composition comes entirely from one changed YOLO graph; seven executables are identical. This is development evidence, not fresh confirmation or default promotion.
+
+### Prompt Context
+See Step182 for the actual authored continuation and the standing research/agent instructions. The current automatic continuation is metadata.
+**Assistant interpretation:** Measure the actual agent proposals, select a complete reusable program and explain the source of any gain.
+**Inferred user intent:** Establish a working compiler self-optimization result with real GPU evidence.
+**Proposal commit:** 75ab575 — Run six pointwise agent lanes and compile sixteen reusable programs.
+
+### What I did
+- Script506 reuses the existing correctness, runtime, timing and measurement_groups primitives. Exact fingerprint aliases share one numerical check and timing series per graph.
+- Script507 stages both controls and all16 programs to a separate bling directory and launches the pinned CUDA environment in tmux.
+- Script508 collects the terminal eight-graph result and ranks only complete programs over all development members, preserving every raw timing attempt.
+- Script509 records the first best-ranked agent program, its exact policy and the one changed schedule. It does not modify the default compiler.
+
+### Why
+- Timing identical artifacts separately could create an apparent agent improvement from measurement noise. Shared evidence makes exact aliases tie by construction.
+- Whole-program ranking requires every development graph, rather than selecting the best kernel separately for each graph.
+
+### What worked
+- All32 unique graph/executable pairs are measured, with all output shape/dtype/structure, numerical and input-preservation checks passing.
+- Agent7,agent8 andagent14 tie at1.3783082194525584× versus baseline and1.0215491417998288× versus the fixed pointwise composition, because their executables are identical on this population.
+- Agent7 is retained by stable declaration-order tie resolution. Agent4 aliases the fixed composition on all eight graphs and agent3 aliases baseline; both receive exactly their control scores.
+- The changed graph is ultralytics/yolo11l-seg: fixed31.2705 microseconds, winner26.367 microseconds, ratio1.185971100238935. The other seven graphs share exact fixed-composition artifacts.
+
+### What didn't work
+- Many valid agent programs regress. The worst complete candidate,agent2, scores0.455169× versus unchanged Kiln and0.337354× versus the fixed composition.
+- The winner still inherits three small baseline regressions from the fixed composition. It improves its aggregate development score without establishing uniform per-graph improvement.
+- No new correctness or timing failures occurred. Native PassBench matching and scoring are not part of this direct FP32 research replay.
+
+### What I learned
+- The winning policy changes aggregate exposure threshold to1.5 when producerElements is at least10000, retaining1.02 below that boundary; consumer threshold2 and cleanup1.02 remain unchanged.
+- The YOLO input graph is pointwise convolution followed by reshape and concatenation. The fixed implementation has three kernels; the winner has two. Both retain the same tiled convolution schedule, while the separate12800-element intermediate kernel disappears.
+- Fixed exposure rejects an estimated20364800→23385600 work change under1.02; the winner accepts it. Scalar work increases but end-to-end execution improves because the resulting schedule removes a materialization/launch boundary. This is a concrete limitation of the existing work-only profitability threshold.
+
+### What was tricky to build
+- Artifact identities are reused through measurement_groups from the established qualifier. All18 roles (two controls plus16 agents) map to32 executions, not144 independently timed programs.
+- The benchmark declares highest matrix precision and cuDNN TF32 disabled, separate compiler contraction, and unchanged nominal tolerances. These are modified FP32 reference settings, distinct from the native six-graph development protocol.
+
+### What warrants a second pair of eyes
+- A2.15% aggregate gain selected from16 proposals requires independent confirmation. The one changed graph has an18.6% measured speedup, but the selected threshold may encode incidental properties of this development population.
+- The three tied programs have different predicates despite identical development executables; their behavior may diverge on untouched inputs. Stable tie resolution avoids silently choosing among them using confirmation results.
+
+### What should be done in the future
+- Evaluate the fixed selected agent7 on an untouched pointwise population, preserving every outcome. The prior transfer population is observed and cannot become fresh confirmation after adaptation.
+- Feed measured development outcomes back to agents if exploring another iteration; label it explicitly as development refinement and keep confirmation separate.
+
+### Code review instructions
+- Inspect scripts506–509 and pointwise-agent-gpu-results-v1/{results,summary,selection}.json. The selection record includes original fusion decisions and kernel launch descriptions for the changed graph.
+
+### Technical details
+- GB10, pinned CUDA image, seed42,20 warmups,100 trials,3 rounds, randomized order of distinct fingerprints; at most2 retries when timing IQR exceeds20% of median.
+- No new inference in this measurement step. The policies originated in the preceding six actual Pi/LunaRoute lanes. Coverage remains34 complete tasks and375 accepted graphs.
