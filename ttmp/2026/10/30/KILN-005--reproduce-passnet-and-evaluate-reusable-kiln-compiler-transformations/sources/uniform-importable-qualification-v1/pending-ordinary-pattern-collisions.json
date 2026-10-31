@@ -1,0 +1,480 @@
+{
+  "format": "kiln-dispatch-pattern-collision-audit/1",
+  "source": "sources/uniform-importable-qualification-v1/pending-ordinary",
+  "dispatch_failures": 16,
+  "pattern_id_mismatches": 16,
+  "tasks": {
+    "6": 13,
+    "24": 2,
+    "185": 1
+  },
+  "pattern_pairs": {
+    "6:3->9": 6,
+    "6:4->10": 7,
+    "24:0->1": 2,
+    "185:2->3": 1
+  },
+  "records": [
+    {
+      "task": 6,
+      "graph_index": 22,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+      "applied_pattern": 3,
+      "compiled_pattern": 9,
+      "same_pattern": false,
+      "applied_return": "(tmp_2, conv2d)",
+      "compiled_return": "(conv2d, tmp_2)",
+      "input_shapes": [
+        [
+          128,
+          10,
+          64,
+          64
+        ],
+        [
+          96,
+          10,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f16",
+        "f16"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 23,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+      "applied_pattern": 4,
+      "compiled_pattern": 10,
+      "same_pattern": false,
+      "applied_return": "(conv2d, tmp_2)",
+      "compiled_return": "(tmp_2, tmp_1)",
+      "input_shapes": [
+        [
+          1,
+          200,
+          56,
+          56
+        ],
+        [
+          276,
+          200,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f32",
+        "f32"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 25,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+      "applied_pattern": 3,
+      "compiled_pattern": 9,
+      "same_pattern": false,
+      "applied_return": "(tmp_2, conv2d)",
+      "compiled_return": "(conv2d, tmp_2)",
+      "input_shapes": [
+        [
+          32,
+          10,
+          56,
+          56
+        ],
+        [
+          96,
+          10,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "bf16",
+        "bf16"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 27,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+      "applied_pattern": 3,
+      "compiled_pattern": 9,
+      "same_pattern": false,
+      "applied_return": "(tmp_2, conv2d)",
+      "compiled_return": "(conv2d, tmp_2)",
+      "input_shapes": [
+        [
+          1,
+          10,
+          56,
+          56
+        ],
+        [
+          96,
+          10,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f32",
+        "f32"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 28,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+      "applied_pattern": 3,
+      "compiled_pattern": 9,
+      "same_pattern": false,
+      "applied_return": "(tmp_2, conv2d)",
+      "compiled_return": "(conv2d, tmp_2)",
+      "input_shapes": [
+        [
+          128,
+          10,
+          56,
+          56
+        ],
+        [
+          96,
+          10,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f32",
+        "f32"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 36,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+      "applied_pattern": 4,
+      "compiled_pattern": 10,
+      "same_pattern": false,
+      "applied_return": "(conv2d, tmp_2)",
+      "compiled_return": "(tmp_2, tmp_1)",
+      "input_shapes": [
+        [
+          32,
+          200,
+          56,
+          56
+        ],
+        [
+          276,
+          200,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f32",
+        "f32"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 37,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+      "applied_pattern": 4,
+      "compiled_pattern": 10,
+      "same_pattern": false,
+      "applied_return": "(conv2d, tmp_2)",
+      "compiled_return": "(tmp_2, tmp_1)",
+      "input_shapes": [
+        [
+          32,
+          200,
+          56,
+          56
+        ],
+        [
+          276,
+          200,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f16",
+        "f16"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 50,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+      "applied_pattern": 4,
+      "compiled_pattern": 10,
+      "same_pattern": false,
+      "applied_return": "(conv2d, tmp_2)",
+      "compiled_return": "(tmp_2, tmp_1)",
+      "input_shapes": [
+        [
+          32,
+          200,
+          64,
+          64
+        ],
+        [
+          276,
+          200,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f32",
+        "f32"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 52,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+      "applied_pattern": 3,
+      "compiled_pattern": 9,
+      "same_pattern": false,
+      "applied_return": "(tmp_2, conv2d)",
+      "compiled_return": "(conv2d, tmp_2)",
+      "input_shapes": [
+        [
+          128,
+          10,
+          56,
+          56
+        ],
+        [
+          96,
+          10,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f16",
+        "f16"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 53,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+      "applied_pattern": 4,
+      "compiled_pattern": 10,
+      "same_pattern": false,
+      "applied_return": "(conv2d, tmp_2)",
+      "compiled_return": "(tmp_2, tmp_1)",
+      "input_shapes": [
+        [
+          128,
+          200,
+          56,
+          56
+        ],
+        [
+          276,
+          200,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f16",
+        "f16"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 55,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+      "applied_pattern": 4,
+      "compiled_pattern": 10,
+      "same_pattern": false,
+      "applied_return": "(conv2d, tmp_2)",
+      "compiled_return": "(tmp_2, tmp_1)",
+      "input_shapes": [
+        [
+          32,
+          200,
+          64,
+          64
+        ],
+        [
+          276,
+          200,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f16",
+        "f16"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 61,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/dpn107.mx_in1k/_decomposed/dpn107.mx_in1k_start17_end19_5",
+      "applied_pattern": 4,
+      "compiled_pattern": 10,
+      "same_pattern": false,
+      "applied_return": "(conv2d, tmp_2)",
+      "compiled_return": "(tmp_2, tmp_1)",
+      "input_shapes": [
+        [
+          1,
+          200,
+          64,
+          64
+        ],
+        [
+          276,
+          200,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f32",
+        "f32"
+      ]
+    },
+    {
+      "task": 6,
+      "graph_index": 65,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/dpn48b/_decomposed/dpn48b_start6_end8_1",
+      "applied_pattern": 3,
+      "compiled_pattern": 9,
+      "same_pattern": false,
+      "applied_return": "(tmp_2, conv2d)",
+      "compiled_return": "(conv2d, tmp_2)",
+      "input_shapes": [
+        [
+          1,
+          10,
+          64,
+          64
+        ],
+        [
+          96,
+          10,
+          1,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "f32",
+        "f32"
+      ]
+    },
+    {
+      "task": 24,
+      "graph_index": 1,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/galsenai_hubert-large-ls960-ft-waxal-keyword-spotting/_decomposed/galsenai_hubert-large-ls960-ft-waxal-keyword-spotting_start221_end224_6",
+      "applied_pattern": 0,
+      "compiled_pattern": 1,
+      "same_pattern": false,
+      "applied_return": "(tmp_2, tmp_4)",
+      "compiled_return": "(tmp_4, tmp_2)",
+      "input_shapes": [
+        [
+          1,
+          688,
+          1024
+        ],
+        [
+          1,
+          688,
+          1024
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ],
+      "input_dtypes": [
+        "f16",
+        "f16",
+        "f16",
+        "f16"
+      ]
+    },
+    {
+      "task": 24,
+      "graph_index": 2,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/galsenai_hubert-large-ls960-ft-waxal-keyword-spotting/_decomposed/galsenai_hubert-large-ls960-ft-waxal-keyword-spotting_start221_end224_6",
+      "applied_pattern": 0,
+      "compiled_pattern": 1,
+      "same_pattern": false,
+      "applied_return": "(tmp_2, tmp_4)",
+      "compiled_return": "(tmp_4, tmp_2)",
+      "input_shapes": [
+        [
+          1,
+          688,
+          1024
+        ],
+        [
+          1,
+          688,
+          1024
+        ],
+        [
+          1024
+        ],
+        [
+          1024
+        ]
+      ],
+      "input_dtypes": [
+        "bf16",
+        "bf16",
+        "bf16",
+        "bf16"
+      ]
+    },
+    {
+      "task": 185,
+      "graph_index": 3,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/anton-l_distilhubert-ft-common-language/_decomposed/anton-l_distilhubert-ft-common-language_start17_end20_2",
+      "applied_pattern": 2,
+      "compiled_pattern": 3,
+      "same_pattern": false,
+      "applied_return": "(tmp_4, tmp_3)",
+      "compiled_return": "(tmp_3, tmp_4)",
+      "input_shapes": [
+        [
+          1,
+          249,
+          512
+        ],
+        [
+          768,
+          512
+        ],
+        [
+          768
+        ]
+      ],
+      "input_dtypes": [
+        "f32",
+        "f32",
+        "f32"
+      ]
+    }
+  ]
+}

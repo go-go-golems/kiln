@@ -3650,3 +3650,45 @@ Read reference44 and its audit/failure-summary JSON, then inspect task-006, task
 
 ### Technical details
 The study used the modified FX matching integration, original external numerical checker and scorer, A100 scheduling proxy on GB10, separate contraction and an explicitly bypassed Kiln internal synthetic check. It is not an untouched-paper reproduction or a policy comparison. The raw local directory is left untracked for further diagnosis; the hashed tarball is the portable evidence artifact.
+
+## Step 236: Identify output-order pattern collisions behind dispatch misses
+
+The ordinary-band report had sixteen graph failures where a generated replacement ran but `CorpusDispatch` found no compiled specialization. I compared each applied pattern ID from the original evaluator log with the specialization ID assigned to its graph in the frozen manifest. All sixteen are mismatches, grouped into four source-derived pattern pairs whose return tuple ordering differs. This turns a generic dispatch exception into a specific matcher/identity architecture question for the expert reviewer.
+
+### Prompt Context
+**User prompt:** See Step233 for the expert review request; the active project goal requires full implementation and measurement.
+**Assistant interpretation:** Diagnose an already measured shared failure without altering the fixed code review revision or in-flight GPU experiment.
+**Inferred user intent:** Provide precise evidence for an architectural repair that can unlock complete task families and avoid ad hoc dispatch fallbacks.
+
+### What I did
+- Inspected `CorpusDispatch.__init__`/`__call__`, `generate_pass.extract_pattern`/`generate`, the frozen task manifests and generated pattern modules for tasks6,24 and185.
+- Added script657 to align evaluator graph blocks with manifest variants, extract applied `KilnPattern` IDs, inspect the paired source pattern return expressions and write `pending-ordinary-pattern-collisions.json`.
+- Ran script657 across all sixteen dispatch failures and updated reference44 with the exact collision pairs and the output-order concern.
+- Rechecked the remote handles: the uniform, breadth and mutation tmux sessions were live; the large band still had two task records and task130 was evaluating.
+
+### Why
+The dispatch key includes both input metadata and a generated pattern identity. If a different pattern matches the same graph, the runtime cannot select its compiled artifact. Simply ignoring the identity would be unsafe when two patterns return the same intermediate tensors in different tuple positions.
+
+### What worked
+All16 failures have applied ID different from compiled ID. The pairs are task6 `3→9` six times and `4→10` seven times, task24 `0→1` twice and task185 `2→3` once. Representative pattern bodies share their main computation and reverse the tuple return order. The script retains per-graph paths, IDs, return expressions, shapes and dtypes.
+
+### What didn't work
+No compiler or matcher repair was attempted in this diagnostic step. The evidence does not yet establish how PassBench's subgraph matcher maps output positions for each collision; a forced metadata-based dispatch fallback could silently change source output semantics. The large and regression uniform bands were not terminal.
+
+### What I learned
+Pattern deduplication by FX key and manifest specialization distinguishes output orders, while the matcher may apply a pattern with a compatible internal graph but another output order. The repair belongs at the pattern/match identity boundary and needs original-evaluator replay, not a permissive dispatch cache lookup.
+
+### What was tricky to build
+The evaluator logs use a generic parsed `eager_fail` status for distinct failures. The exact `Applied 1 replacements with KilnPatternNNNN` message and the frozen manifest's `specialization` field are both needed. Parsing the generated Python pattern AST gives the return expression without executing source modules again.
+
+### What warrants a second pair of eyes
+Inspect the PassBench `SubgraphMatcher` output mapping and the current sorting/deduplication behavior in `generate_pass.py`. Determine whether the correct solution is output-aware match selection, output remapping in a single canonical pattern, or a narrower non-overlapping pattern contract. Preserve complete-family semantics.
+
+### What should be done in the future
+After architecture review, implement one output-order-safe matching strategy and replay tasks6,24 and185 under the original checker; then audit the two no-match/dead-code families separately. Keep the frozen uniform result unchanged.
+
+### Code review instructions
+Run script657 against the archived ordinary band, then compare task6 `KilnPattern0003.py`/`0009.py`, task24 `0000.py`/`0001.py`, and task185 `0002.py`/`0003.py`. Read `generate_pass.py` and `dispatch.py` before proposing a fallback.
+
+### Technical details
+The result is an analysis of sixteen already failed graph variants; accepted counts remain32 complete tasks and479 graphs for this frozen ordinary band. The output-order relation is visible in the paired pattern return expressions; it is not a proof that a proposed repair would pass numerical checks.
