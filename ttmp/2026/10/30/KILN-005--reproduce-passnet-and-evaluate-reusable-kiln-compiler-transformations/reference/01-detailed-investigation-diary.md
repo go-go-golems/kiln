@@ -2001,3 +2001,44 @@ Original complete implementation/measurement scope and reproducible procedures.
 
 ### Technical details
 - Tested small FP32 fixtures only; no claimed task coverage beyond 2/200, no speedup claim and no upstream source copied.
+
+## Step 48: Implement FP32 bilinear resize reference and decomposition
+
+Added the second major third-task dependency: NCHW bilinear interpolation with explicit output size and align_corners=False semantics. Reference and tensor-primitive decomposition agree with PyTorch fixtures; no GPU result claimed yet.
+
+### Prompt Context
+Original all-missing-pieces implementation and provenance requirements.
+**Assistant interpretation:** Implement actual third-task interpolation dependency with tested coordinate semantics.
+**Inferred user intent:** Extend full operator chain support.
+
+### What I did
+- Added std/bilinear.js coordinate/reference and indexed-view decomposition.
+- Added N.resizeBilinear/frontend operation with FP32 validation.
+- Saved script 30 generating deterministic PyTorch fixtures; tested up/down/identity/singleton cases through reference and decomposition.
+
+### Why
+- Half-pixel coordinate convention and clamped neighbors must match source interpolation behavior.
+
+### What worked
+- Local Node 26 bilinear test passed all four fixtures at FP32 baseline tolerance.
+
+### What didn't work
+- No failures; GPU execution, larger numerical cases and reduced precision remain pending.
+
+### What I learned
+- Integer source base indices can use rational index arithmetic while fractional coefficients remain explicit constant tensors.
+
+### What was tricky to build
+- Clamp half-pixel coordinates at zero before computing neighbors; singleton dimensions must never produce out-of-bounds reads.
+
+### What warrants a second pair of eyes
+- PyTorch scale arithmetic rounding differs from JavaScript double calculations at large sizes; current fixtures are small. Constant coefficient storage affects memory/performance.
+
+### What should be done in the future
+- Compile/execute fixtures on CUDA, extend importer, prove mutation legality for in-place ReLU and evaluate third task variants.
+
+### Code review instructions
+- Review bilinear.js, tensor.js, bilinear.mjs and script 30.
+
+### Technical details
+- Independent implementation; PyTorch used only as fixture oracle. Supports explicit size, FP32 NCHW, align_corners=False only. No upstream code copied.
