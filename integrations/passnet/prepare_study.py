@@ -56,7 +56,8 @@ def prepare(upstream, output, config):
     if set(spec)!=keys or spec['format']!='kiln-rich-study-selection/1' or spec['contraction']!='separate':
         raise ValueError('Expected exact rich-study configuration with fixed separate rounding')
     for key in keys-{'format','salt','sample_list','evaluation_list','excluded_manifests','contraction'}:
-        if type(spec[key]) is not int or spec[key]<=0:raise ValueError('Positive integer bound required: '+key)
+        minimum=0 if key=='train_per_category' else 1
+        if type(spec[key]) is not int or spec[key]<minimum:raise ValueError('Invalid integer bound: '+key)
     if output.exists():raise ValueError('Preserve frozen or partial selection; choose a new directory')
     output.mkdir(parents=True)
     (output/'selection-spec.json').write_bytes(config.read_bytes())

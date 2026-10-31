@@ -51,6 +51,15 @@ class StudySelectionTests(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()):prepare(upstream,root/'second',config)
             second=json.loads((root/'second/manifest.json').read_text())
             self.assertEqual(first['membership_sha256'],second['membership_sha256'])
+            # A fixed compiler change can be confirmed without creating a
+            # fictitious training phase or using a training selection receipt.
+            confirmation=root/'confirmation-spec.json'
+            confirmation.write_text(json.dumps({**self.spec(),'train_per_category':0,'heldout_per_category':2}))
+            with contextlib.redirect_stdout(io.StringIO()):prepare(upstream,root/'confirmation',confirmation)
+            confirmed=json.loads((root/'confirmation/manifest.json').read_text())['variants']
+            self.assertEqual(len(confirmed),4)
+            self.assertEqual({r['split'] for r in confirmed},{'heldout'})
+            self.assertEqual(len({r['model'] for r in confirmed}),4)
             with self.assertRaisesRegex(ValueError,'Preserve'):prepare(upstream,root/'first',config)
             short=root/'short.json';short.write_text(json.dumps({**self.spec(),'max_tasks':1}))
             with contextlib.redirect_stdout(io.StringIO()):

@@ -5878,3 +5878,53 @@ See Step 128 and the authored requests for committed/pushed milestone reports, c
 
 ### Technical details
 - Overall goal remains active and incomplete. Current accepted coverage is 24 tasks/313 graphs; import eligibility is 1,136 graphs/64 families. No GPU benchmark job from these completed cohorts remains active.
+
+## Step 130: Declare a fixed-compiler confirmation before selecting fresh families
+
+The next experiment confirms the committed singleton-map compiler change on new exact model families. The existing selector now accepts a zero training quota, allowing twenty confirmation-only graphs without inventing a training phase or policy winner. The source declaration excludes all evaluation models and all previously selected models/programs from twelve complete/partial study audits.
+
+The control is a detached c15c610 worktree. Frozen inventories pin 86 production compilation files in both versions and prove that only tensor.js differs from fed37d1. The initial package-manager setup fails on an unavailable repository pin; exact existing Acorn bytes and worktree-local package links provide an explicitly documented compiler-only bootstrap.
+
+### Prompt Context
+See Steps 128–129, task p4wv, and the user's authored requests to progress through implementation/measurement while preserving source provenance, intermediate scripts, detailed diaries and milestone reports.
+**Assistant interpretation:** Predeclare an independent confirmation population and immutable compiler pair before observing its artifacts or timing.
+**Inferred user intent:** Establish whether the reusable compiler change transfers, rather than repeatedly optimizing the same development examples.
+
+### What I did
+- Extended prepare_study's explicit integer contract to permit train_per_category=0; added confirmation-only checks to its model/split regression.
+- Script 283 records 123 unique previous graph/source records from twelve complete or partial study audits and declares ten fresh matrix plus ten reduction graphs.
+- Script 285 pins complete production compilation inventories from c15c610 and fed37d1 and proves their sole difference is tensor.js.
+- Script 284 creates the detached control checkout and verifies exact compiler dependency bytes and local workspace links.
+- Added design 16, a fixed highest-FP32 reference/timing/failure declaration, and the immutable selection configuration before starting source selection.
+
+### Why
+- The compiler candidate is already fixed by development evidence, so a new training selection would misrepresent the experiment.
+- An isolated baseline tree avoids changing active compiler files during control builds. Shared compilation/runtime primitives can be reused without adapting an unrelated policy-search protocol.
+
+### What worked
+- `python3 -m unittest discover -s integrations/passnet -p test_study_selection.py`: two tests pass, including a four-graph all-heldout synthetic selection with unique model identities.
+- The baseline checkout is pinned to c15c610. Production inventory comparison identifies exactly packages/kiln/src/std/tensor.js as changed.
+- Exact Acorn 8.19.0 bytes and worktree-local @kiln package links are verified, with Node v26.13.0 recorded.
+
+### What didn't work
+- The first attempted selector filename did not exist; current prepare_study.py is the authoritative existing selector.
+- `pnpm ... install --frozen-lockfile --offline --ignore-scripts` fails during package-manager bootstrap with `ERR_PNPM_NO_MATCHING_VERSION: No matching version found for @pnpm/linux-x64@12.4.1`. No checked-out production dependency manifest is modified to hide this limitation.
+
+### What I learned
+- Confirmation of a fixed compiler algorithm differs from policy search: it requires new source membership and source-version controls, but no fabricated training choice or default-policy equivalence control.
+
+### What was tricky to build
+- A node_modules symlink to the active tree would resolve workspace packages into the candidate during baseline compilation. The control instead has its own workspace links and an identical copied parser dependency.
+- Previous partial selections must be included in exact-model exclusions even though they never reached timing.
+
+### What warrants a second pair of eyes
+- Review declaration order, model exclusion scope, one-file production delta, dependency bootstrap and the distinction between full-FP32 research and native PassBench acceptance.
+
+### What should be done in the future
+- Commit this declaration before scanning, retain any incomplete selection, then implement/commit the fixed-pair qualification and measurement code before compiling or timing confirmation graphs.
+
+### Code review instructions
+- Read design 16, scripts 283–286, reshape-confirmation-declaration-v1.json, exclusion inventory, production snapshots and dependency receipt. No new confirmation performance claim exists yet.
+
+### Technical details
+- Candidate fed37d1 is fixed before this data. Current original acceptance remains 24 tasks/313 graphs; import eligibility remains 1,136/64. The overall goal is active.
