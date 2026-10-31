@@ -7536,3 +7536,63 @@ See Steps155–156 for continuing user intent and the model outcome.
 - Shared source revision:f666457e6c2e4102cef57496aefb04831bd5cf35. Training measurement SHA2568d339bb8a1de5ecb75ebc4eb8dded149bf8f99f79cd32ff4dec2f2ab7c184426.
 - Proposal/membership/numerical declarations remain unchanged. This is the explicit highest-precision FP32 research protocol, not the native PassBench score.
 - Both model and training containers are absent, with no GPU compute processes observed after each owned run.
+
+## Step 158: Complete unchanged-winner confirmation and publish the controlled-search report
+
+Committed the training selections at e2b85df5d24ee176a43fcd9461048013a03a83d8 before running the eight fresh confirmation graphs. Every graph passed the declared correctness and timing protocol. All methods selected the same unchanged executable, so their1.0 confirmation ratios are identities rather than evidence of three independently successful optimizations.
+
+The bounded comparison is complete and task f5d9 is checked. A2,864-word textbook-style report explains the architecture and negative result, with equations, pseudocode, a data-flow diagram, source references and experimental limits. It is committed and pushed to go-go-parc as c3ff479226d7257a3ed5255964fdc0ca55a88680. The full research goal remains active.
+
+### Prompt Context
+See Step149 for the authored report request and Steps155–157 for the continuing experiment. This publication follows the user's standing instruction to document important milestones in the vault and commit/push them.
+**Assistant interpretation:** Finish the exact declared confirmation, report the result without exaggerating baseline identity, and preserve evidence and publication provenance.
+**Inferred user intent:** Make progress and experimental limits understandable to a future reader without reconstructing the session.
+**Selection commit:**e2b85df5d24ee176a43fcd9461048013a03a83d8.
+
+### What I did
+- Staged and executed the committed union of winners with the same isolated runner. The union contained baseline only.
+- Collected five terminal files and audited all4800 confirmation timing samples, frozen code/artifact identities, alias bindings and statistics with script440.
+- Recomputed the joint summary with summarize_searches, which validates the complete training selections and confirmation grid.
+- Created reference23 through docmgr and wrote the report. Script441 verifies its central numeric claims, the committed training selection, exact baseline aliases and publication bytes.
+- Updated design20's current capability table and final checkpoint. Checked task f5d9 through docmgr.
+- Added the new vault article without modifying earlier notes or unrelated dropcut-studio changes; committed, pushed and checked remote main against the published commit.
+
+### Why
+- Confirmation must retain its declared population even when every method selects baseline. It provides execution evidence for those graphs while providing no new optimization contrast.
+- A negative experiment is useful only if the report separates model action failure, valid policy generation, executable aliases and measured regressions.
+- The implementation uses the shared evaluator; the report explains those module boundaries so later work can extend them without creating another measurement system.
+
+### What worked
+- All eight confirmation records were measured successfully. The independent audit verified4800 samples, bringing the full comparison to27600 verified raw timing samples.
+- All three summaries retain eight qualified graphs, zero changed artifacts and1.0 end-to-end/stream ratios.
+- Script441 proved the four tied deterministic candidates are exact training executable aliases rather than coincidentally equal aggregate timings.
+- Vault commit c3ff479226d7257a3ed5255964fdc0ca55a88680 is on remote main and contains exactly the intended230-line article. The report body has2864 words.
+
+### What didn't work
+- The comparison found no reusable aggregate compiler improvement. This is the substantive negative result, not a validation failure.
+- No new execution or publication error occurred. Earlier pending reMarkable delivery was not retried; no new authorization superseded the prior automatic-review rejection.
+
+### What I learned
+- The full proposal-to-confirmation procedure now completes even with a zero-artifact model arm. Explicit fallback and method membership prevent incomplete searches from disappearing from results.
+- The next inference experiment must distinguish action reliability from optimization quality. A revised action format requires a new protocol rather than retroactive admission of rejected responses.
+
+### What was tricky to build
+- Report wording had to distinguish200 successful policy–graph compilations from the unrelated200-task PassBench target, and baseline-only confirmation from generalization of a new optimization.
+- Publication verification compares source/body facts, exact committed vault bytes and remote main. Ticket relation metadata can change after initial publication, so script441 supports a new receipt path without overwriting earlier evidence.
+
+### What warrants a second pair of eyes
+- Review the negative-result interpretation and the limited four-slot, one-seed, one-model-batch design. No claim of method superiority or native PassBench reproduction follows.
+- Review the next action-interface experiment and the move toward replayable checked transformations. Larger threshold sweeps alone may not expose the algorithmic improvements the project seeks.
+
+### What should be done in the future
+- Improve model action reliability under a new fixed protocol, then evaluate accepted proposals and transformation strategies with the existing evidence path.
+- Continue full200 support, native numerical repairs, broader reference reproduction, transformation synthesis and pending delivery. The overall goal is not complete.
+
+### Code review instructions
+- Start with reference23 and native-policy-search-summary-v1.json, then follow the report's source/evidence table.
+- Inspect heldout-audit-v1.json and the publication receipt. Verify selection commit precedes the confirmation bundle's source revision and command.
+
+### Technical details
+- Confirmation source revision:e2b85df5d24ee176a43fcd9461048013a03a83d8. Container kiln005-native-policy-search-heldout-v1 is absent; no GPU compute process remained after the run.
+- Vault note:Projects/2026/10/31/ARTICLE - Kiln - Controlled Policy Search and Unchanged Winners.md.
+- The numerical protocol remains explicit highest-precision FP32 with separate contraction. No task coverage count or official PassBench score was promoted from this experiment.
