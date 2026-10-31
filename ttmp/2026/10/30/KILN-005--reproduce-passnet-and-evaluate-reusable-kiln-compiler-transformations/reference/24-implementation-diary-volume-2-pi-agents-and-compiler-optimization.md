@@ -4192,3 +4192,46 @@ Second, review finding A4. Every imported value is bound to PyTorch's recorded t
 ### Technical details
 - Evidence: `sources/import-script-census-v1/{baseline-7d76dbd.json, expect-bindings.json, expect-trace-check.json, artifact-comparison-sample200.json}`.
 - The 663 sample is `random.Random(663).shuffle(sorted(graphs))[:200]`, compiled with `--target a100 --contraction separate --no-check`.
+
+## Step 246: Collect the regression band and report the uniform 111-family result
+
+This step collects the last terminal band of the frozen uniform qualification. The regression band is 53 of 53 families and 431 of 431 graphs accepted. With the ordinary (32/56) and large (1/2) bands, that gives the project's first breadth result on one frozen compiler snapshot: **86 of 111 importable families and 1,391 of 1,514 graphs**, i.e. 86 of the 200 PassBench tasks. Reference 46 reports it, with every one of the 123 failing graphs assigned to a named class from Steps 240–243.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 243.
+**Assistant interpretation:** Keep collecting terminal GPU evidence as it appears, and report it without mixing snapshots.
+**Inferred user intent:** A reliable current breadth number plus a clear next-repair list.
+**Commit (code):** a2a005a — "Audit uniform regression band: 53/53 families, 431/431 graphs"; c94b061 — "Report uniform 111-family qualification: 86 complete families on one snapshot"
+
+### What I did
+- Checked `regression/run.json` on bling: `complete 53 of 53`.
+- Ran `655-collect-uniform-band.py regression` (rsync, plan and snapshot identity checks, `summarize_task_run.py` audit, tarball) and `659-summarize-uniform-band-failures.py regression`.
+- Wrote reference 46 (created with `docmgr doc add`) and linked it from the ticket index.
+- Updated `tasks.md`: P0 small fixes, P1 and P2 done. P0 a1 implemented, with the GPU replay pending. New tasks for collecting the replay, the task 128 decision and TF32 fusion.
+
+### Why
+- Only terminal, audited bands may enter a reported number (reference 43's evidence rule). With all three bands terminal on one snapshot, the uniform total is now valid.
+
+### What worked
+- Regression collection: `tasks_nominal_accepted: 53`, `graphs_nominal_accepted: 431`, `unexecuted_graphs: 0`. Archive SHA256 `888a7fc3…7c23`. The failure summary has no failing tasks.
+
+### What didn't work
+- My first draft of reference 46 claimed all 89 remaining tasks were non-importable. The latest census has 131 import-eligible families, so 20 of those are queued under a newer snapshot. I corrected the text before committing.
+
+### What I learned
+- The regression band is the families that were accepted historically on earlier snapshots. All 53 still pass on the uniform snapshot, which is evidence that the intervening compiler changes did not regress them.
+
+### What was tricky to build
+- Keeping the accounting honest across snapshots. The 20 newer import-eligible families and the historical ledger stay out of the 86, and the P0 replay will be reported as a delta on its own snapshot (`b796952`).
+
+### What warrants a second pair of eyes
+- The failure-class row counts in reference 46 for the low-precision classes are approximate ("most remaining", "few"). The exact per-graph classification is in `pending-ordinary-failure-summary.json`, plus the Step 243 table.
+
+### What should be done in the future
+- After the breadth, input-mutation and P0 replays finish: one combined current-snapshot re-qualification of every import-eligible family under the newest compiler, to replace the 86 with a single up-to-date number.
+
+### Code review instructions
+- Read `reference/46-uniform-111-family-passbench-qualification-result.md`, then `sources/uniform-importable-qualification-v1/regression-collection.json`.
+
+### Technical details
+- Snapshot `7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740` (revision `0c17cee`) for all three bands.
