@@ -3579,3 +3579,47 @@ See the user's standing self-optimization and architectural consolidation instru
 
 ### Technical details
 - Frozen v4 membership SHA256 c9d44fa395e7e393552b62ec62d8363c0999be7adf091e22e2911fb8cb6fe115; timing remains 20 warmups, 100 trials, three repeats, IQR fraction <=0.2 and two retries. Default 1.02 and verified PassBench task coverage remain unchanged.
+
+## Step 83: Measure strict interventions and freeze baseline selection
+
+The adaptive training phase measured actual executable changes rather than exclusively aliases. All candidates passed replay correctness and stable timing, but none improved the training aggregate. Baseline wins the registered ranking. This establishes a negative result for selective restrictions on this training population; it does not establish that fusion is globally optimal.
+
+### Prompt Context
+See Step 82 and the standing self-optimization/evidence requirements.
+**Assistant interpretation:** Evaluate the fixed proposal budget honestly and preserve selection before confirmation.
+**Inferred user intent:** Find useful compiler changes while retaining failures and avoiding retrospective selection.
+**Commit (frozen adaptive study):** 3490375.
+
+### What I did
+- Ran driver 95 on the isolated DGX, completed all 12 training graphs with shared timing for exact aliases, and ran driver 96 using complete training evidence only.
+- Archived train.json, selection.json and the raw training log; saved hash-checked confirmation driver 97 and summary driver 98.
+
+### Why
+- Structural sensitivity alone is insufficient: a policy must produce faster correct executables across the training objective before it can be selected.
+
+### What worked
+- All candidates remained eligible. Baseline/default/unchanged large-strict100 tie exactly at 1.0.
+- Changed tree-large-strict090 scores 0.9980242042579816; scalar100 and tree-small-strict100 score 0.9741552077056501; tree-high-work-strict095 scores 0.9728825937649962.
+- Scalar095/scalar090/tree-single-strict090 score 0.9279160885936028; scalar075 scores 0.8300711027613213; disabled fusion scores 0.4622390999482331.
+- Selection is baseline with heldout_feedback_used=false. Full Python integration boundary passed 41 tests.
+
+### What didn't work
+- The generated policy grammar produced no aggregate training improvement. No runtime/test failure occurred; unsuccessful optimization hypotheses remain in the ranking and evidence.
+
+### What I learned
+- In this population, reducing fusion generally loses more through additional invocation/intermediate costs than it gains from reduced duplicated work. These measurements do not isolate each cost contribution.
+
+### What was tricky to build
+- Keep exact alias candidates tied while comparing truly changed executables under the same correctness, order and timing budget. Candidate code generation was fixed before this feedback.
+
+### What warrants a second pair of eyes
+- A ratio of 0.998 for one changed conditional policy is descriptive, not proof of a meaningful regression. Multiple candidates and warm repeated measurements on one GPU limit statistical conclusions.
+
+### What should be done in the future
+- Complete fixed confirmation; preserve the negative result, then move the next optimization intervention beyond this restricted fusion grammar. Continue broader compiler integration without presenting this small study as full support.
+
+### Code review instructions
+- Recompute rank_training from archived train.json and inspect distinct fingerprints, stable repeat attempts and selection identity before running driver 97.
+
+### Technical details
+- Twelve predeclared candidates; 12 reused adaptive training graphs; eight new exact-model confirmation graphs. No confirmation timing entered selection. Global compiler defaults remain unchanged.
