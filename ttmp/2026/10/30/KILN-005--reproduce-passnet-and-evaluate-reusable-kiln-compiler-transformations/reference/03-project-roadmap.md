@@ -97,3 +97,8 @@ The new corpus contains twelve training and eight fresh exact-model confirmation
 ### Rich policy study result (after training selection and confirmation)
 
 The twelve-policy/twenty-source rich study is complete. All 240 artifacts qualify. Native training remains failed on two TF32-reference disagreements, with no selection. A separately frozen highest-precision FP32 research protocol qualifies all twelve training/eight confirmation graphs and selects scalar105 before confirmation timing (commit 2a4162c). Confirmation ratios are 1.0005681560422044 end-to-end and 0.9995845291040679 stream elapsed: no convincing improvement. See reference 12 and script 183. This completes mg15 without closing original reproduction, all200 coverage, native numerical compatibility or broader pass synthesis. The next proposed substantive transformation is selective producer fusion, rather than more threshold variants on this now-observed population.
+
+
+### Selective-consumer capability and fresh confirmation
+
+Selective consumer fusion is implemented in the existing rule factory (51b45eb), with retained-producer accounting, 29 passing compiler test files and 108/108 CUDA fixtures. The complete v6 study compiles 240 artifacts and selects select-edge100-total125 before confirmation (731e834). All eight confirmation graphs qualify but measure0.9720486952136568 end-to-end and 0.975410682956454 stream elapsed, a regression. The default remains unchanged. This completes task pgyz's capability/lifetime/fresh-corpus requirements; it does not complete broader pass synthesis or original reproduction. Future cost-model/partition hypotheses must use a new declared population. See design 11/reference 13 and scripts199/200.

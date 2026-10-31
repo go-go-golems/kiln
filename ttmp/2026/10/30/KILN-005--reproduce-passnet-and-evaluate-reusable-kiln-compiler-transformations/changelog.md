@@ -65,3 +65,7 @@ Audited full 14-task matrix cohort, corrected nominal coverage to 8 complete tas
 ## 2026-10-31
 
 Completed rich twelve-policy study: 240 qualified artifacts, native TF32 reference failure retained, separately declared FP32 selection committed before fresh eight-model confirmation; no meaningful speedup demonstrated. Report 12 and guide Section 31 document evidence and limits.
+
+## 2026-10-31
+
+Implemented opt-in selective consumer fusion with shared inlining, retained-producer cost guard and bounded consumer programs;29 core files and108 CUDA comparisons pass. Fresh240-artifact study selects policy before confirmation but regresses to0.972049x; default unchanged. Guide Section32 and report13 preserve evidence and diagnosis.

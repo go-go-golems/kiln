@@ -1,0 +1,595 @@
+{
+  "scope": "Post-confirmation descriptive diagnosis only; no altered selection, candidate tuning or new timing",
+  "selected_policy": "select-edge100-total125",
+  "membership_sha256": "0547e152ab29ae79070177cec031ddb393751f2b45d13499548a583668e7203f",
+  "records": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/segformer_b2_clothes/_decomposed/segformer_b2_clothes_start649_end656_3",
+      "e2e_speedup": 1.073873873873874,
+      "compiled": {
+        "baseline": {
+          "kernels": 4,
+          "schedules": [
+            "MAP=row,TPB=1024",
+            "MAP=row,TPB=512",
+            "TPB=64",
+            "TPB=128"
+          ],
+          "shapes": [
+            [
+              256,
+              1
+            ],
+            [
+              256,
+              1
+            ],
+            [
+              1,
+              512,
+              16,
+              16
+            ],
+            [
+              1,
+              16384,
+              64
+            ]
+          ],
+          "accepted_fusions": 0,
+          "rejected_fusions": []
+        },
+        "select-edge100-total125": {
+          "kernels": 4,
+          "schedules": [
+            "MAP=row,TPB=1024",
+            "MAP=row,TPB=256",
+            "TPB=64",
+            "TPB=128"
+          ],
+          "shapes": [
+            [
+              256,
+              512
+            ],
+            [
+              256,
+              1
+            ],
+            [
+              1,
+              512,
+              16,
+              16
+            ],
+            [
+              1,
+              16384,
+              64
+            ]
+          ],
+          "accepted_fusions": 20,
+          "rejected_fusions": [
+            {
+              "originalWork": 11144192,
+              "fusedWork": 880279552,
+              "consumerCount": 1,
+              "producerElements": 256,
+              "selectedConsumerCount": 1,
+              "retainedProducer": false,
+              "accepted": false,
+              "reason": "policy select-edge100-total125: hard work-growth budget exceeded"
+            },
+            {
+              "originalWork": 11275264,
+              "fusedWork": 947388416,
+              "consumerCount": 1,
+              "producerElements": 256,
+              "selectedConsumerCount": 1,
+              "retainedProducer": false,
+              "accepted": false,
+              "reason": "policy select-edge100-total125: hard work-growth budget exceeded"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmpose/ViTPose-L/_decomposed/ViTPose-L_start484_end489_13",
+      "e2e_speedup": 1.1632079822244583,
+      "compiled": {
+        "baseline": {
+          "kernels": 3,
+          "schedules": [
+            "MAP=row,TPB=1024",
+            "MAP=row,TPB=512",
+            "TPB=64"
+          ],
+          "shapes": [
+            [
+              192,
+              1
+            ],
+            [
+              192,
+              1
+            ],
+            [
+              1,
+              1024,
+              16,
+              12
+            ]
+          ],
+          "accepted_fusions": 0,
+          "rejected_fusions": []
+        },
+        "select-edge100-total125": {
+          "kernels": 3,
+          "schedules": [
+            "MAP=row,TPB=1024",
+            "MAP=row,TPB=512",
+            "TPB=64"
+          ],
+          "shapes": [
+            [
+              192,
+              1024
+            ],
+            [
+              192,
+              1
+            ],
+            [
+              1,
+              1024,
+              16,
+              12
+            ]
+          ],
+          "accepted_fusions": 20,
+          "rejected_fusions": [
+            {
+              "originalWork": 12019968,
+              "fusedWork": 2624348160,
+              "consumerCount": 1,
+              "producerElements": 192,
+              "selectedConsumerCount": 1,
+              "retainedProducer": false,
+              "accepted": false,
+              "reason": "policy select-edge100-total125: hard work-growth budget exceeded"
+            },
+            {
+              "originalWork": 12216576,
+              "fusedWork": 2825674752,
+              "consumerCount": 1,
+              "producerElements": 192,
+              "selectedConsumerCount": 1,
+              "retainedProducer": false,
+              "accepted": false,
+              "reason": "policy select-edge100-total125: hard work-growth budget exceeded"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmpose/ViTPose-H/_decomposed/ViTPose-H_start644_end649_13",
+      "e2e_speedup": 1.1883102057383494,
+      "compiled": {
+        "baseline": {
+          "kernels": 3,
+          "schedules": [
+            "MAP=row,TPB=1024",
+            "MAP=row,TPB=512",
+            "TPB=128,COARSEN=2"
+          ],
+          "shapes": [
+            [
+              192,
+              1
+            ],
+            [
+              192,
+              1
+            ],
+            [
+              1,
+              1280,
+              16,
+              12
+            ]
+          ],
+          "accepted_fusions": 0,
+          "rejected_fusions": []
+        },
+        "select-edge100-total125": {
+          "kernels": 3,
+          "schedules": [
+            "MAP=row,TPB=1024",
+            "MAP=row,TPB=512,STAGE=all",
+            "TPB=128,COARSEN=2"
+          ],
+          "shapes": [
+            [
+              192,
+              1280
+            ],
+            [
+              192,
+              1
+            ],
+            [
+              1,
+              1280,
+              16,
+              12
+            ]
+          ],
+          "accepted_fusions": 20,
+          "rejected_fusions": [
+            {
+              "originalWork": 15024384,
+              "fusedWork": 4098324480,
+              "consumerCount": 1,
+              "producerElements": 192,
+              "selectedConsumerCount": 1,
+              "retainedProducer": false,
+              "accepted": false,
+              "reason": "policy select-edge100-total125: hard work-growth budget exceeded"
+            },
+            {
+              "originalWork": 15270144,
+              "fusedWork": 4412897280,
+              "consumerCount": 1,
+              "producerElements": 192,
+              "selectedConsumerCount": 1,
+              "retainedProducer": false,
+              "accepted": false,
+              "reason": "policy select-edge100-total125: hard work-growth budget exceeded"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/transformers-auto-model/ckiplab_albert-tiny-chinese-ner/_decomposed/ckiplab_albert-tiny-chinese-ner_start30_end32_5",
+      "e2e_speedup": 0.5411338834176205,
+      "compiled": {
+        "baseline": {
+          "kernels": 3,
+          "schedules": [
+            "MAP=row,TPB=512",
+            "MAP=row,TPB=64",
+            "TPB=64"
+          ],
+          "shapes": [
+            [
+              2048,
+              1
+            ],
+            [
+              2048,
+              1
+            ],
+            [
+              32,
+              64,
+              312
+            ]
+          ],
+          "accepted_fusions": 0,
+          "rejected_fusions": []
+        },
+        "select-edge100-total125": {
+          "kernels": 3,
+          "schedules": [
+            "MAP=row,TPB=1024",
+            "MAP=row,TPB=64,STAGE=all",
+            "TPB=64"
+          ],
+          "shapes": [
+            [
+              2048,
+              312
+            ],
+            [
+              2048,
+              1
+            ],
+            [
+              32,
+              64,
+              312
+            ]
+          ],
+          "accepted_fusions": 19,
+          "rejected_fusions": [
+            {
+              "originalWork": 54337536,
+              "fusedWork": 2630025216,
+              "consumerCount": 1,
+              "producerElements": 2048,
+              "selectedConsumerCount": 1,
+              "retainedProducer": false,
+              "accepted": false,
+              "reason": "policy select-edge100-total125: hard work-growth budget exceeded"
+            },
+            {
+              "originalWork": 54976512,
+              "fusedWork": 2829385728,
+              "consumerCount": 1,
+              "producerElements": 2048,
+              "selectedConsumerCount": 1,
+              "retainedProducer": false,
+              "accepted": false,
+              "reason": "policy select-edge100-total125: hard work-growth budget exceeded"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmpose/deeppose_resnet_50_rle/_decomposed/deeppose_resnet_50_rle_start175_end177_1",
+      "e2e_speedup": 0.9995957554320365,
+      "compiled": {
+        "baseline": {
+          "kernels": 1,
+          "schedules": [
+            "MAP=row,TPB=1024,STAGE=all"
+          ],
+          "shapes": [
+            [
+              1,
+              16,
+              4
+            ]
+          ],
+          "accepted_fusions": 0,
+          "rejected_fusions": []
+        },
+        "select-edge100-total125": {
+          "kernels": 1,
+          "schedules": [
+            "MAP=row,TPB=1024,STAGE=all"
+          ],
+          "shapes": [
+            [
+              1,
+              16,
+              4
+            ]
+          ],
+          "accepted_fusions": 11,
+          "rejected_fusions": []
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-bg-en/_decomposed/opus-mt-bg-en_start18_end24_3",
+      "e2e_speedup": 1.0006069434328722,
+      "compiled": {
+        "baseline": {
+          "kernels": 3,
+          "schedules": [
+            "TPB=64",
+            "TPB=64",
+            "MAP=row,TPB=64"
+          ],
+          "shapes": [
+            [
+              1,
+              1,
+              40,
+              40
+            ],
+            [
+              1,
+              8,
+              40,
+              64
+            ],
+            [
+              1,
+              8,
+              40,
+              64
+            ]
+          ],
+          "accepted_fusions": 0,
+          "rejected_fusions": []
+        },
+        "select-edge100-total125": {
+          "kernels": 3,
+          "schedules": [
+            "TPB=64",
+            "TPB=64",
+            "MAP=row,TPB=64"
+          ],
+          "shapes": [
+            [
+              1,
+              1,
+              40,
+              40
+            ],
+            [
+              1,
+              8,
+              40,
+              64
+            ],
+            [
+              1,
+              8,
+              40,
+              64
+            ]
+          ],
+          "accepted_fusions": 11,
+          "rejected_fusions": []
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-afa-afa/_decomposed/opus-mt-afa-afa_start235_end242_20",
+      "e2e_speedup": 0.9941317475079576,
+      "compiled": {
+        "baseline": {
+          "kernels": 4,
+          "schedules": [
+            "TPB=1024",
+            "TPB=128",
+            "TPB=64",
+            "MAP=row,TPB=64"
+          ],
+          "shapes": [
+            [
+              1,
+              1,
+              1,
+              44
+            ],
+            [
+              1,
+              8,
+              44,
+              64
+            ],
+            [
+              1,
+              8,
+              1,
+              64
+            ],
+            [
+              1,
+              8,
+              44,
+              64
+            ]
+          ],
+          "accepted_fusions": 0,
+          "rejected_fusions": []
+        },
+        "select-edge100-total125": {
+          "kernels": 4,
+          "schedules": [
+            "TPB=1024",
+            "TPB=128",
+            "TPB=64",
+            "MAP=row,TPB=64"
+          ],
+          "shapes": [
+            [
+              1,
+              1,
+              1,
+              44
+            ],
+            [
+              1,
+              8,
+              44,
+              64
+            ],
+            [
+              1,
+              8,
+              1,
+              64
+            ],
+            [
+              1,
+              8,
+              44,
+              64
+            ]
+          ],
+          "accepted_fusions": 11,
+          "rejected_fusions": []
+        }
+      }
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-am-sv/_decomposed/opus-mt-am-sv_start235_end242_20",
+      "e2e_speedup": 0.997992111868053,
+      "compiled": {
+        "baseline": {
+          "kernels": 4,
+          "schedules": [
+            "TPB=1024",
+            "TPB=128",
+            "TPB=64",
+            "MAP=row,TPB=64"
+          ],
+          "shapes": [
+            [
+              1,
+              1,
+              1,
+              53
+            ],
+            [
+              1,
+              8,
+              53,
+              64
+            ],
+            [
+              1,
+              8,
+              1,
+              64
+            ],
+            [
+              1,
+              8,
+              53,
+              64
+            ]
+          ],
+          "accepted_fusions": 0,
+          "rejected_fusions": []
+        },
+        "select-edge100-total125": {
+          "kernels": 4,
+          "schedules": [
+            "TPB=1024",
+            "TPB=128",
+            "TPB=64",
+            "MAP=row,TPB=64"
+          ],
+          "shapes": [
+            [
+              1,
+              1,
+              1,
+              53
+            ],
+            [
+              1,
+              8,
+              53,
+              64
+            ],
+            [
+              1,
+              8,
+              1,
+              64
+            ],
+            [
+              1,
+              8,
+              53,
+              64
+            ]
+          ],
+          "accepted_fusions": 11,
+          "rejected_fusions": []
+        }
+      }
+    }
+  ]
+}

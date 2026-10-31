@@ -4812,3 +4812,50 @@ See Steps 104–106 for the selective-fusion research objective and fixed proced
 
 ### Technical details
 - The reference remains explicitly modified highest-precision FP32, with separate arithmetic in all compiler variants. Original benchmark acceptance is unchanged.
+
+## Step 108: Complete selective confirmation and preserve a generalization failure
+
+All eight confirmation graphs pass correctness and stable timing, but the precommitted selected policy regresses: end-to-end ratio 0.9720486952136568 and stream elapsed ratio 0.975410682956454. The compiler default remains unchanged. The selected program accepts no partial fusions on either observed split, so this study cannot establish benefit from the implemented partial-fusion capability.
+
+### Prompt Context
+See Steps 104–107 and the user's request for measured implementation progress with technical reports and detailed diaries.
+**Assistant interpretation:** Complete the exact frozen experiment, diagnose the outcome without adapting candidates, and publish the actual result.
+**Inferred user intent:** Build reusable compiler knowledge backed by honest confirmation evidence.
+**Commit (selection):** 731e834 — research(passnet): commit selective policy training choice before confirmation.
+
+### What I did
+- Executed script 197 in its dedicated tmux job and collected EXIT_CODE=0 plus all eight confirmation records.
+- Added script 199 checking freeze hashes, qualification, reference flags, source match and exact committed selection bytes. It preserves the generic summary while accurately describing the newly implemented mutation scope.
+- Added script 200 for post-confirmation descriptive comparison of kernel counts, shapes, schedules and decision traces; no new timing or policy adaptation occurs.
+- Wrote reference 13 as a 2290-word textbook technical report and updated guide Section 32, design 11 and roadmap.
+
+### Why
+- Confirmation determines whether the training choice generalizes; positive individual examples cannot replace the declared complete aggregate.
+
+### What worked
+- All eight graphs qualify; no filtered or replaced example. Selected artifact fingerprints differ on all eight graphs.
+- SegFormer ratio 1.073873873873874 and ViTPose ratios1.1632079822244583/1.1883102057383494 show individual gains; the complete aggregate remains a regression.
+- Script199 verifies the declared experiment and selection commitment. CUDA capability evidence remains108/108 and core29 files pass.
+
+### What didn't work
+- The selected compiler takes about 2.88% more end-to-end time in the family-balanced aggregate. ALBERT ratio 0.5411338834176205 offsets individual gains.
+- Both ALBERT programs contain three kernels, but the first materialized shape changes from [2048,1] to [2048,312], with altered row/staging schedules. This is a structural correlate, not an isolated causal proof.
+- No automatic external-model synthesis, reliable partial-fusion speedup or new original benchmark acceptance is established.
+
+### What I learned
+- Kernel count is insufficient to characterize partition quality. Intermediate volume and reduction reuse warrant explicit future hypotheses and independently declared evaluation.
+
+### What was tricky to build
+- The shared summary's older limitation described only unchanged graph mutation. The selective-study verifier replaces that wording with the actual capability/observed-behavior distinction, without rewriting historical summaries.
+
+### What warrants a second pair of eyes
+- Review complete aggregate versus individual gains, exact-model rather than architecture separation, and the absence of accepted partial mutations in the selected program.
+
+### What should be done in the future
+- Publish reference 13, then investigate intermediate-volume/reduction-reuse features on a new declared experiment. Continue original PassAgent, remaining200-task support and synthesis work.
+
+### Code review instructions
+- Run script 199 and inspect summary.json, selection commit 731e834, selective-confirmation-audit.json and reference 13. Script200 is descriptive after confirmation and must not be treated as training evidence for this run.
+
+### Technical details
+- Membership0547e152ab29ae79070177cec031ddb393751f2b45d13499548a583668e7203f. Explicit highest-precision FP32 reference and separate compiler arithmetic stay fixed. Original coverage remains 11 tasks/206 graphs; import eligibility 1029 graphs/51 complete families.
