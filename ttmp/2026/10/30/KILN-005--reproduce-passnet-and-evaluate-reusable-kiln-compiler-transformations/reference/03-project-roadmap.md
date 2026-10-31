@@ -20,7 +20,7 @@ The target is evaluation across all 200 PassBench tasks and 2,060 variants with 
 | Workspace and acquisition | Complete | Worktree, ticket, pinned paper/code/dataset and materialization receipts |
 | Intern design | Progress edition delivered | Updated technical guide with actual final architecture and verified reMarkable delivery |
 | Original baselines | Exploratory run active | All task results, isolated reruns, settings reconciled, official aggregation |
-| Basic integration | One FP32 graph scored under modified protocol | Matching/checking/score evidence with protocol identity |
+| Basic integration | Four complete tasks / 49 variants verified under declared modified protocols | Matching/checking/score evidence with protocol identity |
 | Precision and layouts | Active | Real-task FP16/BF16, stride/layout and stream correctness |
 | Operation coverage | Mostly pending | Task dependency matrix and implementation/tests for all required operations |
 | Full benchmark integration | Pending | Every task/variant accounted for with integrity/correctness/scoring |

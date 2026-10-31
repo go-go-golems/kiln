@@ -2696,3 +2696,48 @@ Reassessed the implementation after the user explicitly requested consolidation.
 
 ### Technical details
 - Additive protocol identities: kiln-pattern-autowrap/1 and kiln-pattern-multi-output/1. Existing normalized argument and record_stream policies remain explicit. No target arithmetic rewrite was introduced.
+
+## Step 64: Complete the 30-variant residual/mean task under declared protocol
+
+The clean isolated v4 run completed all 30 graphs with one replacement and one success result per graph, with no failure results. Exact graph-list membership was checked by the coverage builder. Verified coverage is now 4/200 tasks and 49/2,060 graphs. Original scoring yields approximately eager parity, not a robust measured performance improvement.
+
+### Prompt Context
+See the ongoing complete integration and measurement objective.
+**Assistant interpretation:** Accept a task only after complete evaluator evidence, then compute the published metric.
+**Inferred user intent:** Maintain an auditable path toward all 200 tasks.
+**Commit (implementation):** 90b06d4.
+
+### What I did
+- Archived fourth-task-isolated-v4.log and ran the original scorer with p=0, fpdb=0.1 and original sample index 11.
+- Extended coverage builder evidence mapping and per-task protocol identities.
+- Checked the completed acquisition task using docmgr; broader reproduction and research tasks remain open.
+
+### Why
+- Independent CUDA probes cannot substitute for full task matching, correctness and scoring.
+
+### What worked
+- 30 successes, zero failure results, exactly one replacement per expected graph.
+- Original scorer parsed all 30 samples and reported `aggregated_speedup=1.0032945157872568`.
+- Reference container was verified running and unpaused after the isolated run.
+- Shared infrastructure CPU suite: 22 tests passed; diff whitespace check passed.
+
+### What didn't work
+- Earlier failed/mixed-protocol runs remain archived and excluded from accepted evidence. Score proximity to 1 requires repeated measurements before any speedup claim.
+
+### What I learned
+- Correctness-first reduction lowering can reach aggregate eager parity for this task, while the earlier convolution task remains substantially slower.
+
+### What was tricky to build
+- The acceptance record must name additive autowrap/multi-output protocol identities only for the runs that actually used them.
+
+### What warrants a second pair of eyes
+- Isolated timing repeatability, error-aware score interpretation and precision on additional input distributions.
+
+### What should be done in the future
+- Expand operation coverage using the shared runner, profile weak schedules and complete the original baselines and agent experiments.
+
+### Code review instructions
+- Inspect sources/fourth-task-isolated-v4.log, fourth-task/score.json, kiln-coverage.json and script 21's exact membership accounting.
+
+### Technical details
+- Task e6f244f12cb8bf8954c9ac5adc78e6267f77f95f13ba6acc7420064393c0cb93; 30 FP32/FP16/BF16 graph variants, one or three input tensors, two outputs. Aggregate score is a task-level exploratory result on GB10, not an all-corpus or paper-hardware reproduction result.
