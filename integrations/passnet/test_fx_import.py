@@ -131,5 +131,54 @@ class ImportTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 import_graph(export_graph(symbolic_trace(Model()), (x,)))
 
+
+
+class ActivationImportTests(unittest.TestCase):
+    def test_activation_operation_boundaries_widen_and_narrow(self):
+        class Model(torch.nn.Module):
+            def forward(self,x):return torch.nn.functional.silu(x),x.sigmoid(),torch.sigmoid(x)
+        for dtype,name in [(torch.float32,'f32'),(torch.float16,'f16'),(torch.bfloat16,'bf16')]:
+            imported=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3).to(dtype),)))
+            self.assertIn('N.silu(N.cast(v0, "f32"))',imported['script'])
+            self.assertEqual(imported['script'].count('N.sigmoid(N.cast(v0, "f32"))'),2)
+            self.assertIn(', "'+name+'")',imported['script'])
+
+    def test_inplace_silu_rejected(self):
+        class Model(torch.nn.Module):
+            def forward(self,x):return torch.nn.functional.silu(x,inplace=True)
+        with self.assertRaisesRegex(ValueError,'mutation/alias'):
+            import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
+
+    def test_sigmoid_out_rejected(self):
+        class Model(torch.nn.Module):
+            def forward(self,x,y):return torch.sigmoid(x,out=y)
+        with self.assertRaisesRegex(ValueError,'arguments'):
+            import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),torch.empty(2,3))))
+
+
+class OwnedActivationTests(unittest.TestCase):
+    def test_single_use_fresh_activation_can_be_functionalized(self):
+        class Model(torch.nn.Module):
+            def forward(self,x):return torch.nn.functional.silu(torch.relu(x),inplace=True)
+        imported=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
+        self.assertIn('N.silu',imported['script'])
+
+    def test_alias_observer_prevents_functionalization(self):
+        class Model(torch.nn.Module):
+            def forward(self,x):
+                owned=torch.relu(x)
+                view=owned.view(2,3)
+                changed=torch.nn.functional.silu(owned,inplace=True)
+                return changed,view
+        with self.assertRaisesRegex(ValueError,'fresh single-use'):
+            import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
+
+    def test_potentially_aliasing_view_not_owned(self):
+        class Model(torch.nn.Module):
+            def forward(self,x):return torch.nn.functional.silu(torch.relu(x).view(2,3),inplace=True)
+        with self.assertRaisesRegex(ValueError,'fresh single-use'):
+            import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
+
+
 if __name__ == '__main__':
     unittest.main()

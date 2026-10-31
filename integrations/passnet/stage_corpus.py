@@ -16,7 +16,7 @@ def main():
         source=args.upstream/row['graph']
         for name in ['model.py','input_meta.py','weight_meta.py']:
             if not (source/name).is_file():raise ValueError(f'Missing source file: {source/name}')
-        subprocess.run(['rsync','-aR',str(args.upstream.resolve())+'/./'+row['graph']+'/',args.destination],check=True)
+        subprocess.run(['rsync','-aR','--no-owner','--no-group','--exclude=__pycache__/','--exclude=*.pyc',str(args.upstream.resolve())+'/./'+row['graph']+'/',args.destination],check=True)
     print('Staged',len(manifest['variants']),'source directories')
 
 

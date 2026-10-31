@@ -21,7 +21,7 @@ WhenToUse: ""
 
 This project has two independent experimental tracks. The reference track runs the pinned PassNet implementation without Kiln changes. The integration track lowers the same workloads through Kiln and submits their results to PassBench. Keeping the reference evaluator unchanged makes the effects of compiler and runtime changes identifiable.
 
-The checked-in paper is arXiv:2605.29357v1. Reference source revision is `61c64709f6d324216ae8252cec3cdc35b2dd5da5`; dataset revision is `4f7dd9211178327c2718f1b828d83ea126186f9e`. Source inventory, revision API responses, paper, and preliminary research are under `../sources/`. Current exact PassBench integration coverage is five complete tasks and 73 graph variants under explicitly recorded modified protocols. The separate import audit finds 804 translatable graphs and 24 fully translatable tasks. A direct FP32 compiler-policy study has also completed training selection and held-out evaluation; its metrics are relative to unchanged Kiln, not official PassBench scores. Sections 11–21 preserve earlier historical checkpoints; this section and Section 22 give the current state.
+The checked-in paper is arXiv:2605.29357v1. Reference source revision is `61c64709f6d324216ae8252cec3cdc35b2dd5da5`; dataset revision is `4f7dd9211178327c2718f1b828d83ea126186f9e`. Source inventory, revision API responses, paper, and preliminary research are under `../sources/`. Current exact PassBench integration coverage is six complete tasks and 76 graph variants under explicitly recorded modified protocols. The separate import audit finds 912 translatable graphs and 36 fully translatable tasks. Three direct FP32 compiler-policy studies have completed training selection and held-out evaluation: the scalar pilot has a narrow positive result, while two conditional-policy studies select baseline. Their metrics are relative to unchanged Kiln, not official PassBench scores. Sections 11–23 preserve earlier historical checkpoints; this section and Section 24 give the current state.
 
 The requested end state includes baseline reproduction, an end-to-end Kiln round-trip, reusable pass experiments with held-out evaluation, documented compiler extensions, reMarkable delivery, and milestone reports in the Obsidian vault. A small FP32 example is an integration gate, not completion of corpus support.
 
@@ -240,7 +240,7 @@ Basic indexing lives in `fx_indexing.py`: normalize ellipsis, None axes, negativ
 
 Concatenation is now the first blocker in 531 graphs. Other first blockers include integer inputs, linear/matmul, softmax and activation functions. Counts refer only to each graph's first encountered blocker; implementing one feature can reveal another. Local CUDA availability also prevents tracing some trusted source graphs and is recorded separately. Use sources/import-audit-summary.json for prioritization and sources/kiln-coverage.json for verified execution evidence.
 
-## 22. Current compiler-policy API and first measured transfer result
+## 22. Historical checkpoint: Current compiler-policy API and first measured transfer result
 
 The first direct compiler-policy experiment is implemented by compile_policy.mjs, measure_policy.py, select_policy.py, summarize_policy.py and stress_policy.py under integrations/passnet. The frozen corpus and plan are in sources/policy-corpus-v2; compilation artifacts are in sources/policy-artifacts-v2; complete training, selection, held-out and stress evidence is in sources/policy-measurements-v1. Scripts 69–79 reproduce construction, qualification, GPU isolation, selection and verification.
 
@@ -264,7 +264,7 @@ The fixed plan uses 20 warmups, 100 trials and three repeats, seeded order, IQR 
 
 This is a completed scalar-policy tuning pilot. Generated feature-dependent programs, new rewrite algorithms, independent broader confirmation and PassAgent comparisons remain future work. It does not add complete PassBench tasks: that ledger remains five tasks / 73 variants. Read reference report 07 and design document 06 before extending the study or changing the global default.
 
-## 23. Current checkpoint: bounded policies and fresh negative confirmation
+## 23. Historical checkpoint: bounded policies and fresh negative confirmation
 
 The compiler now accepts validated feature-dependent profitability programs through `prepareFusionPolicy` in integrations/passnet/fusion_policy.mjs. Programs branch on originalWork, fusedWork, consumerCount and producerElements; thresholds and Boolean leaves compile to immutable callbacks for the existing createFusionRule factory. The matcher and mutation remain unchanged. Design 07 explains the bounded language, source selection and protocol.
 
@@ -273,3 +273,13 @@ A fresh official-training-source corpus contains 12 training and eight held-out 
 The original Inductor reference completed 200 tasks / 2,060 attempted variants. Exact-membership audit with the upstream tolerance-one checker accepts 2,039 graphs and 191 complete tasks. Execution-success labels alone count 2,041 and are insufficient numerical evidence. Historical timings overlapped development and are exploratory; hardware/software still differ from the paper. Script 85 and reference-full-audit.json preserve the audit, raw phase messages and log hashes.
 
 Current coverage remains 24 complete tasks / 804 graphs imported and five complete tasks / 73 graphs accepted under the declared modified PassBench protocols. The fresh direct compiler study does not add accepted complete benchmark tasks. Next synthesis work should use training transformation traces to ensure proposed policies actually alter executables before claiming optimization or transfer.
+
+## 24. Current checkpoint: training-sensitive synthesis and activation coverage
+
+The adaptive v4 study generated 12 bounded policy programs from training-only feature quantiles, compiled all 240 candidate/graph pairs, measured actual training interventions, and selected baseline. Stricter fusion restrictions did not improve its objective; all eight fresh exact-model confirmation graphs passed with unchanged selection. Design 07 and policy-measurements-v3 own the complete protocol and evidence. This is deterministic template synthesis, not external LLM or original PassAgent evaluation.
+
+The importer now supports SiLU and sigmoid using FP32 operation arithmetic and narrowing at source operation boundaries. Conservative freshness/use-count checks also functionalize supported in-place activations on exclusively consumed fresh results; inputs, shared values and views remain rejected. Design 02 explains the numerical and aliasing contracts, with primary PyTorch references archived under sources/pytorch/activations. All 47 Python integration tests and 18 CUDA dtype/seed fixture comparisons passed.
+
+Full-denominator import audit now succeeds for 912 of 2,060 graphs across 36 complete tasks. This extends the earlier 804/24 and intermediate 853/32 checkpoints; the audit is not execution acceptance. Real evaluation task 143 (SiLU -> multiply -> disabled dropout) additionally compiled, matched once per variant and passed numerical evaluation for FP32, FP16 and BF16. Original scorer p=0, fpdb=0.1 gives score 0.8399177755920565 under the declared modified protocol. It is slower than eager in aggregate for this task; no speed improvement is claimed.
+
+The accepted coverage ledger now checks upstream tolerance-one numerical decisions in addition to exact membership, execution status and matching. Current verified Kiln coverage is six complete tasks / 76 variants. The original Inductor reference remains a separate 191-task / 2,039-variant numerical audit with exploratory timing. Next work should broaden compiler/runtime support and test interventions beyond the unsuccessful strict-fusion grammar.

@@ -10,10 +10,10 @@ def import_graph(graph):
     if graph.get('format') != 'kiln-fx/1':
         raise ValueError('Expected kiln-fx/1')
     values, specs, lines, outputs = {}, {}, [], None
+    fresh = set()  # Source values with fresh storage; exclusive use is checked at mutation.
     dtype_names = {'torch.float32':'f32','torch.float16':'f16','torch.bfloat16':'bf16'}
     input_dtypes = {}
     metadata = {n['id']: n.get('tensor_meta') for n in graph['nodes']}
-    nodes_by_id = {n['id']: n for n in graph['nodes']}
     uses = {}
     def references(value):
         if isinstance(value,dict):
@@ -86,7 +86,30 @@ def import_graph(graph):
                   '_operator.mul':'mul', 'torch.mul':'mul', 'aten.mul.Tensor':'mul',
                   '_operator.sub':'sub', '_operator.truediv':'div'}
         reduction = target in ('torch.sum','torch.mean','aten.sum.dim_IntList','aten.mean.dim') or (node['kind']=='call_method' and target in ('sum','mean'))
-        if target in ('torch.cat','torch.concat','torch.concatenate','aten.cat.default'):
+        activation = {'torch.sigmoid':'sigmoid', 'torch.nn.functional.sigmoid':'sigmoid',
+                      'aten.sigmoid.default':'sigmoid', 'torch.nn.functional.silu':'silu',
+                      'aten.silu.default':'silu'}.get(target)
+        if node['kind']=='call_method' and target=='sigmoid': activation='sigmoid'
+        if activation:
+            fields=['input','inplace'] if activation=='silu' else ['input']
+            if len(args)>len(fields) or set(kwargs)-set(fields):
+                raise ValueError(f'{name}: unsupported {activation} arguments')
+            bound=dict(zip(fields,args))
+            if set(bound)&set(kwargs):raise ValueError(f'{name}: duplicate {activation} argument')
+            bound.update(kwargs)
+            value=bound.get('input')
+            source=next((key for key,val in values.items() if val==value),None)
+            inplace=bound.get('inplace','false')
+            if inplace not in ('false','true'):raise ValueError(f'{name}: static Boolean inplace flag required')
+            if inplace=='true' and (source not in fresh or uses.get(source)!=1):
+                raise ValueError(f'{name}: inplace {activation} requires fresh single-use producer; mutation/alias lowering required otherwise')
+            if source is None or not isinstance(metadata[source],dict) or metadata[source]['dtype']!=meta['dtype']:
+                raise ValueError(f'{name}: {activation} requires a dtype-preserving floating tensor')
+            # PyTorch pointwise activation arithmetic uses opmath FP32 for low
+            # precision inputs. Narrow once at this source operation boundary.
+            dtype=dtype_names[meta['dtype']]
+            expr=f'N.cast(N.{activation}(N.cast({value}, "f32")), {json.dumps(dtype)})'
+        elif target in ('torch.cat','torch.concat','torch.concatenate','aten.cat.default'):
             if len(args)>2 or set(kwargs)-{'tensors','dim'}:
                 raise ValueError(f'{name}: unsupported concatenation arguments')
             bound=dict(zip(('tensors','dim'),args))
@@ -257,9 +280,8 @@ def import_graph(graph):
         elif target in unary:
             if kwargs.get('inplace') == 'true':
                 ref=node['args']['tuple'][0].get('ref')
-                producer=nodes_by_id.get(ref,{})
-                if target!='torch.nn.functional.relu' or producer.get('target')!='torch.conv2d' or uses.get(ref)!=1:
-                    raise ValueError(f'{name}: inplace operation requires fresh single-use convolution output')
+                if target!='torch.nn.functional.relu' or ref not in fresh or uses.get(ref)!=1:
+                    raise ValueError(f'{name}: inplace operation requires fresh single-use producer')
                 kwargs={k:v for k,v in kwargs.items() if k!='inplace'}
             if len(args) != 1 or any(k != 'inplace' or v != 'false' for k,v in kwargs.items()):
                 raise ValueError(f'{name}: unsupported unary arguments')
@@ -274,6 +296,13 @@ def import_graph(graph):
             raise ValueError(f'{name}: supported floating result metadata required')
         lines.append(f'const {var} = {expr};')
         values[name] = var
+        # Views, casts and disabled dropout may alias: intentionally do not
+        # transfer ownership through them. Accepted in-place calls only
+        # consume an already owned value whose sole use is this operation.
+        if activation or reduction or target in unary or target in binary or target in (
+                'torch.conv2d','torch.nn.functional.batch_norm','torch.nn.functional.interpolate',
+                'torch.cat','torch.concat','torch.concatenate','aten.cat.default'):
+            fresh.add(name)
     if outputs is None:
         raise ValueError('Missing graph output')
     flat = []

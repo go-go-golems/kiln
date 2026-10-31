@@ -1,0 +1,250 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../activation-owned-fixtures/bf16.kiln.js",
+  "sha256": "2681c4b3a0ff72863c5f5e3426e3eb733bcb5344a813c206f370ad8f2ccf689b"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    16,
+    256
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    16,
+    256
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    16,
+    256
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "out1",
+   "buffer": 3,
+   "shape": [
+    16,
+    256
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "out2",
+   "buffer": 4,
+   "shape": [
+    16,
+    256
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "out3",
+   "buffer": 5,
+   "shape": [
+    16,
+    256
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 4096,
+   "bytes": 8192
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 4096,
+   "bytes": 8192
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 4096,
+   "bytes": 8192
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 4096,
+   "bytes": 8192
+  },
+  {
+   "id": 4,
+   "dtype": "bf16",
+   "elements": 4096,
+   "bytes": 8192
+  },
+  {
+   "id": 5,
+   "dtype": "bf16",
+   "elements": 4096,
+   "bytes": 8192
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__wwsev9qpk2",
+   "identity": "wwsev9qpk2",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 2,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256
+   ],
+   "inShapes": [
+    [
+     16,
+     256
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out0__wwsev9qpk2(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = __bfloat162float(src0[((e % 256) + (256 * (e / 256)))]);\n        v0 = in0;\n        v1 = (1.0f / (1.0f + expf(-(v0))));\n        v2 = (v0 * v1);\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        v4 = __bfloat162float(__float2bfloat16_rn(v3));\n        dst[((e % 256) + (256 * (e / 256)))] = __float2bfloat16_rn(v4);\n    }\n}"
+  },
+  {
+   "name": "k_out1__17v2a90iymi",
+   "identity": "17v2a90iymi",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 3,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256
+   ],
+   "inShapes": [
+    [
+     16,
+     256
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out1__17v2a90iymi(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = __bfloat162float(src0[((e % 256) + (256 * (e / 256)))]);\n        v0 = in0;\n        v1 = (1.0f / (1.0f + expf(-(v0))));\n        v2 = __bfloat162float(__float2bfloat16_rn(v1));\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        dst[((e % 256) + (256 * (e / 256)))] = __float2bfloat16_rn(v3);\n    }\n}"
+  },
+  {
+   "name": "k_out2__1kl941ye246",
+   "identity": "1kl941ye246",
+   "row": "TPB=64",
+   "reads": [
+    3,
+    1
+   ],
+   "writes": 4,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256
+   ],
+   "inShapes": [
+    [
+     16,
+     256
+    ],
+    [
+     16,
+     256
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out2__1kl941ye246(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = __bfloat162float(src0[((e % 256) + (256 * (e / 256)))]);\n        in1 = __bfloat162float(src1[((e % 256) + (256 * (e / 256)))]);\n        v0 = (in0 * in1);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        dst[((e % 256) + (256 * (e / 256)))] = __float2bfloat16_rn(v1);\n    }\n}"
+  },
+  {
+   "name": "k_out3__1adh7v8ykak",
+   "identity": "1adh7v8ykak",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 5,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256
+   ],
+   "inShapes": [
+    [
+     16,
+     256
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out3__1adh7v8ykak(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = __bfloat162float(src0[((e % 256) + (256 * (e / 256)))]);\n        v0 = fmaxf(in0, 0.0f);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        v2 = v1;\n        v3 = (1.0f / (1.0f + expf(-(v2))));\n        v4 = (v2 * v3);\n        v5 = __bfloat162float(__float2bfloat16_rn(v4));\n        v6 = __bfloat162float(__float2bfloat16_rn(v5));\n        dst[((e % 256) + (256 * (e / 256)))] = __float2bfloat16_rn(v6);\n    }\n}"
+  }
+ ]
+}

@@ -1,0 +1,112 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../sixth-task/002.kiln.js",
+  "sha256": "48142139089f2dde2e84f403bd9068ec1c238868ee358578431e83efe86f1e00"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    257,
+    1024
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    257,
+    1024
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    1,
+    257,
+    1024
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 263168,
+   "bytes": 526336
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 263168,
+   "bytes": 526336
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 263168,
+   "bytes": 526336
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_silu_ew__1r60ritf201",
+   "identity": "1r60ritf201",
+   "row": "TPB=128,COARSEN=2",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 1028,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1028,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    257,
+    1024
+   ],
+   "inShapes": [
+    [
+     1,
+     257,
+     1024
+    ],
+    [
+     1,
+     257,
+     1024
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_cast_silu_ew__1r60ritf201(const __half* __restrict__ src0, const __half* __restrict__ src1, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((256 * bid) + (128 * j)) + tid);\n        if ((e < 263168)) {\n            in0 = __half2float(src0[((e % 1024) + (1024 * (e / 1024)))]);\n            in1 = __half2float(src1[((e % 1024) + (1024 * (e / 1024)))]);\n            v0 = in1;\n            v1 = (1.0f / (1.0f + expf(-(v0))));\n            v2 = (v0 * v1);\n            v3 = __half2float(__float2half_rn(v2));\n            v4 = __half2float(__float2half_rn(v3));\n            v5 = (in0 * v4);\n            v6 = __half2float(__float2half_rn(v5));\n            dst[((e % 1024) + (1024 * (e / 1024)))] = __float2half_rn(v6);\n        }\n    }\n}"
+  }
+ ]
+}

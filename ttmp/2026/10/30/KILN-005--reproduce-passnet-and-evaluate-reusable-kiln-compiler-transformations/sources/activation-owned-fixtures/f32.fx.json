@@ -1,0 +1,272 @@
+{
+  "format": "kiln-fx/1",
+  "torch_version": "2.11.0+cu130",
+  "nodes": [
+    {
+      "id": "x",
+      "kind": "placeholder",
+      "target": "x",
+      "args": {
+        "tuple": []
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": {
+        "shape": [
+          16,
+          256
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          256,
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "y",
+      "kind": "placeholder",
+      "target": "y",
+      "args": {
+        "tuple": []
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": {
+        "shape": [
+          16,
+          256
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          256,
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "sigmoid",
+      "kind": "call_function",
+      "target": "torch.sigmoid",
+      "args": {
+        "tuple": [
+          {
+            "ref": "x"
+          }
+        ]
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": {
+        "shape": [
+          16,
+          256
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          256,
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "silu",
+      "kind": "call_function",
+      "target": "torch.nn.functional.silu",
+      "args": {
+        "tuple": [
+          {
+            "ref": "x"
+          }
+        ]
+      },
+      "kwargs": {
+        "dict": {
+          "inplace": false
+        }
+      },
+      "tensor_meta": {
+        "shape": [
+          16,
+          256
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          256,
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "mul",
+      "kind": "call_function",
+      "target": "_operator.mul",
+      "args": {
+        "tuple": [
+          {
+            "ref": "sigmoid"
+          },
+          {
+            "ref": "y"
+          }
+        ]
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": {
+        "shape": [
+          16,
+          256
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          256,
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "relu",
+      "kind": "call_function",
+      "target": "torch.relu",
+      "args": {
+        "tuple": [
+          {
+            "ref": "x"
+          }
+        ]
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": {
+        "shape": [
+          16,
+          256
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          256,
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "silu_1",
+      "kind": "call_function",
+      "target": "torch.nn.functional.silu",
+      "args": {
+        "tuple": [
+          {
+            "ref": "relu"
+          }
+        ]
+      },
+      "kwargs": {
+        "dict": {
+          "inplace": true
+        }
+      },
+      "tensor_meta": {
+        "shape": [
+          16,
+          256
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          256,
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "output",
+      "kind": "output",
+      "target": "output",
+      "args": {
+        "tuple": [
+          {
+            "tuple": [
+              {
+                "ref": "silu"
+              },
+              {
+                "ref": "sigmoid"
+              },
+              {
+                "ref": "mul"
+              },
+              {
+                "ref": "silu_1"
+              }
+            ]
+          }
+        ]
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": [
+        {
+          "shape": [
+            16,
+            256
+          ],
+          "dtype": "torch.float32",
+          "strides": [
+            256,
+            1
+          ],
+          "requires_grad": false
+        },
+        {
+          "shape": [
+            16,
+            256
+          ],
+          "dtype": "torch.float32",
+          "strides": [
+            256,
+            1
+          ],
+          "requires_grad": false
+        },
+        {
+          "shape": [
+            16,
+            256
+          ],
+          "dtype": "torch.float32",
+          "strides": [
+            256,
+            1
+          ],
+          "requires_grad": false
+        },
+        {
+          "shape": [
+            16,
+            256
+          ],
+          "dtype": "torch.float32",
+          "strides": [
+            256,
+            1
+          ],
+          "requires_grad": false
+        }
+      ]
+    }
+  ]
+}

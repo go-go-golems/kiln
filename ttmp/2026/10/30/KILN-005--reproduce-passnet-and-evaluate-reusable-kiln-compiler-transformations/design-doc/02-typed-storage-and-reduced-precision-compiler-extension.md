@@ -68,3 +68,23 @@ Implementation must consult exact PyTorch operator promotion/accumulation behavi
 ## Delivery gate
 
 A low-precision feature is complete only when source graph semantics, compiler reference checks, actual CUDA execution, original numerical/dtype checker and exported artifact agree. A pointer cast or output cast alone is not completion. This design remains a plan; current implementation supports the verified FP32 path only.
+
+## Activation arithmetic boundaries and conservative functionalization
+
+The FX importer now maps SiLU and sigmoid to existing Kiln operators. The PyTorch 2.9.1 CUDA sources use an opmath accumulator for low-precision storage: input is widened for arithmetic and the result is narrowed once. Import therefore emits `N.cast(N.silu(N.cast(x, "f32")), dtype)` or the analogous sigmoid expression. A subsequent consumer sees the narrowed source-operation result, preserving the rounding boundary even if kernels fuse.
+
+The implementation independently maps semantics; no PyTorch implementation was copied. Primary sources are archived with URL, byte count and SHA256 in sources/pytorch/activations/provenance.json. PyTorch's native SiLU evaluates x/(1+exp(-x)); existing Kiln decomposes x*sigmoid(x). These expressions can differ numerically in FP32. Nine CUDA dtype/seed fixtures passed explicit tolerance checks, including saturation inputs and a consumer of narrowed sigmoid output. Maximum observed errors were 9.5367431640625e-7 (FP32), 0.0001220703125 (FP16) and zero (BF16). This is tolerance-based evidence rather than bitwise equivalence.
+
+In-place ReLU and SiLU can be represented functionally when the mutated input is known to have fresh source storage and has exactly one use in the entire imported graph. Freshness is recorded for accepted arithmetic/activation/reduction operations, convolution, inference batch normalization, interpolation and concatenation. Placeholders, views, casts and disabled dropout do not acquire freshness. This is a conservative ownership check, not general alias analysis.
+
+```text
+for each source operation in dependency order:
+    if operation requests in-place mutation:
+        require input in known_fresh_values
+        require total_reference_count(input) == 1
+        emit ordinary functional operation
+    if operation has supported fresh-result semantics:
+        mark result as fresh
+```
+
+The whole-graph use count includes graph outputs and view creation. If another observer retains an alias, it contributes an additional use or passes through a potentially aliasing operation, preventing this functionalization. Tests reject input mutation, shared fresh values and mutation through views. Nine additional CUDA checks validate functionalized SiLU on a fresh ReLU output for all three dtypes and seeds. General mutation, view-alias analysis and input writeback remain unsupported.

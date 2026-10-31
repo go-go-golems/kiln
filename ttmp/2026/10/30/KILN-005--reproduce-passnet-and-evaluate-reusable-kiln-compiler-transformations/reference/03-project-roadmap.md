@@ -19,14 +19,14 @@ The target is evaluation across all 200 PassBench tasks and 2,060 variants with 
 |---|---|---|
 | Workspace and acquisition | Complete | Worktree, ticket, pinned paper/code/dataset and materialization receipts |
 | Intern design | Progress edition delivered | Updated technical guide with actual final architecture and verified reMarkable delivery |
-| Original baselines | Exploratory run active | All task results, isolated reruns, settings reconciled, official aggregation |
-| Basic integration | Four complete tasks / 49 variants verified under declared modified protocols | Matching/checking/score evidence with protocol identity |
+| Original baselines | Full exploratory audit complete; controlled measurements pending | All task results, isolated reruns, settings reconciled, official aggregation |
+| Basic integration | Six complete tasks / 76 variants verified under declared modified protocols | Matching/checking/score evidence with protocol identity |
 | Precision and layouts | Active | Real-task FP16/BF16, stride/layout and stream correctness |
 | Operation coverage | Mostly pending | Task dependency matrix and implementation/tests for all required operations |
 | Full benchmark integration | Pending | Every task/variant accounted for with integrity/correctness/scoring |
 | Controlled measurements | Pending | Isolated timing, stability checks, provenance and complete comparisons |
 | Original PassAgent | Pending | Recorded model/budget/trajectories on declared task set |
-| Kiln meta-optimization | Initial FP32 threshold study qualified; generated policies pending | Fixed train/held-out split, reusable policies/passes and measured generalization |
+| Kiln meta-optimization | Scalar pilot positive; two conditional-policy studies complete without improvement | Fixed train/held-out split, reusable policies/passes and measured generalization |
 | Reports and delivery | Ongoing | Milestone vault reports committed/pushed and updated guide editions |
 | Completion audit | Pending | Requirement-by-requirement current-state evidence |
 
@@ -34,7 +34,7 @@ Teacher trajectory generation/student fine-tuning remains a separate expensive r
 
 ## Priority change: start reusable-policy optimization before full corpus support
 
-The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance is five tasks / 73 graphs. Translation succeeds for 804 graphs and 24 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
+The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance is six tasks / 76 graphs. Translation succeeds for 912 graphs and 36 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
 
 The immediate critical path is:
 
@@ -45,10 +45,14 @@ The immediate critical path is:
 5. Search policies only on training graphs, select one policy and evaluate it unchanged on held-out graphs. Report correctness failures and compile-cost changes.
 6. Extend the same harness to generated reusable policies and transformation programs; use original PassBench for external comparisons.
 
-The existing default is fused work <= 1.02 × original work. An initial scalar-threshold study now selects 1.25 and measures 1.0186x family-balanced held-out e2e speedup on seven FP32 development graphs; only one held-out executable changes. No generated decision program, new rewrite algorithm or agent comparison has been measured yet. Direct FX-to-Kiln experiments avoid the per-task matcher-authoring step, but are separate from PassBench acceptance and scores. Unrelated missing operator implementation is deferred while this path is built.
+The existing default is fused work <= 1.02 × original work. An initial scalar-threshold study now selects 1.25 and measures 1.0186x family-balanced held-out e2e speedup on seven FP32 development graphs; only one held-out executable changes. Two subsequent bounded-policy studies have measured generated conditional programs without an improvement; new rewrite algorithms and an external agent comparison remain unmeasured. Direct FX-to-Kiln experiments avoid the per-task matcher-authoring step, but are separate from PassBench acceptance and scores. Unrelated missing operator implementation is deferred while this path is built.
 
 ### Fresh conditional-policy checkpoint
 
 The second direct policy study is complete: eight bounded policies compiled on 20 fresh official-training-source graphs (12 train, eight held-out). Every candidate aliases baseline on training, so selection retained unchanged Kiln; all 20 replay checks and stable timing runs qualified. This is a negative optimization result, not full PassBench acceptance. Design 07 and policy-measurements-v2/verified-facts.json own details.
 
 Original-source Inductor reference attempts are complete for all 200 tasks / 2,060 variants. The upstream tolerance-one audit accepts 2,039 variants and 191 complete tasks. Historical timing overlap and different hardware/software prevent a final paper-comparable performance claim. Controlled baseline reruns, original PassAgent evaluation and remaining Kiln task support remain open.
+
+### Activation and ownership checkpoint
+
+SiLU/sigmoid lowering and conservative fresh-single-use functionalization increased import eligibility to 912 graphs / 36 complete tasks. Evaluation task 143 passed all three dtypes through modified-protocol matching, numerical checks and original scoring, increasing verified Kiln coverage to six tasks / 76 graphs. The coverage ledger now requires upstream tolerance-one numerical acceptance explicitly. Detailed contracts are in design 02 and guide Section 24.

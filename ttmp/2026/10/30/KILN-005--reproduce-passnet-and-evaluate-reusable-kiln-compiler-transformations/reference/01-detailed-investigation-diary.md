@@ -3666,3 +3666,54 @@ See Steps 82–83 and the standing research-evidence requirements.
 
 ### Technical details
 - Corpus v4, artifacts v4, measurements v3. Explicit/default compiler behavior remains unchanged. The direct study adds no accepted PassBench task by itself.
+
+## Step 85: Lower activation semantics, prove narrow ownership cases and verify task 143
+
+Added SiLU and sigmoid import using existing Kiln operations with explicit FP32 arithmetic and output narrowing. Added conservative ownership/use-count checks to functionalize supported in-place ReLU/SiLU on fresh exclusively consumed results. The full import audit increased from 804 graphs / 24 complete tasks to 912 / 36. Actual PassBench task 143 additionally passed all three storage dtypes, increasing accepted coverage to six complete tasks / 76 graphs under the existing modified protocol.
+
+### Prompt Context
+See the standing user instructions permitting missing Kiln features, requiring research provenance, retained scripts, detailed design/diary and honest coverage reporting. The next workload expansion follows the unsuccessful adaptive fusion study in Step 84.
+**Assistant interpretation:** Expand the real workload population while preserving numerical boundaries and rejecting unsupported mutation semantics.
+**Inferred user intent:** Make practical progress beyond the narrow policy grammar without obscuring the distinction between import and verified execution.
+**Commit (completed adaptive study):** e6620f4.
+
+### What I did
+- Added activation mapping to fx_import.py. Input is widened to FP32 for SiLU/sigmoid and narrowed once at the source operation boundary; later consumers observe the narrowed result.
+- Tracked known fresh-producing operations and whole-graph reference counts. In-place activation is functionalized only when its source is fresh and has one total use. Placeholders, views, casts, disabled dropout and observed aliases remain conservative rejections.
+- Added positive/negative importer tests and CUDA fixtures for plain activations, a rounded sigmoid consumer and in-place SiLU on a fresh ReLU output. Saved scripts 100–114 and exact artifacts/results.
+- Archived official PyTorch 2.9 documentation and v2.9.1 CUDA sources with URL/SHA256/size provenance. Implemented independent mapping to existing Kiln APIs; no PyTorch implementation copied.
+- Exported full evaluation task 143, generated its reusable pass and manifest dispatch, compiled all three variants, checked source replay, ran fresh original-evaluator integration processes and scored with original p=0/fpdb=0.1 scorer (id 144).
+- Strengthened canonical coverage script 21 to require upstream tolerance-one numerical decisions as well as exact membership, execution success and one replacement per graph.
+
+### Why
+- Activation semantics were frequent first blockers despite existing Kiln operator support. Treating compound activation math as low-precision elementary operations would change rounding. Ignoring in-place aliasing would silently change observable source behavior.
+
+### What worked
+- All 47 Python integration tests passed. Both sets of nine CUDA dtype/seed comparisons passed, for 18 total comparisons, including saturation values and consumer rounding boundaries.
+- Maximum observed activation output errors: FP32 9.5367431640625e-7, FP16 0.0001220703125, BF16 zero. Existing Kiln SiLU is mathematically equivalent but not bitwise identical to PyTorch's native evaluation order.
+- Non-in-place activation mapping first reached 853 graphs / 32 complete importable tasks; ownership-based functionalization reached 912 / 36. Exact 200-task / 2,060-variant denominator remains preserved.
+- Task 143 matched exactly once per FP32/BF16/FP16 variant and all passed original numerical comparison. Original aggregate task score 0.8399177755920565; this is not a speed improvement relative to eager.
+- Stronger numerical coverage accounting retains all prior accepted variants and adds the three new variants: six tasks / 76 graphs. Script 114 binds all facts to artifact hashes, source provenance and exact task evidence.
+
+### What didn't work
+- Initial primary-document download through urllib failed with `urllib.error.HTTPError: HTTP Error 403: Forbidden`. Added an explicit user-agent and independent per-source failure records; all four references then downloaded successfully.
+- Local tmux launch initially failed with `error connecting to /tmp/tmux-1000/default (Operation not permitted)`. Authorized sandbox escalation accessed the existing socket and launched the audit; no live process was restarted.
+- Source staging encountered root-owned generated __pycache__ files: `rsync error: some files/attrs were not transferred (see previous errors) (code 23) at main.c(1356) [sender=3.2.7]`. The initial orchestration shell continued after this error; source files existed from the reference run and errors concerned generated cache files. Fixed the shared stager to exclude __pycache__/ and *.pyc and avoid owner/group preservation. A successful exact three-directory staging retry was verified before accepting the result. Subsequent orchestration uses set -eu.
+
+### What I learned
+- A small ownership invariant unlocks many source graphs without pretending to implement general mutation. Whole-graph use counts include output observations and view creation, which must prevent functionalization when aliases remain observable.
+
+### What was tricky to build
+- Preserve both the source activation's low-precision rounding boundary and the mutating operation's alias semantics. Known freshness alone is insufficient without sole-use checking; sole-use alone is insufficient for placeholders or views.
+
+### What warrants a second pair of eyes
+- Review the fresh-producing whitelist and output/view alias rejection tests. The check is conservative, not full alias analysis. Native PyTorch SiLU uses x/(1+exp(-x)); Kiln uses x*sigmoid(x), so only measured tolerance claims are justified. Import audit still does not establish execution support for all 36 tasks.
+
+### What should be done in the future
+- Extend lowering and runtime support for the remaining workload population; investigate interventions beyond the unsuccessful strict-fusion grammar. General mutation/writeback, linear/matmul, normalization, pooling and other unsupported operators remain open.
+
+### Code review instructions
+- Start with fx_import.py activation branch/freshness update and test_fx_import.py ownership cases. Run script 114, script 21 and the latest full-denominator summary script 113. Inspect sixth-task-isolated.log for all three replacements and numerical vectors, plus original scorer output.
+
+### Technical details
+- No new evaluator protocol was introduced. Task 143 uses kiln-normalized-fx/1 and kiln-dispatch-record-stream/1. GPU remains GB10/NVIDIA PyTorch alpha, with A100 scheduling-cost proxy; paper reproduction limitations remain. Sources and scripts retain both intermediate activation audit checkpoints.
