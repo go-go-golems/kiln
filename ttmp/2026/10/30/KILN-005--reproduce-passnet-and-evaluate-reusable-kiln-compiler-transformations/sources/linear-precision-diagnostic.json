@@ -1,0 +1,91 @@
+{
+  "torch_version": "2.12.0a0+5aff3928d8.nv26.05",
+  "matmul_precision": "high",
+  "bf16_reduced_precision_reduction": true,
+  "comparisons": {
+    "native": {
+      "versus_compiled": {
+        "max_abs": 0.5,
+        "mean_abs": 0.05103801563382149,
+        "not_equal": 24782,
+        "not_close": 3175
+      },
+      "versus_native": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "not_equal": 0,
+        "not_close": 0
+      }
+    },
+    "fp32": {
+      "versus_compiled": {
+        "max_abs": 0.5,
+        "mean_abs": 2.1571075194515288e-05,
+        "not_equal": 28,
+        "not_close": 0
+      },
+      "versus_native": {
+        "max_abs": 0.5,
+        "mean_abs": 0.05103033035993576,
+        "not_equal": 24779,
+        "not_close": 3169
+      }
+    },
+    "fp64": {
+      "versus_compiled": {
+        "max_abs": 0.0625,
+        "mean_abs": 1.8330072180106072e-06,
+        "not_equal": 7,
+        "not_close": 0
+      },
+      "versus_native": {
+        "max_abs": 0.5,
+        "mean_abs": 0.05103857442736626,
+        "not_equal": 24782,
+        "not_close": 3170
+      }
+    },
+    "native-staged-bias": {
+      "versus_compiled": {
+        "max_abs": 0.5,
+        "mean_abs": 0.03060738742351532,
+        "not_equal": 13601,
+        "not_close": 112
+      },
+      "versus_native": {
+        "max_abs": 1.0,
+        "mean_abs": 0.06040679290890694,
+        "not_equal": 27311,
+        "not_close": 3226
+      }
+    },
+    "fp32-staged-bias": {
+      "versus_compiled": {
+        "max_abs": 0.5,
+        "mean_abs": 0.030615055933594704,
+        "not_equal": 13602,
+        "not_close": 112
+      },
+      "versus_native": {
+        "max_abs": 1.0,
+        "mean_abs": 0.060396283864974976,
+        "not_equal": 27311,
+        "not_close": 3225
+      }
+    },
+    "native-no-reduced": {
+      "versus_compiled": {
+        "max_abs": 0.5,
+        "mean_abs": 1.6767495253589004e-05,
+        "not_equal": 22,
+        "not_close": 0
+      },
+      "versus_native": {
+        "max_abs": 0.5,
+        "mean_abs": 0.05102492868900299,
+        "not_equal": 24778,
+        "not_close": 3169
+      }
+    }
+  }
+}

@@ -28,6 +28,9 @@ def read_manifest(directory):
         if record['graph'] in graphs:
             raise ValueError('Duplicate graph identity')
         graphs.add(record['graph'])
+        order=record.get('source_input_order')
+        if order is not None and (not isinstance(order,list) or any(type(i) is not int for i in order) or sorted(order)!=list(range(len(record.get('inputs',{}))))):
+            raise ValueError('Source input order must be an exact argument permutation')
         script = Path(record['script'])
         if script.name != str(script) or not script.name.endswith('.kiln.js'):
             raise ValueError('Script must be a local .kiln.js filename')
@@ -37,7 +40,7 @@ def read_manifest(directory):
     return manifest
 
 
-def translate_graph(upstream, graph, metadata_mode):
+def translate_graph(upstream, graph, metadata_mode, *, input_order=None):
     import torch
     from fx_trace import trace_module
     from fx_export import export_graph
@@ -52,6 +55,18 @@ def translate_graph(upstream, graph, metadata_mode):
     if len({c.name for c in metadata}) != len(metadata):
         raise ValueError(f'{graph}: duplicate input metadata')
     traced = trace_module(model)
+    if input_order is not None:
+        from torch.fx import Graph,GraphModule
+        placeholders=[n for n in traced.graph.nodes if n.op=='placeholder']
+        if sorted(input_order)!=list(range(len(placeholders))) or len(metadata)!=len(placeholders):
+            raise ValueError('Input binding order must be an exact source-argument permutation')
+        canonical=Graph();mapping={}
+        for index in input_order:
+            old=placeholders[index];mapping[old]=canonical.placeholder(old.target,type_expr=old.type)
+        for old in traced.graph.nodes:
+            if old.op!='placeholder':mapping[old]=canonical.node_copy(old,lambda value:mapping[value])
+        traced=GraphModule(traced,canonical)
+        metadata=[metadata[index] for index in input_order]
     if metadata_mode == 'fake':
         from torch._subclasses.fake_tensor import FakeTensorMode
         mode = FakeTensorMode(allow_fallback_kernels=False)
@@ -64,6 +79,22 @@ def translate_graph(upstream, graph, metadata_mode):
     result = import_graph(exported)
     result["tensor_nodes"] = {node["id"]: node["tensor_meta"] for node in exported["nodes"] if isinstance(node.get("tensor_meta"), dict)}
     return result
+
+
+def source_order_inputs(record,inputs):
+    """Map canonical program arguments back to the trusted source signature."""
+    order=record.get('source_input_order',list(range(len(inputs))))
+    if sorted(order)!=list(range(len(inputs))):raise ValueError('Invalid source input binding order')
+    result=[None]*len(inputs)
+    for canonical,source in enumerate(order):result[source]=inputs[canonical]
+    return result
+
+
+def canonical_order_inputs(record,inputs):
+    """Map source replay arguments into a generated program's canonical order."""
+    order=record.get('source_input_order',list(range(len(inputs))))
+    if sorted(order)!=list(range(len(inputs))):raise ValueError('Invalid canonical input binding order')
+    return [inputs[index] for index in order]
 
 
 def export_task(upstream, sample, directory, metadata_mode="fake"):

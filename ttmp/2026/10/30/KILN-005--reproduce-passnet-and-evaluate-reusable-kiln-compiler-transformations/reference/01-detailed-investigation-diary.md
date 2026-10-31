@@ -3815,3 +3815,149 @@ See the standing user instructions to implement missing Kiln pieces, streamline 
 
 ### Technical details
 - No new evaluator protocol was introduced; source-derived in-place addition uses the existing explicit iadd autowrap path. New fixtures/results establish tolerance-based correctness, not performance or full benchmark acceptance. Current verified ledger remains six tasks / 76 graphs pending real-task evaluation.
+
+## Step 88: Correct the nominal numerical audit and isolate two different failures
+
+Real linear evaluation exposed a native BF16 reduction difference, while stronger coverage auditing exposed an older operand-binding bug. Corrected the numerical acceptance gate to t=-5: earlier t=1 checks were explicitly relaxed and should not have been treated as nominal acceptance. All original tolerance-vector logs and scores remain intact. Began canonicalizing source argument roles in shared pass generation to eliminate the legacy binding ambiguity across variants.
+
+### Prompt Context
+See the standing reproduction/integrity instructions and the user's earlier coverage clarification. This is investigation of real failures found after Step 87, not a change in the requested objective.
+**Assistant interpretation:** Correct the evidence criterion, preserve unsuccessful results and fix source binding without hiding numerical differences or changing evaluator tolerances.
+**Inferred user intent:** Establish reliable compiler correctness and reproducible measurements across variants.
+**Commit (matrix/tracing implementation):** fae626d.
+
+### What I did
+- Preserved the original large-linear standalone failure and ran diagnostic 126 against native, FP32, FP64, staged-bias and reduced-precision-disabled references. Restored diagnostic flags; original benchmark flags stay unchanged in fresh processes.
+- Ran the unchanged evaluator on all four linear variants through driver 128. Two BigBird variants fail t=-5 and pass t=-4/-3; two RECT_L variants pass t=-5. This is partial acceptance, not a complete verified task.
+- Added script 127 to audit the original reference at -5,-4,-3,1. Changed canonical ledger acceptance to -5 while retaining relaxed diagnostic fields.
+- Reproduced legacy rounding-order ambiguity with FP16 values 2048,-2048,0.5. A fixed argument permutation repairs one source grouping and breaks the other. Preserved that failed repair's source/log checkpoint.
+- Added canonical first-use argument roles to pattern extraction and optional input permutation to corpus translation. Generated scripts and metadata now share that order; source_input_order records how to bind native source calls for standalone checking.
+- Added an end-to-end CPU regression covering both source groupings with identical metadata, one deduplicated pattern/program and exact low-precision results. Preparing a complete canonical rerun of all 30 residual variants.
+
+### Why
+- The paper's strict production regime is [-5,-3]. t=1 corresponds to relaxed error tolerance and cannot establish nominal numerical acceptance. Input metadata alone also cannot distinguish graphs with different association of low-precision additions.
+
+### What worked
+- Original reference spectrum: t=-5 accepts 1748 graphs / 140 complete tasks; -4 accepts 1855 / 157; -3 accepts 1962 / 172; relaxed +1 remains 2039 / 191. Hardware/software and timing limitations remain unchanged.
+- BF16 diagnostic: compiled versus FP64 has zero not-close elements; native with reduced-precision reduction disabled also has zero not-close elements versus compiled. Default native BF16 has 3175 not-close elements. The compiler is more accurate for this particular diagnostic; the published-reference mismatch remains visible.
+- Canonical role-order regression passes for both (x+y)+z and (y+z)+x, with source permutations [0,1,2] and [1,2,0], one shared pattern identity and identical compiled source.
+- All four linear variants execute and match through the original integration; two qualify nominally. No relaxed tolerance was substituted for the failed strict standalone check.
+
+### What didn't work
+- Large BF16 standalone check failed on 3175/52224 elements, maximum error among non-close values 0.375, relative difference up to 151. The subsequent diagnostic's unrestricted maximum difference is 0.5.
+- Legacy binding counterexample failed with `AssertionError: Tensor-likes are not equal!`, absolute difference 0.5. A single (y,z,x) repair shifts four failures from one RepVGG grouping to another and is not a valid family-wide fix.
+- The new canonical regression initially had `NameError: name 'torch' is not defined`; added the missing test import and reran the complete targeted suite successfully.
+- Current strict ledger is temporarily five complete tasks / 74 individually accepted variants, including two in the partial linear task. The pending canonical residual rerun is required before restoring a complete residual-task claim.
+
+### What I learned
+- Native reduced-precision GEMM behavior can differ from a more accurate FP32-accumulating compiler. Separately, loose numerical gates can hide real adapter bugs. These causes must be isolated rather than addressed by a global tolerance change.
+
+### What was tricky to build
+- Canonicalize pattern placeholder roles and the compiler program ABI together. Reordering only replacement arguments cannot handle different source parameter groupings. Standalone source replay must invert the recorded permutation; generated matcher calls already provide canonical inputs.
+
+### What warrants a second pair of eyes
+- The previous relaxed criterion was an audit mistake. Historical reports explicitly naming t=1 remain historical; current numerical acceptance must use -5. Check the new source/canonical input permutations and keep native precision diagnostics separate from original benchmark results.
+
+### What should be done in the future
+- Complete canonical residual replay/matching/scoring, audit the current strict ledger, measure the full linear score, and then broaden shared-runner evaluation. General mutation/writeback and remaining compiler operations remain open.
+
+### Code review instructions
+- Read scripts 126–131 and the preserved failure sources/logs; inspect reference-numerical-threshold-audit.json and linear-precision-diagnostic.json. Review generate_pass.py canonical order, corpus permutation helpers, check_corpus_cuda.py source binding and the non-associative regression.
+
+### Technical details
+- No evaluator numerical threshold or native benchmark precision flag was relaxed. Source mathematical correctness, nominal native-reference acceptance, relaxed curve acceptance and original aggregate score are separate facts. This investigation remains active pending the canonical GPU rerun.
+
+
+## Step 89: Restore the residual task and distinguish coverage denominators
+
+The completed canonical residual evaluation restores all 30 variants at the nominal numerical threshold. The current ledger now records six complete tasks containing 76 graphs, plus two passing variants of an incomplete linear task: 78 passing graphs in total. The temporary five-task count reflected a real matcher regression under investigation, rather than removed compiler functionality.
+
+### Prompt Context
+**User prompt (verbatim):** "didn't we use to have more before?"
+**Assistant interpretation:** Reconcile previous and current coverage figures using execution evidence.
+**Inferred user intent:** Understand whether progress has regressed or the reporting criteria changed.
+
+### What I did
+- Retrieved `fourth-task-canonical-priority-fixed.log` and its receipt from bling.local after the existing evaluation completed.
+- Updated script 21 to use that evidence and report `graphs_in_complete_tasks` separately from all individually verified graphs.
+- Ran script 21: `Coverage: 6/200 tasks, 78/2060 graphs verified under declared modified protocol.`
+
+### Why
+- Import eligibility, successful graph executions, and fully verified task families answer different questions and require separate denominators.
+
+### What worked
+- All 30 residual variants satisfy execution, exactly one replacement, and upstream numerical checking at t=-5.
+- Six complete tasks are restored; two of four linear variants additionally pass individually.
+
+### What didn't work
+- The preceding canonical matcher order allowed a generic three-input pattern to capture a literal-zero specialization, producing `AttributeError: 'int' object has no attribute 'shape'`. That run remains preserved; the completed rerun uses more specific patterns first.
+
+### What I learned
+- The previously larger import count was never proof of complete benchmark execution. The current faithful importer admits 984 graphs across 43 complete families; those are candidates for evaluation.
+- Earlier t=1 checks were relaxed and must not be described as nominal correctness. Step 88 records the correction to t=-5.
+
+### What was tricky to build
+- Canonical placeholder roles must align pattern matching, runtime dispatch, and compiled input order. Specialization priority is a separate requirement from operand canonicalization.
+
+### What warrants a second pair of eyes
+- Canonical binding and specificity ordering need review together with the numerical audit; successful process exit alone does not establish correctness.
+
+### What should be done in the future
+- Finish the shared batch evaluator and evaluate the newly importable matrix families under the corrected criterion.
+- Carry this correction into the next guide and append-only vault report.
+
+### Code review instructions
+- Review `integrations/passnet/generate_pass.py`, the saved priority rerun log, and script 21. Rerun script 21 to reproduce coverage.
+
+### Technical details
+- Complete-task coverage: 6/200; complete-task graphs: 76/2060; individually verified graphs including partial tasks: 78/2060.
+- Protocol remains the declared modified Kiln integration, not an exact reproduction of the paper environment.
+
+
+## Step 90: Freeze the full newly importable cohort and consolidate its runner
+
+The matrix milestone now has one shared complete-task runner and a separate numerical audit, replacing an expanding sequence of task-specific shell scripts. The cohort is defined by import capability alone: all 14 newly complete task families relative to the activation audit, comprising 151 graph variants. The preliminary estimate of 11/94 omitted three families; script 135 derives the actual set directly from the saved audits.
+
+### Prompt Context
+See the user's architectural consolidation, saved-script and detailed-diary instructions recorded earlier, and Step 89 for the latest coverage question.
+**Assistant interpretation:** Continue towards measured compiler coverage using reusable orchestration and preserve failures.
+**Inferred user intent:** Broaden the experimental basis without obscuring the self-optimization objective or creating one implementation per task.
+
+### What I did
+- Added `evaluate_tasks.py` and `summarize_task_run.py` for export/generation/compile/evaluate/score and independent exact-membership acceptance.
+- Added script 135 to freeze all newly complete families using saved import audits and source graph-list hashes, and script 136 to launch the run on bling.
+- Captured the full Python integration test result in `sources/canonical-binding-python-tests.log`.
+- Extended design 08 with canonical argument roles, specificity ordering, the numerical audit correction and the shared runner.
+
+### Why
+- A process exit code cannot establish scientific correctness. Separating orchestration from auditing keeps failures and all declared task members visible.
+- Hashing compiler/runtime/integration sources before and after every phase prevents silently combining variants from different implementations.
+
+### What worked
+- Full Python integration suite: 62 tests passed.
+- Plan generation: 14 tasks, 151 graphs; indices 7,27,51,60,74,82,93,118,121,141,157,160,182,185.
+- DGX process inspection shows no remaining evaluation container; the previous residual run is terminal.
+
+### What didn't work
+- No runner execution result is claimed at this checkpoint. The earlier 11/94 planning estimate was incomplete; the saved derivation replaces it before measurement.
+
+### What I learned
+- Source identity, graph membership and acceptance threshold belong in the executable experiment boundary, rather than only in prose.
+
+### What was tricky to build
+- Docker export writes into a host-created corpus directory so host Node compilation can create artifacts. Runtime paths use the mounted `/work` directory consistently.
+- The audit requires successful execution as well as numerical acceptance and exactly one replacement; absent graphs remain unexecuted failures.
+
+### What warrants a second pair of eyes
+- Review frozen source coverage and exact-membership auditing before relying on aggregate results. Timing remains exploratory on the documented different hardware/software stack.
+
+### What should be done in the future
+- Run this fixed cohort sequentially; preserve compilation/import failures and diagnose common causes in shared compiler/runtime modules.
+- Publish a milestone correction and technical report after measured results exist.
+
+### Code review instructions
+- Start with `evaluate_tasks.py`, `summarize_task_run.py`, `matrix-cohort-plan.json` and script 135. Source-derived pattern regressions are in `test_pass_generation.py`.
+
+### Technical details
+- Nominal criterion: t=-5, one replacement, successful original evaluation; original scorer p=0, fpdb=0.1 retained independently.
+- Frozen cohort membership is derived before this cohort's execution and does not depend on its numerical or timing outcomes.

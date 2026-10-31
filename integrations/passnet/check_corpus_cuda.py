@@ -6,7 +6,7 @@ import argparse
 import json
 from pathlib import Path
 import torch
-from corpus import read_manifest, load_module
+from corpus import read_manifest, load_module,source_order_inputs,canonical_order_inputs
 from runtime import TorchProgram
 
 DTYPES = {'f32': torch.float32, 'f16': torch.float16, 'bf16': torch.bfloat16}
@@ -54,14 +54,14 @@ def main():
         if args.inputs == 'replay':
             from pass_bench.torch.test_compiler import get_input_dict
             named = get_input_dict(argparse.Namespace(model_path=str(source), device='cuda'))
-            inputs = [named[f'in_{j}'] for j in range(len(named))]
+            inputs = canonical_order_inputs(record,[named[f'in_{j}'] for j in range(len(named))])
         else:
             inputs = [torch.randn(shape, device='cuda').to(DTYPES[record['input_dtypes'][name]])
                       for name, shape in record['inputs'].items()]
         program = TorchProgram(args.directory / receipt[i]['artifact'], include_paths=args.include_path)
         try:
             actual = program(*inputs)
-            expected = model(*inputs)
+            expected = model(*source_order_inputs(record,inputs))
             errors = []
             check_structure(record['output_structure'], actual, expected, errors)
             torch.cuda.synchronize()
