@@ -4994,3 +4994,47 @@ See Step110 for the whole-region objective and the user's architectural consolid
 
 ### Technical details
 - The measurement scope is modified FP32 compiler research; native PassBench acceptance and original reproduction remain open. No new reMarkable export was attempted.
+
+## Step 112: Qualify all whole-region artifacts before timing
+
+All240 programs compile and structurally qualify from committed114d90b sources. Default equals unchanged. Region objectives change exact artifact fingerprints on8–18 of the twenty graphs, depending on weights. None accepts an actual retained-producer partial mutation on training; the experiment therefore tests their whole-region keep-versus-complete choices on this population, not performance from accepted partial fusion.
+
+### Prompt Context
+See Steps110–111 for the whole-region implementation and fixed fresh evaluation objective.
+**Assistant interpretation:** Carry model planning through the declared complete artifact gate and real measurements.
+**Inferred user intent:** Obtain evidence about reusable compiler policies while distinguishing actual transformations from available capabilities.
+**Commit (declaration):**114d90b — research(passnet): freeze region planning study and shared verification.
+
+### What I did
+- Executed script209 through shared compile_study.py; final status is qualified with twelve successful candidates across twenty graphs.
+- Saved scripts210–213 for complete staging, training, committed-selection confirmation and shared final verification.
+- Archived region-full-compile.log and preserved every candidate's source, decisions and artifact hashes.
+
+### Why
+- Exact executable fingerprints and accepted mutations answer different questions. A changed artifact is not proof that partial fusion was used or that latency improved.
+
+### What worked
+- All240 artifacts qualify; unchanged/default match; no candidate is omitted from the planned training set.
+- Fresh study source/target/numerical configuration remains fixed. CPU validation remains30 compiler test files plus the recorded Python/proposal scopes; CUDA fixture receipt remains108/108.
+
+### What didn't work
+- No region policy accepts a proper subset on this training population. Model-optimal partial-subset capability cannot be credited with a measured gain from accepted partial fusion here.
+- Artifact changes are structural/evidence identities, not a performance result.
+
+### What I learned
+- Region comparison can affect producer removal without using a proper subset; reporting must keep those observed decisions distinct.
+
+### What was tricky to build
+- Compilation is source-verified and completes after declaration freeze. Training and later confirmation must use the same qualified binaries and explicit reference precision.
+
+### What warrants a second pair of eyes
+- Review exact alias sharing and accepted decision traces before interpreting performance or algorithmic novelty.
+
+### What should be done in the future
+- Verify the staged host source, measure all training candidates, commit one selection, then evaluate baseline/selected only on the eight confirmation graphs.
+
+### Code review instructions
+- Read region-full-compile.log, policy-artifacts-v7/sensitivity.json and per-policy receipts, then scripts210–213.
+
+### Technical details
+- Compiler snapshot is recorded by the shared compilation receipt. Highest-precision FP32 research remains explicitly separate from native PassBench acceptance.

@@ -1,0 +1,210 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "002.kiln.js",
+  "sha256": "4cacf400ca96e2f29775db246fb376f256ca10dae69ee7b31d7a7c3d367869cc",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    48,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    48,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1,
+    48,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 3,
+   "shape": [
+    1,
+    48,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 4,
+   "shape": [
+    1,
+    48,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 150528,
+   "bytes": 602112
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 150528,
+   "bytes": 602112
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 150528,
+   "bytes": 602112
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 150528,
+   "bytes": 602112
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 48,
+   "bytes": 192
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__1mnfckezq7f",
+   "identity": "1mnfckezq7f",
+   "row": "TPB=128",
+   "reads": [
+    0,
+    1,
+    2
+   ],
+   "writes": 3,
+   "grid": 1176,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1176,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    48,
+    56,
+    56
+   ],
+   "inShapes": [
+    [
+     1,
+     48,
+     56,
+     56
+    ],
+    [
+     1,
+     48,
+     56,
+     56
+    ],
+    [
+     1,
+     48,
+     56,
+     56
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out0__1mnfckezq7f(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, in2 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 150528)) {\n        in0 = src1[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))];\n        in1 = src2[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))];\n        v0 = __fadd_rn(in0, in1);\n        in2 = src0[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))];\n        v1 = __fadd_rn(v0, in2);\n        dst[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))] = v1;\n    }\n}"
+  },
+  {
+   "name": "k_out1__325igbgit4",
+   "identity": "325igbgit4",
+   "row": "MAP=row,TPB=128",
+   "reads": [
+    3
+   ],
+   "writes": 4,
+   "grid": 48,
+   "block": 128,
+   "smemBytes": 512,
+   "dispatch": [
+    48,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    48,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     1,
+     48,
+     56,
+     56
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out1__325igbgit4(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[128];\n    float acc1 = 0.0f, acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, v1 = 0.0f, v2 = 0.0f;\n    acc1 = 0.0f;\n    for (int r121 = tid; r121 < 56; r121 += 128) {\n        acc0 = 0.0f;\n        for (int r122 = 0; r122 < 56; r122 += 1) {\n            in0 = src0[(((3136 * bid) + r121) + (56 * r122))];\n            v0 = in0;\n            acc0 = (acc0 + v0);\n        }\n        acc1 = (acc1 + acc0);\n    }\n    __syncthreads();\n    s_red[tid] = acc1;\n    __syncthreads();\n    if ((tid < 64)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 64)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 32)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 16)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 8)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 4)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 2)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 1)];\n        s_red[tid] = (sv12 + sv13);\n    }\n    __syncthreads();\n    acc1 = s_red[0];\n    v1 = __fmul_rn(acc1, 0.00031887755102040814f);\n    v2 = v1;\n    if ((tid == 0)) {\n        dst[bid] = v2;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "region-launch262144",
+  "kind": "region",
+  "max_work_growth": 1.02,
+  "launch_work": 262144,
+  "materialization_work": 0,
+  "provenance": {
+   "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+   "training_trace_sha256": "488676043b449751ca53be1e0f5fe88bf20a64b4fec94ec51fb02081e0b0886f"
+  }
+ }
+}
