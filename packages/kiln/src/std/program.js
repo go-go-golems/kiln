@@ -13,10 +13,10 @@ export const gpu = k.dialect("gpu").describe("the final IR: kernels with their r
   .op("kernel", {
     args: { variadic: "ins" },
     attrs: { K: null, cuda: "", wgsl: "", name: null, expr: null, shape: [], inShapes: [], inDtypes: [], map: null },
-    infer: ({ shape }) => k.tensor(shape),
+    infer: ({ shape, outDtype }) => k.tensor(shape, outDtype),
     print: ({ name, ins }) => `gpu.kernel ${name || "·"}(${ins})`,
     body: ({ cuda }) => cuda,
-    identity: ({ expr, shape, args }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}`),
+    identity: ({ expr, shape, args, outDtype }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}${outDtype && outDtype !== "f32" ? "|out:" + outDtype : ""}`),
     keyIgnore: ["name", "cuda", "wgsl"],
   });
 export const emitRule = k.rule("emit_sources").match(P.op("kernel.kernel").as("n"))
@@ -33,10 +33,10 @@ export function programOf(g) {
     if (n.name !== "gpu.kernel" && n.name !== "kernel.kernel") continue;
     const a = n.attrs, inDtypes = a.inShapes.map((_, i) => a.inDtypes?.[i] || "f32");
     kernels.push({
-      id, name: a.name || id, K: a.K, cuda: a.cuda || toCuda(a.K), wgsl: a.wgsl || toWgsl(a.K), expr: a.expr, shape: a.shape, inShapes: a.inShapes, inDtypes,
+      id, name: a.name || id, K: a.K, cuda: a.cuda || toCuda(a.K), wgsl: a.wgsl || toWgsl(a.K), expr: a.expr, shape: a.shape, inShapes: a.inShapes, inDtypes, outDtype: a.outDtype || "f32",
       args: n.args.map((x) => g.ref(x)), map: a.map, row: a.K.row,
-      identity: hash(`loop|${a.expr.__key}|${a.shape.join("x")}|${a.inShapes.map((s, i) => inKey(s, inDtypes[i])).join(",")}`),
-      bytes: numel(a.shape) * 4 + a.inShapes.reduce((s, x, i) => s + numel(x) * dtypeBytes(inDtypes[i]), 0),
+      identity: hash(`loop|${a.expr.__key}|${a.shape.join("x")}|${a.inShapes.map((s, i) => inKey(s, inDtypes[i])).join(",")}${a.outDtype && a.outDtype !== "f32" ? "|out:" + a.outDtype : ""}`),
+      bytes: numel(a.shape) * dtypeBytes(a.outDtype || "f32") + a.inShapes.reduce((s, x, i) => s + numel(x) * dtypeBytes(inDtypes[i]), 0),
     });
   }
   return { kernels, graph: g };

@@ -52,7 +52,7 @@ export function exportProgram(run, prog, { name, params = {}, target = null, sou
       }
       throw new KilnError("ExportError", `kernel ${kn.name} argument ${j} is ${src?.name || "missing"}: an exported argument must be a program input, a data constant, or an earlier kernel's output`);
     });
-    const writes = add(kn.id, "f32", kn.shape);
+    const writes = add(kn.id, kn.outDtype || "f32", kn.shape);
     const K = kn.K, exported = exportedName(kn);
     kernels.push({
       name: exported, identity: kn.identity, row: kn.row, reads, writes,

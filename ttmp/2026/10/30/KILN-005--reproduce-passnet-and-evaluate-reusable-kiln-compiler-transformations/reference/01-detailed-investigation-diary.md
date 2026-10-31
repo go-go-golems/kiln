@@ -1246,3 +1246,44 @@ Original full implementation objective and typed storage design.
 
 ### Technical details
 - Standalone emitted kernels, 32 test values, fixed seed 42 and midpoint cases; not full-domain GPU verification or graph execution support.
+
+## Step 30: Propagate explicit lowered result dtype
+
+Introduced outDtype through loop/tile/kernel/GPU representations, materialized CUDA output parameters and program export. Existing FP32 paths retain their default and identity format; non-FP32 output identities are distinguished in lower GPU stages. Frontend arithmetic promotion is still unchanged and reduced-precision importer remains disabled.
+
+### Prompt Context
+Original full compiler implementation objective and precision design.
+**Assistant interpretation:** Carry storage result semantics through lowering rather than infer them from input pointers.
+**Inferred user intent:** Correct typed outputs across the compiler boundary.
+
+### What I did
+- Added outDtype attributes/inference, propagated from primitive lowering through scheduling/materialization/emission.
+- Updated program byte estimates, non-FP32 output identity suffix and export output allocation dtype.
+- Added lowered-dtypes.mjs to validate FP32/FP16/BF16 typed view primitive lowering.
+
+### Why
+- Kernel output dtype cannot be assumed FP32 after typed graph inference.
+
+### What worked
+- Lowered view dtype test passed under local Node 26; program.js syntax check passed.
+
+### What didn't work
+- No new focused failures. Broad compiler/export tests and full low-precision graph compilation remain pending; WGSL unsupported-type diagnostic currently prevents complete dual-emission of typed kernels.
+
+### What I learned
+- Output precision must enter measurement identity as well as pointer types and byte counts.
+
+### What was tricky to build
+- Preserve unchanged FP32 identity formatting while separating newly represented output dtypes.
+
+### What warrants a second pair of eyes
+- Fusion must preserve producer rounding before inlining; output type propagation alone does not establish that invariant.
+
+### What should be done in the future
+- Run regressions, implement backend availability, preserve rounding through fusion and add typed frontend arithmetic inference.
+
+### Code review instructions
+- Review std/loop.js, tile.js, kernel.js, program.js, export.js and lowered-dtypes.mjs.
+
+### Technical details
+- No upstream code copied; this checkpoint is metadata propagation, not full FP16/BF16 benchmark support.

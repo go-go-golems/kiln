@@ -339,11 +339,11 @@ const analyzeFor = (node) => analyze(node.attrs.expr, node.attrs.shape, node.att
 export const tile = k.dialect("tile").describe("Tile IR: a Loop IR kernel plus its GPU mapping")
   .op("kernel", {
     args: { variadic: "ins" },
-    attrs: { expr: null, shape: [], name: null, origin: [], map: null, inShapes: [], inDtypes: [] },
-    infer: ({ shape }) => k.tensor(shape),
+    attrs: { expr: null, shape: [], outDtype: "f32", name: null, origin: [], map: null, inShapes: [], inDtypes: [] },
+    infer: ({ shape, outDtype }) => k.tensor(shape, outDtype),
     print: ({ name, ins, map }) => `tile.kernel ${name || "·"}(${ins})  [${canonRow(map || {})}]`,
     body: ({ args, map, node }) => printTile(analyzeFor(node), map, args, node.attrs.name),
-    identity: ({ expr, shape, args }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}`),
+    identity: ({ expr, shape, args, outDtype }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}${outDtype && outDtype !== "f32" ? "|out:" + outDtype : ""}`),
     keyIgnore: ["name", "origin"],
   });
 

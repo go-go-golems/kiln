@@ -251,7 +251,7 @@ export function materialize(node) {
   return {
     name: a.name || "kernel", grid: L.grid, block: L.block, smem: kb.smem, smemBytes, body: kb.body,
     floats: [...kb.floats], ints: [...kb.ints].filter((v) => v !== "tid" && v !== "bid"),
-    params: [...a.inShapes.map((s, i) => ({ name: "in" + i, size: numel(s), shape: s, role: "in", dtype: a.inDtypes?.[i] || "f32" })), { name: "out", size: numel(a.shape), shape: a.shape, role: "out" }],
+    params: [...a.inShapes.map((s, i) => ({ name: "in" + i, size: numel(s), shape: s, role: "in", dtype: a.inDtypes?.[i] || "f32" })), { name: "out", size: numel(a.shape), shape: a.shape, role: "out", dtype: a.outDtype || "f32" }],
     map: kn, row: canonRow(kn),
   };
 }
@@ -288,14 +288,14 @@ export const kern = k.dialect("kernel").describe("Kernel IR: threads, shared mem
   .op("kernel", {
     args: { variadic: "ins" },
     attrs: { K: null, name: null, expr: null, shape: [], inShapes: [], inDtypes: [], map: null },
-    infer: ({ shape }) => k.tensor(shape),
+    infer: ({ shape, outDtype }) => k.tensor(shape, outDtype),
     print: ({ name, ins }) => `kernel ${name || "·"}(${ins})`,
     body: ({ K, args }) => printKernelBody(K, args),
-    identity: ({ expr, shape, args }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}`),
+    identity: ({ expr, shape, args, outDtype }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}${outDtype && outDtype !== "f32" ? "|out:" + outDtype : ""}`),
     keyIgnore: ["name"],
   });
 export const materializeRule = k.rule("materialize").match(P.op("tile.kernel").as("t"))
-  .rewrite(({ t }) => t.lower(kern.kernel, { K: materialize(t.node), name: t.attrs.name, expr: t.attrs.expr, shape: t.attrs.shape, inShapes: t.attrs.inShapes, inDtypes: t.attrs.inDtypes, map: t.attrs.map }))
+  .rewrite(({ t }) => t.lower(kern.kernel, { K: materialize(t.node), name: t.attrs.name, expr: t.attrs.expr, shape: t.attrs.shape, inShapes: t.attrs.inShapes, inDtypes: t.attrs.inDtypes, outDtype: t.attrs.outDtype, map: t.attrs.map }))
   .describe("spell the chosen mapping out as threads, shared memory and syncs");
 
 // peephole: two syncs in a row, or a sync that ends the kernel, do nothing

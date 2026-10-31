@@ -269,8 +269,8 @@ export function runSerial(expr, shape, inputs) {
 export const loop = k.dialect("loop").describe("Loop IR: one kernel per node, an expression scheduled into a loop nest")
   .op("kernel", {
     args: { variadic: "ins" },
-    attrs: { expr: null, shape: [], name: null, origin: [] },
-    infer: ({ shape }) => k.tensor(shape),
+    attrs: { expr: null, shape: [], outDtype: "f32", name: null, origin: [] },
+    infer: ({ shape, outDtype }) => k.tensor(shape, outDtype),
     eval: ({ args, expr, shape }) => runSerial(expr, shape, args.map((a) => (a instanceof Tensor ? a : new Tensor([], Float32Array.of(a))))),
     print: ({ name, ins }) => `loop.kernel ${name || "·"}(${ins})`,
     body: ({ expr, shape, args }) => printNest(schedule(expr, shape), (i) => args[i] ?? "in" + i),
@@ -281,7 +281,7 @@ export const loop = k.dialect("loop").describe("Loop IR: one kernel per node, an
 // ----------------------------------------------------------------------------- l: lift
 const isSplat = (v) => v.is("tensor.const") && !v.attrs.data;
 const coords = (n) => IX.coordVars(n);
-const mkKernel = (args, expr, shape, origin) => loop.kernel(args, { expr, shape, origin: origin ? [origin] : [] });
+const mkKernel = (args, expr, shape, origin, outDtype = "f32") => loop.kernel(args, { expr, shape, outDtype, origin: origin ? [origin] : [] });
 export const liftEw = k.rule("lift_elementwise").match(P.op("tensor.ew").as("n")).rewrite(({ n }) => {
   const ins = [];
   const shape = n.type.shape;
@@ -291,15 +291,15 @@ export const liftEw = k.rule("lift_elementwise").match(P.op("tensor.ew").as("n")
     if (i < 0) { ins.push(a); i = ins.length - 1; }
     return E.load(i, coords(shape.length).slice(shape.length - a.type.shape.length));
   });
-  return mkKernel(ins, E.op(n.attrs.fn, ...ops), shape, n.attrs.origin);
+  return mkKernel(ins, E.op(n.attrs.fn, ...ops), shape, n.attrs.origin, n.type.dtype);
 });
 export const liftReduce = k.rule("lift_reduce").match(P.op("tensor.reduce").as("n")).rewrite(({ n }) => {
   const x = n.arg("x"), s = x.type.shape, ax = n.attrs.axis;
   const r = freshR();
   const idx = coords(s.length).map((c, i) => (i === ax ? IX.V(r) : c));
-  return mkKernel([x], E.red(n.attrs.fn, r, s[ax], E.load(0, idx)), n.type.shape, n.attrs.origin);
+  return mkKernel([x], E.red(n.attrs.fn, r, s[ax], E.load(0, idx)), n.type.shape, n.attrs.origin, n.type.dtype);
 });
-export const liftView = k.rule("lift_indexmap").match(P.op("tensor.view").as("n")).rewrite(({ n }) => mkKernel([n.arg("x")], E.load(0, n.attrs.map.exprs), n.attrs.shape, n.attrs.origin));
+export const liftView = k.rule("lift_indexmap").match(P.op("tensor.view").as("n")).rewrite(({ n }) => mkKernel([n.arg("x")], E.load(0, n.attrs.map.exprs), n.attrs.shape, n.attrs.origin, n.type.dtype));
 export const liftSplatOut = k.rule("lift_constant_output").match(P.op("tensor.const").as("n").where(({ n, graph }) => !n.attrs.data && graph.isOutput(n.id)))
   .rewrite(({ n }) => mkKernel([], E.num(n.attrs.value), n.type.shape, "constant"));
 export const lift = k.pass("loop/lowering").short("l").rules(liftEw, liftReduce, liftView, liftSplatOut)
