@@ -3,6 +3,7 @@
 Independent lowering against Kiln N APIs. No upstream implementation copied.
 """
 import json
+from fx_indexing import lower_index
 
 
 def import_graph(graph):
@@ -29,6 +30,10 @@ def import_graph(graph):
 
     def decode(v):
         if isinstance(v, dict):
+            if set(v) == {'ellipsis'} and v['ellipsis'] is True:
+                return Ellipsis
+            if set(v) == {'slice'}:
+                return slice(*(literal(decode(x)) for x in v['slice']))
             if set(v) == {'dtype'}:
                 return json.dumps(v['dtype'])
             if set(v) == {'ref'}:
@@ -81,7 +86,17 @@ def import_graph(graph):
                   '_operator.mul':'mul', 'torch.mul':'mul', 'aten.mul.Tensor':'mul',
                   '_operator.sub':'sub', '_operator.truediv':'div'}
         reduction = target in ('torch.sum','torch.mean','aten.sum.dim_IntList','aten.mean.dim') or (node['kind']=='call_method' and target in ('sum','mean'))
-        if reduction:
+        if target == '_operator.getitem':
+            if len(args)!=2 or kwargs: raise ValueError(f'{name}: invalid indexing arguments')
+            source=node['args']['tuple'][0].get('ref')
+            if source not in metadata or not isinstance(metadata[source],dict):
+                raise ValueError(f'{name}: basic tensor indexing requires tensor source')
+            def index_literal(value):
+                if isinstance(value,tuple): return tuple(index_literal(x) for x in value)
+                if isinstance(value,slice) or value is Ellipsis: return value
+                return literal(value)
+            expr=lower_index(args[0],index_literal(args[1]),metadata[source]['shape'],meta['shape'])
+        elif reduction:
             fields=['input','dim','keepdim']
             if len(args)>3 or set(kwargs)-{'dim','keepdim'}:
                 raise ValueError(f'{name}: unsupported reduction arguments')

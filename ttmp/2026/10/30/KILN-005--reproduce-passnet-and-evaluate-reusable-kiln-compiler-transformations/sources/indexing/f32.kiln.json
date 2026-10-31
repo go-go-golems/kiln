@@ -1,0 +1,186 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../indexing/f32.kiln.js",
+  "sha256": "b42387efa9cf463455e12920d218b15c0e8b9f1c236f90b53a030f3598959d7d"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    5,
+    4
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    2,
+    3,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 2,
+   "shape": [
+    2,
+    5,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out2",
+   "buffer": 3,
+   "shape": [
+    5,
+    4
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 40,
+   "bytes": 160
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 6,
+   "bytes": 24
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 10,
+   "bytes": 40
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 20,
+   "bytes": 80
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__1aotqitmdyz",
+   "identity": "1aotqitmdyz",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    3,
+    1
+   ],
+   "inShapes": [
+    [
+     2,
+     5,
+     4
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 6i) {\n        v_in0 = b0[(((20i * ((((n_e % 3i) + (3i * (n_e / 3i))) / 3i) % 2i)) + (4i * ((n_e % 3i) % 3i))) + 6i)];\n        bout[((n_e % 3i) + (3i * (n_e / 3i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_out0__1aotqitmdyz(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 6)) {\n        in0 = src0[(((20 * ((((e % 3) + (3 * (e / 3))) / 3) % 2)) + (4 * ((e % 3) % 3))) + 6)];\n        dst[((e % 3) + (3 * (e / 3)))] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_out1__29aqzrvt36i",
+   "identity": "29aqzrvt36i",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 2,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    5,
+    1
+   ],
+   "inShapes": [
+    [
+     2,
+     5,
+     4
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 10i) {\n        v_in0 = b0[(((20i * ((((n_e % 5i) + (5i * (n_e / 5i))) / 5i) % 2i)) + (4i * ((n_e % 5i) % 5i))) + 1i)];\n        bout[((n_e % 5i) + (5i * (n_e / 5i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_out1__29aqzrvt36i(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 10)) {\n        in0 = src0[(((20 * ((((e % 5) + (5 * (e / 5))) / 5) % 2)) + (4 * ((e % 5) % 5))) + 1)];\n        dst[((e % 5) + (5 * (e / 5)))] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_out2__ysdd2bfdz5",
+   "identity": "ysdd2bfdz5",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 3,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    5,
+    4
+   ],
+   "inShapes": [
+    [
+     2,
+     5,
+     4
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 20i) {\n        v_in0 = b0[(((4i * ((((n_e % 4i) + (4i * (n_e / 4i))) / 4i) % 5i)) + ((n_e % 4i) % 4i)) + 20i)];\n        bout[((n_e % 4i) + (4i * (n_e / 4i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_out2__ysdd2bfdz5(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 20)) {\n        in0 = src0[(((4 * ((((e % 4) + (4 * (e / 4))) / 4) % 5)) + ((e % 4) % 4)) + 20)];\n        dst[((e % 4) + (4 * (e / 4)))] = in0;\n    }\n}"
+  }
+ ]
+}

@@ -10,6 +10,8 @@ from torch.fx.passes.shape_prop import ShapeProp
 
 
 def encode(value):
+    if value is Ellipsis:
+        return {"ellipsis": True}
     if isinstance(value, Node):
         return {"ref": value.name}
     if isinstance(value, tuple):

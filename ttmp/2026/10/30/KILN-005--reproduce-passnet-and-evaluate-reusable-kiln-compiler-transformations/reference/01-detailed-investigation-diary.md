@@ -2790,3 +2790,93 @@ See the full-corpus objective and the user's architectural consolidation request
 
 ### Completed audit outcome
 The audit finished all 200 tasks and 2,060 graphs. Script 57 verifies exact task/graph membership and detects duplicates before summarizing. Current import succeeds for 279 graphs, comprising 19 complete tasks. These are not compiled/verified coverage claims. First blockers include slice decoding (504 graphs), cat (135), unsupported input dtypes (118), linear (114), matmul (81) and softmax (70). Fifty-nine graphs fail trusted source tracing because this local machine lacks an NVIDIA driver; those environment failures must not be mislabeled compiler-operator gaps. Only the first blocker is counted, so these counts are not marginal feature unlock estimates.
+
+## Step 66: Lower static basic tensor indexing in a focused module
+
+Implemented static tensor getitem lowering after the complete import audit identified slice decoding as the first blocker for 504 graphs. The new fx_indexing.py module owns normalization and shape reconstruction, avoiding further expansion of the main importer. CPU checks pass; independent CUDA probes and a new full-corpus audit are running.
+
+### Prompt Context
+See full-corpus implementation objective and Step 63's architectural consolidation request.
+**Assistant interpretation:** Address the largest observed first blocker with explicit semantic boundaries.
+**Inferred user intent:** Expand compiler coverage while keeping implementation ownership clear.
+**Commit (metadata audit):** df6eb82.
+
+### What I did
+- Added static slices, negative integer indices, ellipsis and None-axis handling.
+- Lowered selections to N.slice with final reshape; checked output metadata against independently computed shape.
+- Added ellipsis serialization and slice decoding to interchange/import.
+- Added positive and rejection regressions; 26 integration tests passed.
+- Saved scripts 58/59 for independent three-dtype, three-output indexing probes using shared corpus runners.
+- Preserved the complete pre-indexing audit before rerunning inspection.
+
+### Why
+- Basic indexing is a graph-language dependency distinct from advanced gather or mutation/alias analysis.
+
+### What worked
+- CPU import tests cover combined slices/integer selection/None, ellipsis and explicit strided-slice rejection.
+
+### What didn't work
+- Strided slices and empty outputs remain explicit errors requiring further compiler support. No silent approximation or advanced-index fallback was added.
+
+### What I learned
+- Integer selection can retain unit dimensions through slicing, then remove them alongside inserted None axes in one reshape without changing logical element order.
+
+### What was tricky to build
+- Source-axis consumption differs for integer, slice, None and ellipsis; output-shape validation catches normalization mistakes.
+
+### What warrants a second pair of eyes
+- Indexing is value-semantic; mutation-dependent aliasing and external noncontiguous inputs remain unsupported.
+
+### What should be done in the future
+- Observe CUDA probe results and inspect the new full-audit blocker distribution before claiming unlocks.
+
+### Code review instructions
+- Review fx_indexing.py, fx_import.py getitem branch, fx_export.py ellipsis encoding and scripts 58/59.
+
+### Technical details
+- Independent lowering using Python slice.indices for bound normalization and existing Kiln slice/reshape. No PyTorch implementation port. Verified PassBench coverage remains 4/200 tasks, 49/2060 graphs until further original-evaluator results.
+
+### Completed indexing validation
+FP32, FP16 and BF16 probes compiled with successful loop-level reference checks and passed the shared CUDA checker for every output. Post-indexing audit again completed exact membership for all 200 tasks/2,060 graphs: 381 graphs and 21 complete tasks import successfully. These counts remain separate from verified benchmark coverage. The largest subsequent blocker is now `unsupported target torch.cat; implement semantic lowering` (531 graphs).
+
+## Step 67: Deliver the updated guide and author the corpus milestone report
+
+Uploaded the updated intern guide together with design document 04 as a new progress edition, preserving the previous edition and its annotations. Authored the milestone report explaining shared corpus ownership, operator-preserving matching, upstream multi-output helper provenance, accepted task evidence and complete import-audit limitations.
+
+### Prompt Context
+See original intern-guide delivery and detailed milestone-report requirements.
+**Assistant interpretation:** Keep research deliverables current at the consolidation and complete-corpus-audit checkpoint.
+**Inferred user intent:** Make the implementation understandable and reproducible for a new contributor.
+
+### What I did
+- Appended guide section 21 with current coverage, metadata inspection and indexing semantics.
+- Uploaded guide plus consolidation design with remarquee upload bundle to a distinct Progress 02 name.
+- Created reference/05-milestone-report-from-individual-probes-to-a-corpus-runner.md through docmgr and authored its technical analysis.
+
+### Why
+- Documentation must distinguish translation counts, numerical probes, benchmark acceptance and performance claims.
+
+### What worked
+- Exact delivery evidence: `OK: uploaded KILN-005 PassNet Intern Guide Progress 02.pdf -> /ai/2026/10/30/KILN-005`.
+- Final affected integration gate: 26 tests passed; whitespace check passed.
+
+### What didn't work
+- Vault publication remains on hold after the previously documented automatic approval-review rejection for the existing go-go-parc GitHub destination. No new publication attempt or alternate route was used while its explicit approval question remains unanswered.
+
+### What I learned
+- A complete import audit materially changes prioritization, exposing concatenation after basic indexing removes earlier diagnostics.
+
+### What was tricky to build
+- Keep cloud delivery evidence distinct from physical device synchronization and keep pending vault publication distinct from completed ticket authorship.
+
+### What warrants a second pair of eyes
+- Review the milestone report's protocol identities, approximate-parity score and explicit numerical/coverage limitations.
+
+### What should be done in the future
+- Implement concatenation, continue full-corpus support and publish the prepared vault reports after destination approval is resolved.
+
+### Code review instructions
+- Read reference 05 and design documents 01/04, then inspect the exact coverage and import-audit receipts.
+
+### Technical details
+- New reMarkable name avoids overwrite. All checked source materials and intermediate experiment scripts remain within the ticket. Goal remains active and far from full 200-task execution support.

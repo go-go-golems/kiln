@@ -97,6 +97,24 @@ class ImportTests(unittest.TestCase):
         node['kwargs']={'dict':{}}
         with self.assertRaisesRegex(ValueError,'explicit dtype'): import_graph(graph)
 
+    def test_basic_static_indexing(self):
+        class Model(torch.nn.Module):
+            def forward(self,x): return x[:,1:-1,-2,None]
+        result=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,5,4),)))
+        self.assertIn('N.slice',result['script']);self.assertIn('[2, 3, 1]',result['script'])
+
+    def test_ellipsis_indexing(self):
+        class Model(torch.nn.Module):
+            def forward(self,x): return x[...,1,None]
+        result=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3,4),)))
+        self.assertIn('[2, 3, 1]',result['script'])
+
+    def test_strided_indexing_rejected(self):
+        class Model(torch.nn.Module):
+            def forward(self,x): return x[:,::2]
+        with self.assertRaisesRegex(ValueError,'Strided'):
+            import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,6),)))
+
     def test_dtype_and_layout_rejected(self):
         class Model(torch.nn.Module):
             def forward(self, x):
