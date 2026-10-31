@@ -461,3 +461,43 @@ See Step 9.
 
 ### Technical details
 - Original graph shape [1000,128], 128 channels; tested CUDA runtime container and compiler environment as Step 8. No upstream code copied.
+
+## Step 11: Preserve intermediate procedures as reproducible scripts
+
+Saved the previously interactive first-task export procedure as scripts/04-export-first-task.py and added a read-only progress inspection script. Future temporary diagnostic and experiment scripts will remain in this ticket scripts directory so reports can reference exact procedures. Reusable integration code remains tracked under integrations/passnet.
+
+### Prompt Context
+**User prompt (verbatim):** "save termporary intermediate scripts as well, in the scripts/ folder, so we can track your progress later on for our reports"
+**Assistant interpretation:** Preserve investigation procedures rather than leaving them only in tool-call history.
+**Inferred user intent:** Reconstruct implementation and experimental progress for later technical reports.
+
+### What I did
+- Added numbered export and observation scripts plus scripts/README.md.
+- Export script emits both kiln-fx/1 JSON and the compiler project with valid statistics.
+
+### Why
+- Reports need runnable procedures as well as narrative results.
+
+### What worked
+- Existing tracked download, baseline and materialization scripts already satisfy this convention; first-task export is now reproducible from its pinned source.
+
+### What didn't work
+- No new failures.
+
+### What I learned
+- Saved reconstruction is explicitly labeled as such; it must not be presented as the byte-identical original shell transcript.
+
+### What was tricky to build
+- Repository discovery uses actual integration file presence so invocation does not depend on working directory.
+
+### What warrants a second pair of eyes
+- Future experiment scripts must preserve immutable inputs and exact settings, including runtime image identity.
+
+### What should be done in the future
+- Continue matcher/scorer integration and preserve every intermediate diagnostic in scripts.
+
+### Code review instructions
+- Run scripts/04-export-first-task.py with PyTorch; inspect emitted FX JSON and script.
+
+### Technical details
+- No upstream code copied; the script loads the pinned upstream GraphModule explicitly.

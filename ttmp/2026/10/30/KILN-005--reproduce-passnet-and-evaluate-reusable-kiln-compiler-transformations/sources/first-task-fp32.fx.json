@@ -1,0 +1,249 @@
+{
+  "format": "kiln-fx/1",
+  "torch_version": "2.11.0+cu130",
+  "nodes": [
+    {
+      "id": "in_0",
+      "kind": "placeholder",
+      "target": "in_0",
+      "args": {
+        "tuple": []
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": {
+        "shape": [
+          128
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "in_1",
+      "kind": "placeholder",
+      "target": "in_1",
+      "args": {
+        "tuple": []
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": {
+        "shape": [
+          128
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "in_2",
+      "kind": "placeholder",
+      "target": "in_2",
+      "args": {
+        "tuple": []
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": {
+        "shape": [
+          128
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "in_3",
+      "kind": "placeholder",
+      "target": "in_3",
+      "args": {
+        "tuple": []
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": {
+        "shape": [
+          128
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "in_4",
+      "kind": "placeholder",
+      "target": "in_4",
+      "args": {
+        "tuple": []
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": {
+        "shape": [
+          1000,
+          128
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          128,
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "relu",
+      "kind": "call_function",
+      "target": "torch.nn.functional.relu",
+      "args": {
+        "tuple": [
+          {
+            "ref": "in_4"
+          }
+        ]
+      },
+      "kwargs": {
+        "dict": {
+          "inplace": false
+        }
+      },
+      "tensor_meta": {
+        "shape": [
+          1000,
+          128
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          128,
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "batch_norm",
+      "kind": "call_function",
+      "target": "torch.nn.functional.batch_norm",
+      "args": {
+        "tuple": [
+          {
+            "ref": "relu"
+          },
+          {
+            "ref": "in_0"
+          },
+          {
+            "ref": "in_1"
+          }
+        ]
+      },
+      "kwargs": {
+        "dict": {
+          "weight": {
+            "ref": "in_3"
+          },
+          "bias": {
+            "ref": "in_2"
+          },
+          "training": false,
+          "momentum": 0.1,
+          "eps": 1e-05
+        }
+      },
+      "tensor_meta": {
+        "shape": [
+          1000,
+          128
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          128,
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "dropout",
+      "kind": "call_function",
+      "target": "torch.nn.functional.dropout",
+      "args": {
+        "tuple": [
+          {
+            "ref": "batch_norm"
+          }
+        ]
+      },
+      "kwargs": {
+        "dict": {
+          "p": 0.0,
+          "training": false,
+          "inplace": false
+        }
+      },
+      "tensor_meta": {
+        "shape": [
+          1000,
+          128
+        ],
+        "dtype": "torch.float32",
+        "strides": [
+          128,
+          1
+        ],
+        "requires_grad": false
+      }
+    },
+    {
+      "id": "output",
+      "kind": "output",
+      "target": "output",
+      "args": {
+        "tuple": [
+          {
+            "tuple": [
+              {
+                "ref": "dropout"
+              }
+            ]
+          }
+        ]
+      },
+      "kwargs": {
+        "dict": {}
+      },
+      "tensor_meta": [
+        {
+          "shape": [
+            1000,
+            128
+          ],
+          "dtype": "torch.float32",
+          "strides": [
+            128,
+            1
+          ],
+          "requires_grad": false
+        }
+      ]
+    }
+  ]
+}
