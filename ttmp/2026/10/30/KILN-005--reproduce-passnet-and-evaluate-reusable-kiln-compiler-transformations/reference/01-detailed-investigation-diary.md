@@ -2085,3 +2085,44 @@ Original full implementation/measurement and preserved scripts requirement.
 
 ### Technical details
 - Small FP32 fixtures, explicit output size and align_corners=False only; no upstream implementation copied.
+
+## Step 50: Import convolution/residual/resize chain with mutation legality
+
+Added explicit FP32 convolution and bilinear interpolation import plus a narrow legality check for in-place ReLU. The in-place result is functionalized only when its operand is a fresh torch.conv2d result referenced exactly once by the graph; mutations of inputs or other producers remain rejected.
+
+### Prompt Context
+Original full compiler/importer support and no silent semantic changes requirement.
+**Assistant interpretation:** Preserve alias/mutation behavior while enabling the actual third-task pattern.
+**Inferred user intent:** Correct graph translation across complete operator chains.
+
+### What I did
+- Added argument binding/defaults for torch.conv2d and explicit-size bilinear align_corners=False interpolation.
+- Counted source references and checked fresh single-use convolution output before discarding in-place ReLU mutation.
+- Added positive chain test and negative input-mutation test.
+
+### Why
+- Functionalizing arbitrary in-place operations can silently change aliased inputs and observable outputs.
+
+### What worked
+- Twelve integration CPU tests passed, including full synthetic chain import and rejected input mutation.
+
+### What didn't work
+- No new failures; real third-task shapes and original evaluator acceptance remain unverified.
+
+### What I learned
+- Exact source reference counts support a narrow proven freshness case; they are not a general alias analysis.
+
+### What was tricky to build
+- Separate positional/keyword binding and static literals from tensor references; preserve convolution options explicitly.
+
+### What warrants a second pair of eyes
+- Duplicate/missing argument validation, low precision and broader alias-producing operators remain incomplete. Current mutation allowance is intentionally restricted.
+
+### What should be done in the future
+- Export real third-task FP32 graph, compile/GPU-check it, implement low-precision variants and full-task checker path.
+
+### Code review instructions
+- Review fx_import.py and new chain/mutation tests in test_fx_import.py.
+
+### Technical details
+- Independent importer implementation; no upstream code copied and no task-coverage increment claimed.

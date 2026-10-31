@@ -12,6 +12,20 @@ def import_graph(graph):
     dtype_names = {'torch.float32':'f32','torch.float16':'f16','torch.bfloat16':'bf16'}
     input_dtypes = {}
     metadata = {n['id']: n.get('tensor_meta') for n in graph['nodes']}
+    nodes_by_id = {n['id']: n for n in graph['nodes']}
+    uses = {}
+    def references(value):
+        if isinstance(value,dict):
+            if set(value)=={'ref'}: uses[value['ref']]=uses.get(value['ref'],0)+1
+            else:
+                for item in value.values(): references(item)
+        elif isinstance(value,list):
+            for item in value: references(item)
+    for node in graph['nodes']:
+        references(node['args']);references(node['kwargs'])
+    def literal(value):
+        if isinstance(value,(tuple,list)): return [literal(x) for x in value]
+        return json.loads(value)
 
     def decode(v):
         if isinstance(v, dict):
@@ -71,6 +85,25 @@ def import_graph(graph):
             if any(type(d) is not int for d in dims):
                 raise ValueError(f'{name}: transpose dimensions must be integers')
             expr = f'N.transpose({args[0]}, {dims[0]}, {dims[1]})'
+        elif target == 'torch.conv2d':
+            if meta.get('dtype') != 'torch.float32':
+                raise ValueError(f'{name}: convolution currently requires FP32')
+            fields=['input','weight','bias','stride','padding','dilation','groups']
+            if len(args)>7 or set(kwargs)-set(fields): raise ValueError(f'{name}: unsupported conv2d arguments')
+            bound=dict(zip(fields,args))
+            if set(bound)&set(kwargs): raise ValueError(f'{name}: duplicate conv2d argument')
+            bound.update(kwargs)
+            options={key:literal(bound.get(key,default)) for key,default in [('stride','1'),('padding','0'),('dilation','1'),('groups','1')]}
+            expr=f'N.conv2d({bound["input"]}, {bound["weight"]}, {bound.get("bias","null")}, {json.dumps(options)})'
+        elif target == 'torch.nn.functional.interpolate':
+            if meta.get('dtype') != 'torch.float32' or len(args)!=1:
+                raise ValueError(f'{name}: interpolation currently requires FP32 and explicit keyword options')
+            if set(kwargs)-{'size','scale_factor','mode','align_corners','recompute_scale_factor','antialias'}:
+                raise ValueError(f'{name}: unsupported interpolation arguments')
+            if kwargs.get('mode')!='"bilinear"' or kwargs.get('align_corners')!='false' or kwargs.get('scale_factor','null')!='null' or kwargs.get('antialias','false')!='false' or kwargs.get('recompute_scale_factor','null') not in ('null','false'):
+                raise ValueError(f'{name}: only explicit-size bilinear align_corners=False supported')
+            size=literal(kwargs['size'])
+            expr=f'N.resizeBilinear({args[0]}, {json.dumps(size)})'
         elif target == 'torch.nn.functional.batch_norm':
             # Public PyTorch functional signature: input, mean, var, weight, bias,
             # training=False, momentum=0.1, eps=1e-5. Inference only.
@@ -115,6 +148,12 @@ def import_graph(graph):
                 raise ValueError(f'{name}: only disabled non-inplace dropout supported')
             expr = bound['input']
         elif target in unary:
+            if kwargs.get('inplace') == 'true':
+                ref=node['args']['tuple'][0].get('ref')
+                producer=nodes_by_id.get(ref,{})
+                if target!='torch.nn.functional.relu' or producer.get('target')!='torch.conv2d' or uses.get(ref)!=1:
+                    raise ValueError(f'{name}: inplace operation requires fresh single-use convolution output')
+                kwargs={k:v for k,v in kwargs.items() if k!='inplace'}
             if len(args) != 1 or any(k != 'inplace' or v != 'false' for k,v in kwargs.items()):
                 raise ValueError(f'{name}: unsupported unary arguments')
             expr = f'N.{unary[target]}({args[0]})'

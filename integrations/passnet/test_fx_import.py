@@ -42,6 +42,23 @@ class ImportTests(unittest.TestCase):
             self.assertIn('N.div',result['script'])
             self.assertIn('N.transpose',result['script'])
 
+    def test_conv_relu_residual_resize(self):
+        class Model(torch.nn.Module):
+            def forward(self,b,w,residual,x):
+                y=torch.conv2d(x,w,b,(2,2),(1,1),(1,1),1)
+                y=torch.nn.functional.relu(y,inplace=True)
+                return torch.nn.functional.interpolate(residual+y,size=(5,5),mode='bilinear',align_corners=False)
+        values=(torch.randn(3),torch.randn(3,2,3,3),torch.randn(1,3,3,3),torch.randn(1,2,5,5))
+        result=import_graph(export_graph(symbolic_trace(Model()),values))
+        self.assertIn('N.conv2d',result['script']);self.assertIn('N.resizeBilinear',result['script'])
+
+    def test_inplace_input_rejected(self):
+        class Model(torch.nn.Module):
+            def forward(self,x): return torch.nn.functional.relu(x,inplace=True)
+        graph=export_graph(symbolic_trace(Model()),(torch.randn(2,3),))
+        with self.assertRaisesRegex(ValueError,'fresh single-use'):
+            import_graph(graph)
+
     def test_dtype_and_layout_rejected(self):
         class Model(torch.nn.Module):
             def forward(self, x):

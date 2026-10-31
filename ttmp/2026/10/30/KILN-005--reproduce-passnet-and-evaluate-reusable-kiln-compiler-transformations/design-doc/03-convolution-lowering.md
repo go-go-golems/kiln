@@ -24,3 +24,7 @@ The reference accumulates JavaScript numeric products then stores FP32. It is a 
 Pending lowering must represent safe masked loads, since evaluating an out-of-bounds load and selecting zero afterward is invalid. Options include explicit padded tensors or conditional load expressions with reference, loop scheduler, simulator and emitter support. The lowering must preserve groups, bias and accumulation/result precision. Cost models need compute and memory estimates for the resulting reduction structure, followed by actual CUDA profiling.
 
 Completion requires frontend inference/reference, legal lowering, source-preserving precision, CUDA execution, original task numerical/dtype checks and all-variant accounting. Reference tests alone do not increment benchmark coverage. Bilinear interpolation and mutation/alias legality for ReLU remain separate task dependencies.
+
+## Implemented progression
+
+Reference, decomposed reference and full CUDA compiler fixture tests now pass for three grouped/strided/dilated FP32 convolution cases. Bilinear resize also has four reference/decomposition/full-GPU fixtures. The importer accepts their FP32 source chain and functionalizes in-place ReLU only for fresh single-use convolution output, based on source graph reference counts. This does not establish real third-task coverage; actual shapes, reduced precision, alias cases and evaluator/scoring remain pending. See diary Steps 45–50 and scripts 28–31 for exact evidence.
