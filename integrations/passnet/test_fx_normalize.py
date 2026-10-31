@@ -37,6 +37,29 @@ class NormalizeTests(unittest.TestCase):
         self.assertEqual(len(SubgraphMatcher(pat.graph).match(model.graph)),1)
         torch.testing.assert_close(model(*inputs),expected,rtol=0,atol=0)
 
+    def test_softmax_dynamo_defaults_and_semantic_guards(self):
+        def pattern(x):return torch.nn.functional.softmax(x,dim=-1)
+        pat=symbolic_trace(pattern);captured=[]
+        def backend(gm,inputs):
+            captured.append(gm)
+            return gm.forward
+        inputs=(torch.randn(2,3),)
+        expected=torch.compile(pattern,backend=backend)(*inputs)
+        self.assertEqual(len(captured),1)
+        model=captured[0]
+        self.assertEqual(len(SubgraphMatcher(pat.graph).match(model.graph)),0)
+        normalize_arguments(pat);normalize_arguments(model)
+        self.assertEqual(len(SubgraphMatcher(pat.graph).match(model.graph)),1)
+        torch.testing.assert_close(model(*inputs)[0],expected,rtol=0,atol=0)
+        self.assertEqual(normalize_arguments(model),[])
+        # Normalization preserves the dimension and dtype predicates.
+        for options in [{'dim':0},{'dim':-1,'dtype':torch.float16}]:
+            graph=Graph();x=graph.placeholder('x')
+            out=graph.call_function(torch.nn.functional.softmax,(x,),options)
+            graph.output(out);different=GraphModule({},graph)
+            normalize_arguments(different)
+            self.assertEqual(len(SubgraphMatcher(pat.graph).match(different.graph)),0)
+
     def test_invalid_call_fails_before_mutation(self):
         graph=Graph();x=graph.placeholder('x')
         relu=graph.call_function(torch.nn.functional.relu,(x,),{'bad':True});graph.output(relu)

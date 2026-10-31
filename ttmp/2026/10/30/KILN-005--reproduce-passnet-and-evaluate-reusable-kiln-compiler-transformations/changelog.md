@@ -77,3 +77,7 @@ Implemented local model-optimal whole-region fusion planner with canonical regio
 ## 2026-10-31
 
 Complete canonical codegen/3 study: all eight confirmation graphs qualify; baseline selection 58133d1 is unchanged, so identity ratios establish no speedup. Record reliable subprocess validation, canonical source replay, transpose/input-only exports and milestone report 15.
+
+## 2026-10-31
+
+Commit source softmax lowering as 80d022e: 45 FX tests and 99 CUDA comparisons pass; full import eligibility rises to 1122 graphs/61 complete families. Freeze all ten newly complete families (93 graphs) for original-evaluator qualification; no acceptance increment claimed before its audit. Canonical milestone report published and pushed in vault 19be088.

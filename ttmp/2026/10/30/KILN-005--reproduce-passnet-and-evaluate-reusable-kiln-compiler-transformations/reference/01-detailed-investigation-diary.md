@@ -5507,3 +5507,53 @@ See the initial authored requests and Steps 116–121. The latest authored quest
 
 ### Technical details
 - Current strict original acceptance remains eleven tasks/206 individual graphs until a new original-evaluator audit proves an increment. New GPU fixture comparisons are independent correctness checks, not official task acceptance or speedup evidence.
+
+## Step 123: Diagnose actual softmax matcher rejection and repair signature normalization
+
+The frozen cohort runs against source commit 80d022e after all 157 source files match the local and remote snapshot. Its first completed family scores 0.1 and the raw log shows no replacement executed. This is an integration failure, not a numerical result: `RuntimeError: [PassMgrBackend] No passes modified the graph.` The original run remains active and its sources are unchanged.
+
+Local diagnostics identify the mismatch precisely. Symbolic FX inserts functional softmax defaults `_stacklevel=3, dtype=None`; Dynamo omits them. Extending the existing functional-signature normalizer resolves this representation mismatch without changing computations, dimensions or dtype predicates. All 46 FX tests pass, including actual Dynamo capture and negative matching guards. The repair has not yet been evaluated on the original GPU cohort and no acceptance increment is claimed.
+
+### Prompt Context
+See Step 122 and the authored requests to implement missing pieces, preserve intermediate scripts and document provenance.
+**Assistant interpretation:** Follow the original evaluator evidence through the integration boundary and fix an actual blocker before claiming benchmark support.
+**Inferred user intent:** Produce verified complete-task execution, with preserved failed attempts and reproducible source identities.
+
+### What I did
+- Committed the source softmax implementation and frozen cohort in 80d022e.
+- Script 251 verifies all 157 committed compiler/runtime source files on bling.local; script 253 starts `passnet-softmax-cohort` and confirms PID 1215262 running evaluate_tasks.py.
+- Prepared scripts 254–256 for terminal collection, original numerical/matching audit and source/membership/scorer verification.
+- Inspected the first score and raw execution failure, then saved script 257 and before/after Dynamo/FX traces.
+- Added functional softmax to the existing inspectable-signature whitelist and an actual Dynamo matching regression. Different axes and dtypes remain distinct predicates.
+
+### Why
+- Original runner and scorer process exits are insufficient: this failure produces completed processes and a score while executing no replacement.
+- The integration must preserve source semantics and the upstream matcher's predicates. Filling public defaults consistently uses the existing declared protocol instead of replacing the matcher.
+
+### What worked
+- Both real captured graphs normalize to the same positional functional signature; the matcher finds exactly one occurrence.
+- `python3 -m unittest discover -s integrations/passnet -p 'test_fx*.py'`: 46 tests pass in softmax-matcher-tests.log.
+- The active original cohort continues advancing under its immutable initial snapshot; no current evidence is overwritten or reclassified.
+
+### What didn't work
+- First-family raw diagnostic: `[PassMgrBackend] Pass KilnPattern0000 failed to match` followed by `RuntimeError: [PassMgrBackend] No passes modified the graph.` The original score is 0.10000000000000002.
+- An SSH diagnostic using rg failed with `bash: line 1: rg: command not found`; Python was used to inspect remote logs instead.
+
+### What I learned
+- Source lowering, CUDA correctness and original structural matching remain independent gates. A missing default-argument normalization can block an otherwise valid generated implementation.
+
+### What was tricky to build
+- Changing remote sources while the cohort runs would invalidate its snapshot. The repair is developed and tested locally; staging waits for the original run to finish.
+
+### What warrants a second pair of eyes
+- Inspect the actual before/after graphs and negative matcher predicates. Confirm that no dimension/dtype value is erased and no original numerical check is altered.
+
+### What should be done in the future
+- Collect and audit the first terminal cohort, then rerun exactly the same membership under the committed repair in a distinct output directory. Preserve all failed graphs in the accounting.
+- Continue original PassAgent setup after the model/provider reply, full compiler support and broader transformation synthesis.
+
+### Code review instructions
+- Review fx_normalize.py and test_fx_normalize.py, design 14's structural matching section, script 257 and both trace logs. Use the live driver log and run.json to determine actual cohort status; a tmux pane alone is not completion evidence.
+
+### Technical details
+- Current strict acceptance remains eleven tasks/206 graphs. Import eligibility is 1,122/61. Source/fixture correctness is not used to substitute for an original-evaluator acceptance result.

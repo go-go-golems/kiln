@@ -1,0 +1,46 @@
+PATTERN BEFORE 
+
+
+def forward(self, in_0, in_1):
+    mul = 0.0625 * in_0;  in_0 = None
+    softmax = torch.nn.functional.softmax(mul, dim = -1, _stacklevel = 3, dtype = None);  mul = None
+    matmul = torch.matmul(softmax, in_1);  softmax = in_1 = None
+    permute = matmul.permute(0, 2, 1);  matmul = None
+    return permute
+    
+NORMALIZATION []
+PATTERN AFTER 
+
+
+def forward(self, in_0, in_1):
+    mul = 0.0625 * in_0;  in_0 = None
+    softmax = torch.nn.functional.softmax(mul, dim = -1, _stacklevel = 3, dtype = None);  mul = None
+    matmul = torch.matmul(softmax, in_1);  softmax = in_1 = None
+    permute = matmul.permute(0, 2, 1);  matmul = None
+    return permute
+    
+DYNAMO BEFORE 
+
+
+def forward(self, L_in_0_ : torch.Tensor, L_in_1_ : torch.Tensor):
+    l_in_0_ = L_in_0_
+    l_in_1_ = L_in_1_
+    tmp_0 = 0.0625 * l_in_0_;  l_in_0_ = None
+    tmp_1 = torch.nn.functional.softmax(tmp_0, dim = -1);  tmp_0 = None
+    matmul = torch.matmul(tmp_1, l_in_1_);  tmp_1 = l_in_1_ = None
+    tmp_3 = matmul.permute(0, 2, 1);  matmul = None
+    return (tmp_3,)
+    
+NORMALIZATION []
+DYNAMO AFTER 
+
+
+def forward(self, L_in_0_ : torch.Tensor, L_in_1_ : torch.Tensor):
+    l_in_0_ = L_in_0_
+    l_in_1_ = L_in_1_
+    tmp_0 = 0.0625 * l_in_0_;  l_in_0_ = None
+    tmp_1 = torch.nn.functional.softmax(tmp_0, dim = -1);  tmp_0 = None
+    matmul = torch.matmul(tmp_1, l_in_1_);  tmp_1 = l_in_1_ = None
+    tmp_3 = matmul.permute(0, 2, 1);  matmul = None
+    return (tmp_3,)
+    

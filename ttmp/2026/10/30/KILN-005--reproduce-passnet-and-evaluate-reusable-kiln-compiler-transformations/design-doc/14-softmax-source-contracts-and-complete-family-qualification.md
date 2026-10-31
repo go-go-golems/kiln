@@ -76,3 +76,11 @@ The frozen cohort uses the existing `evaluate_tasks.py` runner, separate FP32 co
 ## Provenance
 
 The semantic references are the official [functional softmax documentation](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.softmax.html), the archived [PyTorch v2.9.1 functional source](https://github.com/pytorch/pytorch/blob/v2.9.1/torch/nn/functional.py), and the installed PyTorch 2.11 function/schema reference. Their local files and hashes are in `sources/softmax-reference-provenance.json`. The documentation server rejected the direct archival request with HTTP 403; the version-pinned GitHub source was saved successfully. No PyTorch implementation is ported: the normalization algorithm remains Kiln's pre-existing `N.softmax` decomposition.
+
+## Structural matching qualification
+
+The first original-evaluator run exposes an argument-representation mismatch before numerical comparison. Symbolic FX tracing inserts `softmax(x, dim=-1, _stacklevel=3, dtype=None)`, whereas Dynamo retains `softmax(x, dim=-1)`. The upstream structural matcher treats these representations as different. The generated replacement therefore does not execute, and PassBench reports `No passes modified the graph`.
+
+The repair extends the existing functional-argument whitelist in `fx_normalize.py` to softmax. Both pattern and target bind the real public Python signature and fill its defaults before matching. The dimension, dtype and other supplied values remain unchanged. A test captures a real Dynamo graph, proves the pre-normalization mismatch, then proves exactly one match after normalization and exact preservation of outputs. Different dimensions and dtypes still fail to match. The affected FX suite now contains 46 passing tests.
+
+The first frozen cohort remains untouched until terminal. A subsequent run must use the same 93-variant membership and budgets with a new source commit and output directory. This extends the already declared modified matching protocol; it is not unchanged PassNet reproduction. Scripts 257 and logs `softmax-matching-before.log` / `softmax-matching-after.log` preserve the representation evidence.
