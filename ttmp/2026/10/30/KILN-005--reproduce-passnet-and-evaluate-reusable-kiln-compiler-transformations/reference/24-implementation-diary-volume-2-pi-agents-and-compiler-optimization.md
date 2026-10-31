@@ -2909,6 +2909,7 @@ The user asked for a written plan that makes broad progress on coverage and the 
 - Preserved all1,157 raw evidence members in `sources/fixed-policy-passbench-v1/raw-evidence.tar.gz` using script622, with a SHA256 receipt. Wrote reference35 with the complete 12-task table and limitations.
 - Ran a current-source full2,060-graph FX import audit using script620, then joined it to the cumulative external acceptance ledger using script621. Saved the full audit and compact census in ticket `sources/`.
 - Wrote reference34 as the next broad coverage and optimization roadmap. It separates qualification of currently importable tasks from new semantic ports and from reusable compiler-strategy search.
+- Updated the top-level phase table in reference03 to point at the current roadmap and counts, retaining its older dated sections as milestone history.
 
 ### Why
 The fixed transformation program had only local smoke evidence at Step217. A complete-task external comparison determines whether it transfers. The old importer count of1,251/76 was stale after parallel operator ports; a current census is needed to choose broad work rather than continue isolated failures.

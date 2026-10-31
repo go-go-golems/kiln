@@ -15,18 +15,20 @@ Summary: Full scope and current milestone gates
 
 The target is evaluation across all 200 PassBench tasks and 2,060 variants with explicit coverage and failures. Full implementation support remains the target; unsupported cases must not disappear from denominators. Restricted development checks are intermediate gates.
 
+**Current execution plan:** Reference34, *Coverage and optimization breadth roadmap*, supersedes the historical priority notes below. Reference35 records the completed 12-task fixed-policy PassBench comparison. The dated sections in this file remain as milestone history; their numbers describe their respective checkpoints.
+
 | Phase | State | Required completion evidence |
 |---|---|---|
 | Workspace and acquisition | Complete | Worktree, ticket, pinned paper/code/dataset and materialization receipts |
 | Intern design | Progress edition delivered | Updated technical guide with actual final architecture and verified reMarkable delivery |
 | Original baselines | Full exploratory audit complete; controlled measurements pending | All task results, isolated reruns, settings reconciled, official aggregation |
-| Basic integration | 31 complete tasks / 358 individually passing graphs, cumulative modified-protocol evidence | Matching/checking/score evidence with protocol identity |
+| Basic integration | 53 complete tasks / 505 individually passing graphs, cumulative modified-protocol evidence | Matching/checking/score evidence with protocol identity |
 | Precision and layouts | Active | Real-task FP16/BF16, stride/layout and stream correctness |
-| Operation coverage | Active: 1,251 graph imports / 76 complete families; broader execution qualification pending | Task dependency matrix and implementation/tests for all required operations |
+| Operation coverage | Active: 1,526 graph imports / 111 complete families on current source; broader execution qualification pending | Task dependency matrix and implementation/tests for all required operations |
 | Full benchmark integration | Pending | Every task/variant accounted for with integrity/correctness/scoring |
-| Controlled measurements | Pending | Isolated timing, stability checks, provenance and complete comparisons |
+| Controlled measurements | 12-task / 92-graph fixed-policy PassBench comparison complete; broader uniform run pending | Isolated timing, stability checks, provenance and complete comparisons |
 | Original PassAgent | One declared50-step local run terminal; seven no-match evaluations; full population pending | Recorded model/budget/trajectories on declared task set |
-| Kiln meta-optimization | Reusable policies measured; singleton reshape rewrite improves the development replay; fresh exact-model confirmation complete (1.053746x e2e) | Fixed train/held-out split, reusable policies/passes and measured generalization |
+| Kiln meta-optimization | Reusable policies measured; fixed pointwise program preserves 92/92 correctness but regresses on 11 transfer tasks; selective strategy research active | Fixed train/held-out split, reusable policies/passes and measured generalization |
 | Reports and delivery | Ongoing | Milestone vault reports committed/pushed and updated guide editions |
 | Completion audit | Pending | Requirement-by-requirement current-state evidence |
 
