@@ -954,3 +954,44 @@ User authorizes missing Kiln compiler implementation with design/provenance reco
 
 ### Technical details
 - Independent bit-format implementation; no upstream code copied. Backend capability support is separate from storage-width recognition.
+
+## Step 23: Differential-check reduced-precision conversions against PyTorch
+
+Saved reproducible reference-vector generation and validation scripts. Kiln conversions matched PyTorch for all 46,162 checked conversions from 23,081 FP32 bit patterns, including sampled half midpoints and neighboring values. NaN payload/sign canonicalization is explicitly outside exact bit comparison.
+
+### Prompt Context
+**User prompt (verbatim):** "feel free to port kiln to typescript if that makes things a bit clearer, as we build up"
+**Assistant interpretation:** TypeScript migration is authorized where useful, while maintaining implementation progress.
+**Inferred user intent:** Improve clarity of growing compiler contracts.
+
+### What I did
+- Added scripts/11-generate-rounding-vectors.py and 12-check-rounding-vectors.mjs, source vectors and receipt.
+- Renamed dtype test to dtypes.mjs so the repository runner discovers it.
+- Started full compiler regressions remotely under supported Node and pinned dependencies.
+
+### Why
+- Exhaustive self-roundtrips alone do not establish agreement with independent reference conversions.
+
+### What worked
+- PyTorch 2.11.0+cu130 reference: 23,081 vectors, 46,162 conversions passed.
+
+### What didn't work
+- Local broad suite could not import @kiln/evidence due missing workspace dependencies; Node was also unsupported v24.18.0. Remote supported-environment run supersedes this setup failure and is still being observed.
+
+### What I learned
+- Repository suite discovers .mjs test files; keep new tests in its actual discovery contract.
+
+### What was tricky to build
+- Preserve FP32 bit identity through JSON, including infinities and NaNs, by serializing integer bit patterns rather than JSON floating values.
+
+### What warrants a second pair of eyes
+- NaN tests require nonzero payload but intentionally ignore payload and sign equality. Conversion contract starts from FP32.
+
+### What should be done in the future
+- Inspect remote regression completion, extend typed IR/output codegen, and use TypeScript where it clarifies contracts.
+
+### Code review instructions
+- Run numbered scripts 11 and 12; inspect sources/rounding-check.json and core/dtypes.js.
+
+### Technical details
+- Fixed seed 42; independent implementation, PyTorch used as CPU differential oracle only. No source code ported.
