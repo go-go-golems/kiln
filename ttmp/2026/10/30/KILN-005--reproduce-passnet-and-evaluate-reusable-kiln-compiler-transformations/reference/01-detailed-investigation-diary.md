@@ -1122,3 +1122,44 @@ Original scope includes all compiler changes needed for the actual corpus.
 
 ### Technical details
 - Independent edits to existing Kiln implementation; no upstream source copied.
+
+## Step 27: Execute typed artifacts through reusable PyTorch bridge
+
+Extended TorchProgram to use artifact storage dtypes for input validation and output allocation, with explicit NVRTC include paths. Both typed CUDA fixtures now execute through the bridge rather than bypassing it with manually allocated output pointers.
+
+### Prompt Context
+Original full implementation objective; dtype architecture from Step 21.
+**Assistant interpretation:** Connect verified emitter/runtime storage with reusable PyTorch execution.
+**Inferred user intent:** Preserve tensor dtypes rather than numerically casting around missing compiler support.
+
+### What I did
+- Added f32/f16/bf16/u8 storage mapping and pre-CUDA validation for buffer dtype agreement and minimum byte size.
+- Updated check_typed_cuda.py to call TorchProgram and assert output dtype.
+- Added CPU tests proving invalid storage is rejected before launcher initialization.
+
+### Why
+- Output allocation must follow compiled storage contracts; FP32-only allocation silently corrupts typed outputs.
+
+### What worked
+- GPU f16 and bf16 tests passed through TorchProgram on GB10.
+
+### What didn't work
+- No new failures. Reduced-precision FX importer remains disabled until graph precision semantics are implemented.
+
+### What I learned
+- Artifact validation can run independently of CUDA availability, enabling meaningful local failure tests.
+
+### What was tricky to build
+- Include paths must pass through bridge constructor to existing explicit launcher option.
+
+### What warrants a second pair of eyes
+- Alias outputs with shape changes, scratch concurrency, invalid dimensions and full artifact structural validation need broader checks.
+
+### What should be done in the future
+- Propagate typed graph results/rounding and validate real low-precision task variants; run full compiler/export regressions.
+
+### Code review instructions
+- Review runtime.py, check_typed_cuda.py and test_runtime_validation.py; run integration unit tests.
+
+### Technical details
+- Artifact storage support is separate from frontend dtype support; no implicit CPU conversion or upstream code copying.
