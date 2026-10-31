@@ -81,3 +81,7 @@ Complete canonical codegen/3 study: all eight confirmation graphs qualify; basel
 ## 2026-10-31
 
 Commit source softmax lowering as 80d022e: 45 FX tests and 99 CUDA comparisons pass; full import eligibility rises to 1122 graphs/61 complete families. Freeze all ten newly complete families (93 graphs) for original-evaluator qualification; no acceptance increment claimed before its audit. Canonical milestone report published and pushed in vault 19be088.
+
+## 2026-10-31
+
+Complete repaired softmax qualification under d71eccd: all ten families/93 variants pass exact replacement, original replay execution and nominal t=-5 correctness. Cumulative coverage is 21 tasks/299 graphs. Retain initial matching failures; report descriptive 5 faster/88 slower variants, 254 emitted kernels and source/scorer provenance in milestone report 16.

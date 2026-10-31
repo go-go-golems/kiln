@@ -1,0 +1,148 @@
+{
+  "format": "kiln-passnet-corpus/1",
+  "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/93/a3/93a3f94b1f9dcfb22146fd6c542b3d7ae9878f4cb39074cd195a372a91eb202f",
+  "metadata_mode": "fake",
+  "variants": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/OFA-Sys_chinese-clip-vit-huge-patch14/_decomposed/OFA-Sys_chinese-clip-vit-huge-patch14_start21_end31_4",
+      "script": "000.kiln.js",
+      "inputs": {
+        "v0": [
+          1,
+          16,
+          257,
+          80
+        ],
+        "v1": [
+          1,
+          16,
+          80,
+          257
+        ],
+        "v2": [
+          1,
+          16,
+          257,
+          80
+        ]
+      },
+      "input_dtypes": {
+        "v0": "bf16",
+        "v1": "bf16",
+        "v2": "bf16"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "source_input_order": [
+        0,
+        1,
+        2
+      ],
+      "source_sha256": "2f5d88d2ae996834cd82561b116fd05951c65b5e9204549aa3322ba55da9268e",
+      "specialization": [
+        0
+      ]
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/OFA-Sys_chinese-clip-vit-huge-patch14/_decomposed/OFA-Sys_chinese-clip-vit-huge-patch14_start21_end31_4",
+      "script": "001.kiln.js",
+      "inputs": {
+        "v0": [
+          1,
+          16,
+          257,
+          80
+        ],
+        "v1": [
+          1,
+          16,
+          80,
+          257
+        ],
+        "v2": [
+          1,
+          16,
+          257,
+          80
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f16",
+        "v1": "f16",
+        "v2": "f16"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "source_input_order": [
+        0,
+        1,
+        2
+      ],
+      "source_sha256": "4018b3e182de324a27c7bab87b94aaabb4c7668d98e2a0f1ba70e4246c63e4db",
+      "specialization": [
+        1
+      ]
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/OFA-Sys_chinese-clip-vit-huge-patch14/_decomposed/OFA-Sys_chinese-clip-vit-huge-patch14_start21_end31_4",
+      "script": "002.kiln.js",
+      "inputs": {
+        "v0": [
+          1,
+          16,
+          257,
+          80
+        ],
+        "v1": [
+          1,
+          16,
+          80,
+          257
+        ],
+        "v2": [
+          1,
+          16,
+          257,
+          80
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "source_input_order": [
+        0,
+        1,
+        2
+      ],
+      "source_sha256": "0e0682345e4ebf8f45e9d92fd98272e792a8addf4cff733aed625bbb2c0aefc5",
+      "specialization": [
+        2
+      ]
+    }
+  ]
+}

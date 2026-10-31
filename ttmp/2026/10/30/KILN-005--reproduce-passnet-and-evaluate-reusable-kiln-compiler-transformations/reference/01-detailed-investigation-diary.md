@@ -5607,3 +5607,59 @@ See Steps 122–123 and the user's request to reassess architectural sprawl and 
 
 ### Technical details
 - The DGX environment and modified integration protocol remain explicit. No strict paper reproduction, controlled speedup, external-agent synthesis or renewed device-document delivery is claimed.
+
+## Step 125: Qualify all 93 softmax variants and measure the remaining performance gap
+
+The same v2 cohort finishes without source changes or restarted jobs. Every one of its ten families/93 variants satisfies original replay execution, exactly one replacement and nominal t=-5 numerical acceptance. The cumulative ledger now reports 21 complete tasks and 299 individual graphs; complete tasks contain 234 graphs. The initial failed matching run remains unchanged and fully accounted for.
+
+Descriptive timing analysis shows that correctness support does not imply profitable code generation: five accepted variants are faster than eager and 88 slower. The worst accepted ratio is 0.0219273x, with 703.734 ms compiled versus 15.431 ms eager. Report 16 explains source conversion order, FX/Dynamo defaults, the two complete attempts, exact source identity, emitted structure and performance limits in a prose-first technical article.
+
+### Prompt Context
+See Steps 122–124 and the authored requests to implement and measure the complete project, retain intermediate scripts, keep a detailed diary, and publish substantial textbook-style milestone reports to the Obsidian vault.
+**Assistant interpretation:** Complete the live cohort audit, retain both attempts, distinguish newly verified coverage from performance, and publish the independently reconstructible technical result.
+**Inferred user intent:** Obtain reliable end-to-end support and actionable compiler evidence while preserving the full reproduction and self-optimization scope.
+
+### What I did
+- Polled the same live PID 1227549 and inspected actual graph/timing advancement. One large attention variant's 100 timed calls ran near 704 ms each; the declared budget remained unchanged.
+- Collected v2 only after terminal run status and absence of the evaluator process, using the same generalized scripts 254–256.
+- Verified all ten families/93 variants, source snapshot e483b4f2c82e0330e928a1ff54b63603573e55829702e93b43192f0d5794dafc and all 157 source files against d71eccd.
+- Extended the existing coverage builder to the completed v2 logs, preserving the initial cohort and pre-softmax ledger.
+- Added scripts 258–262 for report generation, static artifact structure, accepted-variant timings, append-only publication and advertised-remote publication verification.
+- Wrote reference 16 and updated the current roadmap, guide Section 36 and design 14 with completed acceptance and measured limitations.
+
+### Why
+- A complete task result requires every expected graph to pass the actual original numerical and matching gates. Fixture/import counts remain separate.
+- Large slowdowns are relevant compiler evidence and must accompany coverage gains. Reporting only the five faster cases would misrepresent this cohort.
+
+### What worked
+- Script 255: 10 tasks, 93 graphs, 10 nominally accepted complete tasks, 93 accepted graphs, zero unexecuted.
+- Script 256: exact committed source, frozen membership, scorer input/output identity and numerical/matching audit checks pass.
+- Script 21: `Coverage: 21/200 tasks, 299/2060 graphs verified under declared modified protocol.`
+- Script 259: 254 emitted kernels; 36 FP16, 27 BF16 and 30 FP32 input-storage variants; maximum scratch 1,610,612,736 bytes.
+- Script 260: all 93 accepted records have measured timings; five faster/88 slower than eager. No performance sample is dropped from the descriptive accounting.
+
+### What didn't work
+- Most newly accepted graphs are slower than eager. The worst accepted attention case is about 45.6 times slower. This milestone establishes semantic and structural qualification, not an improved optimization policy.
+- No external-model PassAgent run, full 200-task support, uniform release evaluation or renewed reMarkable delivery is established here.
+
+### What I learned
+- Source API coverage can expose meaningful compiler scheduling limits. One slow attention artifact combines tiled contraction, a staged cooperative reduction and a final row-mapped reduction; its schedule is evidence for further investigation, not proof of the cause or benefit of a proposed change.
+
+### What was tricky to build
+- Long kernel timings made the live process appear slow without being stalled. Actual graph and trial advancement justified continued polling of the same process instead of restarting it.
+- The report and coverage distinguish cumulative task evidence, complete-family graph counts, import eligibility, fixtures and descriptive timings.
+
+### What warrants a second pair of eyes
+- Review every acceptance predicate and compare original graph lists with audit order. Inspect input dtype conversion order, default-argument normalization and exact source/scorer hashes.
+- Review the actual slowest accepted source, schedule and raw timing block before designing a compiler change around it.
+
+### What should be done in the future
+- Publish and push reference 16, verify exact body/commit/remote identity, and record its receipt.
+- Continue operator/layout/precision support and investigate contraction scheduling; preserve separate training/confirmation experiments for reusable optimization claims.
+- Original PassAgent still requires the requested provider/model reply. Updated device-document export remains pending renewed explicit authorization after the previously reported automatic rejection.
+
+### Code review instructions
+- Start with softmax-cohort-v2-verified-facts.json, the full audit, static structure and latency receipts. Read reference 16, design 14, guide Section 36 and the archived v1 failure before interpreting the new cumulative ledger.
+
+### Technical details
+- The same frozen plan and evaluation budgets are retained across both attempts. GB10/NVIDIA PyTorch container and modified integration matching remain explicit; no exact A30 reproduction or generalizable speedup is claimed.
