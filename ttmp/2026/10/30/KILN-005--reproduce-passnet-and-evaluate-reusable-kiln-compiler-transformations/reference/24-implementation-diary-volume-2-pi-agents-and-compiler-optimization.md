@@ -4122,3 +4122,73 @@ The plan is staged on bling and queued in a new tmux session. That session waits
 
 ### Technical details
 - Remote study: `/home/manuel/passnet-kiln/KILN-005/sources/p0-replay-gpu-v1/` (plan.json, run.sh = 642, queue.py = 651, kiln/, upstream/).
+
+## Step 245: P2 — one declaration per operation, and per-node type bindings (A4)
+
+This step implements reference 45's P2 in two gated commits. First, `fx_import.py` is restructured around a registry (`fx_ops.py`): every FX spelling belongs to exactly one `Op` that declares its lowering and whether its result owns fresh storage. `import_graph` now only walks the graph, looks operations up and applies shared postconditions.
+
+Second, review finding A4. Every imported value is bound to PyTorch's recorded type through a new Kiln identity op, `nn.expect`, which fails tracing when Kiln's inferred type disagrees. Kiln's elementwise promotion now follows PyTorch's 0-dim rule. Byte-identity censuses over all 2,060 graphs and a 200-graph compiled-artifact comparison show that neither change alters any generated computation or kernel.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 243 (and the no-backwards-compatibility instruction in Step 240).
+**Assistant interpretation:** Continue the plan with the importer consolidation and the type postcondition, using a census gate so in-flight evidence stays comparable.
+**Inferred user intent:** Stop the importer from accumulating fragile ad hoc branches and catch silent semantic drift.
+**Commit (code):** 4141da1 — "Restructure the FX importer around one declaration per operation"; ed6eaab — "Bind every imported value to its FX type and follow PyTorch 0-dim promotion"
+
+### What I did
+- Script 661 (`661-import-script-census.py`): for all 2,060 graphs in `evaluation-inventory.json`, it records the generated script SHA256, a metadata SHA256 or the exact first import error. `--compare` reports differences, and compares the script *core* (script with `N.expect` bindings stripped) when present. Baseline at `7d76dbd`: `2060 graphs; 1668 imported`. A rerun gave `0 changed of 2060`, so it is deterministic. Stored as `sources/import-script-census-v1/baseline-7d76dbd.json`.
+- `fx_ops.py`: `Call`, `Lowered(expr, mutates)`, `Op(name, lower, functions, methods, fresh)`, `Registry` (duplicate spelling → `ValueError`), `bind(node, what, args, kwargs, fields)` and `DTYPES`.
+- `fx_import.py` rewrite:
+  - About 45 registered ops (inline lowerings plus `helper(...)` wrappers for the `fx_*` modules). `Context` holds `values`, `by_var` (replacing seven O(n) reverse lookups), `inputs`, `fresh`, `uses`, `decode`, `literal`, `resolve`, `source_of` and `require_mutation_source`.
+  - Unknown spellings keep their exact previous messages (`unsupported tensor method X` / `unsupported target X; implement semantic lowering`).
+  - `fx_scalar_ops`, `fx_linalg` and `fx_norm_ops` import `DTYPES` from `fx_ops`.
+- `test_fx_ops.py`: duplicate-spelling refusal, per-kind namespaces, registry load and bind diagnostics.
+- `tensor.js`:
+  - `nn.expect` (infer throws `expected (shape) dtype from the source graph, Kiln inferred (...)`), `N.expect` and `decompose("nn.expect", ({x}) => x)`.
+  - `elementwiseDtype` uses only dimensioned non-splat operands when any exist.
+  - The `nn.ew` decomposition re-creates `tensor.ew` with the nn-level dtype when broadcasting changed the inferred one.
+- `fx_import.expect()` wraps every `const` (multi-output elements too, with metadata validated per element).
+- Script 662 (`.py` + `.mjs`) writes every importable script and traces them all with the Kiln frontend. Script 663 compiles a seeded 200-graph sample under three modes: old tree `git archive 4141da1` with stripped scripts, new tree with stripped scripts, new tree with bindings.
+- Tests: `packages/kiln/test/expect-types.mjs`, and `test_fx_import.ExpectBindingTests`.
+
+### Why
+- One authority per operation removes the duplicated routing condition, whose unsafe failure mode would accept a mutation through an alias. It also makes each new operation a single declaration (review B1).
+- The internal check compares Kiln with Kiln, so only a comparison with the *source* types can catch frontend drift (A4). Doing it at trace time costs nothing in generated kernels.
+
+### What worked
+- Refactor gate: `0 changed of 2060` against the baseline. Every script hash, every metadata hash, and every blocked graph's error text was identical, on the first comparison.
+- A4 gates: core census `0 changed of 2060`. Trace check `{"ok":1668}`: no corpus node currently has a Kiln/PyTorch type disagreement. Artifact comparison `{'sample': 200, 'same_new': 200, 'same_expect': 200}`.
+- Probe `x_f16[2,3] * s_f32[]`: the artifact output is now `f16` (`v0 = (in0 * in1); v1 = __half2float(__float2half_rn(v0)); dst[...] = __float2half_rn(v1)`), matching PyTorch's FP32 opmath with one rounding.
+- `node scripts/run-node-tests.mjs packages/kiln/test`: `all 43 passed`. Python: `Ran 166 tests ... OK`.
+
+### What didn't work
+- `test_fx_import.ImportTests.test_transpose_argument_and_metadata_errors` failed with `"duplicate transpose" does not match "transpose: transpose: duplicate argument"`. My first `bind(name, ...)` prefixed the node name twice. Fixed by `bind(node, what, ...)`, which restores `'<node>: duplicate <op> argument'`. I then missed the activation call site, which raised 8 `TypeError`s (positional mismatch) until it was fixed too.
+- Script 661 first failed with `ModuleNotFoundError: No module named 'corpus'`: `TICKET.parents[3]` is `ttmp/`, not the repository. Fixed to `parents[4]`.
+- My first A4 negative probe "passed" unexpectedly. My string replacement had also changed the *input* declaration `k.tensor([2, 3], "f16")` to f32, so the binding was genuinely satisfied. A direct `k.trace` probe confirmed the check throws.
+- After the promotion fix, the nn-level type was f16 but the artifact output was still f32, because `T.ew` broadcasts the 0-dim operand into a dimensioned `tensor.view` before re-inferring. Fixed in the `nn.ew` decomposition.
+- The first 663 run gave `base` errors `Cannot find package '@kiln/evidence'`: the archived old tree lacked `packages/evidence`. I added it and linked `node_modules/@kiln/evidence`.
+
+### What I learned
+- The import census is fast (about 10 s for 2,060 graphs on 8 workers). Gating every importer change on it is practically free.
+- A type rule can be right at one IR level and wrong at the next. Here the broadcast view erased the 0-dim distinction between `nn` and `tensor`. The postcondition is valuable precisely because it compares against the source rather than against Kiln's own previous level.
+
+### What was tricky to build
+- Preserving per-operation `fresh` semantics exactly. The old boolean did not include in-place *methods* (`add_`, `relu_`) or any view/cast/dropout, but did include `iadd` and all allocating operations. Each `Op` now declares `fresh` explicitly, and the census proved the transcription.
+- Stripping bindings for the core hash: the regex anchors on the trailing `, [shape], "dtype");` at end of line, so nested expression text inside `N.expect(...)` is never parsed.
+
+### What warrants a second pair of eyes
+- `fresh=False` for `add_`/`sub_`/`mul_`/`div_` methods (inherited behavior) is conservative. A chained in-place method on a fresh value is rejected even though it is legal.
+- `nn.expect` makes a frontend/source disagreement a hard compile error. That is the intended behavior, but a future family whose PyTorch type rule Kiln does not implement will now fail at compile time instead of producing a mistyped artifact.
+
+### What should be done in the future
+- Port `fx_layout.bind` callers to `fx_ops.bind` (messages would change, so it needs an intended-difference census).
+- Next capability work (P3a) can add typed ops as registry entries with their own `Op` declarations.
+- Collect the P0 replay when bling's queue reaches it (Step 244).
+
+### Code review instructions
+- `integrations/passnet/fx_ops.py`, `fx_import.py` (`REGISTRY`, `Context`, `import_graph`, `expect`), `packages/kiln/src/std/tensor.js` (`nn.expect`, `elementwiseDtype`, `decompose("nn.ew")`).
+- Validate with `python3 ttmp/.../scripts/661-import-script-census.py --output /tmp/x.json` followed by `--compare sources/import-script-census-v1/baseline-7d76dbd.json /tmp/x.json`. Also run `662-trace-type-check.py --output <dir>`, and `663-compare-compiled-artifacts.py --scripts <662 dir> --old <tree at 4141da1> --new . --output <file>`.
+
+### Technical details
+- Evidence: `sources/import-script-census-v1/{baseline-7d76dbd.json, expect-bindings.json, expect-trace-check.json, artifact-comparison-sample200.json}`.
+- The 663 sample is `random.Random(663).shuffle(sorted(graphs))[:200]`, compiled with `--target a100 --contraction separate --no-check`.
