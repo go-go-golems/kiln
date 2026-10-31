@@ -5038,3 +5038,47 @@ See Steps110–111 for the whole-region implementation and fixed fresh evaluatio
 
 ### Technical details
 - Compiler snapshot is recorded by the shared compilation receipt. Highest-precision FP32 research remains explicitly separate from native PassBench acceptance.
+
+## Step 113: Commit region training selection and document generated-name aliases
+
+Every candidate qualifies on twelve training graphs. The frozen objective selects region-work at1.0086653425198444, tied exactly with four other region programs that share training fingerprints. Before confirmation timing, a training-only diagnostic identifies exact fingerprint changes that disappear after renaming only kernel entry symbols and generated reduction-index names. For region-work this affects eight training graphs. The experiment's alias rules and selection remain unchanged; this limitation is retained for interpretation and a future canonicalization fix.
+
+### Prompt Context
+See Steps110–112 and the user's instruction to reassess architectural problems while progressing toward self-optimization.
+**Assistant interpretation:** Complete the frozen selection, but investigate evidence identities when metadata/source names appear to create duplicate performance contrasts.
+**Inferred user intent:** Avoid rewarding apparent compiler improvements caused by measurement noise or artifact naming.
+
+### What I did
+- Collected terminal training receipts and ran the unmodified select_policy.py over the complete declared candidate set.
+- Saved selection.json before any confirmation timing; region-work wins baseline-first declaration-order ranking among tied region variants.
+- Saved script214 and region-training-cuda-renaming-audit.json. The diagnostic reads training artifacts only and changes neither aliases nor timing data.
+
+### Why
+- Exact source hashing is conservative but can treat alpha-renamed generated CUDA as distinct experiments. This can introduce nuisance contrasts into a small training-selection margin.
+
+### What worked
+- All training candidates qualify. Selected ratio1.0086653425198444; scalar100 ratio1.0083984308923972; unchanged/default remain1.0.
+- Remote source snapshot matches compilation exactly: c7c59a00a250d8e637dcb4b400467ee41e6015818a8878ebaadc0a03d75f780c.
+- The descriptive audit preserves CUDA ABI, buffers, launch metadata and all source except entry/reduction identifiers. Eight selected training fingerprint changes equal baseline after that normalization.
+
+### What didn't work
+- The small observed training margin cannot be treated as a reliable optimization result. No model variant accepts a partial training fusion, and generated-name nuisance contrasts remain in this frozen protocol.
+- No retrospective alias changes, task filtering or replacement selection are made.
+
+### What I learned
+- Compiler identity and emitted-source identity must agree on generated-name canonicalization before claiming independent performance contrasts.
+
+### What was tricky to build
+- The audit must remain separate from selection to avoid changing the declared experiment after seeing measurements. Kernel names and reduction-variable tokens are normalized only for descriptive comparison, not execution.
+
+### What warrants a second pair of eyes
+- Review the limited normalization and source equivalence claim, the exact tied candidates, and the unchanged selection procedure.
+
+### What should be done in the future
+- Commit this selection, time only baseline/region-work on all eight confirmation graphs, then canonicalize generated names before a newly declared study.
+
+### Code review instructions
+- Inspect selection.json and train.json, script214, the audit receipt and source verification. Treat the naming audit as diagnostic, not a new evaluation protocol.
+
+### Technical details
+- Explicit highest-precision FP32 reference remains fixed. No confirmation artifacts or timing enter the naming diagnostic or policy selection.
