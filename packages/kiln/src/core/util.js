@@ -50,18 +50,35 @@ export const inKey = (shape, dtype = "f32") => shape.join("x") + (dtype === "f32
 export { dtypeBytes } from "./dtypes.js";
 export function strides(shape) { const s = new Array(shape.length); let m = 1; for (let i = shape.length - 1; i >= 0; i--) { s[i] = m; m *= shape[i]; } return s; }
 
-// runtime tensors: float32, row-major
+// Reference tensors are row-major. Low-precision floats retain f32 storage with
+// explicit rounding; integer and Boolean tensors retain exact typed storage.
 export class Tensor {
-  constructor(shape, data) { this.shape = shape.slice(); this.data = data || new Float32Array(numel(shape)); }
+  constructor(shape, data, dtype = null) {
+    this.shape = shape.slice();
+    this.dtype = dtype || (data instanceof BigInt64Array ? "i64" : data instanceof Int32Array ? "i32" : data instanceof Uint8Array ? "u8" : "f32");
+    const storage = { f32: Float32Array, f16: Float32Array, bf16: Float32Array,
+                      i64: BigInt64Array, i32: Int32Array, bool: Uint8Array, u8: Uint8Array }[this.dtype];
+    if (!storage) throw new TypeError(`unsupported reference tensor dtype: ${this.dtype}`);
+    this.data = data || new storage(numel(shape));
+    if (!(this.data instanceof storage) || this.data.length !== numel(shape)) {
+      throw new TypeError(`reference tensor ${this.dtype} storage or element count mismatch`);
+    }
+  }
   get size() { return this.data.length; }
-  static fill(shape, f) { const t = new Tensor(shape); const n = t.data.length; if (typeof f === "number") t.data.fill(f); else for (let i = 0; i < n; i++) t.data[i] = f(i); return t; }
+  static fill(shape, f, dtype = "f32") { const t = new Tensor(shape, null, dtype); const n = t.data.length; if (typeof f !== "function") t.data.fill(f); else for (let i = 0; i < n; i++) t.data[i] = f(i); return t; }
   static random(shape, { seed = 1, scale = 1, dist = "normal" } = {}) { const r = rng(seed); return Tensor.fill(shape, () => (dist === "uniform" ? (r() * 2 - 1) * scale : r.normal() * scale)); }
   at(...idx) { const s = strides(this.shape); let o = 0; idx.forEach((v, i) => { o += v * s[i]; }); return this.data[o]; }
-  preview(n = 6) { return Array.from(this.data.slice(0, n)).map((x) => +x.toPrecision(4)); }
+  preview(n = 6) { return Array.from(this.data.slice(0, n)).map((x) => typeof x === "bigint" ? x.toString() : +x.toPrecision(4)); }
 }
 export function compare(a, b, { rtol = 1e-4, atol = 1e-5 } = {}) {
   const A = a instanceof Tensor ? a.data : typeof a === "number" ? [a] : a, B = b instanceof Tensor ? b.data : typeof b === "number" ? [b] : b;
   if (A.length !== B.length) return { ok: false, message: `sizes differ: ${A.length} vs ${B.length}`, maxAbs: Infinity, bad: A.length };
+  if (A instanceof BigInt64Array || B instanceof BigInt64Array) {
+    let bad = 0, first = -1;
+    for (let i = 0; i < A.length; i++) if (A[i] !== B[i]) { bad++; if (first < 0) first = i; }
+    return { ok: bad === 0, maxAbs: bad ? Infinity : 0, maxRel: bad ? Infinity : 0,
+             bad, n: A.length, first, message: bad ? `${bad} of ${A.length} integer values differ (first at ${first}: ${A[first]} vs ${B[first]})` : "integer values equal" };
+  }
   let maxAbs = 0, maxRel = 0, bad = 0, first = -1;
   for (let i = 0; i < A.length; i++) {
     const d = Math.abs(A[i] - B[i]);

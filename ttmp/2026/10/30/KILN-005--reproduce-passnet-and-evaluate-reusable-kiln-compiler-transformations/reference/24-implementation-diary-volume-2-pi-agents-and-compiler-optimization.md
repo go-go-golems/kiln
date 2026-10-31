@@ -3524,3 +3524,87 @@ Run script653 against the frozen input-mutation import audit; inspect the per-fa
 
 ### Technical details
 The trace uses `corpus.load_module(...).GraphModule()` and `fx_trace.trace_module` without ShapeProp. It records source call targets but does not infer dtypes or execute GPU kernels. The archived PyTorch pages are under `https://docs.pytorch.org/docs/2.9/generated/` and no upstream implementation code was copied.
+
+## Step 233: Begin exact typed reference storage and close the checkpoint for review
+
+I began the typed-value wave by extending Kiln's reference Tensor storage, preserving typed data through views and constants, and making `Project.inputsFor` retain exact integer/Boolean input data. This is a foundation checkpoint only: Loop IR, CUDA scalar registers, FX typed placeholders and indirect reads are still unchanged. The reviewer requested a handoff at this point, so I stopped expansion and validated this bounded change before writing the guide.
+
+### Prompt Context
+**User prompt (verbatim):** "Ok imagine we had our resident expert do a code review now, and want to have a guide about everything you built and where to look and what to review etc... Can you wrap up the current work and write that guide? Then I'll have them assess the architecture and structure and opportunities for improvement and refactoring and all. Use paths and filenames and symbols and all that."
+**Follow-up user prompt (verbatim):** "yes also explanations of concepts and architecture and links to relevant documentation files and the diary and all those things"
+**Assistant interpretation:** Finish the current local checkpoint, preserve honest validation status, and prepare a self-contained code-review guide with concepts, implementation map, evidence, diary and review questions.
+**Inferred user intent:** Let an independent expert assess the architecture and recommend consolidation before more compiler breadth is built.
+
+### What I did
+- Extended `Tensor` in `packages/kiln/src/core/util.js` with explicit/reference-inferred dtype and exact typed storage (`BigInt64Array`, `Int32Array`, `Uint8Array`), element-count validation, BigInt-safe preview and exact integer comparison.
+- Preserved typed storage through `viewRef` and tensor constant type inference in `packages/kiln/src/std/tensor.js`; copied exact typed reference inputs in `Project.inputsFor` in `packages/kiln/src/std/index.js`.
+- Added `packages/kiln/test/typed-reference-storage.mjs` for values above2^53, transposed views, typed constants, caller-data isolation and type rejection. Ran three direct targeted tests and the complete41-script Kiln package test runner on Node26.
+- Checked remote qualification: `pending-ordinary/run.json` is complete with56 task records; `pending-large/run.json` is running with one task record; regression band absent. The uniform session and dependent queues remained live, with task73 evaluating.
+
+### Why
+The previous source audit showed that accepting `torch.int64` placeholders without exact reference storage would make compiler validation unsound. This checkpoint establishes the data representation first while keeping the full typed/indexing feature explicitly unfinished.
+
+### What worked
+The targeted typed-storage, existing low-precision input and view-dtype tests passed. After running outside the process-spawn sandbox, `node scripts/run-node-tests.mjs packages/kiln/test` passed all41 scripts on Node26.13.0. Exact input values above2^53 survived reference input copying and view permutation.
+
+### What didn't work
+The first new test called `tensor.const` outside a graph scope and raised `KilnError [ScopeError]: tensor.const(…) builds a node, so call it inside k.graph(…), k.trace(…) or a rule's rewrite`. I changed the assertion to create a `Project` graph and inspect the constant output type; the targeted tests then passed. `pnpm --filter @kiln/kiln test` failed before running tests because Corepack/pnpm tried to create `/home/manuel/.local/share/pnpm/.tools/@pnpm+linux-x64/12.4.1_tmp_2` outside the workspace sandbox. The direct runner under the default sandbox failed all41 entries with `spawn EPERM`; the same runner outside that process-spawn sandbox passed all41.
+
+### What I learned
+The reference Tensor can retain exact integer storage without changing the existing floating test population, but the rest of Kiln is still float-scalar oriented. A typed source pass-through or gather would require typed Loop/Kernel IR and emitter work before any corpus result can be claimed.
+
+### What was tricky to build
+JS Number cannot represent all int64 values. The test uses9007199254740993n to ensure the data path does not quietly round through float. The low-precision reference path still uses Float32Array with explicit rounding, so new storage inference has to coexist with that representation.
+
+### What warrants a second pair of eyes
+Review whether dtype belongs on `Tensor` itself versus an external type, whether `compare` should enforce matching typed arrays more strictly, and whether all view/reference operations preserve typed storage. Design21's indirect-read IR proposal is not yet implemented.
+
+### What should be done in the future
+After expert architecture review, implement typed scalar values and indirect reads across Loop/Kernel/CUDA, then add FX bindings and complete-family PassBench qualification. Audit the terminal GPU queues as they finish.
+
+### Code review instructions
+Start with the four changed code/test files and design21. Run `nvm use v26` followed by `node scripts/run-node-tests.mjs packages/kiln/test` where child process spawning is allowed. Do not infer typed GPU support from these reference tests.
+
+### Technical details
+The new reference storage is inferred from `BigInt64Array`/`Int32Array`/`Uint8Array` or set explicitly. `f16` and `bf16` continue using Float32Array plus explicit rounding. No CUDA source or PassBench task artifact changed in this checkpoint.
+
+## Step 234: Write the resident expert architecture review handoff
+
+The reviewer asked for a guide that explains the concepts and architecture, links the code to the design record and diary, and identifies concrete review questions. I wrote reference43 as the handoff document, including the current evidence boundary and the partially implemented typed-value checkpoint. The guide asks the reviewer to assess structural changes that can be made without invalidating the frozen GPU studies.
+
+### Prompt Context
+**User prompt:** See Step233 for both verbatim review-guide requests.
+**Assistant interpretation:** Produce a self-contained technical review map with symbols, files, concepts, evidence and decision questions.
+**Inferred user intent:** Enable an independent expert to assess correctness, architecture and refactoring opportunities efficiently.
+
+### What I did
+- Added reference43 and linked it from the ticket index. It explains task/graph distinctions, pass matching, Kiln's IR stages, artifact/runtime dispatch, strategy generalization, numerical evidence and the current coverage denominators.
+- Mapped the source-to-score execution path and the agent/policy layer to concrete repository files and symbols; linked the intern guide, both diary volumes, current plans, numerical/fusion/effect designs and measured optimization reports.
+- Included current frozen-run status, typed-reference checkpoint scope, validation commands and seven targeted architecture review questions.
+
+### Why
+The project now spans a Python FX bridge, a JavaScript compiler, CUDA runtime and external evaluation. A reviewer needs one curated path through these components and their evidence, with historical counts separated from current-source measurements.
+
+### What worked
+The guide identifies the primary code path and points to the exact source receipts and current coverage census. It distinguishes imported, locally compiled and externally accepted results; it marks typed CUDA support and the 200-task goal as incomplete.
+
+### What didn't work
+No new benchmark result was obtained while writing the guide. The remote qualification remained in its large-task band at the latest observation. The full Python test discovery command in the guide is explicitly an optional reviewer check, not a claimed result.
+
+### What I learned
+The main review pressure points are the typed scalar/index boundary, the growth of `fx_import.import_graph`, effect/alias legality, numerical reference discrepancies and whether agent-facing transformation programs remain expressive as operator coverage broadens.
+
+### What was tricky to build
+The documentation has several historical snapshots. The guide names the latest source census and frozen studies explicitly so it does not silently combine results from different compiler revisions.
+
+### What warrants a second pair of eyes
+Confirm the proposed review order, the placement of typed scalar/indirect-read semantics, and the consolidation boundaries. Verify that the FX matcher modification and internal reference-check bypass are described accurately against the actual staged commands.
+
+### What should be done in the future
+Receive the architecture review, apply agreed structural changes at the shared compiler boundary, continue the typed/indexing wave and audit the terminal GPU runs.
+
+### Code review instructions
+Start with reference43; follow its numbered code map. Review Step233 for the exact current-code validation, then inspect design21, reference42 and the original-evaluator protocol documents.
+
+### Technical details
+The guide is an evidence/index document rather than a new experimental declaration. Its latest remote observation was ordinary56 complete, large band running with one task record and task73 evaluating, regression absent.

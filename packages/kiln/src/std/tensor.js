@@ -103,7 +103,7 @@ export function viewRef(x, shape, map) {
     if (VIEW_FNS.size > 500) VIEW_FNS.clear();
     VIEW_FNS.set(key, fn);
   }
-  const out = new Tensor(shape);
+  const out = new Tensor(shape, null, x.dtype);
   fn(x.data, out.data, (a, b) => ((a % b) + b) % b);
   return out;
 }
@@ -237,7 +237,7 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
   .op("slice", { args: ["x"], attrs: { axis: 0, start: 0, end: 1 }, infer: ({ x, axis, start, end }) => { const s = x.type.shape.slice(); const a = axis < 0 ? s.length + axis : axis; s[a] = end - start; return T_(s, x.type.dtype); }, eval: ({ x, axis, start, type }) => { const n = asT(x).shape.length; const a = axis < 0 ? n + axis : axis; return viewRef(x, type.shape, IX.map(n, (c) => c.map((v, i) => (i === a ? v.add(start) : v)))); }, print: "{x}[{axis}: {start}..{end}]" });
 
 export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, reduction and index-map primitives")
-  .op("const", { attrs: { value: 0, shape: [], data: null }, traits: ["pure", "any-ir"], infer: ({ shape, data }) => T_(data ? data.shape : shape),
+  .op("const", { attrs: { value: 0, shape: [], data: null }, traits: ["pure", "any-ir"], infer: ({ shape, data }) => T_(data ? data.shape : shape, data?.dtype || "f32"),
     eval: ({ value, shape, data }) => (data ? data : Tensor.fill(shape, value)),
     print: ({ value, shape, data, name }) => (data ? `${name ? name + " " : ""}data(${data.shape.join("×")})` : shape.length ? `splat ${+(+value).toPrecision(6)} (${shape.join("×")})` : String(+(+value).toPrecision(6))) })
   .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add", dtype: null }, traits: ["pure"], infer: ({ xs, dtype }) => T_(xs[0].type.shape, dtype || elementwiseDtype(xs)), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs), type),

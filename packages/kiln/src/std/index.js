@@ -72,10 +72,18 @@ export class Project {
       if (selected && !selected.has(i.name)) continue;
       const t = g.nodes.get(i.id).type;
       const d = this._data?.[i.name];
-      const value = d !== undefined ? d : t?.kind === "tensor" ? Tensor.random(t.shape || [], { seed: 11 + i.name.length, dist: "uniform" }) : 0;
+      const exact = { i64: BigInt64Array, i32: Int32Array, bool: Uint8Array, u8: Uint8Array };
+      const value = d !== undefined ? d : t?.kind === "tensor" && exact[t.dtype]
+        ? new Tensor(t.shape || [], null, t.dtype)
+        : t?.kind === "tensor" ? Tensor.random(t.shape || [], { seed: 11 + i.name.length, dist: "uniform" }) : 0;
       if (t?.kind === "tensor" && ["f16", "bf16"].includes(t.dtype)) {
         if (!(value instanceof Tensor)) throw new k.KilnError("TypeError", `reference input ${i.name} requires Tensor data`);
         out[i.name] = new Tensor(value.shape, Float32Array.from(value.data, x => roundToDtype(x, t.dtype)));
+      } else if (t?.kind === "tensor" && exact[t.dtype]) {
+        if (!(value instanceof Tensor) || !(value.data instanceof exact[t.dtype]) || value.shape.join() !== t.shape.join()) {
+          throw new k.KilnError("TypeError", `reference input ${i.name} requires exact ${t.dtype} Tensor data`);
+        }
+        out[i.name] = new Tensor(value.shape, value.data.slice(), t.dtype);
       } else out[i.name] = value;
     }
     return out;
