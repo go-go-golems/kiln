@@ -37,12 +37,12 @@ The recommended priority is one complete agent-generated reusable-policy experim
 
 | Study recommendation | Current implementation/evidence | Remaining work |
 |---|---|---|
-| Pure deployable policy | fusion_policy.mjs validates bounded threshold, tree, selective and region JSON | Version feature semantics/units and unify artifact identity |
+| Pure deployable policy | fusion_policy.mjs validates bounded threshold, tree, selective and region JSON; optimization_artifact.mjs binds canonical identity and versioned contracts | Extend the bounded policy artifact to replayable transformation programs |
 | Checked selective fusion | createFusionRule and chooseFusionSubset share inlining, retained-producer accounting and rollback | Expose through a small replayable action/query interface |
 | Fixed evaluation and held-out confirmation | Frozen corpora, source snapshots, exact aliases, independent selection/measurement verifiers | Equal-budget external LLM versus simple search; stronger structural holdouts and uncertainty |
 | Transformation traces | Run records graph deltas/checkpoints/events | A portable lossless codec and explicit stale-handle/failure contracts |
 | Independent evidence | Existing evidence identity library plus integration receipts | Compose complete experiment identity without introducing a parallel evidence store |
-| LLM pass generation | Original PassAgent50-step smoke is terminal, no accepted replacement | Kiln-native proposal task with typed outputs and authoritative structured evaluation |
+| LLM pass generation | Native proposal task and bounded R2E-component driver work; first actual accepted policy aliases baseline | Complete the declared four-slot LLM/threshold/random comparison and fresh confirmation |
 
 The existing deterministic proposal generator explicitly says it is not an external LLM invocation. Prior manual/template policy studies cannot be relabeled as such. The singleton reshape improvement is a manually derived reusable compiler algorithm, with positive but mixed fresh-model measurements. It is not autonomous synthesis.
 
@@ -56,9 +56,9 @@ The search process may propose policy/strategy data. It cannot edit references, 
 
 ## Agent framework decision
 
-Initially reuse the pinned R2E-Gym lifecycle/tool/trajectory infrastructure already exercised by original PassAgent. Keep the reference configuration untouched. A distinct Kiln-native task must use structured result fields and candidate identities rather than inheriting PassAgent's regex score extraction, pass-file snapshot assumptions or placeholder reward.
+Reuse the pinned R2E-Gym Action parser and TrajectoryStep records inside the bounded native driver. Repository-oriented Agent.run does not fit the native policy task; the implemented driver owns that lifecycle explicitly. Keep the original PassAgent reference configuration separate. The native task uses structured result fields and candidate identities, with no placeholder reward.
 
-Proposed tools inspect approved training IR/features, submit validated policy JSON, request compilation and request training evaluation. Existing corpus/compiler/runtime/measurement commands perform the work outside the candidate-editable workspace. The proposal API and task/tool configuration are new work, not implemented by this design. Start with one agent; extra agents require an explicit independent experiment.
+Implemented tools inspect approved training features, submit validated policy JSON and finish a batch. Existing corpus/compiler/runtime/measurement commands perform compilation and evaluation outside the model's control after serving stops. Model-requested compilation and adaptive timing feedback remain future work. Use one agent; extra agents require an explicit independent experiment.
 
 Model choice is a recorded experimental variable. A higher model in the current coding conversation does not retroactively change the completed generic-Qwen reference run or establish a new benchmark result. Use a provider or the existing local endpoint with an explicit model identity. If serving shares the GB10, separate proposal and hardware timing phases and release serving resources before isolated measurements.
 
@@ -77,6 +77,8 @@ MLIR, equality saturation, whole-repository TypeScript conversion, large-scale t
 The full-shape convolution probe in design19 contradicts selecting an oracle from its smaller batch1 probe. Compensated summation can reproduce the frontend while still disagreeing with the full native reference. This is a concrete example of why semantic profiles and external acceptance must remain independent of an agent's objective. No production numerical fix is approved by these diagnostic substitutions alone.
 
 ## Implementation checkpoint: native proposal boundary
+
+The following checkpoints preserve the order of implementation and evidence. Later checkpoints supersede earlier statements about pending work; the capability table above summarizes the current architecture.
 
 `integrations/passnet/native_policy_task.py` now implements the proposal phase as a trusted task object. The caller supplies the corpus manifest, a training-only compilation receipt, a proposal budget, an evaluator-owned output directory and the Node executable. Its three operations are `inspect_training`, `submit_policy` and `finish`. It exposes no shell, file editor, evaluator path, timing switch or numerical-tolerance operation. This boundary is callable by either an agent driver or a deterministic search baseline. It is not yet the R2E-Gym driver or a complete optimization experiment.
 
@@ -183,3 +185,11 @@ Each method's candidate set includes unchanged Kiln as its first fallback. Indep
 The collector revalidates accepted and duplicate submissions against their raw request bytes and the current artifact validator, checks every charged slot and retained artifact, and verifies baseline proposals against the declared deterministic generator. Cross-method copies of the same optimization artifact receive one compiler policy ID, while retaining their separate proposal costs. Raw model requests, responses and task ledgers are included in the common candidate freeze. Scripts428–430 now take explicit study/run inputs and retain the same isolated DGX ownership and shutdown checks; historical smoke runs remain reproducible from their pinned source revision.
 
 At this checkpoint53 focused tests pass, both twelve-graph training controls compile, and each deterministic method has four valid proposals. The eight confirmation graphs are neither compiled nor timed. The new model batch and all candidate GPU measurements remain pending; no comparative speedup is claimed.
+
+### Actual four-slot model batch and frozen candidates
+
+The declared model batch subsequently ran from commit7776662f3b9e73336302015032529fa5e09bd07a. It completed two responses in142.0059 seconds: one training inspection followed by a response containing four submission actions. The driver rejected that response with `Expected exactly one complete tool action`, charged all four recognizable submissions, and accepted no artifact. Reported usage was10678 prompt tokens and3944 completion tokens. This is a protocol-following failure under the declared model/interface combination, not evidence that the four textual policy ideas would fail compilation or timing. They are not rescued into the comparison after the fact.
+
+Script432 now replays version2 accounting against the pinned actual R2E Action implementation, reconstructs every model-visible message and verifies raw task requests/results. The replay passed. Script430 collected23 files with matching remote hashes and verified that the model container was absent and no GPU compute process remained. Evidence is in native-policy-search-model-terminal-v1 and native-policy-search-model-audit-v1.
+
+The common candidate declaration is now frozen: unchanged/default controls, four threshold proposals and four random proposals. The LLM method contains only its predeclared unchanged-Kiln fallback. Its failure and inference cost remain part of the comparison; there is no rerun or replacement allowance. Scripts438/439 prepare isolated, hashed measurement bundles around the existing evaluator for both phases. Their runtime execution remains pending at this checkpoint. The next gate is complete candidate compilation, followed by isolated training selection and fresh confirmation.

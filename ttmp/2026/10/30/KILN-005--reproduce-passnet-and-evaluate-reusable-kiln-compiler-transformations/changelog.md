@@ -175,3 +175,11 @@ Implemented native proposal-accounting v2: identifiable malformed/multiple/trunc
 
 - /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/qualify_policies.py — Shared failure-aware qualification and measurement bindings
 - /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/run_native_policy_agent.py — Identifiable submission accounting without malformed action execution
+
+## 2026-10-31
+
+Prepared four-slot threshold/random/LLM search comparison with independent training selections and shared confirmation metrics. Twelve training controls compile, eight fresh exact-model confirmation graphs remain uncompiled, deterministic arms each produced four valid proposals, and 53 focused tests pass. Model inference and GPU comparison remain pending.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/policy_search.py — Shared search declaration and method-specific selections

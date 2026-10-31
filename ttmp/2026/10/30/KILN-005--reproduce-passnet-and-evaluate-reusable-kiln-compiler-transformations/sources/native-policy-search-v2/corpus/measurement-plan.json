@@ -1,0 +1,62 @@
+{
+  "format": "kiln-policy-search-measurement-plan/1",
+  "membership_sha256": "d236540b3b5ff4a62df035920d91602fe34df10c1d51b1facb2d8e535c3218e9",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "reference_backend_numerics": {
+    "float32_matmul_precision": "highest"
+  },
+  "protocol_scope": "Modified full-precision FP32 compiler-policy research; not native PassBench acceptance",
+  "candidate_ids": [
+    "baseline",
+    "default",
+    "p-043f7864619822312b7f5c3d2f52dcdb3f6a58a9f73ff688355acdfac46359b0",
+    "p-c5d6260616d8b94ebad5f46c9f7e3e9ee435bd939e1198f578ef5454511a00d7",
+    "p-07807286df62547e7fcb493fdf059b20ca988b21c2e5a250957eb9c03a2ab597",
+    "p-1d2b2d8412fc768097045f483f34db0f063a96e6e2f2cfabc8d303f4e970c93b",
+    "p-ef1e49d777032e307d6fd8924fad7f72152701a474acfa5971ca37d7d9c56925",
+    "p-b5517086a5ea0b535283766a6a203afdb32909051eebf0edbdb53be018331d49",
+    "p-196f5181d17ee2f118c8b4461d5824506314f809e15562a51f3979ec573277f7",
+    "p-0269990aae9cbd2d02766673ce9cfc694f655e082f5104d01e96298b0599e19e"
+  ],
+  "seed": 42,
+  "warmup": 20,
+  "trials": 100,
+  "repeats": 3,
+  "max_iqr_fraction": 0.2,
+  "max_retries": 2,
+  "inputs": "Original source replay, nominal dtype tolerances, output structure and unchanged inputs",
+  "order": "Seeded shuffle of distinct fingerprints; exact executable aliases share evidence",
+  "metrics": [
+    "synchronized end-to-end ms",
+    "CUDA-event stream elapsed ms including dispatch gaps"
+  ],
+  "selection": "Training-only family-balanced geometric mean end-to-end ratio to unchanged Kiln; exact ties preserve declaration order; compile-cost coefficient zero",
+  "heldout": "Only unchanged Kiln and the committed winner of each search method; all 8 confirmation graphs retained",
+  "scope": "Twelve previously studied FP32 training graphs; eight fresh exact-model confirmation graphs excluding tracked prior corpus models and official evaluation models; architecture relatives may remain",
+  "proposal_provenance": {
+    "method": "Equal declared proposal allowances; fixed threshold and seeded-random baselines plus external-model batch; all charged outcomes retained"
+  },
+  "source_contract": "Separate elementary FP32 arithmetic and highest-precision native matrix reference, fixed across candidates",
+  "search_groups": {
+    "threshold": [
+      "baseline",
+      "p-043f7864619822312b7f5c3d2f52dcdb3f6a58a9f73ff688355acdfac46359b0",
+      "p-c5d6260616d8b94ebad5f46c9f7e3e9ee435bd939e1198f578ef5454511a00d7",
+      "p-07807286df62547e7fcb493fdf059b20ca988b21c2e5a250957eb9c03a2ab597",
+      "p-1d2b2d8412fc768097045f483f34db0f063a96e6e2f2cfabc8d303f4e970c93b"
+    ],
+    "random": [
+      "baseline",
+      "p-ef1e49d777032e307d6fd8924fad7f72152701a474acfa5971ca37d7d9c56925",
+      "p-b5517086a5ea0b535283766a6a203afdb32909051eebf0edbdb53be018331d49",
+      "p-196f5181d17ee2f118c8b4461d5824506314f809e15562a51f3979ec573277f7",
+      "p-0269990aae9cbd2d02766673ce9cfc694f655e082f5104d01e96298b0599e19e"
+    ],
+    "llm": [
+      "baseline"
+    ]
+  },
+  "search_protocol_sha256": "112c864afc95dd42b2798616067bf660960f872aadbae1348a30ccf5f811d2ab"
+}

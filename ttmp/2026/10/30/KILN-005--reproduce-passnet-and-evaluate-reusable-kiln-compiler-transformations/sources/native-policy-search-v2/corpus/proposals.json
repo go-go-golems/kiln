@@ -1,0 +1,505 @@
+{
+  "format": "kiln-policy-search-proposals/1",
+  "training_membership_sha256": "d236540b3b5ff4a62df035920d91602fe34df10c1d51b1facb2d8e535c3218e9",
+  "policies": [
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "baseline",
+      "kind": "unchanged"
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "default",
+      "kind": "threshold",
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "p-043f7864619822312b7f5c3d2f52dcdb3f6a58a9f73ff688355acdfac46359b0",
+      "kind": "threshold",
+      "max_work_growth": 0.95
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "p-c5d6260616d8b94ebad5f46c9f7e3e9ee435bd939e1198f578ef5454511a00d7",
+      "kind": "threshold",
+      "max_work_growth": 1
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "p-07807286df62547e7fcb493fdf059b20ca988b21c2e5a250957eb9c03a2ab597",
+      "kind": "threshold",
+      "max_work_growth": 1.1
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "p-1d2b2d8412fc768097045f483f34db0f063a96e6e2f2cfabc8d303f4e970c93b",
+      "kind": "threshold",
+      "max_work_growth": 1.25
+    },
+    {
+      "consumer_tree": {
+        "else": {
+          "threshold": 1
+        },
+        "if": {
+          "feature": "consumerCount",
+          "op": "eq",
+          "value": 1
+        },
+        "then": {
+          "accept": true
+        }
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "p-ef1e49d777032e307d6fd8924fad7f72152701a474acfa5971ca37d7d9c56925",
+      "kind": "selective",
+      "tree": {
+        "else": {
+          "threshold": 0.75
+        },
+        "if": {
+          "feature": "fusedWork",
+          "op": "ge",
+          "value": 11798352
+        },
+        "then": {
+          "threshold": 1.5
+        }
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "p-b5517086a5ea0b535283766a6a203afdb32909051eebf0edbdb53be018331d49",
+      "kind": "decision-tree",
+      "tree": {
+        "else": {
+          "threshold": 0.9
+        },
+        "if": {
+          "feature": "producerElements",
+          "op": "le",
+          "value": 32768
+        },
+        "then": {
+          "threshold": 0.95
+        }
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "p-196f5181d17ee2f118c8b4461d5824506314f809e15562a51f3979ec573277f7",
+      "kind": "threshold",
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "p-0269990aae9cbd2d02766673ce9cfc694f655e082f5104d01e96298b0599e19e",
+      "kind": "decision-tree",
+      "tree": {
+        "else": {
+          "threshold": 0.95
+        },
+        "if": {
+          "feature": "originalWork",
+          "op": "le",
+          "value": 1099644672
+        },
+        "then": {
+          "threshold": 1.25
+        }
+      }
+    }
+  ],
+  "optimization_artifacts": {
+    "043f7864619822312b7f5c3d2f52dcdb3f6a58a9f73ff688355acdfac46359b0": {
+      "format": "kiln-optimization-artifact/1",
+      "input_ir": "kiln-loop/1",
+      "action_contract": "kiln-loop-fusion/1",
+      "feature_contract": "kiln-loop-fusion-features/1",
+      "numerical_policy": {
+        "contraction": "separate"
+      },
+      "applicability": {
+        "pipeline": "emmy",
+        "static_shapes": true
+      },
+      "program_budget": {
+        "max_nodes": 31,
+        "max_depth": 6,
+        "max_work_growth": 2
+      },
+      "program": {
+        "format": "kiln-fusion-policy/1",
+        "id": "artifact-policy",
+        "kind": "threshold",
+        "max_work_growth": 0.95
+      }
+    },
+    "c5d6260616d8b94ebad5f46c9f7e3e9ee435bd939e1198f578ef5454511a00d7": {
+      "format": "kiln-optimization-artifact/1",
+      "input_ir": "kiln-loop/1",
+      "action_contract": "kiln-loop-fusion/1",
+      "feature_contract": "kiln-loop-fusion-features/1",
+      "numerical_policy": {
+        "contraction": "separate"
+      },
+      "applicability": {
+        "pipeline": "emmy",
+        "static_shapes": true
+      },
+      "program_budget": {
+        "max_nodes": 31,
+        "max_depth": 6,
+        "max_work_growth": 2
+      },
+      "program": {
+        "format": "kiln-fusion-policy/1",
+        "id": "artifact-policy",
+        "kind": "threshold",
+        "max_work_growth": 1
+      }
+    },
+    "07807286df62547e7fcb493fdf059b20ca988b21c2e5a250957eb9c03a2ab597": {
+      "format": "kiln-optimization-artifact/1",
+      "input_ir": "kiln-loop/1",
+      "action_contract": "kiln-loop-fusion/1",
+      "feature_contract": "kiln-loop-fusion-features/1",
+      "numerical_policy": {
+        "contraction": "separate"
+      },
+      "applicability": {
+        "pipeline": "emmy",
+        "static_shapes": true
+      },
+      "program_budget": {
+        "max_nodes": 31,
+        "max_depth": 6,
+        "max_work_growth": 2
+      },
+      "program": {
+        "format": "kiln-fusion-policy/1",
+        "id": "artifact-policy",
+        "kind": "threshold",
+        "max_work_growth": 1.1
+      }
+    },
+    "1d2b2d8412fc768097045f483f34db0f063a96e6e2f2cfabc8d303f4e970c93b": {
+      "format": "kiln-optimization-artifact/1",
+      "input_ir": "kiln-loop/1",
+      "action_contract": "kiln-loop-fusion/1",
+      "feature_contract": "kiln-loop-fusion-features/1",
+      "numerical_policy": {
+        "contraction": "separate"
+      },
+      "applicability": {
+        "pipeline": "emmy",
+        "static_shapes": true
+      },
+      "program_budget": {
+        "max_nodes": 31,
+        "max_depth": 6,
+        "max_work_growth": 2
+      },
+      "program": {
+        "format": "kiln-fusion-policy/1",
+        "id": "artifact-policy",
+        "kind": "threshold",
+        "max_work_growth": 1.25
+      }
+    },
+    "ef1e49d777032e307d6fd8924fad7f72152701a474acfa5971ca37d7d9c56925": {
+      "format": "kiln-optimization-artifact/1",
+      "input_ir": "kiln-loop/1",
+      "action_contract": "kiln-loop-fusion/1",
+      "feature_contract": "kiln-loop-fusion-features/1",
+      "numerical_policy": {
+        "contraction": "separate"
+      },
+      "applicability": {
+        "pipeline": "emmy",
+        "static_shapes": true
+      },
+      "program_budget": {
+        "max_nodes": 31,
+        "max_depth": 6,
+        "max_work_growth": 2
+      },
+      "program": {
+        "consumer_tree": {
+          "else": {
+            "threshold": 1
+          },
+          "if": {
+            "feature": "consumerCount",
+            "op": "eq",
+            "value": 1
+          },
+          "then": {
+            "accept": true
+          }
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "artifact-policy",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 0.75
+          },
+          "if": {
+            "feature": "fusedWork",
+            "op": "ge",
+            "value": 11798352
+          },
+          "then": {
+            "threshold": 1.5
+          }
+        }
+      }
+    },
+    "b5517086a5ea0b535283766a6a203afdb32909051eebf0edbdb53be018331d49": {
+      "format": "kiln-optimization-artifact/1",
+      "input_ir": "kiln-loop/1",
+      "action_contract": "kiln-loop-fusion/1",
+      "feature_contract": "kiln-loop-fusion-features/1",
+      "numerical_policy": {
+        "contraction": "separate"
+      },
+      "applicability": {
+        "pipeline": "emmy",
+        "static_shapes": true
+      },
+      "program_budget": {
+        "max_nodes": 31,
+        "max_depth": 6,
+        "max_work_growth": 2
+      },
+      "program": {
+        "format": "kiln-fusion-policy/1",
+        "id": "artifact-policy",
+        "kind": "decision-tree",
+        "tree": {
+          "else": {
+            "threshold": 0.9
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "le",
+            "value": 32768
+          },
+          "then": {
+            "threshold": 0.95
+          }
+        }
+      }
+    },
+    "196f5181d17ee2f118c8b4461d5824506314f809e15562a51f3979ec573277f7": {
+      "format": "kiln-optimization-artifact/1",
+      "input_ir": "kiln-loop/1",
+      "action_contract": "kiln-loop-fusion/1",
+      "feature_contract": "kiln-loop-fusion-features/1",
+      "numerical_policy": {
+        "contraction": "separate"
+      },
+      "applicability": {
+        "pipeline": "emmy",
+        "static_shapes": true
+      },
+      "program_budget": {
+        "max_nodes": 31,
+        "max_depth": 6,
+        "max_work_growth": 2
+      },
+      "program": {
+        "format": "kiln-fusion-policy/1",
+        "id": "artifact-policy",
+        "kind": "threshold",
+        "max_work_growth": 1.02
+      }
+    },
+    "0269990aae9cbd2d02766673ce9cfc694f655e082f5104d01e96298b0599e19e": {
+      "format": "kiln-optimization-artifact/1",
+      "input_ir": "kiln-loop/1",
+      "action_contract": "kiln-loop-fusion/1",
+      "feature_contract": "kiln-loop-fusion-features/1",
+      "numerical_policy": {
+        "contraction": "separate"
+      },
+      "applicability": {
+        "pipeline": "emmy",
+        "static_shapes": true
+      },
+      "program_budget": {
+        "max_nodes": 31,
+        "max_depth": 6,
+        "max_work_growth": 2
+      },
+      "program": {
+        "format": "kiln-fusion-policy/1",
+        "id": "artifact-policy",
+        "kind": "decision-tree",
+        "tree": {
+          "else": {
+            "threshold": 0.95
+          },
+          "if": {
+            "feature": "originalWork",
+            "op": "le",
+            "value": 1099644672
+          },
+          "then": {
+            "threshold": 1.25
+          }
+        }
+      }
+    }
+  },
+  "search_groups": {
+    "threshold": [
+      "baseline",
+      "p-043f7864619822312b7f5c3d2f52dcdb3f6a58a9f73ff688355acdfac46359b0",
+      "p-c5d6260616d8b94ebad5f46c9f7e3e9ee435bd939e1198f578ef5454511a00d7",
+      "p-07807286df62547e7fcb493fdf059b20ca988b21c2e5a250957eb9c03a2ab597",
+      "p-1d2b2d8412fc768097045f483f34db0f063a96e6e2f2cfabc8d303f4e970c93b"
+    ],
+    "random": [
+      "baseline",
+      "p-ef1e49d777032e307d6fd8924fad7f72152701a474acfa5971ca37d7d9c56925",
+      "p-b5517086a5ea0b535283766a6a203afdb32909051eebf0edbdb53be018331d49",
+      "p-196f5181d17ee2f118c8b4461d5824506314f809e15562a51f3979ec573277f7",
+      "p-0269990aae9cbd2d02766673ce9cfc694f655e082f5104d01e96298b0599e19e"
+    ],
+    "llm": [
+      "baseline"
+    ]
+  },
+  "search_ledgers": {
+    "threshold": {
+      "proposal_allowance": 4,
+      "used_slots": 4,
+      "unused_slots": 0,
+      "unique_artifacts": 4,
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "accepted",
+          "policy": "p-043f7864619822312b7f5c3d2f52dcdb3f6a58a9f73ff688355acdfac46359b0"
+        },
+        {
+          "attempt": 2,
+          "status": "accepted",
+          "policy": "p-c5d6260616d8b94ebad5f46c9f7e3e9ee435bd939e1198f578ef5454511a00d7"
+        },
+        {
+          "attempt": 3,
+          "status": "accepted",
+          "policy": "p-07807286df62547e7fcb493fdf059b20ca988b21c2e5a250957eb9c03a2ab597"
+        },
+        {
+          "attempt": 4,
+          "status": "accepted",
+          "policy": "p-1d2b2d8412fc768097045f483f34db0f063a96e6e2f2cfabc8d303f4e970c93b"
+        }
+      ],
+      "generation_elapsed_seconds": 0.4343104010040406
+    },
+    "random": {
+      "proposal_allowance": 4,
+      "used_slots": 4,
+      "unused_slots": 0,
+      "unique_artifacts": 4,
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "accepted",
+          "policy": "p-ef1e49d777032e307d6fd8924fad7f72152701a474acfa5971ca37d7d9c56925"
+        },
+        {
+          "attempt": 2,
+          "status": "accepted",
+          "policy": "p-b5517086a5ea0b535283766a6a203afdb32909051eebf0edbdb53be018331d49"
+        },
+        {
+          "attempt": 3,
+          "status": "accepted",
+          "policy": "p-196f5181d17ee2f118c8b4461d5824506314f809e15562a51f3979ec573277f7"
+        },
+        {
+          "attempt": 4,
+          "status": "accepted",
+          "policy": "p-0269990aae9cbd2d02766673ce9cfc694f655e082f5104d01e96298b0599e19e"
+        }
+      ],
+      "generation_elapsed_seconds": 0.43382539800950326
+    },
+    "llm": {
+      "proposal_allowance": 4,
+      "used_slots": 4,
+      "unused_slots": 0,
+      "unique_artifacts": 0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "rejected",
+          "error": "policy_json must be a string of at most 16384 UTF-8 bytes"
+        },
+        {
+          "attempt": 2,
+          "status": "rejected",
+          "error": "policy_json must be a string of at most 16384 UTF-8 bytes"
+        },
+        {
+          "attempt": 3,
+          "status": "rejected",
+          "error": "policy_json must be a string of at most 16384 UTF-8 bytes"
+        },
+        {
+          "attempt": 4,
+          "status": "rejected",
+          "error": "policy_json must be a string of at most 16384 UTF-8 bytes"
+        }
+      ],
+      "inference_usage": {
+        "prompt_tokens": 10678,
+        "completion_tokens": 3944,
+        "total_tokens": 14622
+      },
+      "generation_elapsed_seconds": 142.0058877300471
+    }
+  },
+  "protocol": {
+    "format": "kiln-policy-search-protocol/1",
+    "proposal_budget": 4,
+    "searches": [
+      {
+        "id": "threshold",
+        "method": "threshold-grid",
+        "values": [
+          0.95,
+          1.0,
+          1.1,
+          1.25
+        ]
+      },
+      {
+        "id": "random",
+        "method": "seeded-random",
+        "seed": 20261031
+      },
+      {
+        "id": "llm",
+        "method": "external-llm",
+        "model": "Qwen3-30B-A3B",
+        "max_steps": 12,
+        "completion_budget": 24576,
+        "per_turn_tokens": 4096
+      }
+    ],
+    "scope": "Equal proposal allowance; separate inference/compile/GPU costs; single proposal batch without timing feedback",
+    "selection": "Independent training winner per method; unchanged Kiln is the fallback; no replacement of rejected or duplicate proposals"
+  },
+  "protocol_sha256": "112c864afc95dd42b2798616067bf660960f872aadbae1348a30ccf5f811d2ab",
+  "provenance": {
+    "method": "Equal declared proposal allowances; fixed threshold and seeded-random baselines plus external-model batch; all charged outcomes retained"
+  }
+}

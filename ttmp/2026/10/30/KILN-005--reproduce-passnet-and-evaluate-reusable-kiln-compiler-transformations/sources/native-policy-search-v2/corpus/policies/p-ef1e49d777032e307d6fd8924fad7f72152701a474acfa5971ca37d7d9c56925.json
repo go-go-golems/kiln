@@ -1,0 +1,31 @@
+{
+  "consumer_tree": {
+    "else": {
+      "threshold": 1
+    },
+    "if": {
+      "feature": "consumerCount",
+      "op": "eq",
+      "value": 1
+    },
+    "then": {
+      "accept": true
+    }
+  },
+  "format": "kiln-fusion-policy/1",
+  "id": "p-ef1e49d777032e307d6fd8924fad7f72152701a474acfa5971ca37d7d9c56925",
+  "kind": "selective",
+  "tree": {
+    "else": {
+      "threshold": 0.75
+    },
+    "if": {
+      "feature": "fusedWork",
+      "op": "ge",
+      "value": 11798352
+    },
+    "then": {
+      "threshold": 1.5
+    }
+  }
+}

@@ -22,7 +22,7 @@ root=Path(sys.argv[1])
 run=json.loads((root/'run.json').read_text())
 assert run['status'] in ['complete','failed'],'Run is still active'
 assert subprocess.run(['tmux','has-session','-t',sys.argv[2]],capture_output=True).returncode!=0,'Owner still live'
-names=['run.json','bundle.json','driver.stdout.txt','agent.stdout.txt','model-server.stdout.txt']
+names=['run.json','bundle.json','driver.stdout.txt','agent.stdout.txt','model-server.stdout.txt','measurement.stdout.txt']
 paths=[root/name for name in names if (root/name).is_file()]
 paths+=sorted(p for p in (root/'output').rglob('*') if p.is_file())
 print(json.dumps({'files_sha256':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},

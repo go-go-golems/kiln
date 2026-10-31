@@ -7410,3 +7410,68 @@ See Step152 for the authored design-document question and Step149 for the framew
 - New formats: kiln-policy-search-protocol/1, kiln-policy-search-proposals/1, kiln-policy-search-measurement-plan/1, kiln-policy-search-selection/1 and kiln-policy-search-summary/1.
 - Rejected/duplicate slots receive no replacement. Unchanged Kiln appears first in every method for deterministic tie/failure fallback. Confirmation failures retain graph positions and suppress aggregate speedup for the affected method.
 - No production compiler transformation, runtime kernel code, numerical tolerance or shared remote checkout changed.
+
+## Step 156: Run the declared model arm and freeze its failed submissions without replacement
+
+Committed the common search implementation and deterministic proposals at7776662f3b9e73336302015032529fa5e09bd07a, then ran the actual four-slot Qwen batch in an isolated DGX directory. The batch inspected training features and emitted four submission actions in one response. The version2 driver rejected that response and charged all four slots; no model artifact was accepted. This is a measured protocol outcome, and the comparison retains unchanged Kiln as the LLM arm's declared fallback.
+
+The terminal collection and exact action/accounting replay passed. All methods are now frozen into one candidate declaration. Candidate compilation and GPU performance measurement remain pending at this checkpoint; the model's formatting failure says nothing about the speed of its unaccepted textual ideas.
+
+### Prompt Context
+See Step152 and Step155 for the authored question and continuing implementation intent. No new user-authored prompt was introduced by the automatic continuation.
+**Assistant interpretation:** Run the declared experiment faithfully, preserve negative results, and prepare isolated evaluation without changing its candidate budget.
+**Inferred user intent:** Obtain trustworthy self-optimization evidence and make failure causes auditable.
+**Commit (code):**7776662f3b9e73336302015032529fa5e09bd07a — Declare equal-budget policy searches with independent confirmation winners.
+
+### What I did
+- Staged committed code, manifest, training receipt and protocol using script428; launched the owner in tmux kiln-native-policy-search-model-v1 on manuel@bling with HostKeyAlias=bling.local.
+- Verified the pinned framework modules, full model bytes and idle GPU before inference. The owning process stopped its own container after the batch.
+- Collected23 terminal files with script430 and replayed both raw responses with updated script432 using the archived pinned Action parser. Checked request contexts, usage, trajectory observations, accounting and task files.
+- Froze all three methods with policy_search.py freeze, retaining raw JSON evidence and the unchanged fallback for the zero-artifact model arm.
+- Added scripts438/439 for immutable source/artifact/upstream bundles and isolated execution of the existing evaluator. Both phases share this runner; confirmation staging requires a committed selection that recomputes from committed training evidence.
+- Updated the design document's leading capability table and framework description so readers need not infer current implementation solely from chronological checkpoints.
+
+### Why
+- Reinterpreting a malformed four-action response as four accepted tool calls after observing it would change the declared protocol. Retaining its failure measures the actual interface used.
+- A normal batch with zero valid proposals must remain visible in method comparison, including its cost; it must not trigger a free replacement run.
+- The measurement bundle avoids mutating shared DGX sources and reuses the existing evaluator, wrapper, qualifier and selection logic.
+
+### What worked
+- Model/framework/source verification succeeded. The native batch completed normally in142.0058877300471 seconds with10678 prompt tokens and3944 completion tokens,14622 total.
+- Accounting recorded four identified, four charged and zero unadmitted submissions. The task ended with four attempts and zero unique artifacts.
+- Remote collection hash checks and exact replay passed. The container was absent and both owner/collector observed no GPU compute processes after shutdown.
+- The common declaration contains ten policies: two controls and eight deterministic proposals. Method membership is preserved, including llm=[baseline].
+- Syntax compilation passed for the new measurement scripts and updated replay audit. No runtime measurement qualification is claimed from syntax checks.
+
+### What didn't work
+- The second response violated the single-action contract: `Expected exactly one complete tool action`. Every reserved submission was rejected without executing its body. No policy-grammar, compiler or numerical judgment was made about those bodies.
+- Early observation attempted to tail model-server.stdout.txt during verifying_model and received `No such file or directory`. The owner session was still live, so no restart occurred. Later observations showed live token generation and then authoritative owner termination.
+- The model outcome does not demonstrate reusable compiler improvement. Deterministic candidate compilation, training and confirmation are still required.
+
+### What I learned
+- The stricter accounting rule changes operational outcomes: a single multi-action response can spend the complete proposal allowance. This behavior is deliberate and predeclared, but framework compliance must be separated from search quality in the report.
+- Real raw-response replay is useful here: it proves the rejected attempts were charged as specified rather than relying only on a summarized count.
+
+### What was tricky to build
+- The original smoke audit encoded version1 parsing/accounting. Updated it to version2 dispatch while preserving the old run and its original source revision. Current replay refuses source/prompt drift.
+- Measurement staging binds compiler/runtime bytes to the compilation snapshot and retains exact source-model files. Both training and confirmation use the same read-only bundle layout and existing reference wrapper.
+- The model server and timing runner have separate owned containers and directories; no timing starts before the model owner releases its GPU resources.
+
+### What warrants a second pair of eyes
+- Review whether a future protocol should use native structured tool calls or a different action format. Such a change requires a new declared experiment; it cannot rescue this batch's score.
+- Review actual execution of scripts438/439, especially source snapshots, read-only mounts and numerical reference settings. Runtime behavior is not yet verified.
+
+### What should be done in the future
+- Compile the ten frozen policies, preserving candidate failures and aborting on failed controls; then measure training and commit each method's winner before confirmation.
+- Report the LLM arm's protocol failure separately from any deterministic performance result, with its inference cost and unchanged fallback explicit.
+- Continue the broader full200 and transformation-synthesis tracks after this bounded comparison; no overall completion claim is made.
+
+### Code review instructions
+- Inspect native-policy-search-model-audit-v1/result.json and terminal-v1/output/agent/result.json, then compare the raw response/trajectory with dispatch_response.
+- Inspect native-policy-search-v2/corpus/proposals.json, measurement-plan.json and candidate-freeze.json for all method groups and raw ledger hashes.
+- Review scripts438/439 as launch infrastructure around existing evaluation, not a second metric implementation.
+
+### Technical details
+- Source revision:7776662f3b9e73336302015032529fa5e09bd07a. Model SHA256f921b42e9b6191c3ffad54532df61e57fb1477aefdb12f5a4eb496ac8828e8ad.
+- Remote owner directory:/home/manuel/passnet-kiln/KILN-005/sources/native-policy-search-model-v1. Container kiln005-native-policy-search-model-v1 is absent after completion.
+- The four-slot allowance and12-step limit were unchanged. The two-step stop reason is proposal_budget_exhausted; no retry or second batch ran.
