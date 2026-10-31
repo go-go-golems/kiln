@@ -2341,3 +2341,44 @@ Original numerical fidelity and evidence requirements.
 
 ### Technical details
 - No checker relaxation or delegated torch convolution in Kiln execution. Reference baseline reached 73 completed tasks at observation.
+
+## Step 56: Distinguish original benchmark replay from broader stress inputs
+
+Inspected actual metadata and used unchanged upstream get_input_dict/replay_tensor to validate the corrected artifact. Original replay inputs pass FP16 baseline tolerances, while unit-scale random stress failure remains explicitly unresolved. Neither result substitutes for complete original evaluator acceptance.
+
+### Prompt Context
+Original benchmark fidelity requirement and preservation of all failures.
+**Assistant interpretation:** Test actual input contract without hiding broader numerical limitations.
+**Inferred user intent:** Scientifically accurate coverage and compiler correctness reporting.
+
+### What I did
+- Inspected source metadata: bias mean/std zero; weight std 0.042, residual mean/std 0.008/0.129, activation mean/std 0/0.023.
+- Added check_third_task_replay.py invoking original upstream input replay API, fixed seed 42.
+- Compared original GraphModule and corrected artifact at rtol 1e-3/atol 1e-5.
+
+### Why
+- Prior stress uses unit-scale inputs, materially different from declared replay distributions. Both are useful but answer distinct questions.
+
+### What worked
+- Replay-input GPU check passed; max_abs_error 1.52587890625e-05.
+
+### What didn't work
+- Broader stress-input test still fails 67 elements after bias fix; higher-precision diagnostic still fails 62. No claim that this robustness issue is fixed.
+
+### What I learned
+- Actual metadata must be used for faithful benchmark evaluation, with stress testing retained as a separate correctness investigation.
+
+### What was tricky to build
+- Use original replay function rather than hand-implementing distribution generation; preserve exact graph/input identity.
+
+### What warrants a second pair of eyes
+- Distribution metadata is not a proof that all larger values are semantically invalid. Compiler robustness limitations remain material.
+
+### What should be done in the future
+- Run complete original checker/scorer under declared protocol on third task; continue high-precision accumulation diagnosis independently.
+
+### Code review instructions
+- Inspect check_third_task_replay.py and replay-check.json alongside prior stress failure logs.
+
+### Technical details
+- Benchmark coverage remains 2/200 until original evaluator acceptance. No loosened tolerance or changed source input generator.
