@@ -3736,3 +3736,26 @@ Read reference 45 sections 3 and 7 first, then check A1 against `custom_replacem
 
 ### Technical details
 Review revision `73bc1fc29bf3e0a76609ae215fbbf25e2bd5108b`. The probe scripts are reproduced inline in reference 45 §2. No GPU work was launched.
+
+## Step 238: Deliver the review, vault article and reMarkable bundle
+
+This step records delivery of the Step 237 outputs and the commits that carry them.
+
+### Prompt Context
+**User prompt:** "Commit and push the obsidian vault when done"; "Store in the ticket and then upload to remarkable"; later "commit at appropriate intervals and keep a detailed diary as you work".
+**Assistant interpretation:** Publish the textbook-style article to the go-go-parc vault, upload the guide and review bundle, commit the ticket documents, and continue the diary for each later work unit.
+**Inferred user intent:** Durable, findable outputs, plus a commit trail and diary that the next session can resume from.
+
+### What I did
+- Wrote `Projects/2026/10/31/ARTICLE - Kiln - Architecture Review of the PassNet Integration and the Contracts That Make Results Compound.md` in the vault. Committed only that file as `ae21b98` and pushed `main` (`d4b7cc3..ae21b98`). The unrelated `dropcut-studio` changes in the vault were left unstaged.
+- Ran `remarquee upload bundle design-doc/22… reference/45… --name "KILN-005 Intern System Guide and Architecture Review" --remote-dir /ai/2026/10/31/KILN-005 --toc-depth 2 --non-interactive`. Result: `OK: uploaded KILN-005 Intern System Guide and Architecture Review.pdf -> /ai/2026/10/31/KILN-005`.
+- Added index links and P0–P3 tasks. Committed the ticket documents as `b517650`.
+
+### What worked
+Uploading and pushing the vault worked on the first attempt.
+
+### What didn't work
+`docmgr doc relate` on the intern guide and `docmgr doctor --ticket KILN-005 --stale-after 30` each exceeded 120–320 s on this large ticket and were moved to the background. Relate completed (`added 1`). The doctor result is recorded when it finishes.
+
+### What should be done in the future
+Start P0 from reference 45 §7: A2, A3, A6 and A7 as small focused commits, then A1 with tasks 6, 24 and 185 replays once the GPU queue is free.
