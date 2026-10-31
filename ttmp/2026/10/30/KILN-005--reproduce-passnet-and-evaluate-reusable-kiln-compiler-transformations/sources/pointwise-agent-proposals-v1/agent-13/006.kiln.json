@@ -1,0 +1,182 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "006.kiln.js",
+  "sha256": "8e635ec2904884086cda058e55b742da9b6b62214075a509c07a9103d7c0f591",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    32
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    32,
+    120,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    128,
+    120,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 3,
+   "shape": [
+    128,
+    32,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 32,
+   "bytes": 128
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 3840,
+   "bytes": 15360
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 15360,
+   "bytes": 61440
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_conv2d_cast_silu_reduce__25pzxwvqamr",
+   "identity": "25pzxwvqamr",
+   "row": "MAP=row,TPB=128",
+   "reads": [
+    0,
+    1,
+    2
+   ],
+   "writes": 3,
+   "grid": 4096,
+   "block": 128,
+   "smemBytes": 512,
+   "dispatch": [
+    4096,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    32,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     32
+    ],
+    [
+     32,
+     120,
+     1,
+     1
+    ],
+    [
+     128,
+     120,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_conv2d_cast_silu_reduce__25pzxwvqamr(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[128];\n    float acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, in2 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f;\n    acc2 = 0.0f;\n    for (int r0 = tid; r0 < 120; r0 += 128) {\n        acc1 = 0.0f;\n        for (int r1 = 0; r1 < 1; r1 += 1) {\n            acc0 = 0.0f;\n            for (int r2 = 0; r2 < 1; r2 += 1) {\n                in0 = src2[(((((120 * ((bid % 32) / 32)) + (120 * (bid / 32))) + r0) + r1) + r2)];\n                in1 = src1[((((120 * (bid % 32)) + r0) + r1) + r2)];\n                v0 = __fmul_rn(in0, in1);\n                acc0 = (acc0 + v0);\n            }\n            acc1 = (acc1 + acc0);\n        }\n        acc2 = (acc2 + acc1);\n    }\n    __syncthreads();\n    s_red[tid] = acc2;\n    __syncthreads();\n    if ((tid < 64)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 64)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 32)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 16)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 8)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 4)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 2)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 1)];\n        s_red[tid] = (sv12 + sv13);\n    }\n    __syncthreads();\n    acc2 = s_red[0];\n    in2 = src0[(bid % 32)];\n    v1 = __fadd_rn(acc2, in2);\n    v2 = v1;\n    v3 = (1.0f / (1.0f + expf(-(v2))));\n    v4 = __fmul_rn(v2, v3);\n    v5 = v4;\n    if ((tid == 0)) {\n        dst[((bid % 32) + (32 * (bid / 32)))] = v5;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "cleanup": {
+   "format": "kiln-fusion-policy/1",
+   "id": "cleanup",
+   "kind": "decision-tree",
+   "tree": {
+    "else": {
+     "threshold": 1.02
+    },
+    "if": {
+     "feature": "originalWork",
+     "op": "lt",
+     "value": 4000000
+    },
+    "then": {
+     "threshold": 1
+    }
+   }
+  },
+  "expose": {
+   "consumer_tree": {
+    "threshold": 1.05
+   },
+   "format": "kiln-fusion-policy/1",
+   "id": "expose",
+   "kind": "selective",
+   "tree": {
+    "else": {
+     "threshold": 1.05
+    },
+    "if": {
+     "feature": "producerElements",
+     "op": "lt",
+     "value": 100000
+    },
+    "then": {
+     "threshold": 1
+    }
+   }
+  },
+  "format": "kiln-transformation-program/1",
+  "id": "agent-13",
+  "kind": "fusion-sequence"
+ }
+}

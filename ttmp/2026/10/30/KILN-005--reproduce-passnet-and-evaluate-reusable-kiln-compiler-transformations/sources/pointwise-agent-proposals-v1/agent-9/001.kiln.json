@@ -1,0 +1,271 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "001.kiln.js",
+  "sha256": "13986d5528fabda8e96a865caac9c6ee5011dced3d5663d6a35b85e9873fbeb1",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    128,
+    8,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v6",
+   "buffer": 6,
+   "shape": [
+    1,
+    128,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v7",
+   "buffer": 7,
+   "shape": [
+    1,
+    8,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 8,
+   "shape": [
+    1,
+    128,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 1024,
+   "bytes": 4096
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 401408,
+   "bytes": 1605632
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 8,
+   "bytes": 32
+  },
+  {
+   "id": 8,
+   "dtype": "f32",
+   "elements": 401408,
+   "bytes": 1605632
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_conv2d_cast_ew_reduce__21xezptcmwx",
+   "identity": "21xezptcmwx",
+   "row": "TPB=64,COARSEN=4",
+   "reads": [
+    2,
+    3,
+    1,
+    0,
+    6,
+    4,
+    7,
+    5
+   ],
+   "writes": 8,
+   "grid": 1568,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    1568,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    128,
+    56,
+    56
+   ],
+   "inShapes": [
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     1,
+     128,
+     56,
+     56
+    ],
+    [
+     128
+    ],
+    [
+     1,
+     8,
+     1,
+     1
+    ],
+    [
+     128,
+     8,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_conv2d_cast_ew_reduce__21xezptcmwx(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, const float* __restrict__ src4, const float* __restrict__ src5, const float* __restrict__ src6, const float* __restrict__ src7, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc0 = 0.0f, in1 = 0.0f, in2 = 0.0f, v0 = 0.0f, in3 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, in4 = 0.0f, v7 = 0.0f, in5 = 0.0f, v9 = 0.0f, v10 = 0.0f, v11 = 0.0f, in6 = 0.0f, v13 = 0.0f, in7 = 0.0f, v15 = 0.0f, in0 = 0.0f, v5 = 0.0f, v6 = 0.0f, v8 = 0.0f, v12 = 0.0f, v14 = 0.0f, v16 = 0.0f, v17 = 0.0f, v18 = 0.0f, v19 = 0.0f, v20 = 0.0f, v21 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 4; j += 1) {\n        e = (((256 * bid) + (64 * j)) + tid);\n        if ((e < 401408)) {\n            acc0 = 0.0f;\n            for (int r0 = 0; r0 < 8; r0 += 1) {\n                in1 = src7[((8 * (e / 3136)) + r0)];\n                in2 = src6[r0];\n                v0 = __fmul_rn(in1, in2);\n                acc0 = (acc0 + v0);\n            }\n            in3 = src5[(e / 3136)];\n            v1 = __fadd_rn(acc0, in3);\n            v2 = v1;\n            v3 = (1.0f / (1.0f + expf(-(v2))));\n            v4 = v3;\n            in4 = src3[(e / 3136)];\n            v7 = in4;\n            in5 = src2[(e / 3136)];\n            v9 = in5;\n            v10 = __fadd_rn(v9, 0.00001f);\n            v11 = sqrtf(v10);\n            in6 = src1[(e / 3136)];\n            v13 = in6;\n            in7 = src0[(e / 3136)];\n            v15 = in7;\n            in0 = src4[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))];\n            v5 = __fmul_rn(in0, v4);\n            v6 = v5;\n            v8 = __fsub_rn(v6, v7);\n            v12 = (v8 / v11);\n            v14 = __fmul_rn(v12, v13);\n            v16 = __fadd_rn(v14, v15);\n            v17 = v16;\n            v18 = v17;\n            v19 = (1.0f / (1.0f + expf(-(v18))));\n            v20 = __fmul_rn(v18, v19);\n            v21 = v20;\n            dst[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))] = v21;\n        }\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "cleanup": {
+   "format": "kiln-fusion-policy/1",
+   "id": "cleanup",
+   "kind": "threshold",
+   "max_work_growth": 1.02
+  },
+  "expose": {
+   "consumer_tree": {
+    "threshold": 1.02
+   },
+   "format": "kiln-fusion-policy/1",
+   "id": "expose",
+   "kind": "selective",
+   "tree": {
+    "else": {
+     "threshold": 1
+    },
+    "if": {
+     "feature": "producerElements",
+     "op": "ge",
+     "value": 262144
+    },
+    "then": {
+     "threshold": 1.15
+    }
+   }
+  },
+  "format": "kiln-transformation-program/1",
+  "id": "agent-9",
+  "kind": "pointwise-fusion-sequence"
+ }
+}

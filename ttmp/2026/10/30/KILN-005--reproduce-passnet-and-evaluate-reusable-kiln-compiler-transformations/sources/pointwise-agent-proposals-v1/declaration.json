@@ -1,0 +1,513 @@
+{
+  "scope": "All unique valid proposals from six lanes, before candidate compilation or GPU timing",
+  "membership_sha256": "3b65e1faf5e6aeae6a35b802fe8bb884281cf0d1d760ab044823093469eab859",
+  "policies": [
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 1.02
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 1.02
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1.02
+          },
+          "if": {
+            "feature": "originalWork",
+            "op": "lt",
+            "value": 1000000
+          },
+          "then": {
+            "threshold": 0.9
+          }
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-1",
+      "kind": "pointwise-fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "consumer_tree": {
+          "threshold": 1.02
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1.02
+          },
+          "if": {
+            "feature": "originalWork",
+            "op": "lt",
+            "value": 500000
+          },
+          "then": {
+            "threshold": 0.95
+          }
+        }
+      },
+      "expose": {
+        "consumer_tree": {
+          "else": {
+            "threshold": 1.5
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "le",
+            "value": 20000
+          },
+          "then": {
+            "threshold": 1.05
+          }
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1.02
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "le",
+            "value": 20000
+          },
+          "then": {
+            "threshold": 1
+          }
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-2",
+      "kind": "pointwise-fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 1.02
+      },
+      "expose": {
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "region",
+        "launch_work": 16384,
+        "materialization_work": 32,
+        "max_work_growth": 1.15
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-3",
+      "kind": "fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 1.02
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 2
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1.25
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "le",
+            "value": 20000
+          },
+          "then": {
+            "threshold": 1.02
+          }
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-4",
+      "kind": "pointwise-fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "region",
+        "launch_work": 4096,
+        "materialization_work": 8,
+        "max_work_growth": 1.5
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 2
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "threshold": 2
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-5",
+      "kind": "fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 0.98
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 2
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1.02
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "le",
+            "value": 4096
+          },
+          "then": {
+            "threshold": 2
+          }
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-6",
+      "kind": "pointwise-fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 1.02
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 2
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1.5
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "lt",
+            "value": 10000
+          },
+          "then": {
+            "threshold": 1.02
+          }
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-7",
+      "kind": "pointwise-fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 1.02
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 2
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1.8
+          },
+          "if": {
+            "feature": "originalWork",
+            "op": "lt",
+            "value": 20000000
+          },
+          "then": {
+            "threshold": 1.02
+          }
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-8",
+      "kind": "pointwise-fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 1.02
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 1.02
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "ge",
+            "value": 262144
+          },
+          "then": {
+            "threshold": 1.15
+          }
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-9",
+      "kind": "pointwise-fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 1
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 1.5
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1.1
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "le",
+            "value": 2048
+          },
+          "then": {
+            "threshold": 1
+          }
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-10",
+      "kind": "pointwise-fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 1
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 1
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "threshold": 1
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-11",
+      "kind": "pointwise-fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "region",
+        "launch_work": 4096,
+        "materialization_work": 16,
+        "max_work_growth": 1
+      },
+      "expose": {
+        "consumer_tree": {
+          "else": {
+            "threshold": 1.02
+          },
+          "if": {
+            "feature": "consumerElements",
+            "op": "ge",
+            "value": 65536
+          },
+          "then": {
+            "threshold": 1.5
+          }
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "ge",
+            "value": 65536
+          },
+          "then": {
+            "threshold": 1.05
+          }
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-12",
+      "kind": "pointwise-fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "decision-tree",
+        "tree": {
+          "else": {
+            "threshold": 1.02
+          },
+          "if": {
+            "feature": "originalWork",
+            "op": "lt",
+            "value": 4000000
+          },
+          "then": {
+            "threshold": 1
+          }
+        }
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 1.05
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1.05
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "lt",
+            "value": 100000
+          },
+          "then": {
+            "threshold": 1
+          }
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-13",
+      "kind": "fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 1.02
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 2
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "else": {
+            "threshold": 1.02
+          },
+          "if": {
+            "feature": "producerElements",
+            "op": "le",
+            "value": 16384
+          },
+          "then": {
+            "threshold": 1.25
+          }
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-14",
+      "kind": "pointwise-fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 1
+      },
+      "expose": {
+        "consumer_tree": {
+          "threshold": 1
+        },
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "selective",
+        "tree": {
+          "threshold": 1
+        }
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-15",
+      "kind": "fusion-sequence"
+    },
+    {
+      "cleanup": {
+        "format": "kiln-fusion-policy/1",
+        "id": "cleanup",
+        "kind": "threshold",
+        "max_work_growth": 1.02
+      },
+      "expose": {
+        "format": "kiln-fusion-policy/1",
+        "id": "expose",
+        "kind": "region",
+        "launch_work": 65536,
+        "materialization_work": 8,
+        "max_work_growth": 1.02
+      },
+      "format": "kiln-transformation-program/1",
+      "id": "agent-16",
+      "kind": "pointwise-fusion-sequence"
+    }
+  ]
+}

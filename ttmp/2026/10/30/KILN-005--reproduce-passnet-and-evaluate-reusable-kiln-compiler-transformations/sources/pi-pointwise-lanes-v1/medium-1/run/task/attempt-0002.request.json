@@ -1,0 +1,7 @@
+{
+  "attempt": 2,
+  "status": "reserved",
+  "request_sha256": "38653286370ba6e7a7fcb19383126018e47bac691768c7e414e17fa93e797725",
+  "request_bytes": 601,
+  "policy_json": "{\"format\":\"kiln-transformation-program/1\",\"id\":\"candidate-size-gated-region\",\"kind\":\"pointwise-fusion-sequence\",\"expose\":{\"format\":\"kiln-fusion-policy/1\",\"id\":\"expose-size-gated\",\"kind\":\"selective\",\"tree\":{\"if\":{\"feature\":\"producerElements\",\"op\":\"ge\",\"value\":65536},\"then\":{\"threshold\":1.05},\"else\":{\"threshold\":1.0}},\"consumer_tree\":{\"if\":{\"feature\":\"consumerElements\",\"op\":\"ge\",\"value\":65536},\"then\":{\"threshold\":1.5},\"else\":{\"threshold\":1.02}}},\"cleanup\":{\"format\":\"kiln-fusion-policy/1\",\"id\":\"cleanup-region-mat\",\"kind\":\"region\",\"max_work_growth\":1.0,\"launch_work\":4096,\"materialization_work\":16}}"
+}

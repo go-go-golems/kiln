@@ -1,0 +1,169 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "000.kiln.js",
+  "sha256": "df2341558c9d4d362ab7a6d7687e2b77679419c357fcbaee87fc630bb035a52b",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    320
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    320,
+    128,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1,
+    320,
+    29,
+    29
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    1,
+    128,
+    29,
+    29
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    1,
+    320,
+    29,
+    29
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 320,
+   "bytes": 1280
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 40960,
+   "bytes": 163840
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 269120,
+   "bytes": 1076480
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 107648,
+   "bytes": 430592
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 269120,
+   "bytes": 1076480
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_conv2d_ew_reduce__23og0gbfok0",
+   "identity": "23og0gbfok0",
+   "row": "TPB=128,COARSEN=2",
+   "reads": [
+    2,
+    0,
+    1,
+    3
+   ],
+   "writes": 4,
+   "grid": 1052,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1052,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    320,
+    29,
+    29
+   ],
+   "inShapes": [
+    [
+     1,
+     320,
+     29,
+     29
+    ],
+    [
+     320
+    ],
+    [
+     320,
+     128,
+     1,
+     1
+    ],
+    [
+     1,
+     128,
+     29,
+     29
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_conv2d_ew_reduce__23og0gbfok0(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in2 = 0.0f, acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, in3 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((256 * bid) + (128 * j)) + tid);\n        if ((e < 269120)) {\n            in2 = src1[(e / 841)];\n            acc2 = 0.0f;\n            for (int r0 = 0; r0 < 128; r0 += 1) {\n                acc1 = 0.0f;\n                for (int r1 = 0; r1 < 1; r1 += 1) {\n                    acc0 = 0.0f;\n                    for (int r2 = 0; r2 < 1; r2 += 1) {\n                        in0 = src3[((((((29 * ((e / 29) % 29)) + (107648 * ((e / 841) / 320))) + (e % 29)) + (841 * r0)) + (29 * r1)) + r2)];\n                        in1 = src2[((((128 * (e / 841)) + r0) + r1) + r2)];\n                        v0 = __fmul_rn(in0, in1);\n                        acc0 = (acc0 + v0);\n                    }\n                    acc1 = (acc1 + acc0);\n                }\n                acc2 = (acc2 + acc1);\n            }\n            v1 = __fadd_rn(acc2, in2);\n            v2 = __fmul_rn(v1, 0.17f);\n            in3 = src0[(((29 * ((e / 29) % 29)) + (e % 29)) + (841 * (e / 841)))];\n            v3 = __fadd_rn(v2, in3);\n            dst[(((29 * ((e / 29) % 29)) + (e % 29)) + (841 * (e / 841)))] = v3;\n        }\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "default",
+  "kind": "threshold",
+  "max_work_growth": 1.02
+ }
+}

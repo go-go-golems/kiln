@@ -1,0 +1,7 @@
+{
+  "attempt": 2,
+  "status": "reserved",
+  "request_sha256": "cd34777781aaa77caae2ccb240867199b593a058532b90ad3d4efeffb1380a24",
+  "request_bytes": 688,
+  "policy_json": "{\"format\":\"kiln-transformation-program/1\",\"id\":\"producerscale-guard-b\",\"kind\":\"pointwise-fusion-sequence\",\"expose\":{\"format\":\"kiln-fusion-policy/1\",\"id\":\"expose-producer-scale\",\"kind\":\"selective\",\"tree\":{\"if\":{\"feature\":\"producerElements\",\"op\":\"le\",\"value\":20000},\"then\":{\"threshold\":1.0},\"else\":{\"threshold\":1.02}},\"consumer_tree\":{\"if\":{\"feature\":\"producerElements\",\"op\":\"le\",\"value\":20000},\"then\":{\"threshold\":1.05},\"else\":{\"threshold\":1.5}}},\"cleanup\":{\"format\":\"kiln-fusion-policy/1\",\"id\":\"cleanup-size-split\",\"kind\":\"selective\",\"tree\":{\"if\":{\"feature\":\"originalWork\",\"op\":\"lt\",\"value\":500000},\"then\":{\"threshold\":0.95},\"else\":{\"threshold\":1.02}},\"consumer_tree\":{\"threshold\":1.02}}}"
+}

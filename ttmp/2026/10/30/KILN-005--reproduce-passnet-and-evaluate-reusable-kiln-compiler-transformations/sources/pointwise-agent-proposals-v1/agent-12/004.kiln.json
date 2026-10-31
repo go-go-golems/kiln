@@ -1,0 +1,232 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "004.kiln.js",
+  "sha256": "5c2653704340a8a0f369a4b81f4b51aaff1fbd3693bc62e1b52026adac3a540f",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1024
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1024,
+    256,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1,
+    1024,
+    24,
+    24
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    1,
+    1024,
+    24,
+    24
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    1,
+    256,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 5,
+   "shape": [
+    1,
+    1024,
+    24,
+    24
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 1024,
+   "bytes": 4096
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 262144,
+   "bytes": 1048576
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 589824,
+   "bytes": 2359296
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 589824,
+   "bytes": 2359296
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 256,
+   "bytes": 1024
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 589824,
+   "bytes": 2359296
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_conv2d_cast_ew_reduce__1r9gdjtoqt3",
+   "identity": "1r9gdjtoqt3",
+   "row": "MAP=row,TPB=128,STAGE=all",
+   "reads": [
+    2,
+    3,
+    0,
+    4,
+    1
+   ],
+   "writes": 5,
+   "grid": 1024,
+   "block": 128,
+   "smemBytes": 2560,
+   "dispatch": [
+    1024,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1024,
+    24,
+    24
+   ],
+   "inShapes": [
+    [
+     1,
+     1024,
+     24,
+     24
+    ],
+    [
+     1,
+     1024,
+     24,
+     24
+    ],
+    [
+     1024
+    ],
+    [
+     1,
+     256,
+     1,
+     1
+    ],
+    [
+     1024,
+     256,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_conv2d_cast_ew_reduce__1r9gdjtoqt3(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, const float* __restrict__ src4, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_in4[256];\n    __shared__ float s_in3[256];\n    __shared__ float s_red[128];\n    float g0 = 0.0f, g1 = 0.0f, acc0 = 0.0f, in1 = 0.0f, in2 = 0.0f, v0 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, in3 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, in0 = 0.0f, v5 = 0.0f, in4 = 0.0f, v6 = 0.0f;\n    for (int t4 = tid; t4 < 256; t4 += 128) {\n        g0 = src4[((256 * bid) + t4)];\n        s_in4[t4] = g0;\n    }\n    for (int t3 = tid; t3 < 256; t3 += 128) {\n        g1 = src3[t3];\n        s_in3[t3] = g1;\n    }\n    __syncthreads();\n    acc0 = 0.0f;\n    for (int r0 = tid; r0 < 256; r0 += 128) {\n        in1 = s_in4[r0];\n        in2 = s_in3[r0];\n        v0 = __fmul_rn(in1, in2);\n        acc0 = (acc0 + v0);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 64)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 64)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 32)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 16)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 8)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 4)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 2)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 1)];\n        s_red[tid] = (sv12 + sv13);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    in3 = src2[bid];\n    v1 = __fadd_rn(acc0, in3);\n    v2 = v1;\n    v3 = (1.0f / (1.0f + expf(-(v2))));\n    v4 = v3;\n    for (int q = tid; q < 576; q += 128) {\n        in0 = src1[(((q % 24) + (24 * (q / 24))) + (576 * bid))];\n        v5 = __fmul_rn(in0, v4);\n        in4 = src0[(((q % 24) + (24 * (q / 24))) + (576 * bid))];\n        v6 = __fadd_rn(v5, in4);\n        dst[(((q % 24) + (24 * (q / 24))) + (576 * bid))] = v6;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "cleanup": {
+   "format": "kiln-fusion-policy/1",
+   "id": "cleanup",
+   "kind": "region",
+   "launch_work": 4096,
+   "materialization_work": 16,
+   "max_work_growth": 1
+  },
+  "expose": {
+   "consumer_tree": {
+    "else": {
+     "threshold": 1.02
+    },
+    "if": {
+     "feature": "consumerElements",
+     "op": "ge",
+     "value": 65536
+    },
+    "then": {
+     "threshold": 1.5
+    }
+   },
+   "format": "kiln-fusion-policy/1",
+   "id": "expose",
+   "kind": "selective",
+   "tree": {
+    "else": {
+     "threshold": 1
+    },
+    "if": {
+     "feature": "producerElements",
+     "op": "ge",
+     "value": 65536
+    },
+    "then": {
+     "threshold": 1.05
+    }
+   }
+  },
+  "format": "kiln-transformation-program/1",
+  "id": "agent-12",
+  "kind": "pointwise-fusion-sequence"
+ }
+}

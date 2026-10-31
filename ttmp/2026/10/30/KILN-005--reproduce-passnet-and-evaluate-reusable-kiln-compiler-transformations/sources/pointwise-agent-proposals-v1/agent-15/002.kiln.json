@@ -1,0 +1,242 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "002.kiln.js",
+  "sha256": "a24101ffe40e62fefab5017a52ec60c9722833ae89b591d52b2132d2e96de454",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1296,
+    576,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1296
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1296
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    1296
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    1296
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    1,
+    576,
+    8,
+    8
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v6",
+   "buffer": 6,
+   "shape": [
+    1,
+    1296,
+    8,
+    8
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 7,
+   "shape": [
+    1,
+    1296,
+    8,
+    8
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 746496,
+   "bytes": 2985984
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 1296,
+   "bytes": 5184
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 1296,
+   "bytes": 5184
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 1296,
+   "bytes": 5184
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 1296,
+   "bytes": 5184
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 36864,
+   "bytes": 147456
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 82944,
+   "bytes": 331776
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 82944,
+   "bytes": 331776
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_conv2d_ew_cast_reduce__fu8lx94edz",
+   "identity": "fu8lx94edz",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    3,
+    4,
+    2,
+    1,
+    6,
+    0,
+    5
+   ],
+   "writes": 7,
+   "grid": 82944,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    65535,
+    2,
+    1
+   ],
+   "shape": [
+    1,
+    1296,
+    8,
+    8
+   ],
+   "inShapes": [
+    [
+     1296
+    ],
+    [
+     1296
+    ],
+    [
+     1296
+    ],
+    [
+     1296
+    ],
+    [
+     1,
+     1296,
+     8,
+     8
+    ],
+    [
+     1296,
+     576,
+     1,
+     1
+    ],
+    [
+     1,
+     576,
+     8,
+     8
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(32) k_conv2d_ew_cast_reduce__fu8lx94edz(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, const float* __restrict__ src4, const float* __restrict__ src5, const float* __restrict__ src6, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float in3 = 0.0f, v4 = 0.0f, in4 = 0.0f, v6 = 0.0f, v7 = 0.0f, v8 = 0.0f, in5 = 0.0f, v10 = 0.0f, in6 = 0.0f, v12 = 0.0f, in0 = 0.0f, acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in1 = 0.0f, in2 = 0.0f, v0 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v5 = 0.0f, v9 = 0.0f, v11 = 0.0f, v13 = 0.0f, v14 = 0.0f, v15 = 0.0f, v16 = 0.0f, v17 = 0.0f, v18 = 0.0f;\n    in3 = src3[(bid / 64)];\n    v4 = in3;\n    in4 = src2[(bid / 64)];\n    v6 = in4;\n    v7 = __fadd_rn(v6, 0.00001f);\n    v8 = sqrtf(v7);\n    in5 = src1[(bid / 64)];\n    v10 = in5;\n    in6 = src0[(bid / 64)];\n    v12 = in6;\n    in0 = src4[(((8 * ((bid / 8) % 8)) + (bid % 8)) + (64 * (bid / 64)))];\n    acc2 = 0.0f;\n    for (int r0 = tid; r0 < 576; r0 += 32) {\n        acc1 = 0.0f;\n        for (int r1 = 0; r1 < 1; r1 += 1) {\n            acc0 = 0.0f;\n            for (int r2 = 0; r2 < 1; r2 += 1) {\n                in1 = src6[((((((36864 * ((bid / 64) / 1296)) + (8 * ((bid / 8) % 8))) + (bid % 8)) + (64 * r0)) + (8 * r1)) + r2)];\n                in2 = src5[((((576 * (bid / 64)) + r0) + r1) + r2)];\n                v0 = __fmul_rn(in1, in2);\n                acc0 = (acc0 + v0);\n            }\n            acc1 = (acc1 + acc0);\n        }\n        acc2 = (acc2 + acc1);\n    }\n    __syncthreads();\n    s_red[tid] = acc2;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    acc2 = s_red[0];\n    v1 = __fadd_rn(acc2, 0.0f);\n    v2 = __fadd_rn(in0, v1);\n    v3 = v2;\n    v5 = __fsub_rn(v3, v4);\n    v9 = (v5 / v8);\n    v11 = __fmul_rn(v9, v10);\n    v13 = __fadd_rn(v11, v12);\n    v14 = v13;\n    v15 = v14;\n    v16 = (1.0f / (1.0f + expf(-(v15))));\n    v17 = __fmul_rn(v15, v16);\n    v18 = v17;\n    if ((tid == 0)) {\n        dst[(((8 * ((bid / 8) % 8)) + (bid % 8)) + (64 * (bid / 64)))] = v18;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "cleanup": {
+   "format": "kiln-fusion-policy/1",
+   "id": "cleanup",
+   "kind": "threshold",
+   "max_work_growth": 1
+  },
+  "expose": {
+   "consumer_tree": {
+    "threshold": 1
+   },
+   "format": "kiln-fusion-policy/1",
+   "id": "expose",
+   "kind": "selective",
+   "tree": {
+    "threshold": 1
+   }
+  },
+  "format": "kiln-transformation-program/1",
+  "id": "agent-15",
+  "kind": "fusion-sequence"
+ }
+}

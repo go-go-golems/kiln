@@ -1763,3 +1763,58 @@ See Step182 for the actual authored implementation request and the standing requ
 ### Technical details
 - NVIDIA GB10, pinned Docker image222d8b18..., separate compiler contraction, highest matrix precision and cuDNN TF32 disabled; seed42;20 warmups;100 trials;3 rounds; up to2 retries when IQR exceeds20% of median.
 - No LLM inference or compiler change in this measurement step. The manually authored transformation remains opt-in. Coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 195: Run six actual pointwise agent lanes on a separate development population
+
+A separate eight-model development population now has24 successful control builds and128 successful agent-candidate builds. Six actual Pi/LunaRoute lanes submitted18 programs:16 accepted and two rejected. All16 accepted programs are structurally distinct, but their128 builds reduce to32 distinct graph/executable pairs, including the baseline and fixed-pointwise controls. This supplies16 additional executable alternatives for GPU comparison; it does not yet establish an agent speedup.
+
+### Prompt Context
+See Step182 for the authored implementation request and the standing authorization for six concurrent Pi/LunaRoute lanes with thinking-level experiments. The automatic continuation is runtime metadata, not a new user quotation.
+**Assistant interpretation:** Give the newly measured compiler primitive to actual agents and test their proposals on separate development workloads.
+**Inferred user intent:** Move from manual compiler improvements to measured compiler self-optimization without extensive new infrastructure.
+**Previous result commit:** b8b6547 — Measure1.948x pointwise transfer and publish technical milestone.
+
+### What I did
+- Script501 selects eight additional FP32 pointwise graphs, excluding exact evaluation models and all prior tracked corpus manifests, including the measured transfer population.
+- Script502 compiles unchanged, explicit default and fixed pointwise controls with existing compile_policy.mjs. The default and unchanged artifacts match on all eight graphs.
+- Script503 launches six actual Pi/LunaRoute lanes through the existing SDK/RPC tools, with two replicates each at low, medium and high thinking and three submissions each.
+- Script504 deduplicates accepted artifact programs and compiles every accepted program across the entire development population. Script505 archives lossless compressed event streams and summarizes grammar outcomes, effective levels and executable identities.
+
+### Why
+- The previously measured eight transfer models are now observed; using them to adapt a policy would make subsequent results development evidence. A separate development population avoids disguising such adaptation as fresh confirmation.
+- Existing shared compiler preparation, agent validation and transcript machinery already support the pointwise program kind. No new agent framework or evaluator was needed.
+
+### What worked
+- New models: inception_resnet_v2, regnetv_040, regnetv_064, seresnextaa101d_32x8d, resnetrs101, skresnext50_32x4d, cs3se_edgenet_x and yolo11l-seg, with exact source identifiers retained in the manifest.
+- The training view supplies8 examples and144 aggregate fusion decisions. It contains default-pipeline features, not fabricated post-decomposition dimensions or timing data.
+- All six lanes finish normally. Durations:low-1 49.97s,low-2 21.70s,medium-1 69.49s,medium-2 56.40s,high-1 35.16s,high-2 46.42s. Effective thinking levels match the requests.
+- All128 accepted candidate/graph combinations compile. Distinct executable counts per graph are4,2,4,3,3,4,4,8.
+- Agent3 aliases unchanged Kiln on all eight graphs; agent4 aliases the fixed pointwise composition on all eight. Their identities will permit shared timing evidence rather than noise-driven claims.
+
+### What didn't work
+- Low-1's second submission was rejected with "Threshold must be finite in [0,2]"; low-2's second submission was rejected with "Unknown policy kind". Both consumed proposal slots and remain in the record.
+- Accepted policy data is not numerical correctness or performance evidence. No candidate GPU timing occurred in this step.
+
+### What I learned
+- Grammar diversity substantially exceeds executable diversity:16 programs produce only32 graph/executable pairs. Existing fingerprint grouping is therefore directly useful for reducing GPU work.
+- Six concurrent inference lanes are fast enough for this batch: all finish within70 seconds. This does not establish a statistically meaningful comparison among thinking levels.
+
+### What was tricky to build
+- NativePolicyTask requires a training-only receipt. Control compilation deliberately uses phase train, with all eight manifest rows marked train; no held-out outcome is relabeled or forwarded to the agents.
+- The pointwise program includes one decomposition node in the combined budget. Exposure and cleanup use existing policy grammar and retain host numerical settings.
+
+### What warrants a second pair of eyes
+- Default-pipeline aggregate features may be insufficient to predict profitability after pointwise decomposition. Agent prompts explicitly disclose this limitation.
+- This population is development data, not an independent confirmation set. Exact-model exclusions still permit architecture relatives.
+
+### What should be done in the future
+- Measure each distinct graph/executable pair on bling, including both controls, using identical correctness conditions and randomized repeated timing. Rank whole-program candidates over every development graph, then provide actual measured feedback for refinement.
+- Require another untouched population before claiming generalization of any newly selected agent policy.
+
+### Code review instructions
+- Inspect scripts501–505, pointwise-agent-development-v1, pi-pointwise-lanes-v1 and pointwise-agent-proposals-v1/summary.json. Inspect the compressed event streams for actual inference/tool messages and both rejected requests.
+
+### Technical details
+- Node26.13.0 and the existing configured Pi/LunaRoute provider; no credentials copied into experiment outputs. Raw events remain locally while lossless gzip copies are committed because incremental event streams total roughly130MB uncompressed.
+- All inference uses the previously authorized external service and six-lane concurrency. No default compiler change or PassBench coverage increase; coverage remains34 complete tasks and375 accepted graphs.

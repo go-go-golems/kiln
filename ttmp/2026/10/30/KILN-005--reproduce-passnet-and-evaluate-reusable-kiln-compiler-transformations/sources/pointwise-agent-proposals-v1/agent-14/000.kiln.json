@@ -1,0 +1,240 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "000.kiln.js",
+  "sha256": "df2341558c9d4d362ab7a6d7687e2b77679419c357fcbaee87fc630bb035a52b",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    320
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    320,
+    128,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1,
+    320,
+    29,
+    29
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    1,
+    128,
+    29,
+    29
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 5,
+   "shape": [
+    1,
+    320,
+    29,
+    29
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 320,
+   "bytes": 1280
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 40960,
+   "bytes": 163840
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 269120,
+   "bytes": 1076480
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 107648,
+   "bytes": 430592
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 269120,
+   "bytes": 1076480
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 269120,
+   "bytes": 1076480
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_conv2d_reduce__11z0ctnpy6r",
+   "identity": "11z0ctnpy6r",
+   "row": "MAP=tiled,BM=32,BN=16,BK=8,TN=2",
+   "reads": [
+    3,
+    1
+   ],
+   "writes": 4,
+   "grid": 530,
+   "block": 256,
+   "smemBytes": 1536,
+   "dispatch": [
+    530,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1,
+    320,
+    1,
+    841
+   ],
+   "inShapes": [
+    [
+     1,
+     128,
+     29,
+     29
+    ],
+    [
+     320,
+     128,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(256) k_conv2d_reduce__11z0ctnpy6r(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float sA0[256];\n    __shared__ float sB0[128];\n    float acc_0_0 = 0.0f, acc_0_1 = 0.0f, tv = 0.0f, g0 = 0.0f, g1 = 0.0f, a0_0 = 0.0f, b0_0 = 0.0f, b0_1 = 0.0f, v0_0_0 = 0.0f, v0_0_1 = 0.0f;\n    int bz = 0, bm = 0, bn = 0, ty = 0, tx = 0, rr = 0, kq = 0;\n    bz = (bid / 530);\n    bm = ((bid / 53) % 10);\n    bn = (bid % 53);\n    ty = (tid / 8);\n    tx = (tid % 8);\n    acc_0_0 = 0.0f;\n    acc_0_1 = 0.0f;\n    for (int k0 = 0; k0 < 128; k0 += 8) {\n        for (int la = tid; la < 256; la += 256) {\n            rr = (la / 8);\n            kq = (la % 8);\n            tv = 0.0f;\n            if (((((32 * bm) + rr) < 320) && ((k0 + kq) < 128))) {\n                g0 = src1[((((4096 * bm) + k0) + kq) + (128 * rr))];\n                tv = g0;\n            }\n            sA0[(kq + (8 * rr))] = tv;\n        }\n        for (int lb = tid; lb < 128; lb += 256) {\n            rr = (lb / 8);\n            kq = (lb % 8);\n            tv = 0.0f;\n            if (((((16 * bn) + rr) < 841) && ((k0 + kq) < 128))) {\n                g1 = src0[((((((16 * bn) + rr) % 29) + (29 * (((16 * bn) + rr) / 29))) + (841 * k0)) + (841 * kq))];\n                tv = g1;\n            }\n            sB0[((16 * kq) + rr)] = tv;\n        }\n        __syncthreads();\n        for (int kk = 0; kk < 8; kk += 1) {\n            if (((k0 + kk) < 128)) {\n                a0_0 = sA0[(kk + (8 * ty))];\n                b0_0 = sB0[((16 * kk) + (2 * tx))];\n                b0_1 = sB0[(((16 * kk) + (2 * tx)) + 1)];\n                v0_0_0 = __fmul_rn(a0_0, b0_0);\n                acc_0_0 = (acc_0_0 + v0_0_0);\n                v0_0_1 = __fmul_rn(a0_0, b0_1);\n                acc_0_1 = (acc_0_1 + v0_0_1);\n            }\n        }\n        __syncthreads();\n    }\n    if (((((32 * bm) + ty) < 320) && (((16 * bn) + (2 * tx)) < 841))) {\n        dst[((((26912 * bm) + (16 * bn)) + (2 * tx)) + (841 * ty))] = acc_0_0;\n    }\n    if (((((32 * bm) + ty) < 320) && ((((16 * bn) + (2 * tx)) + 1) < 841))) {\n        dst[(((((26912 * bm) + (16 * bn)) + (2 * tx)) + (841 * ty)) + 1)] = acc_0_1;\n    }\n}"
+  },
+  {
+   "name": "k_conv2d_ew__9twkzk7h9r",
+   "identity": "9twkzk7h9r",
+   "row": "TPB=128,COARSEN=2",
+   "reads": [
+    2,
+    0,
+    4
+   ],
+   "writes": 5,
+   "grid": 1052,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1052,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    320,
+    29,
+    29
+   ],
+   "inShapes": [
+    [
+     1,
+     320,
+     29,
+     29
+    ],
+    [
+     320
+    ],
+    [
+     1,
+     1,
+     320,
+     1,
+     841
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_conv2d_ew__9twkzk7h9r(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, in2 = 0.0f, v2 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((256 * bid) + (128 * j)) + tid);\n        if ((e < 269120)) {\n            in0 = src2[((841 * (((((29 * ((e / 29) % 29)) + (e % 29)) + (841 * (e / 841))) / 841) % 320)) + (((29 * ((e / 29) % 29)) + (e % 29)) % 841))];\n            in1 = src1[(((((29 * ((e / 29) % 29)) + (e % 29)) + (841 * (e / 841))) / 841) % 320)];\n            v0 = __fadd_rn(in0, in1);\n            v1 = __fmul_rn(v0, 0.17f);\n            in2 = src0[(((29 * ((e / 29) % 29)) + (e % 29)) + (841 * (e / 841)))];\n            v2 = __fadd_rn(v1, in2);\n            dst[(((29 * ((e / 29) % 29)) + (e % 29)) + (841 * (e / 841)))] = v2;\n        }\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "cleanup": {
+   "format": "kiln-fusion-policy/1",
+   "id": "cleanup",
+   "kind": "threshold",
+   "max_work_growth": 1.02
+  },
+  "expose": {
+   "consumer_tree": {
+    "threshold": 2
+   },
+   "format": "kiln-fusion-policy/1",
+   "id": "expose",
+   "kind": "selective",
+   "tree": {
+    "else": {
+     "threshold": 1.02
+    },
+    "if": {
+     "feature": "producerElements",
+     "op": "le",
+     "value": 16384
+    },
+    "then": {
+     "threshold": 1.25
+    }
+   }
+  },
+  "format": "kiln-transformation-program/1",
+  "id": "agent-14",
+  "kind": "pointwise-fusion-sequence"
+ }
+}

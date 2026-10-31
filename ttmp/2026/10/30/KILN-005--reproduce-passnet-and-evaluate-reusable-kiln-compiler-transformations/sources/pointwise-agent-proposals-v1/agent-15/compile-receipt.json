@@ -1,0 +1,1676 @@
+{
+  "format": "kiln-policy-compilation/2",
+  "membership_sha256": "3b65e1faf5e6aeae6a35b802fe8bb884281cf0d1d760ab044823093469eab859",
+  "reference_domain_sha256": "1c22fa26dc1bc2b443cd05cd346450f6de876347579db07cab19a5d6e400b57f",
+  "policy": {
+    "cleanup": {
+      "format": "kiln-fusion-policy/1",
+      "id": "cleanup",
+      "kind": "threshold",
+      "max_work_growth": 1
+    },
+    "expose": {
+      "consumer_tree": {
+        "threshold": 1
+      },
+      "format": "kiln-fusion-policy/1",
+      "id": "expose",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1
+      }
+    },
+    "format": "kiln-transformation-program/1",
+    "id": "agent-15",
+    "kind": "fusion-sequence"
+  },
+  "policy_node_count": 3,
+  "target": "a100",
+  "phase": "train",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "records": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/inception_resnet_v2/_decomposed/inception_resnet_v2_start128_end131_13",
+      "split": "train",
+      "script": "000.kiln.js",
+      "policy": "agent-15",
+      "status": "compiled",
+      "artifact": "000.kiln.json",
+      "fingerprint": "3f0327ba10a1055cf69a8b1646dcb85a24ac380ea32893b396c1b1027a2adb5b",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "23og0gbfok0"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~277M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 13190720,
+          "fusedWork": 6731840,
+          "consumerCount": 1,
+          "producerElements": 269120,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13190720,
+          "fusedWork": 6731840,
+          "consumerCount": 1,
+          "producerElements": 269120,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2101288960,
+          "fusedWork": 1274552320,
+          "consumerCount": 1,
+          "producerElements": 34447360,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2101288960,
+          "fusedWork": 1274552320,
+          "consumerCount": 1,
+          "producerElements": 34447360,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 16685440,
+          "fusedWork": 10226560,
+          "consumerCount": 1,
+          "producerElements": 269120,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 16958400,
+          "fusedWork": 10499520,
+          "consumerCount": 1,
+          "producerElements": 269120,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 461544640,
+          "fusedWork": 455085760,
+          "consumerCount": 1,
+          "producerElements": 269120,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1316269760,
+          "fusedWork": 489533120,
+          "consumerCount": 1,
+          "producerElements": 34447360,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1350717120,
+          "fusedWork": 523980480,
+          "consumerCount": 1,
+          "producerElements": 34447360,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1798532800,
+          "fusedWork": 971796160,
+          "consumerCount": 1,
+          "producerElements": 34447360,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 63.91421299999999
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/regnetv_040.ra3_in1k/_decomposed/regnetv_040.ra3_in1k_start10_end15_1",
+      "split": "train",
+      "script": "001.kiln.js",
+      "policy": "agent-15",
+      "status": "compiled",
+      "artifact": "001.kiln.json",
+      "fingerprint": "dbf2aa9c20fa44af555adcbc2cb7fc15626a628376bf80809fecf13d1e23cef8",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "2cayup4i6kx"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 1.1920928955078125e-7,
+            "maxRel": 0.0030676419928583904,
+            "bad": 0,
+            "n": 401408,
+            "first": -1,
+            "message": "max abs diff 1.19e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 28499968,
+          "fusedWork": 14049280,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 23683072,
+          "fusedWork": 14049280,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 23683072,
+          "fusedWork": 14049280,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19670528,
+          "fusedWork": 10036736,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10039808,
+          "fusedWork": 10036736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19670528,
+          "fusedWork": 10036736,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10039808,
+          "fusedWork": 10036736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 20874752,
+          "fusedWork": 11240960,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 6272,
+          "fusedWork": 3200,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 6272,
+          "fusedWork": 3200,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19670528,
+          "fusedWork": 10036736,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10039808,
+          "fusedWork": 10036736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19670528,
+          "fusedWork": 10036736,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19670528,
+          "fusedWork": 10036736,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10039808,
+          "fusedWork": 10036736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7424,
+          "fusedWork": 4352,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7808,
+          "fusedWork": 4736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7808,
+          "fusedWork": 4736,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 62464,
+          "fusedWork": 37888,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 62464,
+          "fusedWork": 37888,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 23683072,
+          "fusedWork": 14049280,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 24086016,
+          "fusedWork": 14452224,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 24488960,
+          "fusedWork": 14855168,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 26096128,
+          "fusedWork": 16462336,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 16465920,
+          "fusedWork": 16462848,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 16466048,
+          "fusedWork": 16462976,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 26499712,
+          "fusedWork": 16865920,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 26902656,
+          "fusedWork": 17268864,
+          "consumerCount": 1,
+          "producerElements": 401408,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 17273216,
+          "fusedWork": 17270144,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 17274880,
+          "fusedWork": 17271808,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 17286656,
+          "fusedWork": 17283584,
+          "consumerCount": 1,
+          "producerElements": 128,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 17309184,
+          "fusedWork": 17284608,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 17310208,
+          "fusedWork": 17285632,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 17323520,
+          "fusedWork": 17298944,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 278.665383
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/regnetv_064.ra3_in1k/_decomposed/regnetv_064.ra3_in1k_start391_end395_14",
+      "split": "train",
+      "script": "002.kiln.js",
+      "policy": "agent-15",
+      "status": "compiled",
+      "artifact": "002.kiln.json",
+      "fingerprint": "c9a8cb55f63d824c5b45c6b5d21a30a0318bbaa34131fd379b48d81c2cd20e00",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "fu8lx94edz"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~383M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 5889024,
+          "fusedWork": 2903040,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 4893696,
+          "fusedWork": 2903040,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 4893696,
+          "fusedWork": 2903040,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 4079808,
+          "fusedWork": 2089152,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2120256,
+          "fusedWork": 2089152,
+          "consumerCount": 1,
+          "producerElements": 1296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 4079808,
+          "fusedWork": 2089152,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2120256,
+          "fusedWork": 2089152,
+          "consumerCount": 1,
+          "producerElements": 1296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 4328640,
+          "fusedWork": 2337984,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 63504,
+          "fusedWork": 32400,
+          "consumerCount": 1,
+          "producerElements": 1296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 63504,
+          "fusedWork": 32400,
+          "consumerCount": 1,
+          "producerElements": 1296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 4079808,
+          "fusedWork": 2089152,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2120256,
+          "fusedWork": 2089152,
+          "consumerCount": 1,
+          "producerElements": 1296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 4079808,
+          "fusedWork": 2089152,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 4064256,
+          "fusedWork": 2073600,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2914320384,
+          "fusedWork": 1767702528,
+          "consumerCount": 1,
+          "producerElements": 47775744,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2914320384,
+          "fusedWork": 1767702528,
+          "consumerCount": 1,
+          "producerElements": 47775744,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 4893696,
+          "fusedWork": 2903040,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 4992192,
+          "fusedWork": 3001536,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 5090688,
+          "fusedWork": 3100032,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 5438016,
+          "fusedWork": 3447360,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 3483648,
+          "fusedWork": 3452544,
+          "consumerCount": 1,
+          "producerElements": 1296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 3484944,
+          "fusedWork": 3453840,
+          "consumerCount": 1,
+          "producerElements": 1296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 5542992,
+          "fusedWork": 3552336,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 6621264,
+          "fusedWork": 4630608,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 6704208,
+          "fusedWork": 4713552,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 626793552,
+          "fusedWork": 624802896,
+          "consumerCount": 1,
+          "producerElements": 82944,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1819196496,
+          "fusedWork": 672578640,
+          "consumerCount": 1,
+          "producerElements": 47775744,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1866972240,
+          "fusedWork": 720354384,
+          "consumerCount": 1,
+          "producerElements": 47775744,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2488056912,
+          "fusedWork": 1341439056,
+          "consumerCount": 1,
+          "producerElements": 47775744,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 37.93141200000002
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/seresnextaa101d_32x8d.ah_in1k/_decomposed/seresnextaa101d_32x8d.ah_in1k_start159_end163_1",
+      "split": "train",
+      "script": "003.kiln.js",
+      "policy": "agent-15",
+      "status": "compiled",
+      "artifact": "003.kiln.json",
+      "fingerprint": "132ec1471c367b1b2f310673a8868e43e8c4a72ecec6969eb0e1d2534eea4e49",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "4r1ctctzni"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 4.76837158203125e-7,
+            "maxRel": 3.36881405729429e-7,
+            "bad": 0,
+            "n": 200704,
+            "first": -1,
+            "message": "max abs diff 4.77e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 9846784,
+          "fusedWork": 5029888,
+          "consumerCount": 1,
+          "producerElements": 200704,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 5054464,
+          "fusedWork": 5029888,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 59392,
+          "fusedWork": 34816,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 62464,
+          "fusedWork": 37888,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 62464,
+          "fusedWork": 37888,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 3997696,
+          "fusedWork": 2424832,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 3997696,
+          "fusedWork": 2424832,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12455936,
+          "fusedWork": 7639040,
+          "consumerCount": 1,
+          "producerElements": 200704,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7673856,
+          "fusedWork": 7649280,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7687168,
+          "fusedWork": 7662592,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8526848,
+          "fusedWork": 8502272,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10140672,
+          "fusedWork": 8567808,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10206208,
+          "fusedWork": 8633344,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11058176,
+          "fusedWork": 9485312,
+          "consumerCount": 1,
+          "producerElements": 65536,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 48.90972799999997
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/resnetrs101.tf_in1k/_decomposed/resnetrs101.tf_in1k_start255_end259_8",
+      "split": "train",
+      "script": "004.kiln.js",
+      "policy": "agent-15",
+      "status": "compiled",
+      "artifact": "004.kiln.json",
+      "fingerprint": "6b5ea4f6dfa5df6672a40f7d247d942d5121215d4a9a0006a5f118c33ece61cb",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1ujf3bg6yqk"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 7.152557373046875e-7,
+            "maxRel": 4.996369304860034e-7,
+            "bad": 0,
+            "n": 589824,
+            "first": -1,
+            "message": "max abs diff 7.15e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 28913664,
+          "fusedWork": 14757888,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14782464,
+          "fusedWork": 14757888,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 59392,
+          "fusedWork": 34816,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 62464,
+          "fusedWork": 37888,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 62464,
+          "fusedWork": 37888,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15990784,
+          "fusedWork": 9699328,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15990784,
+          "fusedWork": 9699328,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 36581376,
+          "fusedWork": 22425600,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 22460416,
+          "fusedWork": 22435840,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 22473728,
+          "fusedWork": 22449152,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 25869312,
+          "fusedWork": 25844736,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 32398336,
+          "fusedWork": 26106880,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 32660480,
+          "fusedWork": 26369024,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 36068352,
+          "fusedWork": 29776896,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 129.757785
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/timm/skresnext50_32x4d.ra_in1k/_decomposed/skresnext50_32x4d.ra_in1k_start346_end348_7",
+      "split": "train",
+      "script": "005.kiln.js",
+      "policy": "agent-15",
+      "status": "compiled",
+      "artifact": "005.kiln.json",
+      "fingerprint": "6fcd59a753c8dcc5e28e31db54f6408023f0f164b01b47e56947aed5cf37adee",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "j6k2sq0ci7"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.000002384185791015625,
+            "maxRel": 0.00016453834357589998,
+            "bad": 0,
+            "n": 2048,
+            "first": -1,
+            "message": "max abs diff 2.38e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 100352,
+          "fusedWork": 51200,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7995392,
+          "fusedWork": 4849664,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7995392,
+          "fusedWork": 4849664,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 100352,
+          "fusedWork": 51200,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1779712,
+          "fusedWork": 1730560,
+          "consumerCount": 1,
+          "producerElements": 2048,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 5007360,
+          "fusedWork": 1861632,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 5138432,
+          "fusedWork": 1992704,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 6842368,
+          "fusedWork": 3696640,
+          "consumerCount": 1,
+          "producerElements": 131072,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 29.008663999999953
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/timm/cs3se_edgenet_x.c2ns_in1k/_decomposed/cs3se_edgenet_x.c2ns_in1k_start19_end21_1",
+      "split": "train",
+      "script": "006.kiln.js",
+      "policy": "agent-15",
+      "status": "compiled",
+      "artifact": "006.kiln.json",
+      "fingerprint": "7186502da3b5af6d6e4625a446a9119d97b684335d6a539e0d66cb417ac7f4eb",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "25pzxwvqamr"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.0000152587890625,
+            "maxRel": 0.00048503297190984523,
+            "bad": 0,
+            "n": 4096,
+            "first": -1,
+            "message": "max abs diff 1.53e-5"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 290816,
+          "fusedWork": 143360,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 241664,
+          "fusedWork": 143360,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 249856,
+          "fusedWork": 151552,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 249856,
+          "fusedWork": 151552,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 29982720,
+          "fusedWork": 18186240,
+          "consumerCount": 1,
+          "producerElements": 491520,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 29982720,
+          "fusedWork": 18186240,
+          "consumerCount": 1,
+          "producerElements": 491520,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 241664,
+          "fusedWork": 143360,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 294912,
+          "fusedWork": 196608,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 6635520,
+          "fusedWork": 6537216,
+          "consumerCount": 1,
+          "producerElements": 4096,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 18825216,
+          "fusedWork": 7028736,
+          "consumerCount": 1,
+          "producerElements": 491520,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19316736,
+          "fusedWork": 7520256,
+          "consumerCount": 1,
+          "producerElements": 491520,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 25706496,
+          "fusedWork": 13910016,
+          "consumerCount": 1,
+          "producerElements": 491520,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 38.73367600000006
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/ultralytics/yolo11l-seg/_decomposed/yolo11l-seg_start597_end600_0",
+      "split": "train",
+      "script": "007.kiln.js",
+      "policy": "agent-15",
+      "status": "compiled",
+      "artifact": "007.kiln.json",
+      "fingerprint": "bc78ed9871443e6301165f55a4f5337214bc1ad92722b4106ee371822b4b03e0",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "1aq4n4d1wap",
+        "1bahw8b5xs0"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.000003814697265625,
+            "maxRel": 0.030391710608200704,
+            "bad": 0,
+            "n": 268800,
+            "first": -1,
+            "message": "max abs diff 3.81e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 19622400,
+          "fusedWork": 13171200,
+          "consumerCount": 1,
+          "producerElements": 268800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19622400,
+          "fusedWork": 13171200,
+          "consumerCount": 1,
+          "producerElements": 268800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19622400,
+          "fusedWork": 13171200,
+          "consumerCount": 1,
+          "producerElements": 268800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19622400,
+          "fusedWork": 13171200,
+          "consumerCount": 1,
+          "producerElements": 268800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 627584,
+          "fusedWork": 320384,
+          "consumerCount": 1,
+          "producerElements": 12800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 627584,
+          "fusedWork": 320384,
+          "consumerCount": 1,
+          "producerElements": 12800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 49971200,
+          "fusedWork": 30310400,
+          "consumerCount": 1,
+          "producerElements": 819200,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 49971200,
+          "fusedWork": 30310400,
+          "consumerCount": 1,
+          "producerElements": 819200,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19622400,
+          "fusedWork": 13171200,
+          "consumerCount": 1,
+          "producerElements": 268800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13491584,
+          "fusedWork": 16665600,
+          "consumerCount": 1,
+          "producerElements": 12800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy cleanup: profitability rejected"
+        },
+        {
+          "originalWork": 11123584,
+          "fusedWork": 10816384,
+          "consumerCount": 1,
+          "producerElements": 12800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 23987584,
+          "fusedWork": 237081600,
+          "consumerCount": 1,
+          "producerElements": 12800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy cleanup: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 31296384,
+          "fusedWork": 11635584,
+          "consumerCount": 1,
+          "producerElements": 819200,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 24806784,
+          "fusedWork": 254284800,
+          "consumerCount": 1,
+          "producerElements": 12800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy cleanup: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 32115584,
+          "fusedWork": 12454784,
+          "consumerCount": 1,
+          "producerElements": 819200,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 25625984,
+          "fusedWork": 271488000,
+          "consumerCount": 1,
+          "producerElements": 12800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy cleanup: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 42765184,
+          "fusedWork": 23104384,
+          "consumerCount": 1,
+          "producerElements": 819200,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 36275584,
+          "fusedWork": 495129600,
+          "consumerCount": 1,
+          "producerElements": 12800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy cleanup: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 26342400,
+          "fusedWork": 19891200,
+          "consumerCount": 1,
+          "producerElements": 268800,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 107.23319700000002
+    }
+  ]
+}

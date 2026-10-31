@@ -1,0 +1,426 @@
+{
+  "format": "kiln-passnet-corpus/1",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "membership_sha256": "3b65e1faf5e6aeae6a35b802fe8bb884281cf0d1d760ab044823093469eab859",
+  "variants": [
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/29/59/295992629e3768348732fbe1739a25f123629c513761151bf285ce9ac883f711",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/inception_resnet_v2/_decomposed/inception_resnet_v2_start128_end131_13",
+      "model": "timm/inception_resnet_v2",
+      "script": "000.kiln.js",
+      "split": "train",
+      "source_sha256": "df2341558c9d4d362ab7a6d7687e2b77679419c357fcbaee87fc630bb035a52b",
+      "inputs": {
+        "v0": [
+          320
+        ],
+        "v1": [
+          320,
+          128,
+          1,
+          1
+        ],
+        "v2": [
+          1,
+          320,
+          29,
+          29
+        ],
+        "v3": [
+          1,
+          128,
+          29,
+          29
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "multiply_products": 34447360
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/52/af/52aff6c29275dc8a566bc27d4fa07c6c5ee065f5c7a587bd5f5e018cac8d4660",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/regnetv_040.ra3_in1k/_decomposed/regnetv_040.ra3_in1k_start10_end15_1",
+      "model": "timm/regnetv_040.ra3_in1k",
+      "script": "001.kiln.js",
+      "split": "train",
+      "source_sha256": "13986d5528fabda8e96a865caac9c6ee5011dced3d5663d6a35b85e9873fbeb1",
+      "inputs": {
+        "v0": [
+          128
+        ],
+        "v1": [
+          128
+        ],
+        "v2": [
+          128
+        ],
+        "v3": [
+          128
+        ],
+        "v4": [
+          128
+        ],
+        "v5": [
+          128,
+          8,
+          1,
+          1
+        ],
+        "v6": [
+          1,
+          128,
+          56,
+          56
+        ],
+        "v7": [
+          1,
+          8,
+          1,
+          1
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32",
+        "v5": "f32",
+        "v6": "f32",
+        "v7": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [
+        {
+          "input": "v1",
+          "kind": "positive",
+          "offset": 0.1
+        }
+      ],
+      "reference_domain_diagnostic": null,
+      "multiply_products": 1024
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/f1/0d/f10d0eab66b389e1f1833ea29a6488b2c27ce63ce9b46ebcd842a4c669193dae",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/regnetv_064.ra3_in1k/_decomposed/regnetv_064.ra3_in1k_start391_end395_14",
+      "model": "timm/regnetv_064.ra3_in1k",
+      "script": "002.kiln.js",
+      "split": "train",
+      "source_sha256": "a24101ffe40e62fefab5017a52ec60c9722833ae89b591d52b2132d2e96de454",
+      "inputs": {
+        "v0": [
+          1296,
+          576,
+          1,
+          1
+        ],
+        "v1": [
+          1296
+        ],
+        "v2": [
+          1296
+        ],
+        "v3": [
+          1296
+        ],
+        "v4": [
+          1296
+        ],
+        "v5": [
+          1,
+          576,
+          8,
+          8
+        ],
+        "v6": [
+          1,
+          1296,
+          8,
+          8
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32",
+        "v5": "f32",
+        "v6": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [
+        {
+          "input": "v2",
+          "kind": "positive",
+          "offset": 0.1
+        }
+      ],
+      "reference_domain_diagnostic": null,
+      "multiply_products": 47775744
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a3/0b/a30bf4a8ce49ca7ee46179f0957e8d6e80567af4085c5e95003490d4fbb3808a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/seresnextaa101d_32x8d.ah_in1k/_decomposed/seresnextaa101d_32x8d.ah_in1k_start159_end163_1",
+      "model": "timm/seresnextaa101d_32x8d.ah_in1k",
+      "script": "003.kiln.js",
+      "split": "train",
+      "source_sha256": "cf45e3b8bdb13f05fbc24f3dc080c392ece4c57465acc2978162f926261c7377",
+      "inputs": {
+        "v0": [
+          1024
+        ],
+        "v1": [
+          1024,
+          64,
+          1,
+          1
+        ],
+        "v2": [
+          1,
+          1024,
+          14,
+          14
+        ],
+        "v3": [
+          1,
+          1024,
+          14,
+          14
+        ],
+        "v4": [
+          1,
+          64,
+          1,
+          1
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "multiply_products": 65536
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a3/0b/a30bf4a8ce49ca7ee46179f0957e8d6e80567af4085c5e95003490d4fbb3808a",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/resnetrs101.tf_in1k/_decomposed/resnetrs101.tf_in1k_start255_end259_8",
+      "model": "timm/resnetrs101.tf_in1k",
+      "script": "004.kiln.js",
+      "split": "train",
+      "source_sha256": "5c2653704340a8a0f369a4b81f4b51aaff1fbd3693bc62e1b52026adac3a540f",
+      "inputs": {
+        "v0": [
+          1024
+        ],
+        "v1": [
+          1024,
+          256,
+          1,
+          1
+        ],
+        "v2": [
+          1,
+          1024,
+          24,
+          24
+        ],
+        "v3": [
+          1,
+          1024,
+          24,
+          24
+        ],
+        "v4": [
+          1,
+          256,
+          1,
+          1
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "multiply_products": 262144
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/be/c4/bec4314ff33615b4b988ca34ea029355b60e130a9aa1c1d3f07ddf5a03aae2fe",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/timm/skresnext50_32x4d.ra_in1k/_decomposed/skresnext50_32x4d.ra_in1k_start346_end348_7",
+      "model": "timm/skresnext50_32x4d.ra_in1k",
+      "script": "005.kiln.js",
+      "split": "train",
+      "source_sha256": "77033430fc6a73b962e88623ec992488e3eb1e76f24b27413b50db4a4143c4a6",
+      "inputs": {
+        "v0": [
+          2048,
+          64,
+          1,
+          1
+        ],
+        "v1": [
+          1,
+          64,
+          1,
+          1
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "multiply_products": 131072
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/21/40/2140f94ac096977110cd1770dfa0fbbb8be9baace8eb4ab55dee4b4277be9b16",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/timm/cs3se_edgenet_x.c2ns_in1k/_decomposed/cs3se_edgenet_x.c2ns_in1k_start19_end21_1",
+      "model": "timm/cs3se_edgenet_x.c2ns_in1k",
+      "script": "006.kiln.js",
+      "split": "train",
+      "source_sha256": "8e635ec2904884086cda058e55b742da9b6b62214075a509c07a9103d7c0f591",
+      "inputs": {
+        "v0": [
+          32
+        ],
+        "v1": [
+          32,
+          120,
+          1,
+          1
+        ],
+        "v2": [
+          128,
+          120,
+          1,
+          1
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "multiply_products": 491520
+    },
+    {
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/91/f0/91f039a49d8ad54b339e694519865ed389df1b4e0964409dc1e109779314949f",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/ultralytics/yolo11l-seg/_decomposed/yolo11l-seg_start597_end600_0",
+      "model": "ultralytics/yolo11l-seg",
+      "script": "007.kiln.js",
+      "split": "train",
+      "source_sha256": "16cbe36687a024ee09dd6f20983377e1eb7ea74bbb77073d36f38544b02b5be5",
+      "inputs": {
+        "v0": [
+          32
+        ],
+        "v1": [
+          32,
+          64,
+          1,
+          1
+        ],
+        "v2": [
+          1,
+          64,
+          20,
+          20
+        ],
+        "v3": [
+          1,
+          32,
+          6400
+        ],
+        "v4": [
+          1,
+          32,
+          1600
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f32",
+        "v1": "f32",
+        "v2": "f32",
+        "v3": "f32",
+        "v4": "f32"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "multiply_products": 819200
+    }
+  ]
+}
