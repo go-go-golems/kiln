@@ -2042,3 +2042,46 @@ Original all-missing-pieces implementation and provenance requirements.
 
 ### Technical details
 - Independent implementation; PyTorch used only as fixture oracle. Supports explicit size, FP32 NCHW, align_corners=False only. No upstream code copied.
+
+## Step 49: Verify bilinear full pipeline on CUDA
+
+Compiled all four interpolation fixtures through Kiln and ran actual PyTorch CUDA comparisons. All passed at FP32 baseline tolerance, including upsampling, downsampling, singleton input and identity resize. No real-task coverage increment yet.
+
+### Prompt Context
+Original full implementation/measurement and preserved scripts requirement.
+**Assistant interpretation:** Validate emitter/indexing rather than reference code alone.
+**Inferred user intent:** Correct full operator chain support.
+
+### What I did
+- Saved script 31 and generated full project sources.
+- Added check_bilinear_cuda.py with complete-artifact precondition.
+- Ran full compiler export, GPU validation and 22-file regression suite.
+
+### Why
+- GPU source coordinate calculation and constant coefficient layout can diverge from reference decomposition.
+
+### What worked
+- All exports passed loop reference checks.
+- GPU max_abs_error: 1.7881393432617188e-07, 2.682209014892578e-07, 0, 0.
+- All 22 compiler test files passed.
+
+### What didn't work
+- No failures; real-task import, mutation legality and low precision remain pending.
+
+### What I learned
+- Existing view fusion emits single kernels for these explicit-size bilinear fixtures.
+
+### What was tricky to build
+- Wait for all four dependent exports before running validator; precondition prevents missing-artifact false failures.
+
+### What warrants a second pair of eyes
+- Larger-coordinate numerical behavior and coefficient constant memory overhead require broader tests/profiling.
+
+### What should be done in the future
+- Import conv2d/resize chain and prove legal conversion of fresh single-use in-place ReLU; validate actual task graphs.
+
+### Code review instructions
+- Review script 31, check_bilinear_cuda.py and archived bilinear artifacts/logs.
+
+### Technical details
+- Small FP32 fixtures, explicit output size and align_corners=False only; no upstream implementation copied.

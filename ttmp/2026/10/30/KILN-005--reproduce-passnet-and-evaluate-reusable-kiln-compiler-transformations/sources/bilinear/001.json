@@ -1,0 +1,188 @@
+{
+ "format": "kiln-program/1",
+ "name": "bilinear-fixture",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../bilinear/001.kiln.js",
+  "sha256": "6f007a6acb0ddaf74139d3c1eca2a2b77c751add662b9c18b1703f4fa4305ade"
+ },
+ "inputs": [
+  {
+   "name": "x",
+   "buffer": 0,
+   "shape": [
+    1,
+    1,
+    7,
+    5
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out",
+   "buffer": 7,
+   "shape": [
+    1,
+    1,
+    2,
+    3
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 35,
+   "bytes": 140
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 6,
+   "bytes": 24,
+   "name": null,
+   "data": "AACAPgAAgD4AAIA+AABAPwAAQD8AAEA/"
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 6,
+   "bytes": 24,
+   "name": null,
+   "data": "q6qqPgAAAACrqio/q6qqPgAAAACrqio/"
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 6,
+   "bytes": 24,
+   "name": null,
+   "data": "q6qqPgAAAACrqio/q6qqPgAAAACrqio/"
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 6,
+   "bytes": 24,
+   "name": null,
+   "data": "q6qqPgAAAACrqio/q6qqPgAAAACrqio/"
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 6,
+   "bytes": 24,
+   "name": null,
+   "data": "q6qqPgAAAACrqio/q6qqPgAAAACrqio/"
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 6,
+   "bytes": 24,
+   "name": null,
+   "data": "AACAPgAAgD4AAIA+AABAPwAAQD8AAEA/"
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 6,
+   "bytes": 24
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_bilinear__1g5q4nto1k1",
+   "identity": "1g5q4nto1k1",
+   "row": "TPB=1024",
+   "reads": [
+    1,
+    2,
+    0,
+    3,
+    4,
+    5,
+    6
+   ],
+   "writes": 7,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1,
+    2,
+    3
+   ],
+   "inShapes": [
+    [
+     1,
+     1,
+     2,
+     3
+    ],
+    [
+     1,
+     1,
+     2,
+     3
+    ],
+    [
+     1,
+     1,
+     7,
+     5
+    ],
+    [
+     1,
+     1,
+     2,
+     3
+    ],
+    [
+     1,
+     1,
+     2,
+     3
+    ],
+    [
+     1,
+     1,
+     2,
+     3
+    ],
+    [
+     1,
+     1,
+     2,
+     3
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read> b2: array<f32>;\n@group(0) @binding(3) var<storage, read> b3: array<f32>;\n@group(0) @binding(4) var<storage, read> b4: array<f32>;\n@group(0) @binding(5) var<storage, read> b5: array<f32>;\n@group(0) @binding(6) var<storage, read> b6: array<f32>;\n@group(0) @binding(7) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_v1: f32 = 0.0;\n    var v_in2: f32 = 0.0;\n    var v_in3: f32 = 0.0;\n    var v_in4: f32 = 0.0;\n    var v_v2: f32 = 0.0;\n    var v_v3: f32 = 0.0;\n    var v_in5: f32 = 0.0;\n    var v_v4: f32 = 0.0;\n    var v_in6: f32 = 0.0;\n    var v_in7: f32 = 0.0;\n    var v_in8: f32 = 0.0;\n    var v_v5: f32 = 0.0;\n    var v_v6: f32 = 0.0;\n    var v_in9: f32 = 0.0;\n    var v_v7: f32 = 0.0;\n    var v_v8: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 6i) {\n        v_in0 = b6[((n_e % 3i) + (3i * (n_e / 3i)))];\n        v_v0 = (1.0 - v_in0);\n        v_in1 = b5[((n_e % 3i) + (3i * (n_e / 3i)))];\n        v_v1 = (1.0 - v_in1);\n        v_in2 = b2[(min((max(((10i * (n_e % 3i)) + 2i), 0i) / 6i), 4i) + (5i * min((max(((14i * (n_e / 3i)) + 5i), 0i) / 4i), 6i)))];\n        v_in3 = b2[(min(((max(((10i * (n_e % 3i)) + 2i), 0i) / 6i) + 1i), 4i) + (5i * min((max(((14i * (n_e / 3i)) + 5i), 0i) / 4i), 6i)))];\n        v_in4 = b4[((n_e % 3i) + (3i * (n_e / 3i)))];\n        v_v2 = (v_in3 * v_in4);\n        v_v3 = fma(v_v1, v_in2, v_v2);\n        v_in5 = b3[((n_e % 3i) + (3i * (n_e / 3i)))];\n        v_v4 = (1.0 - v_in5);\n        v_in6 = b2[((5i * min(((max(((14i * (n_e / 3i)) + 5i), 0i) / 4i) + 1i), 6i)) + min((max(((10i * (n_e % 3i)) + 2i), 0i) / 6i), 4i))];\n        v_in7 = b1[((n_e % 3i) + (3i * (n_e / 3i)))];\n        v_in8 = b2[(min(((max(((10i * (n_e % 3i)) + 2i), 0i) / 6i) + 1i), 4i) + (5i * min(((max(((14i * (n_e / 3i)) + 5i), 0i) / 4i) + 1i), 6i)))];\n        v_v5 = (v_in7 * v_in8);\n        v_v6 = fma(v_v4, v_in6, v_v5);\n        v_in9 = b0[((n_e % 3i) + (3i * (n_e / 3i)))];\n        v_v7 = (v_v6 * v_in9);\n        v_v8 = fma(v_v0, v_v3, v_v7);\n        bout[((n_e % 3i) + (3i * (n_e / 3i)))] = v_v8;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_bilinear__1g5q4nto1k1(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, const float* __restrict__ src4, const float* __restrict__ src5, const float* __restrict__ src6, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, in2 = 0.0f, in3 = 0.0f, in4 = 0.0f, v2 = 0.0f, v3 = 0.0f, in5 = 0.0f, v4 = 0.0f, in6 = 0.0f, in7 = 0.0f, in8 = 0.0f, v5 = 0.0f, v6 = 0.0f, in9 = 0.0f, v7 = 0.0f, v8 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 6)) {\n        in0 = src6[((e % 3) + (3 * (e / 3)))];\n        v0 = (1.0f - in0);\n        in1 = src5[((e % 3) + (3 * (e / 3)))];\n        v1 = (1.0f - in1);\n        in2 = src2[(min((max(((10 * (e % 3)) + 2), 0) / 6), 4) + (5 * min((max(((14 * (e / 3)) + 5), 0) / 4), 6)))];\n        in3 = src2[(min(((max(((10 * (e % 3)) + 2), 0) / 6) + 1), 4) + (5 * min((max(((14 * (e / 3)) + 5), 0) / 4), 6)))];\n        in4 = src4[((e % 3) + (3 * (e / 3)))];\n        v2 = (in3 * in4);\n        v3 = fmaf(v1, in2, v2);\n        in5 = src3[((e % 3) + (3 * (e / 3)))];\n        v4 = (1.0f - in5);\n        in6 = src2[((5 * min(((max(((14 * (e / 3)) + 5), 0) / 4) + 1), 6)) + min((max(((10 * (e % 3)) + 2), 0) / 6), 4))];\n        in7 = src1[((e % 3) + (3 * (e / 3)))];\n        in8 = src2[(min(((max(((10 * (e % 3)) + 2), 0) / 6) + 1), 4) + (5 * min(((max(((14 * (e / 3)) + 5), 0) / 4) + 1), 6)))];\n        v5 = (in7 * in8);\n        v6 = fmaf(v4, in6, v5);\n        in9 = src0[((e % 3) + (3 * (e / 3)))];\n        v7 = (v6 * in9);\n        v8 = fmaf(v0, v3, v7);\n        dst[((e % 3) + (3 * (e / 3)))] = v8;\n    }\n}"
+  }
+ ]
+}
