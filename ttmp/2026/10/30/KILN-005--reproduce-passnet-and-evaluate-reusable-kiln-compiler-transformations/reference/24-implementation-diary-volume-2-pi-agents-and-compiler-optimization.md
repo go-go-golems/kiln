@@ -1007,3 +1007,50 @@ See Steps 169 and 173 for research-first priorities and the targeted scheduling 
 ### Technical details
 - Opt-in experimental transformation; unchanged production default.
 - Modified explicit FP32 compiler-policy protocol on GB10, not native PassBench score or full200 support.
+
+## Step 180: Exhaust the original fresh-model envelope and broaden variant discovery
+
+Declared a twenty-graph confirmation population before compilation or timing, excluding exact model identities from every tracked prior corpus and the official evaluation set. The original selection exhausted its task scan with only two new matrix models and three new reduction models, so it failed rather than silently shrinking the requested population. A separate v2 selection is running with sixty-four rather than eight variants examined per task; all workload-size limits and exclusions remain fixed.
+
+### Prompt Context
+See Steps 169 and 179 for research-first direction and the requirement to test generalization.
+**Assistant interpretation:** Evaluate the committed transformation on additional exact models without outcome-based replacement.
+**Inferred user intent:** Determine whether the development gain generalizes.
+**Starting commit:** 1a38878 — Measure staged scheduling fusion at 1.405x on development graphs.
+
+### What I did
+- Added script 460 with prior-manifest exclusions and ten matrix/ten reduction confirmation quotas.
+- Preserved the failed selection, its declaration, partial translated graphs and complete scan audit.
+- Added script 461 for a separately named broader metadata search and launched tmux kiln-staged-fresh-selection-v2.
+
+### Why
+- The previously used population is development data. Additional exact models provide a stronger test while acknowledging possible architectural relatives.
+- Expanding variant discovery addresses insufficient candidates without using compiler or timing outcomes.
+
+### What worked
+- The selector retained its complete failure evidence and did not manufacture a complete manifest.
+- A concrete limitation of the original first-eight-variants envelope is now established.
+
+### What didn't work
+- Script 460 terminated with ValueError: Selection incomplete; preserve partial audit.
+- At exhaustion the category counts were reduction=3 and matrix=2, below ten each.
+- Initial guessed historical script names and an unmatched shell glob failed; subsequent file discovery located the actual preparation script.
+
+### What I learned
+- The accumulated prior-model exclusions leave too few eligible models under the initial scan envelope. Confirmation requires broader metadata discovery or a separately declared population change.
+
+### What was tricky to build
+- Failed partial selection must remain distinct from a benchmark corpus. Its translated examples are not performance-selected, but they do not satisfy the declared quota.
+
+### What warrants a second pair of eyes
+- The v2 search is not architecture-disjoint and is restricted to supported FP32 workloads. Neither criterion should be overstated.
+
+### What should be done in the future
+- Poll the original v2 selection session, inspect its terminal outcome, and compile/measure the fixed transformation only after the population is established.
+
+### Code review instructions
+- Read scripts 460–461, staged-fusion-fresh-v1/declaration.json and corpus/scan-audit.json. The v2 output is live and not committed at this checkpoint.
+
+### Technical details
+- v1 max_graphs_per_task=8; v2=64. Both target ten graphs per category with zero training graphs.
+- No fresh confirmation performance measurement has occurred.
