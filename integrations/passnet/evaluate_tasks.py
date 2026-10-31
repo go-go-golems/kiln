@@ -26,6 +26,15 @@ def main():
     for name in ['root','plan','output']:parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--image',default='localhost:5000/playback-redaction:base-26.05')
     args=parser.parse_args();root=args.root.resolve();kiln=root/'kiln';plan=json.loads(args.plan.read_text())
+    policy=None
+    if 'optimization_program' in plan:
+        relative_policy=Path(plan['optimization_program'])
+        if relative_policy.is_absolute() or '..' in relative_policy.parts:
+            raise ValueError('Optimization program must be under the experiment root')
+        policy=root/relative_policy
+        if not policy.is_file():raise ValueError('Missing declared optimization program')
+    skip_internal=plan.get('skip_internal_reference_check',False)
+    if type(skip_internal) is not bool:raise ValueError('skip_internal_reference_check must be Boolean')
     indices=[case['index'] for case in plan['tasks']]
     if not indices or len(set(indices))!=len(indices):raise ValueError('Nonempty distinct task indices required')
     for case in plan['tasks']:
@@ -35,15 +44,19 @@ def main():
     if args.output.exists():raise ValueError('Preserve earlier runs; choose a new output directory')
     output=args.output.resolve();relative=output.relative_to(root);output.mkdir(parents=True)
     initial=snapshot(kiln)
+    policy_sha256=hashlib.sha256(policy.read_bytes()).hexdigest() if policy else None
     result={'format':'kiln-task-run/1','status':'running','plan':plan,'plan_sha256':hashlib.sha256(args.plan.read_bytes()).hexdigest(),
             'source_snapshot':initial,'node_version':subprocess.check_output(['node','--version'],text=True).strip(),
             'image_id':subprocess.check_output(['docker','image','inspect','--format','{{.Id}}',args.image],text=True).strip(),
+            'optimization_program_sha256':policy_sha256,
             'scope':'Exploratory ordered complete-task evaluation; original numerical curve and scorer retained; no process-exit acceptance claim','records':[]}
     path=output/'run.json';save(path,result)
     def docker(command,*,gpu=False,work='/work/kiln/integrations/passnet'):
         return ['docker','run','--rm',*(['--gpus','all'] if gpu else []),'-v',str(root)+':/work','-w',work,'--entrypoint','python',args.image,*command]
     for case in plan['tasks']:
         if snapshot(kiln)!=initial:raise RuntimeError('Compiler/runtime source changed during run; preserve this checkpoint')
+        if policy and hashlib.sha256(policy.read_bytes()).hexdigest()!=policy_sha256:
+            raise RuntimeError('Optimization program changed during run')
         directory=output/f"task-{case['index']:03d}";directory.mkdir();corpus=directory/'corpus';corpus.mkdir()
         mounted=Path('/work')/relative/directory.name
         stage='from pathlib import Path;from corpus import export_task;from generate_pass import generate;'+\
@@ -51,6 +64,8 @@ def main():
               'generate(Path('+repr(str(mounted/'corpus'))+'),Path("/work/upstream"),Path('+repr(str(mounted/'passes'))+'),Path('+repr(str(mounted/'corpus'))+'))'
         compile_command=['python3','integrations/passnet/corpus.py','compile','--directory',str(corpus),'--kiln',str(kiln),'--target','a100']
         if 'contraction' in plan:compile_command.extend(['--contraction',plan['contraction']])
+        if policy:compile_command.extend(['--optimization-program',str(policy)])
+        if skip_internal:compile_command.append('--skip-internal-reference-check')
         phases=[('export',docker(['-c',stage])),
                 ('compile',compile_command),
                 ('evaluate',docker(['run_task.py','--directory',str(mounted/'corpus'),'--upstream','/work/upstream','--pass-directory',str(mounted/'passes'),'--log',str(mounted/'benchmark.log'),'--warmup','20','--trials','100'],gpu=True)),

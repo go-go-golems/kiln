@@ -2855,3 +2855,43 @@ Read `transformation_program.mjs` and its shared helper, `compile_policy.mjs`, `
 
 ### Technical details
 Node26.13.0, target A100 and separate contraction were used for the local smoke. The policy file SHA256 is `de482bd2b23ee1296ca97336a8ff8a7214492782e147b8118f4c0bd826e149b5`; the source script SHA256 is `df2341558c9d4d362ab7a6d7687e2b77679419c357fcbaee87fc630bb035a52b`. No default compiler policy or original PassBench evaluator code changed.
+
+## Step 217: Freeze a broad compiler-policy transfer comparison
+
+### Prompt Context
+The user asked whether the work had returned to overly detailed testing or was still taking ambitious steps. Earlier instructions favor research velocity, reusable compiler optimization, complete-task results, documented scripts, and milestone commits.
+**Assistant interpretation:** Finish the already selected comparison of unchanged Kiln and one fixed reusable transformation program through PassBench.
+**Inferred user intent:** Get evidence about generalization across tasks rather than more isolated operator diagnostics.
+
+### What I did
+- Extended the existing complete-task runner to accept a declared transformation program and the explicit internal-reference-check bypass already supported by the corpus compiler. The runner records the policy SHA256 and refuses a policy change during the run.
+- Froze 12 complete tasks comprising 92 graphs before compiling either arm. Task101 is a prior development positive control; 11 tasks form the transfer population. Saved exact membership hashes and the fixed policy bytes under `sources/fixed-policy-passbench-v1/`.
+- Wrote reference33 with the comparison, metric, and protocol scope. Added scripts615–617 to freeze, stage, and run both arms using the same compiler snapshot and PassBench evaluator on bling.
+
+### Why
+The shared export path from Step216 needs a complete-task numerical and scoring experiment. A fixed program across multiple operator families tests whether a reusable compiler change transfers beyond its development fixture.
+
+### What worked
+- The frozen population script found all92 materialized graph directories and wrote both arm plans; the fixed policy SHA256 is `de482bd2b23ee1296ca97336a8ff8a7214492782e147b8118f4c0bd826e149b5`.
+- SSH confirmed bling is reachable, has an NVIDIA GB10 GPU, and the remote study directory was unused before staging.
+
+### What didn't work
+No new GPU or scorer outcome exists at this diary checkpoint. The transfer cases are not untouched tasks: prior Kiln coverage work had examined some of them. The study must report this provenance and keep task101 separate.
+
+### What I learned
+The existing task runner can carry the optimization program through the normal corpus compile path with a small extension. A second benchmark harness would add no value for this comparison.
+
+### What was tricky to build
+Both arms need identical integration semantics even when Kiln's synthetic reference gate is bypassed. The original PassBench matching, numerical checker, and scorer remain the acceptance authority. The run freezes complete graph membership, source bytes, policy bytes, image, and trial settings.
+
+### What warrants a second pair of eyes
+Review the population choice and the interpretation of transfer versus prior coverage. The A100 cost-model target is a proxy for the GB10 GPU. Sequential control then candidate evaluation may introduce temporal drift; any marginal speedup should be repeated or interleaved before a strong claim.
+
+### What should be done in the future
+Stage and run both arms; summarize complete-task correctness, scores, GPU and end-to-end timing, and executable identity. Use the broad result to select the next compiler transformation rather than entering another long diagnostic branch.
+
+### Code review instructions
+Read `evaluate_tasks.py`, scripts615–617, reference33, and both frozen plans. Compare the policy file with the earlier pointwise program by SHA256.
+
+### Technical details
+The host runner compiles with separate contraction, target A100, and a policy SHA256 recorded in `run.json`. Its Docker invocation requests20 warmups and100 trials. The internal Kiln synthetic reference check is disabled for both arms, while PassBench's nominal `t=-5` numerical check and scoring remain active. This is a modified integration protocol.
