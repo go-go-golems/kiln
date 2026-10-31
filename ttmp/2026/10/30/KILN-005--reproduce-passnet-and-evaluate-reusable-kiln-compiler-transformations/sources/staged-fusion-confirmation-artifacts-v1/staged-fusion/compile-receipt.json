@@ -1,0 +1,482 @@
+{
+  "format": "kiln-policy-compilation/2",
+  "membership_sha256": "c67af7ec18bf0fd9c9dc00fc7f3888df731916ba1270de512eba05ac246b7874",
+  "reference_domain_sha256": "4506c75419846f93a23042955189741e521ec5a5b93902c89341b9aa11b770fb",
+  "policy": {
+    "format": "kiln-transformation-program/1",
+    "id": "staged-fusion",
+    "kind": "scheduling-fusion"
+  },
+  "policy_node_count": 1,
+  "target": "a100",
+  "phase": "all",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "records": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/AVSilva_bertimbau-large-fine-tuned-md/_decomposed/AVSilva_bertimbau-large-fine-tuned-md_start15_end17_2",
+      "split": "heldout",
+      "script": "000.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "000.kiln.json",
+      "fingerprint": "674261d5c81c5d87aaeff880fea9a1a2649708fdd020247596816ebd4839730b",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1n6h1stqkub"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~113M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 78.198091
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/CLAck_en-vi/_decomposed/CLAck_en-vi_start23_end29_3",
+      "split": "heldout",
+      "script": "001.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "001.kiln.json",
+      "fingerprint": "f220bd5961e47761652471109c103a1f0b100ff7899639f0421b44ce5851916d",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "1vvuqkjonch",
+        "2giumxlj7fo",
+        "1vlrxgpigpy"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 361,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 9728,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out2",
+            "ok": true,
+            "maxAbs": 0.0001678466796875,
+            "maxRel": 0.0021414709204357948,
+            "bad": 0,
+            "n": 9728,
+            "first": -1,
+            "message": "max abs diff 1.68e-4"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 280.28546000000006
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/beit3_base_patch16_224.in22k_ft_in1k/_decomposed/beit3_base_patch16_224.in22k_ft_in1k_start277_end280_9",
+      "split": "heldout",
+      "script": "002.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "002.kiln.json",
+      "fingerprint": "e6efb949ab557ee7d193e0a52925dd3872de15018cd3872819aa8b3efe9afe85",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1wplnwjbir6"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.000003814697265625,
+            "maxRel": 0.00006111893661385515,
+            "bad": 0,
+            "n": 605184,
+            "first": -1,
+            "message": "max abs diff 3.81e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 1200.671009
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hossamamer12_BUS15100_MB2_20epoch_notweettokenizer_fp16/_decomposed/hossamamer12_BUS15100_MB2_20epoch_notweettokenizer_fp16_start36_end44_6",
+      "split": "heldout",
+      "script": "003.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "003.kiln.json",
+      "fingerprint": "5d8e9e1572861f9f2500a9536776a0f3d6b11e2a9f25b568c6a203f71eb706c8",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "298sxuj324c",
+        "2bc97hhlr3v"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 8.940696716308594e-8,
+            "maxRel": 0.003927441988204078,
+            "bad": 0,
+            "n": 2560,
+            "first": -1,
+            "message": "max abs diff 8.94e-8"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 95.32851900000014
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/vit_huge_patch14_224.mae/_decomposed/vit_huge_patch14_224.mae_start678_end681_9",
+      "split": "heldout",
+      "script": "004.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "004.kiln.json",
+      "fingerprint": "9aad59df0091a2286d25b2ffd3706354d1918a80772f06417ace184f1eb82f49",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1g4jp7vyki9"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 5.364418029785156e-7,
+            "maxRel": 0.00011019871721830309,
+            "bad": 0,
+            "n": 1280,
+            "first": -1,
+            "message": "max abs diff 5.36e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 50.51506500000005
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-afa-en/_decomposed/opus-mt-afa-en_start43_end46_7",
+      "split": "heldout",
+      "script": "005.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "005.kiln.json",
+      "fingerprint": "672fb60e04e41a9ee971ec2a3ed7e1b236daf6e4b48449109677ee00b263676d",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "mf3h78zam9"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~65M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 37.059054999999944
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/Aleksandar_electra-srb-ner-setimes/_decomposed/Aleksandar_electra-srb-ner-setimes_start23_end31_5",
+      "split": "heldout",
+      "script": "006.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "006.kiln.json",
+      "fingerprint": "7478254f205834237bd5ca6e72a4607911a23fafc53b10644294d99139befde1",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "1fyiku6xjdo",
+        "1cxmq21vnfr",
+        "fn80q7u2hs"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 1.4901161193847656e-7,
+            "maxRel": 0.043296659682429045,
+            "bad": 0,
+            "n": 49152,
+            "first": -1,
+            "message": "max abs diff 1.49e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 211.1309980000001
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/microsoft_swin-large-patch4-window7-224-in22k/_decomposed/microsoft_swin-large-patch4-window7-224-in22k_start1448_end1450_50",
+      "split": "heldout",
+      "script": "007.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "007.kiln.json",
+      "fingerprint": "e20113f4551bfb124e51d857d1418b7fd9f5c070c3f2bdd806b3becf01bc6e92",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "1cq13jglwlp",
+        "z0ib0emm3v"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 75264,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 0.003686729599481358,
+            "bad": 0,
+            "n": 75264,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 64.8017649999997
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-AltCLIPModel/_decomposed/hf-tiny-model-private_tiny-random-AltCLIPModel_start27_end31_6",
+      "split": "heldout",
+      "script": "008.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "008.kiln.json",
+      "fingerprint": "3c42d67d2160afbcb8710cd1e4f05e2a3abbec24428973c5da48d26c7b412aa4",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "cn04bvpj7i",
+        "2d3sq1fye6t"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 1088,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0.0000019073486328125,
+            "maxRel": 0.00010421008744537541,
+            "bad": 0,
+            "n": 1088,
+            "first": -1,
+            "message": "max abs diff 1.91e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 34.45560300000034
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/vit_base_patch16_clip_224.datacompxl/_decomposed/vit_base_patch16_clip_224.datacompxl_start259_end262_3",
+      "split": "heldout",
+      "script": "009.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "009.kiln.json",
+      "fingerprint": "a10fc0bd770976250b067b09f53f769738c2877a1ad5564aa1a203445e73bdd9",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1rfa746ayey"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 2.384185791015625e-7,
+            "maxRel": 0.0001842409375185972,
+            "bad": 0,
+            "n": 768,
+            "first": -1,
+            "message": "max abs diff 2.38e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 31.887760999999955
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/kannt-im_marian-finetuned-kde4-en-to-fr/_decomposed/kannt-im_marian-finetuned-kde4-en-to-fr_start198_end204_26",
+      "split": "heldout",
+      "script": "010.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "010.kiln.json",
+      "fingerprint": "59d31a387e683faf221cc1bb31f505e4d127c3c71c0e2fc2528d6ec558cd2c55",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "11n4c5cr9b9",
+        "10qzex6tyeh",
+        "ftdomfjxvj"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 169,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 6656,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out2",
+            "ok": true,
+            "maxAbs": 0.0001373291015625,
+            "maxRel": 0.0021414709204357948,
+            "bad": 0,
+            "n": 6656,
+            "first": -1,
+            "message": "max abs diff 1.37e-4"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 135.81730400000015
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/binery_Table_detection_MS_E_14/_decomposed/binery_Table_detection_MS_E_14_start1096_end1099_11",
+      "split": "heldout",
+      "script": "011.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "011.kiln.json",
+      "fingerprint": "c90e045d0e5f0afb9d4979f140096431810208b9956b07eca90e9e46ae7964b0",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "1b1bfrry9ow",
+        "199l84xjbf"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 0.00005934345116853612,
+            "bad": 0,
+            "n": 3840,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 61.70690000000013
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/google_rembert/_decomposed/google_rembert_start24_end32_5",
+      "split": "heldout",
+      "script": "012.kiln.js",
+      "policy": "staged-fusion",
+      "status": "compiled",
+      "artifact": "012.kiln.json",
+      "fingerprint": "00a4eb58b70defa2270aaaed9eae11518c59ad604ac9878382b3a58fde111aea",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "1lfleeka4eh",
+        "2857d5swdm",
+        "1oa4mxque0d"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 1.1920928955078125e-7,
+            "maxRel": 0.0010775010031834052,
+            "bad": 0,
+            "n": 14976,
+            "first": -1,
+            "message": "max abs diff 1.19e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 78.14405899999974
+    }
+  ]
+}

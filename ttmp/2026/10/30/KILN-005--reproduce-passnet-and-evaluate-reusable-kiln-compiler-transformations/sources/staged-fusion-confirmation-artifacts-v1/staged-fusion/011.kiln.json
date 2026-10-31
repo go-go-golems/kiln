@@ -1,0 +1,235 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "011.kiln.js",
+  "sha256": "6dfa8e474f265e033bca0a6051d444dfff94bb90331f6780ce0d3aacd17643b4",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    256
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    256
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    256
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    256
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    1,
+    15,
+    256
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    1,
+    15,
+    256
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 7,
+   "shape": [
+    1,
+    15,
+    256
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 256,
+   "bytes": 1024
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 256,
+   "bytes": 1024
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 256,
+   "bytes": 1024
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 256,
+   "bytes": 1024
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 3840,
+   "bytes": 15360
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 3840,
+   "bytes": 15360
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 3840,
+   "bytes": 15360
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 3840,
+   "bytes": 15360
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew__1b1bfrry9ow",
+   "identity": "1b1bfrry9ow",
+   "row": "TPB=64",
+   "reads": [
+    4,
+    5
+   ],
+   "writes": 6,
+   "grid": 60,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    60,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    15,
+    256
+   ],
+   "inShapes": [
+    [
+     1,
+     15,
+     256
+    ],
+    [
+     1,
+     15,
+     256
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew__1b1bfrry9ow(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 3840)) {\n        in0 = src0[((e % 256) + (256 * (e / 256)))];\n        in1 = src1[((e % 256) + (256 * (e / 256)))];\n        v0 = __fadd_rn(in0, in1);\n        dst[((e % 256) + (256 * (e / 256)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_cast_reshape_layer_norm_reduce__199l84xjbf",
+   "identity": "199l84xjbf",
+   "row": "MAP=row,TPB=64,STAGE=reused",
+   "reads": [
+    0,
+    1,
+    2,
+    3,
+    6
+   ],
+   "writes": 7,
+   "grid": 15,
+   "block": 64,
+   "smemBytes": 3328,
+   "dispatch": [
+    15,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    15,
+    256
+   ],
+   "inShapes": [
+    [
+     256
+    ],
+    [
+     256
+    ],
+    [
+     256
+    ],
+    [
+     256
+    ],
+    [
+     1,
+     15,
+     256
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: sub_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_cast_reshape_layer_norm_reduce__199l84xjbf(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, const float* __restrict__ src4, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_in4[256];\n    __shared__ float s_in3[256];\n    __shared__ float s_in2[256];\n    __shared__ float s_red[64];\n    float g0 = 0.0f, g1 = 0.0f, g2 = 0.0f, acc0 = 0.0f, in1 = 0.0f, v1 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, v2 = 0.0f, acc1 = 0.0f, in2 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, sv14 = 0.0f, sv15 = 0.0f, sv16 = 0.0f, sv17 = 0.0f, sv18 = 0.0f, sv19 = 0.0f, sv20 = 0.0f, sv21 = 0.0f, sv22 = 0.0f, sv23 = 0.0f, v7 = 0.0f, v8 = 0.0f, v9 = 0.0f, acc2 = 0.0f, in5 = 0.0f, v17 = 0.0f, v18 = 0.0f, v19 = 0.0f, in6 = 0.0f, v20 = 0.0f, v21 = 0.0f, in7 = 0.0f, v22 = 0.0f, v23 = 0.0f, v24 = 0.0f, v25 = 0.0f, sv24 = 0.0f, sv25 = 0.0f, sv26 = 0.0f, sv27 = 0.0f, sv28 = 0.0f, sv29 = 0.0f, sv30 = 0.0f, sv31 = 0.0f, sv32 = 0.0f, sv33 = 0.0f, sv34 = 0.0f, sv35 = 0.0f, v26 = 0.0f, acc3 = 0.0f, in8 = 0.0f, v28 = 0.0f, v29 = 0.0f, v30 = 0.0f, in9 = 0.0f, v31 = 0.0f, v32 = 0.0f, in10 = 0.0f, v33 = 0.0f, v34 = 0.0f, v35 = 0.0f, v36 = 0.0f, v37 = 0.0f, v38 = 0.0f, sv36 = 0.0f, sv37 = 0.0f, sv38 = 0.0f, sv39 = 0.0f, sv40 = 0.0f, sv41 = 0.0f, sv42 = 0.0f, sv43 = 0.0f, sv44 = 0.0f, sv45 = 0.0f, sv46 = 0.0f, sv47 = 0.0f, v39 = 0.0f, v40 = 0.0f, v41 = 0.0f, in0 = 0.0f, v0 = 0.0f, v3 = 0.0f, v10 = 0.0f, in3 = 0.0f, v11 = 0.0f, v12 = 0.0f, in4 = 0.0f, v13 = 0.0f, v14 = 0.0f, v15 = 0.0f, v16 = 0.0f, v27 = 0.0f, v42 = 0.0f, in11 = 0.0f, v43 = 0.0f, v44 = 0.0f, in12 = 0.0f, v45 = 0.0f, v46 = 0.0f, v47 = 0.0f;\n    for (int t4 = tid; t4 < 256; t4 += 64) {\n        g0 = src4[((256 * bid) + t4)];\n        s_in4[t4] = g0;\n    }\n    for (int t3 = tid; t3 < 256; t3 += 64) {\n        g1 = src3[t3];\n        s_in3[t3] = g1;\n    }\n    for (int t2 = tid; t2 < 256; t2 += 64) {\n        g2 = src2[t2];\n        s_in2[t2] = g2;\n    }\n    __syncthreads();\n    acc0 = 0.0f;\n    for (int r0 = tid; r0 < 256; r0 += 64) {\n        in1 = s_in4[r0];\n        v1 = in1;\n        acc0 = (acc0 + v1);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 32)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 32)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 16)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 8)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 4)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 2)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 1)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    v2 = (acc0 / 256.0f);\n    acc1 = 0.0f;\n    for (int r1 = tid; r1 < 256; r1 += 64) {\n        in2 = s_in4[r1];\n        v4 = in2;\n        v5 = __fsub_rn(v4, v2);\n        v6 = __fmul_rn(v5, v5);\n        acc1 = (acc1 + v6);\n    }\n    __syncthreads();\n    s_red[tid] = acc1;\n    __syncthreads();\n    if ((tid < 32)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 32)];\n        s_red[tid] = (sv12 + sv13);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv14 = s_red[tid];\n        sv15 = s_red[(tid + 16)];\n        s_red[tid] = (sv14 + sv15);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv16 = s_red[tid];\n        sv17 = s_red[(tid + 8)];\n        s_red[tid] = (sv16 + sv17);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv18 = s_red[tid];\n        sv19 = s_red[(tid + 4)];\n        s_red[tid] = (sv18 + sv19);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv20 = s_red[tid];\n        sv21 = s_red[(tid + 2)];\n        s_red[tid] = (sv20 + sv21);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv22 = s_red[tid];\n        sv23 = s_red[(tid + 1)];\n        s_red[tid] = (sv22 + sv23);\n    }\n    __syncthreads();\n    acc1 = s_red[0];\n    v7 = (acc1 / 256.0f);\n    v8 = __fadd_rn(v7, 0.00001f);\n    v9 = rsqrtf(v8);\n    acc2 = 0.0f;\n    for (int r2 = tid; r2 < 256; r2 += 64) {\n        in5 = s_in4[r2];\n        v17 = in5;\n        v18 = __fsub_rn(v17, v2);\n        v19 = __fmul_rn(v18, v9);\n        in6 = s_in3[r2];\n        v20 = in6;\n        v21 = __fmul_rn(v19, v20);\n        in7 = s_in2[r2];\n        v22 = in7;\n        v23 = __fadd_rn(v21, v22);\n        v24 = v23;\n        v25 = v24;\n        acc2 = (acc2 + v25);\n    }\n    __syncthreads();\n    s_red[tid] = acc2;\n    __syncthreads();\n    if ((tid < 32)) {\n        sv24 = s_red[tid];\n        sv25 = s_red[(tid + 32)];\n        s_red[tid] = (sv24 + sv25);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv26 = s_red[tid];\n        sv27 = s_red[(tid + 16)];\n        s_red[tid] = (sv26 + sv27);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv28 = s_red[tid];\n        sv29 = s_red[(tid + 8)];\n        s_red[tid] = (sv28 + sv29);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv30 = s_red[tid];\n        sv31 = s_red[(tid + 4)];\n        s_red[tid] = (sv30 + sv31);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv32 = s_red[tid];\n        sv33 = s_red[(tid + 2)];\n        s_red[tid] = (sv32 + sv33);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv34 = s_red[tid];\n        sv35 = s_red[(tid + 1)];\n        s_red[tid] = (sv34 + sv35);\n    }\n    __syncthreads();\n    acc2 = s_red[0];\n    v26 = (acc2 / 256.0f);\n    acc3 = 0.0f;\n    for (int r3 = tid; r3 < 256; r3 += 64) {\n        in8 = s_in4[r3];\n        v28 = in8;\n        v29 = __fsub_rn(v28, v2);\n        v30 = __fmul_rn(v29, v9);\n        in9 = s_in3[r3];\n        v31 = in9;\n        v32 = __fmul_rn(v30, v31);\n        in10 = s_in2[r3];\n        v33 = in10;\n        v34 = __fadd_rn(v32, v33);\n        v35 = v34;\n        v36 = v35;\n        v37 = __fsub_rn(v36, v26);\n        v38 = __fmul_rn(v37, v37);\n        acc3 = (acc3 + v38);\n    }\n    __syncthreads();\n    s_red[tid] = acc3;\n    __syncthreads();\n    if ((tid < 32)) {\n        sv36 = s_red[tid];\n        sv37 = s_red[(tid + 32)];\n        s_red[tid] = (sv36 + sv37);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv38 = s_red[tid];\n        sv39 = s_red[(tid + 16)];\n        s_red[tid] = (sv38 + sv39);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv40 = s_red[tid];\n        sv41 = s_red[(tid + 8)];\n        s_red[tid] = (sv40 + sv41);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv42 = s_red[tid];\n        sv43 = s_red[(tid + 4)];\n        s_red[tid] = (sv42 + sv43);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv44 = s_red[tid];\n        sv45 = s_red[(tid + 2)];\n        s_red[tid] = (sv44 + sv45);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv46 = s_red[tid];\n        sv47 = s_red[(tid + 1)];\n        s_red[tid] = (sv46 + sv47);\n    }\n    __syncthreads();\n    acc3 = s_red[0];\n    v39 = (acc3 / 256.0f);\n    v40 = __fadd_rn(v39, 0.00001f);\n    v41 = rsqrtf(v40);\n    for (int q = tid; q < 256; q += 64) {\n        in0 = s_in4[q];\n        v0 = in0;\n        v3 = __fsub_rn(v0, v2);\n        v10 = __fmul_rn(v3, v9);\n        in3 = s_in3[q];\n        v11 = in3;\n        v12 = __fmul_rn(v10, v11);\n        in4 = s_in2[q];\n        v13 = in4;\n        v14 = __fadd_rn(v12, v13);\n        v15 = v14;\n        v16 = v15;\n        v27 = __fsub_rn(v16, v26);\n        v42 = __fmul_rn(v27, v41);\n        in11 = src1[q];\n        v43 = in11;\n        v44 = __fmul_rn(v42, v43);\n        in12 = src0[q];\n        v45 = in12;\n        v46 = __fadd_rn(v44, v45);\n        v47 = v46;\n        dst[((256 * bid) + q)] = v47;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-transformation-program/1",
+  "id": "staged-fusion",
+  "kind": "scheduling-fusion"
+ }
+}

@@ -1,0 +1,234 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "012.kiln.js",
+  "sha256": "7ba7b69c1302d207dc7b83099ea49fa7dd529f2d2671c9a3388326ae2b8b6743",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    18,
+    13,
+    13
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    1,
+    1,
+    13
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1,
+    18,
+    13,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 5,
+   "shape": [
+    1,
+    13,
+    1152
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 3042,
+   "bytes": 12168
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 13,
+   "bytes": 52
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 14976,
+   "bytes": 59904
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 3042,
+   "bytes": 12168
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 14976,
+   "bytes": 59904
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 14976,
+   "bytes": 59904
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_cast_softmax_reduce__1lfleeka4eh",
+   "identity": "1lfleeka4eh",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 3,
+   "grid": 234,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    234,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    18,
+    13,
+    13
+   ],
+   "inShapes": [
+    [
+     1,
+     1,
+     1,
+     13
+    ],
+    [
+     1,
+     18,
+     13,
+     13
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(32) k_ew_cast_softmax_reduce__1lfleeka4eh(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float acc0 = 0.0f, in2 = 0.0f, v3 = 0.0f, in3 = 0.0f, v4 = 0.0f, v5 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, acc1 = 0.0f, in4 = 0.0f, v8 = 0.0f, in5 = 0.0f, v9 = 0.0f, v10 = 0.0f, v11 = 0.0f, v12 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, sv14 = 0.0f, sv15 = 0.0f, sv16 = 0.0f, sv17 = 0.0f, sv18 = 0.0f, sv19 = 0.0f, in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, v2 = 0.0f, v6 = 0.0f, v7 = 0.0f, v13 = 0.0f;\n    acc0 = -3.4028234663852886e+38f;\n    for (int r0 = tid; r0 < 13; r0 += 32) {\n        in2 = src1[(((13 * (bid % 13)) + (169 * (bid / 13))) + r0)];\n        v3 = (in2 / 8.0f);\n        in3 = src0[r0];\n        v4 = __fadd_rn(v3, in3);\n        v5 = v4;\n        acc0 = fmaxf(acc0, v5);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = fmaxf(sv0, sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = fmaxf(sv2, sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = fmaxf(sv4, sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = fmaxf(sv6, sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = fmaxf(sv8, sv9);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    acc1 = 0.0f;\n    for (int r1 = tid; r1 < 13; r1 += 32) {\n        in4 = src1[(((13 * (bid % 13)) + (169 * (bid / 13))) + r1)];\n        v8 = (in4 / 8.0f);\n        in5 = src0[r1];\n        v9 = __fadd_rn(v8, in5);\n        v10 = v9;\n        v11 = __fsub_rn(v10, acc0);\n        v12 = expf(v11);\n        acc1 = (acc1 + v12);\n    }\n    __syncthreads();\n    s_red[tid] = acc1;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 16)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 8)];\n        s_red[tid] = (sv12 + sv13);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv14 = s_red[tid];\n        sv15 = s_red[(tid + 4)];\n        s_red[tid] = (sv14 + sv15);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv16 = s_red[tid];\n        sv17 = s_red[(tid + 2)];\n        s_red[tid] = (sv16 + sv17);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv18 = s_red[tid];\n        sv19 = s_red[(tid + 1)];\n        s_red[tid] = (sv18 + sv19);\n    }\n    __syncthreads();\n    acc1 = s_red[0];\n    for (int q = tid; q < 13; q += 32) {\n        in0 = src1[(((13 * (bid % 13)) + (169 * (bid / 13))) + q)];\n        v0 = (in0 / 8.0f);\n        in1 = src0[q];\n        v1 = __fadd_rn(v0, in1);\n        v2 = v1;\n        v6 = __fsub_rn(v2, acc0);\n        v7 = expf(v6);\n        v13 = (v7 / acc1);\n        dst[(((13 * (bid % 13)) + (169 * (bid / 13))) + q)] = v13;\n    }\n}"
+  },
+  {
+   "name": "k_cast_matmul_reduce__2857d5swdm",
+   "identity": "2857d5swdm",
+   "row": "MAP=tiled,BM=16,BN=16,BK=8,TN=2",
+   "reads": [
+    2,
+    3
+   ],
+   "writes": 4,
+   "grid": 72,
+   "block": 128,
+   "smemBytes": 1024,
+   "dispatch": [
+    72,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    18,
+    13,
+    1,
+    64
+   ],
+   "inShapes": [
+    [
+     1,
+     18,
+     13,
+     64
+    ],
+    [
+     1,
+     18,
+     13,
+     13
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_cast_matmul_reduce__2857d5swdm(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float sA0[128];\n    __shared__ float sB0[128];\n    float acc_0_0 = 0.0f, acc_0_1 = 0.0f, tv = 0.0f, g0 = 0.0f, g1 = 0.0f, a0_0 = 0.0f, b0_0 = 0.0f, b0_1 = 0.0f, v0_0_0 = 0.0f, v1_0_0 = 0.0f, v2_0_0 = 0.0f, v3_0_0 = 0.0f, v0_0_1 = 0.0f, v1_0_1 = 0.0f, v2_0_1 = 0.0f, v3_0_1 = 0.0f;\n    int bz = 0, bm = 0, bn = 0, ty = 0, tx = 0, rr = 0, kq = 0;\n    bz = (bid / 4);\n    bm = 0;\n    bn = (bid % 4);\n    ty = (tid / 8);\n    tx = (tid % 8);\n    acc_0_0 = 0.0f;\n    acc_0_1 = 0.0f;\n    for (int k0 = 0; k0 < 13; k0 += 8) {\n        for (int la = tid; la < 128; la += 128) {\n            rr = (la / 8);\n            kq = (la % 8);\n            tv = 0.0f;\n            if (((((16 * bm) + rr) < 13) && ((k0 + kq) < 13))) {\n                g0 = src1[(((((208 * bm) + (169 * bz)) + k0) + kq) + (13 * rr))];\n                tv = g0;\n            }\n            sA0[(kq + (8 * rr))] = tv;\n        }\n        for (int lb = tid; lb < 128; lb += 128) {\n            rr = (lb % 16);\n            kq = (lb / 16);\n            tv = 0.0f;\n            if (((((16 * bn) + rr) < 64) && ((k0 + kq) < 13))) {\n                g1 = src0[(((((16 * bn) + (832 * bz)) + (64 * k0)) + (64 * kq)) + rr)];\n                tv = g1;\n            }\n            sB0[((16 * kq) + rr)] = tv;\n        }\n        __syncthreads();\n        for (int kk = 0; kk < 8; kk += 1) {\n            if (((k0 + kk) < 13)) {\n                a0_0 = sA0[(kk + (8 * ty))];\n                b0_0 = sB0[((16 * kk) + (2 * tx))];\n                b0_1 = sB0[(((16 * kk) + (2 * tx)) + 1)];\n                v0_0_0 = a0_0;\n                v1_0_0 = v0_0_0;\n                v2_0_0 = b0_0;\n                v3_0_0 = __fmul_rn(v1_0_0, v2_0_0);\n                acc_0_0 = (acc_0_0 + v3_0_0);\n                v0_0_1 = a0_0;\n                v1_0_1 = v0_0_1;\n                v2_0_1 = b0_1;\n                v3_0_1 = __fmul_rn(v1_0_1, v2_0_1);\n                acc_0_1 = (acc_0_1 + v3_0_1);\n            }\n        }\n        __syncthreads();\n    }\n    if (((((16 * bm) + ty) < 13) && (((16 * bn) + (2 * tx)) < 64))) {\n        dst[(((((1024 * bm) + (16 * bn)) + (832 * bz)) + (2 * tx)) + (64 * ty))] = acc_0_0;\n    }\n    if (((((16 * bm) + ty) < 13) && ((((16 * bn) + (2 * tx)) + 1) < 64))) {\n        dst[((((((1024 * bm) + (16 * bn)) + (832 * bz)) + (2 * tx)) + (64 * ty)) + 1)] = acc_0_1;\n    }\n}"
+  },
+  {
+   "name": "k_matmul_cast_reshape__1oa4mxque0d",
+   "identity": "1oa4mxque0d",
+   "row": "TPB=64",
+   "reads": [
+    4
+   ],
+   "writes": 5,
+   "grid": 234,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    234,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    13,
+    1152
+   ],
+   "inShapes": [
+    [
+     1,
+     18,
+     13,
+     1,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 234i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 14976i) {\n        v_in0 = b0[(((64i * ((((n_e % 1152i) + (1152i * (n_e / 1152i))) / 1152i) % 13i)) + (832i * ((((n_e % 1152i) + (1152i * (n_e / 1152i))) / 64i) % 18i))) + ((n_e % 1152i) % 64i))];\n        v_v0 = v_in0;\n        bout[((n_e % 1152i) + (1152i * (n_e / 1152i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_matmul_cast_reshape__1oa4mxque0d(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 14976)) {\n        in0 = src0[(((64 * ((((e % 1152) + (1152 * (e / 1152))) / 1152) % 13)) + (832 * ((((e % 1152) + (1152 * (e / 1152))) / 64) % 18))) + ((e % 1152) % 64))];\n        v0 = in0;\n        dst[((e % 1152) + (1152 * (e / 1152)))] = v0;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-transformation-program/1",
+  "id": "staged-fusion",
+  "kind": "scheduling-fusion"
+ }
+}

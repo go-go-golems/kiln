@@ -1100,3 +1100,48 @@ The broader metadata scan exhausted its declared envelope without reaching twent
 
 ### Technical details
 - No fresh confirmation performance result yet. The full project remains active; full200 support and native protocol work are separate unfinished requirements.
+
+## Step 182: Confirm the fixed staged transformation on thirteen fresh exact models
+
+The fixed staged-fusion program passed correctness checks on all thirteen confirmation graphs. Family-balanced end-to-end speedup was 1.146076×: two changed executables improved 4.405327× and 1.335970×, while eleven were exact baseline aliases. This supports transfer beyond the development models, within the declared supported FP32 envelope.
+
+### Prompt Context
+**User prompt (verbatim):** "ok, leete's keep on plowing forward and getting some results in. Expand the port when you think is appropriate"
+**Assistant interpretation:** Continue measured compiler research and expand capabilities when it enables useful experiments.
+**Inferred user intent:** Produce reusable optimization results without excessive infrastructure work.
+**Commit (code):** 0ac017cf37113b22e330f0b9cc0dcae0680a03fb — Stage fixed development winner on a separate confirmation corpus.
+
+### What I did
+- Completed 39 compilations (three policies across thirteen graphs), then measured baseline and the previously fixed staged winner on GB10.
+- Preserved measurement.json, run.json and the per-graph summary in sources/staged-confirmation-results-v1.
+- Reused the original numerical reference wrapper and evaluation machinery via scripts 463–464.
+
+### Why
+- A development gain alone cannot establish transfer. The transformation was fixed before selecting or measuring these new exact models.
+
+### What worked
+- Terminal run status complete, return code zero, thirteen measured graphs; all baseline/candidate records passed correctness.
+- Aleksandar_electra-srb-ner-setimes improved 4.405327× and google_rembert improved 1.335970×; no changed executable regressed in this population.
+
+### What didn't work
+- No new execution failures. The earlier twenty-model quota failures remain preserved in Steps 180–181; this is the separately declared thirteen-model population.
+
+### What I learned
+- Scheduling-aware staged fusion transfers to at least two previously unused exact models. Eleven aliases limit how broadly this experiment tests changed compiler behavior.
+
+### What was tricky to build
+- Selection transfer must remain distinct from ranking this confirmation set. No candidate was selected or adapted using these outcomes.
+
+### What warrants a second pair of eyes
+- Architecture relatives may remain. This uses separate FP32 contraction and highest-precision matrix references on GB10; it is not the official native-precision PassBench score.
+- The staged transformation is manually derived from the measured agent discovery, not wholly synthesized by an agent.
+
+### What should be done in the future
+- Expose the existing staged transformation as a bounded composition of fusion policies to agents. Keep this consumed confirmation population out of new selection feedback.
+
+### Code review instructions
+- Inspect the fixed selection in sources/staged-fusion-available-v1, the complete compilation receipts, and sources/staged-confirmation-results-v1/{run,measurement,summary}.json.
+
+### Technical details
+- Family-balanced speedup: exp(mean over families of mean log(baseline e2e / candidate e2e))). Exact executable aliases share measurements and contribute 1.0.
+- Confirmation membership SHA256: c67af7ec18bf0fd9c9dc00fc7f3888df731916ba1270de512eba05ac246b7874.
