@@ -1,0 +1,96 @@
+{
+  "scope": "Fixed eight-model transfer; full FP32 matrix and convolution reference; direct replay, not PassBench matching/scoring",
+  "expected": 8,
+  "measured_pairs": 8,
+  "complete_population_geomean": 1.9477381443504738,
+  "records": [
+    {
+      "model": "mmseg/PIDNet-s",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/mmseg/PIDNet-s/_decomposed/PIDNet-s_start250_end257_10",
+      "status": {
+        "baseline": "measured",
+        "pointwise": "measured"
+      },
+      "baseline_ms": 0.1822265,
+      "candidate_ms": 0.121692,
+      "speedup": 1.4974402590145615
+    },
+    {
+      "model": "mmpose/2xmspn_50",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmpose/2xmspn_50/_decomposed/2xmspn_50_start16_end19_2",
+      "status": {
+        "baseline": "measured",
+        "pointwise": "measured"
+      },
+      "baseline_ms": 0.0998045,
+      "candidate_ms": 0.0576385,
+      "speedup": 1.7315596346192215
+    },
+    {
+      "model": "mmpose/pose_seresnet_101",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/mmpose/pose_seresnet_101/_decomposed/pose_seresnet_101_start535_end540_7",
+      "status": {
+        "baseline": "measured",
+        "pointwise": "measured"
+      },
+      "baseline_ms": 0.021551,
+      "candidate_ms": 0.022151,
+      "speedup": 0.9729131867635773
+    },
+    {
+      "model": "timm/test_efficientnet.r160_in1k",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/test_efficientnet.r160_in1k/_decomposed/test_efficientnet.r160_in1k_start25_end27_9",
+      "status": {
+        "baseline": "measured",
+        "pointwise": "measured"
+      },
+      "baseline_ms": 0.0160955,
+      "candidate_ms": 0.016175,
+      "speedup": 0.9950850077279753
+    },
+    {
+      "model": "timm/dla102.in1k",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/timm/dla102.in1k/_decomposed/dla102.in1k_start378_end380_7",
+      "status": {
+        "baseline": "measured",
+        "pointwise": "measured"
+      },
+      "baseline_ms": 0.129788,
+      "candidate_ms": 0.087278,
+      "speedup": 1.48706432319714
+    },
+    {
+      "model": "torchvision/deeplabv3_mobilenet_v3_large",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/torchvision/deeplabv3_mobilenet_v3_large/_decomposed/deeplabv3_mobilenet_v3_large_start112_end114_8",
+      "status": {
+        "baseline": "measured",
+        "pointwise": "measured"
+      },
+      "baseline_ms": 0.038047,
+      "candidate_ms": 0.038207,
+      "speedup": 0.9958122857068077
+    },
+    {
+      "model": "timm/xception41p.ra3_in1k",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/timm/xception41p.ra3_in1k/_decomposed/xception41p.ra3_in1k_start162_end166_6",
+      "status": {
+        "baseline": "measured",
+        "pointwise": "measured"
+      },
+      "baseline_ms": 1.0233595,
+      "candidate_ms": 0.137475,
+      "speedup": 7.443967994180759
+    },
+    {
+      "model": "timm/xception65p.ra3_in1k",
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/xception65p.ra3_in1k/_decomposed/xception65p.ra3_in1k_start266_end270_6",
+      "status": {
+        "baseline": "measured",
+        "pointwise": "measured"
+      },
+      "baseline_ms": 1.022288,
+      "candidate_ms": 0.136572,
+      "speedup": 7.485341065518555
+    }
+  ]
+}

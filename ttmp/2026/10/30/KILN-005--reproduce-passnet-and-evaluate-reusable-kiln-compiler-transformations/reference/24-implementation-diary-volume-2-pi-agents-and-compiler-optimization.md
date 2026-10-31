@@ -1704,3 +1704,62 @@ See Step182 for the authored continuation request. The automatic goal reminder i
 ### Technical details
 - Bounds: at most2 million elements in any tensor and64 million convolution multiply products; FP32 only. Local import uses PyTorch2.11.0+cu130, compilation Node26.13.0, targetA100 proxy, contraction separate.
 - No new LLM calls, GPU measurements, default promotion or coverage increase in this step. Coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 194: Measure complete eight-model transfer and publish the compiler milestone
+
+Both fixed compiler variants pass CUDA correctness on every selected graph. The pointwise composition achieves1.947738× geometric-mean end-to-end speedup across all eight graphs, with five improvements and three small nominal regressions. All sixteen candidate/graph combinations complete three stable timing rounds. The two related Xception models improve approximately7.44× and7.49× and materially affect the aggregate.
+
+A new2065-word textbook-style report explains pooling semantics, pointwise lowering, staged fusion, the six-graph native development result and the separate eight-model transfer protocol. It is stored as reference27 and published as a new Obsidian article without changing historical reports.
+
+### Prompt Context
+See Step182 for the actual authored implementation request and the standing request for milestone reports and detailed diaries.
+**Assistant interpretation:** Complete GPU transfer measurement, retain every selected outcome and publish the technical explanation.
+**Inferred user intent:** Produce reproducible compiler research results with clear attribution and useful documentation.
+**Frozen pair commit:** 81a7e5f.
+**Vault report commit:** 34499ea — Document Kiln pointwise convolution and eight-model GPU transfer.
+
+### What I did
+- Script498 uses existing TorchProgram, check_structure and sample primitives for original-input replay and timing; no second reusable evaluator subsystem was introduced.
+- Script499 stages the committed compiler snapshot and fixed artifacts to an isolated bling directory and launches the pinned CUDA image in tmux.
+- Script500 collects the terminal result, checks complete membership and runner identity, preserves raw timing attempts and summarizes all eight graphs.
+- Created reference27 with docmgr, related primary implementation/evidence, and published the append-only Obsidian report using the vault and textbook-writing skills.
+
+### Why
+- Five graphs had skipped local reference evaluation due to size, making native CUDA validation essential.
+- Randomized-order repeated timing addresses the sequential-run limitation of the motivating development result.
+- The report distinguishes operator support, optimization quality, exact-model transfer and LLM discovery instead of treating them as interchangeable achievements.
+
+### What worked
+- Every baseline and candidate passes output structure, shape, dtype, numerical agreement and input-preservation checks.
+- End-to-end ratios by selected order:1.497440,1.731560,0.972913,0.995085,1.487064,0.995812,7.443968,7.485341.
+- Full-population geometric mean1.9477381443504738. No selected graph was removed or replaced.
+- Remote results.json is terminal complete with all eight expected graph identities; the tmux session has exited. All timing rounds satisfy the declared IQR stability rule.
+
+### What didn't work
+- No runtime correctness or timing failures occurred in this run.
+- Three small examples are nominally slower; the largest slowdown is approximately2.8%. The experiment does not establish statistical significance for these small changes.
+- This direct replay does not run PassBench matching or its score calculation. It is not a new native full-task acceptance result.
+
+### What I learned
+- The representation change transfers beyond the initial pooling family, but its benefit is heterogeneous and particularly large for the two related Xception examples.
+- Kernel count alone is not a profitability signal: the candidate frequently adds a kernel while reducing measured latency.
+
+### What was tricky to build
+- The reference protocol must explicitly include convolution precision. This run disables cuDNN TF32 as well as selecting highest matrix precision, so it is labeled modified full-FP32 research rather than native PassBench reproduction.
+- The initial eight-model declaration preceded compiler outcomes; the detailed GPU protocol was fixed after compilation but before GPU outcomes. Both stages remain visible.
+
+### What warrants a second pair of eyes
+- Exact-model exclusions do not remove architecture relatives. Related Xception wins should not be interpreted as independent architecture-wide confirmation.
+- One input seed and bounded FP32 geometry do not qualify arbitrary values, dtypes, grouped convolutions or the complete task families.
+
+### What should be done in the future
+- Use a separate development set for agent profitability search. These eight models are now observed and cannot serve as fresh confirmation after policy adaptation.
+- Investigate small-case profitability and native precision limitations before default promotion; preserve the full200-task objective.
+
+### Code review instructions
+- Inspect scripts498–500, pointwise-transfer-gpu-staging-v1.json, the complete raw results and summary, then reference27. Compare the direct-replay protocol with the original-evaluator development evidence rather than combining their scores.
+
+### Technical details
+- NVIDIA GB10, pinned Docker image222d8b18..., separate compiler contraction, highest matrix precision and cuDNN TF32 disabled; seed42;20 warmups;100 trials;3 rounds; up to2 retries when IQR exceeds20% of median.
+- No LLM inference or compiler change in this measurement step. The manually authored transformation remains opt-in. Coverage remains34 complete tasks and375 accepted graphs.
