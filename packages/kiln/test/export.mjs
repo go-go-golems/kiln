@@ -61,4 +61,12 @@ const exp = (g, opts) => { const r = pipe.run(g); return exportProgram(r, progra
   check(/output y is missing/.test(msg || ""), `a dangling output is refused: ${msg}`);
 }
 
+// buffers past 32-bit CUDA index range are refused rather than emitted with overflowing int offsets
+{
+  const g = k.trace("huge", ({ x }) => N.relu(x), { x: k.tensor([65536, 32769]) });
+  let msg = null;
+  try { exp(g); } catch (e) { msg = e.message; }
+  check(/32-bit/.test(msg || ""), `a 2^31-element buffer is refused: ${msg}`);
+}
+
 if (failed) { console.log(`${failed} failed`); process.exitCode = 1; }

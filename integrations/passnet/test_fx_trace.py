@@ -16,17 +16,27 @@ class MutationTraceTests(unittest.TestCase):
         model=trace_module(Model());self.assertTrue(any(n.target is operator.iadd for n in model.graph.nodes))
         self.assertIn('N.add',import_graph(export_graph(model,[torch.randn(2,3),torch.randn(2,3)]))['script'])
 
-    def test_input_mutation_and_alias_observer_rejected(self):
+    def test_single_use_input_mutation_is_functionalized(self):
         class Input(torch.nn.Module):
             def forward(self,x,y):
                 x+=y
                 return x
+        result=import_graph(export_graph(trace_module(Input()),[torch.randn(2,3),torch.randn(2,3)]))
+        self.assertEqual(result['output_structure'],{'input_alias':0})
+        self.assertEqual(result['input_mutations'],[{'input_index':0,'output':'__mut0'}])
+
+    def test_alias_observer_and_read_before_mutation_rejected(self):
         class Alias(torch.nn.Module):
             def forward(self,x,y):
                 value=x+y;observer=value.view(2,3)
                 value+=y
                 return value,observer
-        for cls in [Input,Alias]:
+        class ReadAfter(torch.nn.Module):
+            def forward(self,x,y):
+                z=x*2
+                x+=y
+                return x,z
+        for cls in [Alias,ReadAfter]:
             with self.assertRaisesRegex(ValueError,'fresh single-use'):
                 import_graph(export_graph(trace_module(cls()),[torch.randn(2,3),torch.randn(2,3)]))
 

@@ -400,11 +400,15 @@ export const dropIdentityView = k.rule("drop_identity_view")
 export const foldSplatEw = k.rule("fold_splat_ew")
   .match(P.op("tensor.ew").as("e").where(({ e }) => e.args.every(isSplat)))
   .rewrite(({ e }) => tensor.const({ value: F(e.attrs.fn).js(...e.args.map((a) => a.attrs.value)), shape: e.type.shape }));
-// a·b + c → fma(a, b, c): one instruction, one rounding (what nvcc does by default with -fmad=true)
+// a·b + c → fma(a, b, c): one instruction, one rounding (what nvcc does by default with -fmad=true).
+// FP32 only: an f16/bf16 multiply rounds its result to storage precision, and contracting it would
+// drop that source-visible rounding (eager PyTorch rounds after each low-precision operation).
+const fp32 = (v) => (v.type.dtype || "f32") === "f32";
+const contractibleMul = (a) => a.is(tensor.ew) && a.attrs.fn === "mul" && a.args.length === 2 && a.users.length === 1 && fp32(a);
 export const contractFma = k.rule("contract_fma")
-  .match(P.op("tensor.ew").as("e").where(({ e }) => e.attrs.fn === "add" && e.args.length === 2 && e.args.some((a) => a.is(tensor.ew) && a.attrs.fn === "mul" && a.args.length === 2 && a.users.length === 1)))
+  .match(P.op("tensor.ew").as("e").where(({ e }) => e.attrs.fn === "add" && e.args.length === 2 && fp32(e) && e.args.some(contractibleMul)))
   .rewrite(({ e }) => {
-    const j = e.args.findIndex((a) => a.is(tensor.ew) && a.attrs.fn === "mul" && a.args.length === 2 && a.users.length === 1);
+    const j = e.args.findIndex(contractibleMul);
     const m = e.arg(j), c = e.arg(1 - j);
     return tensor.ew([m.arg(0), m.arg(1), c], { fn: "fma", ...(e.attrs.origin ? { origin: e.attrs.origin } : {}) });
   });

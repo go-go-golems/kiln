@@ -37,3 +37,16 @@ const literalRun=pipeline({target:hardware,contraction:'separate'}).run(literal)
 assert.equal(literal.eval({}).out.data[0],0);
 assert.equal(literalRun.at('loop').eval({}).out.data[0],0,'constant folding honors operand precision');
 console.log('contraction policy preserves explicit FP32 boundaries and default identities');
+// Low-precision multiply-add keeps the multiply's own rounding under the default policy.
+const half=k.trace('half-multiply-add',({x,y,z})=>({out:N.add(N.mul(x,y),z)}),{x:k.tensor([1],'f16'),y:k.tensor([1],'f16'),z:k.tensor([1],'f16')});
+for(const dtype of ['f16','bf16']){
+ const lowered=k.trace('low-multiply-add-'+dtype,({x,y,z})=>({out:N.add(N.mul(x,y),z)}),{x:k.tensor([1],dtype),y:k.tensor([1],dtype),z:k.tensor([1],dtype)});
+ const lowRun=pipeline({target:hardware}).run(lowered);
+ assert.ok(lowRun.ok,lowRun.error?.message);
+ const kernels=programOf(lowRun.graph).kernels;
+ assert.ok(kernels.every(k=>!k.cuda.includes('fmaf(')),`${dtype} multiply-add must not contract`);
+}
+const halfInputs={x:new Tensor([1],Float32Array.of(1+2**-6),'f16'),y:new Tensor([1],Float32Array.of(1+2**-6),'f16'),z:new Tensor([1],Float32Array.of(-1),'f16')};
+const halfRun=pipeline({target:hardware}).run(half);
+assert.equal(halfRun.at('loop').eval(halfInputs).out.data[0],half.eval(halfInputs).out.data[0],'loop reference matches frontend rounding');
+console.log('low-precision multiply-add keeps intermediate rounding');

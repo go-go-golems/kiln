@@ -69,14 +69,17 @@ function compileOne(pins) {
   const at = Object.entries(pins).map(([k, v]) => `${k}=${v}`).join(" ");
   for (const d of c.diags || []) process.stderr.write(`${at}: ${d.level}${d.line ? ` line ${d.line}` : ""}: ${d.message}\n`);
   if (!c.ok || !c.prog) { process.stderr.write(`${at}: compile failed\n`); process.exit(1); }
+  // recorded in the artifact: a bypassed or skipped check must be visible wherever the artifact travels
+  let internalCheck = "bypassed (--no-check)";
   if (o.check) {
     const { e2e } = endToEnd(c.run, c.graph, c.project);
     const status = e2e.error ? `error: ${e2e.error}` : e2e.skipped ? `skipped: ${e2e.skipped}` : e2e.ok ? `ok at ${e2e.level}` : "FAILED";
     process.stderr.write(`${at}: end-to-end check ${status}\n`);
     if (e2e.error || (!e2e.skipped && !e2e.ok)) process.exit(1);
+    internalCheck = status;
   }
   const values = Object.fromEntries([...c.project._params].map((p) => [p.name, c.params.get(p)]));
-  const program = exportProgram(c.run, c.prog, { name: o.name || c.project.name, params: values, target, source });
+  const program = exportProgram(c.run, c.prog, { name: o.name || c.project.name, params: values, target, source: { ...source, internal_check: internalCheck } });
   if (optimizationProgram) program.compiler_policy = optimizationProgram;
   process.stderr.write(`${at}: ${program.kernels.map((k) => `${k.name} ${k.row}`).join("; ")}\n`);
   return program;

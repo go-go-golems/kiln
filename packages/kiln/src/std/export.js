@@ -7,6 +7,9 @@ import { CODEGEN_VERSION } from "./records.js";
 export const PROGRAM_FORMAT = "kiln-program/1";
 
 const cname = (s) => String(s || "kernel").replace(/[^\w]/g, "_");
+// CUDA kernels compute thread ids, loop variables and flat element offsets in 32-bit int (emit.js):
+// refuse an artifact whose buffers or launches could exceed that range instead of overflowing silently.
+export const INT32_INDEX_LIMIT = 2 ** 31 - 1;
 const storageBytes = (dtype, n) => Math.max(4, Math.ceil(n * dtypeBytes(dtype) / 4) * 4);
 const base64 = (bytes) => { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(s); };
 
@@ -63,6 +66,8 @@ export function exportProgram(run, prog, { name, params = {}, target = null, sou
       wgsl: kn.wgsl, ...(kn.wgslUnavailable ? { wgslUnavailable: kn.wgslUnavailable } : {}), cuda: renameCuda(kn.cuda, cname(K.name), exported),
     });
   }
+  for (const b of buffers) if (b.elements > INT32_INDEX_LIMIT) throw new KilnError("ExportError", `buffer ${b.id} has ${b.elements} elements: CUDA index arithmetic is 32-bit (limit ${INT32_INDEX_LIMIT})`);
+  for (const kn of kernels) if (kn.grid * kn.block > INT32_INDEX_LIMIT) throw new KilnError("ExportError", `kernel ${kn.name} launches ${kn.grid * kn.block} threads: CUDA thread ids are 32-bit (limit ${INT32_INDEX_LIMIT})`);
   const outputs = g.outputs.map((o) => {
     if (!byNode.has(o.id)) throw new KilnError("ExportError", `output ${o.name} is ${g.nodes.get(o.id)?.name || "missing"}: an exported output must be a kernel's or an input's buffer`);
     return { name: o.name, buffer: byNode.get(o.id), shape: g.nodes.get(o.id).type.shape, dtype: buffers[byNode.get(o.id)].dtype };
