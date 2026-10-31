@@ -2622,3 +2622,46 @@ Read normalized-matcher-task-audit-v1.json, the eight task benchmark logs, cover
 
 ### Technical details
 The eight-family replay source revisiondd73529; source snapshot SHA256 584f3b91f8d071a3641ab04d8233bf4c131f7e127054f27e1a5d24a7ca7564db. The original PassBench scorer and t=-5 numerical curve were retained under the declared modified integration protocol.
+
+## Step 212: Publish the operator coverage and FX matching milestone report
+
+A 1,447-word textbook-style article was added to the go-go-parc Obsidian vault and pushed at vault commit e7652b7. A copy is retained in the KILN-005 ticket as reference29. The article explains the 53-task/505-graph cumulative evidence, operator semantics, FX canonicalization, complete-family qualification, performance distinctions and remaining numerical/compiler work.
+
+### Prompt Context
+The user requested deep-dive technical project reports at important milestones, in textbook style without analogies, committed and pushed in go-go-parc. The user also requested that relevant information be retained in the ticket.
+**Assistant interpretation:** The first nine-family matcher qualification is a material milestone that warrants a durable technical article.
+**Inferred user intent:** Make the reasoning, measurements and limitations usable for independent research and later reports.
+
+### What I did
+- Authored `Projects/2026/10/31/ARTICLE - Kiln - From Operator Coverage to PassBench Matching.md` with frontmatter, architecture diagram, concrete FX call-form example, operator and GPU evidence, aggregate-score interpretation and reproduction guidance.
+- Staged only that vault note, leaving unrelated dirty vault files untouched; committed and pushed vault main at e7652b7.
+- Copied the exact report into ticket reference29.
+
+### Why
+The benchmark result depends on several independent gates. A durable report needs to make it possible to distinguish import coverage, structural matching, CUDA correctness, complete-task acceptance and performance.
+
+### What worked
+- Vault push succeeded; the article is 1,447 words and cites exact repository/ticket evidence paths.
+- The report states the cumulative cross-snapshot limitation and the GB10/A100-proxy hardware difference.
+
+### What didn't work
+- This publication is not a uniform 200-task reproduction or a claim of self-optimizing compiler gains across the expanded corpus.
+
+### What I learned
+The central matcher canonicalizer is now a stable explanatory boundary: several independently authored operator ports only became accepted benchmark tasks after equivalent FX call forms were reconciled.
+
+### What was tricky to build
+The report needed to avoid conflating task107's correctness with speed: its aggregate score remains below eager despite18/18 accepted graphs.
+
+### What warrants a second pair of eyes
+Review the narrative against task audits and source snapshots before using it as a quantitative citation in another publication.
+
+### What should be done in the future
+- Continue numerical and compiler-check diagnoses, then publish another milestone when a reusable transformation improves held-out accepted families.
+- Keep reference29 and the vault article append-only; later findings belong in a new dated report.
+
+### Code review instructions
+Compare ticket reference29 with the vault article at commit e7652b7. Inspect the cited KILN-005 audits and coverage ledger.
+
+### Technical details
+Only the intended report file was staged in the vault. Existing unrelated vault changes remain outside the publication commit.
