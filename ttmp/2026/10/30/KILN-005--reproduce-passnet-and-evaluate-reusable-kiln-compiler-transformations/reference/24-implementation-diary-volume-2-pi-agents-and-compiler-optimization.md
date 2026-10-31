@@ -456,3 +456,59 @@ The complete production owner passed with a local scripted provider: Pi generate
 ### Technical details
 - The fixture policy is a threshold policy with max_work_growth 0.95, not an LLM discovery.
 - The local run reserved 4096 completion tokens but reported synthetic usage; neither number estimates real inference cost.
+
+## Step 169: Run the first real GLM batch and return focus to compiler results
+
+The user explicitly approved the external payload. Launched the prepared Pi/LunaRoute batch once, then observed its terminal receipt: four inference requests completed in 20.240613383 seconds, yielding three unique validated policies from four submissions. Compilation and GPU evaluation remain pending. This is the first real successful proposal batch through the Pi integration.
+
+The user also corrected the work's direction: research results should take priority over production hardening. The preceding response acknowledged that concern without implementation progress. This turn resumed research, inspected fusion opportunity traces, and executed the approved model batch.
+
+### Prompt Context
+**User prompts (verbatim):**
+- "how much of this whole ledger whatever infrastruxture do you think is being overly cautious, when we actually want to get some result in order to move forward?"
+- "we are doing research, not production ready hardening"
+- "yes. approved."
+**Assistant interpretation:** Stop expanding infrastructure, pursue measured compiler candidates, and execute the previously blocked LunaRoute payload.
+**Inferred user intent:** Faster discovery and useful experimental conclusions.
+**Previous commit:** 4c04713 — Verify complete local Pi round trip and document six-lane direction.
+
+### What I did
+- Inspected the twelve baseline training traces: only one recorded fusion decision was rejected, at approximately 1.06 work growth. This suggests limited opportunity for increasing the threshold on this population.
+- Launched the existing four-proposal configuration in tmux kiln-pi-policy-batch-v1 after explicit approval.
+- Polled the same run and read its completed task and owner receipts.
+
+### Why
+- A real batch supplies actionable compiler candidates; further harness refinement was delaying the research.
+- Sparse rejected decisions help explain why permissive thresholds previously collapsed to baseline artifacts.
+
+### What worked
+- GLM completed four requests and four submissions in 20.240613383 seconds.
+- Attempts two, three and four produced three unique validated optimization artifacts.
+- Python RPC exited cleanly. All model and tool events remain in sources/pi-policy-batch-v1/run.
+
+### What didn't work
+- Attempt one was rejected with "Unknown fusion policy field". It remains in the trace and consumed one slot.
+- A sandboxed tmux observation reported Operation not permitted; authorized observation of the same session succeeded. No duplicate run was launched.
+- A guessed compile_policy.py path did not exist; use the existing compile_study and policy compilation modules.
+
+### What I learned
+- Native Pi tool calling works with this actual GLM route and produces accepted policy data quickly enough for exploratory iteration.
+- Policy validity does not imply changed kernels or speedup; those are the next questions.
+
+### What was tricky to build
+- No new infrastructure was built in this step. Existing components were used to obtain an actual model result.
+
+### What warrants a second pair of eyes
+- The first accepted tree contains redundant branches and mostly retains threshold 1.02. Compiler artifact comparison must precede any improvement claim.
+
+### What should be done in the future
+- Compile the three accepted policies and benchmark changed candidates. Expand to six independent exploratory lanes with hypotheses beyond threshold tuning.
+- Retain essential correctness and timing controls, but stop treating production-hardening completeness as a prerequisite to research.
+
+### Code review instructions
+- Inspect pi-policy-batch-v1/run/result.json, task attempt artifacts and event records.
+
+### Technical details
+- Provider lunaroute/model glm-5.3-flash; development corpus only.
+- The gate reserved 16384 completion tokens. This is not actual usage and is not an inference-cost estimate.
+- evaluationStatus remains not_run. No new performance result or task coverage is claimed.
