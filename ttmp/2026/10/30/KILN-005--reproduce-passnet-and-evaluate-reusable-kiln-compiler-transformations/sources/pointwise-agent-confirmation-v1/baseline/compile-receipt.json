@@ -1,0 +1,122 @@
+{
+  "format": "kiln-policy-compilation/2",
+  "membership_sha256": "81455573442285f8874a6caed68f3451031208bac24018ce934484a8a0f5c272",
+  "reference_domain_sha256": "a65f6aaf0cf455516c48f918509ca70f13b9cda8b99678756102c557fd5e33d8",
+  "policy": {
+    "format": "kiln-fusion-policy/1",
+    "id": "baseline",
+    "kind": "unchanged"
+  },
+  "policy_node_count": 0,
+  "target": "a100",
+  "phase": "heldout",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "records": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/selecsls42b.in1k/_decomposed/selecsls42b.in1k_start126_end128_9",
+      "split": "heldout",
+      "script": "000.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "000.kiln.json",
+      "fingerprint": "6f11edd3b9d840ee0a1b78fa2f63cb040c897a40ef5032f6ae82935876e5799c",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "8qd140i1h6"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~378M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 65.84447399999999
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/torchvision/mnasnet0_5/_decomposed/mnasnet0_5_start100_end102_17",
+      "split": "heldout",
+      "script": "001.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "001.kiln.json",
+      "fingerprint": "f57c0599a2603e7a50734c90960099e771a0fcf6f77207c49cc9082deba1220e",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "7dbu42fyev"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.0000133514404296875,
+            "maxRel": 0.0006093399627029582,
+            "bad": 0,
+            "n": 9408,
+            "first": -1,
+            "message": "max abs diff 1.34e-5"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 197.89541300000002
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/legacy_seresnet101.in1k/_decomposed/legacy_seresnet101.in1k_start54_end57_0",
+      "split": "heldout",
+      "script": "002.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "002.kiln.json",
+      "fingerprint": "c944006cd3abac008860943fc74005d5f92a9fe7f0486b40fd1e9c1832b34eeb",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "zi65su72wg"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~207M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 28.336652999999956
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/1/samples/timm/legacy_senet154.in1k/_decomposed/legacy_senet154.in1k_start23_end27_5",
+      "split": "heldout",
+      "script": "003.kiln.js",
+      "policy": "baseline",
+      "status": "compiled",
+      "artifact": "003.kiln.json",
+      "fingerprint": "b829644b56ca976036811464dae259ca691594124669bda7c45018e1d39f95f6",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "1uwe8w9ogp4"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 1.1920928955078125e-7,
+            "maxRel": 1.542678033527802e-7,
+            "bad": 0,
+            "n": 1048576,
+            "first": -1,
+            "message": "max abs diff 1.19e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [],
+      "compile_ms": 115.41055199999994
+    }
+  ]
+}

@@ -1874,3 +1874,63 @@ See Step182 for the actual authored continuation and the standing research/agent
 ### Technical details
 - GB10, pinned CUDA image, seed42,20 warmups,100 trials,3 rounds, randomized order of distinct fingerprints; at most2 retries when timing IQR exceeds20% of median.
 - No new inference in this measurement step. The policies originated in the preceding six actual Pi/LunaRoute lanes. Coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 197: Preserve failed fresh confirmation and isolate an FP32 reference-order mismatch
+
+The fixed agent7 policy was evaluated on every eligible fresh exact model remaining under the declared pointwise selection envelope. The metadata scan exhausted at four models rather than eight; the shortfall was recorded before compilation and GPU measurement. Agent7 produces the same executable as the fixed pointwise composition on all four graphs, so no incremental transfer of its development gain is established.
+
+Three models pass and receive complete timing. Both unchanged Kiln and the shared pointwise/agent artifact fail the fixed numerical tolerance on MnasNet0_5. Therefore all whole-population aggregate fields remain null. A separate diagnostic finds that the pointwise artifact exactly equals explicit sequential FP32 convolution plus the imported batch-normalization expression, while native convolution differs. The failure remains an acceptance failure; the diagnostic does not change tolerances or prior results.
+
+### Prompt Context
+See Step182 and the standing instruction to continue implementation, measure actual results and document failures. The automatic goal continuation is metadata, not an authored quote.
+**Assistant interpretation:** Test the development-selected policy without adaptation, and investigate any shared correctness limitation.
+**Inferred user intent:** Establish whether agent optimization generalizes rather than reporting only successful development examples.
+**Selected policy commit:** bf561b6 — Measure agent pointwise improvement and explain eliminated intermediate kernel.
+
+### What I did
+- Script510 freezes the selected policy and excludes exact evaluation models plus all prior tracked corpus models. The fixed salted scan selects selecsls42b, mnasnet0_5, legacy_seresnet101 and legacy_senet154, then exhausts.
+- Recorded requested8/available4 before running script511, which compiles baseline, fixed pointwise and selected agent7 for all four graphs.
+- Scripts512–514 stage, replay and collect the fixed confirmation experiment using the same correctness/timing primitives and alias grouping.
+- Scripts515–516 diagnose the original MnasNet artifacts against native output, native convolution with explicit batch normalization, sequential FP32 convolution with explicit batch normalization, and FP64 mathematical evaluation cast to FP32.
+- Added and checked docmgr task vkgt for complete evaluation of the available population. Evaluation completion does not imply successful acceptance or policy promotion.
+
+### Why
+- Exact aliases cannot support a claim of additional agent benefit. They share measurements by construction.
+- Replacing the failed graph or averaging only passing graphs would conceal a failure in the declared confirmation population.
+- Independent reference formulas help distinguish an incorrect index mapping from differences in floating-point reduction and normalization evaluation.
+
+### What worked
+- Twelve compiler builds pass; two graphs per variant perform the local reference check and two trigger the retained size skip.
+- Six distinct graph/executable pairs pass CUDA correctness and three stable timing rounds. Agent7 and fixed pointwise share every artifact.
+- Passing baseline/candidate medians:selecsls42b0.917898/0.1057635ms;legacy_seresnet1010.120627/0.072837ms;legacy_senet1540.0322385/0.0400545ms. These remain individual outcomes, not a filtered aggregate.
+- The pointwise MnasNet output is bitwise equal to sequential FP32 channel accumulation followed by the explicit normalization expression:maximum absolute difference0 across9408 outputs.
+
+### What didn't work
+- MnasNet baseline fails673/9408 elements under rtol1.3e-6,atol1e-5; pointwise fails465/9408. Both are retained as correctness_failed and are not timed.
+- The torch assertion reports greatest absolute differences among its failing comparisons of0.0002288818359375 and0.000102996826171875 respectively. The diagnostic separately records global maxima, which need not equal maxima restricted to failing elements.
+- The complete-population geomean is null for baseline, pointwise and agent7. There is no complete confirmation success or incremental agent improvement claim.
+
+### What I learned
+- The baseline has lower RMS error versus the FP64 formula (approximately1.8843e-5) than either native output (4.9533e-5) or the pointwise artifact (4.9291e-5), yet fails comparison with native output. Higher mathematical accuracy alone does not guarantee native-reference acceptance.
+- Native convolution versus explicit sequential convolution already differs before batch normalization:global max absolute difference0.0003662109375. The explicit normalization of native convolution leaves nearly the same mismatch counts against the candidate, making convolution accumulation order a concrete contributor.
+- This diagnostic supports an evaluation-order mismatch; it does not prove every output difference has a single cause or establish a universal safe arithmetic replacement.
+
+### What was tricky to build
+- The requested population size was unavailable under fixed eligibility and exclusions. Retaining all four available models preserves the declared selection process without inventing eight-model evidence or changing eligibility after outcomes.
+- The numerical diagnostic uses unchanged compiled artifacts and original replay inputs. Alternative references are labeled diagnostic and never replace the declared acceptance oracle.
+
+### What warrants a second pair of eyes
+- This is the modified full-FP32 research protocol, not original PassBench numerical-curve acceptance. Its failure must not automatically be presented as a newly unsupported official benchmark task.
+- Neither policy promotion nor generalization of the small development improvement is supported. The selected policy has not changed behavior relative to its fixed control on these four graphs.
+
+### What should be done in the future
+- Compare the problematic arithmetic with the original evaluator's declared acceptance protocol and investigate reduction-order implementation options without weakening existing checks.
+- Broaden workloads through missing operator support or a separately declared selection envelope. Do not reuse these now-observed models as fresh confirmation after adaptation.
+
+### Code review instructions
+- Inspect pointwise-agent-confirmation-v1/declaration.json, available-population.json, scan-audit.json, all compiler receipts and pointwise-agent-confirmation-gpu-results-v1/{results,summary,diagnostic}.json. Scripts510–516 preserve the exact selection and diagnostic procedure.
+
+### Technical details
+- Same GB10/pinned CUDA runtime; highest matrix precision, cuDNN TF32 disabled, separate contraction, seed42,20 warmups,100 trials and3 randomized rounds for correct executables.
+- No new inference, compiler default change, tolerance adjustment or coverage increase. Coverage remains34 complete tasks and375 accepted graphs.

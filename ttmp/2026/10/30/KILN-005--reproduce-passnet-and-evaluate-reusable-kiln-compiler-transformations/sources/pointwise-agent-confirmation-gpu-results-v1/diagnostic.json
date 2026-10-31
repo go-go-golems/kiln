@@ -1,0 +1,91 @@
+{
+  "scope": "Diagnostic references on the failed confirmation graph; no acceptance or tolerance change",
+  "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/torchvision/mnasnet0_5/_decomposed/mnasnet0_5_start100_end102_17",
+  "artifact_comparisons": {
+    "baseline": {
+      "native": {
+        "max_abs": 0.000244140625,
+        "rms": 5.20958310066701e-05,
+        "mismatches": 673,
+        "elements": 9408
+      },
+      "native_conv_explicit_bn": {
+        "max_abs": 0.000244140625,
+        "rms": 5.135635955860668e-05,
+        "mismatches": 672,
+        "elements": 9408
+      },
+      "sequential_conv_explicit_bn": {
+        "max_abs": 0.00030517578125,
+        "rms": 5.006471701410513e-05,
+        "mismatches": 723,
+        "elements": 9408
+      },
+      "float64_math_cast_f32": {
+        "max_abs": 0.0001220703125,
+        "rms": 1.884316921194202e-05,
+        "mismatches": 134,
+        "elements": 9408
+      }
+    },
+    "pointwise": {
+      "native": {
+        "max_abs": 0.00018310546875,
+        "rms": 3.346130784711049e-05,
+        "mismatches": 465,
+        "elements": 9408
+      },
+      "native_conv_explicit_bn": {
+        "max_abs": 0.00018310546875,
+        "rms": 3.303829700897769e-05,
+        "mismatches": 464,
+        "elements": 9408
+      },
+      "sequential_conv_explicit_bn": {
+        "max_abs": 0.0,
+        "rms": 0.0,
+        "mismatches": 0,
+        "elements": 9408
+      },
+      "float64_math_cast_f32": {
+        "max_abs": 0.0003662109375,
+        "rms": 4.9290988905828215e-05,
+        "mismatches": 647,
+        "elements": 9408
+      }
+    }
+  },
+  "reference_vs_float64": {
+    "native": {
+      "max_abs": 0.00030517578125,
+      "rms": 4.9533434584790695e-05,
+      "mismatches": 593,
+      "elements": 9408
+    },
+    "native_conv_explicit_bn": {
+      "max_abs": 0.00030517578125,
+      "rms": 5.041288156019993e-05,
+      "mismatches": 598,
+      "elements": 9408
+    },
+    "sequential_conv_explicit_bn": {
+      "max_abs": 0.0003662109375,
+      "rms": 4.9290988905828215e-05,
+      "mismatches": 647,
+      "elements": 9408
+    },
+    "float64_math_cast_f32": {
+      "max_abs": 0.0,
+      "rms": 0.0,
+      "mismatches": 0,
+      "elements": 9408
+    }
+  },
+  "conv_native_vs_sequential": {
+    "max_abs": 0.0003662109375,
+    "rms": 7.067901679956629e-05,
+    "mismatches": 622,
+    "elements": 9408
+  },
+  "variance_min": 100.0
+}

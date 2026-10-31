@@ -1,0 +1,200 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "002.kiln.js",
+  "sha256": "2f3be7c5e0a3e1bf1cc6765759d53a54f549f3b7f337f6fd2d6db43edca31573",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    128,
+    256,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    1,
+    256,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 6,
+   "shape": [
+    1,
+    128,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 802816,
+   "bytes": 3211264
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 100352,
+   "bytes": 401408
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_conv2d_cast_ew_reduce__zi65su72wg",
+   "identity": "zi65su72wg",
+   "row": "TPB=64",
+   "reads": [
+    2,
+    3,
+    1,
+    0,
+    4,
+    5
+   ],
+   "writes": 6,
+   "grid": 1568,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    1568,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    128,
+    28,
+    28
+   ],
+   "inShapes": [
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128,
+     256,
+     1,
+     1
+    ],
+    [
+     1,
+     256,
+     56,
+     56
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_conv2d_cast_ew_reduce__zi65su72wg(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, const float* __restrict__ src4, const float* __restrict__ src5, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in2 = 0.0f, v3 = 0.0f, in3 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f, in4 = 0.0f, v9 = 0.0f, in5 = 0.0f, v11 = 0.0f, acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v4 = 0.0f, v8 = 0.0f, v10 = 0.0f, v12 = 0.0f, v13 = 0.0f, v14 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 100352)) {\n        in2 = src3[(e / 784)];\n        v3 = in2;\n        in3 = src2[(e / 784)];\n        v5 = in3;\n        v6 = __fadd_rn(v5, 0.00001f);\n        v7 = sqrtf(v6);\n        in4 = src1[(e / 784)];\n        v9 = in4;\n        in5 = src0[(e / 784)];\n        v11 = in5;\n        acc2 = 0.0f;\n        for (int r0 = 0; r0 < 256; r0 += 1) {\n            acc1 = 0.0f;\n            for (int r1 = 0; r1 < 1; r1 += 1) {\n                acc0 = 0.0f;\n                for (int r2 = 0; r2 < 1; r2 += 1) {\n                    in0 = src5[((((((112 * ((e / 28) % 28)) + (802816 * ((e / 784) / 128))) + (2 * (e % 28))) + (3136 * r0)) + (56 * r1)) + r2)];\n                    in1 = src4[((((256 * (e / 784)) + r0) + r1) + r2)];\n                    v0 = __fmul_rn(in0, in1);\n                    acc0 = (acc0 + v0);\n                }\n                acc1 = (acc1 + acc0);\n            }\n            acc2 = (acc2 + acc1);\n        }\n        v1 = __fadd_rn(acc2, 0.0f);\n        v2 = v1;\n        v4 = __fsub_rn(v2, v3);\n        v8 = (v4 / v7);\n        v10 = __fmul_rn(v8, v9);\n        v12 = __fadd_rn(v10, v11);\n        v13 = v12;\n        v14 = fmaxf(v13, 0.0f);\n        dst[(((28 * ((e / 28) % 28)) + (e % 28)) + (784 * (e / 784)))] = v14;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "baseline",
+  "kind": "unchanged"
+ }
+}

@@ -247,3 +247,10 @@ Six actual Pi/LunaRoute lanes generated16 valid programs on a separate eight-mod
 The selected program,agent7, scores1.378308× versus unchanged Kiln and1.021549× versus the fixed pointwise composition. Its exposure policy permits aggregate work growth1.5 when producerElements>=10000, retaining1.02 below that boundary; consumer threshold2 and cleanup1.02 are unchanged. The policy produces the fixed artifact on seven graphs. On the YOLO convolution/reshape/concatenation graph it preserves tiled convolution while fusing away a separate intermediate kernel, reducing three kernels to two and measured latency31.2705→26.367 microseconds.
 
 This supplies actual agent-generated compiler-policy improvement, with a limited development scope. Three distinct programs tie by executable identity; stable declaration order selectsagent7 before confirmation. No default promotion is made. Source decisions, schedules, complete ranking and raw timings are retained in pointwise-agent-gpu-results-v1. An untouched confirmation population is the next test of this selected policy.
+
+
+## Selected pointwise policy confirmation limit (2026-10-31)
+
+The untouched exact-model scan exhausted at four eligible models; requested8/available4 was recorded before compilation. The selected agent7 and fixed pointwise control produce identical artifacts on all four. Three pass and one (MnasNet0_5 convolution plus batch normalization) fails the fixed modified-FP32 numerical tolerance for both baseline and candidate. All complete-population aggregate scores remain null; the development-selected policy is not promoted.
+
+An independent diagnostic shows the pointwise artifact exactly matches sequential FP32 convolution plus explicit normalization, while native convolution differs. Baseline is closer to FP64 mathematics in RMS but also fails native comparison. This is evidence that native numerical matching depends on evaluation order, not simply greater precision. It does not authorize replacing the oracle or changing tolerances. Original PassBench acceptance must be assessed separately from this direct-replay research protocol.

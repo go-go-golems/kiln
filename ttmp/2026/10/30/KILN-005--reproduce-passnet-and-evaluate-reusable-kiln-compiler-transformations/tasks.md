@@ -12,3 +12,4 @@
 - [ ] Qualify all seven newly complete singleton-view families (55 variants) and independent CUDA view fixtures from committed sources after original-agent serving is unloaded; retain every failure. <!-- t:pis5 -->
 - [x] Run the bounded Kiln-native external-LLM policy comparison against equal-budget threshold and seeded-random search, with trusted proposal tools, isolated timing and newly frozen confirmation; proposal-boundary implementation alone does not complete this task. <!-- t:f5d9 -->
 - [ ] Implement pooling semantics and FX import, starting with avg_pool2d; verify padding/divisor/ceil behavior, qualify real graphs on CUDA, then expand max/adaptive pooling and optimization workloads. <!-- t:kiok -->
+- [x] Evaluate fixed agent7 on every eligible fresh pointwise confirmation model; retain population shortfall, aliases, numerical failures and timing results before any promotion. <!-- t:vkgt -->

@@ -1,0 +1,135 @@
+{
+  "scope": "Fixed selected-policy confirmation on all four available fresh exact models; full FP32 matrix and convolution reference; exact aliases share evidence; not PassBench matching/scoring",
+  "distinct_outcomes": {
+    "measured": 6,
+    "correctness_failed": 2
+  },
+  "ranking": [
+    {
+      "policy": "baseline",
+      "complete": false,
+      "geomean_vs_baseline": null,
+      "geomean_vs_fixed": null,
+      "graphs": [
+        {
+          "model": "timm/selecsls42b.in1k",
+          "status": "measured",
+          "baseline_alias": true,
+          "fixed_alias": false,
+          "e2e_ms": 0.917898,
+          "speedup": 1.0,
+          "vs_fixed": 0.11522358693449598
+        },
+        {
+          "model": "torchvision/mnasnet0_5",
+          "status": "correctness_failed",
+          "baseline_alias": true,
+          "fixed_alias": false,
+          "error": "Tensor-likes are not close!\n\nMismatched elements: 673 / 9408 (7.2%)\nGreatest absolute difference: 0.0002288818359375 at index (0, 35, 13, 2) (up to 1e-05 allowed)\nGreatest relative difference: 0.011320921592414379 at index (0, 7, 0, 10) (up to 1.3e-06 allowed)"
+        },
+        {
+          "model": "timm/legacy_seresnet101.in1k",
+          "status": "measured",
+          "baseline_alias": true,
+          "fixed_alias": false,
+          "e2e_ms": 0.12062700000000001,
+          "speedup": 1.0,
+          "vs_fixed": 0.6038200402894873
+        },
+        {
+          "model": "timm/legacy_senet154.in1k",
+          "status": "measured",
+          "baseline_alias": true,
+          "fixed_alias": false,
+          "e2e_ms": 0.0322385,
+          "speedup": 1.0,
+          "vs_fixed": 1.2424430417047938
+        }
+      ]
+    },
+    {
+      "policy": "pointwise",
+      "complete": false,
+      "geomean_vs_baseline": null,
+      "geomean_vs_fixed": null,
+      "graphs": [
+        {
+          "model": "timm/selecsls42b.in1k",
+          "status": "measured",
+          "baseline_alias": false,
+          "fixed_alias": true,
+          "e2e_ms": 0.1057635,
+          "speedup": 8.678778595640273,
+          "vs_fixed": 1.0
+        },
+        {
+          "model": "torchvision/mnasnet0_5",
+          "status": "correctness_failed",
+          "baseline_alias": false,
+          "fixed_alias": true,
+          "error": "Tensor-likes are not close!\n\nMismatched elements: 465 / 9408 (4.9%)\nGreatest absolute difference: 0.000102996826171875 at index (0, 3, 13, 2) (up to 1e-05 allowed)\nGreatest relative difference: 0.006490720901638269 at index (0, 7, 0, 10) (up to 1.3e-06 allowed)"
+        },
+        {
+          "model": "timm/legacy_seresnet101.in1k",
+          "status": "measured",
+          "baseline_alias": false,
+          "fixed_alias": true,
+          "e2e_ms": 0.072837,
+          "speedup": 1.6561225750648711,
+          "vs_fixed": 1.0
+        },
+        {
+          "model": "timm/legacy_senet154.in1k",
+          "status": "measured",
+          "baseline_alias": false,
+          "fixed_alias": true,
+          "e2e_ms": 0.0400545,
+          "speedup": 0.804865870251782,
+          "vs_fixed": 1.0
+        }
+      ]
+    },
+    {
+      "policy": "agent-7",
+      "complete": false,
+      "geomean_vs_baseline": null,
+      "geomean_vs_fixed": null,
+      "graphs": [
+        {
+          "model": "timm/selecsls42b.in1k",
+          "status": "measured",
+          "baseline_alias": false,
+          "fixed_alias": true,
+          "e2e_ms": 0.1057635,
+          "speedup": 8.678778595640273,
+          "vs_fixed": 1.0
+        },
+        {
+          "model": "torchvision/mnasnet0_5",
+          "status": "correctness_failed",
+          "baseline_alias": false,
+          "fixed_alias": true,
+          "error": "Tensor-likes are not close!\n\nMismatched elements: 465 / 9408 (4.9%)\nGreatest absolute difference: 0.000102996826171875 at index (0, 3, 13, 2) (up to 1e-05 allowed)\nGreatest relative difference: 0.006490720901638269 at index (0, 7, 0, 10) (up to 1.3e-06 allowed)"
+        },
+        {
+          "model": "timm/legacy_seresnet101.in1k",
+          "status": "measured",
+          "baseline_alias": false,
+          "fixed_alias": true,
+          "e2e_ms": 0.072837,
+          "speedup": 1.6561225750648711,
+          "vs_fixed": 1.0
+        },
+        {
+          "model": "timm/legacy_senet154.in1k",
+          "status": "measured",
+          "baseline_alias": false,
+          "fixed_alias": true,
+          "e2e_ms": 0.0400545,
+          "speedup": 0.804865870251782,
+          "vs_fixed": 1.0
+        }
+      ]
+    }
+  ]
+}
