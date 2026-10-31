@@ -3106,3 +3106,44 @@ Read reference38, the reference34 snapshot warning, reference37 and the frozen q
 
 ### Technical details
 The plan keeps phase gates at imported, compiled, GPU-correct and fully accepted task levels. It explicitly separates the earlier frozen 111-task/1,514-graph study from the current 116-task/1,559-graph import census and the cumulative 53-task/505-graph acceptance ledger. The remote SSH command failed before reading `owner.log`.
+
+## Step 223: Stage the five-family GPU replay without disturbing the uniform run
+
+The broad plan's first new correctness gate is the five-family scalar/layout batch. I staged its complete 33-graph source cohort and the committed Kiln snapshot on bling, then verified remote source hashes. The timed 111-task qualification remains the only active GPU study; this step did not launch the staged replay.
+
+### Prompt Context
+**User prompt:** See Step222 for the request to make broad coverage and strategy progress. The active project goal also requires implementation and measurement, with scripts and evidence saved in the ticket.
+**Assistant interpretation:** Prepare the next complete-family GPU qualification while preserving the active study's timing conditions.
+**Inferred user intent:** Move beyond importer counts to external PassBench correctness promptly and reproducibly.
+
+### What I did
+- Rechecked bling through `ssh -o HostKeyAlias=bling.local`; tmux session `kiln-uniform-importable-v1` was live, and `owner.log` showed task32 in evaluation. The earlier generic `ssh manuel@bling` failed host-key verification because the established key is recorded under `bling.local`.
+- Added script633 to stage exactly the source files in `evaluate_tasks.snapshot`, the PassBench evaluator and the five task families in `scalar-layout-batch-task-plan-v1.json`. Added script634 as a runner that checks for another GPU compute process before execution.
+- Ran Python syntax and shell syntax checks, then executed script633. Its receipt records source revision `fe9cd49b26fd1cc7d22a9c3e103fcf606dfcb6c3`, source snapshot `d19d91e630e921375d7e340c4ebfef8edba14c5d60bcd410e6be866841dd0b94`, plan SHA256 `8a9243ab8d63eaff2b7735ead9e0227969e9477ec76023006b90f7eef2841ee5`, five tasks and33 graphs. The remote snapshot was recomputed and matched the local snapshot.
+
+### Why
+The active timed run is a frozen pre-batch source. Launching a second GPU job could contaminate its latency measurements, whereas staging source files and plans is independent of GPU timing.
+
+### What worked
+The remote source verification passed and the five-family cohort is staged at `/home/manuel/passnet-kiln/KILN-005/sources/scalar-layout-batch-gpu-v1`. No GPU work was launched for this new cohort. The staging receipt is saved in ticket `sources/scalar-layout-batch-gpu-v1/staging.json`.
+
+### What didn't work
+The first status command using plain `manuel@bling` failed with `Host key verification failed`. Switching to the project's established `HostKeyAlias=bling.local` succeeded. No other failure occurred.
+
+### What I learned
+The remote evaluator can be prepared from the existing source snapshot contract without introducing a second compiler path. The full plan keeps every variant of each of the five families.
+
+### What was tricky to build
+The remote source must include the local workspace packages and the PassBench sample graph directories, but the staged code must match a committed revision. Script633 verifies each tracked snapshot file against `git show` and recomputes the snapshot remotely before writing its receipt.
+
+### What warrants a second pair of eyes
+Review the runner's GPU-idle check and the pinned container image before launch. Its numerical acceptance still depends on the pinned PyTorch2.9 PassBench evaluator.
+
+### What should be done in the future
+After the uniform111-task run completes, launch script634 in its own tmux session, collect all33 correctness and score outcomes, and update coverage only for complete accepted families.
+
+### Code review instructions
+Read scripts633–634, the staged receipt, `scalar-layout-batch-task-plan-v1.json`, and the source snapshot contract in `integrations/passnet/evaluate_tasks.py`.
+
+### Technical details
+The staging operation used the existing `HostKeyAlias=bling.local` key and no concurrent timed GPU work. The runner uses the same pinned image `sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba` as the uniform study, with the plan's target A100, separate contraction, internal synthetic check bypass and PassBench numerical t=-5 settings.

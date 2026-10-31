@@ -56,7 +56,7 @@ Start O1 and O2 with existing Kiln rules and `kiln-transformation-program/1`, in
 ## Next concrete actions
 
 1. Let P0 finish without introducing competing timed GPU work. Analyze the ordinary-task band as soon as its results are available, then the two large families and historical regression band.
-2. Stage P1's frozen five-family source and run it on bling after P0's timed evaluation. Compare pinned PyTorch behavior before accepting the new bindings.
+2. Run P1's staged five-family source on bling after P0's timed evaluation. The five tasks and all 33 variants are staged with a verified source snapshot in `sources/scalar-layout-batch-gpu-v1/staging.json`; they have not been launched. Compare pinned PyTorch behavior before accepting the new bindings.
 3. Use P0's common failures to choose P2 versus P3 first. Write the typed/index and effect contracts at the IR boundary before coding those waves; then implement broad batches and replay complete families.
 4. Build O1 and O2 training/held-out partitions from accepted task families. Search several reusable policies, including one reduction/contraction candidate, and publish the negative results as well as improvements.
 5. Recompute the complete 200-task ledger after each wave. Stop adding one-off bindings when the next missing capability spans storage, IR and runtime; implement that capability coherently.
