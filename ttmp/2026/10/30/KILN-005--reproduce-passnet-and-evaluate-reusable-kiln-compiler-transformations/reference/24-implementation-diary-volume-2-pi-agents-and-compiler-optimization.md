@@ -1293,3 +1293,51 @@ See Step 182 for the active user request.
 ### Technical details
 - Same twelve-graph development membership and FP32 numerical protocol as earlier studies; no new heldout evaluation in this search.
 - Measured GPU container image sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba; NVIDIA GB10, scheduling target a100.
+
+## Step 186: Publish the staged-fusion milestone and select pooling for coverage expansion
+
+Published a 2,318-word technical report explaining staged fusion, exact-model confirmation and the composition search's lack of material improvement. The vault commit 544488e was pushed successfully to main. Reassessed historical import failures and rechecked three pooling representatives against current source; all remain blocked, making pooling a concrete next porting target.
+
+### Prompt Context
+The continuing goal requests technical milestone reports in the Obsidian vault, committed and pushed, alongside implementation and measurement. The current authored implementation direction is recorded verbatim in Step 182.
+**Assistant interpretation:** Preserve the new research result and use current evidence to choose broader compiler support.
+**Inferred user intent:** Keep both research understanding and implementation moving forward.
+
+### What I did
+- Read the vault and textbook skills and wrote reference/26-staged-fusion-generalization-and-agent-composition.md with prose, pseudocode, a pipeline diagram, source references and measurement tables.
+- Script 471 verifies central numerical claims against experiment JSON, including all 360 successful compilations, eligibility, aliases, thinking-level acceptance counts and coverage totals.
+- Created a new dated vault article without overwriting the earlier report; committed only that article and pushed main.
+- Script 472 ranks historical first failures and calls the current translate_graph importer on one FP32 max, average and adaptive-average pooling graph.
+
+### Why
+- Fresh confirmation is a reportable milestone, while the following near-tie search needs an explicit explanation to avoid overstating progress.
+- Expanding a measured missing operation offers more new workload diversity than continuing the same fusion thresholds.
+
+### What worked
+- Report checks passed. Vault push reported 2d407b6..544488e main -> main.
+- Current pooling probes reproduce explicit unsupported-target failures for all three operations.
+- Historical first-failure counts are 42 max_pool2d, 41 avg_pool2d and 29 adaptive_avg_pool2d.
+
+### What didn't work
+- An initial relative ticket-source listing was issued from the vault directory and failed with No such file or directory; subsequent commands used the Kiln worktree explicitly.
+- These are first-failure counts, not verified prospective unlock counts. No pooling implementation or new GPU coverage is claimed.
+
+### What I learned
+- The next useful importer expansion can add convolutional workloads rather than more variations of the same matrix-fusion corpus.
+
+### What was tricky to build
+- The report separates fixed-program transfer, exploratory selection, cumulative modified-protocol coverage and import eligibility. These numbers have different scopes and cannot substitute for one another.
+
+### What warrants a second pair of eyes
+- Pooling requires explicit handling of output dimensions, padding, ceil mode, included padding in averages, divisor overrides and numerical boundaries. Max-pool adds NaN/index semantics; adaptive pooling uses different window boundaries.
+
+### What should be done in the future
+- Implement average pooling first using shared Kiln lowering primitives, test semantic edge cases, and qualify real CUDA graphs before claiming coverage. Extend max/adaptive pooling afterward.
+- Original full-corpus reproduction and reMarkable delivery remain unfinished; no completion claim is made.
+
+### Code review instructions
+- Read reference/26, run scripts 471–472, and inspect sources/import-expansion-priority-v1.json and staged-fusion-report-publication.json.
+
+### Technical details
+- Vault path: Projects/2026/10/31/ARTICLE - Kiln - Staged Fusion Generalization and Agent Composition.md.
+- Existing unrelated vault modifications were left untouched. No external implementation was copied during this checkpoint.
