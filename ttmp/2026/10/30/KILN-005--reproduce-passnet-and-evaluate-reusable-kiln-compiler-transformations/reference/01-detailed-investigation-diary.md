@@ -2382,3 +2382,44 @@ Original benchmark fidelity requirement and preservation of all failures.
 
 ### Technical details
 - Benchmark coverage remains 2/200 until original evaluator acceptance. No loosened tolerance or changed source input generator.
+
+## Step 57: Preserve actual third-task matcher rejection
+
+Generated actual-task pass and ran isolated original checker through declared protocol. Pattern failed to match before numerical validation. Baseline resumed automatically. Saved a fresh graph-inspection procedure rather than changing matcher normalization without evidence.
+
+### Prompt Context
+Original full checker/integrity/scoring requirement.
+**Assistant interpretation:** Verify original evaluator acceptance beyond input-replay numerical check.
+**Inferred user intent:** Faithful task coverage with distinct failure stages.
+
+### What I did
+- Saved scripts 37–39 generating pass and executing isolated task.
+- Observed original matcher failure and paused=false on reference container afterward.
+- Saved script 40 capturing symbolic and Dynamo third-task graph with original replay inputs; diagnostic is running.
+
+### Why
+- Replay numerical success cannot establish pattern matching or reverse-order checker acceptance.
+
+### What worked
+- Pass loaded and original source validation ran; isolation cleanup resumed baseline.
+
+### What didn't work
+- Pass KilnConvResize failed to match; RuntimeError No passes modified the graph; evaluator status failed.
+
+### What I learned
+- Current normalization policy covers earlier task targets, not necessarily interpolation's default-argument forms.
+
+### What was tricky to build
+- Keep mutation/alias legality separate from pattern representation and retain original operation constants.
+
+### What warrants a second pair of eyes
+- Interpolation default normalization is a hypothesis pending exact graph evidence; no matcher relaxation introduced.
+
+### What should be done in the future
+- Poll graph diagnostic, normalize only established equivalent call forms with tests, then rerun original checker.
+
+### Code review instructions
+- Review scripts 37–40 and unchanged normalization target whitelist.
+
+### Technical details
+- Numerical stress limitation remains unresolved; verified task coverage stays 2/200.
