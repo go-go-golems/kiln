@@ -121,6 +121,9 @@ class Program:
 class WgpuProgram(Program):
     def __init__(self, program: dict, device=None, power_preference: str = "high-performance"):
         super().__init__(program)
+        for kernel in program["kernels"]:
+            if not kernel.get("wgsl"):
+                raise ValueError(f"WebGPU unavailable for {kernel['name']}: {kernel.get('wgslUnavailable', 'no WGSL source')}")
         import wgpu
 
         self._wgpu = wgpu

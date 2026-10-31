@@ -60,7 +60,7 @@ export function exportProgram(run, prog, { name, params = {}, target = null, sou
       // WebGPU folds grids past 65535 workgroups into two dimensions; the WGSL computes its block index to match
       dispatch: [Math.min(K.grid, 65535), Math.ceil(K.grid / 65535), 1],
       shape: kn.shape, inShapes: kn.inShapes, inDtypes: kn.inDtypes,
-      wgsl: kn.wgsl, cuda: renameCuda(kn.cuda, cname(K.name), exported),
+      wgsl: kn.wgsl, ...(kn.wgslUnavailable ? { wgslUnavailable: kn.wgslUnavailable } : {}), cuda: renameCuda(kn.cuda, cname(K.name), exported),
     });
   }
   const outputs = g.outputs.map((o) => {

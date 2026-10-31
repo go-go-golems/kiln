@@ -1287,3 +1287,45 @@ Original full compiler implementation objective and precision design.
 
 ### Technical details
 - No upstream code copied; this checkpoint is metadata propagation, not full FP16/BF16 benchmark support.
+
+## Step 31: Report backend availability and diagnose u8 promotion regression
+
+Added explicit WebGPU availability metadata so unsupported storage does not prevent CUDA source emission. WebGPU launcher rejects artifacts lacking available WGSL before importing wgpu. Full compiler regression exposed an existing implicit promotion dependency after dtype-preserving views; fixed u8 elementwise result promotion to FP32 explicitly.
+
+### Prompt Context
+Original full compiler objective; preserve existing verified behavior while adding precision semantics.
+**Assistant interpretation:** Separate backend availability and storage/arithmetic contracts.
+**Inferred user intent:** Correct portable execution with reviewable failures.
+
+### What I did
+- Added wgslStorageUnavailable capability query; propagate null WGSL plus reason through program/export.
+- Declared missing outDtype defaults in kernel/GPU dialect attributes.
+- Ran 18-file compiler regression remotely and seven launcher tests locally.
+
+### Why
+- CUDA-only storage must not masquerade as valid WGSL. View dtype preservation must not change existing u8 arithmetic output semantics.
+
+### What worked
+- Focused CUDA/lowered dtype tests and seven launcher tests passed.
+
+### What didn't work
+- First broad run: u8.mjs failed traffic count (12288) and packed WGSL checks; other 17 test files passed.
+- Root cause: tensor.ew inherited u8 type after view dtype correction; explicit u8-to-f32 promotion added, full rerun started.
+
+### What I learned
+- Storage preservation and arithmetic promotion are separate rules; relying on view dtype loss concealed the distinction.
+
+### What was tricky to build
+- Capability reasons must remain separate from kernel identity and avoid generating or launching invalid sources.
+
+### What warrants a second pair of eyes
+- JS WebGPU consumer rejection and broader promotion semantics remain to be audited; current frontend low-precision support remains gated.
+
+### What should be done in the future
+- Confirm regression rerun and compile/execute a typed view through the full pipeline.
+
+### Code review instructions
+- Review std/emit.js, program.js, export.js, tensor.js and Python WebGPU initialization.
+
+### Technical details
+- No source validation/dispatch changes in this checkpoint; no full typed arithmetic claim.

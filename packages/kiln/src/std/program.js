@@ -4,7 +4,7 @@
 import { k, P } from "../core/kiln.js";
 import { numel, hash, rng, inKey, dtypeBytes } from "../core/util.js";
 import { checkSamples } from "@kiln/evidence";
-import { toCuda, toWgsl, toSim, SimMetrics } from "./emit.js";
+import { toCuda, toWgsl, wgslStorageUnavailable, toSim, SimMetrics } from "./emit.js";
 import { printKernelBody } from "./kernel.js";
 import { schedule, compilePoint, workOf } from "./loop.js";
 import { timeModel, regsEstimate } from "./tile.js";
@@ -12,15 +12,15 @@ import { timeModel, regsEstimate } from "./tile.js";
 export const gpu = k.dialect("gpu").describe("the final IR: kernels with their rendered sources")
   .op("kernel", {
     args: { variadic: "ins" },
-    attrs: { K: null, cuda: "", wgsl: "", name: null, expr: null, shape: [], inShapes: [], inDtypes: [], map: null },
+    attrs: { K: null, cuda: "", wgsl: "", wgslUnavailable: null, name: null, expr: null, shape: [], outDtype: "f32", inShapes: [], inDtypes: [], map: null },
     infer: ({ shape, outDtype }) => k.tensor(shape, outDtype),
     print: ({ name, ins }) => `gpu.kernel ${name || "·"}(${ins})`,
     body: ({ cuda }) => cuda,
     identity: ({ expr, shape, args, outDtype }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}${outDtype && outDtype !== "f32" ? "|out:" + outDtype : ""}`),
-    keyIgnore: ["name", "cuda", "wgsl"],
+    keyIgnore: ["name", "cuda", "wgsl", "wgslUnavailable"],
   });
 export const emitRule = k.rule("emit_sources").match(P.op("kernel.kernel").as("n"))
-  .rewrite(({ n }) => n.lower(gpu.kernel, { ...n.attrs, cuda: toCuda(n.attrs.K), wgsl: toWgsl(n.attrs.K) }))
+  .rewrite(({ n }) => n.lower(gpu.kernel, { ...n.attrs, cuda: toCuda(n.attrs.K), wgsl: wgslStorageUnavailable(n.attrs.K) ? null : toWgsl(n.attrs.K), wgslUnavailable: wgslStorageUnavailable(n.attrs.K) }))
   .describe("render CUDA C++ and WGSL from Kernel IR (a 1:1 tree walk)");
 export const emitPass = k.pass("lowering/emit").short("c").rules(emitRule).describe("render CUDA and WGSL source for every kernel");
 
@@ -33,7 +33,7 @@ export function programOf(g) {
     if (n.name !== "gpu.kernel" && n.name !== "kernel.kernel") continue;
     const a = n.attrs, inDtypes = a.inShapes.map((_, i) => a.inDtypes?.[i] || "f32");
     kernels.push({
-      id, name: a.name || id, K: a.K, cuda: a.cuda || toCuda(a.K), wgsl: a.wgsl || toWgsl(a.K), expr: a.expr, shape: a.shape, inShapes: a.inShapes, inDtypes, outDtype: a.outDtype || "f32",
+      id, name: a.name || id, K: a.K, cuda: a.cuda || toCuda(a.K), wgsl: wgslStorageUnavailable(a.K) ? null : (a.wgsl || toWgsl(a.K)), wgslUnavailable: wgslStorageUnavailable(a.K), expr: a.expr, shape: a.shape, inShapes: a.inShapes, inDtypes, outDtype: a.outDtype || "f32",
       args: n.args.map((x) => g.ref(x)), map: a.map, row: a.K.row,
       identity: hash(`loop|${a.expr.__key}|${a.shape.join("x")}|${a.inShapes.map((s, i) => inKey(s, inDtypes[i])).join(",")}${a.outDtype && a.outDtype !== "f32" ? "|out:" + a.outDtype : ""}`),
       bytes: numel(a.shape) * dtypeBytes(a.outDtype || "f32") + a.inShapes.reduce((s, x, i) => s + numel(x) * dtypeBytes(inDtypes[i]), 0),

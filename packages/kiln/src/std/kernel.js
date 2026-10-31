@@ -287,7 +287,7 @@ export function printKernelBody(K, args = []) {
 export const kern = k.dialect("kernel").describe("Kernel IR: threads, shared memory, syncs and flat addresses")
   .op("kernel", {
     args: { variadic: "ins" },
-    attrs: { K: null, name: null, expr: null, shape: [], inShapes: [], inDtypes: [], map: null },
+    attrs: { K: null, name: null, expr: null, shape: [], outDtype: "f32", inShapes: [], inDtypes: [], map: null },
     infer: ({ shape, outDtype }) => k.tensor(shape, outDtype),
     print: ({ name, ins }) => `kernel ${name || "·"}(${ins})`,
     body: ({ K, args }) => printKernelBody(K, args),

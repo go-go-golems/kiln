@@ -153,7 +153,7 @@ export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, redu
   .op("const", { attrs: { value: 0, shape: [], data: null }, traits: ["pure", "any-ir"], infer: ({ shape, data }) => T_(data ? data.shape : shape),
     eval: ({ value, shape, data }) => (data ? data : Tensor.fill(shape, value)),
     print: ({ value, shape, data, name }) => (data ? `${name ? name + " " : ""}data(${data.shape.join("×")})` : shape.length ? `splat ${+(+value).toPrecision(6)} (${shape.join("×")})` : String(+(+value).toPrecision(6))) })
-  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add" }, traits: ["pure"], infer: ({ xs }) => xs[0].type, eval: ({ xs, fn }) => ewRef(fn, xs),
+  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add" }, traits: ["pure"], infer: ({ xs }) => xs[0].type.dtype === "u8" ? T_(xs[0].type.shape) : xs[0].type, eval: ({ xs, fn }) => ewRef(fn, xs),
     validate: ({ args }) => args.every((a) => a.type.shape.join() === args[0].type.shape.join()) || "elementwise inputs must share a shape (insert views)", print: "{fn}({xs})" })
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1 }, traits: ["pure"], infer: ({ x, axis }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(s.map((d, i) => (i === a ? 1 : d))); }, eval: ({ x, fn, axis }) => reduceRef(fn, x, axis), print: "{fn}({x}, axis={axis})" })
   .op("view", { args: ["x"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, shape }) => T_(shape, x.type.dtype), eval: ({ x, shape, map }) => viewRef(x, shape, map),
