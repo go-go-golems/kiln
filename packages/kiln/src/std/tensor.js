@@ -152,6 +152,10 @@ const T_ = (shape, dtype = "f32") => k.tensor(shape, dtype);
 const sameAs = ({ x }) => x.type;
 
 export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like op set, each with reference semantics")
+  .op("cast", { args: ["x"], attrs: { dtype: "f32" }, traits: ["pure"], infer: ({ x, dtype }) => {
+    if (!["f32", "f16", "bf16"].includes(dtype)) throw new KilnError("TypeError", `unsupported floating cast: ${dtype}`);
+    return k.tensor(x.type.shape, dtype);
+  }, eval: ({ x, type }) => roundedReference(new Tensor(x.shape, x.data.slice()), type), print: "cast({x}, {dtype})" })
   .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add" }, traits: ["pure"], infer: ({ xs, fn }) => (F(fn), T_(bshape(...xs.map((x) => x.type.shape)), elementwiseDtype(xs))), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs), type), print: "{fn}({xs})" })
   .op("linear", { args: ["x", "w"], infer: ({ x, w }) => T_([...x.type.shape.slice(0, -1), w.type.shape[0]]), eval: ({ x, w }) => linearRef(x, w), print: "linear({x}, {w})",
     validate: ({ args: [x, w] }) => x.type.shape.at(-1) === w.type.shape[1] || `in_features ${x.type.shape.at(-1)} ≠ weight ${w.type.shape[1]}` })
@@ -170,7 +174,7 @@ export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, redu
   .op("const", { attrs: { value: 0, shape: [], data: null }, traits: ["pure", "any-ir"], infer: ({ shape, data }) => T_(data ? data.shape : shape),
     eval: ({ value, shape, data }) => (data ? data : Tensor.fill(shape, value)),
     print: ({ value, shape, data, name }) => (data ? `${name ? name + " " : ""}data(${data.shape.join("×")})` : shape.length ? `splat ${+(+value).toPrecision(6)} (${shape.join("×")})` : String(+(+value).toPrecision(6))) })
-  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add" }, traits: ["pure"], infer: ({ xs }) => T_(xs[0].type.shape, elementwiseDtype(xs)), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs), type),
+  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add", dtype: null }, traits: ["pure"], infer: ({ xs, dtype }) => T_(xs[0].type.shape, dtype || elementwiseDtype(xs)), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs), type),
     validate: ({ args }) => args.every((a) => a.type.shape.join() === args[0].type.shape.join()) || "elementwise inputs must share a shape (insert views)", print: "{fn}({xs})" })
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1 }, traits: ["pure"], infer: ({ x, axis }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(s.map((d, i) => (i === a ? 1 : d))); }, eval: ({ x, fn, axis }) => reduceRef(fn, x, axis), print: "{fn}({x}, axis={axis})" })
   .op("view", { args: ["x"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, shape }) => T_(shape, x.type.dtype), eval: ({ x, shape, map }) => viewRef(x, shape, map),
@@ -209,6 +213,7 @@ T.maximum = (a, b) => T.ew("max", a, b);
 // nn-level conveniences for writing programs: x.add(y), x.matmul(w), x.softmax()
 const nv = (x) => (x instanceof Value ? x : tensor.const({ value: x, shape: [] }));
 export const N = {
+  cast: (x, dtype) => nn.cast(x, { dtype }),
   ew: (f, ...xs) => nn.ew(xs.map(nv), { fn: f }),
   add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b), div: (a, b) => N.ew("div", a, b),
   max: (a, b) => N.ew("max", a, b), min: (a, b) => N.ew("min", a, b), pow: (a, b) => N.ew("pow", a, b),
@@ -254,6 +259,7 @@ export function decompose(opName, build, name = "decompose:" + opName) {
 }
 const lastAxis = (x, a) => (a < 0 ? x.type.shape.length + a : a);
 export const decompositions = [
+  decompose("nn.cast", ({ x, dtype }) => tensor.ew([x], { fn: dtype === "f32" ? "copy" : "round_" + dtype, dtype })),
   decompose("nn.ew", ({ xs, fn }) => T.ew(fn, ...xs)),
   decompose("nn.linear", ({ x, w, out }) => {
     const xs = x.type.shape, K = xs.at(-1), Nn = w.type.shape[0], B = xs.slice(0, -1);

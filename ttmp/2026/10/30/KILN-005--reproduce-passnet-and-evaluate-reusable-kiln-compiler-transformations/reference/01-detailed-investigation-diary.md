@@ -1456,3 +1456,44 @@ Original goal requires faithful importer/compiler support across real dtype vari
 
 ### Technical details
 - GPU check includes 32-element random inputs and explicit midpoint cancellation; not complete floating-domain proof or full corpus support.
+
+## Step 35: Add explicit floating cast primitive
+
+Implemented N.cast for FP32/FP16/BF16 and decomposition into typed scalar copy/rounding expressions. This allows future normalization lowering to use FP32 internals and a typed result without relying on weak scalar promotion. Candidate importer normalization changes are in progress and need GPU verification.
+
+### Prompt Context
+Original full compiler support and source semantics requirements.
+**Assistant interpretation:** Represent accumulation precision explicitly.
+**Inferred user intent:** Correct normalization across benchmark dtype variants.
+
+### What I did
+- Added nn.cast inference/reference semantics, N.cast API and decomposition into tensor.ew with explicit dtype override.
+- Added tests for midpoint narrowing then widening and unsupported cast rejection.
+- Began importer candidate normalization using explicit FP32 casts; no real-task GPU success claimed yet.
+
+### Why
+- Arithmetic promotion alone cannot express a deliberate accumulation/result precision boundary.
+
+### What worked
+- Local Node 26 cast test passed. Eight integration tests passed after candidate importer edits.
+
+### What didn't work
+- No new failures; candidate normalization remains unverified on GPU and broad compiler regressions pending.
+
+### What I learned
+- Explicit dtype override on scalar copy/rounding is needed to represent casts independently from operand inference.
+
+### What was tricky to build
+- Narrowing must preserve rounding during fusion; widening must retain already-rounded input values without inventing a new rounding operation.
+
+### What warrants a second pair of eyes
+- CPU reference Tensor inputs are FP32 arrays; tests must supply valid quantized low-precision values where required. Fusion of copy casts needs end-to-end tests.
+
+### What should be done in the future
+- Compile candidate batch_norm variants, compare genuine task dtype checks, and run full regressions before claiming support.
+
+### Code review instructions
+- Review tensor.js cast definition/decomposition and casts.mjs. Candidate importer remains work in progress.
+
+### Technical details
+- Independent implementation, no upstream code copied; no full normalization reproduction claim.
