@@ -831,3 +831,46 @@ See Steps 18 and 11 for protocol and script preservation requirements.
 
 ### Technical details
 - No original evaluator files edited. Modified matching is not exact paper reproduction. CUDA execution failed before accepted correctness/scoring.
+
+## Step 20: Complete first scored genuine-graph integration round-trip
+
+The genuine FP32 graph matched, executed Kiln CUDA, passed original numerical/dtype checking and produced an official scorer artifact under the declared modified protocol. The protocol includes argument normalization and a narrow record_stream metadata allowance. These results are exploratory, single-graph, non-isolated measurements, not paper reproduction or full-task coverage.
+
+### Prompt Context
+Original goal requires complete measured round-trip; preserve protocol changes explicitly.
+**Assistant interpretation:** Retain storage lifetime safety and arithmetic integrity simultaneously.
+**Inferred user intent:** Establish verifiable end-to-end evaluation.
+
+### What I did
+- Added dispatch_policy.py allowing only aten.record_stream.default; all other calls delegate to original guard.
+- Added check_dispatch_policy_cuda.py and ran it remotely: metadata allowed, torch.add still rejected.
+- Reran original numerical checker through declared normalized harness; one replacement, status success.
+- Added scripts/10-score-integration.sh and archived stream-policy.log and stream-policy-score.json.
+
+### Why
+- record_stream tracks allocator lifetime; removing it would compromise asynchronous safety. Its explicit allowance does not authorize tensor arithmetic.
+
+### What worked
+- Guard test PASS; original dtype/numerical checks success.
+- Official scorer p=0, fpdb=0.1 exited 0; aggregated_speedup=0.8492896391830824 for this one graph. Raw e2e speedup 0.84990, GPU speedup 0.83106.
+
+### What didn't work
+- First scorer invocation failed KeyError: validation because it derives curve identity from log basename. Copying unchanged log to normalized-protocol-score/validation.log satisfied its expected input contract.
+
+### What I learned
+- Scorer aggregate is distinct from raw timing speedup and strictest tolerance levels still have penalties.
+
+### What was tricky to build
+- Metadata dispatch extension unwraps only the record_stream tensor; all other operations retain original guarded behavior.
+
+### What warrants a second pair of eyes
+- Policy tests cover one forbidden arithmetic call; broader integrity regression and concurrent lifetime tests are still needed.
+
+### What should be done in the future
+- Extend dtype/shape coverage, isolate final timing runs, test full integrity contract, run agent/meta-optimization experiments and publish milestone updates.
+
+### Code review instructions
+- Review dispatch_policy.py, evaluate_normalized.py, GPU guard check and archived logs/score. Do not call this original-protocol success.
+
+### Technical details
+- Original source checkout unchanged. Process-local integration policy marker kiln-dispatch-record-stream/1, matching marker kiln-normalized-fx/1. No upstream implementation copied.

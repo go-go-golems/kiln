@@ -9,6 +9,9 @@ import torch
 from fx_normalize import normalize_arguments
 from pass_bench.torch.backend import pass_mgr_backend as backend
 
+from dispatch_policy import install_record_stream_policy
+print("[kiln-normalized-fx/1] metadata policy "+install_record_stream_policy(),flush=True)
+
 OriginalPass = backend.PatternReplacementPass
 
 class NormalizedPass(OriginalPass):
