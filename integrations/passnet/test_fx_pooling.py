@@ -27,4 +27,22 @@ class PoolTests(unittest.TestCase):
             g=copy.deepcopy(graph);g['nodes'][1]['kwargs']['dict']['divisor_override']=value
             with self.assertRaisesRegex(ValueError,'divisor'):import_graph(g)
 
+class AdaptivePoolModel(torch.nn.Module):
+    def __init__(self,aten=False):super().__init__();self.aten=aten
+    def forward(self,x):
+        if self.aten:return torch.ops.aten._adaptive_avg_pool2d.default(x,[5,3])
+        return torch.nn.functional.adaptive_avg_pool2d(x,(None,3))
+
+class AdaptivePoolTests(unittest.TestCase):
+    def graph(self,aten=False,dtype=torch.float32):
+        return export_graph(torch.fx.symbolic_trace(AdaptivePoolModel(aten)),(torch.randn(1,2,5,7).to(dtype),))
+    def test_calls_and_dtypes(self):
+        for dtype in [torch.float32,torch.float16,torch.bfloat16]:
+            a=import_graph(self.graph(False,dtype))['script']
+            b=import_graph(self.graph(True,dtype))['script']
+            self.assertEqual(a,b);self.assertIn('N.adaptiveAvgPool2d',a)
+    def test_metadata(self):
+        graph=self.graph();graph['nodes'][1]['tensor_meta']['shape']=[1,2,5,4]
+        with self.assertRaisesRegex(ValueError,'shape/dtype'):import_graph(graph)
+
 if __name__=='__main__':unittest.main()

@@ -1,4 +1,4 @@
-import {avgPool2dSpec,avgPool2dReference,lowerAvgPool2d} from './pooling.js';
+import {avgPool2dSpec,avgPool2dReference,lowerAvgPool2d,adaptiveAvgPool2dSpec,adaptiveAvgPool2dReference,lowerAdaptiveAvgPool2d} from './pooling.js';
 import {matmulSpec,linearSpec,matmulReference,linearReference,lowerMatmul,lowerLinear} from './matmul.js';
 import {concatSpec,concatReference,lowerConcat} from "./concat.js";
 import {bilinearSpec,bilinearReference,lowerBilinear} from "./bilinear.js";
@@ -162,6 +162,10 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
     if(x.type.dtype!=="f32")throw new KilnError("TypeError","bilinear lowering currently requires FP32");
     return k.tensor(bilinearSpec(x.type.shape,size));
   }, eval: ({x,size}) => bilinearReference(x,size), print: "bilinear({x}, {size})" })
+  .op("adaptive_avg_pool2d", { args: ["x"], attrs: {output_size: [1,1]}, infer: ({x,output_size}) => {
+    if(x.type.dtype!=="f32")throw new KilnError("TypeError","adaptive_avg_pool2d arithmetic requires FP32");
+    return k.tensor(adaptiveAvgPool2dSpec(x.type.shape,output_size).shape);
+  }, eval: ({x,output_size}) => adaptiveAvgPool2dReference(x,output_size), print:"adaptive_avg_pool2d({x})" })
   .op("avg_pool2d", { args: ["x"], attrs: { kernel_size: 1, stride: null, padding: 0, ceil_mode: false, count_include_pad: true, divisor_override: null },
     infer: ({x,...options}) => {
       if(x.type.dtype!=="f32")throw new KilnError("TypeError","avg_pool2d arithmetic requires FP32");
@@ -239,6 +243,8 @@ T.maximum = (a, b) => T.ew("max", a, b);
 // nn-level conveniences for writing programs: x.add(y), x.matmul(w), x.softmax()
 const nv = (x) => (x instanceof Value ? x : tensor.const({ value: x, shape: [] }));
 export const N = {
+  adaptiveAvgPool2d: (x,output_size) => ["f16","bf16"].includes(x.type.dtype)
+    ? N.cast(nn.adaptive_avg_pool2d(N.cast(x,"f32"),{output_size}),x.type.dtype) : nn.adaptive_avg_pool2d(x,{output_size}),
   avgPool2d: (x,options) => ["f16","bf16"].includes(x.type.dtype)
     ? N.cast(nn.avg_pool2d(N.cast(x,"f32"),options),x.type.dtype) : nn.avg_pool2d(x,options),
   concat: (xs, axis=0) => nn.concat(xs,{axis}),
@@ -298,6 +304,7 @@ export function decompose(opName, build, name = "decompose:" + opName) {
 }
 const lastAxis = (x, a) => (a < 0 ? x.type.shape.length + a : a);
 export const decompositions = [
+  decompose("nn.adaptive_avg_pool2d", ({x,output_size}) => lowerAdaptiveAvgPool2d(T,x,output_size)),
   decompose("nn.avg_pool2d", ({x,...options}) => lowerAvgPool2d(T,x,options)),
   decompose("nn.concat", ({xs,axis,out}) => lowerConcat(T,tensor,xs,axis,out.type.dtype)),
   decompose("nn.bilinear", ({x,size}) => lowerBilinear(T,x,size)),

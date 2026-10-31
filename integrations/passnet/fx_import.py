@@ -3,7 +3,7 @@
 Independent lowering against Kiln N APIs. No upstream implementation copied.
 """
 import json
-from fx_pooling import AVG_POOL2D, lower_avg_pool2d
+from fx_pooling import AVG_POOL2D, lower_avg_pool2d, ADAPTIVE_AVG_POOL2D, lower_adaptive_avg_pool2d
 from fx_indexing import lower_index,lower_transpose,lower_reshape,lower_singleton_view,SINGLETON_FUNCTIONS,SINGLETON_METHODS
 from fx_linalg import FUNCTIONS as LINALG_FUNCTIONS, METHODS as LINALG_METHODS, lower_linalg
 from fx_norm_ops import LAYER_NORM,lower_layer_norm,SOFTMAX,lower_softmax
@@ -110,6 +110,8 @@ def import_graph(graph):
             expr=f'N.{inplace_binary}({args[0]}, {args[1]})'
         elif linalg:
             expr=lower_linalg(linalg,args,kwargs,meta,operand_spec)
+        elif target in ADAPTIVE_AVG_POOL2D:
+            expr=lower_adaptive_avg_pool2d(target,args,kwargs,meta,operand_spec,literal)
         elif target in AVG_POOL2D:
             expr=lower_avg_pool2d(target,args,kwargs,meta,operand_spec,literal)
         elif target in SOFTMAX or (node['kind']=='call_method' and target=='softmax'):
@@ -346,7 +348,7 @@ def import_graph(graph):
         # Views, casts and disabled dropout may alias: intentionally do not
         # transfer ownership through them. Accepted in-place calls only
         # consume an already owned value whose sole use is this operation.
-        if inplace_binary or linalg or activation or reduction or target in AVG_POOL2D or target in SOFTMAX or (node['kind']=='call_method' and target=='softmax') or target in LAYER_NORM or target in unary or target in binary or target in (
+        if inplace_binary or linalg or activation or reduction or target in AVG_POOL2D or target in ADAPTIVE_AVG_POOL2D or target in SOFTMAX or (node['kind']=='call_method' and target=='softmax') or target in LAYER_NORM or target in unary or target in binary or target in (
                 'torch.conv2d','torch.nn.functional.batch_norm','torch.nn.functional.interpolate',
                 'torch.cat','torch.concat','torch.concatenate','aten.cat.default'):
             fresh.add(name)

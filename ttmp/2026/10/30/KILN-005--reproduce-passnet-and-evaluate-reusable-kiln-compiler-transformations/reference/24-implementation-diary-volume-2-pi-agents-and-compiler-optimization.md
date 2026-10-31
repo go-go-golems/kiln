@@ -1989,3 +1989,66 @@ See Step182 and the standing request for implementation, measurements and detail
 
 ### Technical details
 - The same MnasNet source graph, seed42 and unchanged baseline/pointwise artifacts are used. No new GPU timing, LLM inference, compiler mutation, default promotion or accepted-coverage increase occurred.
+
+
+## Step 199: Implement adaptive average pooling through existing compiler primitives
+
+Adaptive average pooling now has frontend semantics, tensor lowering and functional/ATen FX bindings for static positive CHW/NCHW floating tensors. All210 deterministic PyTorch oracle cases pass frontend and decomposition checks, and all210 lower through the existing GPU pipeline and export CUDA artifacts with loop-reference validation. Actual CUDA execution remains pending.
+
+The historical audit had29 graphs whose first unsupported operation was adaptive_avg_pool2d. Reimport now succeeds on27; the other two proceed to an unsupported torch.flatten call. These import successes do not increase accepted GPU benchmark coverage.
+
+### Prompt Context
+See Step182 and the user's standing authorization to implement missing Kiln capabilities, preserve source provenance and keep research moving. The automatic goal reminder is not a new authored quotation.
+**Assistant interpretation:** Expand the supported workload population using the existing pooling/reduction architecture rather than further tuning one exhausted pointwise subset.
+**Inferred user intent:** Reach broader benchmark support and new optimization opportunities while retaining the documented precision limitations.
+
+### What I did
+- Reviewed the recorded unsupported-operation counts. Adaptive pooling accounts for29 historical first failures; max pooling accounts for42 and remains outstanding. Adaptive pooling directly extends the existing average-pooling module.
+- Script519 archives pinned PyTorch v2.9.1 AdaptiveAveragePooling.cpp, AdaptiveAveragePooling.cu and AdaptivePooling.h with hashes and provenance. Public API documentation was read through web search.
+- Added adaptiveAvgPool2dSpec, adaptiveAvgPool2dReference and lowerAdaptiveAvgPool2d in pooling.js; registered nn.adaptive_avg_pool2d, N.adaptiveAvgPool2d and decomposition in tensor.js.
+- Added functional and ATen binding/metadata validation in fx_pooling.py and reused fx_import's ownership rules.
+- Script520 generates210 deterministic CPU oracles; adaptive-pooling.mjs verifies reference/decomposition behavior, invalid dimensions and masked NaNs. Expanded the existing FX pooling tests.
+- Script521 reimports all29 historical failures; script522 exports all210 fixture programs with actual source hashes.
+
+### Why
+- Adaptive pooling uses output-defined intervals, which can overlap and vary in width; treating it as ordinary fixed-window pooling would be incorrect.
+- Existing tensor views, select, sum and division express the operation without a new compiler IR, runtime or GPU backend.
+- Core support and import eligibility are verified before spending GPU time on complete evaluation families.
+
+### What worked
+-210 cases cover CHW/NCHW, five spatial shapes, integer/pair/None output specifications, overlapping and expanded outputs, and FP32/FP16/BF16.
+- Four Python pooling importer tests pass;288 existing average-pooling reference/decomposition tests also pass.
+- All210 fixtures compile through the A100-proxy GPU pipeline with separate contraction and export successfully. Loop interpreter outputs remain within declared fixture tolerances.
+-27/29 historical adaptive-pooling imports now succeed. The five first-failure groups contain9,6,6,2,6 graphs; the two-graph group reaches a remaining functional flatten binding limitation.
+
+### What didn't work
+- Direct public documentation HTML download returned HTTP403; the failure remains in the source manifest. Pinned implementation-source downloads succeeded.
+- Two graphs remain blocked with "flatten: unsupported target torch.flatten; implement semantic lowering". They are retained rather than omitted.
+- CUDA correctness and native PassBench task acceptance have not yet been measured for this operator.
+
+### What I learned
+- Adaptive bin i is [floor(i*input/output),ceil((i+1)*input/output)); output larger than input still yields nonempty, potentially overlapping bins.
+- The pinned contiguous CUDA implementation divides accumulated values by bin height and then width. Low-precision operands accumulate in FP32; the Kiln frontend preserves that widening/narrowing boundary.
+
+### What was tricky to build
+- Varying bins are embedded in a maximum-bin rectangular view. Clamped loads prevent out-of-bounds access; a select mask excludes extra cells without propagating NaNs. Uniform bins avoid the mask entirely.
+- Height and width divisor tensors preserve separate divisions. Generic reduction scheduling can still alter association, so passing deterministic local fixtures is not universal native numerical equivalence.
+- Null output dimensions preserve the corresponding input dimension. Result shape/dtype metadata is verified rather than trusted blindly.
+
+### What warrants a second pair of eyes
+- Static mask/constant size may affect compile cost for large nonuniform output shapes. This is a correctness-first implementation using the existing compiler optimization path.
+- Zero-sized/dynamic tensors and noncontiguous source layouts remain outside the current supported contract. The GPU runtime and native checker must qualify actual corpus instances before coverage claims.
+
+### What should be done in the future
+- Run all210 CUDA fixtures on bling from the committed compiler snapshot, then qualify complete newly importable task families.
+- Add the functional flatten binding by sharing its existing method semantics and retaining alias handling; then recheck the remaining two graphs.
+- Continue max/adaptive pooling expansion under task kiok; do not mark the broader task complete yet.
+
+### Code review instructions
+- Inspect pooling.js, tensor.js, fx_pooling.py and the extended FX tests. Run node packages/kiln/test/adaptive-pooling.mjs and pooling.mjs under Node26, plus PYTHONPATH=integrations/passnet python3 -m unittest integrations/passnet/test_fx_pooling.py.
+- Review archived semantic notes and sources alongside scripts519–522 and adaptive-pooling-import-v1/results.json.
+
+### Technical details
+- Independently written Kiln implementation; no upstream code copied. The source archive identifies the exact consulted PyTorch version and documentation URLs.
+- CPU oracles use local Torch2.11.0+cu130 and quarter-valued inputs. These are deterministic semantic fixtures, not broad arbitrary-input precision evidence.
+- No new LLM inference, GPU measurement or coverage increase in this step. Cumulative accepted coverage remains34 complete tasks and375 graphs.

@@ -36,3 +36,23 @@ def lower_avg_pool2d(target,args,kwargs,meta,resolve,literal):
     if meta['shape']!=shape[:-2]+output or meta['dtype']!=source['dtype']:raise ValueError('avg_pool2d: result shape/dtype mismatch')
     options.update(kernel_size=kernel,stride=stride,padding=pad)
     return f'N.avgPool2d({bound[first]}, {json.dumps(options)})'
+
+ADAPTIVE_AVG_POOL2D={'torch.nn.functional.adaptive_avg_pool2d','torch._C._nn.adaptive_avg_pool2d','aten.adaptive_avg_pool2d.default','aten._adaptive_avg_pool2d.default'}
+
+def lower_adaptive_avg_pool2d(target,args,kwargs,meta,resolve,literal):
+    first='self' if target.startswith('aten.') else 'input'
+    fields=[first,'output_size']
+    if len(args)>2 or set(kwargs)-set(fields):raise ValueError('adaptive_avg_pool2d: unsupported arguments')
+    bound=dict(zip(fields,args))
+    if set(bound)&set(kwargs):raise ValueError('adaptive_avg_pool2d: duplicate argument')
+    bound.update(kwargs)
+    if set(bound)!=set(fields):raise ValueError('adaptive_avg_pool2d: input and output_size required')
+    source=resolve(bound[first]);shape=source['shape']
+    if len(shape) not in (3,4) or source['dtype'] not in ('torch.float32','torch.float16','torch.bfloat16'):raise ValueError('adaptive_avg_pool2d: floating CHW/NCHW input required')
+    size=literal(bound['output_size'])
+    if type(size) is int:size=[size,size]
+    if not isinstance(size,(list,tuple)) or len(size)!=2:raise ValueError('adaptive_avg_pool2d: output_size requires integer or pair')
+    output=[shape[-2+i] if value is None else value for i,value in enumerate(size)]
+    if any(type(value) is not int or value<=0 for value in output):raise ValueError('adaptive_avg_pool2d: positive output dimensions required')
+    if meta['shape']!=shape[:-2]+output or meta['dtype']!=source['dtype']:raise ValueError('adaptive_avg_pool2d: result shape/dtype mismatch')
+    return f'N.adaptiveAvgPool2d({bound[first]}, {json.dumps(output)})'

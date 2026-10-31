@@ -61,3 +61,44 @@ export function lowerAvgPool2d(T, input, options) {
   }
   return T.reshape(T.div(sums,divisors),spec.shape);
 }
+
+// Adaptive bins may overlap and have different widths. Their integer bounds are
+// defined independently for each output position; no interpolation is involved.
+export function adaptiveAvgPool2dSpec(shape, output_size) {
+  if (![3,4].includes(shape.length) || !shape.every(x=>Number.isSafeInteger(x)&&x>0)) throw new TypeError('adaptiveAvgPool2d requires positive CHW or NCHW dimensions');
+  const requested=Number.isSafeInteger(output_size)?[output_size,output_size]:output_size;
+  if(!Array.isArray(requested)||requested.length!==2)throw new TypeError('adaptiveAvgPool2d requires an integer or pair');
+  const spatial=shape.slice(-2),output=requested.map((v,i)=>v===null?spatial[i]:v);
+  if(!output.every(v=>Number.isSafeInteger(v)&&v>0))throw new TypeError('adaptiveAvgPool2d requires positive output dimensions');
+  const bins=spatial.map((size,axis)=>Array.from({length:output[axis]},(_,i)=>({start:Math.floor(i*size/output[axis]),end:Math.ceil((i+1)*size/output[axis])})));
+  return {shape:[...shape.slice(0,-2),...output],bins};
+}
+export function adaptiveAvgPool2dReference(input, output_size) {
+  const spec=adaptiveAvgPool2dSpec(input.shape,output_size),[h,w]=input.shape.slice(-2),[oh,ow]=spec.shape.slice(-2);
+  const result=new Tensor(spec.shape),planes=input.data.length/(h*w);
+  for(let p=0;p<planes;p++)for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){
+    const a=spec.bins[0][y],b=spec.bins[1][x];let sum=0;
+    for(let iy=a.start;iy<a.end;iy++)for(let ix=b.start;ix<b.end;ix++)sum=Math.fround(sum+input.data[(p*h+iy)*w+ix]);
+    result.data[(p*oh+y)*ow+x]=Math.fround(sum/(a.end-a.start))/(b.end-b.start);
+  }
+  return result;
+}
+export function lowerAdaptiveAvgPool2d(T,input,output_size) {
+  const spec=adaptiveAvgPool2dSpec(input.type.shape,output_size);
+  const [n,c,h,w]=input.type.shape.length===4?input.type.shape:[1,...input.type.shape], [oh,ow]=spec.shape.slice(-2);
+  const kh=spec.bins[0].reduce((m,b)=>Math.max(m,b.end-b.start),0),kw=spec.bins[1].reduce((m,b)=>Math.max(m,b.end-b.start),0);
+  const x=T.reshape(input,[n,c,h,w]);
+  let windows=T.view(x,[n,c,oh,ow,kh,kw],a=>[a[0],a[1],a[2].mul(h).div(oh).add(a[4]).min(h-1),a[3].mul(w).div(ow).add(a[5]).min(w-1)]);
+  const heights=new Tensor([1,1,oh,ow]),widths=new Tensor([1,1,oh,ow]);
+  const varying=spec.bins[0].some(b=>b.end-b.start!==kh)||spec.bins[1].some(b=>b.end-b.start!==kw);
+  const mask=varying?new Tensor([1,1,oh,ow,kh,kw]):null;
+  for(let y=0;y<oh;y++)for(let z=0;z<ow;z++){
+    const height=spec.bins[0][y].end-spec.bins[0][y].start,width=spec.bins[1][z].end-spec.bins[1][z].start;
+    heights.data[y*ow+z]=height;widths.data[y*ow+z]=width;
+    if(mask)for(let iy=0;iy<height;iy++)for(let ix=0;ix<width;ix++)mask.data[((y*ow+z)*kh+iy)*kw+ix]=1;
+  }
+  if(mask)windows=T.select(mask,windows,0);
+  const flat=T.reshape(windows,[n,c,oh,ow,kh*kw]);
+  const sums=T.reshape(T.sum(flat,4),[n,c,oh,ow]);
+  return T.reshape(T.div(T.div(sums,heights),widths),spec.shape);
+}
