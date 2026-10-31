@@ -1,0 +1,22 @@
+--- runtime/python/kiln_launch.py	2026-10-30 20:56:38.780515851 -0400
++++ ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/remote-snapshot-a620e6e/runtime/python/kiln_launch.py	2026-10-30 20:51:44.502762191 -0400
+@@ -121,9 +121,6 @@
+ class WgpuProgram(Program):
+     def __init__(self, program: dict, device=None, power_preference: str = "high-performance"):
+         super().__init__(program)
+-        for kernel in program["kernels"]:
+-            if not kernel.get("wgsl"):
+-                raise ValueError(f"WebGPU unavailable for {kernel['name']}: {kernel.get('wgslUnavailable', 'no WGSL source')}")
+         import wgpu
+ 
+         self._wgpu = wgpu
+@@ -313,8 +310,7 @@
+ class CudaProgram(Program):
+     """Kernels compiled with NVRTC for the current device, buffers allocated with cuMemAlloc. Runs in the device's
+     primary context, the one the CUDA runtime (and so PyTorch) uses, so pointers from either are interchangeable; each
+-    program holds a reference to it until ``close``.
+-    ``include_paths`` explicitly supplies NVRTC header search directories (for CUDA half/bfloat16 headers). A live non-primary context current on this thread is used as found.
++    program holds a reference to it until ``close``. A live non-primary context current on this thread is used as found.
+ 
+     ``allocate=False`` allocates only the constant buffers: the caller passes a pointer for every input and output to
+     ``launch``, and one for every buffer in ``scratch`` (the intermediates between kernels). Two launches that run at the

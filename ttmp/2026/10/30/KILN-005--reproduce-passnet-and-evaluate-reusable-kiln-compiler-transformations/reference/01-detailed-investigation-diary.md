@@ -4233,3 +4233,61 @@ See earlier instructions to implement missing Kiln pieces, retain research prove
 ### Technical details
 - Public configuration: std.emmy.pipeline({contraction:"separate"}); CLI --contraction separate; alternative allow preserves existing defaults.
 - CUDA implementation: __fadd_rn, __fsub_rn, __fmul_rn; no NVRTC flag changes. Scientific acceptance still requires original t=-5 and original scorer p=0/fpdb=0.1.
+
+
+## Step 96: Qualify 62 of 63 variants and audit the actual measured source snapshot
+
+The complete separate-rounding cohort passes all compilation, evaluator and scoring phases. It accepts 62 of 63 variants at nominal t=-5 and adds three complete tasks. Cumulative development coverage becomes eleven complete tasks and 206 individually passing graphs after overlap accounting. A separate structural audit proves the previous training set has no reductions, fanout or duplicate internal kernels, motivating a richer next optimization population rather than another unsupported transformation hypothesis.
+
+### Prompt Context
+See the earlier coverage question in Step 89 and instructions to document provenance, consolidate architecture and streamline towards self-optimization.
+**Assistant interpretation:** Complete the numerical-policy qualification and use evidence to choose the next optimization experiment.
+**Inferred user intent:** Obtain reliable compiler progress and a meaningful population for reusable transformation learning.
+**Commit (code):** a620e6e — opt-in separate FP32 rounding through scalar IR and CUDA.
+
+### What I did
+- Confirmed terminal run.json status complete, all four process_complete task records, no evaluation container and missing tmux handle before collecting the complete cohort.
+- Audited exact membership, matching, successful execution, numerical decisions and original scores for all 63 variants.
+- Updated coverage script 21 to include the latest cohort, derive active protocol markers from logs and retain per-cohort numerical/source configuration. The ledger explicitly describes cumulative multi-version evidence.
+- Saved scripts 159–160 for local compiler dependency setup and training-only structural analysis. Local Node 26.13.0 uses the already installed Acorn 8.19.0 bytes from bling and workspace links; tracked dependency declarations are unchanged.
+- Added script 161 to bind metric/oracle facts and source provenance, and script 162 to archive known remote leftovers and align future runtime sources.
+- Updated guide Section 29, roadmap and design 09, and wrote report 11 (about 2,200 words).
+
+### Why
+- The exact previously failed families must retain every member, including the remaining BF16 failure. Compiler policy qualification is not an untouched confirmation speedup claim.
+- New transformations need actual workload opportunities. The old training set cannot evaluate reduction scheduling, selective fanout fusion or exact duplicate elimination.
+
+### What worked
+- Nominal per-task results: task 51 4/4, task 60 44/44, task 82 5/6, task 182 9/9. Every one of the 63 variants executes and scores.
+- Original scores: 0.8761321161670029, 0.8872184055108473, 0.7079148131970212 and 1.9642242385057964 respectively. These integrate the original numerical curve and are separate from nominal counts or speedup relative to unchanged Kiln.
+- Cumulative ledger: 11/200 complete tasks, 206/2060 passing individual graphs; complete tasks contain 141 graphs.
+- Training structural analysis: twelve prior training graphs, fourteen fused kernels or ninety unfused kernels, zero reductions, zero multi-consumer kernels and zero exact internal duplicate kernels in either configuration.
+- All measured snapshot files are reconstructible. Eighty-five of 89 match a620e6e; four exact archived overrides cover the rest. Executed CUDA/shared-runtime ASTs match the commit after excluding WebGPU and documentation. Future aligned snapshot has 87/87 matching source files.
+
+### What didn't work
+- One BF16 RepViT variant remains unaccepted at t=-5 and passes only relaxed points. No filter or tolerance change hides it.
+- Initial exact-revision audit failed with four paths: check_fourth_task_cuda.py, test_dispatch_policy_gpu.py, runtime/python/kiln_launch.py and its test. The failure log is preserved. Two are inactive old diagnostic leftovers; the runtime differs in a WebGPU guard/docstring. The measured snapshot is described as commit plus archived overrides, not a clean checkout.
+- Structural analysis found no evidence supporting CSE or fanout/reduction algorithms on the prior twelve training graphs. No such pass was implemented merely to create an experiment.
+
+### What I learned
+- A measured source snapshot should be checked against the claimed revision, not only hashed. Reconstructible overrides are preferable to a false clean-revision claim.
+- The old workload population itself restricts optimization opportunity; a different grammar alone cannot fix absent graph structure.
+
+### What was tricky to build
+- The 63-graph result includes five already passing task-82 variants, so only 57 are new cumulative successes.
+- Protocol activation differs across tasks; extracting markers avoids omitting multi-output/autowrap extensions from newly generated passes.
+- Remote cleanup was reversible and occurred only after the run was terminal. The earlier measured bytes remain archived and hash-verified; future runtime alignment does not rewrite historical evidence.
+
+### What warrants a second pair of eyes
+- Review the AST comparison's precise exclusion of WebGPU/docstrings, the four archived source overrides, and mixed-version coverage interpretation. Review corpus richness before the next optimization study.
+
+### What should be done in the future
+- Freeze a new official-training-source corpus containing reductions and matrix operations, with fixed numerical policy and fresh exact-model confirmation.
+- Demonstrate changed training implementations before performance selection. Original PassAgent and full 200-task support remain open.
+
+### Code review instructions
+- Reproduce script 161 and inspect contraction-verified-facts.json, separate-rounding-cohort-v1-audit.json, training-loop-opportunities.json and the updated coverage script.
+
+### Technical details
+- Measured snapshot SHA256 a30e6315edbe82dade9f7cacc80fde08f0653dcb0e512d8aedc512a520a7d655; original nominal criterion t=-5 and original score p=0/fpdb=0.1.
+- No evaluation job remains running at this checkpoint. The detailed report distinguishes qualification, mathematical oracles, cumulative support and future optimization research.

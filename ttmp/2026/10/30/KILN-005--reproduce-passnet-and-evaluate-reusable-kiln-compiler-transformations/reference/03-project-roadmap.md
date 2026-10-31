@@ -34,7 +34,7 @@ Teacher trajectory generation/student fine-tuning remains a separate expensive r
 
 ## Priority change: start reusable-policy optimization before full corpus support
 
-The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is eight complete tasks containing 84 graphs, with 149 individually passing graphs including partial tasks. Translation succeeds for 984 graphs and 43 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
+The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is eleven complete tasks containing 141 graphs, with 206 individually passing graphs including partial tasks. Translation succeeds for 984 graphs and 43 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
 
 The immediate critical path is:
 
@@ -78,3 +78,10 @@ The 63-variant rerun yields five more nominally passing graphs from an incomplet
 ### FP32 evaluator correction and contraction investigation
 
 The full selective-input rerun is terminal: seven variants compile, the next BF16 reference check fails, and no original evaluation runs. The allocation fix holds. A proven double-versus-FP32 loop-reference defect is corrected and validated against 27 core test files and actual CUDA cancellation. Two preserved real compiler failures now pass unchanged checks; the remaining one disappears when explicit FMA contraction is removed in a diagnostic. Establishing a coherent source/IR/CUDA numerical policy is the next gate; global defaults and official tolerances remain unchanged. Coverage remains 8/200 complete tasks and 149/2060 passing individual graphs.
+
+
+### Numerical-contract milestone and next optimization gate
+
+Separate-rounding scalar operations are implemented through IR and CUDA intrinsics, while global defaults remain unchanged. The 63-variant complete-task cohort is terminal: all compile/evaluate/score, 62 nominally pass and three additional task families are complete. Cumulative coverage is 11 tasks /206 individual graphs; complete tasks contain 141 graphs. One BF16 RepViT variant remains a nominal failure. Design 09, the intern guide Section 29 and contraction-verified-facts.json own the details, including archived remote source overrides.
+
+The previous 12 training graphs have no reductions, fanout or duplicate internal kernels even before fusion. Before another reusable transformation study, freeze a new official-training-source corpus containing reductions and matrix operations, preserve a fixed numerical contract, demonstrate changed implementations on training, and evaluate the selected policy on fresh confirmation models. Original PassAgent and the remaining full-corpus compiler support remain separate open requirements.

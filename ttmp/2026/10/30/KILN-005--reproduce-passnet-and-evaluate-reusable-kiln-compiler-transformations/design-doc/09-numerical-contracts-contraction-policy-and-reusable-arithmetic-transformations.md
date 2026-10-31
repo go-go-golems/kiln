@@ -116,3 +116,12 @@ A useful next experiment can instead hold separate rounding fixed and broaden fu
 The implementation is independent. Primary NVIDIA documentation and pinned PyTorch v2.9.1 normalization sources are archived under sources/numerics with URLs, byte counts and SHA256 hashes. No PyTorch normalization implementation was copied. The native sources establish why matching a mathematical formula does not establish equality with an opaque operator's internal rounding.
 
 Review std/fns.js, std/tensor.js, std/emmy.js, std/emit.js, std/program.js, the workbench compile helper and export CLI. The core contraction test checks identities, semantics and backend refusal. Ticket scripts 152–156 preserve source acquisition and exact CPU/CUDA validation. Subsequent complete-task receipts own benchmark acceptance; this document owns the numerical-policy design.
+
+
+## 10. Measured qualification result
+
+All 63 declared variants compile and reach original evaluation/scoring under separate rounding. Nominal acceptance is 62/63, with three complete tasks: 51 (4/4),60 (44/44),182 (9/9). Task 82 remains 5/6, preserving one BF16 failure at t=-5. The cumulative ledger reaches 11 complete tasks and 206 individually passing graphs after overlap accounting. These are development qualification results, not a fresh held-out optimization experiment.
+
+The exact measured source snapshot has 89 files: 85 match a620e6e, and four archived overrides reconstruct the actual remote state. CUDA/shared-runtime ASTs match the commit when the unrelated WebGPU class and documentation are excluded. Future sources are aligned separately; earlier evidence is not rewritten. Script 161 verifies this provenance and the reported numerical facts.
+
+The structural training audit finds zero reductions, fanout or exact internal duplicates in the old 12-graph development set. Broader transformation learning therefore requires a deliberately richer corpus rather than another policy on this unchanged workload population.
