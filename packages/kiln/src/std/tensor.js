@@ -230,7 +230,8 @@ export const N = {
   conv2d: (x,w,b,options={}) => {
     if (["f16","bf16"].includes(x.type.dtype)) {
       if(w.type.dtype!==x.type.dtype || (b && b.type.dtype!==x.type.dtype)) throw new KilnError("TypeError","conv2d mixed low-precision operands unsupported");
-      return N.cast(nn.conv2d(N.cast(x,"f32"),N.cast(w,"f32"),b ? N.cast(b,"f32") : tensor.const({value:0,shape:[w.type.shape[0]]}),options),x.type.dtype);
+      const convolved = N.cast(nn.conv2d(N.cast(x,"f32"),N.cast(w,"f32"),tensor.const({value:0,shape:[w.type.shape[0]]}),options),x.type.dtype);
+      return b ? N.add(convolved,N.reshape(b,[1,w.type.shape[0],1,1])) : convolved;
     }
     return nn.conv2d(x,w,b || tensor.const({value:0,shape:[w.type.shape[0]]}),options);
   },

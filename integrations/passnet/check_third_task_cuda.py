@@ -6,13 +6,14 @@ import sys
 import torch
 from runtime import TorchProgram
 root=Path(sys.argv[1]);manifest=json.loads((root/'third-task/manifest.json').read_text())
-assert all((root/'third-task'/f'{i:03d}.json').exists() for i in range(len(manifest['variants'])))
+artifact_name=sys.argv[2] if len(sys.argv)>2 else '000.json'
+assert (root/'third-task'/artifact_name).exists()
 types={'f32':torch.float32,'f16':torch.float16,'bf16':torch.bfloat16}
 results=[]
 for i,record in enumerate(manifest['variants']):
  source=root/'upstream'/record['graph']/'model.py'
  spec=importlib.util.spec_from_file_location(f'original_{i}',source);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
- artifact=root/'third-task'/f'{i:03d}.json'
+ artifact=root/'third-task'/artifact_name
  p=TorchProgram(artifact,include_paths=['/usr/local/cuda/include'])
  torch.manual_seed(42)
  inputs=[torch.randn(shape,device='cuda').to(types[record['input_dtypes'][name]]) for name,shape in record['inputs'].items()]

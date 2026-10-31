@@ -24,3 +24,14 @@ for(const fixture of fixtures.cases){
  for(let i=0;i<actual.data.length;i++)assert.ok(Math.abs(actual.data[i]-fixture.output.data[i])<=1e-5+1.3e-6*Math.abs(fixture.output.data[i]),`lowered value ${i}`);
 }
 console.log('convolution decomposition agrees with PyTorch');
+// Bias is added after narrowing convolution, matching observed PyTorch CUDA half path.
+for(const dtype of ['f16','bf16']){
+ const delta=dtype==='f16'?2**-11:2**-8;
+ const g=k.trace('bias-rounding',({x,w,b})=>({out:N.conv2d(x,w,b)}),{x:k.tensor([1,2,1,1],dtype),w:k.tensor([1,2,1,1],dtype),b:k.tensor([1],dtype)});
+ const values={x:new Tensor([1,2,1,1],Float32Array.of(1,delta)),w:new Tensor([1,2,1,1],Float32Array.of(1,1)),b:new Tensor([1],Float32Array.of(delta))};
+ // 1 + delta rounds to 1; adding delta again ties to even at 1.
+ assert.equal(g.eval(values).out.data[0],1);
+ const lowered=pipe.run(g);assert.ok(lowered.ok,lowered.error?.message);
+ assert.equal(lowered.graph.eval(values).out.data[0],1);
+}
+console.log('low-precision convolution bias boundary passed');

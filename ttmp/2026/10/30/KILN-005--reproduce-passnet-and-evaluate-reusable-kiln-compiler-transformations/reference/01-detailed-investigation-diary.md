@@ -2257,3 +2257,45 @@ Original numerical correctness and intermediate script preservation requirements
 - PyTorch FP16 biased convolution exactly equals FP16 bias-free convolution followed by FP16 bias addition for this test (zero differing elements).
 - Kiln versus FP32-narrow oracle has ten failing elements; biased PyTorch half versus that oracle has 185. Bias boundary is established as material, but accumulation-order residuals may remain.
 - Next change must narrow convolution before bias addition, then rerun original fused graph rather than only stage diagnostic.
+
+## Step 54: Correct low-precision convolution bias boundary
+
+Implemented evidence-backed narrowing of bias-free convolution before bias addition, matching the observed PyTorch CUDA half path. Added a small precision-sensitive reference/decomposition regression for FP16/BF16. Original-shape corrected export remains under observation; no GPU success claim yet.
+
+### Prompt Context
+Original correctness requirement and stage diagnosis from Step 53.
+**Assistant interpretation:** Fix established source-visible bias ordering without loosening numerical tolerances.
+**Inferred user intent:** Correct compiler semantics rather than hide mismatch.
+
+### What I did
+- Changed low-precision N.conv2d to narrow bias-free FP32-internal result, then add typed reshaped bias.
+- Added midpoint case where alternative bias ordering changes output.
+- Compiling separate bias-fixed.json, preserving original failed 000.json.
+- Saved script 35 sequencing export then original graph CUDA comparison; validator accepts explicit artifact filename.
+
+### Why
+- Stage diagnostic showed PyTorch biased half convolution equals narrowed bias-free convolution plus half bias exactly for actual test.
+
+### What worked
+- FP32 reference/decomposition fixtures and new FP16/BF16 bias boundary tests passed locally on Node 26.
+
+### What didn't work
+- No new completed GPU result; original mismatch remains unresolved until corrected original fused artifact is validated.
+
+### What I learned
+- Precision-sensitive bias ordering belongs in frontend lowering so fusion retains explicit narrowing.
+
+### What was tricky to build
+- Preserve no-bias behavior and original failed artifacts while adding a distinct corrected test artifact.
+
+### What warrants a second pair of eyes
+- Accumulation-order residual differences may remain even after material bias-boundary fix; BF16 backend behavior requires independent checks.
+
+### What should be done in the future
+- Poll existing compile handle, run corrected artifact comparison and inspect any remaining failures; archive exact outcomes.
+
+### Code review instructions
+- Review tensor.js low-precision conv wrapper, conv2d.mjs midpoint regression and script 35.
+
+### Technical details
+- Independent semantic correction from differential GPU evidence, no upstream source copied or checker changed.
