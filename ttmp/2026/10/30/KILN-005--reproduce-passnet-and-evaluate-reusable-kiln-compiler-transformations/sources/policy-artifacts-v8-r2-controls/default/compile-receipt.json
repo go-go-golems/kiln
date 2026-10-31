@@ -1,0 +1,3552 @@
+{
+  "format": "kiln-policy-compilation/2",
+  "membership_sha256": "c40f81bf05839042fd845dc797a6ddb3b8665d1f3d7b27f83cc5fb4d9cc27ca5",
+  "reference_domain_sha256": "3f060ecfe18e89ee48e1eb654ff2138ca4fda1903c4841df9b40b8d502d46a24",
+  "policy": {
+    "format": "kiln-fusion-policy/1",
+    "id": "default",
+    "kind": "threshold",
+    "max_work_growth": 1.02
+  },
+  "policy_node_count": 1,
+  "target": "a100",
+  "phase": "train",
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "records": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_swin-base-patch4-window12-384-in22k/_decomposed/microsoft_swin-base-patch4-window12-384-in22k_start1502_end1505_66",
+      "split": "train",
+      "script": "000.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "000.kiln.json",
+      "fingerprint": "c27fdb1bd72aa5bded42023866e7abc72836e9f335f90f1e68e312a98df88395",
+      "kernel_count": 4,
+      "kernel_identities": [
+        "1ljdf2ar0n6",
+        "d7zw8sw3bt",
+        "hrs1ukaddw",
+        "26i5xpc67l8"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.0000016689300537109375,
+            "maxRel": 0.08297804528849184,
+            "bad": 0,
+            "n": 147456,
+            "first": -1,
+            "message": "max abs diff 1.67e-6"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0.0000016689300537109375,
+            "maxRel": 0.08297804528849184,
+            "bad": 0,
+            "n": 147456,
+            "first": -1,
+            "message": "max abs diff 1.67e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 7077888,
+          "fusedWork": 3538944,
+          "consumerCount": 1,
+          "producerElements": 147456,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8994816,
+          "fusedWork": 5455872,
+          "consumerCount": 1,
+          "producerElements": 147456,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8994816,
+          "fusedWork": 5455872,
+          "consumerCount": 1,
+          "producerElements": 147456,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 5480448,
+          "fusedWork": 5455872,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10911744,
+          "fusedWork": 7372800,
+          "consumerCount": 1,
+          "producerElements": 147456,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10911744,
+          "fusedWork": 7372800,
+          "consumerCount": 1,
+          "producerElements": 147456,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7397376,
+          "fusedWork": 7372800,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12828672,
+          "fusedWork": 9289728,
+          "consumerCount": 1,
+          "producerElements": 147456,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11060928,
+          "fusedWork": 9289728,
+          "consumerCount": 1,
+          "producerElements": 147456,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9293760,
+          "fusedWork": 9879552,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 7632,
+          "fusedWork": 4176,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9293904,
+          "fusedWork": 10027008,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 8208,
+          "fusedWork": 4752,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9294480,
+          "fusedWork": 10616832,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 1923408,
+          "fusedWork": 1919952,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11209680,
+          "fusedWork": 1971781632,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 5606352,
+          "fusedWork": 2067408,
+          "consumerCount": 1,
+          "producerElements": 147456,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11357136,
+          "fusedWork": 2122776576,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 16813008,
+          "fusedWork": 15190992,
+          "consumerCount": 2,
+          "producerElements": 147456,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15190992,
+          "fusedWork": 4087627776,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 16962192,
+          "fusedWork": 13423248,
+          "consumerCount": 2,
+          "producerElements": 147456,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13423248,
+          "fusedWork": 2275688448,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 13427280,
+          "fusedWork": 14013648,
+          "consumerCount": 2,
+          "producerElements": 144,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 1922688,
+          "fusedWork": 1919232,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15342480,
+          "fusedWork": 1977093648,
+          "consumerCount": 2,
+          "producerElements": 144,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 18881424,
+          "fusedWork": 15342480,
+          "consumerCount": 3,
+          "producerElements": 147456,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13423248,
+          "fusedWork": 2275688448,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 15342480,
+          "fusedWork": 1977093648,
+          "consumerCount": 2,
+          "producerElements": 144,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 18881424,
+          "fusedWork": 15342480,
+          "consumerCount": 3,
+          "producerElements": 147456,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13423248,
+          "fusedWork": 2275688448,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 15342480,
+          "fusedWork": 1977093648,
+          "consumerCount": 2,
+          "producerElements": 144,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 20798352,
+          "fusedWork": 21093264,
+          "consumerCount": 3,
+          "producerElements": 147456,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 17257104,
+          "fusedWork": 4240539648,
+          "consumerCount": 1,
+          "producerElements": 144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 21093264,
+          "fusedWork": 3945778704,
+          "consumerCount": 2,
+          "producerElements": 144,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        }
+      ],
+      "compile_ms": 95.670452
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/torchaudio/wav2vec2_large/_decomposed/wav2vec2_large_start27_end29_4",
+      "split": "train",
+      "script": "001.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "001.kiln.json",
+      "fingerprint": "c0c2414b7148fc0979d6f1176c2b6317d2bf17d34ff4c82399b99fd977012ff4",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "rx6tsmwyy3",
+        "1372oiwtm1v",
+        "dxwhmgaurl"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.0000016689300537109375,
+            "maxRel": 0.19393455173878787,
+            "bad": 0,
+            "n": 254976,
+            "first": -1,
+            "message": "max abs diff 1.67e-6"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 12238848,
+          "fusedWork": 6119424,
+          "consumerCount": 1,
+          "producerElements": 254976,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15553536,
+          "fusedWork": 9434112,
+          "consumerCount": 1,
+          "producerElements": 254976,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15553536,
+          "fusedWork": 9434112,
+          "consumerCount": 1,
+          "producerElements": 254976,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9458688,
+          "fusedWork": 9434112,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 18868224,
+          "fusedWork": 12748800,
+          "consumerCount": 1,
+          "producerElements": 254976,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 18868224,
+          "fusedWork": 12748800,
+          "consumerCount": 1,
+          "producerElements": 254976,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12773376,
+          "fusedWork": 12748800,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 22182912,
+          "fusedWork": 16063488,
+          "consumerCount": 1,
+          "producerElements": 254976,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19126188,
+          "fusedWork": 16063488,
+          "consumerCount": 1,
+          "producerElements": 254976,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 16070460,
+          "fusedWork": 17083392,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 13197,
+          "fusedWork": 7221,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 16070709,
+          "fusedWork": 17338368,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 14193,
+          "fusedWork": 8217,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 16071705,
+          "fusedWork": 18358272,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 3325893,
+          "fusedWork": 3319917,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19383405,
+          "fusedWork": 3409539072,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 9694317,
+          "fusedWork": 3574893,
+          "consumerCount": 1,
+          "producerElements": 254976,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 19638381,
+          "fusedWork": 3670634496,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 29072493,
+          "fusedWork": 26267757,
+          "consumerCount": 2,
+          "producerElements": 254976,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 26267757,
+          "fusedWork": 7068189696,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 29330457,
+          "fusedWork": 23211033,
+          "consumerCount": 2,
+          "producerElements": 254976,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 23211033,
+          "fusedWork": 3935044608,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 23218005,
+          "fusedWork": 24231933,
+          "consumerCount": 2,
+          "producerElements": 249,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 3324648,
+          "fusedWork": 3318672,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 26529705,
+          "fusedWork": 3418724433,
+          "consumerCount": 2,
+          "producerElements": 249,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 32649129,
+          "fusedWork": 26529705,
+          "consumerCount": 3,
+          "producerElements": 254976,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 23211033,
+          "fusedWork": 3935044608,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 26529705,
+          "fusedWork": 3418724433,
+          "consumerCount": 2,
+          "producerElements": 249,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 32649129,
+          "fusedWork": 26529705,
+          "consumerCount": 3,
+          "producerElements": 254976,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 23211033,
+          "fusedWork": 3935044608,
+          "consumerCount": 1,
+          "producerElements": 249,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 26529705,
+          "fusedWork": 3418724433,
+          "consumerCount": 2,
+          "producerElements": 249,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        }
+      ],
+      "compile_ms": 58.35845500000002
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_beit-large-patch16-384/_decomposed/microsoft_beit-large-patch16-384_start664_end667_26",
+      "split": "train",
+      "script": "002.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "002.kiln.json",
+      "fingerprint": "ecccbef99a62140f6830b6c92ce8cda88aa0b7678261fc5cdf26e4f5a451268c",
+      "kernel_count": 4,
+      "kernel_identities": [
+        "2ens1ej8rs",
+        "b500twq8vx",
+        "hlo8ei3pmx",
+        "1my066mottl"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0.000002384185791015625,
+            "maxRel": 0.21025811520293552,
+            "bad": 0,
+            "n": 590848,
+            "first": -1,
+            "message": "max abs diff 2.38e-6"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 590848,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 28360704,
+          "fusedWork": 14180352,
+          "consumerCount": 1,
+          "producerElements": 590848,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 36041728,
+          "fusedWork": 21861376,
+          "consumerCount": 1,
+          "producerElements": 590848,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 36041728,
+          "fusedWork": 21861376,
+          "consumerCount": 1,
+          "producerElements": 590848,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 21885952,
+          "fusedWork": 21861376,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 43722752,
+          "fusedWork": 29542400,
+          "consumerCount": 1,
+          "producerElements": 590848,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 43722752,
+          "fusedWork": 29542400,
+          "consumerCount": 1,
+          "producerElements": 590848,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 29566976,
+          "fusedWork": 29542400,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 51403776,
+          "fusedWork": 37223424,
+          "consumerCount": 1,
+          "producerElements": 590848,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 44320524,
+          "fusedWork": 37223424,
+          "consumerCount": 1,
+          "producerElements": 590848,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 37239580,
+          "fusedWork": 39586816,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 30581,
+          "fusedWork": 16733,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 37240157,
+          "fusedWork": 40177664,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 32889,
+          "fusedWork": 19041,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 37242465,
+          "fusedWork": 42541056,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 7706989,
+          "fusedWork": 7693141,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 44916565,
+          "fusedWork": 7900819456,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 22464341,
+          "fusedWork": 8283989,
+          "consumerCount": 1,
+          "producerElements": 590848,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 45507413,
+          "fusedWork": 8505847808,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 67368789,
+          "fusedWork": 60869461,
+          "consumerCount": 2,
+          "producerElements": 590848,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 60869461,
+          "fusedWork": 16378897408,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 67966561,
+          "fusedWork": 53786209,
+          "consumerCount": 2,
+          "producerElements": 590848,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 53786209,
+          "fusedWork": 9118557184,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 53802365,
+          "fusedWork": 56151909,
+          "consumerCount": 2,
+          "producerElements": 577,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 7704104,
+          "fusedWork": 7690256,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 61476465,
+          "fusedWork": 7922104409,
+          "consumerCount": 2,
+          "producerElements": 577,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 75656817,
+          "fusedWork": 61476465,
+          "consumerCount": 3,
+          "producerElements": 590848,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 53786209,
+          "fusedWork": 9118557184,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 61476465,
+          "fusedWork": 7922104409,
+          "consumerCount": 2,
+          "producerElements": 577,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 75656817,
+          "fusedWork": 61476465,
+          "consumerCount": 3,
+          "producerElements": 590848,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 53786209,
+          "fusedWork": 9118557184,
+          "consumerCount": 1,
+          "producerElements": 577,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 61476465,
+          "fusedWork": 7922104409,
+          "consumerCount": 2,
+          "producerElements": 577,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 43722752,
+          "fusedWork": 29542400,
+          "consumerCount": 1,
+          "producerElements": 590848,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 43722752,
+          "fusedWork": 29542400,
+          "consumerCount": 1,
+          "producerElements": 590848,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 103.712793
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/mesolitica_ner-t5-small-standard-bahasa-cased/_decomposed/mesolitica_ner-t5-small-standard-bahasa-cased_start769_end775_3",
+      "split": "train",
+      "script": "003.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "003.kiln.json",
+      "fingerprint": "a9615f48d1565db07a25ea18b907fa90b97e02f30c5aeab33092610f771ef5ea",
+      "kernel_count": 2,
+      "kernel_identities": [
+        "12l0m3il3yz",
+        "jccmeg3uz6"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~129M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 2015232,
+          "fusedWork": 1007616,
+          "consumerCount": 1,
+          "producerElements": 41984,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2015232,
+          "fusedWork": 1007616,
+          "consumerCount": 1,
+          "producerElements": 41984,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 280956928,
+          "fusedWork": 279949312,
+          "consumerCount": 1,
+          "producerElements": 41984,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1075294208,
+          "fusedWork": 559394816,
+          "consumerCount": 1,
+          "producerElements": 21495808,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1075294208,
+          "fusedWork": 559394816,
+          "consumerCount": 1,
+          "producerElements": 21495808,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 565686272,
+          "fusedWork": 559394816,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 817848320,
+          "fusedWork": 559394816,
+          "consumerCount": 1,
+          "producerElements": 21495808,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 560402432,
+          "fusedWork": 559394816,
+          "consumerCount": 1,
+          "producerElements": 41984,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 6.778909999999996
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/owkin_phikon/_decomposed/owkin_phikon_start318_end321_2",
+      "split": "train",
+      "script": "004.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "004.kiln.json",
+      "fingerprint": "df3ff8eabb6d0c8dfd115a79b3e858e4727599f9ce1b9924c63a12c9ea31bc35",
+      "kernel_count": 4,
+      "kernel_identities": [
+        "ekwhvawrc6",
+        "1iyjopit6ry",
+        "111kvadhk23",
+        "10fez2akxho"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 2.384185791015625e-7,
+            "maxRel": 0.00021260716038180505,
+            "bad": 0,
+            "n": 768,
+            "first": -1,
+            "message": "max abs diff 2.38e-7"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 0.01669169622818286,
+            "bad": 0,
+            "n": 151296,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 7262208,
+          "fusedWork": 3631104,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9229056,
+          "fusedWork": 5597952,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9229056,
+          "fusedWork": 5597952,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 5616384,
+          "fusedWork": 5597952,
+          "consumerCount": 1,
+          "producerElements": 768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11195904,
+          "fusedWork": 7564800,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11195904,
+          "fusedWork": 7564800,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 7583232,
+          "fusedWork": 7564800,
+          "consumerCount": 1,
+          "producerElements": 768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13162752,
+          "fusedWork": 9531648,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11349564,
+          "fusedWork": 9531648,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9537164,
+          "fusedWork": 10136832,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 10441,
+          "fusedWork": 5713,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9537361,
+          "fusedWork": 10288128,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 11229,
+          "fusedWork": 6501,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9538149,
+          "fusedWork": 10893312,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 1975713,
+          "fusedWork": 1970985,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11502633,
+          "fusedWork": 1519617024,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 5753385,
+          "fusedWork": 2122281,
+          "consumerCount": 1,
+          "producerElements": 151296,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11653929,
+          "fusedWork": 1635812352,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 17251881,
+          "fusedWork": 15587625,
+          "consumerCount": 2,
+          "producerElements": 151296,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15587625,
+          "fusedWork": 3148318464,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 17405541,
+          "fusedWork": 13774437,
+          "consumerCount": 2,
+          "producerElements": 151296,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13774437,
+          "fusedWork": 1753974528,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 13779953,
+          "fusedWork": 14380409,
+          "consumerCount": 2,
+          "producerElements": 197,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 1974728,
+          "fusedWork": 1970000,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 15744437,
+          "fusedWork": 1525068605,
+          "consumerCount": 2,
+          "producerElements": 197,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 19375541,
+          "fusedWork": 15744437,
+          "consumerCount": 3,
+          "producerElements": 151296,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13774437,
+          "fusedWork": 1753974528,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 15744437,
+          "fusedWork": 1525068605,
+          "consumerCount": 2,
+          "producerElements": 197,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 19375541,
+          "fusedWork": 15744437,
+          "consumerCount": 3,
+          "producerElements": 151296,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13774437,
+          "fusedWork": 1753974528,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 15744437,
+          "fusedWork": 1525068605,
+          "consumerCount": 2,
+          "producerElements": 197,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 21342389,
+          "fusedWork": 21644981,
+          "consumerCount": 3,
+          "producerElements": 151296,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 17708133,
+          "fusedWork": 3266480640,
+          "consumerCount": 1,
+          "producerElements": 197,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 21644981,
+          "fusedWork": 3041508413,
+          "consumerCount": 2,
+          "producerElements": 197,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        }
+      ],
+      "compile_ms": 51.32290699999999
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-Swinv2Model/_decomposed/hf-tiny-model-private_tiny-random-Swinv2Model_start286_end290_10",
+      "split": "train",
+      "script": "005.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "005.kiln.json",
+      "fingerprint": "f5e47570e68b7dbacbba1df1524a6d2e48381961952494a82e11ffad4aebbca9",
+      "kernel_count": 6,
+      "kernel_identities": [
+        "xbms5xj71i",
+        "1d3g8etqzlj",
+        "bcn5lvvu2r",
+        "o7dnqv8lys",
+        "1cmj7kkw8u1",
+        "215lobmxfdn"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 5.364418029785156e-7,
+            "maxRel": 0.00004073809854880682,
+            "bad": 0,
+            "n": 1024,
+            "first": -1,
+            "message": "max abs diff 5.36e-7"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 5.364418029785156e-7,
+            "maxRel": 0.00004073809854880682,
+            "bad": 0,
+            "n": 1024,
+            "first": -1,
+            "message": "max abs diff 5.36e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 49152,
+          "fusedWork": 24576,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 62464,
+          "fusedWork": 37888,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 62464,
+          "fusedWork": 37888,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 39424,
+          "fusedWork": 37888,
+          "consumerCount": 1,
+          "producerElements": 64,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 75776,
+          "fusedWork": 51200,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 75776,
+          "fusedWork": 51200,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 52736,
+          "fusedWork": 51200,
+          "consumerCount": 1,
+          "producerElements": 64,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 89088,
+          "fusedWork": 64512,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 76992,
+          "fusedWork": 64512,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 64960,
+          "fusedWork": 68608,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 848,
+          "fusedWork": 464,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 64976,
+          "fusedWork": 69632,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 912,
+          "fusedWork": 528,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 65040,
+          "fusedWork": 73728,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 14032,
+          "fusedWork": 13648,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 78160,
+          "fusedWork": 913408,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 39248,
+          "fusedWork": 14672,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 79184,
+          "fusedWork": 978944,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 117072,
+          "fusedWork": 105808,
+          "consumerCount": 2,
+          "producerElements": 1024,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 105808,
+          "fusedWork": 1844224,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 118288,
+          "fusedWork": 93712,
+          "consumerCount": 2,
+          "producerElements": 1024,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 93712,
+          "fusedWork": 1057792,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 94160,
+          "fusedWork": 97872,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 13952,
+          "fusedWork": 13568,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 107280,
+          "fusedWork": 950672,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 131856,
+          "fusedWork": 107280,
+          "consumerCount": 3,
+          "producerElements": 1024,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 93712,
+          "fusedWork": 1057792,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 107280,
+          "fusedWork": 950672,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 131856,
+          "fusedWork": 107280,
+          "consumerCount": 3,
+          "producerElements": 1024,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 93712,
+          "fusedWork": 1057792,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 107280,
+          "fusedWork": 950672,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 145168,
+          "fusedWork": 147216,
+          "consumerCount": 3,
+          "producerElements": 1024,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 120336,
+          "fusedWork": 1923072,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 147216,
+          "fusedWork": 1842576,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 171792,
+          "fusedWork": 147216,
+          "consumerCount": 3,
+          "producerElements": 1024,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 120336,
+          "fusedWork": 1923072,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 147216,
+          "fusedWork": 1842576,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 171792,
+          "fusedWork": 147216,
+          "consumerCount": 3,
+          "producerElements": 1024,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 120336,
+          "fusedWork": 1923072,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 147216,
+          "fusedWork": 1842576,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 185104,
+          "fusedWork": 187152,
+          "consumerCount": 3,
+          "producerElements": 1024,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 146960,
+          "fusedWork": 2788352,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 187152,
+          "fusedWork": 2734480,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 211728,
+          "fusedWork": 187152,
+          "consumerCount": 3,
+          "producerElements": 1024,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 146960,
+          "fusedWork": 2788352,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 187152,
+          "fusedWork": 2734480,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 188688,
+          "fusedWork": 187152,
+          "consumerCount": 3,
+          "producerElements": 64,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 146960,
+          "fusedWork": 2788352,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 187152,
+          "fusedWork": 2734480,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 225040,
+          "fusedWork": 227088,
+          "consumerCount": 3,
+          "producerElements": 1024,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 173584,
+          "fusedWork": 3653632,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 227088,
+          "fusedWork": 3626384,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 251664,
+          "fusedWork": 227088,
+          "consumerCount": 3,
+          "producerElements": 1024,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 173584,
+          "fusedWork": 3653632,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 227088,
+          "fusedWork": 3626384,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 228624,
+          "fusedWork": 227088,
+          "consumerCount": 3,
+          "producerElements": 64,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 173584,
+          "fusedWork": 3653632,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 227088,
+          "fusedWork": 3626384,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 264976,
+          "fusedWork": 267024,
+          "consumerCount": 3,
+          "producerElements": 1024,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 200208,
+          "fusedWork": 4518912,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 267024,
+          "fusedWork": 4518288,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 279504,
+          "fusedWork": 267024,
+          "consumerCount": 3,
+          "producerElements": 1024,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 200208,
+          "fusedWork": 4518912,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 267024,
+          "fusedWork": 4518288,
+          "consumerCount": 2,
+          "producerElements": 16,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 267472,
+          "fusedWork": 279312,
+          "consumerCount": 3,
+          "producerElements": 16,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 848,
+          "fusedWork": 464,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 267488,
+          "fusedWork": 282384,
+          "consumerCount": 3,
+          "producerElements": 16,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 912,
+          "fusedWork": 528,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 267552,
+          "fusedWork": 294672,
+          "consumerCount": 3,
+          "producerElements": 16,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 14032,
+          "fusedWork": 13648,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 280672,
+          "fusedWork": 2813712,
+          "consumerCount": 3,
+          "producerElements": 16,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 39248,
+          "fusedWork": 14672,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 281696,
+          "fusedWork": 3010320,
+          "consumerCount": 3,
+          "producerElements": 16,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 319584,
+          "fusedWork": 334944,
+          "consumerCount": 4,
+          "producerElements": 1024,
+          "selectedConsumerCount": 4,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 50368,
+          "fusedWork": 25792,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 307488,
+          "fusedWork": 322848,
+          "consumerCount": 4,
+          "producerElements": 1024,
+          "selectedConsumerCount": 4,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 26240,
+          "fusedWork": 25856,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 307552,
+          "fusedWork": 335200,
+          "consumerCount": 4,
+          "producerElements": 1024,
+          "selectedConsumerCount": 4,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 39360,
+          "fusedWork": 38976,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 320672,
+          "fusedWork": 2867360,
+          "consumerCount": 4,
+          "producerElements": 1024,
+          "selectedConsumerCount": 4,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 63552,
+          "fusedWork": 38976,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 320672,
+          "fusedWork": 2867360,
+          "consumerCount": 4,
+          "producerElements": 1024,
+          "selectedConsumerCount": 4,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 63552,
+          "fusedWork": 38976,
+          "consumerCount": 1,
+          "producerElements": 1024,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 320672,
+          "fusedWork": 2867360,
+          "consumerCount": 4,
+          "producerElements": 1024,
+          "selectedConsumerCount": 4,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        }
+      ],
+      "compile_ms": 66.82401600000003
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/facebook_wav2vec2-base-960h/_decomposed/facebook_wav2vec2-base-960h_start36_end41_7",
+      "split": "train",
+      "script": "006.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "006.kiln.json",
+      "fingerprint": "9f04a17b8aa5321e915375cf595bfa0be3ca05d72829bc4b84e4cbf01fe3b5dd",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "25dy8irgcwk",
+        "25dy8irgcwk",
+        "jmpmza7egw"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~174M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 1806336,
+          "fusedWork": 903168,
+          "consumerCount": 1,
+          "producerElements": 37632,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2295552,
+          "fusedWork": 1392384,
+          "consumerCount": 1,
+          "producerElements": 37632,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2295552,
+          "fusedWork": 1392384,
+          "consumerCount": 1,
+          "producerElements": 37632,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1410816,
+          "fusedWork": 1392384,
+          "consumerCount": 1,
+          "producerElements": 768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 2295552,
+          "fusedWork": 1392384,
+          "consumerCount": 1,
+          "producerElements": 37632,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 377561856,
+          "fusedWork": 376658688,
+          "consumerCount": 1,
+          "producerElements": 37632,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1446009600,
+          "fusedWork": 752376576,
+          "consumerCount": 1,
+          "producerElements": 28901376,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1446009600,
+          "fusedWork": 752376576,
+          "consumerCount": 1,
+          "producerElements": 28901376,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 766532352,
+          "fusedWork": 752376576,
+          "consumerCount": 1,
+          "producerElements": 589824,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1099644672,
+          "fusedWork": 752376576,
+          "consumerCount": 1,
+          "producerElements": 28901376,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 753279744,
+          "fusedWork": 752376576,
+          "consumerCount": 1,
+          "producerElements": 37632,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 9.220033999999998
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MBartForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-MBartForSequenceClassification_start101_end107_20",
+      "split": "train",
+      "script": "007.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "007.kiln.json",
+      "fingerprint": "b4572ba29441e5e80992e4cf5b6cfb2d503a4e728ef6660c0f996de74b7fe8ca",
+      "kernel_count": 3,
+      "kernel_identities": [
+        "14eh9szr4cp",
+        "1vhse5z2pu5",
+        "zmr5u6jvd8"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 225,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 240,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out2",
+            "ok": true,
+            "maxAbs": 9.5367431640625e-7,
+            "maxRel": 0.000011048319825738386,
+            "bad": 0,
+            "n": 240,
+            "first": -1,
+            "message": "max abs diff 9.54e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 11520,
+          "fusedWork": 5760,
+          "consumerCount": 1,
+          "producerElements": 240,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14640,
+          "fusedWork": 8880,
+          "consumerCount": 1,
+          "producerElements": 240,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14640,
+          "fusedWork": 8880,
+          "consumerCount": 1,
+          "producerElements": 240,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9264,
+          "fusedWork": 8880,
+          "consumerCount": 1,
+          "producerElements": 16,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14640,
+          "fusedWork": 8880,
+          "consumerCount": 1,
+          "producerElements": 240,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 61680,
+          "fusedWork": 55920,
+          "consumerCount": 1,
+          "producerElements": 240,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 198000,
+          "fusedWork": 105840,
+          "consumerCount": 1,
+          "producerElements": 3840,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 198000,
+          "fusedWork": 105840,
+          "consumerCount": 1,
+          "producerElements": 3840,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 111984,
+          "fusedWork": 105840,
+          "consumerCount": 1,
+          "producerElements": 256,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 154800,
+          "fusedWork": 105840,
+          "consumerCount": 1,
+          "producerElements": 3840,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 111600,
+          "fusedWork": 105840,
+          "consumerCount": 1,
+          "producerElements": 240,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 9.892495999999994
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ar-eo/_decomposed/opus-mt-ar-eo_start235_end242_20",
+      "split": "train",
+      "script": "008.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "008.kiln.json",
+      "fingerprint": "89c7aafe4155c9e4a3e533f3113608ae2b19f7fdd674387be2943f703bc5d8b4",
+      "kernel_count": 4,
+      "kernel_identities": [
+        "909kmwaumq",
+        "1hbyp4fgqvp",
+        "163s3vxmzt6",
+        "vafiz3ph65"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~101M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 1572864,
+          "fusedWork": 786432,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1998848,
+          "fusedWork": 1212416,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1998848,
+          "fusedWork": 1212416,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1224704,
+          "fusedWork": 1212416,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1998848,
+          "fusedWork": 1212416,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 219709440,
+          "fusedWork": 218923008,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 839680000,
+          "fusedWork": 437026816,
+          "consumerCount": 1,
+          "producerElements": 16777216,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 839680000,
+          "fusedWork": 437026816,
+          "consumerCount": 1,
+          "producerElements": 16777216,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 443318272,
+          "fusedWork": 437026816,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 638746624,
+          "fusedWork": 437026816,
+          "consumerCount": 1,
+          "producerElements": 16777216,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 437813248,
+          "fusedWork": 437026816,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 10.386576000000048
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-DPTModel/_decomposed/hf-tiny-model-private_tiny-random-DPTModel_start34_end36_7",
+      "split": "train",
+      "script": "009.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "009.kiln.json",
+      "fingerprint": "898582c356448b4a39b654852b23dcda7d971ef2668c7b94fcf29006dd27013d",
+      "kernel_count": 4,
+      "kernel_identities": [
+        "4sl6r6bft8",
+        "1b4cag2l3dv",
+        "o2z8hvr8rw",
+        "8v76bu6xiw"
+      ],
+      "reference_check": {
+        "level": "loop",
+        "checks": [
+          {
+            "name": "out0",
+            "ok": true,
+            "maxAbs": 0,
+            "maxRel": 0,
+            "bad": 0,
+            "n": 160,
+            "first": -1,
+            "message": "max abs diff 0.00e+0"
+          },
+          {
+            "name": "out1",
+            "ok": true,
+            "maxAbs": 2.384185791015625e-7,
+            "maxRel": 0.000014143018557716948,
+            "bad": 0,
+            "n": 160,
+            "first": -1,
+            "message": "max abs diff 2.38e-7"
+          }
+        ],
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 7680,
+          "fusedWork": 3840,
+          "consumerCount": 1,
+          "producerElements": 160,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9760,
+          "fusedWork": 5920,
+          "consumerCount": 1,
+          "producerElements": 160,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 9760,
+          "fusedWork": 5920,
+          "consumerCount": 1,
+          "producerElements": 160,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 6688,
+          "fusedWork": 5920,
+          "consumerCount": 1,
+          "producerElements": 32,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11840,
+          "fusedWork": 8000,
+          "consumerCount": 1,
+          "producerElements": 160,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 11840,
+          "fusedWork": 8000,
+          "consumerCount": 1,
+          "producerElements": 160,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 8768,
+          "fusedWork": 8000,
+          "consumerCount": 1,
+          "producerElements": 32,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 13920,
+          "fusedWork": 10080,
+          "consumerCount": 1,
+          "producerElements": 160,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12060,
+          "fusedWork": 10080,
+          "consumerCount": 1,
+          "producerElements": 160,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10220,
+          "fusedWork": 10720,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 265,
+          "fusedWork": 145,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10225,
+          "fusedWork": 10880,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 285,
+          "fusedWork": 165,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 10245,
+          "fusedWork": 11520,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 2305,
+          "fusedWork": 2185,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12265,
+          "fusedWork": 76160,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 6185,
+          "fusedWork": 2345,
+          "consumerCount": 1,
+          "producerElements": 160,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 12425,
+          "fusedWork": 81280,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 18345,
+          "fusedWork": 16585,
+          "consumerCount": 2,
+          "producerElements": 160,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 16585,
+          "fusedWork": 149920,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 18565,
+          "fusedWork": 14725,
+          "consumerCount": 2,
+          "producerElements": 160,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14725,
+          "fusedWork": 88480,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 14865,
+          "fusedWork": 15385,
+          "consumerCount": 2,
+          "producerElements": 5,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: profitability rejected"
+        },
+        {
+          "originalWork": 2280,
+          "fusedWork": 2160,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 16885,
+          "fusedWork": 82045,
+          "consumerCount": 2,
+          "producerElements": 5,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 20725,
+          "fusedWork": 16885,
+          "consumerCount": 3,
+          "producerElements": 160,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14725,
+          "fusedWork": 88480,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 16885,
+          "fusedWork": 82045,
+          "consumerCount": 2,
+          "producerElements": 5,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 20725,
+          "fusedWork": 16885,
+          "consumerCount": 3,
+          "producerElements": 160,
+          "selectedConsumerCount": 3,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 14725,
+          "fusedWork": 88480,
+          "consumerCount": 1,
+          "producerElements": 5,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        },
+        {
+          "originalWork": 16885,
+          "fusedWork": 82045,
+          "consumerCount": 2,
+          "producerElements": 5,
+          "selectedConsumerCount": 2,
+          "retainedProducer": false,
+          "accepted": false,
+          "reason": "policy default: hard work-growth budget exceeded"
+        }
+      ],
+      "compile_ms": 14.658956999999987
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/GKLMIP_electra-khmer-small-uncased-tokenized/_decomposed/GKLMIP_electra-khmer-small-uncased-tokenized_start103_end106_10",
+      "split": "train",
+      "script": "010.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "010.kiln.json",
+      "fingerprint": "e30e2525d6a6a7b7bcb81b2827a064c8034396b6e823c278339113e5a12df3e3",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "vafiz3ph65"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~101M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 1572864,
+          "fusedWork": 786432,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1998848,
+          "fusedWork": 1212416,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1998848,
+          "fusedWork": 1212416,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1224704,
+          "fusedWork": 1212416,
+          "consumerCount": 1,
+          "producerElements": 512,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1998848,
+          "fusedWork": 1212416,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 219709440,
+          "fusedWork": 218923008,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 839680000,
+          "fusedWork": 437026816,
+          "consumerCount": 1,
+          "producerElements": 16777216,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 839680000,
+          "fusedWork": 437026816,
+          "consumerCount": 1,
+          "producerElements": 16777216,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 443318272,
+          "fusedWork": 437026816,
+          "consumerCount": 1,
+          "producerElements": 262144,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 638746624,
+          "fusedWork": 437026816,
+          "consumerCount": 1,
+          "producerElements": 16777216,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 437813248,
+          "fusedWork": 437026816,
+          "consumerCount": 1,
+          "producerElements": 32768,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 4.467354
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/breadlicker45_autotrain-blender-50601120822/_decomposed/breadlicker45_autotrain-blender-50601120822_start122_end125_26",
+      "split": "train",
+      "script": "011.kiln.js",
+      "policy": "default",
+      "status": "compiled",
+      "artifact": "011.kiln.json",
+      "fingerprint": "cd5542e888495d8bc7c230d7c969d13c5b19f8aec200c04ba7b9b2415e8b8417",
+      "kernel_count": 1,
+      "kernel_identities": [
+        "juojaxcl3b"
+      ],
+      "reference_check": {
+        "skipped": "the reference would take ~148M operations; per-kernel checks still run on every measurement",
+        "custom": [],
+        "ok": true
+      },
+      "decisions": [
+        {
+          "originalWork": 921600,
+          "fusedWork": 460800,
+          "consumerCount": 1,
+          "producerElements": 19200,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1171200,
+          "fusedWork": 710400,
+          "consumerCount": 1,
+          "producerElements": 19200,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1171200,
+          "fusedWork": 710400,
+          "consumerCount": 1,
+          "producerElements": 19200,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 741120,
+          "fusedWork": 710400,
+          "consumerCount": 1,
+          "producerElements": 1280,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1171200,
+          "fusedWork": 710400,
+          "consumerCount": 1,
+          "producerElements": 19200,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 320428800,
+          "fusedWork": 319968000,
+          "consumerCount": 1,
+          "producerElements": 19200,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1229280000,
+          "fusedWork": 639456000,
+          "consumerCount": 1,
+          "producerElements": 24576000,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 1229280000,
+          "fusedWork": 639456000,
+          "consumerCount": 1,
+          "producerElements": 24576000,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 678777600,
+          "fusedWork": 639456000,
+          "consumerCount": 1,
+          "producerElements": 1638400,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 934598400,
+          "fusedWork": 639456000,
+          "consumerCount": 1,
+          "producerElements": 24576000,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        },
+        {
+          "originalWork": 639916800,
+          "fusedWork": 639456000,
+          "consumerCount": 1,
+          "producerElements": 19200,
+          "selectedConsumerCount": 1,
+          "retainedProducer": false,
+          "accepted": true,
+          "reason": null
+        }
+      ],
+      "compile_ms": 5.657639000000017
+    }
+  ]
+}

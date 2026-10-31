@@ -5281,3 +5281,47 @@ See the user's instruction to implement missing Kiln pieces and preserve interme
 
 ### Technical details
 - No upstream algorithm copied. Transpose uses existing Kiln primitives and independent axis semantics. The new source declaration is before timing; old measurements/rankings remain intact. No renewed reMarkable export is attempted.
+
+## Step 118: Complete transpose CUDA qualification and freeze fresh /3 evaluation
+
+All117 transpose comparisons pass, including function/method/ATen bindings, three shapes/dtypes, matrix consumers and zero-kernel input aliases. The broader fresh population's twelve training controls match unchanged/default and expose85 multi-consumer attempts. Twelve region programs and their reference/timing procedure are frozen before any confirmation compilation or new timing.
+
+### Prompt Context
+See Steps116–117 for canonical evidence, preserved source failures and the user's complete implementation/evaluation objective.
+**Assistant interpretation:** Finish the actual GPU gate and resume optimization only through a fresh /3 declaration.
+**Inferred user intent:** Obtain trustworthy compiler feedback and benchmark support without filtering difficult cases.
+**Commit (bindings/export):**71fb43d — feat(passnet): unify transpose lowering and export input-only programs.
+
+### What I did
+- Ran script232 in a dedicated bling tmux job and collected EXIT_CODE=0 plus the117/117 receipt.
+- Used shared controls/freezing through script233 on policy-corpus-v8-r2, retaining all prior model exclusions and the explicitly broadened matrix-resource envelope.
+- Saved script234 for full source-verified compilation. No policy coefficients are selected from timing at this stage.
+
+### Why
+- Numerical fixtures validate the new source/export boundary; a fresh frozen study is required before interpreting optimization after identity repair.
+
+### What worked
+- All39 fixture programs pass three-seed CUDA source replay with unchanged dtype tolerances and input-immutability checks.
+- Twelve training controls qualify, unchanged equals default and85 fanout attempts are recorded. The fixed twelve-program region grammar and highest-precision FP32 research reference are frozen.
+- Canonical-emission108/108 GPU evidence and exact8/8 replay resolution remain separate evidence for the identity repair.
+
+### What didn't work
+- No new native PassBench task acceptance or speedup is established. The original PassAgent provider/model question remains pending; no credential values were inspected or retained.
+
+### What I learned
+- Existing pointer/runtime contracts already support input aliases once complete-program detection permits their export.
+
+### What was tricky to build
+- The broader matrix population is a new declared attempt, not a renamed success for the earlier quota failures. Its candidate and reference freeze precedes confirmation access.
+
+### What warrants a second pair of eyes
+- Review exact alias sharing under /3, source-exclusion hashes and the preserved incomplete attempts before performance measurement.
+
+### What should be done in the future
+- Compile/qualify all240 artifacts, measure training only, commit a selection and run all eight confirmation graphs. Run original PassAgent once a provider is supplied.
+
+### Code review instructions
+- Read transpose-cuda.json, canonical-controls-freeze.log, policy-corpus-v8-r2/candidate-freeze.json and script234.
+
+### Technical details
+- Fresh membership c40f81bf05839042fd845dc797a6ddb3b8665d1f3d7b27f83cc5fb4d9cc27ca5. Original coverage remains eleven tasks/206 graphs, import eligibility1029/51. No new device-document export is attempted while approval remains pending.

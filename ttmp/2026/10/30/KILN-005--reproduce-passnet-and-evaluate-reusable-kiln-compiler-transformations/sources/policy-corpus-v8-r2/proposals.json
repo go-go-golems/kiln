@@ -1,0 +1,153 @@
+{
+  "format": "kiln-policy-proposals/1",
+  "training_membership_sha256": "c40f81bf05839042fd845dc797a6ddb3b8665d1f3d7b27f83cc5fb4d9cc27ca5",
+  "training_graphs": [
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_swin-base-patch4-window12-384-in22k/_decomposed/microsoft_swin-base-patch4-window12-384-in22k_start1502_end1505_66",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/torchaudio/wav2vec2_large/_decomposed/wav2vec2_large_start27_end29_4",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/microsoft_beit-large-patch16-384/_decomposed/microsoft_beit-large-patch16-384_start664_end667_26",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/mesolitica_ner-t5-small-standard-bahasa-cased/_decomposed/mesolitica_ner-t5-small-standard-bahasa-cased_start769_end775_3",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/owkin_phikon/_decomposed/owkin_phikon_start318_end321_2",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-Swinv2Model/_decomposed/hf-tiny-model-private_tiny-random-Swinv2Model_start286_end290_10",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/facebook_wav2vec2-base-960h/_decomposed/facebook_wav2vec2-base-960h_start36_end41_7",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MBartForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-MBartForSequenceClassification_start101_end107_20",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-ar-eo/_decomposed/opus-mt-ar-eo_start235_end242_20",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-DPTModel/_decomposed/hf-tiny-model-private_tiny-random-DPTModel_start34_end36_7",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/GKLMIP_electra-khmer-small-uncased-tokenized/_decomposed/GKLMIP_electra-khmer-small-uncased-tokenized_start103_end106_10",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/breadlicker45_autotrain-blender-50601120822/_decomposed/breadlicker45_autotrain-blender-50601120822_start122_end125_26"
+  ],
+  "training_trace_sha256": "19371b93df9dc30fee655a3f89b62a1b894f316b5fd12f1defb6c2a5c60375b2",
+  "candidate_budget": 12,
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "training_multiple_consumer_decisions": 85,
+  "policies": [
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "baseline",
+      "kind": "unchanged"
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "default",
+      "kind": "threshold",
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "scalar100",
+      "kind": "threshold",
+      "max_work_growth": 1.0,
+      "provenance": {
+        "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+        "training_trace_sha256": "19371b93df9dc30fee655a3f89b62a1b894f316b5fd12f1defb6c2a5c60375b2"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "scalar125",
+      "kind": "threshold",
+      "max_work_growth": 1.25,
+      "provenance": {
+        "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+        "training_trace_sha256": "19371b93df9dc30fee655a3f89b62a1b894f316b5fd12f1defb6c2a5c60375b2"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "region-work",
+      "kind": "region",
+      "max_work_growth": 1.02,
+      "launch_work": 0,
+      "materialization_work": 0,
+      "provenance": {
+        "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+        "training_trace_sha256": "19371b93df9dc30fee655a3f89b62a1b894f316b5fd12f1defb6c2a5c60375b2"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "region-launch4096",
+      "kind": "region",
+      "max_work_growth": 1.02,
+      "launch_work": 4096,
+      "materialization_work": 0,
+      "provenance": {
+        "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+        "training_trace_sha256": "19371b93df9dc30fee655a3f89b62a1b894f316b5fd12f1defb6c2a5c60375b2"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "region-launch32768",
+      "kind": "region",
+      "max_work_growth": 1.02,
+      "launch_work": 32768,
+      "materialization_work": 0,
+      "provenance": {
+        "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+        "training_trace_sha256": "19371b93df9dc30fee655a3f89b62a1b894f316b5fd12f1defb6c2a5c60375b2"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "region-launch262144",
+      "kind": "region",
+      "max_work_growth": 1.02,
+      "launch_work": 262144,
+      "materialization_work": 0,
+      "provenance": {
+        "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+        "training_trace_sha256": "19371b93df9dc30fee655a3f89b62a1b894f316b5fd12f1defb6c2a5c60375b2"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "region-material1",
+      "kind": "region",
+      "max_work_growth": 1.02,
+      "launch_work": 0,
+      "materialization_work": 1,
+      "provenance": {
+        "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+        "training_trace_sha256": "19371b93df9dc30fee655a3f89b62a1b894f316b5fd12f1defb6c2a5c60375b2"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "region-material12",
+      "kind": "region",
+      "max_work_growth": 1.02,
+      "launch_work": 0,
+      "materialization_work": 12,
+      "provenance": {
+        "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+        "training_trace_sha256": "19371b93df9dc30fee655a3f89b62a1b894f316b5fd12f1defb6c2a5c60375b2"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "region-mixed32768",
+      "kind": "region",
+      "max_work_growth": 1.02,
+      "launch_work": 32768,
+      "materialization_work": 12,
+      "provenance": {
+        "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+        "training_trace_sha256": "19371b93df9dc30fee655a3f89b62a1b894f316b5fd12f1defb6c2a5c60375b2"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "region-mixed262144",
+      "kind": "region",
+      "max_work_growth": 1.02,
+      "launch_work": 262144,
+      "materialization_work": 12,
+      "provenance": {
+        "method": "Codex-authored whole-region work/launch/materialization grammar; training structural traces only; no timing input or external model invocation",
+        "training_trace_sha256": "19371b93df9dc30fee655a3f89b62a1b894f316b5fd12f1defb6c2a5c60375b2"
+      }
+    }
+  ]
+}
