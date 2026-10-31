@@ -1,0 +1,15 @@
+{
+  "scope": "Read-only local PassAgent runtime discovery; directory names and container image names only. Not exhaustive model/service discovery.",
+  "earlier_attempt": {
+    "returncode": 255,
+    "stderr": "ssh: Could not resolve hostname bling.local: Name or service not known"
+  },
+  "command": [
+    "ssh",
+    "bling.local",
+    "hostname; docker images --format \"{{.Repository}}:{{.Tag}} {{.Size}}\"; ls -d /home/manuel/.cache/huggingface/hub/models--* /home/manuel/models /opt/models /home/manuel/.ollama/models/manifests 2>/dev/null"
+  ],
+  "returncode": 255,
+  "stdout": "",
+  "stderr": "ssh: Could not resolve hostname bling.local: Name or service not known\n"
+}
