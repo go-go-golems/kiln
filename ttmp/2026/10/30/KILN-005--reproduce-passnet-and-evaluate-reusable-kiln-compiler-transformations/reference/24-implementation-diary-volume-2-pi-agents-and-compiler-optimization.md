@@ -4070,3 +4070,55 @@ Inspecting the evaluator image showed that PyTorch there runs with `float32_matm
 ### Technical details
 - PassBench FP32 tolerance at `t=-5`: `rtol = 10^(-5·1.1772) ≈ 1.3e-6`, `atol = 1e-5`. A TF32 operand error (relative 2⁻¹¹ ≈ 4.9e-4) fails it for any output larger than about 0.02.
 - Reference numerics recorded per run: `{"float32_matmul_precision": ..., "matmul_allow_tf32": ..., "cudnn_allow_tf32": ...}`.
+
+## Step 244: Freeze, stage and queue the P0/P1 GPU replay behind the existing chain
+
+This step prepares the measurement for Steps 239–243. The new plan contains 15 complete families (181 graphs) from the frozen ordinary band:
+- identity repairs 6, 24, 185;
+- matcher repair 79;
+- the eight TF32-explained FP32 families 27, 52, 72, 88, 93, 133, 157, 118;
+- three fully accepted FP32 conv/matmul controls 20, 42, 164, which must stay accepted under `matmul_precision: "tf32"`.
+
+The plan is staged on bling and queued in a new tmux session. That session waits for the existing chain (uniform regression band → breadth replays → input-mutation wave) to finish, so it never overlaps a running GPU experiment.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 243.
+**Assistant interpretation:** Make the GPU validation of the implemented repairs ready to run, without disturbing in-flight frozen experiments.
+**Inferred user intent:** Turn CPU-validated fixes into PassBench evidence as soon as the GPU is free.
+**Commit (code):** b796952 — "Freeze P0/P1 replay plan (15 families)"; staging receipt in the following commit, "Stage P0/P1 replay on bling, queued after the input-mutation wave".
+
+### What I did
+- Script 660 (`660-freeze-p0-replay-plan.py`) copies the 15 task records (sample, graph count, graph-list SHA256) unchanged from `pending-ordinary-plan.json` and adds `matmul_precision: "tf32"`, `groups`, `band: "p0-replay"` and `derived_from`. It refuses to overwrite. Output: `sources/p0-replay-v1/plan.json` (`15 tasks; 181 graphs`).
+- Chose controls by scanning fully accepted ordinary tasks for f32 graphs whose source has `linear(`, `conv2d(` or `matmul(`: 20 (conv, 6 graphs), 42 (conv, 3) and 164 (matmul, 3).
+- `641-stage-task-plan-gpu.py --name p0-replay-gpu-v1 --plan sources/p0-replay-v1/plan.json` gave source revision `b796952ad905652f3b327e9765e3ee39e00d59f7`, snapshot SHA256 `ccef175d65d8bedace642575a6143554353171bc20488e275236caf36eefa43d` and plan SHA256 `53ae04fa…7ab`, status `staged; not launched`.
+- Inspected the bling chain with `ps` and `pstree`. `kiln-uniform-importable-v1` runs `evaluate_tasks.py` on `regression-plan.json`. `kiln-breadth-replays-v1` runs `queue.sh` (sleep loop). `kiln-input-mutation-wave-v1` runs `queue.py --wait-session kiln-breadth-replays-v1 --require ...`.
+- Copied script 651 to the study as `queue.py` and started `tmux new-session -d -s kiln-p0-replay-v1 'python3 .../queue.py --wait-session kiln-input-mutation-wave-v1 --study .../p0-replay-gpu-v1'`.
+
+### Why
+- One replay band measures every implemented repair under the original checker. The controls detect any regression the global TF32 policy might cause on families that already pass.
+- Queuing behind the chain respects the rule that GPU work never overlaps a frozen run. `642-run-task-plan-gpu.sh` also refuses to start if `nvidia-smi` shows compute apps.
+
+### What worked
+- Staging verified the remote source snapshot against the local one (`remote_state == state`). `tmux ls` shows `kiln-p0-replay-v1`, and the remote plan's `matmul_precision` is `tf32`.
+
+### What didn't work
+- No failures. I could not name the study directory `sources/p0-replay-v1`, because 641 refuses existing study directories and the plan already lives there. Staging therefore uses `p0-replay-gpu-v1`, following the existing `*-gpu-v1` convention.
+
+### What I learned
+- The waiting order is uniform → breadth → input mutation → this replay. The replay compiles with commit `b796952` regardless of when it starts, because the staged snapshot is fixed.
+
+### What was tricky to build
+- `evaluate_tasks.py` now probes the container's reference numerics before the first task, and refuses a `tf32` plan if the reference computes FP32 contractions. That makes the TF32 assumption checkable at run time, rather than relying on my one-off probe.
+
+### What warrants a second pair of eyes
+- If the input-mutation wave's prerequisites fail, its session ends early and this replay starts. That is safe (no overlap), but the mutation wave would then need a manual re-queue.
+
+### What should be done in the future
+- When `kiln-p0-replay-v1` finishes: collect with a 655-style collector, audit with `summarize_task_run.py`, and report per group. Success criteria: identity and matcher families complete, TF32 families at least improved, controls unchanged.
+
+### Code review instructions
+- `scripts/660-freeze-p0-replay-plan.py`, `sources/p0-replay-v1/plan.json`, `sources/p0-replay-gpu-v1/staging.json`.
+- Monitor with `ssh -o HostKeyAlias=bling.local manuel@bling 'tmux ls; cat /home/manuel/passnet-kiln/KILN-005/sources/p0-replay-gpu-v1/queue.log'`.
+
+### Technical details
+- Remote study: `/home/manuel/passnet-kiln/KILN-005/sources/p0-replay-gpu-v1/` (plan.json, run.sh = 642, queue.py = 651, kiln/, upstream/).
