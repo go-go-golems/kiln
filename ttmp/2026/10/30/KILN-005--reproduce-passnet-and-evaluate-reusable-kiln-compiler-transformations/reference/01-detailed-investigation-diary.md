@@ -3022,3 +3022,47 @@ See full task-support objective and architectural consolidation request in Step 
 
 ### Technical details
 - Corpus task 51a847653153f19ac9458aa2cbe628f3e08c96fc3829a150d5f4006b5add6665, 24 variants across FP32/FP16/BF16. Graph operations are concat, static channel slice and spatial mean; two outputs. No new evaluator guard exception introduced.
+
+## Step 71: Verify the fifth task and prioritize self-optimization
+
+All 24 fifth-task graph variants completed the original evaluator under the declared integration protocol, with one replacement and one success result per expected graph. The exact coverage builder now reports five tasks and 73 variants. The user requested a shorter path to self-optimization, so the roadmap now separates broad corpus support from the first reusable-policy experiment.
+
+### Prompt Context
+**User prompt (verbatim):** "ok can we somehow streamline things to get to the self-optimization part?"
+**Assistant interpretation:** Start a rigorously measured compiler-policy experiment on a fixed supported corpus before implementing every unrelated operation.
+**Inferred user intent:** Reach the research question sooner while retaining the broader support goal.
+**Commit (shared runner):** ffa7e7e.
+
+### What I did
+- Archived complete fifth-task raw evaluator log, process receipts, GPU/compile receipts and original score.
+- Added original sample index 198 to coverage evidence, retaining per-record protocol identities.
+- Updated the roadmap with a training/held-out family split, unchanged Kiln baseline, replaceable fusion policy and artifact-change gate.
+
+### Why
+- All 200 tasks are needed for broad evaluation coverage, but not as a prerequisite for the first controlled compiler-policy experiment.
+
+### What worked
+- Exact coverage: 5/200 tasks, 73/2060 graphs; all 24 new graphs matched once and passed.
+- Original scorer parsed 24 samples and reported aggregated_speedup=0.8485481515793615.
+- Reference workload resumed and remained running/unpaused; last report-preparation observation was 121/200 tasks.
+
+### What didn't work
+- The fifth task remains slower than eager. No reusable-policy optimization experiment or held-out improvement has been run yet.
+
+### What I learned
+- The supported graph set is sufficient to begin selecting a policy experiment, but it must first be checked for real decision/artifact sensitivity to avoid a vacuous parameter search.
+
+### What was tricky to build
+- Distinguish direct compiler experiments from original benchmark acceptance, preserving both evidence paths without treating one as a substitute for the other.
+
+### What warrants a second pair of eyes
+- Family split leakage, compiler-policy scope, candidate budget and measurement stability.
+
+### What should be done in the future
+- Freeze eligible graphs, expose fusion policy and run the first controlled training/held-out experiment; continue full corpus support as a parallel track.
+
+### Code review instructions
+- Inspect fifth-task-isolated.log, fifth-task/score.json, coverage ledger and roadmap priority section.
+
+### Technical details
+- New task score is an exploratory GB10 aggregate under modified integration protocol, not a published hardware reproduction result. Default fusion guard remains unchanged at 1.02.

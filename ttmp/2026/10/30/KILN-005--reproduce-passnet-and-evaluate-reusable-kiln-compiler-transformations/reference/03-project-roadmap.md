@@ -31,3 +31,18 @@ The target is evaluation across all 200 PassBench tasks and 2,060 variants with 
 | Completion audit | Pending | Requirement-by-requirement current-state evidence |
 
 Teacher trajectory generation/student fine-tuning remains a separate expensive reproduction phase and has not run. Current work must not be described as complete PassNet reproduction.
+
+## Priority change: start reusable-policy optimization before full corpus support
+
+The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance is five tasks / 73 graphs. Translation succeeds for 804 graphs and 24 complete tasks, with compilation and numerical eligibility still to be established for the broader set.
+
+The immediate critical path is:
+
+1. Freeze an eligible real-graph corpus and split by graph/model family into training and held-out sets; keep every variant of a family on one side.
+2. Measure unchanged Kiln with fixed hardware, schedules/settings and correctness criteria. Record compile time, kernel identities and end-to-end/GPU latency separately.
+3. Expose mergeLoopOps profitability as an explicit compiler-policy factory while preserving semantic legality and default behavior.
+4. Verify that candidate policies actually change decisions/artifacts on the chosen graphs; identical artifacts provide no optimization signal.
+5. Search policies only on training graphs, select one policy and evaluate it unchanged on held-out graphs. Report correctness failures and compile-cost changes.
+6. Extend the same harness to generated reusable policies and transformation programs; use original PassBench for external comparisons.
+
+The existing default is fused work <= 1.02 × original work. No learned policy, held-out improvement or agent comparison has been measured yet. Direct FX-to-Kiln experiments avoid the per-task matcher-authoring step, but are separate from PassBench acceptance and scores. Unrelated missing operator implementation is deferred while this path is built.
