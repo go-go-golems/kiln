@@ -3949,3 +3949,55 @@ Task 128 (2 graphs, "pattern with dead code") has a source graph that computes a
 ### Technical details
 - Evidence: `sources/pattern-identity-simulation-v1/dynamo-ordinary-matcher-tasks.json` (tasks 79, 128, 6, 24, 185 with the fixes) and `dynamo-control-task79-previous-normalization.json`.
 - The Dynamo capture uses `fullgraph=True`. A graph break raises `expected one captured graph`, which is itself a useful census category.
+
+## Step 242: CPU matcher census over all 111 uniform families, and the task 73 bf16 mechanism
+
+This step turns script 658 into a census and runs it over every task in the three frozen uniform plans (ordinary, large, regression; 111 families, 1,514 graphs) with TorchDynamo capture. With the A1 and spelling/dead-code fixes, 1,500 of 1,514 graphs select their own compiled rule exactly once. The 14 that do not have named causes: task 128 is the known dead-branch double match, and tasks 52 and 164 are a census limitation (their source models create CUDA tensors, and this machine has no NVIDIA driver). Matcher and dispatch failures can now be predicted before GPU time is spent.
+
+I also analyzed the large band's task 73 failures against PassBench's tolerance table. The disagreement is a few bf16 ulps on near-zero batch-norm outputs. That is consistent with a 1-ulp convolution accumulation difference amplified by `x - mean` cancellation, not with a lowering bug. It is recorded as a hypothesis.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 239. During this step the user asked "how are things going?" and "also have you been running things on bling, the dgx spark?"
+**Assistant interpretation:** Continue P1. Answer that only read-only inspection and evidence collection have touched bling, and that no jobs were launched, because the frozen regression band owns the GPU.
+**Inferred user intent:** Status visibility, and making sure GPU ownership is respected.
+**Commit (code):** 9365e5a — "CPU matcher census over all 111 uniform families"
+
+### What I did
+- Script 658: `--task` is optional (default: all plan tasks). Generation errors are recorded per task, Dynamo capture errors per graph (truncated to 500 characters), and `simulation.json` is rewritten after each task.
+- Ran three background processes, one per plan (`pending-ordinary-plan.json`, `pending-large-plan.json`, `regression-plan.json`), writing to scratch `census-<band>/`. Copied the results to `sources/matcher-census-v1/<band>.json`.
+- Bling: `regression/run.json` status was `running` at the end of this step. No commands other than reads and the Step 240 rsync were run there.
+- Task 73: read `pending-large/task-073/benchmark.log` for the first failing graph. `max_diff` is `0.0009765625` for output 0 (batch norm) and `6.103515625e-05` for output 1 (spatial mean); `mean_diff` is `6.9e-08` and `1.4e-08`. Read `pass_bench/config/datatype_tolerance_config.py`: `bfloat16: (1.796/5, 1)` gives `rtol = 10^(-1.796) ≈ 0.016` and `atol = 1e-5` at `t = -5`.
+
+### Why
+- GPU time is the scarce resource and is currently owned by the frozen regression band. A CPU predictor that reproduced the GPU's dispatch (Step 240) and matcher (Step 241) failures exactly can screen every family in advance.
+
+### What worked
+- Census results: ordinary `547/561` (16 permuted), large `522/522`, regression `431/431`. No generation errors in any band.
+- Every ordinary-band integration failure named in reference 44 is now resolved in simulation (tasks 6, 24, 185, 79), except task 128.
+
+### What didn't work
+- Tasks 52 (9 graphs) and 164 (3 graphs): `capture_error: RuntimeError: Found no NVIDIA driver on your system...`. Their `model.py` creates CUDA tensors during `forward`, so meta-tensor capture on this host cannot run them. This is not a matcher result. Both families executed on GPU in the ordinary band, so their matcher behavior there is already known.
+- The `while pgrep ...` wait loop was manually backgrounded by the user (task `bdrv6ud7t`). The census had already finished by then.
+
+### What I learned
+- For task 73, a 2⁻¹⁰ absolute difference fails only where `|expected| < (2⁻¹⁰ − 1e-5)/0.016 ≈ 0.06`. bf16's ulp below 0.06 is at most 2⁻¹², so the failing elements differ by at least 4 ulps. Batch norm subtracts the running mean from `tmp_8 = (in_6 + conv) + in_7`. A 1-ulp difference in `tmp_8` at magnitude O(1) (ulp 2⁻⁷) becomes a large *relative* error after cancellation. The mean diff (`6.9e-08`) shows that almost all elements agree exactly.
+- So the remaining "numerical" failures may be dominated by rounding-order effects that no lowering can match bit for bit unless it reproduces cuDNN's accumulation order. This needs measurement before any precision policy changes (review B4: tolerance belongs only to the external checker).
+
+### What was tricky to build
+- Keeping a census robust: per-graph capture failures must not abort a task, and per-task generation failures must not abort a band, but both must be recorded with their exact message. Writing the report incrementally means a killed run keeps its completed tasks.
+
+### What warrants a second pair of eyes
+- The task 73 mechanism is inferred from tolerance arithmetic and one graph's max/mean diff. A direct test needs CUDA: compare Kiln's conv output, before the residual adds, against cuDNN's for the same inputs, and count differing ulps.
+
+### What should be done in the future
+- Once bling's queues finish: one GPU replay band with tasks 6, 24, 185 and 79 (the census predicts all 96 graphs match correctly), plus an instrumented task 73 run that records per-stage differences.
+- Cluster the 43 ordinary nominal numerical failures with the same max_diff/|value| analysis to separate rounding-order cases from real semantic gaps.
+- P2: importer registry plus the A4 type postcondition.
+
+### Code review instructions
+- `scripts/658-simulate-pattern-dispatch-identity.py` (`dynamo_graph`, error capture). Run it as `--plan <band-plan> --upstream sources/upstream --output <fresh dir>` with `--task` omitted.
+- Evidence: `sources/matcher-census-v1/{pending-ordinary,pending-large,regression}.json`.
+
+### Technical details
+- Census timing: all three bands finished in under 40 minutes of CPU wall time running in parallel (export plus pattern generation dominate).
+- Tolerance formula: `get_precision(t, dtype) = (10**(t*exp1), 10**(t*exp2))` → `(rtol, atol)`. For bf16, `exp1 = 0.3592` and `exp2 = 1`.
