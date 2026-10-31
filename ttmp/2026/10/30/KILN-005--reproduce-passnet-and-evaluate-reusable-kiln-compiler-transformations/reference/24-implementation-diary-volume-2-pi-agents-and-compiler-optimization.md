@@ -2982,3 +2982,42 @@ Read scripts623–625, reference36, `sources/uniform-importable-qualification-v1
 
 ### Technical details
 The three plans all set `contraction=separate`, `skip_internal_reference_check=true`, and numerical tolerance `t=-5`. Each planned task retains its sample path, zero-based index, graph count and `graph_list.txt` SHA256. The requested benchmark settings remain20 warmups and100 trials on GB10 with the pinned image and A100 schedule model.
+
+## Step 220: Publish the policy-transfer milestone in the Obsidian vault
+
+### Prompt Context
+The active project goal requests a detailed textbook-style technical report at important milestones, committed and pushed to the go-go-parc vault. Step218 completed the first fixed reusable transformation comparison through complete PassBench tasks; Step219 launched the broad qualification wave.
+**Assistant interpretation:** Preserve this negative-but-informative compiler experiment and its coverage implications as a durable technical article.
+**Inferred user intent:** Let future readers understand the architecture, measured result, limitations and next research sequence without reconstructing the ticket chronology.
+
+### What I did
+- Read the Obsidian vault writing and textbook-authoring skills, prior Kiln article and current code/evidence. Drafted a new article with a real transformation-program example, data-flow diagram, measured task table, generated schedule examples and the coverage census.
+- Added `Projects/2026/10/31/ARTICLE - Kiln - Compiler Policy Transfer and the 111-Task Coverage Frontier.md` to go-go-parc. Staged only that file, leaving unrelated dirty vault files untouched. Committed as `d4b7cc3` and pushed `main`.
+- Rechecked the bling tmux run. Task4 completed export, compile, evaluation and score; task6 entered evaluation. The job remains live.
+
+### Why
+The 92-graph comparison is an important milestone because it links the shared transformation-program compiler path to external PassBench correctness and score. The contrasting task25,83 and101 results determine the next strategy design. The 111-task import surface gives a quantitative plan for coverage growth.
+
+### What worked
+The article records the exact interpretation:92/92 external correctness in both arms,49 changed executables, lower transfer score for a global policy, current importer1,526/2,060 and111 fully importable tasks, and a frozen uniform1,514-graph run. Vault commit and push succeeded. Unrelated vault modifications were not staged.
+
+### What didn't work
+The article cannot report the uniform111-task result because that GPU job is still running. It explicitly labels that result pending. No new compiler behavior was implemented during the report writing.
+
+### What I learned
+The program's task-specific effects are visible in generated schedules: task101 moves from a 6,422,528-block row kernel to a tiled contraction plus epilogue, while task25 gains a third large elementwise kernel and slows substantially. These observations make the case for selective strategy selection without asserting that schedule identity alone proves the full timing cause.
+
+### What was tricky to build
+The report had to distinguish505 cumulatively accepted individual graphs from431 graphs inside the53 complete accepted tasks. It also had to separate task101's development gain from the11-task transfer statistic and avoid presenting an arithmetic mean of task scores as PassBench's official aggregate.
+
+### What warrants a second pair of eyes
+Review the explanation of generated schedule differences against the archived first-variant artifacts. Review whether the next agent search should be stratified by operation family or by measured compiler bottleneck; the article proposes both as inputs without claiming a final classifier.
+
+### What should be done in the future
+Audit the uniform111-task replay when it completes, update the ticket and vault at the next significant compiler result, and continue the typed-input/constant coverage wave while the staged GPU job runs.
+
+### Code review instructions
+Read the vault article at the path above, compare its measurements with reference35 and the graph-level comparison JSON, and inspect the unchanged/current kernel rows in the raw evidence archive.
+
+### Technical details
+The vault article is1,899 words, append-only, with YAML metadata and a Mermaid diagram. Vault commit `d4b7cc3` was pushed to `origin/main`. The Kiln research branch was at `173ea63` when the article was published.
