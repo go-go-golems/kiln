@@ -1,0 +1,120 @@
+{
+ "format": "kiln-program/1",
+ "name": "fma-boundary",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../154-fma-boundary.kiln.js",
+  "sha256": "7c7da5d6be78abdc4bf32f1d8bc20d2c4c3c5a96cdd02aa9f86005adbb716c1a",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "x",
+   "buffer": 0,
+   "shape": [
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "y",
+   "buffer": 1,
+   "shape": [
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "z",
+   "buffer": 2,
+   "shape": [
+    1
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out",
+   "buffer": 3,
+   "shape": [
+    1
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 1,
+   "bytes": 4
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 1,
+   "bytes": 4
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 1,
+   "bytes": 4
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 1,
+   "bytes": 4
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_cast__wu9c8xc3az",
+   "identity": "wu9c8xc3az",
+   "row": "TPB=1024",
+   "reads": [
+    2,
+    0,
+    1
+   ],
+   "writes": 3,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1
+   ],
+   "inShapes": [
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (out)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_ew_cast__wu9c8xc3az(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, in2 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 1)) {\n        in0 = src1[0];\n        in1 = src2[0];\n        v0 = __fmul_rn(in0, in1);\n        in2 = src0[0];\n        v1 = __fadd_rn(v0, in2);\n        v2 = __bfloat162float(__float2bfloat16_rn(v1));\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        dst[0] = __float2bfloat16_rn(v3);\n    }\n}"
+  }
+ ]
+}

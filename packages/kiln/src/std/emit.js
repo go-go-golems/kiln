@@ -58,16 +58,31 @@ export function toCuda(K) {
 
 // ----------------------------------------------------------------------------- WGSL
 // one dispatch per kernel; grids past 65535 workgroups fold into two dimensions
-export function wgslStorageUnavailable(K) {
+export function wgslUnavailableReason(K) {
   for (const parameter of K.params) {
     const dtype = parameter.dtype || "f32";
     const allowed = parameter.role === "in" ? ["f32", "u8"] : ["f32"];
     if (!allowed.includes(dtype)) return `WGSL storage dtype unsupported: ${dtype} (${parameter.role})`;
   }
+  const expression = e => {
+    if (!e || e.k !== "op") return null;
+    if (!FNS[e.fn].w) return `WGSL scalar guarantee not implemented: ${e.fn}`;
+    for (const a of e.a) { const why = expression(a); if (why) return why; }
+    return null;
+  };
+  const statements = ss => {
+    for (const s of ss) {
+      const why = expression(s.e) || (s.body && statements(s.body));
+      if (why) return why;
+    }
+    return null;
+  };
+  const unsupported = statements(K.body);
+  if (unsupported) return unsupported;
   return null;
 }
 export function toWgsl(K) {
-  const unavailable = wgslStorageUnavailable(K);
+  const unavailable = wgslUnavailableReason(K);
   if (unavailable) throw new TypeError(unavailable);
   const ins = K.params.filter((p) => p.role === "in");
   const fv = (n) => "v_" + n, iv = (n) => (n === "tid" || n === "bid" ? n : "n_" + n);

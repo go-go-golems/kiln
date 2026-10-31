@@ -1,0 +1,39 @@
+ok   bilinear.mjs           33 ms
+ok   casts.mjs              41 ms
+ok   concat.mjs             31 ms
+ok   contraction.mjs       123 ms
+ok   conv2d.mjs             38 ms
+ok   core.mjs               28 ms
+ok   cuda-dtypes.mjs        32 ms
+ok   dtypes.mjs             55 ms
+ok   evidence.mjs          397 ms
+ok   export.mjs            129 ms
+ok   f32-loop-reference.mjs     27 ms
+ok   fusion-policy.mjs      40 ms
+ok   hypotheses.mjs        357 ms
+ok   lowered-dtypes.mjs     26 ms
+ok   matmul.mjs             32 ms
+ok   paired.mjs            253 ms
+ok   progs.mjs             372 ms
+ok   project-input-dtypes.mjs     80 ms
+ok   protocol.mjs          187 ms
+ok   rounding-expressions.mjs     25 ms
+ok   stack1.mjs             59 ms
+ok   stack2.mjs            507 ms
+ok   stack3.mjs            271 ms
+ok   targets.mjs            99 ms
+ok   tune.mjs             1029 ms
+ok   typed-arithmetic.mjs     22 ms
+ok   u8.mjs                144 ms
+ok   view-dtypes.mjs        25 ms
+all 28 passed
+: end-to-end check ok at loop
+: k_ew_cast_reshape__eppncnsec9 TPB=64
+1 program → /home/manuel/passnet-kiln/KILN-005/contraction-separate-probe.kiln.json
+: end-to-end check ok at loop
+: k_ew_cast__15ee8qroe6w TPB=1024
+1 program → /home/manuel/passnet-kiln/KILN-005/fma-boundary-allow.json
+: end-to-end check ok at loop
+: k_ew_cast__wu9c8xc3az TPB=1024
+1 program → /home/manuel/passnet-kiln/KILN-005/fma-boundary-separate.json
+{"status": "passed", "torch": "2.12.0a0+5aff3928d8.nv26.05", "gpu": "NVIDIA GB10", "native_separate_result": 0.0, "scope": "Exact one-element rounding oracle; not general benchmark equivalence", "records": [{"mode": "allow", "actual": -1.4210854715202004e-14, "expected": -1.4210854715202004e-14, "source": {"path": "../154-fma-boundary.kiln.js", "sha256": "7c7da5d6be78abdc4bf32f1d8bc20d2c4c3c5a96cdd02aa9f86005adbb716c1a", "contraction": "allow"}, "artifact_sha256": "1c8b5edd26c345a0eb753d4826799e171de73199cf6b6d19af89666732697589"}, {"mode": "separate", "actual": 0.0, "expected": 0.0, "source": {"path": "../154-fma-boundary.kiln.js", "sha256": "7c7da5d6be78abdc4bf32f1d8bc20d2c4c3c5a96cdd02aa9f86005adbb716c1a", "contraction": "separate"}, "artifact_sha256": "609b70324b2888c863abd55e1c97bf2473df78fb9f5e4fba2bf12165800d2f34"}]}

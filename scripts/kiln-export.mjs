@@ -10,6 +10,7 @@
 //     --name NAME         program name (default: the project's)
 //     --out PATH          write here (default: stdout)
 //     --no-check          skip the end-to-end check of the compiled program against the frontend graph
+//     --contraction MODE  allow (default) or separate add/subtract/multiply rounding in CUDA
 //
 // Exits non-zero when the script does not compile, the check fails, or a kernel argument cannot be exported.
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
@@ -42,6 +43,7 @@ function parseArgs(argv) {
     else if (a === "--name") o.name = next();
     else if (a === "--out") o.out = next();
     else if (a === "--no-check") o.check = false;
+    else if (a === "--contraction") { o.contraction = next(); if (!["allow", "separate"].includes(o.contraction)) usage(2); }
     else { process.stderr.write(`unknown argument ${a}\n`); usage(2); }
   }
   if (!!o.preset === !!o.script) usage(2);
@@ -56,7 +58,7 @@ function scriptPath(o) {
 }
 
 function compileOne(pins) {
-  const c = compileScript(text, { params: paramSet([]), target, pins });
+  const c = compileScript(text, { params: paramSet([]), target, pins, contraction: o.contraction });
   const at = Object.entries(pins).map(([k, v]) => `${k}=${v}`).join(" ");
   for (const d of c.diags || []) process.stderr.write(`${at}: ${d.level}${d.line ? ` line ${d.line}` : ""}: ${d.message}\n`);
   if (!c.ok || !c.prog) { process.stderr.write(`${at}: compile failed\n`); process.exit(1); }
@@ -77,7 +79,7 @@ const spec = o.target === "webgpu" ? WEBGPU_DEFAULT : SPECS[o.target];
 if (!spec) { process.stderr.write(`unknown target ${o.target}; one of webgpu ${Object.keys(SPECS).join(" ")}\n`); process.exit(2); }
 const target = mkTarget(spec);
 const file = scriptPath(o), text = readFileSync(file, "utf8");
-const source = { path: relative(ROOT, file), sha256: createHash("sha256").update(text).digest("hex") };
+const source = { path: relative(ROOT, file), sha256: createHash("sha256").update(text).digest("hex"), ...(o.contraction ? { contraction: o.contraction } : {}) };
 // every combination of the listed values, first parameter slowest
 const combos = Object.entries(o.params).reduce((acc, [k, v]) => acc.flatMap((c) => v.split(",").map((x) => ({ ...c, [k]: x }))), [{}]);
 const programs = combos.map(compileOne);

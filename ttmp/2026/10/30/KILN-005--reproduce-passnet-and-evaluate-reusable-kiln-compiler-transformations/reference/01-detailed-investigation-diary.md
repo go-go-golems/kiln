@@ -4178,3 +4178,58 @@ See prior user instructions to implement missing compiler pieces, document prove
 ### Technical details
 - CUDA oracle output dtype BF16, input FP32, exact expected/actual zero. PyTorch 2.12.0a0+5aff3928d8.nv26.05 on NVIDIA GB10.
 - Cumulative coverage stays at eight complete tasks and 149 individually accepted graphs. No running evaluation job remains at this checkpoint.
+
+
+## Step 95: Add a numerical contraction policy encoded in scalar IR
+
+The contraction investigation now has an opt-in compiler implementation rather than a rule-removal workaround. Separate-rounding mode introduces protected scalar functions whose CUDA intrinsics retain operation boundaries under unchanged NVRTC defaults. Exact CPU and CUDA oracles distinguish the two modes, while default identities remain unchanged. The complete four-family/63-variant development rerun is frozen before measuring this policy on real tasks.
+
+### Prompt Context
+See earlier instructions to implement missing Kiln pieces, retain research provenance, reassess architecture and progress towards reusable self-optimization.
+**Assistant interpretation:** Define and enforce a compiler numerical policy without changing benchmark correctness criteria.
+**Inferred user intent:** Establish legal arithmetic choices so future agents optimize implementations rather than exploit numerical ambiguity.
+**Commit (code):** ed8bea9 — FP32 loop-reference correction and explicit-contraction diagnosis.
+
+### What I did
+- Archived primary NVIDIA Math API/NVRTC 13.1.1 documentation and PyTorch v2.9.1 CUDA normalization sources with URLs, sizes and SHA256 provenance using script 152.
+- Added add_rn/sub_rn/mul_rn scalar functions and a pre-optimization separate-rounding pass; default pipeline remains contraction allow.
+- Added the contraction option to the standard pipeline, workbench compiler, export CLI, corpus compiler and shared complete-task runner. Explicit policy provenance is recorded in artifact source metadata and phase commands.
+- Generalized the WGSL unavailable-reason helper to reject unsupported scalar guarantees as well as unsupported storage; no compatibility alias was added.
+- Added core contraction tests and scripts 153–156 for exact CPU/CUDA validation. Saved script 157 to freeze all 63 members of the four earlier failed families and script 158 to launch them.
+- Wrote design 09 and related the primary implementation/test files through docmgr.
+
+### Why
+- Removing an IR FMA rule alone does not prevent CUDA from contracting ordinary multiplication and addition. Protected per-operation intrinsics carry the requirement in executable code and its existing identity, without a separate launcher flag/cache policy.
+- The contract covers elementary add/subtract/multiply boundaries. It does not promise native cuBLAS/normalization/transcendental implementation equivalence or undo explicit source FMA.
+
+### What worked
+- All 28 core Node test files pass, including unchanged default identities, explicit/default allow equivalence, literal precision and protected CUDA emission.
+- All 65 Python integration tests pass.
+- Exact CUDA oracle on NVIDIA GB10: a=1+2^-23, b=1-2^-23, c=-1; allow returns -1.4210854715202004e-14 (-2^-46), separate returns zero, native separate PyTorch returns zero. Both outputs match their exact declared expectation.
+- The exact preserved CoAtNet 007 source compiles with ordinary end-to-end checking under contraction separate.
+
+### What didn't work
+- No complete-task evaluation result is claimed at this checkpoint. The earlier failures remain authoritative until the new run qualifies its members.
+- No WGSL implementation of the protected-operation guarantee is supplied; export emits a clear unavailable reason instead of weaker arithmetic.
+
+### What I learned
+- A numerical policy can be expressed using ordinary compiler pass composition and scalar function semantics. Runtime global flags are unnecessary for this bounded guarantee.
+- Source metadata should record policy provenance, while actual code identities determine executable aliases; metadata-only differences must not manufacture optimization evidence.
+
+### What was tricky to build
+- The protection pass runs after decomposition but before FMA optimization, covering canonical and alias arithmetic names. Scalar JS functions round operands as well as outputs so constant folding respects FP32 inputs.
+- Protected function names participate in existing loop/kernel identities and CUDA source. Explicit source FMA remains available, and default pipeline/WGSL behavior remains unchanged for ordinary programs.
+
+### What warrants a second pair of eyes
+- Review guarantees at compound source operators and reductions, and the potential loss of scheduling patterns that expect ordinary multiplication. Separate elementary rounding does not establish native operator bit-equivalence.
+
+### What should be done in the future
+- Run the frozen four-family cohort with original matching, replay and scoring and preserve all 63 outcomes.
+- Hold the numerical contract fixed while broadening reusable fusion/scheduling interventions; only recover contraction where justified by source permissions or semantic facts.
+
+### Code review instructions
+- Start with design 09, contraction.mjs, std/fns.js, std/tensor.js and std/emmy.js, then CLI and runner propagation. The exact GPU receipt is contraction-cuda.json.
+
+### Technical details
+- Public configuration: std.emmy.pipeline({contraction:"separate"}); CLI --contraction separate; alternative allow preserves existing defaults.
+- CUDA implementation: __fadd_rn, __fsub_rn, __fmul_rn; no NVRTC flag changes. Scientific acceptance still requires original t=-5 and original scorer p=0/fpdb=0.1.

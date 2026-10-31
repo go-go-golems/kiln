@@ -10,8 +10,9 @@ import { schedule } from "@kiln/kiln/std/loop.js";
 import { compare } from "@kiln/kiln/core/util.js";
 
 /** The project's pipeline (or the default one) for a target, with per-kernel pins ahead of its own policy. */
-export function pipelineFor(project, target, kernelPins = {}) {
-  const base = project?._pipe || std.emmy.pipeline();
+export function pipelineFor(project, target, kernelPins = {}, contraction) {
+  if (contraction !== undefined && project?._pipe) throw new TypeError("an explicit contraction option requires the standard pipeline");
+  const base = project?._pipe || std.emmy.pipeline({ contraction });
   return base.with({ target, decide: k.decide.chain(kernelPinPolicy(kernelPins), base._decide) });
 }
 
@@ -19,10 +20,10 @@ export function pipelineFor(project, target, kernelPins = {}) {
  * Compile `text` without touching any workbench: `params` is cloned (the script's params are declared on the clone),
  * `store` is the evidence store forks may read for `deviceId`. → { ok, diags, project, graph, run, prog, pipe }
  */
-export function compileScript(text, { params, kernelPins = {}, target, deviceId, store = null, pins = null }) {
+export function compileScript(text, { params, kernelPins = {}, target, deviceId, store = null, pins = null, contraction }) {
   const res = runScript(text);
   if (!res.ok) return { ok: false, diags: res.diags };
-  const project = res.project, pipe = pipelineFor(project, target, kernelPins);
+  const project = res.project, pipe = pipelineFor(project, target, kernelPins, contraction);
   const ps = params.clone();
   for (const p of [...project._params, ...pipe.allParams()]) ps.declare(p);
   if (pins) ps.pin(pins);

@@ -49,8 +49,10 @@ def main():
         stage='from pathlib import Path;from corpus import export_task;from generate_pass import generate;'+\
               'export_task(Path("/work/upstream"),'+repr(case['sample'])+',Path('+repr(str(mounted/'corpus'))+'));'+\
               'generate(Path('+repr(str(mounted/'corpus'))+'),Path("/work/upstream"),Path('+repr(str(mounted/'passes'))+'),Path('+repr(str(mounted/'corpus'))+'))'
+        compile_command=['python3','integrations/passnet/corpus.py','compile','--directory',str(corpus),'--kiln',str(kiln),'--target','a100']
+        if 'contraction' in plan:compile_command.extend(['--contraction',plan['contraction']])
         phases=[('export',docker(['-c',stage])),
-                ('compile',['python3','integrations/passnet/corpus.py','compile','--directory',str(corpus),'--kiln',str(kiln),'--target','a100']),
+                ('compile',compile_command),
                 ('evaluate',docker(['run_task.py','--directory',str(mounted/'corpus'),'--upstream','/work/upstream','--pass-directory',str(mounted/'passes'),'--log',str(mounted/'benchmark.log'),'--warmup','20','--trials','100'],gpu=True)),
                 ('score',docker(['score_task.py','--log',str(mounted/'benchmark.log'),'--sample-id',str(case['index']+1),'--upstream','/work/upstream','--output',str(mounted/'score.json')]))]
         row={'index':case['index'],'sample':case['sample'],'graphs_expected':case['graphs'],'directory':directory.name,'status':'running','phases':[]};result['records'].append(row);save(path,result)

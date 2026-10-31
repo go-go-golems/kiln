@@ -3,6 +3,11 @@
 import { roundToDtype } from "../core/dtypes.js";
 const f = Math.fround;
 export const FNS = {
+  // CUDA round-to-nearest intrinsics retain operation boundaries under NVRTC
+  // contraction. WGSL has no implementation of this declared guarantee here.
+  add_rn: { n: 2, js: (a, b) => f(f(a) + f(b)), c: "__fadd_rn({0}, {1})", w: null, flops: 1 },
+  sub_rn: { n: 2, js: (a, b) => f(f(a) - f(b)), c: "__fsub_rn({0}, {1})", w: null, flops: 1 },
+  mul_rn: { n: 2, js: (a, b) => f(f(a) * f(b)), c: "__fmul_rn({0}, {1})", w: null, flops: 1 },
   round_f16: { n: 1, js: (x) => roundToDtype(x, "f16"), c: "__half2float(__float2half_rn({0}))", w: "unpack2x16float(pack2x16float(vec2<f32>({0}, 0.0))).x", flops: 1 },
   round_bf16: { n: 1, js: (x) => roundToDtype(x, "bf16"), c: "__bfloat162float(__float2bfloat16_rn({0}))", w: "kiln_round_bf16({0})", flops: 1 },
   add: { n: 2, js: (a, b) => a + b, c: "({0} + {1})", w: "({0} + {1})", flops: 1 },

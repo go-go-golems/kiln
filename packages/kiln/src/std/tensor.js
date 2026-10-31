@@ -336,6 +336,12 @@ export const contractFma = k.rule("contract_fma")
     const m = e.arg(j), c = e.arg(1 - j);
     return tensor.ew([m.arg(0), m.arg(1), c], { fn: "fma", ...(e.attrs.origin ? { origin: e.attrs.origin } : {}) });
   });
+const separateFn = { add: "add_rn", sub: "sub_rn", subtract: "sub_rn", mul: "mul_rn", multiply: "mul_rn" };
+export const separateRounding = k.rule("separate_rounding")
+  .match(P.op("tensor.ew").as("e").where(({ e }) => Object.hasOwn(separateFn, e.attrs.fn)))
+  .rewrite(({ e }) => tensor.ew(e.args, { ...e.attrs, fn: separateFn[e.attrs.fn] }))
+  .describe("retain separate FP32 add/subtract/multiply boundaries through CUDA compilation");
+export const separateRoundingPass = k.pass("frontend/separate-rounding").rules(separateRounding);
 export const optimization = k.pass("frontend/optimization").short("o").rules(composeViews, foldSplatView, dropIdentityView, foldSplatEw, contractFma)
   .describe("compose index-map chains, fold constant views and constant arithmetic, contract multiply-add into fma");
 

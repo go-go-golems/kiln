@@ -1,0 +1,1 @@
+project("fma-boundary").program(({x,y,z})=>({out:N.cast(N.add(N.mul(x,y),z),"bf16")}),{x:k.tensor([1]),y:k.tensor([1]),z:k.tensor([1])}).data({x:new Tensor([1],Float32Array.of(1+2**-23)),y:new Tensor([1],Float32Array.of(1-2**-23)),z:new Tensor([1],Float32Array.of(-1))});

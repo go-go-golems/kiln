@@ -144,7 +144,7 @@ def inspect_corpus(upstream, sample_list, output):
         print(task_index+1, sample, flush=True)
 
 
-def compile_task(directory, kiln, target):
+def compile_task(directory, kiln, target, contraction=None):
     directory = directory.resolve()
     manifest = read_manifest(directory)
     results = []
@@ -153,6 +153,7 @@ def compile_task(directory, kiln, target):
         output = source.with_suffix('.json')
         command = ['node', 'scripts/kiln-export.mjs', '--script', str(source),
                    '--target', target, '--out', str(output)]
+        if contraction is not None:command.extend(['--contraction',contraction])
         with source.with_suffix('.compile.log').open('w') as log:
             result = subprocess.run(command, cwd=kiln, stdout=log, stderr=subprocess.STDOUT)
         results.append({'graph': record['graph'], 'command': command,
@@ -175,6 +176,7 @@ def main():
     compile.add_argument('--directory', type=Path, required=True)
     compile.add_argument('--kiln', type=Path, required=True)
     compile.add_argument('--target', required=True)
+    compile.add_argument('--contraction',choices=['allow','separate'])
     audit = commands.add_parser('inspect')
     audit.add_argument('--upstream', type=Path, required=True)
     audit.add_argument('--sample-list', type=Path, required=True)
@@ -183,7 +185,7 @@ def main():
     if args.command == 'export':
         export_task(args.upstream, args.sample, args.output, args.metadata_mode)
     elif args.command == 'compile':
-        compile_task(args.directory, args.kiln, args.target)
+        compile_task(args.directory, args.kiln, args.target, args.contraction)
     else:
         inspect_corpus(args.upstream, args.sample_list, args.output)
 

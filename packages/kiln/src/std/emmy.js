@@ -1,7 +1,7 @@
 // The standard six-IR pipeline, after the CloudRift / Emmy compiler:
 //   torch (nn) ─d→ tensor ─o,l,f,s→ loop ─t→ tile ─k→ kernel ─c→ gpu (CUDA + WGSL)
 import { k } from "../core/kiln.js";
-import { nn, tensor, decomposition, optimization } from "./tensor.js";
+import { nn, tensor, decomposition, optimization, separateRoundingPass } from "./tensor.js";
 import { loop, lift, fuse, stamp } from "./loop.js";
 import { tile, tilePass, costPrior } from "./tile.js";
 import { kern, kernelPass } from "./kernel.js";
@@ -15,13 +15,15 @@ export function defaultDecide(store) {
   const parts = [k.decide.pinned(), k.decide.evidence(store), costPrior, k.decide.first()];
   return k.decide.chain(...parts);
 }
-export function pipeline({ target: t = target(SPECS.rtx5090), store = null, name = "emmy" } = {}) {
-  return k.pipeline(name)
+export function pipeline({ target: t = target(SPECS.rtx5090), store = null, name = "emmy", contraction = "allow" } = {}) {
+  if (!["allow", "separate"].includes(contraction)) throw new TypeError("contraction must be allow or separate");
+  const builder = k.pipeline(name)
     .describe("PyTorch-like ops → fused loop kernels → GPU schedules → CUDA and WGSL")
     .ir("torch", { dialects: [nn, tensor] })
     .pass(decomposition)
-    .ir("tensor", { dialects: [tensor], strict: true })
-    .pass(optimization).pass(lift).pass(fuse).pass(stamp)
+    .ir("tensor", { dialects: [tensor], strict: true });
+  if (contraction === "separate") builder.pass(separateRoundingPass);
+  return builder.pass(optimization).pass(lift).pass(fuse).pass(stamp)
     .ir("loop", { dialects: [loop, tensor], strict: true })
     .pass(tilePass)
     .ir("tile", { dialects: [tile, tensor], strict: true })
