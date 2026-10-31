@@ -1,0 +1,96 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../linalg-fixtures/vv-f16.kiln.js",
+  "sha256": "43d0174a72a5f0aabddab8eaf6e2f82c5c5e46beaad6a4087b6d6cb143c09e23"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    17
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    17
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 17,
+   "bytes": 36
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 17,
+   "bytes": 36
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 1,
+   "bytes": 4
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_matmul_reduce__1vl8rt96rj0",
+   "identity": "1vl8rt96rj0",
+   "row": "TPB=1024",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [],
+   "inShapes": [
+    [
+     17
+    ],
+    [
+     17
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_matmul_reduce__1vl8rt96rj0(const __half* __restrict__ src0, const __half* __restrict__ src1, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, in1 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 1)) {\n        acc0 = 0.0f;\n        for (int r7 = 0; r7 < 17; r7 += 1) {\n            in0 = __half2float(src0[r7]);\n            v0 = in0;\n            in1 = __half2float(src1[r7]);\n            v1 = in1;\n            v2 = (v0 * v1);\n            acc0 = (acc0 + v2);\n        }\n        v3 = __half2float(__float2half_rn(acc0));\n        v4 = __half2float(__float2half_rn(v3));\n        dst[0] = __float2half_rn(v4);\n    }\n}"
+  }
+ ]
+}

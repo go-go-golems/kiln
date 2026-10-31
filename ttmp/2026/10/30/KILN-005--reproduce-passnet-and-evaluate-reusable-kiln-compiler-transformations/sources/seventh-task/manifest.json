@@ -1,0 +1,137 @@
+{
+  "format": "kiln-passnet-corpus/1",
+  "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/4d/cf/4dcf365b8779cf45b6b93412ccdb8288e30fb5b574a8d7030d4ee49dd0633837",
+  "metadata_mode": "fake",
+  "variants": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/google/bigbird-roberta-base/_decomposed/bigbird-roberta-base_start0_end2_0",
+      "script": "000.kiln.js",
+      "inputs": {
+        "v0": [
+          3072
+        ],
+        "v1": [
+          3072,
+          768
+        ],
+        "v2": [
+          1,
+          17,
+          768
+        ]
+      },
+      "input_dtypes": {
+        "v0": "bf16",
+        "v1": "bf16",
+        "v2": "bf16"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "specialization": [
+        0
+      ]
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/google/bigbird-roberta-base/_decomposed/bigbird-roberta-base_start0_end2_0",
+      "script": "001.kiln.js",
+      "inputs": {
+        "v0": [
+          3072
+        ],
+        "v1": [
+          3072,
+          768
+        ],
+        "v2": [
+          1,
+          17,
+          768
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f16",
+        "v1": "f16",
+        "v2": "f16"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "specialization": [
+        0
+      ]
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchgeometric/RECT_L/_decomposed/RECT_L_start41_end43_8",
+      "script": "002.kiln.js",
+      "inputs": {
+        "v0": [
+          128
+        ],
+        "v1": [
+          128,
+          128
+        ],
+        "v2": [
+          128,
+          128
+        ]
+      },
+      "input_dtypes": {
+        "v0": "f16",
+        "v1": "f16",
+        "v2": "f16"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "specialization": [
+        1
+      ]
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/torchgeometric/RECT_L/_decomposed/RECT_L_start41_end43_8",
+      "script": "003.kiln.js",
+      "inputs": {
+        "v0": [
+          128
+        ],
+        "v1": [
+          128,
+          128
+        ],
+        "v2": [
+          128,
+          128
+        ]
+      },
+      "input_dtypes": {
+        "v0": "bf16",
+        "v1": "bf16",
+        "v2": "bf16"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          }
+        ]
+      },
+      "specialization": [
+        2
+      ]
+    }
+  ]
+}

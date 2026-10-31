@@ -4,6 +4,7 @@ Independent lowering against Kiln N APIs. No upstream implementation copied.
 """
 import json
 from fx_indexing import lower_index
+from fx_linalg import FUNCTIONS as LINALG_FUNCTIONS, METHODS as LINALG_METHODS, lower_linalg
 
 
 def import_graph(graph):
@@ -90,7 +91,20 @@ def import_graph(graph):
                       'aten.sigmoid.default':'sigmoid', 'torch.nn.functional.silu':'silu',
                       'aten.silu.default':'silu'}.get(target)
         if node['kind']=='call_method' and target=='sigmoid': activation='sigmoid'
-        if activation:
+        linalg=LINALG_FUNCTIONS.get(target) if node['kind']=='call_function' else target if target in LINALG_METHODS else None
+        inplace_binary={'_operator.iadd':'add','_operator.isub':'sub','_operator.imul':'mul','_operator.itruediv':'div'}.get(target)
+        if inplace_binary:
+            ref=node['args']['tuple'][0].get('ref') if len(args)==2 and isinstance(node['args']['tuple'][0],dict) else None
+            if len(args)!=2 or kwargs or ref not in fresh or uses.get(ref)!=1:
+                raise ValueError(f'{name}: in-place arithmetic requires fresh single-use producer')
+            expr=f'N.{inplace_binary}({args[0]}, {args[1]})'
+        elif linalg:
+            def operand_spec(value):
+                source=next((key for key,val in values.items() if val==value),None)
+                if source is None or not isinstance(metadata[source],dict):raise ValueError(f'{name}: matrix operand must reference a tensor')
+                return metadata[source]
+            expr=lower_linalg(linalg,args,kwargs,meta,operand_spec)
+        elif activation:
             fields=['input','inplace'] if activation=='silu' else ['input']
             if len(args)>len(fields) or set(kwargs)-set(fields):
                 raise ValueError(f'{name}: unsupported {activation} arguments')
@@ -299,7 +313,7 @@ def import_graph(graph):
         # Views, casts and disabled dropout may alias: intentionally do not
         # transfer ownership through them. Accepted in-place calls only
         # consume an already owned value whose sole use is this operation.
-        if activation or reduction or target in unary or target in binary or target in (
+        if inplace_binary or linalg or activation or reduction or target in unary or target in binary or target in (
                 'torch.conv2d','torch.nn.functional.batch_norm','torch.nn.functional.interpolate',
                 'torch.cat','torch.concat','torch.concatenate','aten.cat.default'):
             fresh.add(name)

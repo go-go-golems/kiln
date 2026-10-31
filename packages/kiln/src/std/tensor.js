@@ -1,3 +1,4 @@
+import {matmulSpec,linearSpec,matmulReference,linearReference,lowerMatmul,lowerLinear} from './matmul.js';
 import {concatSpec,concatReference,lowerConcat} from "./concat.js";
 import {bilinearSpec,bilinearReference,lowerBilinear} from "./bilinear.js";
 import {conv2dSpec,conv2dReference,lowerConv2d} from "./conv2d.js";
@@ -103,20 +104,6 @@ export function viewRef(x, shape, map) {
   fn(x.data, out.data, (a, b) => ((a % b) + b) % b);
   return out;
 }
-function matmulRef(a, b) {
-  a = asT(a); b = asT(b);
-  const K = a.shape.at(-1), N = b.shape.at(-1), M = a.shape.at(-2) ?? 1;
-  const batch = numel(a.shape.slice(0, -2));
-  const out = new Tensor([...a.shape.slice(0, -1), N]);
-  const bBatched = b.shape.length > 2;
-  for (let z = 0; z < batch; z++) for (let i = 0; i < M; i++) for (let j = 0; j < N; j++) {
-    let s = 0;
-    for (let q = 0; q < K; q++) s += a.data[z * M * K + i * K + q] * b.data[(bBatched ? z * K * N : 0) + q * N + j];
-    out.data[z * M * N + i * N + j] = s;
-  }
-  return out;
-}
-const linearRef = (x, w) => { x = asT(x); w = asT(w); const N = w.shape[0], K = w.shape[1]; const wt = new Tensor([K, N]); for (let n = 0; n < N; n++) for (let q = 0; q < K; q++) wt.data[q * N + n] = w.data[n * K + q]; return matmulRef(x, wt); };
 const rows = (x) => { const D = x.shape.at(-1); return [x.data.length / D, D]; };
 function rmsRef(x, w, eps) { x = asT(x); w = asT(w); const [R, D] = rows(x); const o = new Tensor(x.shape); for (let r = 0; r < R; r++) { let s = 0; for (let j = 0; j < D; j++) s += x.data[r * D + j] ** 2; const inv = 1 / Math.sqrt(s / D + eps); for (let j = 0; j < D; j++) o.data[r * D + j] = x.data[r * D + j] * inv * w.data[j]; } return o; }
 function lnRef(x, w, b, eps) { x = asT(x); w = asT(w); b = asT(b); const [R, D] = rows(x); const o = new Tensor(x.shape); for (let r = 0; r < R; r++) { let m = 0; for (let j = 0; j < D; j++) m += x.data[r * D + j]; m /= D; let v = 0; for (let j = 0; j < D; j++) v += (x.data[r * D + j] - m) ** 2; const inv = 1 / Math.sqrt(v / D + eps); for (let j = 0; j < D; j++) o.data[r * D + j] = (x.data[r * D + j] - m) * inv * w.data[j] + b.data[j]; } return o; }
@@ -176,9 +163,14 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
     return k.tensor(x.type.shape, dtype);
   }, eval: ({ x, type }) => roundedReference(new Tensor(x.shape, x.data.slice()), type), print: "cast({x}, {dtype})" })
   .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add" }, traits: ["pure"], infer: ({ xs, fn }) => (F(fn), T_(bshape(...xs.map((x) => x.type.shape)), elementwiseDtype(xs))), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs), type), print: "{fn}({xs})" })
-  .op("linear", { args: ["x", "w"], infer: ({ x, w }) => T_([...x.type.shape.slice(0, -1), w.type.shape[0]]), eval: ({ x, w }) => linearRef(x, w), print: "linear({x}, {w})",
-    validate: ({ args: [x, w] }) => x.type.shape.at(-1) === w.type.shape[1] || `in_features ${x.type.shape.at(-1)} ≠ weight ${w.type.shape[1]}` })
-  .op("matmul", { args: ["a", "b"], infer: ({ a, b }) => T_([...a.type.shape.slice(0, -1), b.type.shape.at(-1)]), eval: ({ a, b }) => matmulRef(a, b), print: "matmul({a}, {b})" })
+  .op("linear", { args: ["x", "w"], infer: ({x,w}) => {
+    if(x.type.dtype!=="f32"||w.type.dtype!=="f32")throw new KilnError("TypeError","linear arithmetic requires FP32; widen operands and narrow the source operation result explicitly");
+    return T_(linearSpec(x.type.shape,w.type.shape).shape);
+  }, eval: ({x,w}) => linearReference(x,w), print:"linear({x}, {w})" })
+  .op("matmul", { args: ["a", "b"], infer: ({a,b}) => {
+    if(a.type.dtype!=="f32"||b.type.dtype!=="f32")throw new KilnError("TypeError","matmul arithmetic requires FP32; widen operands and narrow the source operation result explicitly");
+    return T_(matmulSpec(a.type.shape,b.type.shape).shape);
+  }, eval: ({a,b}) => matmulReference(a,b), print:"matmul({a}, {b})" })
   .op("rms_norm", { args: ["x", "w"], attrs: { eps: 1e-6 }, infer: sameAs, eval: ({ x, w, eps }) => rmsRef(x, w, eps), print: "rms_norm({x}, {w}, eps={eps})" })
   .op("layer_norm", { args: ["x", "w", "b"], attrs: { eps: 1e-5 }, infer: sameAs, eval: ({ x, w, b, eps }) => lnRef(x, w, b, eps), print: "layer_norm({x}, {w}, {b}, eps={eps})" })
   .op("softmax", { args: ["x"], attrs: { dim: -1 }, infer: sameAs, eval: ({ x, dim }) => softmaxRef(x, dim), print: "softmax({x}, dim={dim})" })
@@ -294,20 +286,8 @@ export const decompositions = [
   decompose("nn.conv2d", ({x,w,b,stride,padding,dilation,groups}) => lowerConv2d(T,x,w,b,{stride,padding,dilation,groups})),
   decompose("nn.cast", ({ x, dtype }) => tensor.ew([x], { fn: dtype === "f32" ? "copy" : "round_" + dtype, dtype })),
   decompose("nn.ew", ({ xs, fn }) => T.ew(fn, ...xs)),
-  decompose("nn.linear", ({ x, w, out }) => {
-    const xs = x.type.shape, K = xs.at(-1), Nn = w.type.shape[0], B = xs.slice(0, -1);
-    const a = T.view(x, [...B, K, Nn], (c) => [...c.slice(0, B.length), c[B.length]]);
-    const b = T.view(w, [...B, K, Nn], (c) => [c[B.length + 1], c[B.length]]);
-    const s = T.sum(tensor.ew([a, b], { fn: "mul" }), -2);
-    return T.view(s, out.type.shape, (c) => [...c.slice(0, B.length), IX.C(0), c[B.length]]);
-  }),
-  decompose("nn.matmul", ({ a, b, out }) => {
-    const as = a.type.shape, bs = b.type.shape, K = as.at(-1), Nn = bs.at(-1), B = as.slice(0, -1);
-    const A = T.view(a, [...B, K, Nn], (c) => [...c.slice(0, B.length), c[B.length]]);
-    const Bm = T.view(b, [...B, K, Nn], (c) => (bs.length === 2 ? [c[B.length], c[B.length + 1]] : [...c.slice(0, B.length - 1), c[B.length], c[B.length + 1]]));
-    const s = T.sum(tensor.ew([A, Bm], { fn: "mul" }), -2);
-    return T.view(s, out.type.shape, (c) => [...c.slice(0, B.length), IX.C(0), c[B.length]]);
-  }),
+  decompose("nn.linear", ({x,w}) => lowerLinear(T,x,w)),
+  decompose("nn.matmul", ({a,b}) => lowerMatmul(T,a,b)),
   decompose("nn.rms_norm", ({ x, w, eps }) => {
     const D = x.type.shape.at(-1);
     const ms = T.div(T.sum(T.mul(x, x), -1), D);
@@ -359,4 +339,4 @@ export const contractFma = k.rule("contract_fma")
 export const optimization = k.pass("frontend/optimization").short("o").rules(composeViews, foldSplatView, dropIdentityView, foldSplatEw, contractFma)
   .describe("compose index-map chains, fold constant views and constant arithmetic, contract multiply-add into fma");
 
-export { asT, ewRef, reduceRef, matmulRef };
+export { asT, ewRef, reduceRef };

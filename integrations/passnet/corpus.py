@@ -39,7 +39,7 @@ def read_manifest(directory):
 
 def translate_graph(upstream, graph, metadata_mode):
     import torch
-    from torch.fx import symbolic_trace
+    from fx_trace import trace_module
     from fx_export import export_graph
     from fx_import import import_graph
     model = load_module(upstream / graph / 'model.py').GraphModule()
@@ -51,7 +51,7 @@ def translate_graph(upstream, graph, metadata_mode):
     metadata.sort(key=lambda c: int(c.name.split('_')[-1]))
     if len({c.name for c in metadata}) != len(metadata):
         raise ValueError(f'{graph}: duplicate input metadata')
-    traced = symbolic_trace(model)
+    traced = trace_module(model)
     if metadata_mode == 'fake':
         from torch._subclasses.fake_tensor import FakeTensorMode
         mode = FakeTensorMode(allow_fallback_kernels=False)

@@ -3765,3 +3765,53 @@ See the standing user requirements for textbook-style milestone reports, vault c
 
 ### Technical details
 - reMarkable receipt proves cloud delivery, not physical synchronization. Unrelated root sources and unrelated vault changes remain unstaged. The overall project remains active and incomplete.
+
+## Step 87: Centralize matrix semantics and preserve source mutation identities
+
+Implemented full positive-static vector/matrix promotion and two-sided batch broadcasting in a shared Kiln matrix module, plus typed FX lowering for linear/matmul/mm/bmm. Added source-derived pass generation to avoid a separate hand-written matcher for each family. During integration, corrected a tracing fidelity issue: Python += could lose its mutation identity before import. The faithful tracer now preserves it and requires ownership or explicit future writeback support.
+
+### Prompt Context
+See the standing user instructions to implement missing Kiln pieces, streamline toward compiler optimization, reassess architecture, retain scripts/sources and keep detailed diaries.
+**Assistant interpretation:** Extend real matrix workload support with reusable semantic and matching components, while correcting rather than hiding source mutation gaps.
+**Inferred user intent:** Increase practical benchmark reach without multiplying one-off adapters or inflating acceptance claims.
+**Commit (previous milestone):** 6f2485c.
+
+### What I did
+- Added packages/kiln/src/std/matmul.js for shape contracts, independent references and decomposition; removed duplicate/incomplete matrix reference and lowering from tensor.js.
+- Added fx_linalg.py and explicit FP32 arithmetic/output narrowing at source boundaries. mm/bmm retain stricter source rank/batch requirements.
+- Added MutationProxy/MutationTracer through fx_trace.py and made corpus.translate_graph use it; supported in-place arithmetic functionalizes only fresh single-use producers.
+- Added generate_pass.py: trusted source AST extraction, normalized FX deduplication, explicit literal specialization identities, flat output validation and source provenance.
+- Saved scripts 115–125, archived official docs/native sources, compiled 42 independent fixtures, ran 126 CUDA comparisons and generated complete task 121's four variants/three match patterns.
+
+### Why
+- Existing matrix inference used only the left batch prefix and did not cover general vector/broadcast semantics. Ordinary FX Proxy could erase +=, creating optimistic import eligibility without source mutation support. Automatic matching should preserve source patterns while the compiler owns actual optimization.
+
+### What worked
+- All 26 Node test files and 60 Python integration tests passed.
+- All 126 CUDA fixture comparisons passed across FP32/FP16/BF16 and seeds 1,7,42, including scalar output, odd K=129, transpose, vectors, broadcasting and bias. Maximum absolute error 7.62939453125e-6; source PyTorch reports float32_matmul_precision=high.
+- Matrix import initially reached 1006 graphs / 47 complete tasks. Faithful mutation tracing identifies 22 previously optimistic cases across four unverified task families; authoritative eligibility is 984 / 43. No already verified complete task is among the retractions.
+- Task 121 exports four source variants and three reusable generated match patterns, without manual per-family matcher code.
+
+### What didn't work
+- First Node import failed with `SyntaxError: Export 'matmulRef' is not defined in module` after moving the reference. Removed the stale unused export; no compatibility shim was added.
+- An initial source fixture with 2D input/vector weight/scalar bias failed in PyTorch with `RuntimeError: mat2 must be a matrix, got 1-D tensor`. Pinned Linear.cpp confirms the 2D+bias addmm path. Tested executable vector-weight/no-bias forms separately and retained the discrepancy.
+- Pattern validation initially accepted a nested singleton containing a tuple; the test failed with `AssertionError: ValueError not raised`. Added explicit flat-singleton validation before unwrapping.
+- Initial iadd pattern extraction failed with `AssertionError: '_operator.iadd' not found` and instead traced `_operator.add`. PyTorch's autowrap scanner ignores names beginning with underscore. Renamed the directly imported alias to public kiln_iadd and verified preserved identity.
+
+### What I learned
+- A more faithful importer can correctly lower a numerical count by identifying source effects that were previously erased. Import eligibility should not reward silently functionalizing observable input mutation.
+
+### What was tricky to build
+- Right-align both batch prefixes while preserving matrix dimensions and vector promotion/removal. Keep dtype narrowing at operation boundaries, and ensure pass dispatch includes captured literal identity rather than input metadata alone.
+
+### What warrants a second pair of eyes
+- In-place source capture and freshness criteria, FP32 arithmetic versus native TF32/accumulation settings, metadata-equal pattern specializations and single-output tuple unwrapping. Raw low-precision nn matrix arithmetic now errors rather than silently returning FP32.
+
+### What should be done in the future
+- Run complete real-task matching/numerical/scoring, extend coverage using shared pass generation, and implement proper memory-effect/writeback contracts for the 22 rejected mutation cases. Optimized schedules and original PassAgent evaluation remain open.
+
+### Code review instructions
+- Read design 08, matmul.js and fx_linalg.py, then trace/pattern tests. Inspect linalg-cuda.json and all 42 compiled artifacts. Reproduce the faithful full-denominator audit with scripts 121–122 rather than quoting the superseded 1006/47 result.
+
+### Technical details
+- No new evaluator protocol was introduced; source-derived in-place addition uses the existing explicit iadd autowrap path. New fixtures/results establish tolerance-based correctness, not performance or full benchmark acceptance. Current verified ledger remains six tasks / 76 graphs pending real-task evaluation.
