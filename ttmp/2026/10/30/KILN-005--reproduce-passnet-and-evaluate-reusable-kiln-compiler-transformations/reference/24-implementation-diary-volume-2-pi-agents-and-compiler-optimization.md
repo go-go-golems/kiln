@@ -1934,3 +1934,58 @@ See Step182 and the standing instruction to continue implementation, measure act
 ### Technical details
 - Same GB10/pinned CUDA runtime; highest matrix precision, cuDNN TF32 disabled, separate contraction, seed42,20 warmups,100 trials and3 randomized rounds for correct executables.
 - No new inference, compiler default change, tolerance adjustment or coverage increase. Coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 198: Check the failed MnasNet artifacts with untouched PassBench numerical code
+
+The original PassBench comparison and dtype/tolerance lookup reject both unchanged and pointwise artifacts at nominal t=-5. Under the pinned container's native defaults, both also fail t=-4 and t=-3. Under the explicitly modified full-FP32 reference, both pass t=-4 and t=-3 but still fail t=-5. The research failure therefore is not explained by an accidentally stricter comparison threshold.
+
+This is numerical-comparator evidence only. It does not execute graph matching, performance scoring or a complete source task, and it does not increase accepted coverage. The observed runtime defaults enable TF32 for both matrix multiplication and cuDNN; that configuration is recorded rather than silently changed in a nominal reproduction.
+
+### Prompt Context
+See Step182 and the standing request for implementation, measurements and detailed provenance. This goal continuation is runtime metadata, not a new authored quotation.
+**Assistant interpretation:** Resolve whether the failed research comparison also fails PassBench's actual numerical acceptance calculation before choosing a compiler intervention.
+**Inferred user intent:** Avoid spending compiler effort on a mistaken evaluation diagnosis while preserving reproducibility.
+**Prior confirmation commit:** 8391dad.
+
+### What I did
+- Read the pinned upstream compare_correctness, tolerance_generator, get_precision and get_correctness implementations.
+- Script517 runs unchanged compiled artifacts against original replay inputs in two declared modes: native container defaults, then highest matrix precision with cuDNN TF32 disabled.
+- Invoked upstream compare_correctness directly, retained its complete printed numerical curve, and used upstream get_correctness for each tolerance decision.
+- Script518 executes the comparison in the completed remote confirmation environment and collects the diagnostic JSON and raw curve log. All four upstream comparison/config files have recorded SHA256 identities.
+
+### Why
+- The preceding experiment used check_structure with rtol1.3e-6 and atol1e-5. Verifying the actual benchmark mapping is necessary before attributing rejection to that research check.
+- Native precision defaults and explicit FP32 execution are separate experimental variables. Neither result should overwrite the other.
+
+### What worked
+- Upstream float32 precision at t=-5 is rtol1.30016957803329e-6,atol1e-5, emitted at three significant digits as1.30e-6 and1e-5. This agrees with the research threshold to the benchmark's printed precision.
+- Native-default mode records matmul precision high, matmul_allow_tf32 true and cudnn_allow_tf32 true. Both artifacts fail t=-7 through t=-3 in the tested range.
+- Full-FP32 mode records highest,false,false. Both artifacts fail t=-7,-6,-5 and pass t=-4,-3.
+- Existing confirmation results and acceptance criteria remain unchanged.
+
+### What didn't work
+- Neither implementation qualifies at the benchmark's nominal threshold, even after explicitly removing TF32 from the reference. No compiler fix or successful reproduction is claimed.
+- Running the numerical comparator alone cannot establish pass matching, benchmark integrity-check compatibility or complete-task acceptance.
+
+### What I learned
+- There are at least two distinct numerical concerns: native reduced-precision execution defaults and FP32 evaluation-order differences that remain with TF32 disabled.
+- Chasing one container's native arithmetic with an ad hoc kernel change would conflate compiler semantics with reproduction environment configuration. A numerical contract and its implementation must be declared together.
+
+### What was tricky to build
+- The upstream curve prints multiple dtype-specific tolerance pairs, and get_correctness selects the proper key by output dtype. The diagnostic retains the whole curve and delegates the lookup rather than reconstructing an approximate acceptance rule.
+- Raw comparator stderr is preserved separately from the launcher stdout so the numerical evidence cannot be overwritten by process output redirection.
+
+### What warrants a second pair of eyes
+- The pinned NVIDIA image uses a newer Torch build than the paper. These observed defaults must not be represented as universal PyTorch defaults or the paper's configuration.
+- An original-evaluator numerical failure on this training graph is not a newly failed member of the official200-task evaluation population.
+
+### What should be done in the future
+- Keep this arithmetic limitation explicit while expanding missing compiler operators and workload coverage. Assess any future precision mode against a declared reference rather than adjusting tolerances after outcomes.
+- Revisit the paper's exact environment separately from integration experiments on GB10.
+
+### Code review instructions
+- Inspect scripts517–518 and pointwise-agent-confirmation-gpu-results-v1/passbench-numerical.{json,log}. Compare the four recorded source hashes with the pinned upstream implementations.
+
+### Technical details
+- The same MnasNet source graph, seed42 and unchanged baseline/pointwise artifacts are used. No new GPU timing, LLM inference, compiler mutation, default promotion or accepted-coverage increase occurred.
