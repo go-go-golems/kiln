@@ -2487,3 +2487,48 @@ Compare failed-fx-pattern-census-v1.json and v2.json. Run the eight fx_normalize
 
 ### Technical details
 The local diagnostic used Torch2.11.0+cu130; original PassBench GPU execution remains on the pinned image with Torch2.12.0a0+5aff3928d8.nv26.05. No original evaluator or correctness predicate changed.
+
+## Step 209: Confirm task107 and launch eight-family matcher cohort
+
+The full18-graph task107 max-pooling family passes the original PassBench matcher and t=-5 numerical check after max-pool argument normalization. Its original scorer reports0.24265578547986374. Cumulative accepted coverage rises to45/200 complete tasks and454/2060 graphs. Eight other complete families with first-graph structural matches are running from the later padding/hardtanh normalizer commit.
+
+### Prompt Context
+The user asked for batched coverage results, reproducible scripts, detailed diaries and pushed checkpoints.
+**Assistant interpretation:** Verify the causal matcher fix on a complete family and then test transfer across the other diagnosed no-match families.
+**Inferred user intent:** Convert a structural finding into measured benchmark support across all variants.
+
+### What I did
+- Collected the terminal task107 run with script597, verifying the source snapshot, all18 graph logs, matching, execution and numerical t=-5 status.
+- Preserved the previous coverage ledger and added the exact task107 run to the ordered coverage builder.
+- Script600 froze eight other no-match families with complete graph membership,51 graphs. Scripts601–603 staged and launched them from commitdd73529; remote source snapshot was checked before launch.
+
+### Why
+A local first-graph match alone does not establish that all18 shapes/dtypes execute correctly. The follow-up cohort tests whether the related padding and hardtanh call-form fixes transfer beyond the one proven max-pool family.
+
+### What worked
+- Task107:18/18 graphs accepted; original aggregate score0.24265578547986374.
+- Cumulative modified-protocol coverage:45/200 complete tasks and454/2060 graphs.
+- The eight-family run launched with source snapshot SHA256 584f3b91f8d071a3641ab04d8233bf4c131f7e127054f27e1a5d24a7ca7564db.
+
+### What didn't work
+- The low score means correctness does not imply competitive speed. No speedup claim follows from this task's acceptance.
+- The eight-family cohort remains active and has no acceptance result at this checkpoint.
+
+### What I learned
+The max-pool matcher omission was causally important: task107 changed from18 no-match graphs under the previous snapshot to18 matched and numerically accepted graphs after the fix. The next cohort tests whether similar call-form normalization explains more failures.
+
+### What was tricky to build
+The original benchmark's per-graph numerical curve and aggregate score are distinct. Coverage uses t=-5 correctness with one match, while the scorer retains runtime penalties and can remain below eager.
+
+### What warrants a second pair of eyes
+Review task107's full benchmark log for any process-level warnings despite per-graph acceptance; examine the eight-family run independently before generalizing.
+
+### What should be done in the future
+- Collect the same active eight-family run only after it reaches terminal state.
+- Investigate numerical and compile failures that remain after matcher normalization, especially on low-precision graphs.
+
+### Code review instructions
+Read max-pool-match-task-audit-v1.json, task107/benchmark.log, normalized-matcher-task-plan-v1.json and the coverage snapshots. Reproduce the source hash verification in script601.
+
+### Technical details
+Task107 GPU replay source revision06aacce, separate from the eight-family source revisiondd73529. Both use the pinned original evaluator image and nominal t=-5 acceptance. The coverage ledger combines explicitly recorded source snapshots.
