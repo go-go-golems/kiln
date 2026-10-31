@@ -5411,3 +5411,48 @@ See Steps116–119 and the user's self-optimization/reliability objective.
 
 ### Technical details
 - All graph membership, candidate coefficients, numerical/reference settings and timing budgets remain frozen. Original PassAgent provider selection remains pending.
+
+## Step 121: Complete canonical confirmation without claiming an identity speedup
+
+All eight confirmation graphs qualify under the committed unchanged compiler. The shared verifier proves source, declaration, artifact, reference and selection-commit consistency. Reported ratios are1.0 because selected and baseline are the same executable; no independent optimization contrast or speedup is claimed. The fresh search is complete and negative.
+
+### Prompt Context
+See Steps116–120 and the user's request for complete measurement and durable milestone reports.
+**Assistant interpretation:** Finish the frozen confirmation phase and explain no-change selection honestly.
+**Inferred user intent:** Retain reliable compiler defaults when search fails to produce a better reusable transformation.
+**Commit (selection):**58133d1 — research(passnet): commit baseline selection under canonical artifact identity.
+
+### What I did
+- Executed script237 through the dedicated tmux job, collected EXIT_CODE=0 and all eight records.
+- Verified the complete study through script238 with selection commit58133d1.
+- Completed reference15 and updated guide Section34, design13 and roadmap with canonicalization, runner repair, transpose/input-only support and negative fresh evaluation.
+
+### Why
+- Identity ratios must not be presented as independent held-out performance validation. The useful result is that no altered candidate qualified as faster in training and the selected compiler remains correct on confirmation.
+
+### What worked
+- All eight graphs/families qualify, with zero changed artifacts and no dropped/replaced cases.
+- Both ratios are exactly1.0 by shared-executable identity. Frozen aliases, candidate population and objective remain unchanged.
+- Source, declaration, artifact, numerical and pre-confirmation commitment checks pass.
+
+### What didn't work
+- No faster compiler policy, external-model synthesis or new original benchmark acceptance is established.
+- Original PassAgent configuration and renewed reMarkable export approval remain pending, without blocking other compiler work.
+
+### What I learned
+- A no-change selection is a valid completed optimization experiment, provided its identity comparison is distinguished from empirical improvement.
+
+### What was tricky to build
+- All historical /2 timing/ranking stays intact while /3 canonical evidence is measured through a new population and declaration. The report separates fixtures, import eligibility and original benchmark acceptance.
+
+### What warrants a second pair of eyes
+- Review actual test execution, version invalidation, exact alias pooling and the baseline-only confirmation interpretation.
+
+### What should be done in the future
+- Publish reference15, run original PassAgent when a provider is configured, and continue remaining compiler/dtype/layout support and transformation synthesis work.
+
+### Code review instructions
+- Read summary.json and selection commit58133d1; run script238, then inspect canonical replay verification, full32-file log and both CUDA receipts.
+
+### Technical details
+- Overall goal remains active and incomplete. Original acceptance eleven tasks/206 graphs; import eligibility1029/51. Device-document delivery is not claimed.

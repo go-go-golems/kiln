@@ -107,3 +107,8 @@ Selective consumer fusion is implemented in the existing rule factory (51b45eb),
 ### Whole-region planner and evidence identity
 
 The local additive-model planner is implemented (4523355), exhaustive 280-case oracle and 108 CUDA comparisons pass, and all 240 v7 artifacts qualify (114d90b). Training selection is committed in cff6a69. Confirmation passes all eight graphs but measures 0.9900990594274756 end-to-end/0.9865479028062627 stream elapsed, so the default is unchanged. A training-only audit finds eight selected changes equivalent after generated entry/reduction-name normalization; aliases/selection remain frozen. Next: canonicalize generated names and align code/evidence identity before a fresh declaration. Original reproduction/support/synthesis tasks remain open. See design 12/reference 14 and scripts213/214.
+
+
+### Canonical emission and completed no-change selection
+
+Core e0f64dc canonicalizes reduction names before code emission and fixes spawn-error test acceptance. All32 compiler files execute successfully,8/8 known name-only contrasts resolve exactly, and108 canonical CUDA comparisons pass. Transpose/input-only export support (71fb43d) passes117 CUDA comparisons but leaves import eligibility1029/51 and original acceptance11/206 unchanged. Fresh broader v8-r2 qualifies240 artifacts; training selects baseline in58133d1, every altered candidate is slower, and all eight confirmation graphs qualify. Ratios1.0 are identity comparisons, with no speedup claim. See design13/reference15. Original PassAgent awaits the requested model/provider; remaining full support and synthesis stay open.

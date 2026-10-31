@@ -73,3 +73,7 @@ Implemented opt-in selective consumer fusion with shared inlining, retained-prod
 ## 2026-10-31
 
 Implemented local model-optimal whole-region fusion planner with canonical region API;30 compiler files,280 exhaustive cases and108 CUDA comparisons pass. Frozen240-artifact fresh study confirms no speedup (0.990099x). Training-only generated-name audit identifies nuisance contrasts; canonical naming/evidence identity is next. Report14 and guide Section33 document scope.
+
+## 2026-10-31
+
+Complete canonical codegen/3 study: all eight confirmation graphs qualify; baseline selection 58133d1 is unchanged, so identity ratios establish no speedup. Record reliable subprocess validation, canonical source replay, transpose/input-only exports and milestone report 15.
