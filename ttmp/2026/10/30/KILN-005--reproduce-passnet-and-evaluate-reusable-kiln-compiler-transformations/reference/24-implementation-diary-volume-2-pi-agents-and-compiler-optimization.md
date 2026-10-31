@@ -3817,3 +3817,68 @@ From this step on, every entry uses the diary skill's investigation format, whic
 ### Technical details
 - Rounding example: f16 with `x = y = 1+2^-6` and `z = -1`. Unfused: `round16(x*y) = 1+2^-5`, result `2^-5`. Fused: `2^-5 + 2^-12`.
 - Guard messages: `buffer <id> has <n> elements: CUDA index arithmetic is 32-bit (limit 2147483647)` and `kernel <name> launches <n> threads: CUDA thread ids are 32-bit (limit 2147483647)`.
+
+## Step 240: Make pattern identity output-order invariant (A1) and audit the large band
+
+This step implements review finding A1. `generate_pass.py` now keys PassBench rules on the traced computation plus the multiset of returned nodes. Return order and the singleton container are no longer part of identity. Each variant records an `output_permutation` and stores its `output_structure` in the matched rule's return convention. A new CPU simulation (script 658) reruns PassBench's rule selection with the upstream `SubgraphMatcher` settings. With the previous generator it reproduces exactly the 16 GPU dispatch failures of the ordinary band. With the new generator all 75 graphs of tasks 6, 24 and 185 select their own compiled rule exactly once.
+
+While the regression band holds the GPU, I also collected the terminal large band (2 tasks, 522 graphs): task 130 is complete, and task 73 fails nominal tolerance on 41 of 43 bf16 variants.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 239. Additional instruction during this step: "btw any way you want to refactor or clean up, no backwards compatibility or so is needed, this is still science and we are building forward"
+**Assistant interpretation:** Fix A1 at the identity boundary with a clean design (no compatibility shims), validate as far as possible without the busy GPU, and keep advancing evidence collection.
+**Inferred user intent:** Unlock the failing families through a correct shared repair, not a dispatch fallback.
+**Commit (code):** 9de3901 — "Make PassBench pattern identity invariant under output order"; evidence 00faf19 — "Audit uniform large band: 1/2 families, 481/522 graphs"
+
+### What I did
+- `integrations/passnet/generate_pass.py`:
+  - `extract_pattern` returns a frozen `Pattern(text, args, singleton, key, order, returns)` dataclass. The key is `{'body': rows without the output node, 'returns': sorted(returned node indices)}`.
+  - `freeze()` encodes bools as `{'bool': v}`, so `True` and `1` no longer collide.
+  - New `output_permutation(rule_returns, variant_returns)` assigns duplicate returned nodes to distinct positions. New `reorder_outputs(structure, permutation)` returns a bare child for one output and `{'tuple': [...]}` otherwise.
+  - `generate` writes one rule per class and records `output_permutation` in both the manifest and `pattern-provenance.json`. The generated `_kiln_generated_runtime.py` returns `DISPATCH(...)` directly; the `SINGLETONS` special case is removed.
+- `integrations/passnet/dispatch.py`: `count_outputs`. Classed records (those with `output_permutation`) that share a dispatch key may differ in script text, but must agree in output and mutation counts. Unclassed manifests keep the strict source/structure equality check.
+- `integrations/passnet/test_pass_generation.py`: migrated to `Pattern` attributes. Added `test_output_order_and_container_are_not_identity`, `test_output_permutation_assigns_duplicate_returns` and an end-to-end `test_permuted_variants_share_one_rule_and_return_rule_order` (`ab`, `ba`, `single`, `bare` sources through `CorpusDispatch` with a fake program factory). `test_canonical_roles_preserve_nonassociative_operand_order` now expects a bare tensor from a one-output rule.
+- Added script 658 (`658-simulate-pattern-dispatch-identity.py`): it re-exports the plan tasks into a fresh directory, generates passes, symbolically traces each source graph, normalizes it with `fx_normalize`, and finds the first sorted rule that matches with `match_output=False, match_placeholder=False, remove_overlapping_matches=True`.
+- Ran 658 with the new generator and, as a control, with `git show HEAD:integrations/passnet/generate_pass.py` temporarily in place (restored from a scratch copy afterwards; the `git diff --stat` of 65+/19− confirmed the new file was back). Stored both results in `sources/pattern-identity-simulation-v1/`.
+- Checked bling: `pending-large/run.json` was `complete` (2 tasks) and `regression/run.json` was `running` (5 tasks). Ran `655-collect-uniform-band.py pending-large`, and added script 659 (a band-generic version of 656), run as `659 ... pending-large`.
+
+### Why
+- Upstream `custom_replacement.py:81-86, 132-162` binds outputs to the applied rule's returning nodes, so identity must be computed under the matcher's equivalence (review §3 A1). A dispatch fallback by metadata would silently swap outputs.
+- The singleton container had the same flaw. `(v,)` and bare `v` sources trace to identical patterns. Before this change they raised `incompatible output containers` or would have collided. The replacement must return what the rule's traced pattern returns, so the source container cannot matter.
+
+### What worked
+- `python3 -m unittest test_pass_generation test_dispatch`: `Ran 14 tests ... OK`. Full suite: `Ran 159 tests ... OK`.
+- Script 658 with the new generator: task 6 `66/66 identity ok; 10 rules; 13 permuted`, task 24 `4/4; 1 rule; 2 permuted`, task 185 `5/5; 3 rules; 1 permuted`. The 16 permuted graphs are exactly the 16 GPU failures.
+- Control with the previous generator: task 6 `53/66` (12 rules), task 24 `2/4` (2 rules), task 185 `4/5` (4 rules). The failing pairs are `(3,9), (4,10)`, `(0,1)` and `(2,3)`, identical to reference 44's GPU observation. The CPU simulation therefore predicts this failure class exactly.
+- Large band: `tasks_nominal_accepted: 1`, `graphs_nominal_accepted: 481` of 522, `unexecuted_graphs: 0`. Archive SHA256 `db441a78859a44efbeeb95f2a27af9f9398ec80c8adb47fe1e1f6c3e6faa6250`.
+
+### What didn't work
+- My first end-to-end test raised `KeyError: 'out1'`. The fake program factory used `Path(artifact).stem`, which is `ab.kiln` for `ab.kiln.json`. Fixed with `name.split('.')[0]`.
+- `test_canonical_roles_preserve_nonassociative_operand_order` failed with `torch.Size([1, 1, 1]) != torch.Size([1, 1, 1, 1])`. This is an intended behavior change: one-output rules now return a bare tensor, so the old `[0]` indexed the first dimension. I updated the test.
+- `test_dispatch.test_conflicting_programs_rejected_before_loading` failed with `ValueError not raised` after my first relaxation. Unclassed manifests (no `output_permutation`) have no class guarantee, so the strict check was restored for them.
+- The GPU replay of tasks 6, 24 and 185 was not run. The `regression` band owns the GPU (5 of 53 tasks recorded), and the input-mutation and breadth queues follow it.
+
+### What I learned
+- The large band's only failing family, task 73 (`timm/repvit_m2_3.dist_300e_in1k`), computes `conv2d(groups=160, bias) + in_6 + in_7 → batch_norm → mean((2,3))`. Every f32 and f16 variant passes; 41 of 43 bf16 variants fail at `t=-5`, 37 pass at `t=-3`, all pass at `t=1`.
+- A candidate mechanism, not yet tested: `N.conv2d` for low precision (`tensor.js`) computes the f32 convolution, rounds it to bf16, and then adds the bias as a separate bf16 operation (two roundings). cuDNN adds bias before a single rounding. bf16's 8-bit significand would make that difference visible where f16 hides it.
+
+### What was tricky to build
+- The permutation must map *rule return position → variant return position*, and `output_structure` must be rewritten into rule order **before** dispatch. `restore_outputs` then needs no permutation logic, and the copyback and `input_alias` paths keep working unchanged, because alias children are moved like any other child.
+- Duplicate returns (`return (v, v)`) make `list.index` ambiguous. `output_permutation` consumes positions from an `unused` list, so the result is always a bijection.
+
+### What warrants a second pair of eyes
+- Script 658 traces with `torch.fx.symbolic_trace`, not TorchDynamo. It matches GPU evidence for this failure class, but a Dynamo-specific graph shape (for example `getitem` nodes) could differ elsewhere.
+- Classed duplicate keys: keeping the first program is correct only if equal body plus equal canonical inputs implies an equal function. That holds because the compiled script is translated from the same source graph that defines the pattern.
+
+### What should be done in the future
+- GPU replay of tasks 6, 24 and 185 on fresh copies after the bling queues finish (task P0 a1).
+- Run 658 on tasks 79 and 128 (matcher failures, task P1).
+- Test the bf16 conv-bias double-rounding hypothesis for task 73 and the ordinary-band numerical cluster.
+
+### Code review instructions
+- Start at `generate_pass.py` (`Pattern`, `output_permutation`, `reorder_outputs`, `generate`), then `dispatch.py` (`count_outputs`, the classed-key branch).
+- Validate with `python3 -m unittest test_pass_generation test_dispatch` from `integrations/passnet`, and `python3 ttmp/.../scripts/658-simulate-pattern-dispatch-identity.py --plan .../pending-ordinary-plan.json --upstream .../sources/upstream --output <fresh dir> --task 6 --task 24 --task 185`.
+
+### Technical details
+- Evidence files: `sources/pattern-identity-simulation-v1/fixed-generator.json` (SHA256 `e0810f56…51f9`) and `control-previous-generator.json` (`4b7158b6…84b6`).
+- Large-band files: `pending-large-{audit,collection,failure-summary}.json` and `pending-large-raw.tar.gz`. The raw directory is left untracked, as for the ordinary band.
