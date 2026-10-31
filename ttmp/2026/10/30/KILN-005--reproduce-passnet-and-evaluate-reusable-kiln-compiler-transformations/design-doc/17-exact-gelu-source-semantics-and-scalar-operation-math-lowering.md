@@ -64,3 +64,11 @@ Twelve source-derived CUDA fixtures cover scalar, one-element, tail and wide sha
 ## Remote execution identity
 
 The user supplied192.168.0.65 and then manuel@bling after .local resolution failed. IP access with HostKeyAlias=bling.local succeeds. Plain manuel@bling initially failed strict host verification because that alias was not registered; retaining the established HostKeyAlias succeeds without accepting a new unknown key. Scripts308 and the v3/v4 receipts preserve both observations. Existing model/cache/runtime/port discovery finds no provider in the inspected locations, which is not an exhaustive absence proof.
+
+## Native qualification and retained original-cohort failures
+
+All36 source-derived CUDA fixture records pass, comparing108 outputs across three seeds. The complete60-variant original run accepts two families/18 graphs under nominal t=-5, preserving seven matching failures and35 unexecuted graphs from two end-to-end check failures. Independent script325 verifies164 committed source files, all25 successful artifacts, both failed compile attempts, complete membership, scorer/log hashes and all fixture artifact hashes. Cumulative accepted coverage becomes26/200 tasks and331/2060 graphs.
+
+Task151's CPU capture proves a functional LayerNorm argument-form mismatch: symbolic FX retains weight/bias/eps keywords while Dynamo supplies all five positional fields. The existing transactional signature normalizer gains that supported function. Actual-source diagnosis changes from zero to one match without changing tensors, epsilon or replacement code. The complete seven-variant repair plan is frozen separately; its GPU qualification is pending.
+
+The compile-check diagnostic preserves two sparse discrepancies: two of401408 values in the depthwise-convolution/GELU task and five of2047488 in LayerNorm/transpose/GELU. Their origin remains under investigation; FP32 reduction order and narrowing boundaries are hypotheses, not established harmlessness. No compiler/evaluator tolerance or source numerical policy is changed; both families remain unqualified.

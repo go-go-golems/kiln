@@ -97,3 +97,12 @@ Completed p4wv fixed-source confirmation: 20/20 fresh exact models qualify; 40 a
 ### Related Files
 
 - /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/reference/18-milestone-report-fixed-compiler-confirmation-across-twenty-fresh-model-families.md — Full technical analysis and experimental limits
+
+## 2026-10-31
+
+Exact GELU passes 36 CUDA fixture records. Complete 60-variant original run adds two tasks/18 accepted graphs: cumulative26 tasks/331 graphs, import1196/69. Seven matching failures are traced to functional LayerNorm argument forms and repaired in the existing normalizer; all53 FX tests pass. Two sparse compile-check failures retain35 unexecuted variants with unchanged tolerances. Targeted complete seven-variant replay is frozen.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/fx_normalize.py — LayerNorm public signature repair
+- /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/gelu-source-cohort-v1-verified-facts.json — Independent complete accounting with retained failures

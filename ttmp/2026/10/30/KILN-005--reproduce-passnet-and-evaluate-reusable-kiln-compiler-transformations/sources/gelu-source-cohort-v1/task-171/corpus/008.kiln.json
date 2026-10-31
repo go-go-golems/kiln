@@ -1,0 +1,113 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../gelu-source-cohort-v1/task-171/corpus/008.kiln.js",
+  "sha256": "f27665ae5b4eb212b9fd79ce6e5985277f6ae2697b5ebf2f886b60e0c4147984",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    64,
+    2048
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    64,
+    2048
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    1,
+    64,
+    2048
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 131072,
+   "bytes": 262144
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 131072,
+   "bytes": 262144
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 131072,
+   "bytes": 262144
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_gelu_ew__2apwi6axyhd",
+   "identity": "2apwi6axyhd",
+   "row": "TPB=64",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 2048,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    2048,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    64,
+    2048
+   ],
+   "inShapes": [
+    [
+     1,
+     64,
+     2048
+    ],
+    [
+     1,
+     64,
+     2048
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_cast_gelu_ew__2apwi6axyhd(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, in1 = 0.0f, v4 = 0.0f, v5 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 131072)) {\n        in0 = __bfloat162float(src1[((e % 2048) + (2048 * (e / 2048)))]);\n        v0 = in0;\n        v1 = ((v0 * 0.5f) * (1.0f + erff(v0 * 0.7071067811865476f)));\n        v2 = __bfloat162float(__float2bfloat16_rn(v1));\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        in1 = __bfloat162float(src0[((e % 2048) + (2048 * (e / 2048)))]);\n        v4 = __fmul_rn(v3, in1);\n        v5 = __bfloat162float(__float2bfloat16_rn(v4));\n        dst[((e % 2048) + (2048 * (e / 2048)))] = __float2bfloat16_rn(v5);\n    }\n}"
+  }
+ ]
+}

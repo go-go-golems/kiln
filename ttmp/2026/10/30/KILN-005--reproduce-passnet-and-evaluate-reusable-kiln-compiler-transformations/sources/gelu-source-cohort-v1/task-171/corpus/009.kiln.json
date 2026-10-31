@@ -1,0 +1,113 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../gelu-source-cohort-v1/task-171/corpus/009.kiln.js",
+  "sha256": "6d1cd23b8d16634dda9603cbb31b262c787daf0174b376b56fdd885a5b2d90db",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    32,
+    64,
+    2048
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    32,
+    64,
+    2048
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    32,
+    64,
+    2048
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 4194304,
+   "bytes": 16777216
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 4194304,
+   "bytes": 16777216
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 4194304,
+   "bytes": 16777216
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_gelu_ew__1tz7oggz0uz",
+   "identity": "1tz7oggz0uz",
+   "row": "TPB=64",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 65536,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65535,
+    2,
+    1
+   ],
+   "shape": [
+    32,
+    64,
+    2048
+   ],
+   "inShapes": [
+    [
+     32,
+     64,
+     2048
+    ],
+    [
+     32,
+     64,
+     2048
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: gelu_erf",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_cast_gelu_ew__1tz7oggz0uz(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, in1 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4194304)) {\n        in0 = src1[(((2048 * ((e / 2048) % 64)) + (e % 2048)) + (131072 * (e / 131072)))];\n        v0 = in0;\n        v1 = ((v0 * 0.5f) * (1.0f + erff(v0 * 0.7071067811865476f)));\n        v2 = v1;\n        in1 = src0[(((2048 * ((e / 2048) % 64)) + (e % 2048)) + (131072 * (e / 131072)))];\n        v3 = __fmul_rn(v2, in1);\n        dst[(((2048 * ((e / 2048) % 64)) + (e % 2048)) + (131072 * (e / 131072)))] = v3;\n    }\n}"
+  }
+ ]
+}

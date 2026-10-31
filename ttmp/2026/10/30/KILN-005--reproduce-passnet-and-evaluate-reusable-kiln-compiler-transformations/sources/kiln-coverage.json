@@ -4,10 +4,10 @@
   "coverage_scope": "Cumulative original replay evidence across recorded compiler snapshots; not a uniform full-corpus release evaluation",
   "tasks_total": 200,
   "graphs_total": 2060,
-  "tasks_verified": 24,
-  "graphs_verified": 313,
-  "graphs_in_complete_tasks": 248,
-  "tasks_remaining": 176,
+  "tasks_verified": 26,
+  "graphs_verified": 331,
+  "graphs_in_complete_tasks": 266,
+  "tasks_remaining": 174,
   "records": [
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/62/91/6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8",
@@ -3262,12 +3262,85 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/e1/db/e1db1cd9c68e4d4b4a5cab7018014e752b8cfb79b4d4d7dc1aaa8aae6e69edd6",
       "graphs": 8,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 8,
+      "evidence": "gelu-source-cohort-v1/task-123/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/timm/coatnet_0_224/_decomposed/coatnet_0_224_start12_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/timm/coatnet_0_224/_decomposed/coatnet_0_224_start12_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/coatnet_0_224/_decomposed/coatnet_0_224_start12_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/coatnet_0_224/_decomposed/coatnet_0_224_start12_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/timm/coatnet_0_224/_decomposed/coatnet_0_224_start12_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/timm/coatnet_0_224/_decomposed/coatnet_0_224_start12_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/timm/coatnet_0_224/_decomposed/coatnet_0_224_start12_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/timm/coatnet_0_224/_decomposed/coatnet_0_224_start12_end14_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1",
+        "kiln-pattern-multi-output/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "4bc3ed6926e461894f085bfb2749f39e5ab34d7fb9c7c1f1674d5fb5ded26d39"
+      },
       "limitations": []
     },
     {
@@ -3713,10 +3786,75 @@
       "graphs": 7,
       "status": "not_verified",
       "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "evidence": "gelu-source-cohort-v1/task-151/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start538_end549_65": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start82_end93_11": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start538_end549_65": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start82_end93_11": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start82_end93_11": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start2123_end2134_97": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start2123_end2134_97": {
+          "success": false,
+          "numerical_correct_at_t1": false,
+          "numerical_failure": "eager_fail",
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "eager_fail",
+          "matches": 0
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1",
+        "kiln-pattern-multi-output/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "4bc3ed6926e461894f085bfb2749f39e5ab34d7fb9c7c1f1674d5fb5ded26d39"
+      },
       "limitations": []
     },
     {
@@ -4293,12 +4431,100 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/5a/8b/5a8b492cf0416dbf99c16b962b67963d8cb8a88ec28e9709f9ad55f1405325a1",
       "graphs": 10,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 10,
+      "evidence": "gelu-source-cohort-v1/task-171/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/5/samples/transformers-auto-model/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en/_decomposed/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en_start136_end139_18": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/transformers-auto-model/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en/_decomposed/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en_start136_end139_18": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/transformers-auto-model/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en/_decomposed/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en_start136_end139_18": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/transformers-auto-model/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en/_decomposed/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en_start136_end139_18": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/transformers-auto-model/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en/_decomposed/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en_start136_end139_18": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en/_decomposed/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en_start136_end139_18": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en/_decomposed/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en_start136_end139_18": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/transformers-auto-model/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en/_decomposed/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en_start136_end139_18": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en/_decomposed/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en_start136_end139_18": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/3/samples/transformers-auto-model/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en/_decomposed/napsternxg_nyt-ingredient-tagger-jina-embeddings-v2-small-en_start136_end139_18": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "4bc3ed6926e461894f085bfb2749f39e5ab34d7fb9c7c1f1674d5fb5ded26d39"
+      },
       "limitations": []
     },
     {

@@ -1,0 +1,41 @@
+{
+  "format": "kiln-gelu-cohort-facts/1",
+  "source_revision": "d31624133f31d3c827c2bcd15a5f0b16053c867c",
+  "source_snapshot_sha256": "4bc3ed6926e461894f085bfb2749f39e5ab34d7fb9c7c1f1674d5fb5ded26d39",
+  "source_files_verified": 164,
+  "tasks_expected": 5,
+  "graphs_expected": 60,
+  "compile_attempts_verified": 27,
+  "artifacts_verified": 25,
+  "tasks_nominal_accepted": 2,
+  "graphs_nominal_accepted": 18,
+  "unexecuted_graphs": 35,
+  "native_fixture_records_passed": 36,
+  "native_fixture_outputs_compared": 108,
+  "retained_failures": [
+    {
+      "task": 151,
+      "phase": "original_evaluator",
+      "nonqualifying_graphs": 7,
+      "execution_statuses": [
+        "eager_fail"
+      ],
+      "replacement_counts": [
+        0
+      ]
+    },
+    {
+      "task": 168,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-VanForImageClassification/_decomposed/hf-tiny-model-private_tiny-random-VanForImageClassification_start17_end20_3",
+      "phase": "compile",
+      "diagnostic": ": end-to-end check FAILED"
+    },
+    {
+      "task": 186,
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchaudio/hubert_large/_decomposed/hubert_large_start14_end17_6",
+      "phase": "compile",
+      "diagnostic": ": end-to-end check FAILED"
+    }
+  ],
+  "scope": "Complete original replay accounting, modified integration protocol, nominal t=-5; not a full-success or controlled-speedup claim"
+}

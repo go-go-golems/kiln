@@ -1,0 +1,35 @@
+graph():
+    %in_2 : [num_users=1] = placeholder[target=in_2]
+    %in_3 : [num_users=1] = placeholder[target=in_3]
+    %in_1 : [num_users=1] = placeholder[target=in_1]
+    %in_0 : [num_users=1] = placeholder[target=in_0]
+    %gelu : [num_users=1] = call_function[target=torch._C._nn.gelu](args = (%in_2,), kwargs = {approximate: none})
+    %flatten : [num_users=1] = call_method[target=flatten](args = (%gelu, 2), kwargs = {})
+    %transpose : [num_users=1] = call_method[target=transpose](args = (%flatten, 1, 2), kwargs = {})
+    %contiguous : [num_users=1] = call_method[target=contiguous](args = (%transpose,), kwargs = {})
+    %add : [num_users=1] = call_function[target=operator.add](args = (%in_3, %contiguous), kwargs = {})
+    %permute : [num_users=1] = call_method[target=permute](args = (%add, 0, 2, 1), kwargs = {})
+    %view : [num_users=1] = call_method[target=view](args = (%permute, 1, 128, 16, 12), kwargs = {})
+    %view_1 : [num_users=1] = call_method[target=view](args = (%view, 1, 128, -1), kwargs = {})
+    %permute_1 : [num_users=2] = call_method[target=permute](args = (%view_1, 0, 2, 1), kwargs = {})
+    %layer_norm : [num_users=1] = call_function[target=torch.nn.functional.layer_norm](args = (%permute_1, (128,), %in_1, %in_0, 1e-06), kwargs = {})
+    %view_2 : [num_users=1] = call_method[target=view](args = (%layer_norm, 1, 16, 12, 128), kwargs = {})
+    return (permute_1, view_2)
+graph():
+    %l_in_2_ : torch.Tensor [num_users=1] = placeholder[target=L_in_2_]
+    %l_in_3_ : torch.Tensor [num_users=1] = placeholder[target=L_in_3_]
+    %l_in_1_ : torch.Tensor [num_users=1] = placeholder[target=L_in_1_]
+    %l_in_0_ : torch.Tensor [num_users=1] = placeholder[target=L_in_0_]
+    %tmp_2 : [num_users=1] = call_function[target=torch._C._nn.gelu](args = (%l_in_2_,), kwargs = {approximate: none})
+    %tmp_3 : [num_users=1] = call_method[target=flatten](args = (%tmp_2, 2), kwargs = {})
+    %tmp_4 : [num_users=1] = call_method[target=transpose](args = (%tmp_3, 1, 2), kwargs = {})
+    %tmp_5 : [num_users=1] = call_method[target=contiguous](args = (%tmp_4,), kwargs = {})
+    %tmp_6 : [num_users=1] = call_function[target=operator.add](args = (%l_in_3_, %tmp_5), kwargs = {})
+    %tmp_7 : [num_users=1] = call_method[target=permute](args = (%tmp_6, 0, 2, 1), kwargs = {})
+    %tmp_8 : [num_users=1] = call_method[target=view](args = (%tmp_7, 1, 128, 16, 12), kwargs = {})
+    %tmp_9 : [num_users=1] = call_method[target=view](args = (%tmp_8, 1, 128, -1), kwargs = {})
+    %tmp_10 : [num_users=2] = call_method[target=permute](args = (%tmp_9, 0, 2, 1), kwargs = {})
+    %tmp_11 : [num_users=1] = call_function[target=torch.nn.functional.layer_norm](args = (%tmp_10, (128,), %l_in_1_, %l_in_0_, 1e-06), kwargs = {})
+    %tmp_12 : [num_users=1] = call_method[target=view](args = (%tmp_11, 1, 16, 12, 128), kwargs = {})
+    return (tmp_10, tmp_12)
+matches 1

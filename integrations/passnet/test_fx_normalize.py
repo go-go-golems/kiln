@@ -1,3 +1,4 @@
+import copy
 import unittest
 import torch
 from torch.fx import Graph, GraphModule, symbolic_trace
@@ -67,6 +68,32 @@ class NormalizeTests(unittest.TestCase):
         before=str(model.graph)
         with self.assertRaises(TypeError): normalize_arguments(model)
         self.assertEqual(str(model.graph),before)
+
+    def test_layer_norm_affine_arguments_and_epsilon_preserved(self):
+        for dtype in [torch.float32,torch.float16,torch.bfloat16]:
+            for eps in [1e-5,1e-6]:
+                # Dataset models contain literal epsilon values. A changing
+                # closure float can instead become a Dynamo tensor input.
+                namespace={'torch':torch}
+                exec('def function(bias,weight,x):\n value=x+1\n return value,torch.nn.functional.layer_norm(value,(7,),weight=weight,bias=bias,eps='+repr(eps)+')',namespace)
+                function=namespace['function']
+                pattern=symbolic_trace(function);captured=[];invocations=[]
+                def backend(graph,args):
+                    captured.append(graph)
+                    def execute(*ordered):invocations.append(ordered);return graph.forward(*ordered)
+                    return execute
+                inputs=(torch.randn(7).to(dtype),torch.randn(7).to(dtype),torch.randn(2,7).to(dtype))
+                expected=torch.compile(function,backend=backend)(*inputs)
+                self.assertEqual(len(captured),1)
+                normalize_arguments(pattern);normalize_arguments(captured[0])
+                self.assertEqual(len(SubgraphMatcher(pattern.graph).match(captured[0].graph)),1,f'{dtype} {eps}\n{pattern.graph}\n{captured[0].graph}')
+                torch.testing.assert_close(captured[0](*invocations[0]),expected,rtol=0,atol=0)
+                self.assertEqual(normalize_arguments(captured[0]),[])
+                different=copy.deepcopy(captured[0])
+                for node in different.graph.nodes:
+                    if node.target is torch.nn.functional.layer_norm:
+                        node.args=(*node.args[:-1],1e-4)
+                self.assertEqual(SubgraphMatcher(pattern.graph).match(different.graph),[])
 
 
 

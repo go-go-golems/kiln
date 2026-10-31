@@ -1,0 +1,51 @@
+.........................................E...........
+======================================================================
+ERROR: test_layer_norm_affine_arguments_and_epsilon_preserved (test_fx_normalize.NormalizeTests.test_layer_norm_affine_arguments_and_epsilon_preserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/test_fx_normalize.py", line 84, in test_layer_norm_affine_arguments_and_epsilon_preserved
+    torch.testing.assert_close(captured[0](*inputs),expected,rtol=0,atol=0)
+                               ~~~~~~~~~~~^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/graph_module.py", line 949, in call_wrapped
+    return self._wrapped_call(self, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/graph_module.py", line 461, in __call__
+    raise e
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/graph_module.py", line 447, in __call__
+    return super(self.cls, obj).__call__(*args, **kwargs)  # type: ignore[misc]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/_lazy_graph_module.py", line 127, in _lazy_forward
+    return self(*args, **kwargs)
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/graph_module.py", line 949, in call_wrapped
+    return self._wrapped_call(self, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/graph_module.py", line 461, in __call__
+    raise e
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/fx/graph_module.py", line 447, in __call__
+    return super(self.cls, obj).__call__(*args, **kwargs)  # type: ignore[misc]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "<eval_with_key>.185", line 9, in forward
+    layer_norm = torch.nn.functional.layer_norm(value, (7,), l_weight_, l_bias_, 1e-05);  l_weight_ = l_bias_ = None
+  File "/home/manuel/.pyenv/versions/3.13.2/lib/python3.13/site-packages/torch/nn/functional.py", line 2935, in layer_norm
+    return torch.layer_norm(
+           ~~~~~~~~~~~~~~~~^
+        input, normalized_shape, weight, bias, eps, torch.backends.cudnn.enabled
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+RuntimeError: Expected bias to be of same shape as normalized_shape, but got bias of shape [2, 7] and normalized_shape = [7]
+
+----------------------------------------------------------------------
+Ran 53 tests in 1.589s
+
+FAILED (errors=1)

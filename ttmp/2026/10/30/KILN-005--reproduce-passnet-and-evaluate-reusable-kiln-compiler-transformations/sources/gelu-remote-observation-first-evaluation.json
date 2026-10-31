@@ -1,0 +1,60 @@
+{
+  "returncode": 0,
+  "stderr": "",
+  "observation": {
+    "session": "passnet-gelu-v3",
+    "session_live": false,
+    "log_tail": [
+      "START 171 export",
+      "DONE 171 export 0",
+      "START 171 compile",
+      "DONE 171 compile 0",
+      "START 171 evaluate",
+      "DONE 171 evaluate 0",
+      "START 171 score",
+      "DONE 171 score 0",
+      "START 186 export",
+      "DONE 186 export 0",
+      "START 186 compile",
+      "DONE 186 compile 1"
+    ],
+    "gelu-cuda-validation-v1.json": {
+      "sha256": "74d8e9cec75f2cee1a6e506e27dbd8ac11fb319b44581a6379a8444ea5128784",
+      "status": "complete",
+      "records": 36,
+      "all_passed": true
+    },
+    "gelu-source-cohort-v1/run.json": {
+      "sha256": "60ee4d53945e2a9a87a9132c6a4143ce2f3c14fcd19a11c5f8d20c0aed8695f7",
+      "status": "complete",
+      "records": 5,
+      "phases": [
+        {
+          "index": 123,
+          "status": "process_complete",
+          "phase": "score"
+        },
+        {
+          "index": 151,
+          "status": "process_complete",
+          "phase": "score"
+        },
+        {
+          "index": 168,
+          "status": "phase_failed",
+          "phase": "compile"
+        },
+        {
+          "index": 171,
+          "status": "process_complete",
+          "phase": "score"
+        },
+        {
+          "index": 186,
+          "status": "phase_failed",
+          "phase": "compile"
+        }
+      ]
+    }
+  }
+}

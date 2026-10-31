@@ -10,7 +10,8 @@ import torch
 # defaults define the explicitly supported integration call forms.
 TARGETS = {torch.nn.functional.relu, torch.nn.functional.batch_norm,
            torch.nn.functional.dropout, torch.nn.functional.interpolate,
-           torch.nn.functional.softmax, torch.nn.functional.gelu}
+           torch.nn.functional.softmax, torch.nn.functional.gelu,
+           torch.nn.functional.layer_norm}
 
 # The builtin GELU has no inspectable Python signature. Its public schema has a
 # keyword-only approximation selector; keep that selector in canonical kwargs.
