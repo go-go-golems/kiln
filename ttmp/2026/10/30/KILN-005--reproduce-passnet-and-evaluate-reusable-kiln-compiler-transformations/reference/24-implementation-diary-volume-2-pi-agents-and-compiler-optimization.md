@@ -4001,3 +4001,72 @@ I also analyzed the large band's task 73 failures against PassBench's tolerance 
 ### Technical details
 - Census timing: all three bands finished in under 40 minutes of CPU wall time running in parallel (export plus pattern generation dominate).
 - Tolerance formula: `get_precision(t, dtype) = (10**(t*exp1), 10**(t*exp2))` → `(rtol, atol)`. For bf16, `exp1 = 0.3592` and `exp2 = 1`.
+
+## Step 243: The FP32 numerical cluster is a TF32 reference; add `matmulPrecision: "tf32"`
+
+This step takes P1's numerical half. Clustering the 43 ordinary-band nominal numerical failures by dtype, operations and max/mean diff separated two populations.
+
+Most low-precision failures have mean diffs of 1e-8 to 1e-10 and pass at `t=-4`. These are isolated rounding-boundary elements. The FP32 failures are different. Every FP32 failure except task 160 involves `linear` or an ungrouped `conv2d`, and the f16/bf16 variants of the same family pass.
+
+Inspecting the evaluator image showed that PyTorch there runs with `float32_matmul_precision='high'`, `matmul.allow_tf32=True` and `cudnn.allow_tf32=True`, which are NGC defaults. PassBench's FP32 reference therefore rounds contraction operands to TF32, while Kiln computed true FP32. A CPU emulation reproduces task 157's GPU disagreement to three digits. Kiln now has a declared `matmulPrecision: "tf32"` policy that matches that reference.
+
+### Prompt Context
+**User prompt (verbatim):** "ok, continue, commit at appropriate intervals and keep a detailed diary as you work (using the diary format from the skill)". Earlier in this step the user asked "ok, so i guess you are waiting on the background process?", and I answered that the census was finished and only the GPU replay was waiting on bling.
+**Assistant interpretation:** Keep executing the plan autonomously with focused commits and investigation-format entries.
+**Inferred user intent:** Steady measurable progress without idle waiting on the GPU queue.
+**Commit (code):** f89f76c — "Add matmulPrecision tf32 to match a TF32 eager reference"
+
+### What I did
+- Parsed `[Correctness][max_diff]` and `[mean_diff]` for all 43 ordinary nominal numerical failures from `pending-ordinary/task-*/benchmark.log`, and listed source operations and conv `groups` per task.
+- Task 157 (ConViT `linear(in_3[1,196,196,3], w[16,3], b) → permute`): f16 and bf16 pass, f32 fails with max `0.1014`, mean `0.01222`.
+- On bling, inspected the image environment (`docker image inspect localhost:5000/playback-redaction:base-26.05`: no TF32 override variable). Ran a CPU-only `docker run --rm <image> python -c ...` without `--gpus`, which printed `matmul.allow_tf32 True`, `cudnn.allow_tf32 True`, `precision high`, `tf32 tf32`. PassBench sets none of these (`grep tf32|float32_matmul_precision pass_bench/` → nothing).
+- CPU emulation with `get_input_dict(... device='cpu')` inputs for the failing graph: FP32 against RNA-TF32 operands gives max `0.0994`/mean `0.01217`; against truncated operands, max `0.2052`/mean `0.0242`.
+- Implementation:
+  - `fns.js` `roundTf32` and `FNS.round_tf32`. CUDA calls `kiln_round_tf32`, a `__device__` helper using `asm("cvt.rna.tf32.f32 %0, %1;")` and emitted by `toCuda` when needed; WGSL gets an equivalent bit-arithmetic helper.
+  - `tensor.js` `tf32Pass` (`tf32_linear`, `tf32_matmul`, `tf32_conv2d` for `groups === 1`) wraps FP32 operands in `nn.ew round_tf32` and leaves bias alone.
+  - `emmy.pipeline({ matmulPrecision })`, plus plumbing through `compileScript`, `kiln-export.mjs --matmul-precision` (recorded as `source.matmul_precision`) and `corpus.py compile --matmul-precision`.
+  - `evaluate_tasks.py` honors a plan field `matmul_precision`, records `reference_backend_numerics` probed from the container, and refuses a `tf32` plan against an FP32 reference.
+- Test `packages/kiln/test/tf32.mjs`.
+
+### Why
+- PassBench's reference is whatever eager computes in the pinned container. Matching it is the faithful semantic, and it must be **declared**, not hidden. Exact FP32 is more accurate but measurably disagrees with the benchmark's definition of correct.
+- Grouped convolutions are excluded because cuDNN's depthwise/grouped kernels generally do not use tensor cores. No failing family exercises them, so the rule follows the conservative contract.
+
+### What worked
+- The emulation matches the GPU observation (mean 0.01217 vs 0.01222). Truncation is off by 2×. So TF32 with round-to-nearest operand conversion explains task 157 completely.
+- FP32 failures that fit the TF32 explanation (linear or groups=1 conv): tasks 27, 52 (f32 part), 72, 88, 93, 118 (f32), 133 (f32) and 157.
+- `node packages/kiln/test/tf32.mjs`: `tf32 matmul precision rounds FP32 contraction operands and nothing else`. `node scripts/run-node-tests.mjs packages/kiln/test`: `all 42 passed`. Python: `Ran 162 tests ... OK`.
+- `kiln-export.mjs` on a `[256,512]×[512,512]` linear with `--matmul-precision tf32` keeps the same tiled matmul kernel (`k_linear_ew_reduce__1tqw2i9cxp0 MAP=tiled,BM=16,BN=16,BK=8`).
+
+### What didn't work
+- `roundTf32(3.4e38)` is not an overflow case: that float32 value rounds to `3.3995e38` without reaching infinity. I changed the test to `3.4028234663852886e38` (FLT_MAX).
+- The WGSL assertion failed under `contraction: "separate"`, because WGSL is deliberately unavailable for separate rounding. The WGSL check now uses the default contraction.
+- Workbench tests (`apps/workbench`, needed because `compile.js` changed) could not run: `Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'esbuild' imported from .../apps/workbench/build.mjs`. The package's dependencies are not installed in this worktree. `compileScript` is exercised by every `kiln-export.mjs` invocation in this step.
+- The rounding is not fused into the matmul. The tf32 export adds two elementwise kernels (`k_ew__… TPB=64,COARSEN=2; k_ew_2__… TPB=64`) that materialize the rounded operands. This is correct, but costs two launches and one extra read/write of each operand.
+
+### What I learned
+- The remaining low-precision failures fall into two groups:
+  - **Rounding-boundary group:** mean diff 1e-8 or smaller, passes at `t=-4`. Tasks 82, 95, 110, 118, 141, 148, 178, 186, 188 and similar.
+  - **Larger mean diff (around 1e-4):** tasks 14 (bf16, depthwise 3×3 conv with groups=768 + residual + layer norm) and 185/121 (bf16/f16 linear). Low-precision matmul in eager may use cuBLAS reduced-precision reductions (`allow_fp16_reduced_precision_reduction`, `allow_bf16_reduced_precision_reduction`, both True by default). That is a separate hypothesis, not tested here.
+- Task 160 (f32, `view` only plus arithmetic operators) is not explained by TF32 and needs its own look.
+
+### What was tricky to build
+- The TF32 rounding must apply to contraction *operands only*. Bias stays FP32 (cuBLAS epilogue / cuDNN bias add), so the rule rewrites `nn.linear(x, w)` while `N.linear` adds bias outside it. A `where` guard (`!vs.every(isTf32)`) prevents the rule from re-matching its own output.
+- PTX `cvt.rna.tf32.f32` returns a `.b32` holding a TF32 bit pattern in an FP32 container, so `__uint_as_float` reinterprets the bits. The JS reference mirrors the same bits with `(bits + 0x1000) & 0xffffe000`, passing inf and NaN through unchanged.
+
+### What warrants a second pair of eyes
+- Whether cuBLAS converts with RNA or RNE for every kernel it selects (the emulation distinguishes it from truncation, not from RNE). The ties-away/ties-even difference affects about one element in 2¹³.
+- Whether some ungrouped cuDNN conv algorithms on GB10 still run in FP32 for small shapes. The GPU replay is the test.
+
+### What should be done in the future
+- GPU replay band: tasks 6, 24, 185, 79 (matcher/identity fixes) plus the TF32-explained FP32 families 27, 52, 72, 88, 93, 133 and 157 (118 also has low-precision failures), with `matmul_precision: "tf32"` declared in the plan.
+- Fuse `round_tf32` into tiled matmul loads (performance).
+- Test the reduced-precision-reduction hypothesis for f16/bf16 linear, and look at task 160.
+
+### Code review instructions
+- `packages/kiln/src/std/tensor.js` (`tf32Pass`), `std/fns.js` (`roundTf32`), `std/emit.js` (helper emission), `std/emmy.js` (`matmulPrecision`), `scripts/kiln-export.mjs`, `integrations/passnet/evaluate_tasks.py` (`reference_backend_numerics`).
+- Validate with `node packages/kiln/test/tf32.mjs`, then `kiln-export.mjs --script <graph> --target a100 --matmul-precision tf32` and grep the CUDA for `cvt.rna.tf32.f32`.
+
+### Technical details
+- PassBench FP32 tolerance at `t=-5`: `rtol = 10^(-5·1.1772) ≈ 1.3e-6`, `atol = 1e-5`. A TF32 operand error (relative 2⁻¹¹ ≈ 4.9e-4) fails it for any output larger than about 0.02.
+- Reference numerics recorded per run: `{"float32_matmul_precision": ..., "matmul_allow_tf32": ..., "cudnn_allow_tf32": ...}`.
