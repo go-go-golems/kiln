@@ -72,3 +72,7 @@ All36 source-derived CUDA fixture records pass, comparing108 outputs across thre
 Task151's CPU capture proves a functional LayerNorm argument-form mismatch: symbolic FX retains weight/bias/eps keywords while Dynamo supplies all five positional fields. The existing transactional signature normalizer gains that supported function. Actual-source diagnosis changes from zero to one match without changing tensors, epsilon or replacement code. The complete seven-variant repair plan is frozen separately; its GPU qualification is pending.
 
 The compile-check diagnostic preserves two sparse discrepancies: two of401408 values in the depthwise-convolution/GELU task and five of2047488 in LayerNorm/transpose/GELU. Their origin remains under investigation; FP32 reduction order and narrowing boundaries are hypotheses, not established harmlessness. No compiler/evaluator tolerance or source numerical policy is changed; both families remain unqualified.
+
+## Complete targeted repair qualification
+
+The seven-variant task151 replay under f1e5518 is terminal and fully accepted: every graph executes one replacement and passes nominal t=-5 correctness. Independent verification binds all seven artifacts to164 committed compiler/runtime source files and the exact frozen task membership. The cumulative ledger reaches27 tasks/338 graphs (273 within complete tasks). The original zero-replacement run is preserved and both other compile-blocked families remain unqualified. This repairs structural integration and does not change numerical thresholds.

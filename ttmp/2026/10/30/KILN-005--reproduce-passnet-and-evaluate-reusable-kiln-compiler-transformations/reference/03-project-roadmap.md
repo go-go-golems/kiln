@@ -20,7 +20,7 @@ The target is evaluation across all 200 PassBench tasks and 2,060 variants with 
 | Workspace and acquisition | Complete | Worktree, ticket, pinned paper/code/dataset and materialization receipts |
 | Intern design | Progress edition delivered | Updated technical guide with actual final architecture and verified reMarkable delivery |
 | Original baselines | Full exploratory audit complete; controlled measurements pending | All task results, isolated reruns, settings reconciled, official aggregation |
-| Basic integration | Twenty-six complete tasks / 331 individually passing graphs, cumulative modified-protocol evidence | Matching/checking/score evidence with protocol identity |
+| Basic integration | Twenty-seven complete tasks / 338 individually passing graphs, cumulative modified-protocol evidence | Matching/checking/score evidence with protocol identity |
 | Precision and layouts | Active | Real-task FP16/BF16, stride/layout and stream correctness |
 | Operation coverage | Active: 1,196 graph imports / 69 complete families; broader execution qualification pending | Task dependency matrix and implementation/tests for all required operations |
 | Full benchmark integration | Pending | Every task/variant accounted for with integrity/correctness/scoring |
@@ -34,7 +34,7 @@ Teacher trajectory generation/student fine-tuning remains a separate expensive r
 
 ## Priority change: start reusable-policy optimization before full corpus support
 
-The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is twenty-six complete tasks containing 266 graphs, with 331 individually passing graphs including partial tasks. Translation succeeds for 1,196 graphs and 69 complete tasks; the repaired ten-family/93-variant softmax cohort accepts every variant after the functional-default matching repair. Compilation and numerical eligibility remain separate gates for the broader set.
+The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is twenty-seven complete tasks containing 273 graphs, with 338 individually passing graphs including partial tasks. Translation succeeds for 1,196 graphs and 69 complete tasks; the repaired ten-family/93-variant softmax cohort accepts every variant after the functional-default matching repair. Compilation and numerical eligibility remain separate gates for the broader set.
 
 The initial self-optimization dependency sequence is implemented and measured through held-out confirmation; broader external-agent synthesis remains open:
 
@@ -143,3 +143,7 @@ These graphs come from the official training list and do not expand the cumulati
 Compiler d316241 adds exact GELU, explicit source mode/FP32 operation math and canonical keyword-only defaults. All34 core tests and52 FX tests pass. Import eligibility is1196 graphs/69 complete families, up60/five with zero regressions. All36 CUDA fixture records pass. The complete five-family/60-variant original run qualifies two families/18 graphs, fails matching for seven graphs and retains35 unexecuted variants from two compile-check failures. Cumulative acceptance is26 tasks/331 individual graphs (266 within complete tasks). Design17, diary136–137 and gelu-source-cohort-v1-verified-facts.json own the evidence.
 
 The seven-variant mismatch is traced to functional LayerNorm keyword-versus-positional affine arguments, with a focused normalizer repair under validation. Sparse FP16 predecessor/reference discrepancies in the two compilation failures remain visible; tolerances are unchanged.
+
+## Complete LayerNorm matching-repair replay
+
+All seven variants of the frozen targeted task qualify after f1e5518: one replacement, successful execution and nominal t=-5 correctness for every graph. Script325 verifies164 committed source files, all seven artifacts, complete membership and scorer/log identity. The existing coverage builder now reports27/200 complete tasks and338/2060 individual graphs, with273 inside complete tasks. Import eligibility remains1196/69. The initial seven matching failures and35 unexecuted variants from two compile-check failures stay archived. Reference19 and diary138 explain the full milestone; original PassAgent and full native/support scope remain open.

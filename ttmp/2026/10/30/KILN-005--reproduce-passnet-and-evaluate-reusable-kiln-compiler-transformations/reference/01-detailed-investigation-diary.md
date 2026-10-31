@@ -6308,3 +6308,58 @@ See Step136 for the user's supplied IP/SSH alias and the earlier authored implem
 - d316241 is the frozen compiler/runtime source revision for the original GELU cohort. Node26.8.1 and NVIDIA GB10 execute the declared source plan.
 - Kernel/compiler code remains unchanged by the LayerNorm signature repair; only the integration whitelist and its regression test change.
 - Overall goal stays active; no original-agent result, native precision completion or full200 support is claimed.
+
+## Step 138: Accept the complete LayerNorm repair task and write the GELU milestone
+
+The frozen seven-variant targeted replay under f1e5518 fully qualifies. Every graph has one replacement, successful execution and nominal t=-5 correctness. Independent source/artifact/score verification passes, and the cumulative ledger reaches27 complete tasks/338 individual graphs, with273 graphs inside complete tasks. Import eligibility remains1196/69. This is an additional accepted task rather than a reinterpretation of the failed initial run.
+
+Reference19 develops the exact GELU mathematical/opmath boundary, independent reference, signature normalization and complete original-cohort accounting. It preserves both compile-check failures and their35 unexecuted variants. Publication is the next step after committing this report and evidence.
+
+### Prompt Context
+See Steps136–137 for the authored runtime corrections and existing implementation/report/diary requests.
+**Assistant interpretation:** Validate the repair on every original variant before updating accepted coverage or publishing the milestone.
+**Inferred user intent:** Continue toward the full benchmark while keeping progress counts and remaining gaps reviewable.
+**Commit (repair):** f1e5518 — normalize LayerNorm affine arguments after complete GELU qualification.
+
+### What I did
+- Verified the committed164-file source snapshot on the DGX and ran the complete seven-variant task through existing export/compile/evaluate/score orchestration.
+- Collected only after run.json proves terminal completion. Shared audit checks exact graph order, nominal correctness and one replacement each.
+- Reused script325's parameterized source/artifact verification for the targeted run; all seven artifacts and scorer/log hashes agree.
+- Added the evaluated replay to the existing ordered coverage ledger, retaining initial failed logs and other unsupported families.
+- Wrote reference19 with source provenance, code/pseudocode, architecture diagram and precise coverage/failure interpretation; updated guide and roadmap.
+
+### Why
+- CPU matching success is insufficient evidence for actual original replay acceptance.
+- The targeted task is a repair population, not held-out compiler optimization evidence. No fresh-generalization claim is added.
+
+### What worked
+- Seven of seven variants compile, match once, execute and pass nominal correctness; no targeted replay failures or unexecuted graphs remain.
+- Combined GELU qualification adds25 accepted graphs across three complete tasks to the prior24/313 ledger.
+- All source identities tie to f1e5518, with unchanged core GELU math and numerical thresholds.
+
+### What didn't work
+- Two other complete import families still fail compiler end-to-end checks, retaining35 unexecuted variants. Their sparse discrepancies are unresolved.
+- Original PassAgent/provider, uniform current-release full-corpus evaluation and remaining operation/layout/dtype coverage remain open.
+- Updated reMarkable delivery still awaits the earlier explicit approval request; no new export was attempted.
+
+### What I learned
+- A one-function signature whitelist extension can restore a full family after the numerical compiler path is already implemented; graph/source contracts must remain separate gates.
+
+### What was tricky to build
+- Canonical argument normalization changes source-use ordering used for dispatch binding. The full export/generate/compile replay regenerates that ordering and validates it against original inputs, rather than reusing stale artifacts.
+
+### What warrants a second pair of eyes
+- Review the initial no-match evidence alongside targeted accepted evidence, and ensure the cumulative ledger supersedes only evaluated logs with identical complete membership.
+
+### What should be done in the future
+- Commit and publish reference19 to the append-only vault, checking advertised remote revision and exact report bytes.
+- Investigate the35 compile-blocked variants and provision an explicit local/provider endpoint for original PassAgent as separate work.
+
+### Code review instructions
+- Start with gelu-layernorm-cohort-v1-verified-facts.json, its source checkpoint, scripts329/330/332/333 and reference19.
+- Follow the ledger builder into both original and targeted evaluator logs; a score phase returning0 is never used alone as acceptance.
+
+### Technical details
+- Coverage27/200 tasks,338/2060 individual graphs,273 graphs inside complete tasks. Import eligibility1196/69.
+- Previous native fixture suite60/63 remains a separate unresolved result; new GELU fixtures36/36 do not relabel it.
+- No controlled speedup or whole-goal completion is claimed by this support milestone.

@@ -106,3 +106,11 @@ Exact GELU passes 36 CUDA fixture records. Complete 60-variant original run adds
 
 - /home/manuel/code/wesen/kiln/worktrees/passnet/integrations/passnet/fx_normalize.py — LayerNorm public signature repair
 - /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/gelu-source-cohort-v1-verified-facts.json — Independent complete accounting with retained failures
+
+## 2026-10-31
+
+Complete seven-variant LayerNorm matching-repair task qualifies under f1e5518 with exact source/artifact/score audit. Cumulative accepted replay reaches27/200 tasks and338/2060 graphs (273 in complete tasks); import eligibility1196/69. Reference19 documents exact GELU, source signatures, native36/36 and retained35 unexecuted variants from two unresolved compile checks.
+
+### Related Files
+
+- /home/manuel/code/wesen/kiln/worktrees/passnet/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/reference/19-milestone-report-exact-gelu-source-signatures-and-complete-failure-accounting.md — Technical milestone with exact gates and remaining failures
