@@ -4677,3 +4677,50 @@ See the user's requests to streamline self-optimization, implement missing Kiln 
 
 ### Technical details
 - No external algorithm implementation copied. The transformation extends Kiln's existing inlineInto mechanism. All older experiments remain associated with their recorded code revisions. Original coverage stays eleven tasks/206 graphs; import coverage stays 1029/51.
+
+## Step 105: Validate CUDA semantics and freeze the fresh selective study
+
+The new graph transformation passes all 108 CUDA fixture comparisons. Fresh training controls compile identically under unchanged and default policies and expose 69 multi-consumer attempts. Twelve candidate programs and the explicit full-precision reference protocol are frozen before confirmation compilation or GPU timing.
+
+### Prompt Context
+See Step 104 and the user's continuing self-optimization implementation goal.
+**Assistant interpretation:** Evaluate the new transformation on fresh exact models using the same complete selection/confirmation discipline.
+**Inferred user intent:** Test reusable compiler improvements rather than stop at a new API.
+**Commit (core):** 51b45eb — feat(kiln): support selective consumer fusion with retained producer accounting.
+
+### What I did
+- Ran scripts 190/191 on bling; the fixture tmux pane reports EXIT_CODE=0 and the receipt reports 108/108 passing comparisons.
+- Added propose_selective using training-only trace extraction; controls remain immutable and held-out poisoned traces cannot alter proposals.
+- Saved scripts 192–194 for training controls, declaration and full compilation. Added shared compile_study.py instead of another fixed-corpus orchestration implementation.
+- Froze eight selective combinations plus four controls. Single consumers are always selected; multi-consumer edge bounds are 1.0/1.05/1.25/1.5 and aggregate bounds are 1.02/1.25.
+
+### Why
+- A consumer-local bound must not disable profitable single-consumer fusion merely because the consumer's work grows; removing the producer changes the aggregate accounting.
+- Generic committed-source/freeze checks consolidate repeated experiment scaffolding and preserve explicit failed compilation receipts.
+
+### What worked
+- All 108 CUDA comparisons pass across three structures, three dtypes, four selection modes and three seeds, including input immutability.
+- Twelve training controls qualify and explicit default equals unchanged. There are 69 multi-consumer decisions in default training traces.
+- Five targeted proposal tests pass, including confirmation independence and rejection of non-training compilation scope.
+- The declaration fixes FP32 highest reference from the start and retains the previously declared twenty-source membership. Confirmation remains uncompiled and untimed at freeze.
+
+### What didn't work
+- No performance benefit is established by semantic fixtures or the presence of fanout. Native PassBench reference compatibility is not repaired or relabeled.
+
+### What I learned
+- The new corpus contains genuine opportunities to choose consumer subsets; the resulting program may still be unprofitable after total retained work and launch overhead.
+
+### What was tricky to build
+- Both consumer and aggregate programs share one bounded grammar budget. Complete compilation must occur only after candidate/reference freeze and source commitment.
+
+### What warrants a second pair of eyes
+- Review training-only proposal extraction, exact model exclusions, full-precision scope labels and the unchanged/default artifact control.
+
+### What should be done in the future
+- Compile/qualify every candidate across all twenty sources, measure training only, commit the selection, then measure unchanged and selected policy on every confirmation source.
+
+### Code review instructions
+- Start with design 11, policy-corpus-v6/candidate-freeze.json, propose_selective and compile_study.py. Review selective-fusion-cuda.json for every declared comparison.
+
+### Technical details
+- Source corpus membership 0547e152ab29ae79070177cec031ddb393751f2b45d13499548a583668e7203f; independent CUDA fixtures add no original benchmark coverage.

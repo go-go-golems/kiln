@@ -1,0 +1,25 @@
+{
+  "format": "kiln-fusion-policy/1",
+  "id": "select-edge150-total125",
+  "kind": "selective",
+  "tree": {
+    "threshold": 1.25
+  },
+  "consumer_tree": {
+    "if": {
+      "feature": "consumerCount",
+      "op": "eq",
+      "value": 1
+    },
+    "then": {
+      "accept": true
+    },
+    "else": {
+      "threshold": 1.5
+    }
+  },
+  "provenance": {
+    "method": "Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation",
+    "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41"
+  }
+}

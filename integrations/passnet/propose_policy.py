@@ -94,6 +94,31 @@ def propose_rich(manifest, receipt, controls):
             'numerical_policy':manifest['numerical_policy'],'policies':policies}
 
 
+def propose_selective(manifest, receipt, controls):
+    """Predeclared edge/aggregate grammar; confirmation traces never enter it."""
+    expected,rows,features=_training_evidence(manifest,receipt)
+    if manifest.get('numerical_policy')!={'contraction':'separate'} or receipt.get('numerical_policy')!=manifest['numerical_policy']:
+        raise ValueError('Selective proposals require a fixed separate numerical contract')
+    if receipt.get('phase')!='train':raise ValueError('Selective proposals require training-only compilation')
+    if [p['id'] for p in controls]!=['baseline','default']:raise ValueError('Expected immutable unchanged/default controls')
+    evidence=[{'graph':r['graph'],'decisions':r['decisions']} for r in rows]
+    trace_hash=hashlib.sha256(json.dumps(evidence,sort_keys=True).encode()).hexdigest()
+    policies=json.loads(json.dumps(controls))
+    provenance={'method':'Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation',
+                'training_trace_sha256':trace_hash}
+    for name,ratio in [('scalar100',1.0),('scalar125',1.25)]:
+        policies.append({'format':'kiln-fusion-policy/1','id':name,'kind':'threshold','max_work_growth':ratio,'provenance':dict(provenance)})
+    for aggregate in [1.02,1.25]:
+        for edge in [1.0,1.05,1.25,1.5]:
+            policies.append({'format':'kiln-fusion-policy/1','id':f'select-edge{round(edge*100)}-total{round(aggregate*100)}','kind':'selective',
+                             'tree':{'threshold':aggregate},
+                             'consumer_tree':{'if':{'feature':'consumerCount','op':'eq','value':1},
+                                              'then':{'accept':True},'else':{'threshold':edge}},'provenance':dict(provenance)})
+    return {'format':'kiln-policy-proposals/1','training_membership_sha256':manifest['membership_sha256'],'training_graphs':expected,
+            'training_trace_sha256':trace_hash,'candidate_budget':12,'numerical_policy':manifest['numerical_policy'],
+            'training_multiple_consumer_decisions':sum(f['consumerCount']>1 for f in features),'policies':policies}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ['corpus', 'receipt', 'output']:

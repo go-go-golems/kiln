@@ -1,0 +1,257 @@
+{
+  "format": "kiln-policy-proposals/1",
+  "training_membership_sha256": "0547e152ab29ae79070177cec031ddb393751f2b45d13499548a583668e7203f",
+  "training_graphs": [
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/opus-mt-be-es/_decomposed/opus-mt-be-es_start18_end24_3",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/sshleifer_tiny-dbmdz-bert-large-cased-finetuned-conll03-english/_decomposed/sshleifer_tiny-dbmdz-bert-large-cased-finetuned-conll03-english_start58_end60_15",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-PLBartForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-PLBartForSequenceClassification_start27_end33_3",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmpose/ViTPose-H-simple/_decomposed/ViTPose-H-simple_start644_end650_2",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-SegformerModel/_decomposed/hf-tiny-model-private_tiny-random-SegformerModel_start335_end340_3",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/transformers-auto-model/BAAI_AltCLIP/_decomposed/BAAI_AltCLIP_start27_end31_6",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/microsoft/phi-1/_decomposed/phi-1_start257_end260_30",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/vit_giant_patch14_clip_224.laion2b/_decomposed/vit_giant_patch14_clip_224.laion2b_start847_end850_10",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/transformers-auto-model/Sayan01_L-4_H-128_A-2_Large_sst2/_decomposed/Sayan01_L-4_H-128_A-2_Large_sst2_start15_end17_2",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/2/samples/timm/deit_base_distilled_patch16_224.fb_in1k/_decomposed/deit_base_distilled_patch16_224.fb_in1k_start259_end263_7",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/google_t5-efficient-tiny/_decomposed/google_t5-efficient-tiny_start313_end319_5",
+    "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/Sayan01_tiny-bert-sst2-distilled/_decomposed/Sayan01_tiny-bert-sst2-distilled_start15_end17_2"
+  ],
+  "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41",
+  "candidate_budget": 12,
+  "numerical_policy": {
+    "contraction": "separate"
+  },
+  "training_multiple_consumer_decisions": 69,
+  "policies": [
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "baseline",
+      "kind": "unchanged"
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "default",
+      "kind": "threshold",
+      "max_work_growth": 1.02
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "scalar100",
+      "kind": "threshold",
+      "max_work_growth": 1.0,
+      "provenance": {
+        "method": "Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation",
+        "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "scalar125",
+      "kind": "threshold",
+      "max_work_growth": 1.25,
+      "provenance": {
+        "method": "Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation",
+        "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "select-edge100-total102",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.02
+      },
+      "consumer_tree": {
+        "if": {
+          "feature": "consumerCount",
+          "op": "eq",
+          "value": 1
+        },
+        "then": {
+          "accept": true
+        },
+        "else": {
+          "threshold": 1.0
+        }
+      },
+      "provenance": {
+        "method": "Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation",
+        "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "select-edge105-total102",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.02
+      },
+      "consumer_tree": {
+        "if": {
+          "feature": "consumerCount",
+          "op": "eq",
+          "value": 1
+        },
+        "then": {
+          "accept": true
+        },
+        "else": {
+          "threshold": 1.05
+        }
+      },
+      "provenance": {
+        "method": "Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation",
+        "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "select-edge125-total102",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.02
+      },
+      "consumer_tree": {
+        "if": {
+          "feature": "consumerCount",
+          "op": "eq",
+          "value": 1
+        },
+        "then": {
+          "accept": true
+        },
+        "else": {
+          "threshold": 1.25
+        }
+      },
+      "provenance": {
+        "method": "Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation",
+        "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "select-edge150-total102",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.02
+      },
+      "consumer_tree": {
+        "if": {
+          "feature": "consumerCount",
+          "op": "eq",
+          "value": 1
+        },
+        "then": {
+          "accept": true
+        },
+        "else": {
+          "threshold": 1.5
+        }
+      },
+      "provenance": {
+        "method": "Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation",
+        "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "select-edge100-total125",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.25
+      },
+      "consumer_tree": {
+        "if": {
+          "feature": "consumerCount",
+          "op": "eq",
+          "value": 1
+        },
+        "then": {
+          "accept": true
+        },
+        "else": {
+          "threshold": 1.0
+        }
+      },
+      "provenance": {
+        "method": "Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation",
+        "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "select-edge105-total125",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.25
+      },
+      "consumer_tree": {
+        "if": {
+          "feature": "consumerCount",
+          "op": "eq",
+          "value": 1
+        },
+        "then": {
+          "accept": true
+        },
+        "else": {
+          "threshold": 1.05
+        }
+      },
+      "provenance": {
+        "method": "Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation",
+        "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "select-edge125-total125",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.25
+      },
+      "consumer_tree": {
+        "if": {
+          "feature": "consumerCount",
+          "op": "eq",
+          "value": 1
+        },
+        "then": {
+          "accept": true
+        },
+        "else": {
+          "threshold": 1.25
+        }
+      },
+      "provenance": {
+        "method": "Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation",
+        "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41"
+      }
+    },
+    {
+      "format": "kiln-fusion-policy/1",
+      "id": "select-edge150-total125",
+      "kind": "selective",
+      "tree": {
+        "threshold": 1.25
+      },
+      "consumer_tree": {
+        "if": {
+          "feature": "consumerCount",
+          "op": "eq",
+          "value": 1
+        },
+        "then": {
+          "accept": true
+        },
+        "else": {
+          "threshold": 1.5
+        }
+      },
+      "provenance": {
+        "method": "Codex-authored fixed selective-consumer grammar; training-only structural traces; no timing input or external model invocation",
+        "training_trace_sha256": "e7405aa341fe13c976a3ddb81cd4314a94a9d399c186d35f0a2474abc7630d41"
+      }
+    }
+  ]
+}

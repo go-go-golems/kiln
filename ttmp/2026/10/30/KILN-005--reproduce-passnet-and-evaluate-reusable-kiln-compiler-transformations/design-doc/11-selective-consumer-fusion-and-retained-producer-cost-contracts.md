@@ -117,3 +117,10 @@ Primary implementation files are `packages/kiln/src/std/loop.js`, `packages/kiln
 The first targeted test incorrectly expected only two selector calls while its scalar constants introduced two additional broadcast kernels. Script 185 records the extra legitimate candidates. The fixture now uses tensor inputs for both consumers, isolating the producer lifetime being tested; compiler behavior was not weakened to satisfy the call count.
 
 The initial transformation does not choose a globally optimal consumer subset, explore schedules jointly with selection, synthesize a new reduction algorithm or prove native reduced-precision library equivalence. Its purpose is to make selective graph mutation available through one shared compiler primitive with correct retained-work accounting. Measurement must determine whether any reusable policy can profit from that capability.
+
+
+## Implementation checkpoint: CUDA and declaration
+
+The committed core capability is 51b45eb. All 108 CUDA comparisons pass on GB10. The fresh twelve-source training controls are identical under unchanged and explicit-default modes; their trace contains 69 multi-consumer attempts. The frozen v6 comparison has unchanged/default and scalar100/scalar125 controls, plus eight selective programs combining edge bounds 1.0/1.05/1.25/1.5 with aggregate bounds 1.02/1.25. Single-consumer selection is always enabled before the aggregate guard. Candidate definitions and the highest-precision research reference are fixed before confirmation IR compilation or timing.
+
+Shared `integrations/passnet/compile_study.py` consolidates repeated source/freeze/compilation checks. It requires committed source bytes and records a failed receipt if qualification or declaration verification fails, preserving partial artifacts. It changes no benchmark evaluator. GPU policy performance remains pending at this checkpoint.
