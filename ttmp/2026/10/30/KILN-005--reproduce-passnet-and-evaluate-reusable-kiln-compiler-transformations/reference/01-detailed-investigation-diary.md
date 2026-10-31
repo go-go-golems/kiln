@@ -2974,3 +2974,51 @@ See the full compiler reliability objective and detailed diary reminder in Step 
 
 ### Technical details
 - CUDA probes ran on GB10 with the existing exploratory PyTorch environment. The original baseline remains independent and was verified running/unpaused at 108/200. No full-paper or corpus-wide execution claim.
+
+## Step 70: Share typed dispatch and evaluator execution for the fifth task
+
+The real concatenation/slice/spatial-mean task exported and compiled all 24 variants and passed standalone CUDA comparison for both outputs. Replaced another task-specific dispatch loop with CorpusDispatch and introduced a shared per-graph evaluator runner. A complete isolated original-evaluator run is now in progress.
+
+### Prompt Context
+See full task-support objective and architectural consolidation request in Step 63.
+**Assistant interpretation:** Keep task-specific code restricted to the actual match pattern and specialization extraction.
+**Inferred user intent:** Scale evaluation without multiplying subtly different runtimes and shell loops.
+**Commit (compiler concatenation milestone):** 7126b49.
+
+### What I did
+- Added dispatch.py: metadata/constant keys, conflict detection before loading, complete output reconstruction, cleanup and explicit missing-program errors.
+- Added run_task.py: explicit import paths, fresh evaluator process per graph, original config, complete raw logs and process receipts. It does not interpret exit zero as numerical correctness.
+- Added dispatch tests for conflicting programs, typed constants, nested outputs and no fallback; 30 integration tests passed.
+- Saved scripts 63–66 for slice-pattern diagnosis, generated literal patterns, shared compilation/checking and isolated evaluation.
+- Generated four literal slice patterns (120,480,672,960 channels) sharing one stable module-level callable across 24 variants.
+
+### Why
+- The original structural matcher does not bind placeholders nested in slice bounds. Matching each literal variant is explicit and keeps the original matcher unchanged.
+- Dispatch should use metadata and declared constants, never inspect input tensor values or fall back to eager arithmetic.
+
+### What worked
+- All 24 source variants compiled and passed shared CUDA correctness checks.
+- Local structural diagnostic showed zero matches for a placeholder nested in a slice stop; preserved in script 63.
+- CPU integration suite passed 30 tests.
+
+### What didn't work
+- Generic slice-stop placeholder did not match a literal stop; used a finite source-derived pattern family instead, with no matcher relaxation.
+- Original evaluator acceptance remains pending and is not yet included in coverage.
+
+### What I learned
+- A reusable runtime can serve several pattern modules while retaining the benchmark's one-stable-replacement-callable constraint.
+
+### What was tricky to build
+- Different source graph families use different literal channel truncations. Specialization constants are typed, finite scalar keys; duplicate metadata keys with different source programs fail before CUDA initialization.
+
+### What warrants a second pair of eyes
+- Audit shared dispatcher for metadata-only selection, stable callable identity and complete output reconstruction. Generated helper/pattern files are archived with source scripts.
+
+### What should be done in the future
+- Observe original matching/checking results, score only complete accepted evidence and continue operator-family expansion.
+
+### Code review instructions
+- Start at dispatch.py, run_task.py and scripts 64/66, then inspect fifth-task manifest and CUDA receipts.
+
+### Technical details
+- Corpus task 51a847653153f19ac9458aa2cbe628f3e08c96fc3829a150d5f4006b5add6665, 24 variants across FP32/FP16/BF16. Graph operations are concat, static channel slice and spatial mean; two outputs. No new evaluator guard exception introduced.

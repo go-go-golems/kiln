@@ -69,3 +69,11 @@ The checker also supports explicit original input replay. Random and replay rece
 ## Remaining consolidation
 
 Pass generation and evaluator invocation still have task-specific drivers. They should next become declarative pattern/replacement specifications and shared experiment commands after input binding and multi-output semantics are verified. Do not embed task hashes inside compiler lowering. The importer is still small enough to inspect directly; split operator families when semantic ownership becomes unclear, rather than adding generic fallback behavior.
+
+## Shared dispatch and evaluator execution follow-up
+
+`dispatch.py` now owns runtime artifact selection and complete output reconstruction. A key consists of ordered tensor shapes/dtypes plus explicitly declared finite scalar specialization constants. Conflicting programs at one key fail before loading CUDA; an unknown key raises an error. The dispatcher performs no eager tensor operations. Resource cleanup closes all loaded programs, including partial construction failures.
+
+`run_task.py` owns per-graph evaluator invocation. It supplies explicit module import paths through a fresh child interpreter for every graph, retains raw evaluator logs, and writes process receipts. Return code zero is not a correctness claim: the coverage builder still checks exact graph membership, successful evaluator result blocks and replacement counts. The caller owns GPU isolation and provenance; the runner does not pause unrelated jobs.
+
+The fifth task uses four literal pattern modules sharing one stable callable and this dispatcher. The original matcher does not bind placeholders nested inside slice bounds, so source-derived literal patterns remain explicit. Task-specific pattern synthesis is the remaining experimental boundary; compiler lowering and runtime dispatch do not contain task hashes.
