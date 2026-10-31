@@ -17,7 +17,7 @@ export function optimizationArtifact(policy, numericalPolicy) {
   delete program.provenance;
   // Names affect diagnostics, not the policy's executable decisions.
   program.id = 'artifact-policy';
-  if (program.kind === 'fusion-sequence') {
+  if (['fusion-sequence', 'pointwise-fusion-sequence'].includes(program.kind)) {
     for (const stage of ['expose', 'cleanup']) {
       program[stage].id = stage;
       delete program[stage].provenance;
@@ -25,8 +25,8 @@ export function optimizationArtifact(policy, numericalPolicy) {
   }
   const artifact = {
     format: 'kiln-optimization-artifact/1',
-    input_ir: 'kiln-loop/1',
-    action_contract: program.format === 'kiln-transformation-program/1' ? 'kiln-staged-loop-fusion/1' : 'kiln-loop-fusion/1',
+    input_ir: program.kind === 'pointwise-fusion-sequence' ? 'kiln-tensor/1' : 'kiln-loop/1',
+    action_contract: program.kind === 'pointwise-fusion-sequence' ? 'kiln-pointwise-staged-fusion/1' : program.format === 'kiln-transformation-program/1' ? 'kiln-staged-loop-fusion/1' : 'kiln-loop-fusion/1',
     feature_contract: 'kiln-loop-fusion-features/1',
     numerical_policy: {...numericalPolicy},
     applicability: {pipeline: 'emmy', static_shapes: true},

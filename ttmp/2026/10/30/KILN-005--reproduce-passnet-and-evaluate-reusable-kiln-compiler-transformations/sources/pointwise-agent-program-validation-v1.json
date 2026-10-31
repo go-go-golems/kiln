@@ -1,0 +1,78 @@
+{
+  "status": "passed",
+  "artifact": {
+    "artifact": {
+      "format": "kiln-optimization-artifact/1",
+      "input_ir": "kiln-tensor/1",
+      "action_contract": "kiln-pointwise-staged-fusion/1",
+      "feature_contract": "kiln-loop-fusion-features/1",
+      "numerical_policy": {
+        "contraction": "separate"
+      },
+      "applicability": {
+        "pipeline": "emmy",
+        "static_shapes": true
+      },
+      "program_budget": {
+        "max_nodes": 31,
+        "max_depth": 6,
+        "max_work_growth": 2
+      },
+      "program": {
+        "cleanup": {
+          "format": "kiln-fusion-policy/1",
+          "id": "cleanup",
+          "kind": "threshold",
+          "max_work_growth": 1.02
+        },
+        "expose": {
+          "consumer_tree": {
+            "threshold": 2
+          },
+          "format": "kiln-fusion-policy/1",
+          "id": "expose",
+          "kind": "selective",
+          "tree": {
+            "threshold": 1.02
+          }
+        },
+        "format": "kiln-transformation-program/1",
+        "id": "artifact-policy",
+        "kind": "pointwise-fusion-sequence"
+      }
+    },
+    "artifact_sha256": "f583ee12cd8a24b06f76dc4162d28f1b1fa434f71e908817616a24be8cccc837"
+  },
+  "results": [
+    {
+      "graph": 0,
+      "identical": true,
+      "kernels": 2
+    },
+    {
+      "graph": 1,
+      "identical": true,
+      "kernels": 2
+    },
+    {
+      "graph": 2,
+      "identical": true,
+      "kernels": 2
+    },
+    {
+      "graph": 3,
+      "identical": true,
+      "kernels": 2
+    },
+    {
+      "graph": 4,
+      "identical": true,
+      "kernels": 2
+    },
+    {
+      "graph": 5,
+      "identical": true,
+      "kernels": 2
+    }
+  ]
+}

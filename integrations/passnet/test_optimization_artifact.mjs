@@ -23,3 +23,14 @@ assert.throws(()=>optimizationArtifact({...policy, max_work_growth:NaN},numerica
 assert.throws(()=>optimizationArtifact({...policy, provenance:{lost:undefined}},numerical),/undefined/);
 assert.throws(()=>optimizationArtifact(policy,{contraction:'separate',rtol:1}),/host numerical/);
 console.log('artifact identity, semantic separation, detached data and executable policy round-trip passed');
+
+// A frontend decomposition must have a distinct contract from loop-only fusion.
+const stage={format:'kiln-fusion-policy/1',id:'stage',kind:'threshold',max_work_growth:1.02};
+const sequence={format:'kiln-transformation-program/1',id:'pointwise',kind:'pointwise-fusion-sequence',expose:stage,cleanup:stage};
+const pointwise=optimizationArtifact(sequence,{contraction:'separate'});
+assert.equal(pointwise.artifact.input_ir,'kiln-tensor/1');
+assert.equal(pointwise.artifact.action_contract,'kiln-pointwise-staged-fusion/1');
+assert.notEqual(pointwise.artifact_sha256,optimizationArtifact({...sequence,kind:'fusion-sequence'},{contraction:'separate'}).artifact_sha256);
+assert.equal(pointwise.artifact_sha256,optimizationArtifact({...sequence,id:'renamed',expose:{...stage,id:'other',provenance:{author:'test'}}},{contraction:'separate'}).artifact_sha256);
+assert.throws(()=>optimizationArtifact({...sequence,numerical_policy:{contraction:'allow'}},{contraction:'separate'}),/Invalid/);
+console.log('pointwise composition contract, identity and host numerical policy passed');

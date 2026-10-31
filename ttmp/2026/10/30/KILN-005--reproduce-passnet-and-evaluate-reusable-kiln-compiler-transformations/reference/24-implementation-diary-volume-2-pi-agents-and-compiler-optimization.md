@@ -1602,3 +1602,53 @@ See Step182 and Step190 for the active implementation/measurement direction.
 ### Technical details
 - Six FP32/FP16/BF16 graphs;20 warmups,100 timed trials; separate contraction; NVIDIA GB10 with A100 scheduling proxy and existing CUDA image.
 - Cumulative coverage remains34 complete tasks and375 accepted graphs. This experiment improves an already accepted family's performance; it does not add new supported tasks.
+
+
+## Step 192: Expose the measured pointwise composition to agents and check collateral changes
+
+The shared agent/compiler program preparation now accepts the measured pointwise decomposition followed by staged fusion. All six exported artifacts exactly match the already native-evaluated candidate. On the other two accepted pooling families, all eleven artifacts are identical to default compilation. These are no-convolution controls, not new evidence of convolution transfer.
+
+### Prompt Context
+See Step182 for the authored request to continue implementation and expand the port as appropriate.
+**Assistant interpretation:** Make the measured reusable transformation available in the existing optimization interface and test its scope before widening experiments.
+**Inferred user intent:** Advance compiler self-optimization with concrete results and limited infrastructure expansion.
+**Prior measurement commit:** 895b224 — Measure native pointwise convolution improvement across all six family graphs.
+
+### What I did
+- Extended transformation_program.mjs with pointwise-fusion-sequence using the existing decomposition and staged-fusion installers.
+- Declared the tensor input IR and distinct action contract in optimization_artifact.mjs; preserved policy canonicalization and host numerical settings.
+- Retained scripts492–493 and JSON results for exact six-artifact reproduction and eleven control comparisons.
+- Added focused artifact-contract checks to the existing test and documented the design checkpoint.
+
+### Why
+- Agents need access to a productive compiler primitive, while the existing evaluator and compilation path already supply the necessary execution interface.
+- Exact executable identity on unchanged controls avoids spending GPU time measuring identical programs.
+
+### What worked
+- Node26 script492: six complete exported artifacts exactly match the measured candidate, including source and launch metadata.
+- Node26 test_optimization_artifact.mjs: canonical identity and numerical-contract checks pass.
+- Node26 script493: task012 two graphs and task016 nine graphs compile identically with and without the composition.
+
+### What didn't work
+- An initial directory inspection used task-12 instead of the retained zero-padded task-012 and returned "No such file or directory". Corrected the inspection path; no artifacts were changed by that failure.
+- No new native transfer or agent-discovered improvement is established by these compilation checks.
+
+### What I learned
+- The other accepted pooling families cannot serve as positive convolution-transfer evidence because they contain no convolution.
+- The artifact must identify tensor input IR when a program installs a frontend decomposition; the old loop-only label would misdescribe this extension.
+
+### What was tricky to build
+- Composing frontend decomposition with loop-stage policy changes must retain the measured ordering and low-precision operation boundaries. Full artifact equality verifies the interface reproduces the measured implementation on all six known cases.
+
+### What warrants a second pair of eyes
+- Native numerical compatibility on fresh convolution families remains untested. The eleven control identities do not establish general safety or a default-promotion criterion.
+
+### What should be done in the future
+- Freeze and evaluate additional convolution families, then expose this explicit program form in the next agent campaign. Publish the pooling and pointwise milestone with eager comparisons and development-only selection clearly stated.
+
+### Code review instructions
+- Inspect transformation_program.mjs, optimization_artifact.mjs and design20's checkpoint. Run test_optimization_artifact.mjs and scripts492–493 under Node26 from the repository root.
+
+### Technical details
+- Four nodes for the measured program: two selective exposure nodes, one cleanup node and one decomposition node. Existing total limit31 remains unchanged.
+- No copied upstream code, new model inference, GPU run, coverage increase or default pipeline change. Coverage remains34 complete tasks and375 accepted graphs.

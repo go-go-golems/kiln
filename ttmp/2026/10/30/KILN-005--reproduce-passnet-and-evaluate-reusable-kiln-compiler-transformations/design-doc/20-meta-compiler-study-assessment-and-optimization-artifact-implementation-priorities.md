@@ -227,3 +227,14 @@ Evidence: sources/staged-confirmation-results-v1, sources/agent-fusion-sequence-
 ### Composition experiment outcome
 
 All six lanes completed in 8.8–56.8 seconds; fifteen of eighteen proposals passed the grammar. All 360 graph compilations passed, and all eighteen declared programs passed the twelve-graph GPU development evaluation. The nominal best sequence scored 1.405801× versus fixed staged 1.405437× (about 0.026% relative), with no established material advantage. Five sequence programs exactly reproduced fixed staged executables. Preserve the ranking as evidence, but retain the fixed transformation as the confirmed result. The next expansion should target additional workload families or a different measured transformation limitation; repeated tuning of these same two fusion decisions currently has low demonstrated value. Evidence: sources/pi-transformation-results-v1 and diary Steps 184–185. No thinking-level superiority is established.
+
+
+## Pointwise convolution composition checkpoint (2026-10-31)
+
+The agent program now accepts `kind: "pointwise-fusion-sequence"` with the same explicit `expose` and `cleanup` fusion policies as `fusion-sequence`. Preparation installs the existing pointwise convolution decomposition before staged loop fusion. This is an opt-in compiler program; the default pipeline is unchanged. It reuses the existing compiler rule replacement and scheduling primitives rather than adding an evaluator or separate compilation path.
+
+The artifact declares tensor input IR and `kiln-pointwise-staged-fusion/1` as its action contract because it modifies frontend decomposition as well as loop fusion. Its decision features remain the existing loop-fusion features. The decomposition contributes one node to the existing program budget. Nested policy names and provenance remain nonsemantic; host contraction policy remains immutable.
+
+The manually authored reference program uses selective exposure (aggregate work growth 1.02, consumer work growth 2) and threshold cleanup (1.02). Script492 verifies that its exported artifacts exactly equal all six native-evaluated pointwise candidates from Step191. That measured family improved 32.730548× relative to the prior Kiln implementation, but remains slower than eager. This is development evidence, not fresh confirmation or LLM discovery.
+
+Script493 checks the other two accepted pooling families, which contain no convolution. All eleven complete exported artifacts are identical to the default pipeline. This establishes absence of executable changes on these specific controls, not transfer to new convolution shapes. There was no additional GPU measurement or LLM inference in this checkpoint. The next experiment should freeze additional pointwise-convolution families before measuring the fixed program; only then should an agent search its policy parameters or broader compositions.
