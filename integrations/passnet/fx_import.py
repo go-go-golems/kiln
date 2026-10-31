@@ -4,7 +4,7 @@ Independent lowering against Kiln N APIs. No upstream implementation copied.
 """
 import json
 from fx_pooling import AVG_POOL2D, lower_avg_pool2d, ADAPTIVE_AVG_POOL2D, lower_adaptive_avg_pool2d
-from fx_indexing import lower_index,lower_transpose,lower_reshape,lower_singleton_view,SINGLETON_FUNCTIONS,SINGLETON_METHODS
+from fx_indexing import lower_index,lower_transpose,lower_reshape,lower_singleton_view,SINGLETON_FUNCTIONS,SINGLETON_METHODS,lower_flatten,FLATTEN_FUNCTIONS
 from fx_linalg import FUNCTIONS as LINALG_FUNCTIONS, METHODS as LINALG_METHODS, lower_linalg
 from fx_norm_ops import LAYER_NORM,lower_layer_norm,SOFTMAX,lower_softmax
 
@@ -227,15 +227,10 @@ def import_graph(graph):
             source=next((key for key,val in values.items() if val==value),None)
             if source is None or not isinstance(metadata[source],dict):raise ValueError(f'{name}: reshape operand must reference a tensor')
             expr=lower_reshape(value,shape,metadata[source],meta)
+        elif target in FLATTEN_FUNCTIONS or (node['kind']=='call_method' and target=='flatten'):
+            expr=lower_flatten(target,args,kwargs,meta,operand_spec,literal)
         elif node['kind'] == 'call_method':
-            if target=='flatten':
-                if len(args)>3 or set(kwargs)-{'start_dim','end_dim'}:raise ValueError(f'{name}: invalid flatten arguments')
-                bound=dict(zip(('start_dim','end_dim'),args[1:]))
-                if set(bound)&set(kwargs):raise ValueError(f'{name}: duplicate flatten argument')
-                bound.update(kwargs)
-                if any(type(literal(v)) is not int for v in bound.values()):raise ValueError(f'{name}: static flatten axes required')
-                expr=f'N.reshape({args[0]}, {json.dumps(meta["shape"])})'
-            elif target == 'contiguous':
+            if target == 'contiguous':
                 if len(args)!=1 or kwargs: raise ValueError(f'{name}: unsupported contiguous format')
                 expr=f'N.reshape({args[0]}, {json.dumps(meta["shape"])})'
             elif target == 'permute':

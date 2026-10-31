@@ -2052,3 +2052,60 @@ See Step182 and the user's standing authorization to implement missing Kiln capa
 - Independently written Kiln implementation; no upstream code copied. The source archive identifies the exact consulted PyTorch version and documentation URLs.
 - CPU oracles use local Torch2.11.0+cu130 and quarter-valued inputs. These are deterministic semantic fixtures, not broad arbitrary-input precision evidence.
 - No new LLM inference, GPU measurement or coverage increase in this step. Cumulative accepted coverage remains34 complete tasks and375 graphs.
+
+
+## Step 200: Validate adaptive pooling on CUDA and complete functional flatten import
+
+All210 adaptive-pooling fixtures pass native CUDA comparison:70 each in FP32, FP16 and BF16. Maximum observed FP32 error is2.9802322387695312e-8; low-precision results are exact on the deterministic inputs. The functional flatten binding now shares validated shape semantics with the method form, allowing all29 previously blocked adaptive-pooling graphs to import.
+
+Five complete task families are frozen for original-evaluator replay, but that replay has not started at this checkpoint. Accepted benchmark coverage therefore remains34 complete tasks and375 graphs.
+
+### Prompt Context
+See Step182 for implementation authorization. During this work the user asked, "how far in coverage are we, what is ahead of us?" and then "what does it take to impement like, adaptive pooling or max pooling? what needs to be written and tested?"
+**Assistant interpretation:** Report verified coverage and explain the actual compiler-port and validation layers while completing the current checkpoint.
+**Inferred user intent:** Understand both current progress and the practical work required for each missing operator.
+**Adaptive compiler commit:** 2441f1a.
+
+### What I did
+- Scripts523–526 stage, execute and collect all210 compiled fixtures using the existing runtime bridge and pinned CUDA environment.
+- Added lower_flatten in fx_indexing.py and routed torch.flatten, aten.flatten.using_ints and the tensor method through it. Removed the old method-only branch that relied directly on result metadata.
+- Validated static/negative axes, scalar flattening, expected shape/dtype and duplicate arguments. Flatten remains conservatively non-fresh for mutation ownership.
+- Added test_fx_flatten.py and ran flatten, reshape and pooling importer tests together.
+- Scripts527–528 reimport all29 graphs and freeze complete membership of task indices89,127,184,189,191 (9,6,6,2,6 graphs). Scripts529–530 prepare the existing complete-task evaluation workflow.
+
+### Why
+- Compiler export alone does not establish actual GPU numerical behavior.
+- Sharing functional and method flatten semantics avoids another duplicate importer implementation and closes the remaining two adaptive-pooling import failures.
+- Complete-task membership must be retained across all shapes and dtypes before acceptance can increase.
+
+### What worked
+-210/210 CUDA fixtures pass. FP16/BF16 require exact agreement and pass; FP32 passes rtol1.3e-6,atol1e-5.
+-10 focused Python importer tests pass, covering four flatten forms, dtypes, scalar/negative-axis behavior, forged metadata, duplicate arguments and alias restrictions.
+-29/29 historical adaptive-pooling failures now import. Each group's graph list matches complete upstream task membership.
+
+### What didn't work
+- An interim commentary inferred zero overall error from the last displayed fixture rows. The collected full summary reports maximum FP32 error2.98e-8; this was corrected immediately. No numerical evidence was altered.
+- No complete-task PassBench acceptance is claimed before the planned replay.
+
+### What I learned
+- The small independent operator fixtures establish useful CUDA confidence, while corpus integration can reveal unrelated missing bindings such as functional flatten.
+- Flatten shape semantics can be validated once and shared with existing reshape lowering; a new runtime implementation is unnecessary.
+
+### What was tricky to build
+- Scalar flatten has effective rank1 for axis validation and produces shape[1]. Negative axes must be normalized before checking start<=end.
+- Functional input keyword binding differs from method/ATen self binding, while the semantic reshape and ownership rules are shared.
+
+### What warrants a second pair of eyes
+- The fixtures use deterministic quarter-valued inputs; arbitrary-input and complete-family numerical behavior remain separate checks.
+- Do not count operator fixture programs as benchmark graphs or treat successful import as accepted execution.
+
+### What should be done in the future
+- Launch the frozen five-family replay from this committed source snapshot and retain all compiler, matching, numerical and timing failures.
+- Continue the broader pooling task, including max-pooling semantics and any requested index-output support.
+
+### Code review instructions
+- Inspect lower_flatten, its fx_import dispatch and test_fx_flatten.py. Review adaptive-pooling-cuda-results-v1/summary.json and adaptive-pooling-task-plan-v1.json.
+
+### Technical details
+- Artifacts were built from adaptive-pooling sources recorded in the fixture manifest; remote bundling hashes runtime and checker files. No evaluator or tolerance changes.
+- No LLM inference or performance claim in this checkpoint. Full-task evaluation is pending, not running.

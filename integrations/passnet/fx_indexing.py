@@ -132,3 +132,23 @@ def lower_reshape(value,shape,source,output):
     if not isinstance(output,dict) or source['dtype']!=output.get('dtype') or resolved!=output.get('shape'):
         raise ValueError('reshape: result shape/dtype disagrees with static semantics')
     return f'N.reshape({value}, {json.dumps(resolved)})'
+
+FLATTEN_FUNCTIONS={'torch.flatten','aten.flatten.using_ints'}
+
+def lower_flatten(target,args,kwargs,output,resolve,literal):
+    """Share functional/method flatten semantics; preserve conservative view ownership."""
+    import math
+    first='self' if target=='flatten' or target.startswith('aten.') else 'input'
+    fields=[first,'start_dim','end_dim']
+    if len(args)>3 or set(kwargs)-set(fields):raise ValueError('flatten: unsupported arguments')
+    bound=dict(zip(fields,args))
+    if set(bound)&set(kwargs):raise ValueError('flatten: duplicate argument')
+    bound.update(kwargs)
+    if first not in bound:raise ValueError('flatten: input required')
+    source=resolve(bound[first]);shape=source['shape'];rank=max(1,len(shape))
+    axes=[literal(bound.get('start_dim','0')),literal(bound.get('end_dim','-1'))]
+    if any(type(axis) is not int or not -rank<=axis<rank for axis in axes):raise ValueError('flatten: invalid static axes')
+    start,end=[axis%rank for axis in axes]
+    if start>end:raise ValueError('flatten: start_dim must not exceed end_dim')
+    expected=shape[:start]+[math.prod(shape[start:end+1])]+shape[end+1:] if shape else [1]
+    return lower_reshape(bound[first],expected,source,output)
