@@ -15,7 +15,7 @@ Summary: Phase plan connecting complete-task coverage to a diverse portfolio of 
 
 ## Objective and present state
 
-The end target is explicit accounting for all **200 PassBench tasks and 2,060 graphs**, including unsupported and incorrect variants. The earlier 111-task/1,514-graph qualification is running on a frozen source snapshot. Subsequent scalar and layout work raised *import eligibility* to **116 complete tasks and 1,559 graphs**, with 33 newly importable graphs in five complete families. All 33 export and compile locally. They have not yet passed GPU correctness or PassBench scoring. The historical accepted ledger remains **53 complete tasks and 505 individual graphs** across compiler snapshots; it is not a uniform current-release result.
+The end target is explicit accounting for all **200 PassBench tasks and 2,060 graphs**, including unsupported and incorrect variants. The earlier 111-task/1,514-graph qualification is running on a frozen source snapshot. Subsequent scalar/layout and stack/unbind batches raised *import eligibility* to **119 complete tasks and 1,584 graphs**: 33 newly importable graphs in five scalar/layout families and 25 in three structural families. All 58 export and compile locally. They have not yet passed GPU correctness or PassBench scoring. The historical accepted ledger remains **53 complete tasks and 505 individual graphs** across compiler snapshots; it is not a uniform current-release result.
 
 Our near-term aim is to obtain broad, externally verified task coverage and use correct families to test multiple *reusable* optimization strategies. Coverage and optimization advance together. Full corpus support is a destination, not a gate that delays compiler experiments.
 
@@ -57,6 +57,7 @@ Start O1 and O2 with existing Kiln rules and `kiln-transformation-program/1`, in
 
 1. Let P0 finish without introducing competing timed GPU work. Analyze the ordinary-task band as soon as its results are available, then the two large families and historical regression band.
 2. Run P1's staged five-family source on bling after P0's timed evaluation. The five tasks and all 33 variants are staged with a verified source snapshot in `sources/scalar-layout-batch-gpu-v1/staging.json`; they have not been launched. Compare pinned PyTorch behavior before accepting the new bindings.
+   The next structural batch (tasks 65, 112 and 150; 25 variants) is imported and locally compiled but needs its own pinned GPU replay. Its contract and evidence are in reference39.
 3. Use P0's common failures to choose P2 versus P3 first. Write the typed/index and effect contracts at the IR boundary before coding those waves; then implement broad batches and replay complete families.
 4. Build O1 and O2 training/held-out partitions from accepted task families. Search several reusable policies, including one reduction/contraction candidate, and publish the negative results as well as improvements.
 5. Recompute the complete 200-task ledger after each wave. Stop adding one-off bindings when the next missing capability spans storage, IR and runtime; implement that capability coherently.

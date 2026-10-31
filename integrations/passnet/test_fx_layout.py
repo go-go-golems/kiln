@@ -1,7 +1,7 @@
 import json,unittest,torch
 from fx_export import export_graph
 from fx_import import import_graph
-from fx_layout import lower_partition
+from fx_layout import lower_partition,lower_stack,lower_unbind
 
 class Layout(torch.nn.Module):
  def __init__(self,aten=False,mode='constant'):super().__init__();self.aten=aten;self.mode=mode
@@ -38,5 +38,30 @@ class PartitionAliasTests(unittest.TestCase):
  def test_partition_alias_mutation_rejected(self):
   graph=export_graph(torch.fx.symbolic_trace(PartitionAlias()),(torch.randn(2,4),))
   with self.assertRaisesRegex(ValueError,'fresh single-use'):import_graph(graph)
+
+class StackUnbind(torch.nn.Module):
+ def __init__(self,axis,method=False):super().__init__();self.axis=axis;self.method=method
+ def forward(self,x,y):
+  stacked=torch.stack((x,y),dim=self.axis)
+  parts=stacked.unbind(self.axis) if self.method else torch.unbind(stacked,dim=self.axis)
+  return parts[0]+parts[1]
+
+class StackUnbindTests(unittest.TestCase):
+ def test_fx_shapes_and_dtypes(self):
+  for dtype in (torch.float32,torch.float16,torch.bfloat16):
+   for axis in (0,1,-1):
+    for method in (False,True):
+     model=StackUnbind(axis,method)
+     inputs=(torch.randn(2,3).to(dtype),torch.randn(2,3).to(dtype))
+     script=import_graph(export_graph(torch.fx.symbolic_trace(model),inputs))['script']
+     self.assertIn('N.concat',script)
+     self.assertIn('N.slice',script)
+     self.assertIn('N.reshape',script)
+ def test_contract_rejects_mismatch(self):
+  source={'shape':[2,3],'dtype':'torch.float32'}
+  with self.assertRaisesRegex(ValueError,'shape/dtype'):
+   lower_stack('torch.stack',[['x','y'],'0'],{}, {'shape':[2,3,2],'dtype':'torch.float32'},lambda _:source,json.loads)
+  with self.assertRaisesRegex(ValueError,'output count'):
+   lower_unbind('torch.unbind',['x','1'],{},[dict(source,shape=[2])],lambda _:source,json.loads)
 
 if __name__=='__main__':unittest.main()

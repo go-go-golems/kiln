@@ -6,6 +6,9 @@ PAD={'torch.nn.functional.pad','aten.pad.default','aten.constant_pad_nd.default'
 ROLL={'torch.roll','aten.roll.default'}
 PARTITION={'torch.functional.split','torch.split','torch.chunk','aten.split.Tensor','aten.split_with_sizes.default','aten.chunk.default'}
 PARTITION_METHODS={'split','chunk'}
+STACK={'torch.stack','aten.stack.default'}
+UNBIND={'torch.unbind','aten.unbind.int'}
+UNBIND_METHODS={'unbind'}
 
 def bind(target,args,kwargs,fields):
     if len(args)>len(fields) or set(kwargs)-set(fields):raise ValueError(target+': unsupported arguments')
@@ -71,4 +74,41 @@ def lower_partition(target,args,kwargs,meta,resolve,literal):
         expected=shape.copy();expected[axis]=size
         if not isinstance(out,dict) or out['shape']!=expected or out['dtype']!=source['dtype']:raise ValueError('partition: output shape/dtype mismatch')
         result.append(f'N.slice({b[first]}, {axis}, {start}, {start+size})');start+=size
+    return result
+
+def lower_stack(target,args,kwargs,meta,resolve,literal):
+    b=bind(target,args,kwargs,['tensors','dim'])
+    tensors=b['tensors']
+    if not isinstance(tensors,(tuple,list)) or not tensors:
+        raise ValueError('stack: nonempty tensor sequence required')
+    specs=[resolve(value) for value in tensors]
+    shape=specs[0]['shape'];dtype=specs[0]['dtype'];rank=len(shape)
+    if any(spec['shape']!=shape or spec['dtype']!=dtype for spec in specs):
+        raise ValueError('stack: identical tensor shapes and dtypes required')
+    axis=literal(b.get('dim','0'))
+    if type(axis) is not int or not -rank-1<=axis<=rank:
+        raise ValueError('stack: invalid dimension')
+    axis%=rank+1
+    expected=shape[:axis]+[len(tensors)]+shape[axis:]
+    if not isinstance(meta,dict) or meta['shape']!=expected or meta['dtype']!=dtype:
+        raise ValueError('stack: output shape/dtype mismatch')
+    expanded=[f'N.reshape({value}, {json.dumps(shape[:axis]+[1]+shape[axis:])})' for value in tensors]
+    return expanded[0] if len(expanded)==1 else f'N.concat([{", ".join(expanded)}], {axis})'
+
+def lower_unbind(target,args,kwargs,meta,resolve,literal):
+    first='self' if target=='aten.unbind.int' or target in UNBIND_METHODS else 'input'
+    b=bind(target,args,kwargs,[first,'dim'])
+    source=resolve(b[first]);shape=source['shape'];rank=len(shape)
+    axis=literal(b.get('dim','0'))
+    if not rank or type(axis) is not int or not -rank<=axis<rank:
+        raise ValueError('unbind: invalid dimension')
+    axis%=rank
+    expected=shape[:axis]+shape[axis+1:]
+    if not isinstance(meta,(list,tuple)) or len(meta)!=shape[axis]:
+        raise ValueError('unbind: output count mismatch')
+    result=[]
+    for index,out in enumerate(meta):
+        if not isinstance(out,dict) or out['shape']!=expected or out['dtype']!=source['dtype']:
+            raise ValueError('unbind: output shape/dtype mismatch')
+        result.append(f'N.reshape(N.slice({b[first]}, {axis}, {index}, {index+1}), {json.dumps(expected)})')
     return result

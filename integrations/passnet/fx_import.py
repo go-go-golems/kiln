@@ -8,7 +8,7 @@ from fx_indexing import lower_index,lower_transpose,lower_reshape,lower_singleto
 from fx_linalg import FUNCTIONS as LINALG_FUNCTIONS, METHODS as LINALG_METHODS, lower_linalg
 from fx_norm_ops import LAYER_NORM,lower_layer_norm,SOFTMAX,lower_softmax
 from fx_max_pooling import MAX_POOL2D,lower_max_pool2d
-from fx_layout import PAD,ROLL,PARTITION,PARTITION_METHODS,lower_pad,lower_roll,lower_partition
+from fx_layout import PAD,ROLL,PARTITION,PARTITION_METHODS,STACK,UNBIND,UNBIND_METHODS,lower_pad,lower_roll,lower_partition,lower_stack,lower_unbind
 from fx_scalar_ops import FUNCTIONS as SCALAR_FUNCTIONS,METHODS as SCALAR_METHODS,lower_scalar
 
 
@@ -131,6 +131,10 @@ def import_graph(graph):
             expr=lower_roll(target,args,kwargs,meta,operand_spec,literal)
         elif target in PARTITION or (node['kind']=='call_method' and target in PARTITION_METHODS):
             expr=lower_partition(target,args,kwargs,meta,operand_spec,literal)
+        elif target in STACK:
+            expr=lower_stack(target,args,kwargs,meta,operand_spec,literal)
+        elif target in UNBIND or (node['kind']=='call_method' and target in UNBIND_METHODS):
+            expr=lower_unbind(target,args,kwargs,meta,operand_spec,literal)
         elif target in SCALAR_FUNCTIONS or (node['kind']=='call_method' and target in SCALAR_METHODS):
             expr,source_value,mutates=lower_scalar(target,node['kind'],args,kwargs,meta,operand_spec,literal)
             source=next((key for key,val in values.items() if val==source_value),None)
@@ -436,7 +440,7 @@ def import_graph(graph):
         # consume an already owned value whose sole use is this operation.
         if inplace_binary or linalg or activation or reduction or target in AVG_POOL2D or target in ADAPTIVE_AVG_POOL2D or target in MAX_POOL2D or target in PAD or target in ROLL or target in SCALAR_FUNCTIONS or (node['kind']=='call_method' and target in SCALAR_METHODS) or (node['kind']=='call_method' and target=='roll') or target in SOFTMAX or (node['kind']=='call_method' and target=='softmax') or target in LAYER_NORM or target in unary or target in binary or target in (
                 'torch.conv2d','torch.nn.functional.batch_norm','torch.nn.functional.interpolate',
-                'torch.cat','torch.concat','torch.concatenate','aten.cat.default'):
+                'torch.cat','torch.concat','torch.concatenate','aten.cat.default') or target in STACK:
             fresh.add(name)
     if outputs is None:
         raise ValueError('Missing graph output')

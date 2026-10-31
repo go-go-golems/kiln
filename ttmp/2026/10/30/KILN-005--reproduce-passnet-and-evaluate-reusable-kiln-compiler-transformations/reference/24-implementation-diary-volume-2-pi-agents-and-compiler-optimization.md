@@ -3147,3 +3147,47 @@ Read scripts633–634, the staged receipt, `scalar-layout-batch-task-plan-v1.jso
 
 ### Technical details
 The staging operation used the existing `HostKeyAlias=bling.local` key and no concurrent timed GPU work. The runner uses the same pinned image `sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba` as the uniform study, with the plan's target A100, separate contraction, internal synthetic check bypass and PassBench numerical t=-5 settings.
+
+## Step 224: Port stack and unbind as one structural batch
+
+The active broad-coverage plan calls for shared capability batches while the 111-task GPU study runs from a frozen snapshot. I ranked current first import blockers, inspected representative PassNet graphs and official PyTorch 2.9 semantics, then added stack and unbind lowering through Kiln's existing reshape, slice and concat primitives. The full import census rose to 119 complete tasks and 1,584 graphs; the 25 new graphs all compile locally, with external correctness still pending.
+
+### Prompt Context
+**User prompt:** See Step222 for the request to pursue broad coverage and compiler-strategy breadth. The continuing project instruction requests port provenance, sources/scripts and detailed diary entries.
+**Assistant interpretation:** Choose a shared structural capability that unlocks complete task families and exposes new optimization patterns.
+**Inferred user intent:** Increase benchmark coverage in batches that also broaden the kinds of reusable compiler passes we can study.
+
+### What I did
+- Added script635 to rank first import failures by affected task families, using the 2,060-graph current-source audit. The recorded first blockers include 137 mutation/alias graphs across18 tasks, 119 typed-input graphs across18 tasks, 59 local-driver-sensitive graphs across14 tasks, and stack/unbind groups totaling25 graphs across3 tasks. The rank is a first-error inventory, not a proof of all later blockers.
+- Inspected materialized PassNet model calls in mmseg, mmpose and timm. Read official PyTorch 2.9 stack/unbind API pages and archived their exact HTML with hash manifest via script637. No upstream implementation code was copied.
+- Implemented shared `lower_stack` and `lower_unbind` in `fx_layout.py` and dispatched them from `fx_import.py`. Added source FX fixtures covering FP32, FP16, BF16, positive/negative axes and functional/method unbind, plus metadata rejection checks.
+- Ran the full import census through script636, froze its delta and complete-family plan with script638, exported and locally compiled all25 variants with Node26 via script639, and archived the artifacts with script640. Wrote reference39 and updated the broad execution plan.
+
+### Why
+Stack/unbind form a coherent structural operation group. Their source semantics map to existing Kiln primitives, and the affected families exercise convolution, arithmetic, linear algebra, reduction and layout movement. The same compiler path can then evaluate view folding and stack/reduction simplification.
+
+### What worked
+- `python3 -m unittest test_fx_layout.py` passed seven test methods.
+- The full import census moved from1,559 to1,584 graphs and116 to119 complete tasks, with25 newly imported graphs and zero regressions. Task indices65,112,150 contain9,6,10 variants respectively.
+- All three new families exported and all25 variants compiled locally with target A100, separate contraction and the internal synthetic check explicitly bypassed. The local archive contains89 members; SHA256 `760b8adccdc9d1f6d6d04b08c35114ddcd78689773e5423018b4196094b187f1`.
+
+### What didn't work
+No implementation or local compilation failure occurred. Native CUDA numerical acceptance and PassBench scoring remain unrun for this batch, so the119-task figure is import eligibility only.
+
+### What I learned
+The existing partition/getitem importer can select unbind elements if the unbind lowering returns a structured expression list with matching tensor metadata. Stack can reuse `N.reshape` and `N.concat`; the one-input case requires only reshape. Unbind creates aliases, so the importer must not grant fresh ownership to its outputs.
+
+### What was tricky to build
+Axis normalization differs: stack inserts into rank+1 and accepts the interval `[-rank-1, rank]`, while unbind removes one of rank existing axes and accepts `[-rank, rank-1]`. Unbind output count must equal the size of the removed dimension, and each output loses that axis. The lowerings validate those contracts before emitting Kiln source.
+
+### What warrants a second pair of eyes
+Review alias behavior if a later operation mutates an unbound view. Confirm native GPU numerical behavior for low precision and the source graph families before adding them to the accepted ledger. The rank script groups first errors only and should not be used to predict final accepted-task count.
+
+### What should be done in the future
+Stage and replay tasks65,112,150 on bling after the current timed study and staged five-family replay. Investigate whether stack→sum and unbind→view schedules eliminate intermediate materialization; use complete-family held-out evidence before promoting any new strategy.
+
+### Code review instructions
+Read `fx_layout.py` stack/unbind lowerings, `fx_import.py` dispatch, `test_fx_layout.py`, reference39, scripts635–640 and `sources/stack-unbind-batch-delta-v1.json`. Compare source API pages in the archived official-doc bundle and the materialized PassNet model calls.
+
+### Technical details
+The source-doc archive SHA256 is `c06afeb34bccf128b7f32adfa5b48d4a114249d3dfa7213c7bcfb746546359ae`. The local compile archive is `sources/stack-unbind-batch-local-compile-v1.tar.gz`. The full audit SHA256 is `e805d42b062e355bd0337952686672d7d79ba51a12e1220066e5eca5f398c2a2`; the prior scalar audit SHA256 is `7094df646a22657ff37c4c2797037627577b2b0ddbfa8ce23de1c8ffd5fddbdd`. The frozen remote111-task GPU study uses the earlier source snapshot and is unaffected.
