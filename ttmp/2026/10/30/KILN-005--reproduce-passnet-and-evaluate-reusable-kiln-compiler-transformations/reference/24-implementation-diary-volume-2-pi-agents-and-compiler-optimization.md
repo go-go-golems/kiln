@@ -854,3 +854,53 @@ See Steps 169 and 173 for research-first direction and the scheduling hypothesis
 
 ### Technical details
 - Production compiler files were restored exactly to HEAD. No default behavior changed and no performance gain is claimed.
+
+## Step 177: Correct the eligibility inference and compare actual schedule costs
+
+Inspected the final Loop IR before scheduling for all six changed training graphs, enumerating the existing scheduler's legal choices and cost estimates. Contrary to my earlier inference from the ineffective edge predicate, the final baseline kernels have no recognized contraction. Every separated matrix kernel does. The cost model prefers tiled schedules in all four measured wins and row schedules in both measured regressions.
+
+### Prompt Context
+See Steps 169 and 173 for research-first direction and the matrix scheduling hypothesis.
+**Assistant interpretation:** Resolve the discrepancy between the negative edge predicate and observed final schedules.
+**Inferred user intent:** Derive a reusable compiler decision from actual compiler behavior.
+**Starting commit:** 6a957dc — Test and reject simple contraction-preservation fusion hypothesis.
+
+### What I did
+- Added script 457, compiling each graph under default and glm-28 to the loop checkpoint.
+- Used tile.analyze and the existing forkTree domains to enumerate schedules, retaining the cheapest estimated choice for each mapping.
+- Saved full contraction dimensions, shapes, choices and cost estimates in fusion-schedule-costs-v1.json.
+
+### Why
+- A predicate that makes no difference during fusion does not prove that final fused kernels retain contraction eligibility.
+- Comparing final representations directly separates recognition from profitability.
+
+### What worked
+- The script completed all twelve compilations/analyses.
+- Separated matrix dimensions are M/N/K = 82/512/512, 49/768/768, 15/16/16, 64/512/512, 64/512/512 and 15/1280/1280.
+- The four winning cases have tiled estimates below row estimates. The two regressions have row estimates below tiled estimates.
+
+### What didn't work
+- The preceding commentary's claim that fused forms evidently retained structural tiling eligibility was incorrect. Final Loop IR analysis contradicts it; this entry supersedes that inference.
+- These are analytic model estimates, not direct measurements of each alternative schedule. No new GPU timing was performed.
+
+### What I learned
+- The existing scheduler already contains a useful distinction between the winning and losing separated cases.
+- Fusion ordering or intermediate producer form must be investigated to explain why the earlier local eligibility predicate never preserved the useful matrix representation.
+
+### What was tricky to build
+- Final contraction recognition must use the same shape/index analysis as scheduling, including canonical dimensions, rather than infer M and N from raw tensor shape positions.
+
+### What warrants a second pair of eyes
+- Confirm how contraction structure emerges during reverse-order fusion before designing a local predicate. A final-state analysis cannot by itself establish the precise intermediate failure point.
+
+### What should be done in the future
+- Test a staged fusion strategy that first exposes matrix computation, then compares tiled versus row profitability before fusing layout consumers.
+- Evaluate that strategy against both existing regressions and additional families, keeping the production default unchanged until measured.
+
+### Code review instructions
+- Run script 457 and inspect fusion-schedule-costs-v1.json alongside pi-selective-winner-analysis-v1.json.
+
+### Technical details
+- For M=82,N=K=512, estimated row cost is 30.8142 us and tiled cost 22.8348 us.
+- For M=15,N=K=1280, estimated row cost is 34.6940 us and tiled cost 40.7927 us.
+- No new compiler API or behavior was introduced in this investigation.

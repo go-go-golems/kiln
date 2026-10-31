@@ -1,0 +1,2622 @@
+[
+  {
+    "index": 3,
+    "variant": "default",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          82
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 1511424,
+              "dram": 335872,
+              "smemWavefronts": 0,
+              "warpInstr": 1312,
+              "threads": 64,
+              "blocks": 656,
+              "smem": 0,
+              "regs": 21,
+              "us": 3.017729724909715,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.34515314993981006,
+                "l2": 0.517729724909715,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.004293655357485145
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.21875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 0,
+              "gbs": 111.29956312109717
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          8,
+          82,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 42991616,
+              "traffic": 1375899648,
+              "dram": 165107957.76,
+              "smemWavefronts": 0,
+              "warpInstr": 4031776,
+              "threads": 64,
+              "blocks": 656,
+              "smem": 0,
+              "regs": 24,
+              "us": 473.80662624281064,
+              "bound": "l2",
+              "parts": {
+                "dram": 169.6703854474118,
+                "l2": 471.30662624281064,
+                "compute": 4.394863234927235,
+                "smem": 0,
+                "issue": 13.194402913551851
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.21875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 90.73662886674823,
+              "gbs": 348.4711876430945
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 1024,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 42991616,
+              "traffic": 1375899648,
+              "dram": 165107957.76,
+              "smemWavefronts": 26869760,
+              "warpInstr": 32243712,
+              "threads": 1024,
+              "blocks": 41984,
+              "smem": 4096,
+              "regs": 24,
+              "us": 227.58047474252083,
+              "bound": "l2",
+              "parts": {
+                "dram": 81.0289709073075,
+                "l2": 225.08047474252083,
+                "compute": 2.2061686153846156,
+                "smem": 176.56737588652484,
+                "issue": 52.97021276595744
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.9974358974358974,
+              "blocksPerSM": 2,
+              "limiter": "threads",
+              "waves": 195,
+              "util": 0.998670465337132,
+              "gflops": 188.907313110405,
+              "gbs": 725.4926326469757
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "variant": "selective",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          82
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 1511424,
+              "dram": 335872,
+              "smemWavefronts": 0,
+              "warpInstr": 1312,
+              "threads": 64,
+              "blocks": 656,
+              "smem": 0,
+              "regs": 21,
+              "us": 3.017729724909715,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.34515314993981006,
+                "l2": 0.517729724909715,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.004293655357485145
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.21875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 0,
+              "gbs": 111.29956312109717
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          82,
+          1,
+          512
+        ],
+        "contraction": {
+          "M": 82,
+          "N": 512,
+          "K": 512,
+          "batch": [],
+          "A": 1,
+          "B": 1
+        },
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 42991616,
+              "traffic": 709529600,
+              "dram": 85143552,
+              "smemWavefronts": 0,
+              "warpInstr": 4030464,
+              "threads": 64,
+              "blocks": 656,
+              "smem": 0,
+              "regs": 23,
+              "us": 245.54534308261626,
+              "bound": "l2",
+              "parts": {
+                "dram": 87.49632350974184,
+                "l2": 243.04534308261626,
+                "compute": 4.394863234927235,
+                "smem": 0,
+                "issue": 13.190109258194365
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.21875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 175.0862608929017,
+              "gbs": 346.75286825273884
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 128,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 42991616,
+              "traffic": 172134400,
+              "dram": 20656128,
+              "smemWavefronts": 2351104,
+              "warpInstr": 6381568,
+              "threads": 128,
+              "blocks": 41984,
+              "smem": 512,
+              "regs": 23,
+              "us": 30.81421565193022,
+              "bound": "l2",
+              "parts": {
+                "dram": 10.193117634694877,
+                "l2": 28.31421565193022,
+                "compute": 2.2172648026755857,
+                "smem": 15.527351218008018,
+                "issue": 10.536416897934012
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.9725,
+              "blocksPerSM": 16,
+              "limiter": "threads",
+              "waves": 25,
+              "util": 1,
+              "gflops": 1395.1877433981347,
+              "gbs": 670.3441110858224
+            }
+          },
+          "tiled": {
+            "knobs": {
+              "MAP": "tiled",
+              "TPB": 0,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 32,
+              "BN": 16,
+              "BK": 8,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 50331648,
+              "traffic": 9605120,
+              "dram": 1384448,
+              "smemWavefronts": 1720320,
+              "warpInstr": 2162688,
+              "threads": 512,
+              "blocks": 96,
+              "smem": 1536,
+              "regs": 27,
+              "us": 22.834751773049646,
+              "bound": "smem",
+              "parts": {
+                "dram": 1.2730946542422754,
+                "l2": 2.944188327611574,
+                "compute": 4.645998276923077,
+                "smem": 20.334751773049646,
+                "issue": 6.390921985815602
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.25,
+              "blocksPerSM": 4,
+              "limiter": "threads",
+              "waves": 1,
+              "util": 0.8888888888888888,
+              "gflops": 2204.1688256669872,
+              "gbs": 60.62899276330093
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          8,
+          82,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 1511424,
+              "dram": 335872,
+              "smemWavefronts": 0,
+              "warpInstr": 2624,
+              "threads": 64,
+              "blocks": 656,
+              "smem": 0,
+              "regs": 21,
+              "us": 3.017729724909715,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.34515314993981006,
+                "l2": 0.517729724909715,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.00858731071497029
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.21875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 0,
+              "gbs": 111.29956312109717
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "variant": "default",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 301056,
+              "dram": 301056,
+              "smemWavefronts": 0,
+              "warpInstr": 1176,
+              "threads": 64,
+              "blocks": 588,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.8254301128003925,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.32543011280039236,
+                "l2": 0.10847670426679744,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.004005006257822278
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.1875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 0,
+              "gbs": 106.55227274463067
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 301056,
+              "dram": 301056,
+              "smemWavefronts": 0,
+              "warpInstr": 1176,
+              "threads": 64,
+              "blocks": 588,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.8254301128003925,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.32543011280039236,
+                "l2": 0.10847670426679744,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.004005006257822278
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.1875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 0,
+              "gbs": 106.55227274463067
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 57840384,
+              "traffic": 1851042816,
+              "dram": 222125137.92,
+              "smemWavefronts": 0,
+              "warpInstr": 5423712,
+              "threads": 64,
+              "blocks": 588,
+              "smem": 0,
+              "regs": 25,
+              "us": 669.4690161844042,
+              "bound": "l2",
+              "parts": {
+                "dram": 240.1088458263855,
+                "l2": 666.9690161844042,
+                "compute": 6.153118696832579,
+                "smem": 0,
+                "issue": 18.471088861076346
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.1875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 86.39740242148558,
+              "gbs": 331.79300692060104
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 60211200,
+              "traffic": 1852247040,
+              "dram": 222269644.79999998,
+              "smemWavefronts": 903168,
+              "warpInstr": 6623232,
+              "threads": 64,
+              "blocks": 37632,
+              "smem": 256,
+              "regs": 25,
+              "us": 305.78596370769986,
+              "bound": "l2",
+              "parts": {
+                "dram": 109.18294693477195,
+                "l2": 303.28596370769986,
+                "compute": 3.0926769230769233,
+                "smem": 5.940425531914894,
+                "issue": 10.890780141843972
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.9914772727272727,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 11,
+              "util": 1,
+              "gflops": 196.90635655714973,
+              "gbs": 726.8798152307182
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "variant": "selective",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 301056,
+              "dram": 301056,
+              "smemWavefronts": 0,
+              "warpInstr": 1176,
+              "threads": 64,
+              "blocks": 588,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.8254301128003925,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.32543011280039236,
+                "l2": 0.10847670426679744,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.004005006257822278
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.1875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 0,
+              "gbs": 106.55227274463067
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 301056,
+              "dram": 301056,
+              "smemWavefronts": 0,
+              "warpInstr": 1176,
+              "threads": 64,
+              "blocks": 588,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.8254301128003925,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.32543011280039236,
+                "l2": 0.10847670426679744,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.004005006257822278
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.1875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 0,
+              "gbs": 106.55227274463067
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          49,
+          1,
+          768
+        ],
+        "contraction": {
+          "M": 49,
+          "N": 768,
+          "K": 768,
+          "batch": [],
+          "A": 1,
+          "B": 1
+        },
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 57802752,
+              "traffic": 953895936,
+              "dram": 114467512.32,
+              "smemWavefronts": 0,
+              "warpInstr": 5419008,
+              "threads": 64,
+              "blocks": 588,
+              "smem": 0,
+              "regs": 23,
+              "us": 346.20843746934776,
+              "bound": "l2",
+              "parts": {
+                "dram": 123.73503748896519,
+                "l2": 343.70843746934776,
+                "compute": 6.1491153665158365,
+                "smem": 0,
+                "issue": 18.455068836045058
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.1875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 166.95939712652924,
+              "gbs": 330.63178112212995
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 128,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 57802752,
+              "traffic": 231361536,
+              "dram": 27763384.32,
+              "smemWavefronts": 2107392,
+              "warpInstr": 7526400,
+              "threads": 128,
+              "blocks": 37632,
+              "smem": 512,
+              "regs": 23,
+              "us": 40.38301716527709,
+              "bound": "l2",
+              "parts": {
+                "dram": 13.637886179499755,
+                "l2": 37.88301716527709,
+                "compute": 2.968969846153846,
+                "smem": 13.86099290780142,
+                "issue": 12.375886524822697
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.9914772727272727,
+              "blocksPerSM": 16,
+              "limiter": "threads",
+              "waves": 22,
+              "util": 1,
+              "gflops": 1431.3628861218692,
+              "gbs": 687.5014862404104
+            }
+          },
+          "tiled": {
+            "knobs": {
+              "MAP": "tiled",
+              "TPB": 0,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 32,
+              "BN": 16,
+              "BK": 8,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 75497472,
+              "traffic": 14306304,
+              "dram": 2660352,
+              "smemWavefronts": 2580480,
+              "warpInstr": 3244032,
+              "threads": 512,
+              "blocks": 96,
+              "smem": 1536,
+              "regs": 27,
+              "us": 33.00212765957447,
+              "bound": "smem",
+              "parts": {
+                "dram": 2.446375674350171,
+                "l2": 4.385208435507602,
+                "compute": 6.9689974153846155,
+                "smem": 30.502127659574466,
+                "issue": 9.586382978723403
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.25,
+              "blocksPerSM": 4,
+              "limiter": "threads",
+              "waves": 1,
+              "util": 0.8888888888888888,
+              "gflops": 2287.6546863516214,
+              "gbs": 80.61152988201921
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 37632,
+              "traffic": 2558976,
+              "dram": 307077.12,
+              "smemWavefronts": 0,
+              "warpInstr": 5880,
+              "threads": 64,
+              "blocks": 588,
+              "smem": 0,
+              "regs": 23,
+              "us": 3.4220519862677783,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.3319387150564002,
+                "l2": 0.9220519862677783,
+                "compute": 0.0040033303167420825,
+                "smem": 0,
+                "issue": 0.020025031289111393
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.1875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 10.996910669683576,
+              "gbs": 89.73479106461797
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "variant": "default",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          1,
+          15,
+          15
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 1800,
+              "dram": 1800,
+              "smemWavefronts": 0,
+              "warpInstr": 7.03125,
+              "threads": 64,
+              "blocks": 4,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.59534085335949,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.09534085335948994,
+                "l2": 0.03178028445316332,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.0010498320268757
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.03125,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 0.037037037037037035,
+              "gflops": 0,
+              "gbs": 0.6935505206069654
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          4,
+          15,
+          4
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 8640,
+              "dram": 1920,
+              "smemWavefronts": 0,
+              "warpInstr": 7.5,
+              "threads": 64,
+              "blocks": 4,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.652545365375184,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.1016969102501226,
+                "l2": 0.1525453653751839,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.0011198208286674134
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.03125,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 0.037037037037037035,
+              "gflops": 0,
+              "gbs": 0.7238330492147604
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          4,
+          15,
+          4
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 7920,
+              "traffic": 254400,
+              "dram": 30528,
+              "smemWavefronts": 0,
+              "warpInstr": 750,
+              "threads": 64,
+              "blocks": 4,
+              "smem": 0,
+              "regs": 25,
+              "us": 6.9916135360470815,
+              "bound": "l2",
+              "parts": {
+                "dram": 1.6169808729769495,
+                "l2": 4.4916135360470815,
+                "compute": 0.03693862348178138,
+                "smem": 0,
+                "issue": 0.11198208286674131
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.03125,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 0.037037037037037035,
+              "gflops": 1.1327857238055823,
+              "gbs": 4.366374062668791
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 32,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 15360,
+              "traffic": 254400,
+              "dram": 30528,
+              "smemWavefronts": 2400,
+              "warpInstr": 4080,
+              "threads": 32,
+              "blocks": 240,
+              "smem": 128,
+              "regs": 25,
+              "us": 2.704164251638504,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.07349913058986134,
+                "l2": 0.2041642516385037,
+                "compute": 0.0033198348968105063,
+                "smem": 0.06642449403217436,
+                "issue": 0.028230409963674104
+              },
+              "occupancy": 0.5,
+              "achievedOccupancy": 0.046875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 5.680128339354049,
+              "gbs": 11.289255074466173
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "variant": "selective",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          1,
+          15,
+          15
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 1800,
+              "dram": 1800,
+              "smemWavefronts": 0,
+              "warpInstr": 7.03125,
+              "threads": 64,
+              "blocks": 4,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.59534085335949,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.09534085335948994,
+                "l2": 0.03178028445316332,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.0010498320268757
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.03125,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 0.037037037037037035,
+              "gflops": 0,
+              "gbs": 0.6935505206069654
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          4,
+          15,
+          4
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 8640,
+              "dram": 1920,
+              "smemWavefronts": 0,
+              "warpInstr": 7.5,
+              "threads": 64,
+              "blocks": 4,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.652545365375184,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.1016969102501226,
+                "l2": 0.1525453653751839,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.0011198208286674134
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.03125,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 0.037037037037037035,
+              "gflops": 0,
+              "gbs": 0.7238330492147604
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          15,
+          1,
+          16
+        ],
+        "contraction": {
+          "M": 15,
+          "N": 16,
+          "K": 16,
+          "batch": [],
+          "A": 1,
+          "B": 1
+        },
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 7680,
+              "traffic": 127680,
+              "dram": 15321.599999999999,
+              "smemWavefronts": 0,
+              "warpInstr": 720,
+              "threads": 64,
+              "blocks": 4,
+              "smem": 0,
+              "regs": 23,
+              "us": 4.754281510544384,
+              "bound": "l2",
+              "parts": {
+                "dram": 0.8115413437959784,
+                "l2": 2.2542815105443843,
+                "compute": 0.03581927125506073,
+                "smem": 0,
+                "issue": 0.10750279955207166
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.03125,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 0.037037037037037035,
+              "gflops": 1.6153860437096015,
+              "gbs": 3.222695157200654
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 32,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 7680,
+              "traffic": 31680,
+              "dram": 3801.6,
+              "smemWavefronts": 2400,
+              "warpInstr": 3120,
+              "threads": 32,
+              "blocks": 240,
+              "smem": 128,
+              "regs": 23,
+              "us": 2.5664244940321743,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.009152721922511034,
+                "l2": 0.02542422756253065,
+                "compute": 0.0016599174484052532,
+                "smem": 0.06642449403217436,
+                "issue": 0.021587960560456667
+              },
+              "occupancy": 0.5,
+              "achievedOccupancy": 0.046875,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 2.992490142553837,
+              "gbs": 1.4812826205641494
+            }
+          },
+          "tiled": {
+            "knobs": {
+              "MAP": "tiled",
+              "TPB": 0,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 16,
+              "BN": 16,
+              "BK": 8,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 8192,
+              "traffic": 3008,
+              "dram": 2944,
+              "smemWavefronts": 296,
+              "warpInstr": 352,
+              "threads": 256,
+              "blocks": 1,
+              "smem": 1024,
+              "regs": 27,
+              "us": 2.9798378926038502,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.3898381559588033,
+                "l2": 0.1327709661598823,
+                "compute": 0.10370531868131869,
+                "smem": 0.47983789260385007,
+                "issue": 0.14265450861195544
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.125,
+              "blocksPerSM": 8,
+              "limiter": "threads",
+              "waves": 1,
+              "util": 0.009259259259259259,
+              "gflops": 2.7491428377137805,
+              "gbs": 0.9879732073033898
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          4,
+          15,
+          4
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 240,
+              "traffic": 16320,
+              "dram": 1984,
+              "smemWavefronts": 0,
+              "warpInstr": 37.5,
+              "threads": 64,
+              "blocks": 4,
+              "smem": 0,
+              "regs": 23,
+              "us": 2.7881412457086805,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.10508680725846002,
+                "l2": 0.2881412457086807,
+                "compute": 0.0011193522267206478,
+                "smem": 0,
+                "issue": 0.005599104143337065
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.03125,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 0.037037037037037035,
+              "gflops": 0.08607885284484487,
+              "gbs": 0.7115851835173844
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "variant": "default",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          1,
+          1,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 1024,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 512,
+              "dram": 512,
+              "smemWavefronts": 0,
+              "warpInstr": 2,
+              "threads": 1024,
+              "blocks": 1,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.5271191760666993,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.02711917606669936,
+                "l2": 0.009039725355566453,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.00035460992907801415
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.5,
+              "blocksPerSM": 2,
+              "limiter": "threads",
+              "waves": 1,
+              "util": 0.009259259259259259,
+              "gflops": 0,
+              "gbs": 0.202602237697747
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 1179648,
+              "dram": 262144,
+              "smemWavefronts": 0,
+              "warpInstr": 1024,
+              "threads": 64,
+              "blocks": 512,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.951986267778323,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.30132417851888177,
+                "l2": 0.45198626777832274,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.003660489590482727
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.15625,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 0,
+              "gbs": 88.80258111677826
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          8,
+          1,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 4096,
+              "dram": 4096,
+              "smemWavefronts": 0,
+              "warpInstr": 16,
+              "threads": 64,
+              "blocks": 8,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.6084767042667973,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.10847670426679744,
+                "l2": 0.03615890142226581,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.001194475550578574
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.03125,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 0.07407407407407407,
+              "gflops": 0,
+              "gbs": 1.57026512573411
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 33587200,
+              "traffic": 1074921472,
+              "dram": 128990576.64,
+              "smemWavefronts": 0,
+              "warpInstr": 3149824,
+              "threads": 64,
+              "blocks": 512,
+              "smem": 0,
+              "regs": 25,
+              "us": 414.35993133889156,
+              "bound": "l2",
+              "parts": {
+                "dram": 148.26957528200097,
+                "l2": 411.85993133889156,
+                "compute": 3.7504317617866003,
+                "smem": 0,
+                "issue": 11.259665980324868
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.15625,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 81.05803061476549,
+              "gbs": 311.30079644332886
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 35651584,
+              "traffic": 1075970048,
+              "dram": 129116405.75999999,
+              "smemWavefronts": 786432,
+              "warpInstr": 4194304,
+              "threads": 64,
+              "blocks": 32768,
+              "smem": 256,
+              "regs": 25,
+              "us": 178.7418754291319,
+              "bound": "l2",
+              "parts": {
+                "dram": 63.447075154487486,
+                "l2": 176.2418754291319,
+                "compute": 1.831857230769231,
+                "smem": 5.174468085106383,
+                "issue": 6.899290780141843
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.95,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 10,
+              "util": 1,
+              "gflops": 199.45848679502774,
+              "gbs": 722.3623756325217
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "variant": "selective",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          1,
+          1,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 1024,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 512,
+              "dram": 512,
+              "smemWavefronts": 0,
+              "warpInstr": 2,
+              "threads": 1024,
+              "blocks": 1,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.5271191760666993,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.02711917606669936,
+                "l2": 0.009039725355566453,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.00035460992907801415
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.5,
+              "blocksPerSM": 2,
+              "limiter": "threads",
+              "waves": 1,
+              "util": 0.009259259259259259,
+              "gflops": 0,
+              "gbs": 0.202602237697747
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 1179648,
+              "dram": 262144,
+              "smemWavefronts": 0,
+              "warpInstr": 1024,
+              "threads": 64,
+              "blocks": 512,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.951986267778323,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.30132417851888177,
+                "l2": 0.45198626777832274,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.003660489590482727
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.15625,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 0,
+              "gbs": 88.80258111677826
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          8,
+          1,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 0,
+              "traffic": 4096,
+              "dram": 4096,
+              "smemWavefronts": 0,
+              "warpInstr": 16,
+              "threads": 64,
+              "blocks": 8,
+              "smem": 0,
+              "regs": 21,
+              "us": 2.6084767042667973,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.10847670426679744,
+                "l2": 0.03615890142226581,
+                "compute": 0,
+                "smem": 0,
+                "issue": 0.001194475550578574
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.03125,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 0.07407407407407407,
+              "gflops": 0,
+              "gbs": 1.57026512573411
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          64,
+          1,
+          512
+        ],
+        "contraction": {
+          "M": 64,
+          "N": 512,
+          "K": 512,
+          "batch": [],
+          "A": 1,
+          "B": 1
+        },
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 33554432,
+              "traffic": 553779200,
+              "dram": 66453504,
+              "smemWavefronts": 0,
+              "warpInstr": 3145728,
+              "threads": 64,
+              "blocks": 512,
+              "smem": 0,
+              "regs": 23,
+              "us": 214.6824423737126,
+              "bound": "l2",
+              "parts": {
+                "dram": 76.38567925453653,
+                "l2": 212.1824423737126,
+                "compute": 3.7467728039702233,
+                "smem": 0,
+                "issue": 11.245024021962937
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.15625,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 156.29797960649935,
+              "gbs": 309.5432642988092
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 33554432,
+              "traffic": 134348800,
+              "dram": 16121856,
+              "smemWavefronts": 786432,
+              "warpInstr": 3932160,
+              "threads": 64,
+              "blocks": 32768,
+              "smem": 256,
+              "regs": 23,
+              "us": 24.50608141245709,
+              "bound": "l2",
+              "parts": {
+                "dram": 7.922189308484551,
+                "l2": 22.00608141245709,
+                "compute": 1.724100923076923,
+                "smem": 5.174468085106383,
+                "issue": 6.468085106382979
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.95,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 10,
+              "util": 1,
+              "gflops": 1369.2287818379398,
+              "gbs": 657.8716412736976
+            }
+          },
+          "tiled": {
+            "knobs": {
+              "MAP": "tiled",
+              "TPB": 0,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 32,
+              "BN": 16,
+              "BK": 8,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 33554432,
+              "traffic": 6422528,
+              "dram": 1310720,
+              "smemWavefronts": 1146880,
+              "warpInstr": 1441792,
+              "threads": 512,
+              "blocks": 64,
+              "smem": 1536,
+              "regs": 27,
+              "us": 22.834751773049643,
+              "bound": "smem",
+              "parts": {
+                "dram": 1.8079450711132905,
+                "l2": 2.9529769494850413,
+                "compute": 4.645998276923077,
+                "smem": 20.334751773049643,
+                "issue": 6.390921985815604
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.25,
+              "blocksPerSM": 4,
+              "limiter": "threads",
+              "waves": 1,
+              "util": 0.5925925925925926,
+              "gflops": 1469.4458837779919,
+              "gbs": 57.40022983507781
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 32768,
+              "traffic": 2228224,
+              "dram": 267386.88,
+              "smemWavefronts": 0,
+              "warpInstr": 5120,
+              "threads": 64,
+              "blocks": 512,
+              "smem": 0,
+              "regs": 23,
+              "us": 3.353751839136832,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.3073506620892595,
+                "l2": 0.8537518391368317,
+                "compute": 0.003658957816377171,
+                "smem": 0,
+                "issue": 0.018302447952413637
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.15625,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 9.770549990494713,
+              "gbs": 79.72768792243686
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "variant": "default",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 33587200,
+              "traffic": 1074921472,
+              "dram": 128990576.64,
+              "smemWavefronts": 0,
+              "warpInstr": 3149824,
+              "threads": 64,
+              "blocks": 512,
+              "smem": 0,
+              "regs": 25,
+              "us": 414.35993133889156,
+              "bound": "l2",
+              "parts": {
+                "dram": 148.26957528200097,
+                "l2": 411.85993133889156,
+                "compute": 3.7504317617866003,
+                "smem": 0,
+                "issue": 11.259665980324868
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.15625,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 81.05803061476549,
+              "gbs": 311.30079644332886
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 35651584,
+              "traffic": 1075970048,
+              "dram": 129116405.75999999,
+              "smemWavefronts": 786432,
+              "warpInstr": 4194304,
+              "threads": 64,
+              "blocks": 32768,
+              "smem": 256,
+              "regs": 25,
+              "us": 178.7418754291319,
+              "bound": "l2",
+              "parts": {
+                "dram": 63.447075154487486,
+                "l2": 176.2418754291319,
+                "compute": 1.831857230769231,
+                "smem": 5.174468085106383,
+                "issue": 6.899290780141843
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.95,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 10,
+              "util": 1,
+              "gflops": 199.45848679502774,
+              "gbs": 722.3623756325217
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "variant": "selective",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          64,
+          1,
+          512
+        ],
+        "contraction": {
+          "M": 64,
+          "N": 512,
+          "K": 512,
+          "batch": [],
+          "A": 1,
+          "B": 1
+        },
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 33554432,
+              "traffic": 553779200,
+              "dram": 66453504,
+              "smemWavefronts": 0,
+              "warpInstr": 3145728,
+              "threads": 64,
+              "blocks": 512,
+              "smem": 0,
+              "regs": 23,
+              "us": 214.6824423737126,
+              "bound": "l2",
+              "parts": {
+                "dram": 76.38567925453653,
+                "l2": 212.1824423737126,
+                "compute": 3.7467728039702233,
+                "smem": 0,
+                "issue": 11.245024021962937
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.15625,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 156.29797960649935,
+              "gbs": 309.5432642988092
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 33554432,
+              "traffic": 134348800,
+              "dram": 16121856,
+              "smemWavefronts": 786432,
+              "warpInstr": 3932160,
+              "threads": 64,
+              "blocks": 32768,
+              "smem": 256,
+              "regs": 23,
+              "us": 24.50608141245709,
+              "bound": "l2",
+              "parts": {
+                "dram": 7.922189308484551,
+                "l2": 22.00608141245709,
+                "compute": 1.724100923076923,
+                "smem": 5.174468085106383,
+                "issue": 6.468085106382979
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.95,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 10,
+              "util": 1,
+              "gflops": 1369.2287818379398,
+              "gbs": 657.8716412736976
+            }
+          },
+          "tiled": {
+            "knobs": {
+              "MAP": "tiled",
+              "TPB": 0,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 32,
+              "BN": 16,
+              "BK": 8,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 33554432,
+              "traffic": 6422528,
+              "dram": 1310720,
+              "smemWavefronts": 1146880,
+              "warpInstr": 1441792,
+              "threads": 512,
+              "blocks": 64,
+              "smem": 1536,
+              "regs": 27,
+              "us": 22.834751773049643,
+              "bound": "smem",
+              "parts": {
+                "dram": 1.8079450711132905,
+                "l2": 2.9529769494850413,
+                "compute": 4.645998276923077,
+                "smem": 20.334751773049643,
+                "issue": 6.390921985815604
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.25,
+              "blocksPerSM": 4,
+              "limiter": "threads",
+              "waves": 1,
+              "util": 0.5925925925925926,
+              "gflops": 1469.4458837779919,
+              "gbs": 57.40022983507781
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 32768,
+              "traffic": 2228224,
+              "dram": 267386.88,
+              "smemWavefronts": 0,
+              "warpInstr": 5120,
+              "threads": 64,
+              "blocks": 512,
+              "smem": 0,
+              "regs": 23,
+              "us": 3.353751839136832,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.3073506620892595,
+                "l2": 0.8537518391368317,
+                "compute": 0.003658957816377171,
+                "smem": 0,
+                "issue": 0.018302447952413637
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.15625,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 9.770549990494713,
+              "gbs": 79.72768792243686
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "variant": "default",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          32,
+          15,
+          40
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 49171200,
+              "traffic": 1573555200,
+              "dram": 188826624,
+              "smemWavefronts": 0,
+              "warpInstr": 4610400,
+              "threads": 64,
+              "blocks": 300,
+              "smem": 0,
+              "regs": 25,
+              "us": 796.2782834722902,
+              "bound": "l2",
+              "parts": {
+                "dram": 285.7601820500245,
+                "l2": 793.7782834722902,
+                "compute": 6.971719679999999,
+                "smem": 0,
+                "issue": 20.92663829787234
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.09375,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 61.75127593029619,
+              "gbs": 237.1364734155418
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 50380800,
+              "traffic": 1574169600,
+              "dram": 188900352,
+              "smemWavefronts": 460800,
+              "warpInstr": 5222400,
+              "threads": 64,
+              "blocks": 19200,
+              "smem": 256,
+              "regs": 25,
+              "us": 260.16508288376656,
+              "bound": "l2",
+              "parts": {
+                "dram": 92.75942983815595,
+                "l2": 257.66508288376656,
+                "compute": 2.586860307692308,
+                "smem": 3.029787234042553,
+                "issue": 8.584397163120569
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.9270833333333334,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 6,
+              "util": 1,
+              "gflops": 193.64935310134805,
+              "gbs": 726.0788031435972
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "variant": "selective",
+    "kernels": [
+      {
+        "shape": [
+          1,
+          15,
+          1,
+          1280
+        ],
+        "contraction": {
+          "M": 15,
+          "N": 1280,
+          "K": 1280,
+          "batch": [],
+          "A": 1,
+          "B": 1
+        },
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 49152000,
+              "traffic": 811084800,
+              "dram": 97330176,
+              "smemWavefronts": 0,
+              "warpInstr": 4608000,
+              "threads": 64,
+              "blocks": 300,
+              "smem": 0,
+              "regs": 23,
+              "us": 411.6508834863027,
+              "bound": "l2",
+              "parts": {
+                "dram": 147.29431805506897,
+                "l2": 409.1508834863027,
+                "compute": 6.9689974153846155,
+                "smem": 0,
+                "issue": 20.915744680851063
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.09375,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 119.40214869388345,
+              "gbs": 236.43864231676932
+            }
+          },
+          "row": {
+            "knobs": {
+              "MAP": "row",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 49152000,
+              "traffic": 196684800,
+              "dram": 23602176,
+              "smemWavefronts": 460800,
+              "warpInstr": 5068800,
+              "threads": 64,
+              "blocks": 19200,
+              "smem": 256,
+              "regs": 23,
+              "us": 34.69399313388916,
+              "bound": "l2",
+              "parts": {
+                "dram": 11.589837528200098,
+                "l2": 32.19399313388916,
+                "compute": 2.523766153846154,
+                "smem": 3.029787234042553,
+                "issue": 8.331914893617022
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.9270833333333334,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 6,
+              "util": 1,
+              "gflops": 1416.7293978042624,
+              "gbs": 680.2957477081343
+            }
+          },
+          "tiled": {
+            "knobs": {
+              "MAP": "tiled",
+              "TPB": 0,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 16,
+              "BN": 16,
+              "BK": 8,
+              "TM": 1,
+              "TN": 2
+            },
+            "cost": {
+              "flops": 52428800,
+              "traffic": 13184000,
+              "dram": 6707200,
+              "smemWavefronts": 1484800,
+              "warpInstr": 2201600,
+              "threads": 128,
+              "blocks": 80,
+              "smem": 1024,
+              "regs": 29,
+              "us": 40.79271437782076,
+              "bound": "smem",
+              "parts": {
+                "dram": 14.802550269740067,
+                "l2": 9.698871996076509,
+                "compute": 10.559086993006993,
+                "smem": 38.29271437782076,
+                "issue": 14.19471308833011
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.0625,
+              "blocksPerSM": 16,
+              "limiter": "threads",
+              "waves": 1,
+              "util": 0.7407407407407407,
+              "gflops": 1285.2491137119782,
+              "gbs": 164.42151747682533
+            }
+          }
+        }
+      },
+      {
+        "shape": [
+          1,
+          32,
+          15,
+          40
+        ],
+        "contraction": null,
+        "best": {
+          "thread": {
+            "knobs": {
+              "MAP": "thread",
+              "TPB": 64,
+              "COARSEN": 1,
+              "STAGE": "none",
+              "BM": 0,
+              "BN": 0,
+              "BK": 0,
+              "TM": 1,
+              "TN": 1
+            },
+            "cost": {
+              "flops": 19200,
+              "traffic": 1305600,
+              "dram": 158720,
+              "smemWavefronts": 0,
+              "warpInstr": 3000,
+              "threads": 64,
+              "blocks": 300,
+              "smem": 0,
+              "regs": 23,
+              "us": 3.1586085616198414,
+              "bound": "launch",
+              "parts": {
+                "dram": 0.24019841659076574,
+                "l2": 0.6586085616198416,
+                "compute": 0.002722264615384615,
+                "smem": 0,
+                "issue": 0.013617021276595745
+              },
+              "occupancy": 1,
+              "achievedOccupancy": 0.09375,
+              "blocksPerSM": 32,
+              "limiter": "blocks",
+              "waves": 1,
+              "util": 1,
+              "gflops": 6.0786259599554775,
+              "gbs": 50.24997460229862
+            }
+          }
+        }
+      }
+    ]
+  }
+]
