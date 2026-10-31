@@ -1,0 +1,63 @@
+diff --git a/packages/kiln/src/std/loop.js b/packages/kiln/src/std/loop.js
+index 5c600aa..8262ddb 100644
+--- a/packages/kiln/src/std/loop.js
++++ b/packages/kiln/src/std/loop.js
+@@ -332,12 +332,13 @@ export function inlineInto(c, p) {
+ const kernelWork = (n) => workOf(schedule(n.attrs.expr, n.attrs.shape));
+ export { chooseFusionSubset } from "./fusion.js";
+ export function createFusionRule(options={}) {
+-  if(!options||typeof options!=="object"||Array.isArray(options)||Object.keys(options).some(k=>!["maxWorkGrowth","decide","selectConsumers","onDecision"].includes(k)))throw new TypeError("Unknown fusion rule option; use selectConsumers for region selection");
+-  const {maxWorkGrowth=1.02,decide=null,selectConsumers=null,onDecision=null}=options;
++  if(!options||typeof options!=="object"||Array.isArray(options)||Object.keys(options).some(k=>!["maxWorkGrowth","decide","selectConsumers","onDecision","acceptEdge"].includes(k)))throw new TypeError("Unknown fusion rule option; use selectConsumers for region selection");
++  const {maxWorkGrowth=1.02,decide=null,selectConsumers=null,onDecision=null,acceptEdge=null}=options;
+   if (!Number.isFinite(maxWorkGrowth) || maxWorkGrowth<0) throw new TypeError("maxWorkGrowth must be finite and nonnegative");
+   if (decide!==null && typeof decide!=="function") throw new TypeError("fusion decide must be a function");
+   if (selectConsumers!==null && typeof selectConsumers!=="function") throw new TypeError("fusion region selector must be a function");
+   if (onDecision!==null && typeof onDecision!=="function") throw new TypeError("fusion observer must be a function");
++  if (acceptEdge!==null && typeof acceptEdge!=="function") throw new TypeError("fusion edge predicate must be a function");
+   return k.rule("merge_loop_ops")
+   .match(P.op("loop.kernel").as("p").where(({ p, graph }) => !graph.isOutput(p.id) && p.users.length > 0 && p.users.every((u) => u.is("loop.kernel"))))
+   .mutate(({ p, tx, skip }) => {
+@@ -356,8 +357,13 @@ export function createFusionRule(options={}) {
+       }
+     }
+     const region=selectConsumers?Object.freeze({producerWork,producerElements,consumers:Object.freeze(edges)}):null;
+-    const selected=selectConsumers?selectConsumers(region):consumers.map((_,i)=>i);
++    let selected=selectConsumers?selectConsumers(region):consumers.map((_,i)=>i);
+     if(!Array.isArray(selected)||new Set(selected).size!==selected.length||selected.some(i=>!Number.isSafeInteger(i)||i<0||i>=consumers.length))throw new TypeError("fusion region selector must return distinct valid consumer indices");
++    if (acceptEdge) selected=selected.filter(i=>{
++      const decision=acceptEdge({producer:p,consumer:consumers[i],replacement:replacements[i]});
++      if(typeof decision!=="boolean")throw new TypeError("fusion edge predicate must return a Boolean");
++      return decision;
++    });
+     if (!selected.length) skip("fusion region selector selected no consumers");
+     for (const i of selected) {
+       const replacement=replacements[i];
+diff --git a/packages/kiln/src/std/tile.js b/packages/kiln/src/std/tile.js
+index 58a1d0e..4fd60b6 100644
+--- a/packages/kiln/src/std/tile.js
++++ b/packages/kiln/src/std/tile.js
+@@ -8,7 +8,7 @@
+ import { k, P, KilnError } from "../core/kiln.js";
+ import { numel, strides, hash, inKey } from "../core/util.js";
+ import * as IX from "../core/ix.js";
+-import { schedule, free, printNest, displayNames, workOf } from "./loop.js";
++import { schedule, free, printNest, displayNames, workOf, createFusionRule } from "./loop.js";
+ import { FNS } from "./fns.js";
+ 
+ // ----------------------------------------------------------------------------- knobs
+@@ -362,3 +362,14 @@ export const costPrior = k.decide.cost(({ knobs, node, ctx }) => {
+ 
+ export const tilePass = k.pass("tile/schedule").short("t").rules(scheduleRule).knobs(...KNOBS)
+   .describe("choose a GPU mapping for every kernel: a fork decided by pins, evidence, then the cost model");
++
++// Opt-in research rule: preserve a producer's tiled scheduling eligibility.
++// Eligibility is not a profitability estimate; the default fusion pass is unchanged.
++export function createContractionPreservingFusionRule({onDecision=null}={}) {
++  return createFusionRule({onDecision,acceptEdge:({producer,consumer,replacement})=>{
++    const before=analyze(producer.attrs.expr,producer.attrs.shape,producer.args.map(a=>a.type.shape));
++    if(!before.contraction)return true;
++    const after=analyze(replacement.expr,consumer.attrs.shape,replacement.args.map(a=>a.type.shape));
++    return Boolean(after.contraction);
++  }});
++}

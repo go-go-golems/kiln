@@ -807,3 +807,50 @@ See the standing milestone report request and Steps 168–174 for current resear
 ### Technical details
 - Vault path: Projects/2026/10/31/ARTICLE - Kiln - Six GLM Lanes and Matrix Layout Fusion.md.
 - Article body: 2,280 whitespace-delimited words, one Mermaid diagram, concrete JSON and proposed pseudocode.
+
+
+## Step 176: Reject the simple contraction-eligibility hypothesis
+
+Implemented and exercised an opt-in fusion-edge predicate that preserves a producer's contraction eligibility when fusion would remove it. On development graphs 3, 10 and 11, the rule produced the same schedules and kernel counts as baseline. This hypothesis does not explain the winner's behavior. Preserved the experimental patch and outputs, then restored the compiler files to avoid retaining an ineffective API extension.
+
+### Prompt Context
+See Steps 169 and 173 for research-first direction and the scheduling hypothesis.
+**Assistant interpretation:** Test a concrete compiler mechanism before expanding the interface.
+**Inferred user intent:** Learn from executable experiments and consolidate architecture.
+**Starting commit:** 56f6f9c — Publish technical report on repeated selective fusion gains.
+
+### What I did
+- Inspected loop fusion and tile.analyze contraction recognition.
+- Temporarily added an acceptEdge predicate to createFusionRule and a tile-level contraction-preserving rule factory.
+- Added script 456 to compile baseline and experimental forms of graphs 3, 10 and 11 with reference checks.
+- Ran the existing selective-fusion test successfully.
+- Archived experimental-rule.patch and reverted only the two compiler files changed by this experiment.
+
+### Why
+- A tiling-eligibility test was a direct, inexpensive probe of the proposed mechanism.
+- A negative result should narrow the next experiment without permanently expanding compiler APIs.
+
+### What worked
+- All six probe compilations passed local reference checks; the existing selective-fusion test passed.
+- Output artifacts establish identical selected schedules for default and preserve variants on all three graphs.
+
+### What didn't work
+- The proposed predicate did not expose the winning schedules. No GPU rerun was warranted for this unchanged-schedule probe.
+
+### What I learned
+- Preserving the presence of a contraction is insufficient. The next investigation should inspect the contraction dimensions and estimated costs of legal tiled schedules before and after fusion.
+
+### What was tricky to build
+- tile.js already depends on loop.js, so the experimental factory lived at the tile layer instead of introducing a reverse dependency into loop fusion.
+
+### What warrants a second pair of eyes
+- Distinguish scheduling legality from cost-model ranking. The current evidence does not prove the cost model is the sole cause.
+
+### What should be done in the future
+- Compare contraction dimensions and schedule estimates for fused and materialized forms; test schedule-aware profitability or a better representation.
+
+### Code review instructions
+- Review script 456 and sources/contraction-preservation-probe-v1/results.json, then the archived patch. Replaying the script requires applying that patch to the recorded starting revision.
+
+### Technical details
+- Production compiler files were restored exactly to HEAD. No default behavior changed and no performance gain is claimed.
