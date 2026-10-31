@@ -3532,3 +3532,50 @@ See the standing user instructions for milestone reports, vault commit/push, det
 
 ### Technical details
 - The unrelated untracked root sources directory and unrelated vault changes were not staged. The overall project goal remains active; no completion claim is made.
+
+## Step 82: Generate training-sensitive policies and freeze fresh confirmation
+
+Built deterministic template synthesis over training compiler traces and froze a new adaptive study before timing. Twelve candidates compile across twelve reused development graphs and eight new exact confirmation models. Unlike the previous proposal set, strict scalar and conditional programs change training executables. The shared evaluator remains responsible for all correctness, timing and selection.
+
+### Prompt Context
+See the user's standing self-optimization and architectural consolidation instructions, and Steps 78–81 for the preceding negative experiment.
+**Assistant interpretation:** Use observed training opportunities to make compiler-policy search effective while preserving a new confirmation boundary.
+**Inferred user intent:** Progress toward reusable compiler improvements without proliferating separate evaluator implementations.
+**Commit (previous checkpoint):** 2d41d2a.
+
+### What I did
+- Added propose_policy.py: fixed 12-program grammar, training-only membership filtering, validated scalar features and quantile cutoffs, provenance and training-trace identity.
+- Added tests proving held-out changes cannot affect proposals, incomplete/mislabeled traces are rejected and nonfinite features fail.
+- Added stage_corpus.py, replacing repeated manifest-staging code for future studies; preserved historical scripts.
+- Strengthened qualify_policies.py to enforce declared policy/compiled policy identity, fixed compiler target, kernel counts and safe fingerprint aliases; added adversarial tests.
+- Saved scripts 91–96, froze policy-corpus-v4, staged replay sources and archived all 240 compiled programs plus structural qualification.
+
+### Why
+- Relaxed policies cannot improve the earlier training programs by reversing profitability rejection: none occurred. Strict policies can test whether increased kernel count is compensated by reduced repeated arithmetic or resource demand. This is a hypothesis, not a speed claim.
+
+### What worked
+- New proposal tests passed; complete integration suite passed 37 tests before four new qualifier tests, and targeted policy suite subsequently passed all 11 tests.
+- All 240 combinations compiled. Explicit default matches unchanged. No exact baseline executable alias crosses the split boundary.
+- Scalar100/095/090/075 change 1/2/2/4 training programs; disabled changes nine. Conditional large-strict090, small-strict100, high-work-strict095 and single-strict090 change 1/1/1/2; large-strict100 remains a structural alias control.
+- Training feature cutoffs: producer median 432128, producer lower quartile 6272, original-work median 32058496. Training-trace SHA256 595e2ee8b1e3947962bcce27626022c4c9fc518689b4c0c0a2bcfc7edb084e69.
+
+### What didn't work
+- No new failure in this preparation boundary. A structurally unchanged candidate is retained under the predeclared budget rather than replaced after qualification.
+
+### What I learned
+- Selective fusion restrictions provide actual interventions even when relaxation does not. Their profitability remains an empirical question.
+
+### What was tricky to build
+- Generate candidates before new confirmation selection, and make held-out records irrelevant to the generator's output and provenance hash. Declare reused training observations explicitly instead of presenting adaptive development as a fresh trial.
+
+### What warrants a second pair of eyes
+- The proposal grammar is Codex-authored deterministic synthesis, not a named-model PassAgent run. Fresh exact models can share architecture families. Compiler/reference tests do not establish GPU replay correctness for these variants yet.
+
+### What should be done in the future
+- Run registered training evaluation, select only from complete training results, commit selection, then execute only baseline and the selected policy on the new confirmation graphs.
+
+### Code review instructions
+- Read propose_policy.py, qualifier adversarial tests, design 07's v4 section and proposals.json. Confirm source hashes, frozen manifest and training sensitivity before assessing any performance claim.
+
+### Technical details
+- Frozen v4 membership SHA256 c9d44fa395e7e393552b62ec62d8363c0999be7adf091e22e2911fb8cb6fe115; timing remains 20 warmups, 100 trials, three repeats, IQR fraction <=0.2 and two retries. Default 1.02 and verified PassBench task coverage remain unchanged.

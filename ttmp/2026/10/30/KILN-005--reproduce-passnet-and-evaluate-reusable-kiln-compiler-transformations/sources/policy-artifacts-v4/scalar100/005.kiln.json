@@ -1,0 +1,177 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "005.kiln.js",
+  "sha256": "bf40572049c2b08ed3a239841c532a2d3611f67925c75acdfc9c786e24536036"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    8,
+    256,
+    16,
+    12
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    8,
+    256,
+    16,
+    12
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    8,
+    256,
+    16,
+    12
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    8,
+    256,
+    16,
+    12
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    8,
+    256,
+    16,
+    12
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 393216,
+   "bytes": 1572864
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 393216,
+   "bytes": 1572864
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 393216,
+   "bytes": 1572864
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 393216,
+   "bytes": 1572864
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 393216,
+   "bytes": 1572864
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew__1typavhfteo",
+   "identity": "1typavhfteo",
+   "row": "TPB=64",
+   "reads": [
+    3,
+    2,
+    1,
+    0
+   ],
+   "writes": 4,
+   "grid": 6144,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    6144,
+    1,
+    1
+   ],
+   "shape": [
+    8,
+    256,
+    16,
+    12
+   ],
+   "inShapes": [
+    [
+     8,
+     256,
+     16,
+     12
+    ],
+    [
+     8,
+     256,
+     16,
+     12
+    ],
+    [
+     8,
+     256,
+     16,
+     12
+    ],
+    [
+     8,
+     256,
+     16,
+     12
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read> b2: array<f32>;\n@group(0) @binding(3) var<storage, read> b3: array<f32>;\n@group(0) @binding(4) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 6144i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_in2: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var v_v1: f32 = 0.0;\n    var v_v2: f32 = 0.0;\n    var v_in3: f32 = 0.0;\n    var v_v3: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 393216i) {\n        v_in0 = b1[((((12i * ((n_e / 12i) % 16i)) + (192i * ((n_e / 192i) % 256i))) + (n_e % 12i)) + (49152i * (n_e / 49152i)))];\n        v_in1 = b2[((((12i * ((n_e / 12i) % 16i)) + (192i * ((n_e / 192i) % 256i))) + (n_e % 12i)) + (49152i * (n_e / 49152i)))];\n        v_in2 = b3[((((12i * ((n_e / 12i) % 16i)) + (192i * ((n_e / 192i) % 256i))) + (n_e % 12i)) + (49152i * (n_e / 49152i)))];\n        v_v0 = (v_in1 + v_in2);\n        v_v1 = max(v_v0, 0.0);\n        v_v2 = (v_in0 + v_v1);\n        v_in3 = b0[((((12i * ((n_e / 12i) % 16i)) + (192i * ((n_e / 192i) % 256i))) + (n_e % 12i)) + (49152i * (n_e / 49152i)))];\n        v_v3 = (v_v2 + v_in3);\n        bout[((((12i * ((n_e / 12i) % 16i)) + (192i * ((n_e / 192i) % 256i))) + (n_e % 12i)) + (49152i * (n_e / 49152i)))] = v_v3;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew__1typavhfteo(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, in2 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, in3 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 393216)) {\n        in0 = src1[((((12 * ((e / 12) % 16)) + (192 * ((e / 192) % 256))) + (e % 12)) + (49152 * (e / 49152)))];\n        in1 = src2[((((12 * ((e / 12) % 16)) + (192 * ((e / 192) % 256))) + (e % 12)) + (49152 * (e / 49152)))];\n        in2 = src3[((((12 * ((e / 12) % 16)) + (192 * ((e / 192) % 256))) + (e % 12)) + (49152 * (e / 49152)))];\n        v0 = (in1 + in2);\n        v1 = fmaxf(v0, 0.0f);\n        v2 = (in0 + v1);\n        in3 = src0[((((12 * ((e / 12) % 16)) + (192 * ((e / 192) % 256))) + (e % 12)) + (49152 * (e / 49152)))];\n        v3 = (v2 + in3);\n        dst[((((12 * ((e / 12) % 16)) + (192 * ((e / 192) % 256))) + (e % 12)) + (49152 * (e / 49152)))] = v3;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "scalar100",
+  "kind": "threshold",
+  "provenance": {
+   "method": "Deterministic fixed grammar authored by Codex; cuts from training compiler features only; no timing input or external LLM inference",
+   "training_trace_sha256": "595e2ee8b1e3947962bcce27626022c4c9fc518689b4c0c0a2bcfc7edb084e69"
+  },
+  "max_work_growth": 1
+ }
+}

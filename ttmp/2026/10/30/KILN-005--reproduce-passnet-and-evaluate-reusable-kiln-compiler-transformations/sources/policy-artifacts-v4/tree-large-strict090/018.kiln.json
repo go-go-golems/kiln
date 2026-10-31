@@ -1,0 +1,112 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "018.kiln.js",
+  "sha256": "d608e1a9bc1c07d0fa475140ac7ed9b42a0cef3af89688bf6eeb88b4021091cb"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    64,
+    144,
+    6,
+    32
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    64,
+    144,
+    192
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 1769472,
+   "bytes": 7077888
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 1769472,
+   "bytes": 7077888
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_reshape__1tujmw7cc1q",
+   "identity": "1tujmw7cc1q",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1728,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1728,
+    1,
+    1
+   ],
+   "shape": [
+    64,
+    144,
+    192
+   ],
+   "inShapes": [
+    [
+     64,
+     144,
+     6,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(1024)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1728i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((1024i * bid) + tid);\n    if (n_e < 1769472i) {\n        v_in0 = b0[((((192i * ((((((192i * (((((192i * ((n_e / 192i) % 144i)) + (n_e % 192i)) + (27648i * (n_e / 27648i))) / 192i) % 144i)) + (27648i * (((((192i * ((n_e / 192i) % 144i)) + (n_e % 192i)) + (27648i * (n_e / 27648i))) / 27648i) % 64i))) + (32i * (((((192i * ((n_e / 192i) % 144i)) + (n_e % 192i)) + (27648i * (n_e / 27648i))) / 32i) % 6i))) + ((n_e % 192i) % 32i)) / 192i) % 144i)) + (27648i * ((((((192i * (((((192i * ((n_e / 192i) % 144i)) + (n_e % 192i)) + (27648i * (n_e / 27648i))) / 192i) % 144i)) + (27648i * (((((192i * ((n_e / 192i) % 144i)) + (n_e % 192i)) + (27648i * (n_e / 27648i))) / 27648i) % 64i))) + (32i * (((((192i * ((n_e / 192i) % 144i)) + (n_e % 192i)) + (27648i * (n_e / 27648i))) / 32i) % 6i))) + ((n_e % 192i) % 32i)) / 27648i) % 64i))) + (32i * ((((((192i * (((((192i * ((n_e / 192i) % 144i)) + (n_e % 192i)) + (27648i * (n_e / 27648i))) / 192i) % 144i)) + (27648i * (((((192i * ((n_e / 192i) % 144i)) + (n_e % 192i)) + (27648i * (n_e / 27648i))) / 27648i) % 64i))) + (32i * (((((192i * ((n_e / 192i) % 144i)) + (n_e % 192i)) + (27648i * (n_e / 27648i))) / 32i) % 6i))) + ((n_e % 192i) % 32i)) / 32i) % 6i))) + (((n_e % 192i) % 32i) % 32i))];\n        bout[(((192i * ((n_e / 192i) % 144i)) + (n_e % 192i)) + (27648i * (n_e / 27648i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_reshape__1tujmw7cc1q(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 1769472)) {\n        in0 = src0[((((192 * ((((((192 * (((((192 * ((e / 192) % 144)) + (e % 192)) + (27648 * (e / 27648))) / 192) % 144)) + (27648 * (((((192 * ((e / 192) % 144)) + (e % 192)) + (27648 * (e / 27648))) / 27648) % 64))) + (32 * (((((192 * ((e / 192) % 144)) + (e % 192)) + (27648 * (e / 27648))) / 32) % 6))) + ((e % 192) % 32)) / 192) % 144)) + (27648 * ((((((192 * (((((192 * ((e / 192) % 144)) + (e % 192)) + (27648 * (e / 27648))) / 192) % 144)) + (27648 * (((((192 * ((e / 192) % 144)) + (e % 192)) + (27648 * (e / 27648))) / 27648) % 64))) + (32 * (((((192 * ((e / 192) % 144)) + (e % 192)) + (27648 * (e / 27648))) / 32) % 6))) + ((e % 192) % 32)) / 27648) % 64))) + (32 * ((((((192 * (((((192 * ((e / 192) % 144)) + (e % 192)) + (27648 * (e / 27648))) / 192) % 144)) + (27648 * (((((192 * ((e / 192) % 144)) + (e % 192)) + (27648 * (e / 27648))) / 27648) % 64))) + (32 * (((((192 * ((e / 192) % 144)) + (e % 192)) + (27648 * (e / 27648))) / 32) % 6))) + ((e % 192) % 32)) / 32) % 6))) + (((e % 192) % 32) % 32))];\n        dst[(((192 * ((e / 192) % 144)) + (e % 192)) + (27648 * (e / 27648)))] = in0;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "tree-large-strict090",
+  "kind": "decision-tree",
+  "provenance": {
+   "method": "Deterministic fixed grammar authored by Codex; cuts from training compiler features only; no timing input or external LLM inference",
+   "training_trace_sha256": "595e2ee8b1e3947962bcce27626022c4c9fc518689b4c0c0a2bcfc7edb084e69"
+  },
+  "tree": {
+   "if": {
+    "feature": "producerElements",
+    "op": "ge",
+    "value": 432128
+   },
+   "then": {
+    "threshold": 0.9
+   },
+   "else": {
+    "threshold": 1.02
+   }
+  }
+ }
+}

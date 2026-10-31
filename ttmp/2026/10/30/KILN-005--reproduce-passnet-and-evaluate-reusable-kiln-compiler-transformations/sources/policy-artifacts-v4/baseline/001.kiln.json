@@ -1,0 +1,167 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "001.kiln.js",
+  "sha256": "93ea71527c223df9ee7a256d88ba48c4f1ce62c6cb90fbba7c9bf98156a06ba5"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    75,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    75,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1,
+    92,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    1,
+    92,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 58800,
+   "bytes": 235200
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 58800,
+   "bytes": 235200
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 72128,
+   "bytes": 288512
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 92,
+   "bytes": 368,
+   "name": null,
+   "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8="
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 72128,
+   "bytes": 288512
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_concat_ew__sxozqw5ynu",
+   "identity": "sxozqw5ynu",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "writes": 4,
+   "grid": 1127,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    1127,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    92,
+    28,
+    28
+   ],
+   "inShapes": [
+    [
+     1,
+     75,
+     28,
+     28
+    ],
+    [
+     1,
+     75,
+     28,
+     28
+    ],
+    [
+     1,
+     92,
+     28,
+     28
+    ],
+    [
+     1,
+     92,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read> b2: array<f32>;\n@group(0) @binding(3) var<storage, read> b3: array<f32>;\n@group(0) @binding(4) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1127i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_in2: f32 = 0.0;\n    var v_in3: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var v_v1: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((64i * bid) + tid);\n    if (n_e < 72128i) {\n        v_in0 = b3[(n_e / 784i)];\n        v_in1 = b2[((((28i * (((((784i * min(max(((n_e / 784i) + -75i), 0i), 16i)) + (28i * ((n_e / 28i) % 28i))) + (n_e % 28i)) / 28i) % 28i)) + (784i * (((((784i * min(max(((n_e / 784i) + -75i), 0i), 16i)) + (28i * ((n_e / 28i) % 28i))) + (n_e % 28i)) / 784i) % 17i))) + ((n_e % 28i) % 28i)) + 58800i)];\n        v_in2 = b0[(((784i * min(max((n_e / 784i), 0i), 74i)) + (28i * ((n_e / 28i) % 28i))) + (n_e % 28i))];\n        v_in3 = b1[(((784i * min(max((n_e / 784i), 0i), 74i)) + (28i * ((n_e / 28i) % 28i))) + (n_e % 28i))];\n        v_v0 = (v_in2 + v_in3);\n        v_v1 = select(v_v0, v_in1, (v_in0) > 0.0);\n        bout[(((28i * ((n_e / 28i) % 28i)) + (n_e % 28i)) + (784i * (n_e / 784i)))] = v_v1;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_concat_ew__sxozqw5ynu(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, in2 = 0.0f, in3 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 72128)) {\n        in0 = src3[(e / 784)];\n        in1 = src2[((((28 * (((((784 * min(max(((e / 784) + (-75)), 0), 16)) + (28 * ((e / 28) % 28))) + (e % 28)) / 28) % 28)) + (784 * (((((784 * min(max(((e / 784) + (-75)), 0), 16)) + (28 * ((e / 28) % 28))) + (e % 28)) / 784) % 17))) + ((e % 28) % 28)) + 58800)];\n        in2 = src0[(((784 * min(max((e / 784), 0), 74)) + (28 * ((e / 28) % 28))) + (e % 28))];\n        in3 = src1[(((784 * min(max((e / 784), 0), 74)) + (28 * ((e / 28) % 28))) + (e % 28))];\n        v0 = (in2 + in3);\n        v1 = ((in0) > 0.0f ? (in1) : (v0));\n        dst[(((28 * ((e / 28) % 28)) + (e % 28)) + (784 * (e / 784)))] = v1;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "baseline",
+  "kind": "unchanged",
+  "provenance": {
+   "method": "Deterministic fixed grammar authored by Codex; cuts from training compiler features only; no timing input or external LLM inference",
+   "training_trace_sha256": "595e2ee8b1e3947962bcce27626022c4c9fc518689b4c0c0a2bcfc7edb084e69"
+  }
+ }
+}

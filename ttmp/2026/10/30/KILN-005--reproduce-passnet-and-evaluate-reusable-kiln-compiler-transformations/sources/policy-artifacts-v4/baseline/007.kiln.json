@@ -1,0 +1,99 @@
+{
+ "format": "kiln-program/1",
+ "name": "policy-program",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "007.kiln.js",
+  "sha256": "d353f814f864a91cba8e8f8c4c5d420f0b3439e6a2fe3693981e8f77e4dd31c7"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    22,
+    512
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    1,
+    8,
+    22,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 11264,
+   "bytes": 45056
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 11264,
+   "bytes": 45056
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_transpose__mfarby9c82",
+   "identity": "mfarby9c82",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 88,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    88,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    8,
+    22,
+    64
+   ],
+   "inShapes": [
+    [
+     1,
+     22,
+     512
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 88i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((128i * bid) + tid);\n    if (n_e < 11264i) {\n        v_in0 = b0[((512i * (((((512i * ((n_e / 64i) % 22i)) + (n_e % 64i)) + (64i * (n_e / 1408i))) / 512i) % 22i)) + (((n_e % 64i) + (64i * (n_e / 1408i))) % 512i))];\n        bout[(((64i * ((n_e / 64i) % 22i)) + (n_e % 64i)) + (1408i * (n_e / 1408i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_transpose__mfarby9c82(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 11264)) {\n        in0 = src0[((512 * (((((512 * ((e / 64) % 22)) + (e % 64)) + (64 * (e / 1408))) / 512) % 22)) + (((e % 64) + (64 * (e / 1408))) % 512))];\n        dst[(((64 * ((e / 64) % 22)) + (e % 64)) + (1408 * (e / 1408)))] = in0;\n    }\n}"
+  }
+ ],
+ "compiler_policy": {
+  "format": "kiln-fusion-policy/1",
+  "id": "baseline",
+  "kind": "unchanged",
+  "provenance": {
+   "method": "Deterministic fixed grammar authored by Codex; cuts from training compiler features only; no timing input or external LLM inference",
+   "training_trace_sha256": "595e2ee8b1e3947962bcce27626022c4c9fc518689b4c0c0a2bcfc7edb084e69"
+  }
+ }
+}

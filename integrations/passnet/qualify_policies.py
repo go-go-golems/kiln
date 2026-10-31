@@ -11,21 +11,31 @@ def qualify(corpus,artifacts):
     identity=hashlib.sha256(json.dumps(manifest['variants'],sort_keys=True).encode()).hexdigest()
     if identity!=manifest['membership_sha256'] or identity!=plan['membership_sha256']:raise ValueError('Frozen membership mismatch')
     policies=plan['candidate_ids']
+    if len(policies)!=len(set(policies)) or any(Path(name).name!=name for name in policies):raise ValueError('Unique local policy identities required')
+    declared={name:json.loads((corpus/'policies'/(name+'.json')).read_text()) for name in policies}
     if 'baseline' not in policies or 'default' not in policies:raise ValueError('Unchanged/default equivalence controls required')
     receipts={name:json.loads((artifacts/name/'compile-receipt.json').read_text()) for name in policies}
-    baseline=receipts['baseline'];hashes={};semantics={};changes={}
+    baseline=receipts['baseline'];hashes={};semantics={};changes={};fingerprints={}
+    if declared['baseline']['kind']!='unchanged' or declared['default']['kind']!='threshold' or declared['default'].get('max_work_growth')!=1.02:raise ValueError('Unchanged and explicit default controls required')
     expected=[r['graph'] for r in manifest['variants']]
     for name,receipt in receipts.items():
+        if receipt['policy']!=declared[name] or declared[name]['id']!=name:raise ValueError('Declared policy differs from compiled policy')
+        if receipt['target']!=baseline['target']:raise ValueError('Compiler target mismatch')
         if receipt['membership_sha256']!=identity or receipt['reference_domain_sha256']!=baseline['reference_domain_sha256']:raise ValueError('Compiler configuration mismatch')
         if [r['graph'] for r in receipt['records']]!=expected or any(r['status']!='compiled' for r in receipt['records']):raise ValueError(f'Incomplete compilation for {name}')
         hashes[name]=[];semantics[name]=[];changes[name]=[]
         for index,record in enumerate(receipt['records']):
             raw=(artifacts/name/record['artifact']).read_bytes();artifact=json.loads(raw)
+            if artifact['compiler_policy']!=declared[name]:raise ValueError('Artifact policy differs from declaration')
+            if len(artifact['kernels'])!=record['kernel_count']:raise ValueError('Kernel count mismatch')
             if artifact['source']['sha256']!=manifest['variants'][index]['source_sha256']:raise ValueError('Source hash mismatch')
             if [k['identity'] for k in artifact['kernels']]!=record['kernel_identities']:raise ValueError('Kernel identity mismatch')
             hashes[name].append(hashlib.sha256(raw).hexdigest())
             for key in ['name','source','compiler_policy']:artifact.pop(key,None)
-            semantics[name].append(hashlib.sha256(json.dumps(artifact,sort_keys=True).encode()).hexdigest())
+            semantic=hashlib.sha256(json.dumps(artifact,sort_keys=True).encode()).hexdigest()
+            prior=fingerprints.setdefault(record['fingerprint'],semantic)
+            if prior!=semantic:raise ValueError('One fingerprint aliases distinct executable bodies')
+            semantics[name].append(semantic)
             old=baseline['records'][index]
             if record['fingerprint']!=old['fingerprint']:
                 changes[name].append({'graph':record['graph'],'split':record['split'],'before_kernels':old['kernel_count'],'after_kernels':record['kernel_count']})
