@@ -790,3 +790,44 @@ Original goal requests faithful reproduction and separate Kiln integration; pres
 
 ### Technical details
 - Independent implementation using inspect.signature and public FX graph APIs; no upstream code copied or original evaluator edited.
+
+## Step 19: Match genuine graph under declared normalized protocol
+
+Implemented evaluate_normalized.py, a process-local integration entry point that normalizes target and pattern arguments before delegating to the original pass. Restored the ordinary generated pattern so original AST validation runs unchanged. Matching now succeeds, but original dispatch checking rejects stream-lifetime bookkeeping.
+
+### Prompt Context
+See Steps 18 and 11 for protocol and script preservation requirements.
+**Assistant interpretation:** Execute complete validation and preserve the next boundary failure.
+**Inferred user intent:** Retain integrity while establishing real task execution.
+
+### What I did
+- Added explicit kiln-normalized-fx/1 protocol marker and node-normalization receipts.
+- Ran saved generator and evaluator launch scripts in tmux passnet-normalized.
+- Archived sources/normalized-match.log.
+
+### Why
+- Separate trusted graph normalization from generated pass code without modifying original checkout files.
+
+### What worked
+- Original source validation accepted ordinary pass. Matcher logged Applied 1 replacements with KilnBatchNorm.
+
+### What didn't work
+- Original dispatch guard rejected aten.record_stream.default: Unauthorized Operator, not in PosionDispatchTensor whitelist. Evaluator status failed.
+
+### What I learned
+- Required stream-storage lifetime bookkeeping is outside current benchmark whitelist. This is distinct from forbidden arithmetic delegation.
+
+### What was tricky to build
+- Harness delegates to original matcher/checker and changes only process-local class ownership, with explicit modified-protocol marker.
+
+### What warrants a second pair of eyes
+- Any proposed record_stream allowance must be narrow and audited; do not disable dispatch globally or remove required lifetime tracking.
+
+### What should be done in the future
+- Design/test an explicit metadata-only stream-lifetime allowance within declared integration protocol; preserve original guard for all tensor arithmetic.
+
+### Code review instructions
+- Inspect evaluate_normalized.py and normalized-match.log; run integration unit tests.
+
+### Technical details
+- No original evaluator files edited. Modified matching is not exact paper reproduction. CUDA execution failed before accepted correctness/scoring.

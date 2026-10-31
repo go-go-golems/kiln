@@ -1,0 +1,188 @@
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "relu", "target": "torch.nn.functional.relu"}, {"node": "batch_norm", "target": "torch.nn.functional.batch_norm"}, {"node": "dropout", "target": "torch.nn.functional.dropout"}]
+[PassMgrBackend] Loaded 1 passes: ['KilnBatchNorm']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/torchgeometric/LINKX/_decomposed/LINKX_start17_end20_5
+graph-net-test-compiler-log [Config] model: LINKX_start17_end20_5
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization [{"node": "tmp_4", "target": "torch.nn.functional.relu"}, {"node": "tmp_6", "target": "torch.nn.functional.dropout"}]
+[PassMgrBackend] Applied 1 replacements with KilnBatchNorm.
+Compiled model execution failed: Unauthorized Operator (aten.record_stream.default) Detected: The current operation is not in the PosionDispatchTensor whitelist. Only basic creation and factory methods (empty, zeros, ones, full, as_tensor) are supported. Check the replacement_func() or the operation being called on this subclass.
+Traceback (most recent call last):
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 266, in test_single_model
+    compiled_bench.warmup()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 169, in warmup
+    self.model_call()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 153, in model_call
+    return model(**input_dict)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 473, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 1041, in compile_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/torchgeometric/LINKX/_decomposed/LINKX_start17_end20_5/model.py", line 5, in forward
+    def forward(self, in_0, in_1, in_2, in_3, in_4):
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 473, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 1277, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/fx/graph_module.py", line 949, in call_wrapped
+    return self._wrapped_call(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/fx/graph_module.py", line 461, in __call__
+    raise e
+  File "/usr/local/lib/python3.12/dist-packages/torch/fx/graph_module.py", line 447, in __call__
+    return super(self.cls, obj).__call__(*args, **kwargs)  # type: ignore[misc]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<eval_with_key>.4", line 10, in forward
+    with_dispatch_wrapper_run = pass_bench_torch_backend_pass_mgr_backend_with_dispatch_wrapper_run(l_in_0_, l_in_1_, l_in_2_, l_in_3_, l_in_4_);  l_in_0_ = l_in_1_ = l_in_2_ = l_in_3_ = l_in_4_ = None
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 367, in with_dispatch_wrapper_run
+    outs = g_replacement_func(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/kiln-pass/KilnBatchNorm.py", line 13, in kiln_batch_norm
+    return PROGRAM(mean, variance, bias, weight, x)['out0']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/kiln/integrations/passnet/runtime.py", line 21, in __call__
+    tensor.record_stream(stream)
+  File "/work/upstream/pass_bench/torch/posion_dispatch_tensor.py", line 136, in __torch_dispatch__
+    raise RuntimeError(
+RuntimeError: Unauthorized Operator (aten.record_stream.default) Detected: The current operation is not in the PosionDispatchTensor whitelist. Only basic creation and factory methods (empty, zeros, ones, full, as_tensor) are supported. Check the replacement_func() or the operation being called on this subclass.
+
+--- Full Traceback ---
+debug-model-execution RuntimeError /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/torchgeometric/LINKX/_decomposed/LINKX_start17_end20_5
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.16046 ms, gpu=0.11683 ms
+Trial 2: e2e=0.11945 ms, gpu=0.10288 ms
+Trial 3: e2e=0.11039 ms, gpu=0.09658 ms
+Trial 4: e2e=0.11182 ms, gpu=0.09850 ms
+Trial 5: e2e=0.10753 ms, gpu=0.09411 ms
+Trial 6: e2e=0.10896 ms, gpu=0.09498 ms
+Trial 7: e2e=0.10633 ms, gpu=0.09309 ms
+Trial 8: e2e=0.10777 ms, gpu=0.09475 ms
+Trial 9: e2e=0.10729 ms, gpu=0.09402 ms
+Trial 10: e2e=0.10943 ms, gpu=0.09334 ms
+Trial 11: e2e=0.10753 ms, gpu=0.09446 ms
+Trial 12: e2e=0.10967 ms, gpu=0.09434 ms
+Trial 13: e2e=0.10753 ms, gpu=0.09450 ms
+Trial 14: e2e=0.10562 ms, gpu=0.09277 ms
+Trial 15: e2e=0.10705 ms, gpu=0.09395 ms
+Trial 16: e2e=0.10753 ms, gpu=0.09488 ms
+Trial 17: e2e=0.10777 ms, gpu=0.09536 ms
+Trial 18: e2e=0.10586 ms, gpu=0.09293 ms
+Trial 19: e2e=0.10514 ms, gpu=0.09226 ms
+Trial 20: e2e=0.10729 ms, gpu=0.09418 ms
+Trial 21: e2e=0.10943 ms, gpu=0.09654 ms
+Trial 22: e2e=0.10681 ms, gpu=0.09402 ms
+Trial 23: e2e=0.10490 ms, gpu=0.09206 ms
+Trial 24: e2e=0.10633 ms, gpu=0.09357 ms
+Trial 25: e2e=0.10490 ms, gpu=0.09216 ms
+Trial 26: e2e=0.10443 ms, gpu=0.09190 ms
+Trial 27: e2e=0.10467 ms, gpu=0.09187 ms
+Trial 28: e2e=0.10538 ms, gpu=0.09296 ms
+Trial 29: e2e=0.10562 ms, gpu=0.09238 ms
+Trial 30: e2e=0.10872 ms, gpu=0.09600 ms
+Trial 31: e2e=0.10538 ms, gpu=0.09245 ms
+Trial 32: e2e=0.10633 ms, gpu=0.09363 ms
+Trial 33: e2e=0.10657 ms, gpu=0.09440 ms
+Trial 34: e2e=0.10610 ms, gpu=0.09309 ms
+Trial 35: e2e=0.10395 ms, gpu=0.09107 ms
+Trial 36: e2e=0.11468 ms, gpu=0.10214 ms
+Trial 37: e2e=0.10347 ms, gpu=0.09056 ms
+Trial 38: e2e=0.10443 ms, gpu=0.09174 ms
+Trial 39: e2e=0.13065 ms, gpu=0.11779 ms
+Trial 40: e2e=0.10419 ms, gpu=0.09037 ms
+Trial 41: e2e=0.10395 ms, gpu=0.09046 ms
+Trial 42: e2e=0.10872 ms, gpu=0.09402 ms
+Trial 43: e2e=0.10371 ms, gpu=0.09037 ms
+Trial 44: e2e=0.12755 ms, gpu=0.11251 ms
+Trial 45: e2e=0.10872 ms, gpu=0.09706 ms
+Trial 46: e2e=0.10562 ms, gpu=0.09219 ms
+Trial 47: e2e=0.13089 ms, gpu=0.11642 ms
+Trial 48: e2e=0.10467 ms, gpu=0.08758 ms
+Trial 49: e2e=0.10538 ms, gpu=0.09286 ms
+Trial 50: e2e=0.12040 ms, gpu=0.09818 ms
+Trial 51: e2e=0.11373 ms, gpu=0.10170 ms
+Trial 52: e2e=0.10490 ms, gpu=0.09264 ms
+Trial 53: e2e=0.10490 ms, gpu=0.09174 ms
+Trial 54: e2e=0.11373 ms, gpu=0.09510 ms
+Trial 55: e2e=0.10586 ms, gpu=0.08701 ms
+Trial 56: e2e=0.10681 ms, gpu=0.09427 ms
+Trial 57: e2e=0.13375 ms, gpu=0.12192 ms
+Trial 58: e2e=0.12708 ms, gpu=0.10739 ms
+Trial 59: e2e=0.10395 ms, gpu=0.09130 ms
+Trial 60: e2e=0.10395 ms, gpu=0.09011 ms
+Trial 61: e2e=0.11039 ms, gpu=0.09398 ms
+Trial 62: e2e=0.10610 ms, gpu=0.09194 ms
+Trial 63: e2e=0.10538 ms, gpu=0.09254 ms
+Trial 64: e2e=0.12064 ms, gpu=0.09654 ms
+Trial 65: e2e=0.10610 ms, gpu=0.09248 ms
+Trial 66: e2e=0.14091 ms, gpu=0.12621 ms
+Trial 67: e2e=0.10443 ms, gpu=0.09107 ms
+Trial 68: e2e=0.12493 ms, gpu=0.11296 ms
+Trial 69: e2e=0.13781 ms, gpu=0.12074 ms
+Trial 70: e2e=0.10467 ms, gpu=0.09158 ms
+Trial 71: e2e=0.13089 ms, gpu=0.11459 ms
+Trial 72: e2e=0.10777 ms, gpu=0.09258 ms
+Trial 73: e2e=0.10443 ms, gpu=0.09152 ms
+Trial 74: e2e=0.10467 ms, gpu=0.08774 ms
+Trial 75: e2e=0.11754 ms, gpu=0.09616 ms
+Trial 76: e2e=0.10347 ms, gpu=0.09123 ms
+Trial 77: e2e=0.10324 ms, gpu=0.08992 ms
+Trial 78: e2e=0.11468 ms, gpu=0.09472 ms
+Trial 79: e2e=0.10467 ms, gpu=0.09171 ms
+Trial 80: e2e=0.12684 ms, gpu=0.11050 ms
+Trial 81: e2e=0.10443 ms, gpu=0.08525 ms
+Trial 82: e2e=0.12350 ms, gpu=0.11142 ms
+Trial 83: e2e=0.10991 ms, gpu=0.09808 ms
+Trial 84: e2e=0.10395 ms, gpu=0.08109 ms
+Trial 85: e2e=0.14162 ms, gpu=0.12022 ms
+Trial 86: e2e=0.10514 ms, gpu=0.08525 ms
+Trial 87: e2e=0.11516 ms, gpu=0.09760 ms
+Trial 88: e2e=0.10777 ms, gpu=0.07642 ms
+Trial 89: e2e=0.14973 ms, gpu=0.10842 ms
+Trial 90: e2e=0.10347 ms, gpu=0.07418 ms
+Trial 91: e2e=0.14830 ms, gpu=0.13216 ms
+Trial 92: e2e=0.11802 ms, gpu=0.10621 ms
+Trial 93: e2e=0.10467 ms, gpu=0.07990 ms
+Trial 94: e2e=0.12779 ms, gpu=0.11574 ms
+Trial 95: e2e=0.10967 ms, gpu=0.09763 ms
+Trial 96: e2e=0.10705 ms, gpu=0.08918 ms
+Trial 97: e2e=0.12040 ms, gpu=0.10480 ms
+Trial 98: e2e=0.10538 ms, gpu=0.08810 ms
+Trial 99: e2e=0.10419 ms, gpu=0.08957 ms
+Trial 100: e2e=0.12302 ms, gpu=0.11091 ms
+graph-net-test-compiler-log [Result] status: failed
+graph-net-test-compiler-log [Fail due to compiled model execution error.]
