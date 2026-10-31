@@ -222,3 +222,8 @@ This is deliberately narrower than arbitrary pass insertion: it tests whether ag
 Script 466 runs six actual Pi/LunaRoute lanes, two each requesting low, medium and high thinking. All receive identical development feedback and three proposal slots. Requested versus effective thinking must be checked in receipts; two replicates are exploratory, not evidence of a reliable thinking-level ranking. The fresh confirmation outcomes are not provided to these agents. Candidate compilation and GPU measurement remain separate stages; acceptance only establishes grammar validity.
 
 Evidence: sources/staged-confirmation-results-v1, sources/agent-fusion-sequence-validation-v1.json. Confirmation commit: e89b705. Full200 coverage, native precision and arbitrary new-pass synthesis remain unfinished.
+
+
+### Composition experiment outcome
+
+All six lanes completed in 8.8–56.8 seconds; fifteen of eighteen proposals passed the grammar. All 360 graph compilations passed, and all eighteen declared programs passed the twelve-graph GPU development evaluation. The nominal best sequence scored 1.405801× versus fixed staged 1.405437× (about 0.026% relative), with no established material advantage. Five sequence programs exactly reproduced fixed staged executables. Preserve the ranking as evidence, but retain the fixed transformation as the confirmed result. The next expansion should target additional workload families or a different measured transformation limitation; repeated tuning of these same two fusion decisions currently has low demonstrated value. Evidence: sources/pi-transformation-results-v1 and diary Steps 184–185. No thinking-level superiority is established.

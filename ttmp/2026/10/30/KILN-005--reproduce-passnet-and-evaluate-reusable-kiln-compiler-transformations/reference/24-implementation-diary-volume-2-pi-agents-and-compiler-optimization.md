@@ -1243,3 +1243,53 @@ See Step 182. Continue actual experiments and retain intermediate scripts and ev
 ### Technical details
 - GPU source revision 125c6bbb4af3a2a6dbdbee515c57c7f9ae0746ac. Session kiln-pi-transformation-train-v1.
 - No fresh confirmation data was sent in prompts. This is exploratory composition search, not a statistically controlled thinking-level comparison.
+
+## Step 185: Measure composition search and retain the confirmed fixed transformation
+
+The eighteen-program GPU experiment completed on all twelve development graphs with no candidate correctness failures. The nominal winner sequence-5 scored 1.405801× versus 1.405437× for the fixed staged program: a relative difference of approximately 0.026%. This does not establish a meaningful improvement. Five candidates exactly reproduce the staged executables; four alias baseline. Retain the confirmed fixed transformation as the current research result rather than promote a near-tie from a larger search.
+
+### Prompt Context
+See Step 182 for the active user request.
+**Assistant interpretation:** Finish the experiment and use its outcome to choose productive next work.
+**Inferred user intent:** Prefer evidence-backed compiler progress to continued search without useful returns.
+**Experiment code:** 125c6bbb4af3a2a6dbdbee515c57c7f9ae0746ac.
+**Evidence checkpoint:** a51c797 — Archive six thinking-level lanes and qualify composed transformations.
+
+### What I did
+- Verified the remote owner completed, returned zero, removed its container and left no compute process.
+- Retained script 470 to collect run/measurement receipts and invoke the existing training selector.
+- Inspected the nominal winner against the fixed staged program, including its origin and four differing executable bindings.
+
+### Why
+- A positive score relative to original Kiln does not establish an improvement over the current best transformation. Search increases the opportunity for small timing differences to win nominal rankings.
+
+### What worked
+- All eighteen programs remained eligible across twelve training graphs.
+- Fixed staged measured 1.405437×, consistent with the earlier 1.404537× development run.
+- sequence-5, from high-2 attempt 2, scored 1.405801×. Its four changed rows had fixed/candidate latency ratios 1.007580, 0.993918, 1.001343 and 1.000319; the other eight outputs aliased the fixed program.
+- The broader result remains the fixed transformation's 1.146076× fresh-exact-model confirmation from Step 182.
+
+### What didn't work
+- The expanded composition search did not demonstrate a material gain over the fixed staged transformation.
+- sequence-8 regressed versus original Kiln to 0.960072×. Several other new programs scored approximately 1.384–1.387×, below the fixed staged program.
+
+### What I learned
+- This population and two-stage grammar appear close to a local plateau. The experiment does not prove that all useful compositions are exhausted.
+- High thinking produced the nominal near-tie winner, but that is not evidence it is better: only two runs per level and no meaningful performance advantage were observed.
+
+### What was tricky to build
+- Artifact novelty, compiler correctness and measured improvement are distinct. All candidates compiled correctly, yet twenty additional development executables did not deliver a convincing improvement over the current transformation.
+
+### What warrants a second pair of eyes
+- No repeated paired experiment or significance analysis establishes the tiny nominal lead. Do not present sequence-5 as a new confirmed compiler improvement or reuse consumed confirmation graphs as fresh evidence.
+
+### What should be done in the future
+- Broaden workload coverage or add a genuinely different transformation primitive based on a measured compiler limitation. Prefer profiling missed matrix/layout opportunities and operation support that unlocks new graph families over another identical threshold search.
+- Keep the fixed transformation opt-in; the full native-precision 200-task benchmark remains unfinished.
+
+### Code review instructions
+- Read sources/pi-transformation-results-v1/selection.json alongside measurement.json and the fixed fresh-model result. Inspect origins.json for agent attribution.
+
+### Technical details
+- Same twelve-graph development membership and FP32 numerical protocol as earlier studies; no new heldout evaluation in this search.
+- Measured GPU container image sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba; NVIDIA GB10, scheduling target a100.
