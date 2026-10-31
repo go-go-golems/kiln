@@ -1,0 +1,31 @@
+{
+  "format": "kiln-study-declaration/1",
+  "study": "cost-gate-held-out-v1",
+  "hypothesis": "Gating fixed-program.json on predicted schedule cost improves measured compiled GPU time over always applying it, without losing correctness.",
+  "arm_order": [
+    "baseline",
+    "always",
+    "gated"
+  ],
+  "primary_endpoint": "Family-balanced geometric mean of measured compiled GPU median ratio (arm / baseline) over graphs whose always-arm kernels change and that are nominally accepted in all three arms; compare gated vs always.",
+  "secondary_endpoints": [
+    "Official PassBench task score per arm (original scorer)",
+    "Nominally accepted graphs and complete families per arm",
+    "Same endpoint restricted to graphs where the gate chose differently from always",
+    "Same endpoint on end-to-end medians"
+  ],
+  "decision_rule": "Claim the gate as a reusable strategy only if the gated GM is below the always GM, the gated GM is at or below 1.0, and gated accepts no fewer graphs than baseline.",
+  "known_limitations": [
+    "Arms run sequentially in the declared order; clock or thermal drift is not randomized.",
+    "The census used the uniform snapshot (0c17cee) staged scripts; the run regenerates scripts with the staged snapshot and records each gate decision in the artifacts.",
+    "Task 106-type mispredictions are expected to appear; they are part of the measured effect."
+  ],
+  "families": 20,
+  "graphs": 237,
+  "census_changed_graphs": 191,
+  "census_gate_differs_from_always": 92,
+  "program_sha256": {
+    "always": "de482bd2b23ee1296ca97336a8ff8a7214492782e147b8118f4c0bd826e149b5",
+    "gated": "7666ca3fc10fe01dea74aeb3241978dc9653a0a4fdc08da4c08eb1e1c61bed33"
+  }
+}
