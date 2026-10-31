@@ -1,0 +1,182 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/gelu-fixtures-v1/006.kiln.js",
+  "sha256": "ad0df374a6518ff80fb579016f1b9fc5a7a06b3c913671a003d15dce71d58ed3",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    7
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    2,
+    7
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "out1",
+   "buffer": 2,
+   "shape": [
+    2,
+    7
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "out2",
+   "buffer": 3,
+   "shape": [
+    2,
+    7
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 14,
+   "bytes": 28
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 14,
+   "bytes": 28
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 14,
+   "bytes": 28
+  },
+  {
+   "id": 3,
+   "dtype": "f16",
+   "elements": 14,
+   "bytes": 28
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__frxgn4ktp5",
+   "identity": "frxgn4ktp5",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    7
+   ],
+   "inShapes": [
+    [
+     2,
+     7
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_out0__frxgn4ktp5(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 14)) {\n        in0 = __half2float(src0[((e % 7) + (7 * (e / 7)))]);\n        v0 = in0;\n        v1 = ((v0 * 0.5f) * (1.0f + erff(v0 * 0.7071067811865476f)));\n        v2 = __half2float(__float2half_rn(v1));\n        v3 = __half2float(__float2half_rn(v2));\n        dst[((e % 7) + (7 * (e / 7)))] = __float2half_rn(v3);\n    }\n}"
+  },
+  {
+   "name": "k_out1__cob6w00ikg",
+   "identity": "cob6w00ikg",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 2,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    7
+   ],
+   "inShapes": [
+    [
+     2,
+     7
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_out1__cob6w00ikg(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f, v8 = 0.0f, v9 = 0.0f, v10 = 0.0f, v11 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 14)) {\n        in0 = __half2float(src0[((e % 7) + (7 * (e / 7)))]);\n        v0 = in0;\n        v1 = __fmul_rn(v0, 0.5f);\n        v2 = __fmul_rn(v0, v0);\n        v3 = __fmul_rn(v0, v2);\n        v4 = __fmul_rn(0.044715f, v3);\n        v5 = __fadd_rn(v0, v4);\n        v6 = __fmul_rn(0.7978845608f, v5);\n        v7 = tanhf(v6);\n        v8 = __fadd_rn(1.0f, v7);\n        v9 = __fmul_rn(v1, v8);\n        v10 = __half2float(__float2half_rn(v9));\n        v11 = __half2float(__float2half_rn(v10));\n        dst[((e % 7) + (7 * (e / 7)))] = __float2half_rn(v11);\n    }\n}"
+  },
+  {
+   "name": "k_out2__19ov766r20q",
+   "identity": "19ov766r20q",
+   "row": "TPB=1024",
+   "reads": [
+    1
+   ],
+   "writes": 3,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    7
+   ],
+   "inShapes": [
+    [
+     2,
+     7
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_out2__19ov766r20q(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 14)) {\n        in0 = __half2float(src0[((e % 7) + (7 * (e / 7)))]);\n        v0 = __fadd_rn(in0, 1.0f);\n        v1 = __half2float(__float2half_rn(v0));\n        dst[((e % 7) + (7 * (e / 7)))] = __float2half_rn(v1);\n    }\n}"
+  }
+ ]
+}

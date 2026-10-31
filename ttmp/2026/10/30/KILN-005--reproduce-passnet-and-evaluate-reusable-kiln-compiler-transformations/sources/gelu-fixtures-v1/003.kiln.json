@@ -1,0 +1,182 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/gelu-fixtures-v1/003.kiln.js",
+  "sha256": "8fc6bcbd6b5982ab6d31ff8ce671b98df00728435753e03da897d2c168c9891f",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    16,
+    256
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    16,
+    256
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 2,
+   "shape": [
+    16,
+    256
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out2",
+   "buffer": 3,
+   "shape": [
+    16,
+    256
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__208iqsm64c",
+   "identity": "208iqsm64c",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256
+   ],
+   "inShapes": [
+    [
+     16,
+     256
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: gelu_erf",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out0__208iqsm64c(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[((e % 256) + (256 * (e / 256)))];\n        v0 = in0;\n        v1 = ((v0 * 0.5f) * (1.0f + erff(v0 * 0.7071067811865476f)));\n        v2 = v1;\n        dst[((e % 256) + (256 * (e / 256)))] = v2;\n    }\n}"
+  },
+  {
+   "name": "k_out1__8o8irla5v0",
+   "identity": "8o8irla5v0",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 2,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256
+   ],
+   "inShapes": [
+    [
+     16,
+     256
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out1__8o8irla5v0(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f, v8 = 0.0f, v9 = 0.0f, v10 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[((e % 256) + (256 * (e / 256)))];\n        v0 = in0;\n        v1 = __fmul_rn(v0, 0.5f);\n        v2 = __fmul_rn(v0, v0);\n        v3 = __fmul_rn(v0, v2);\n        v4 = __fmul_rn(0.044715f, v3);\n        v5 = __fadd_rn(v0, v4);\n        v6 = __fmul_rn(0.7978845608f, v5);\n        v7 = tanhf(v6);\n        v8 = __fadd_rn(1.0f, v7);\n        v9 = __fmul_rn(v1, v8);\n        v10 = v9;\n        dst[((e % 256) + (256 * (e / 256)))] = v10;\n    }\n}"
+  },
+  {
+   "name": "k_out2__20oyng0pfhz",
+   "identity": "20oyng0pfhz",
+   "row": "TPB=64",
+   "reads": [
+    1
+   ],
+   "writes": 3,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256
+   ],
+   "inShapes": [
+    [
+     16,
+     256
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out2__20oyng0pfhz(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[((e % 256) + (256 * (e / 256)))];\n        v0 = __fadd_rn(in0, 1.0f);\n        dst[((e % 256) + (256 * (e / 256)))] = v0;\n    }\n}"
+  }
+ ]
+}

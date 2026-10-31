@@ -1,6 +1,7 @@
 // Scalar functions shared by every level: reference evaluation, the loop evaluator, and the
 // CUDA / WGSL / JS emitters. One table, so a new function is one entry here.
 import { roundToDtype } from "../core/dtypes.js";
+import { erf } from "./special.js";
 const f = Math.fround;
 export const FNS = {
   // CUDA round-to-nearest intrinsics retain operation boundaries under NVRTC
@@ -29,6 +30,9 @@ export const FNS = {
   neg: { n: 1, js: (a) => -a, c: "(-{0})", w: "(-{0})", flops: 1 },
   negative: { n: 1, js: (a) => -a, c: "(-{0})", w: "(-{0})", flops: 1 },
   exp: { n: 1, js: Math.exp, c: "expf({0})", w: "exp({0})", flops: 8 },
+  // Keep the complete source operation in FP32 opmath, then narrow its result.
+  // WGSL has no builtin erf; do not substitute tanh for exact GELU.
+  gelu_erf: { n: 1, js: (x) => x * 0.5 * (1 + erf(x * Math.SQRT1_2)), c: "(({0} * 0.5f) * (1.0f + erff({0} * 0.7071067811865476f)))", w: null, flops: 12 },
   log: { n: 1, js: Math.log, c: "logf({0})", w: "log({0})", flops: 8 },
   sqrt: { n: 1, js: Math.sqrt, c: "sqrtf({0})", w: "sqrt({0})", flops: 4 },
   rsqrt: { n: 1, js: (a) => 1 / Math.sqrt(a), c: "rsqrtf({0})", w: "inverseSqrt({0})", flops: 4 },

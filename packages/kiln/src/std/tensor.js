@@ -183,7 +183,7 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
   .op("rms_norm", { args: ["x", "w"], attrs: { eps: 1e-6 }, infer: sameAs, eval: ({ x, w, eps }) => rmsRef(x, w, eps), print: "rms_norm({x}, {w}, eps={eps})" })
   .op("layer_norm", { args: ["x", "w", "b"], attrs: { eps: 1e-5 }, infer: sameAs, eval: ({ x, w, b, eps }) => lnRef(x, w, b, eps), print: "layer_norm({x}, {w}, {b}, eps={eps})" })
   .op("softmax", { args: ["x"], attrs: { dim: -1 }, infer: sameAs, eval: ({ x, dim }) => softmaxRef(x, dim), print: "softmax({x}, dim={dim})" })
-  .op("gelu", { args: ["x"], attrs: { approximate: "tanh" }, infer: sameAs, eval: ({ x }) => ewRef("mul", [ewRef("mul", [x, 0.5]), ewRef("add", [1, ewRef("tanh", [ewRef("mul", [0.7978845608, ewRef("add", [x, ewRef("mul", [0.044715, ewRef("mul", [x, ewRef("mul", [x, x])])])])])])])]), print: "gelu({x})" })
+  .op("gelu", { args: ["x"], attrs: { approximate: "tanh" }, infer: ({ x, approximate }) => { if (!["none", "tanh"].includes(approximate)) throw new KilnError("TypeError", "gelu approximate must be none or tanh"); return x.type; }, eval: ({ x, approximate, type }) => approximate === "none" ? roundedReference(ewRef("gelu_erf", [x]), type) : ewRef("mul", [ewRef("mul", [x, 0.5]), ewRef("add", [1, ewRef("tanh", [ewRef("mul", [0.7978845608, ewRef("add", [x, ewRef("mul", [0.044715, ewRef("mul", [x, ewRef("mul", [x, x])])])])])])])]), print: "gelu({x})" })
   .op("silu", { args: ["x"], infer: sameAs, eval: ({ x }) => ewRef("mul", [x, ewRef("sigmoid", [x])]), print: "silu({x})" })
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1, keepdim: true }, infer: ({ x, axis, keepdim }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(keepdim ? s.map((d, i) => (i === a ? 1 : d)) : s.filter((_, i) => i !== a)); }, eval: ({ x, fn, axis, keepdim }) => reduceRef(fn, x, axis, keepdim), print: "{fn}({x}, axis={axis})" })
   .op("transpose", { args: ["x"], attrs: { d0: -2, d1: -1 }, infer: ({ x, d0, d1 }) => { const s = x.type.shape.slice(); const n = s.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; [s[i], s[j]] = [s[j], s[i]]; return T_(s, x.type.dtype); }, eval: ({ x, d0, d1, type }) => { const n = asT(x).shape.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; return viewRef(x, type.shape, IX.map(n, (a) => { const b = a.slice(); [b[i], b[j]] = [b[j], b[i]]; return b; })); }, print: "transpose({x}, {d0}, {d1})" })
@@ -257,7 +257,7 @@ export const N = {
   linear: (x, w, b) => (b ? N.add(nn.linear(x, w), b) : nn.linear(x, w)),
   matmul: (a, b) => nn.matmul(a, b),
   rms_norm: (x, w, o = {}) => nn.rms_norm(x, w, o), layer_norm: (x, w, b, o = {}) => nn.layer_norm(x, w, b, o),
-  softmax: (x, dim = -1) => nn.softmax(x, { dim }), gelu: (x) => nn.gelu(x), silu: (x) => nn.silu(x),
+  softmax: (x, dim = -1) => nn.softmax(x, { dim }), gelu: (x, approximate = "tanh") => nn.gelu(x, { approximate }), silu: (x) => nn.silu(x),
   transpose: (x, d0 = -2, d1 = -1) => nn.transpose(x, { d0, d1 }), reshape: (x, shape) => nn.reshape(x, { shape }),
   slice: (x, axis, start, end) => nn.slice(x, { axis, start, end }),
   weight, const: (v, shape = []) => tensor.const({ value: v, shape }),
@@ -267,7 +267,7 @@ nn.methods({
   exp: (a) => N.exp(a), log: (a) => N.log(a), tanh: (a) => N.tanh(a), relu: (a) => N.relu(a), sigmoid: (a) => N.sigmoid(a), sqrt: (a) => N.sqrt(a), neg: (a) => N.neg(a), square: (a) => N.square(a),
   sum: (a, ax, kd) => N.sum(a, ax, kd), mean: (a, ax, kd) => N.mean(a, ax, kd), amax: (a, ax, kd) => N.amax(a, ax, kd),
   matmul: (a, b) => N.matmul(a, b), linear: (a, w, b) => N.linear(a, w, b), softmax: (a, d) => N.softmax(a, d), t: (a) => N.transpose(a), reshape: (a, s) => N.reshape(a, s),
-  gelu: (a) => N.gelu(a), silu: (a) => N.silu(a),
+  gelu: (a, approximate = "tanh") => N.gelu(a, approximate), silu: (a) => N.silu(a),
 });
 tensor.methods({ add: (a, b) => T.add(a, b), sub: (a, b) => T.sub(a, b), mul: (a, b) => T.mul(a, b), div: (a, b) => T.div(a, b), exp: (a) => T.exp(a), sum: (a, ax) => T.sum(a, ax), max: (a, ax) => T.max(a, ax) });
 
@@ -313,7 +313,7 @@ export const decompositions = [
     const e = T.exp(T.sub(x, T.max(x, a)));
     return T.div(e, T.sum(e, a));
   }),
-  decompose("nn.gelu", ({ x }) => T.mul(T.mul(x, 0.5), T.add(1, T.tanh(T.mul(0.7978845608, T.add(x, T.mul(0.044715, T.mul(x, T.mul(x, x))))))))),
+  decompose("nn.gelu", ({ x, approximate }) => approximate === "none" ? T.ew("gelu_erf", x) : T.mul(T.mul(x, 0.5), T.add(1, T.tanh(T.mul(0.7978845608, T.add(x, T.mul(0.044715, T.mul(x, T.mul(x, x))))))))),
   decompose("nn.silu", ({ x }) => T.mul(x, T.sigmoid(x))),
   decompose("nn.reduce", ({ x, fn, axis, keepdim }) => { const r = T.reduce(x, fn, lastAxis(x, axis)); return keepdim ? r : T.squeeze(r, lastAxis(x, axis)); }),
   decompose("nn.transpose", ({ x, d0, d1, out }) => { const n = x.type.shape.length; const i = lastAxis(x, d0), j = lastAxis(x, d1); return T.view(x, out.type.shape, (c) => { const b = c.slice(); [b[i], b[j]] = [b[j], b[i]]; return b; }); }),

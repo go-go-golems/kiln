@@ -91,7 +91,8 @@ def import_graph(graph):
         transpose = target in ('torch.transpose','aten.transpose.int') or (node['kind']=='call_method' and target=='transpose')
         activation = {'torch.sigmoid':'sigmoid', 'torch.nn.functional.sigmoid':'sigmoid',
                       'aten.sigmoid.default':'sigmoid', 'torch.nn.functional.silu':'silu',
-                      'aten.silu.default':'silu'}.get(target)
+                      'aten.silu.default':'silu', 'torch._C._nn.gelu':'gelu',
+                      'torch.nn.functional.gelu':'gelu', 'aten.gelu.default':'gelu'}.get(target)
         if node['kind']=='call_method' and target=='sigmoid': activation='sigmoid'
         linalg=LINALG_FUNCTIONS.get(target) if node['kind']=='call_function' else target if target in LINALG_METHODS else None
         inplace_binary={'_operator.iadd':'add','_operator.isub':'sub','_operator.imul':'mul','_operator.itruediv':'div'}.get(target)
@@ -119,24 +120,30 @@ def import_graph(graph):
                 return metadata[source]
             expr=lower_layer_norm(target,args,kwargs,meta,norm_spec,literal)
         elif activation:
-            fields=['input','inplace'] if activation=='silu' else ['input']
+            first='self' if target.startswith('aten.') else 'input'
+            fields=[first,'approximate'] if activation=='gelu' else [first,'inplace'] if activation=='silu' else [first]
             if len(args)>len(fields) or set(kwargs)-set(fields):
                 raise ValueError(f'{name}: unsupported {activation} arguments')
             bound=dict(zip(fields,args))
             if set(bound)&set(kwargs):raise ValueError(f'{name}: duplicate {activation} argument')
             bound.update(kwargs)
-            value=bound.get('input')
+            value=bound.get(first)
             source=next((key for key,val in values.items() if val==value),None)
             inplace=bound.get('inplace','false')
             if inplace not in ('false','true'):raise ValueError(f'{name}: static Boolean inplace flag required')
             if inplace=='true' and (source not in fresh or uses.get(source)!=1):
                 raise ValueError(f'{name}: inplace {activation} requires fresh single-use producer; mutation/alias lowering required otherwise')
-            if source is None or not isinstance(metadata[source],dict) or metadata[source]['dtype']!=meta['dtype']:
+            if source is None or not isinstance(metadata[source],dict) or metadata[source]['dtype']!=meta['dtype'] or metadata[source]['shape']!=meta['shape']:
                 raise ValueError(f'{name}: {activation} requires a dtype-preserving floating tensor')
             # PyTorch pointwise activation arithmetic uses opmath FP32 for low
             # precision inputs. Narrow once at this source operation boundary.
             dtype=dtype_names[meta['dtype']]
-            expr=f'N.cast(N.{activation}(N.cast({value}, "f32")), {json.dumps(dtype)})'
+            option=''
+            if activation=='gelu':
+                approximate=literal(bound.get('approximate','"none"'))
+                if approximate not in ('none','tanh'):raise ValueError(f'{name}: gelu approximate must be none or tanh')
+                option=', '+json.dumps(approximate)
+            expr=f'N.cast(N.{activation}(N.cast({value}, "f32"){option}), {json.dumps(dtype)})'
         elif target in ('torch.cat','torch.concat','torch.concatenate','aten.cat.default'):
             if len(args)>2 or set(kwargs)-{'tensors','dim'}:
                 raise ValueError(f'{name}: unsupported concatenation arguments')

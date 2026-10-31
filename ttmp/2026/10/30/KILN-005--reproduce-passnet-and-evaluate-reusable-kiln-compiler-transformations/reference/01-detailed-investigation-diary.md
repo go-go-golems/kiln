@@ -6187,3 +6187,61 @@ See Steps130–134 for the authored implementation, detailed-diary, source-prese
 ### Technical details
 - Publication is complete, bounded compiler confirmation is complete, overall goal remains active.
 - Cumulative original replay remains24 tasks/313 graphs and import eligibility1136/64. A new uniform current-release full-corpus run remains separate work.
+
+## Step 136: Implement exact GELU with explicit source and numerical contracts
+
+The next complete import gate adds60 graphs and five complete families:1196 graphs/69 families now translate, with zero regressions across all2060 graphs. Exact source GELU now binds to a shared scalar compiler operation using CUDA erff and an independent JavaScript reference. Both source modes retain their selector; native Kiln's existing tanh default is unchanged. GPU/original-evaluator qualification remains pending.
+
+### Prompt Context
+**User prompt (verbatim):** "it's 192.168.0.65 (for bling)"
+**User prompt (verbatim):** "you can also just manuel@bling"
+See earlier authored implementation, provenance, diary and source-preservation requests in Steps130–135.
+**Assistant interpretation:** Restore remote execution through the supplied host identity and continue missing compiler semantics.
+**Inferred user intent:** Keep GPU work moving while implementing reusable compiler support rather than hiding unsupported cases.
+
+### What I did
+- Inspected the complete importer audit:68 first-blocked graphs use unsupported GELU. Studied official API and pinned CUDA semantics before implementing.
+- Added an exact scalar gelu_erf function, independent32-point reference quadrature, explicit GELU selector validation, and source operation-math widening/narrowing.
+- Extended the existing argument normalizer with a builtin signature and keyword-only canonical fields; verified real Dynamo versus FX matching and retained approximation predicates.
+- Preserved primary documents/license and installed API schemas, independent numerical oracle generation, initial failure and successful test logs.
+- Re-audited all200 families, froze every newly complete family, and prepared12 source fixtures for CUDA validation.
+- Restored SSH using the user-supplied IP/alias with HostKeyAlias=bling.local; retained strict key verification.
+
+### Why
+- PyTorch's default erf-based GELU differs from Kiln's previous tanh approximation. Mapping both to tanh would silently change numerical semantics.
+- One source activation must retain FP32 operation math before low-precision output storage; scalar lowering makes this boundary explicit.
+- Canonical public defaults are needed for real FX/Dynamo matching, as the earlier softmax failure demonstrated.
+
+### What worked
+- All34 compiler test files pass with actual child processes; all52 FX tests pass.
+- Independent Python math.erf maximum error2.9976021664879227e-15 across1006 samples; both GELU modes match CPU source oracles at declared dtype tolerances.
+- Import1196/2060,69/200 complete families; delta60 graphs/five complete families; no regressions. Frozen cohort includes all60 variants.
+- manuel@bling works with the existing bling.local host-key alias. Discovery sees no installed serving binary/model cache/service in its explicitly checked locations, and no running workload container besides the registry.
+
+### What didn't work
+- Initial local GELU test: AssertionError expected shape[264], actual[]. T.ew is variadic; passing[x] lifted a scalar. Corrected to T.ew("gelu_erf",x), retained v1 failure log and separate v2 success.
+- Direct PyTorch documentation download fails HTTP403 Forbidden; pinned source, license, NVIDIA docs and installed docstring/schema are archived instead, with the failed URL recorded.
+- Plain manuel@bling reports ssh_askpass missing and Host key verification failed. Reusing HostKeyAlias=bling.local resolves identity without accepting unknown keys.
+- Existing native precision discrepancies remain separate; neither import success nor CPU references establish new GPU/benchmark acceptance.
+- The pre-commit git diff --cached --check finds trailing whitespace in the byte-preserved NVIDIA HTML (first diagnostic at line19). The raw archive is intentionally unchanged so provenance hashes remain exact; code/document whitespace checks exclude only that archived HTML.
+
+### What I learned
+- Eight of68 first-blocked GELU graphs encounter another missing operation after this binding. First-error counts are upper bounds on immediate coverage gains.
+
+### What was tricky to build
+- Builtin GELU lacks inspect.signature support and requires keyword-only selector canonicalization. The normalizer now handles parameter kinds without converting approximation selection into an ignored predicate.
+
+### What warrants a second pair of eyes
+- Review exact scalar operation boundaries, quadrature provenance/precision scope, explicit WGSL refusal and actual Dynamo matching tests.
+
+### What should be done in the future
+- Commit source/local evidence, run all36 CUDA fixture records and all60 original cohort variants, retaining every failure. Only then update accepted coverage.
+- Provision an explicit model runtime/provider for original PassAgent; discovery alone does not configure one.
+
+### Code review instructions
+- Start with design17; inspect special.js, fns.js, nn.gelu decomposition, the existing activation importer branch and the argument normalizer.
+- Reproduce oracles with script306, local validation with307/310, source delta/complete cohort with309/311, fixture export with312.
+
+### Technical details
+- No upstream implementation copied; inspected mathematical/opmath semantics are attributed to the archived PyTorch2.9.1 source and NVIDIA erff API. JavaScript quadrature is independently implemented.
+- Original cumulative coverage remains24 tasks/313 graphs pending actual evaluation. No overall-goal completion is claimed.

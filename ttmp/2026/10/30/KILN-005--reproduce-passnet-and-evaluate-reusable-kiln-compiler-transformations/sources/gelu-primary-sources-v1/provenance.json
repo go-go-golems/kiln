@@ -1,0 +1,37 @@
+{
+  "scope": "Public API and implementation semantics inspected; independent Kiln implementation of mathematical formulas, no upstream kernel or library algorithm copied",
+  "torch": "2.11.0+cu130",
+  "aten_schema": "aten::gelu(Tensor self, *, str approximate=\"none\") -> Tensor",
+  "functional_doc": "\ngelu(input, approximate = 'none') -> Tensor\n\nWhen the approximate argument is 'none', it applies element-wise the function\n:math:`\\text{GELU}(x) = x * \\Phi(x)`\n\nwhere :math:`\\Phi(x)` is the Cumulative Distribution Function for Gaussian Distribution.\n\nWhen the approximate argument is 'tanh', Gelu is estimated with\n\n.. math::\n    \\text{GELU}(x) = 0.5 * x * (1 + \\text{Tanh}(\\sqrt{2 / \\pi} * (x + 0.044715 * x^3)))\n\nSee `Gaussian Error Linear Units (GELUs) <https://arxiv.org/abs/1606.08415>`_.\n",
+  "sources": [
+    {
+      "file": "pytorch-2.9.1-ActivationGeluKernel.cu",
+      "url": "https://raw.githubusercontent.com/pytorch/pytorch/v2.9.1/aten/src/ATen/native/cuda/ActivationGeluKernel.cu",
+      "resolved_url": "https://raw.githubusercontent.com/pytorch/pytorch/v2.9.1/aten/src/ATen/native/cuda/ActivationGeluKernel.cu",
+      "sha256": "1a9977ab66af25d999c7ab54feb1afb1a44973ca9fce01b07707b117330bb5f8",
+      "bytes": 3864
+    },
+    {
+      "file": "pytorch-2.9.1-LICENSE",
+      "url": "https://raw.githubusercontent.com/pytorch/pytorch/v2.9.1/LICENSE",
+      "resolved_url": "https://raw.githubusercontent.com/pytorch/pytorch/v2.9.1/LICENSE",
+      "sha256": "a8a2c6b67cf8a597ffaa5c82380a6bd1b82629c0417e00673d8013d662eb500a",
+      "bytes": 3464
+    },
+    {
+      "file": "cuda-single-precision-math.html",
+      "url": "https://docs.nvidia.com/cuda/cuda-math-api/cuda_math_api/group__CUDA__MATH__SINGLE.html",
+      "resolved_url": "https://docs.nvidia.com/cuda/cuda-math-api/cuda_math_api/group__CUDA__MATH__SINGLE.html",
+      "sha256": "de1b072026dae5d016001e21574daa1cb566ed21c424dccc29b069bad21b4195",
+      "bytes": 243054
+    }
+  ],
+  "failures": [
+    {
+      "file": "pytorch-gelu-2.9.html",
+      "url": "https://docs.pytorch.org/docs/2.9/generated/torch.nn.functional.gelu.html",
+      "error": "HTTP Error 403: Forbidden"
+    }
+  ],
+  "earlier_failure": "First attempt stopped at the first URL: urllib.error.HTTPError: HTTP Error 403: Forbidden"
+}

@@ -10,7 +10,14 @@ import torch
 # defaults define the explicitly supported integration call forms.
 TARGETS = {torch.nn.functional.relu, torch.nn.functional.batch_norm,
            torch.nn.functional.dropout, torch.nn.functional.interpolate,
-           torch.nn.functional.softmax}
+           torch.nn.functional.softmax, torch.nn.functional.gelu}
+
+# The builtin GELU has no inspectable Python signature. Its public schema has a
+# keyword-only approximation selector; keep that selector in canonical kwargs.
+GELU_SIGNATURE = inspect.Signature([
+    inspect.Parameter('input', inspect.Parameter.POSITIONAL_OR_KEYWORD),
+    inspect.Parameter('approximate', inspect.Parameter.KEYWORD_ONLY, default='none'),
+])
 
 
 def normalize_arguments(graph_module):
@@ -24,19 +31,20 @@ def normalize_arguments(graph_module):
     for node in graph_module.graph.nodes:
         if node.op != 'call_function' or node.target not in TARGETS:
             continue
-        signature = inspect.signature(node.target)
-        if any(p.kind not in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
+        signature = GELU_SIGNATURE if node.target is torch.nn.functional.gelu else inspect.signature(node.target)
+        if any(p.kind not in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD, p.KEYWORD_ONLY)
                for p in signature.parameters.values()):
             raise ValueError(f'{node.name}: unsupported signature')
         bound = signature.bind(*node.args, **node.kwargs)
         bound.apply_defaults()
-        args = tuple(bound.arguments[name] for name in signature.parameters)
-        pending.append((node, args))
+        args = tuple(bound.arguments[name] for name,p in signature.parameters.items() if p.kind!=p.KEYWORD_ONLY)
+        kwargs = {name:bound.arguments[name] for name,p in signature.parameters.items() if p.kind==p.KEYWORD_ONLY}
+        pending.append((node, args, kwargs))
     changed = []
-    for node, args in pending:
-        if node.args != args or node.kwargs:
+    for node, args, kwargs in pending:
+        if node.args != args or node.kwargs != kwargs:
             changed.append({'node':node.name, 'target':node.target.__module__+'.'+node.target.__name__})
-            node.args, node.kwargs = args, {}
+            node.args, node.kwargs = args, kwargs
     graph_module.graph.lint()
     graph_module.recompile()
     return changed
