@@ -85,7 +85,7 @@ def generate(directory,upstream,output,runtime_directory):
         if patterns[identity]['singleton']!=singleton:raise ValueError('Equivalent patterns have incompatible output containers')
         canonical=translate_graph(upstream,record['graph'],'fake',input_order=order)
         scripts[record['script']]=canonical['script']
-        record.update(inputs=canonical['inputs'],input_dtypes=canonical['input_dtypes'],output_structure=canonical['output_structure'],reference_constraints=canonical['reference_constraints'],reference_domain_diagnostic=canonical.get('reference_domain_diagnostic'),
+        record.update(inputs=canonical['inputs'],input_dtypes=canonical['input_dtypes'],output_structure=canonical['output_structure'],input_mutations=canonical['input_mutations'],reference_constraints=canonical['reference_constraints'],reference_domain_diagnostic=canonical.get('reference_domain_diagnostic'),
                       source_input_order=order,source_sha256=hashlib.sha256(canonical['script'].encode()).hexdigest())
         record['specialization']=[identity]
         records.append({'graph':record['graph'],'pattern':identity,'source_input_order':order,'source_model_sha256':hashlib.sha256(source.encode()).hexdigest()})

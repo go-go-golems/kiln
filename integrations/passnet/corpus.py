@@ -118,6 +118,7 @@ def export_task(upstream, sample, directory, metadata_mode="fake"):
         (directory / script).write_text(result['script'])
         records.append({'graph': graph, 'script': script, 'inputs': result['inputs'],
                         'input_dtypes': result['input_dtypes'], 'output_structure': result['output_structure'],
+                        'input_mutations': result['input_mutations'],
                         'reference_constraints':result['reference_constraints'],
                         'reference_domain_diagnostic':result.get('reference_domain_diagnostic')})
     manifest = {'format': FORMAT, 'sample': sample, 'metadata_mode': metadata_mode, 'variants': records}

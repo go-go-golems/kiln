@@ -1,7 +1,7 @@
 ---
 Title: Input mutation functionalization and alias-preserving execution design
 Ticket: KILN-005
-Status: proposed
+Status: guarded implementation; GPU qualification pending
 Topics: [kiln, passnet, effects, aliasing]
 DocType: design
 Intent: implementation
@@ -70,4 +70,8 @@ The first target is exact input mutation with no overlapping view write and shap
 4. Run the full 2,060-graph import census once after the coherent capability lands. Export and compile every newly complete family, then replay those complete tasks through the pinned PassBench checker/scorer. Report phase failures and score, including any copy overhead.
 5. Use the accepted mutation families to test effect-aware fusion and safe in-place output storage reuse as separate optimization policies. Compare unchanged and candidate compilers on held-out whole families; do not infer a pass gain from importer success.
 
-Open questions requiring evidence before implementation are whether the source-derived FX matcher preserves mutation and alias identity for each affected family, how many families use overlapping views, and whether the current Kiln artifact writer emits duplicate output names with shared buffer IDs when a public result equals a hidden mutation value. These are boundary checks for the implementation, not reasons to reduce the 200-task target.
+Open questions requiring evidence before broader implementation are whether the source-derived FX matcher preserves mutation and alias identity for each affected family, how many families use overlapping views, and whether the current Kiln artifact writer emits duplicate output names with shared buffer IDs when a public result equals a hidden mutation value. These are boundary checks for the implementation, not reasons to reduce the 200-task target.
+
+## Implementation checkpoint
+
+The first guarded implementation now accepts mutation of a direct, single-use source input and preserves its observable effect through a hidden output, `CorpusDispatch` writeback and public `input_alias` reconstruction. It retains rejection for other input uses and unsupported view aliasing. The full corpus import census and local compiler evidence are in reference41. The source-derived pattern generator succeeded for the newly complete families, but actual PassBench matching, CUDA writeback and numerical acceptance are still pending. The broader storage-version and overlapping-view parts of this design remain future work.

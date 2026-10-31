@@ -17,6 +17,7 @@ def import_graph(graph):
         raise ValueError('Expected kiln-fx/1')
     values, specs, lines, outputs = {}, {}, [], None
     fresh = set()  # Source values with fresh storage; exclusive use is checked at mutation.
+    input_nodes, input_mutations, output_alias_values = {}, {}, {}
     dtype_names = {'torch.float32':'f32','torch.float16':'f16','torch.bfloat16':'bf16'}
     input_dtypes = {}
     metadata = {n['id']: n.get('tensor_meta') for n in graph['nodes']}
@@ -66,6 +67,11 @@ def import_graph(graph):
             raise ValueError('operand must reference a tensor')
         return metadata[source]
 
+    def require_mutation_source(source,name):
+        if source is None or uses.get(source)!=1 or (source not in fresh and source not in input_nodes):
+            raise ValueError(f'{name}: in-place operation requires fresh single-use producer or single-use input')
+        return source
+
     for i, node in enumerate(graph['nodes']):
         name = node['id']
         if name in values:
@@ -87,6 +93,7 @@ def import_graph(graph):
             specs[var] = shape
             input_dtypes[var] = dtype_names[meta['dtype']]
             values[name] = var
+            input_nodes[name] = len(input_nodes)
             continue
         args = decode(node['args'])
         kwargs = decode(node['kwargs'])
@@ -96,7 +103,9 @@ def import_graph(graph):
         if node['kind'] not in ('call_function', 'call_method'):
             raise ValueError(f'{name}: unsupported node kind {node["kind"]}')
         target = node['target']
+        mutates_ref = None
         unary = {'torch.relu':'relu', 'torch.nn.functional.relu':'relu', 'aten.relu.default':'relu',
+                 'torch.relu_':'relu',
                  'torch.exp':'exp', 'aten.exp.default':'exp', 'torch.sqrt':'sqrt',
                  'torch.rsqrt':'rsqrt','aten.rsqrt.default':'rsqrt',
                  'torch.tanh':'tanh','aten.tanh.default':'tanh'}
@@ -114,8 +123,9 @@ def import_graph(graph):
         inplace_binary={'_operator.iadd':'add','_operator.isub':'sub','_operator.imul':'mul','_operator.itruediv':'div'}.get(target)
         if inplace_binary:
             ref=node['args']['tuple'][0].get('ref') if len(args)==2 and isinstance(node['args']['tuple'][0],dict) else None
-            if len(args)!=2 or kwargs or ref not in fresh or uses.get(ref)!=1:
-                raise ValueError(f'{name}: in-place arithmetic requires fresh single-use producer')
+            if len(args)!=2 or kwargs or ref is None or metadata[ref]!=meta:
+                raise ValueError(f'{name}: unsupported in-place arithmetic arguments')
+            mutates_ref=require_mutation_source(ref,name)
             expr=f'N.{inplace_binary}({args[0]}, {args[1]})'
         elif linalg:
             expr=lower_linalg(linalg,args,kwargs,meta,operand_spec)
@@ -138,8 +148,7 @@ def import_graph(graph):
         elif target in SCALAR_FUNCTIONS or (node['kind']=='call_method' and target in SCALAR_METHODS):
             expr,source_value,mutates=lower_scalar(target,node['kind'],args,kwargs,meta,operand_spec,literal)
             source=next((key for key,val in values.items() if val==source_value),None)
-            if mutates and (source not in fresh or uses.get(source)!=1):
-                raise ValueError(f'{name}: inplace scalar operation requires fresh single-use producer')
+            if mutates: mutates_ref=require_mutation_source(source,name)
         elif target in SOFTMAX or (node['kind']=='call_method' and target=='softmax'):
             expr=lower_softmax('torch.softmax' if node['kind']=='call_method' else target,args,kwargs,meta,operand_spec,literal)
         elif target in LAYER_NORM:
@@ -158,8 +167,7 @@ def import_graph(graph):
             source=next((key for key,val in values.items() if val==value),None)
             inplace=bound.get('inplace','false')
             if inplace not in ('false','true'):raise ValueError(f'{name}: static Boolean inplace flag required')
-            if inplace=='true' and (source not in fresh or uses.get(source)!=1):
-                raise ValueError(f'{name}: inplace {activation} requires fresh single-use producer; mutation/alias lowering required otherwise')
+            if inplace=='true': mutates_ref=require_mutation_source(source,name)
             if source is None or not isinstance(metadata[source],dict) or metadata[source]['dtype']!=meta['dtype'] or metadata[source]['shape']!=meta['shape']:
                 raise ValueError(f'{name}: {activation} requires a dtype-preserving floating tensor')
             # PyTorch pointwise activation arithmetic uses opmath FP32 for low
@@ -265,11 +273,16 @@ def import_graph(graph):
             expr=lower_flatten(target,args,kwargs,meta,operand_spec,literal)
         elif node['kind']=='call_method' and target in ('add_','sub_','mul_','div_'):
             source=node['args']['tuple'][0].get('ref') if args and isinstance(node['args']['tuple'][0],dict) else None
-            if source not in fresh or uses.get(source)!=1:
-                raise ValueError(f'{name}: in-place arithmetic requires fresh single-use producer')
             if len(args)!=2 or kwargs or metadata[source]!=meta:
                 raise ValueError(f'{name}: unsupported in-place arithmetic arguments')
+            mutates_ref=require_mutation_source(source,name)
             expr=f'N.{target[:-1]}({args[0]}, {args[1]})'
+        elif node['kind']=='call_method' and target=='relu_':
+            source=node['args']['tuple'][0].get('ref') if args and isinstance(node['args']['tuple'][0],dict) else None
+            if len(args)!=1 or kwargs or metadata[source]!=meta:
+                raise ValueError(f'{name}: unsupported in-place relu arguments')
+            mutates_ref=require_mutation_source(source,name)
+            expr=f'N.relu({args[0]})'
         elif node['kind']=='call_method' and target=='expand':
             if not args or kwargs:raise ValueError(f'{name}: unsupported expand arguments')
             requested=literal(args[1]) if len(args)==2 and isinstance(args[1],(tuple,list)) else [literal(x) for x in args[1:]]
@@ -413,10 +426,11 @@ def import_graph(graph):
                 raise ValueError(f'{name}: only disabled non-inplace dropout supported')
             expr = bound['input']
         elif target in unary:
-            if kwargs.get('inplace') == 'true':
+            if target=='torch.relu_' or kwargs.get('inplace') == 'true':
                 ref=node['args']['tuple'][0].get('ref')
-                if target!='torch.nn.functional.relu' or ref not in fresh or uses.get(ref)!=1:
-                    raise ValueError(f'{name}: inplace operation requires fresh single-use producer')
+                if target not in ('torch.nn.functional.relu','torch.relu_') or metadata[ref]!=meta:
+                    raise ValueError(f'{name}: unsupported in-place relu arguments')
+                mutates_ref=require_mutation_source(ref,name)
                 kwargs={k:v for k,v in kwargs.items() if k!='inplace'}
             if len(args) != 1 or any(k != 'inplace' or v != 'false' for k,v in kwargs.items()):
                 raise ValueError(f'{name}: unsupported unary arguments')
@@ -435,12 +449,16 @@ def import_graph(graph):
             raise ValueError(f'{name}: supported floating result metadata required')
         lines.append(f'const {var} = {expr};')
         values[name] = var
+        if mutates_ref in input_nodes:
+            index=input_nodes[mutates_ref]
+            input_mutations[index]=var
+            output_alias_values[var]=index
         # Views, casts and disabled dropout may alias: intentionally do not
         # transfer ownership through them. Accepted in-place calls only
         # consume an already owned value whose sole use is this operation.
-        if inplace_binary or linalg or activation or reduction or target in AVG_POOL2D or target in ADAPTIVE_AVG_POOL2D or target in MAX_POOL2D or target in PAD or target in ROLL or target in SCALAR_FUNCTIONS or (node['kind']=='call_method' and target in SCALAR_METHODS) or (node['kind']=='call_method' and target=='roll') or target in SOFTMAX or (node['kind']=='call_method' and target=='softmax') or target in LAYER_NORM or target in unary or target in binary or target in (
+        if mutates_ref not in input_nodes and (inplace_binary or linalg or activation or reduction or target in AVG_POOL2D or target in ADAPTIVE_AVG_POOL2D or target in MAX_POOL2D or target in PAD or target in ROLL or target in SCALAR_FUNCTIONS or (node['kind']=='call_method' and target in SCALAR_METHODS) or (node['kind']=='call_method' and target=='roll') or target in SOFTMAX or (node['kind']=='call_method' and target=='softmax') or target in LAYER_NORM or target in unary or target in binary or target in (
                 'torch.conv2d','torch.nn.functional.batch_norm','torch.nn.functional.interpolate',
-                'torch.cat','torch.concat','torch.concatenate','aten.cat.default') or target in STACK:
+                'torch.cat','torch.concat','torch.concatenate','aten.cat.default') or target in STACK):
             fresh.add(name)
     if outputs is None:
         raise ValueError('Missing graph output')
@@ -452,10 +470,15 @@ def import_graph(graph):
             return {'dict': {k: flatten(x) for k,x in v.items()}}
         if v not in values.values():
             raise ValueError('Only tensor node outputs supported')
+        if v in output_alias_values:
+            return {'input_alias': output_alias_values[v]}
         key = f'out{len(flat)}'; flat.append((key, v)); return {'output': key}
     structure = flatten(outputs)
-    result = ', '.join(f'{key}: {v}' for key,v in flat)
+    mutations=[{'input_index':index,'output':f'__mut{index}'} for index in sorted(input_mutations)]
+    result = ', '.join([*(f'{key}: {v}' for key,v in flat),
+                        *(f'__mut{index}: {input_mutations[index]}' for index in sorted(input_mutations))])
     inputs = ', '.join(f'{key}: k.tensor({json.dumps(shape)}, {json.dumps(input_dtypes[key])})' for key,shape in specs.items())
     script = 'project("passnet").program(({'+', '.join(specs)+'}) => {\n'
     script += '\n'.join(lines) + '\nreturn {'+result+'};\n}, {'+inputs+'});\n'
-    return {'script':script, 'inputs':specs, 'input_dtypes':input_dtypes, 'output_structure':structure}
+    return {'script':script, 'inputs':specs, 'input_dtypes':input_dtypes,
+            'output_structure':structure, 'input_mutations':mutations}

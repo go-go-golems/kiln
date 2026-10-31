@@ -14,13 +14,15 @@ def freeze_constants(values):
     return tuple((type(v).__name__,v) for v in values)
 
 
-def restore_outputs(structure, outputs):
+def restore_outputs(structure, outputs, inputs):
     if 'output' in structure:
         return outputs[structure['output']]
+    if 'input_alias' in structure:
+        return inputs[structure['input_alias']]
     kind, children = next(iter(structure.items()))
     if kind == 'dict':
-        return {key:restore_outputs(child,outputs) for key,child in children.items()}
-    values = [restore_outputs(child,outputs) for child in children]
+        return {key:restore_outputs(child,outputs,inputs) for key,child in children.items()}
+    values = [restore_outputs(child,outputs,inputs) for child in children]
     if kind == 'tuple': return tuple(values)
     if kind == 'list': return values
     raise ValueError(f'Invalid output structure: {kind}')
@@ -37,18 +39,19 @@ class CorpusDispatch:
             source=(directory/record['script']).read_bytes()
             if key in plans:
                 old=plans[key]
-                if source!=old['source'] or record['output_structure']!=old['structure']:
+                if source!=old['source'] or record['output_structure']!=old['structure'] or record['input_mutations']!=old['mutations']:
                     raise ValueError('Conflicting programs share a dispatch key')
             else:
                 plans[key]={'artifact':(directory/record['script']).with_suffix('.json'),
-                            'source':source,'structure':record['output_structure']}
+                            'source':source,'structure':record['output_structure'],
+                            'mutations':record['input_mutations']}
         if program_factory is None:
             from runtime import TorchProgram
             program_factory=TorchProgram
         self.programs={}
         try:
             for key,plan in plans.items():
-                self.programs[key]=(program_factory(plan['artifact'],device=device,include_paths=include_paths),plan['structure'])
+                self.programs[key]=(program_factory(plan['artifact'],device=device,include_paths=include_paths),plan['structure'],plan['mutations'])
         except Exception:
             self.close()
             raise
@@ -59,9 +62,16 @@ class CorpusDispatch:
         key=(descriptor,freeze_constants(specialization))
         if key not in self.programs:
             raise ValueError(f'No compiled program for input metadata and constants: {key}')
-        program,structure=self.programs[key]
-        return restore_outputs(structure,program(*inputs))
+        program,structure,mutations=self.programs[key]
+        outputs=program(*inputs)
+        for mutation in mutations:
+            destination=inputs[mutation['input_index']]
+            value=outputs[mutation['output']]
+            if value.shape!=destination.shape or value.dtype!=destination.dtype or value.device!=destination.device:
+                raise ValueError('Mutation output metadata does not match input')
+            destination.copy_(value)
+        return restore_outputs(structure,outputs,inputs)
 
     def close(self):
-        for program,_ in self.programs.values(): program.close()
+        for program,_,_ in self.programs.values(): program.close()
         self.programs.clear()

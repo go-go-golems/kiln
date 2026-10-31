@@ -3315,3 +3315,47 @@ Read reference40, scripts644–645, the source audit JSON, the official-doc arch
 
 ### Technical details
 The official PyTorch2.9 source-doc archive SHA256 is `11125100e1ff713680c7561469f7c473163ee11e15e5dbf6e4750d15058a66ba`. The audit is source AST plus the current importer first-error list; it is not a runtime alias analysis. The official functionalization API is documented at `https://docs.pytorch.org/docs/2.9/generated/torch.func.functionalize.html` and describes an input copyback after pure computation.
+
+## Step 228: Implement guarded input mutation across import, manifest and dispatch
+
+The mutation design identified caller-owned input storage as the next broad semantic boundary. I implemented a guarded functionalization path for direct input mutations with one FX source use, then measured the entire import corpus. The batch adds84 graph imports and12 complete task families with no import regression. All96 variants in those families compile locally and source-derived pass patterns generate; native CUDA and original PassBench acceptance remain pending.
+
+### Prompt Context
+**User prompt:** The active goal requests full PassNet/Kiln implementation and measurement; Step222 asks for broad coverage waves and the earlier instruction asks for source provenance and detailed diary entries.
+**Assistant interpretation:** Implement reference40's first safe input-effect class across the existing compiler/runtime boundary and measure its broad effect.
+**Inferred user intent:** Unlock real model families while retaining source mutation behavior and a clear path to optimizing effect-aware compiler passes.
+
+### What I did
+- Extended `fx_import.py` to recognize direct, single-use input mutation, emit the pure operation as a hidden `__mutN` output, mark returned mutation values as `input_alias`, and record `input_mutations` metadata. The importer still rejects mutated input values with another FX use and does not grant fresh ownership to input aliases. Added function/method `relu_` and kept operation-specific lowering for existing in-place arithmetic, ReLU, SiLU and scalar activation paths.
+- Propagated effect metadata through `corpus.py` and `generate_pass.py`. Extended `dispatch.py` to copy hidden results back into the original PyTorch input and restore public alias leaves to the input object after program launch. The existing `TorchProgram` and CUDA exporter continue to supply the executable.
+- Updated focused importer/dispatch tests, ran `python3 -m unittest test_fx_import.py test_dispatch.py test_pass_generation.py`, then ran script646's full2,060-graph importer census. Script647 froze the exact delta and full family plan. Script648 exported and compiled all96 variants locally with Node26; script649 generated every source-derived pattern and script650 archived the pattern evidence. Wrote reference41 and updated references38/40.
+
+### Why
+The materialized PassNet source mutates inputs and sometimes returns the input alias. A pure replacement alone would change values on repeated benchmark calls. A hidden final-value output plus stream-ordered PyTorch writeback preserves the effect without adding an alternate compiler stack or risking in-place GPU read/write hazards.
+
+### What worked
+- Focused tests passed37 methods after updating the previous rejection expectation.
+- Full import eligibility rose from1,584 to1,668 graphs and119 to131 complete tasks:84 new imports,12 new complete families and zero regressions. The newly complete task indices are17,45,49,94,96,111,131,147,161,172,176,196.
+- Every one of96 variants in those complete families exported and compiled locally. The local compile archive SHA256 is `bff91c9cf4906def9b66f6e51d123d6c7c28e6cd08fecb89db61220e0e3d853c`.
+- All12 families generated source-derived passes:24 distinct pattern modules;78 of96 variants record an input effect. The pattern archive SHA256 is `cbdd839401375d134d24f809ee88628600a261e433f8e2f8ef86eb4ca34a2252`.
+
+### What didn't work
+The first focused test run failed one existing test, `test_inplace_silu_rejected`, because the new guarded behavior correctly accepts a direct single-use input SiLU mutation. I replaced that stale expectation with effect and alias assertions; the same focused group then passed37 tests. No GPU numerical or PassBench matching run has yet occurred for this wave.
+
+### What I learned
+Input mutation can be represented at this boundary as a pure Kiln value plus an explicit external effect, while public output alias identity is restored by dispatch. A representative compiled ResNet variant has only the hidden `__mut6` output; the dispatch returns original input6 after copying the computed result into its storage. Existing GPU code generation can compile this form without a new IR operation.
+
+### What was tricky to build
+The source operand's single FX use prevents a prior or later alias from silently observing a stale version. A mutating node that aliases an input must not be marked fresh, or a second mutation could be accepted without updating the input's final value. The public output structure has to distinguish an input alias from an ordinary allocated result. Pattern generation must retain this metadata when it rewrites canonical input order.
+
+### What warrants a second pair of eyes
+Check CUDA stream ordering for `destination.copy_(hidden_output)` after `TorchProgram.launch`, and inspect PassBench dispatch interception of this legitimate writeback. Verify match count and t=-5 correctness for all96 variants before adding any task to the accepted ledger. The single-use guard is conservative and leaves complex view aliases unsupported.
+
+### What should be done in the future
+Commit the current capability and evidence, stage the twelve-family task plan through script641, and queue its GPU replay after the existing two pending batches. Analyze external failures by common cause; do not infer accepted coverage from131 importable tasks. Extend storage-version and view-update analysis only after the guarded class is measured.
+
+### Code review instructions
+Read reference41, `fx_import.py` mutation branches and output flattening, `dispatch.py`, `corpus.py`, `generate_pass.py`, the focused tests, scripts646–650 and the source/artifact archives. Compare a hidden-output compiled artifact with its manifest alias/effect metadata.
+
+### Technical details
+The before audit SHA256 is `e805d42b062e355bd0337952686672d7d79ba51a12e1220066e5eca5f398c2a2`; the after audit SHA256 is `2ba985d0cd78862f287580be8b34c3a01fed78e92368c4ec1ec8ccfc1659ca16`. Compiler settings were A100 schedule target, separate contraction, Node26.13.0 and explicit internal synthetic-check bypass. The external PassBench numerical checker has not yet run on this source snapshot.

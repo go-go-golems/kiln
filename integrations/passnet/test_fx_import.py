@@ -92,11 +92,22 @@ class ImportTests(unittest.TestCase):
         result=import_graph(export_graph(symbolic_trace(Model()),values))
         self.assertIn('N.conv2d',result['script']);self.assertIn('N.resizeBilinear',result['script'])
 
-    def test_inplace_input_rejected(self):
+    def test_single_use_input_mutation_exports_effect_and_alias(self):
         class Model(torch.nn.Module):
             def forward(self,x): return torch.nn.functional.relu(x,inplace=True)
         graph=export_graph(symbolic_trace(Model()),(torch.randn(2,3),))
-        with self.assertRaisesRegex(ValueError,'fresh single-use'):
+        result=import_graph(graph)
+        self.assertEqual(result['input_mutations'],[{'input_index':0,'output':'__mut0'}])
+        self.assertEqual(result['output_structure'],{'input_alias':0})
+        self.assertIn('__mut0:',result['script'])
+
+    def test_input_mutation_with_another_source_use_rejected(self):
+        class Model(torch.nn.Module):
+            def forward(self,x):
+                y=x.add_(1)
+                return x+y
+        graph=export_graph(symbolic_trace(Model()),(torch.randn(2,3),))
+        with self.assertRaisesRegex(ValueError,'single-use input'):
             import_graph(graph)
 
     def test_reduction_axes_and_dtype(self):
@@ -183,11 +194,12 @@ class ActivationImportTests(unittest.TestCase):
             self.assertEqual(imported['script'].count('N.sigmoid(N.cast(v0, "f32"))'),2)
             self.assertIn(', "'+name+'")',imported['script'])
 
-    def test_inplace_silu_rejected(self):
+    def test_inplace_silu_exports_input_effect(self):
         class Model(torch.nn.Module):
             def forward(self,x):return torch.nn.functional.silu(x,inplace=True)
-        with self.assertRaisesRegex(ValueError,'mutation/alias'):
-            import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
+        result=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
+        self.assertEqual(result['input_mutations'],[{'input_index':0,'output':'__mut0'}])
+        self.assertEqual(result['output_structure'],{'input_alias':0})
 
     def test_sigmoid_out_rejected(self):
         class Model(torch.nn.Module):
