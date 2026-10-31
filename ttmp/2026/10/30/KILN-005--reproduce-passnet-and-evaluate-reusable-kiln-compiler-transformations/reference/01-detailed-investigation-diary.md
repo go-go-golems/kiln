@@ -5325,3 +5325,47 @@ See Steps116–117 for canonical evidence, preserved source failures and the use
 
 ### Technical details
 - Fresh membership c40f81bf05839042fd845dc797a6ddb3b8665d1f3d7b27f83cc5fb4d9cc27ca5. Original coverage remains eleven tasks/206 graphs, import eligibility1029/51. No new device-document export is attempted while approval remains pending.
+
+## Step 119: Qualify the fresh canonical study with exact alias sharing
+
+All240 fresh /3 artifacts qualify from committed e35aa8c sources. Three region variants are exact baseline aliases across all twenty graphs, while other variants change only a few training graphs. This is the expected conservative evidence behavior after removing generated-name differences. No timing or selected improvement is claimed yet.
+
+### Prompt Context
+See Steps116–118 and the user's continuing complete implementation/measurement goal.
+**Assistant interpretation:** Evaluate the repaired feedback path on a new frozen population rather than retagging historical measurements.
+**Inferred user intent:** Compare real compiler changes under trustworthy artifact identity.
+**Commit (declaration):**e35aa8c — research(passnet): qualify transpose CUDA and freeze canonical policy study.
+
+### What I did
+- Ran source-verified full compilation through script234; all twelve programs compile across twenty graphs and qualify.
+- Saved scripts235–238 for exact source staging/audit, training, committed-selection confirmation and shared verification.
+- Preserved canonical-full-compile.log and complete artifacts/decision receipts.
+
+### Why
+- Source equality should share measurements and exact ties, preventing a meaningless naming variant from receiving independent optimization reward.
+
+### What worked
+- Default equals unchanged. Region-material12 and both mixed-prior variants are exact baseline aliases on all twenty graphs.
+- Region-work/material1 change three training graphs; medium launch variants change two. Scalar100 changes three and scalar125 six.
+- The complete frozen candidate population is retained; no aliasing variant or unfavorable graph is filtered out.
+
+### What didn't work
+- Structural qualification does not establish a speedup or generalization. Native PassBench acceptance remains separate from explicit highest-precision FP32 research.
+
+### What I learned
+- Canonical emission sharply reduces irrelevant contrasts in the actual subsequent study, without applying a post-hoc source equivalence rule.
+
+### What was tricky to build
+- The new study has its own broader source declaration and /3 artifacts, while old /2 timings and selection remain historical and unchanged.
+
+### What warrants a second pair of eyes
+- Review exact alias gates, resource-envelope revision, source exclusions and the generated-code version boundary before interpreting timings.
+
+### What should be done in the future
+- Measure training, commit one selection and evaluate baseline/selected on every confirmation graph. Continue original PassAgent after provider configuration.
+
+### Code review instructions
+- Read sensitivity.json and per-policy receipts in policy-artifacts-v8-r2, then scripts235–238.
+
+### Technical details
+- Fresh membership c40f81bf05839042fd845dc797a6ddb3b8665d1f3d7b27f83cc5fb4d9cc27ca5. Original coverage remains eleven tasks/206 graphs and import eligibility1029/51.
