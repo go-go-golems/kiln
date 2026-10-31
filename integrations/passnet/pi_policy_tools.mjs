@@ -7,9 +7,21 @@ export class PiPolicyTools {
     this.call = call;
     this.results = new Map();
     this.closed = false;
+    this.failure = null;
   }
 
   async observe(message) {
+    if (this.failure) throw this.failure;
+    try {
+      await this.observeAssistant(message);
+    } catch (error) {
+      this.failure = error;
+      this.closed = true;
+      throw error;
+    }
+  }
+
+  async observeAssistant(message) {
     if (message.role !== 'assistant') return;
     const complete = ['stop', 'toolUse'].includes(message.stopReason);
     for (const part of message.content ?? []) {
@@ -27,6 +39,7 @@ export class PiPolicyTools {
   }
 
   async execute(name, id, args) {
+    if (this.failure) throw this.failure;
     let result;
     if (name === 'submit_policy') {
       if (!this.results.has(id)) throw new Error('Submission was not accounted before execution');

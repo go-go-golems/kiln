@@ -120,3 +120,50 @@ See Step 159 for the authored Pi/LunaRoute request and Step 160 for diary rotati
 ### Technical details
 - Complete submission bodies are admitted only for stopReason stop or toolUse; other stop reasons submit null to the trusted task.
 - This checkpoint changes no compiler artifacts, coverage counts, benchmark results or previous comparison evidence.
+
+## Step 162: Correct the hook-failure assumption before connecting the provider
+
+Inspection of the installed Pi extension runner revealed that both message_end and before_provider_request handlers catch exceptions and report them without propagating them to the agent. This changes the integration design: throwing from an extension is not a hard request-budget boundary. Added persistent accounting-failure state so subsequent tool execution cannot return a previously accepted result after an accounting failure.
+
+### Prompt Context
+See Step 159 for the user's Pi integration request.
+**Assistant interpretation:** Verify actual SDK behavior before relying on it for experimental controls.
+**Inferred user intent:** Reliable bounded model experiments with an auditable execution path.
+**Previous commit:** ed1a613 — Account native Pi policy submissions before tool validation.
+
+### What I did
+- Read installed dist/core/extensions/runner.js, specifically emitMessageEnd and emitBeforeProviderRequest.
+- Added persistent failure state to PiPolicyTools and blocked subsequent execution after observation failure.
+- Extended the duplicate-ID case to verify that a swallowed observation exception cannot permit later tool execution.
+
+### Why
+- Awaited hooks establish ordering but do not imply exception propagation.
+- The owner needs a provider request boundary independent of extension exception handling.
+
+### What worked
+- Node 26 focused tests passed, including rejection of execution after duplicate-ID observation failure.
+- Source inspection establishes that the current proposed exception-only request limiter would not be sufficient.
+
+### What didn't work
+- A guessed installed pi-agent-core/dist/agent.d.ts path returned No such file or directory. Discover the actual nested dependency path before further inspection.
+- No live policy batch was run; request-limit enforcement remains incomplete.
+
+### What I learned
+- SDK hook failure semantics must be verified independently from event ordering.
+
+### What was tricky to build
+- Accounting may have already reserved a proposal before a later hook error. Persistent failure prevents accidental continuation while retaining the ledger's consumed slots.
+
+### What warrants a second pair of eyes
+- Verify a hard stop outside the exception-swallowing extension runner, including underlying provider retries.
+
+### What should be done in the future
+- Discover and inspect the actual agent stream interface; implement owner-level request limits and cancellation before invoking LunaRoute for policies.
+
+### Code review instructions
+- Inspect PiPolicyTools.observe and execute, then rerun the focused Node test file.
+- Inspect the installed Pi runner catch blocks rather than assuming extension exceptions stop inference.
+
+### Technical details
+- A failure sets closed and retains the error for all later observation/execution attempts.
+- This is tool-side protection only. It does not yet stop provider network requests or qualify an end-to-end Pi experiment.

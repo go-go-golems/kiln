@@ -31,4 +31,6 @@ test('truncated response consumes rejected attempt and repeated IDs fail closed'
   assert.deepEqual(calls, [null]);
   await assert.rejects(tools.observe(message), /repeated/);
   assert.equal(calls.length, 1);
+  await assert.rejects(tools.execute('submit_policy', 'a', {}), /repeated/);
+  assert.equal(tools.closed, true);
 });
