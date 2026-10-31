@@ -5369,3 +5369,45 @@ See Steps116–118 and the user's continuing complete implementation/measurement
 
 ### Technical details
 - Fresh membership c40f81bf05839042fd845dc797a6ddb3b8665d1f3d7b27f83cc5fb4d9cc27ca5. Original coverage remains eleven tasks/206 graphs and import eligibility1029/51.
+
+## Step 120: Commit unchanged selection under corrected exact identity
+
+All twelve training candidates qualify. The frozen objective now selects unchanged Kiln: baseline and its exact aliases tie at1.0, while every candidate changing the executable is slower on the complete training aggregate. This is a completed negative selection result under /3, not a claimed optimization gain. Confirmation timing has not occurred.
+
+### Prompt Context
+See Steps116–119 and the user's self-optimization/reliability objective.
+**Assistant interpretation:** Use corrected artifact identity through the complete declared experiment and preserve a no-change choice when it wins.
+**Inferred user intent:** Improve automatically chosen compiler changes, not force a new policy to replace a stronger default.
+
+### What I did
+- Collected completed training and ran the unchanged select_policy.py on all frozen candidates/graphs.
+- Saved selection.json choosing baseline before confirmation access, together with source-audit receipt and full driver log.
+
+### Why
+- Exact aliases must share the baseline's timing evidence and lose baseline-first ties, rather than receive independent noise-based rewards.
+
+### What worked
+- All candidates qualify; baseline/default/material12/both mixed variants tie exactly at1.0.
+- Scalar125 scores0.9985619709607854; medium launch models score0.9827745865832009; work-only/scalar100/material1 score0.974705325011658.
+- Source snapshot matches compilation exactly:f9c899e826b0f179b58105e0aa0f31ab538b34b79ad40e3aaa2151dcf68c9624.
+
+### What didn't work
+- No altered policy improves the training aggregate. No new PassBench acceptance or external-model result is claimed.
+
+### What I learned
+- The repaired identity gate produces exact no-change ties instead of spurious independent contrasts in this fresh study.
+
+### What was tricky to build
+- Baseline selection means confirmation has one distinct executable per graph; a ratio of1.0 will be an identity comparison, not independent evidence of optimization benefit.
+
+### What warrants a second pair of eyes
+- Review exact alias pooling, training objective and baseline-first tie order before interpreting the result.
+
+### What should be done in the future
+- Commit this choice, execute all eight confirmation graphs without adding candidates, and report the negative search plus numerical qualification accurately.
+
+### Code review instructions
+- Inspect policy-measurements-v8-r2/selection.json and train.json, sensitivity.json and canonical-remote-source-verification.json.
+
+### Technical details
+- All graph membership, candidate coefficients, numerical/reference settings and timing budgets remain frozen. Original PassAgent provider selection remains pending.
