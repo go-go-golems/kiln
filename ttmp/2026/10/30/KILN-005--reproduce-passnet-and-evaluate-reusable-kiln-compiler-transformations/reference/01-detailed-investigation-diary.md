@@ -157,3 +157,48 @@ Wrote the first substantive intern guide against the paper, pinned PassBench REA
 
 ### Technical details
 - CUDA smoke test used a disposable docker run --rm --gpus all invocation, with no host Python installation changes.
+
+## Step 4: Verify complete evaluation membership and stage reference execution
+
+The pinned Git clone completed successfully with all 200 evaluation tasks and 2,060 graph directories present. The complete Hugging Face dataset download also finished: 14 shards verified against published SHA256 metadata. These are acquisition and inventory results, not performance measurements.
+
+### Prompt Context
+See Steps 1–3 for task and provenance instructions.
+**Assistant interpretation:** Execute genuine reference workloads before Kiln substitution.
+**Inferred user intent:** Establish trustworthy baseline evidence.
+
+### What I did
+- Wrote sources/evaluation-inventory.json and eval-transfer-files.txt, then staged 14,620 evaluation files and the evaluator on bling.local.
+- Added scripts/02-run-reference.py using the untouched evaluator with 20 warmups and 100 trials, isolated task logs, and an execution receipt.
+- Inspected test_compiler.py CLI and aggregate_es_scores.py at the pinned revision.
+
+### Why
+- Reference graph membership can be proven directly from the completed checkout, independent of Parquet materialization.
+
+### What worked
+- Inventory reports 200 tasks, 2,060 graphs, zero missing sample or graph directories.
+- Scorer CLI defaults p=0; sample entry.sh uses warmup 25, trials 100; evaluator CLI itself defaults warmup 3, trials 5. Explicit flags are required.
+- Remote evaluator and selected graph transfers completed.
+
+### What didn't work
+- Source tarball download terminated: curl (28) Operation timed out after 120001 milliseconds with 36238715 bytes received. Completed pinned Git checkout supersedes this incomplete archive.
+- Temporary uv environment creation initially failed because its default cache was read-only; using --cache-dir /tmp/passnet-uv-cache fixed creation. PyArrow download is still being observed.
+- First tmux GPU smoke launch failed: permission denied while trying to connect to the docker API at unix:///var/run/docker.sock. Interactive SSH Docker had succeeded; retry uses sg docker inside the existing tmux server rather than changing socket permissions.
+
+### What I learned
+- Preserve distinct executable defaults, entry-script settings and paper settings in each run record.
+
+### What was tricky to build
+- Existing tmux sessions may retain supplementary groups from their server's startup; SSH group membership alone does not establish tmux Docker access.
+
+### What warrants a second pair of eyes
+- Baseline runner must preserve every task failure; process exit status alone does not prove numerical success.
+
+### What should be done in the future
+- Inspect smoke retry, preserve raw logs, resolve evaluator/runtime failures and run full baselines. Materialize and inspect Parquet schema once dependency download completes.
+
+### Code review instructions
+- Review scripts/02-run-reference.py, evaluation-inventory.json and source scorer/entry-script defaults.
+
+### Technical details
+- No upstream evaluator changes or compiler ports in this step.

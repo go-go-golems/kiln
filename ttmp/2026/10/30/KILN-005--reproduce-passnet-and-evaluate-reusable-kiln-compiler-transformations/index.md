@@ -7,7 +7,13 @@ Topics:
 DocType: index
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://packages/kiln/src/std/loop.js
+      Note: Existing fusion profitability rule
+    - Path: repo://runtime/python/kiln_launch.py
+      Note: CUDA pointer stream and scratch ownership
+    - Path: repo://scripts/kiln-export.mjs
+      Note: Compiler artifact export and validation
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-10-30T20:23:37.065533013-04:00
