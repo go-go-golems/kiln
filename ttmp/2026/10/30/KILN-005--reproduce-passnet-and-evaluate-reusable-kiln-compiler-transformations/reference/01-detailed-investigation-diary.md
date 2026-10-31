@@ -2299,3 +2299,45 @@ Original correctness requirement and stage diagnosis from Step 53.
 
 ### Technical details
 - Independent semantic correction from differential GPU evidence, no upstream source copied or checker changed.
+
+## Step 55: Quantify remaining convolution accumulation mismatch
+
+Corrected original fused graph still fails tolerance, reduced from 508 to 67 elements. A separately labeled higher-precision local/shared arithmetic experiment reduces this only to 62. Neither passes; no third-task coverage claim. Diagnostic source modifications are excluded from measurement identity and benchmark evidence.
+
+### Prompt Context
+Original numerical fidelity and evidence requirements.
+**Assistant interpretation:** Test remaining error hypothesis without silently substituting source/identity.
+**Inferred user intent:** Fix actual compiler semantics and report limitations.
+
+### What I did
+- Observed completed corrected graph comparison.
+- Saved script 36 generating clearly marked diagnostic artifact with double local/shared declarations, preserving pointer types.
+- Ran original comparison and archived failure logs plus stage report.
+
+### Why
+- Bias correction was material but did not explain every mismatch; higher precision experiment tests accumulation sensitivity.
+
+### What worked
+- Bias fix reduced failures substantially (508→67); diagnostic executed.
+
+### What didn't work
+- Corrected graph: 67/73728 mismatches, max_abs 0.03125, max_relative 0.011444091796875.
+- Higher-precision diagnostic: 62/73728 mismatches with same maximum errors. This is not a successful fix.
+
+### What I learned
+- Simply widening local accumulators is insufficient. Intermediate storage and native convolution accumulation behavior need more precise comparison.
+
+### What was tricky to build
+- Modified diagnostic source retains stale kernel identities, so explicitly mark it excluded rather than treating it as a compiler measurement.
+
+### What warrants a second pair of eyes
+- cuDNN half reduction precision/order, remaining FP32 intermediate buffers and exact source input constraints.
+
+### What should be done in the future
+- Compare bias-free convolution with exact/high-precision oracles and investigate accumulation/storage boundaries; retain original checker tolerances.
+
+### Code review instructions
+- Inspect script 36 and failure logs; diagnostic artifact is not eligible for benchmark scoring.
+
+### Technical details
+- No checker relaxation or delegated torch convolution in Kiln execution. Reference baseline reached 73 completed tasks at observation.
