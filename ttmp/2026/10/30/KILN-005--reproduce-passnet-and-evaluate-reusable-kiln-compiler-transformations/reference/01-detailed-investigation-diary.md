@@ -4859,3 +4859,47 @@ See Steps 104–107 and the user's request for measured implementation progress 
 
 ### Technical details
 - Membership0547e152ab29ae79070177cec031ddb393751f2b45d13499548a583668e7203f. Explicit highest-precision FP32 reference and separate compiler arithmetic stay fixed. Original coverage remains 11 tasks/206 graphs; import eligibility 1029 graphs/51 complete families.
+
+## Step 109: Publish selective-fusion implementation and negative evaluation
+
+The selective-fusion report is committed in 4f2d36f and published as a new dated vault article. Vault commit c3afa76 is pushed to origin/main. Verification proves the article body matches reference 13 exactly and the vault note matches committed bytes. No updated reMarkable delivery is claimed; the earlier approval request remains pending and no new export was attempted.
+
+### Prompt Context
+See Step 103 for the user's verbatim vault commit/push instruction and earlier reMarkable approval-review failures.
+**Assistant interpretation:** Publish the substantive compiler milestone while retaining its failed generalization result and outstanding delivery status.
+**Inferred user intent:** Maintain durable technical reports with exact provenance and no optimistic performance claims.
+**Commit (report):** 4f2d36f — research(passnet): complete selective confirmation and document regression.
+**Commit (vault):** c3afa76 — docs(kiln): explain selective fusion implementation and failed generalization.
+
+### What I did
+- Added the new ARTICLE - Kiln - Selective Consumer Fusion and Fresh Evaluation.md; staged only that article and pushed the vault.
+- Saved scripts 201/202 for append-only publication and exact body/commit/remote-tracking verification, plus selective-report-publication.json.
+- Kept unrelated dropcut-studio edits unstaged. The overall reproduction and synthesis goal remains active.
+
+### Why
+- The compiler feature and negative fresh evaluation are both significant research evidence and should be available independently of the implementation diary.
+
+### What worked
+- Vault push14a7b3c..c3afa76 main -> main. The new164-line article is the only vault file committed.
+- Source-body equality, committed-note bytes and HEAD/origin/main equality all pass.
+
+### What didn't work
+- The measured selected policy does not generalize, and no successful updated-guide upload is claimed after the previous automatic-review rejection.
+
+### What I learned
+- A documented compiler capability and a negative optimization result are distinct deliverables; neither implies full PassNet reproduction is complete.
+
+### What was tricky to build
+- Published metadata records separate implementation, compilation, selection and report revisions, preserving the chronology of evidence.
+
+### What warrants a second pair of eyes
+- Review source/reference precision scope, the absence of selected partial fusions, and the ALBERT materialization audit before forming the next hypothesis.
+
+### What should be done in the future
+- Investigate whole-region candidate selection and materialized-volume/reduction-reuse features using a fresh declaration. Continue original PassAgent and remaining benchmark support. Deliver the updated guide after explicit renewed approval.
+
+### Code review instructions
+- Read the published article and run script202; run script199 for the experiment. Existing native failed studies remain archived and unchanged.
+
+### Technical details
+- Compiler default unchanged. Original coverage remains eleven complete tasks/206 graphs, import eligibility1029/51. The broader goal is incomplete and has not been marked complete or blocked.
