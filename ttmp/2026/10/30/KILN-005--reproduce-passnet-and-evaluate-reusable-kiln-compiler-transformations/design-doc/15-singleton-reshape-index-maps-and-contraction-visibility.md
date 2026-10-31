@@ -10,12 +10,16 @@ Owners: []
 RelatedFiles:
     - Path: repo://integrations/passnet/fx_indexing.py
       Note: Shared source reshape contract
+    - Path: repo://integrations/passnet/test_fx_singleton_views.py
+      Note: Axes scalar ownership and FX-Dynamo source binding checks
     - Path: repo://packages/kiln/src/std/tensor.js
       Note: Direct unit-axis reshape mapping
     - Path: repo://packages/kiln/test/singleton-reshape.mjs
       Note: Numerical and contraction regressions
     - Path: repo://ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/singleton-reshape-cuda.json
       Note: Preserved native 60 of 63 CUDA outcome
+    - Path: repo://ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/singleton-view-native-fixtures-v1/manifest.json
+      Note: Native finite-output fixture evidence identity
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-10-31T05:46:28.617490778-04:00
@@ -96,3 +100,7 @@ Source lookup is consolidated in one operand_spec helper used by matrix, normali
 Primary contracts are archived in sources/singleton-view-semantics-v2, including PyTorch v2.9.1 _torch_docs.py (SHA256 d7e78bf42ec9b005c7e1bc7b752244e94442c9ccc8a2abed546234723a0533dd), installed docstrings, exact schemas and121 independent source probes under Torch2.11.0+cu130. The implementation is independent dimension arithmetic over existing Kiln primitives; no PyTorch implementation was copied. Official documentation pages were inspected, but direct download returned HTTP403; the tagged upstream docstring source was downloaded instead.
 
 All57 FX tests pass. The complete200-task import audit increases eligibility from1196/69 to1251 graphs/76 complete families with zero import regressions. Every newly complete family is frozen in singleton-view-source-cohort-plan.json: seven tasks and55 variants, without shape/dtype filtering. This is translation eligibility only; native CUDA fixture validation and original evaluator acceptance remain required. Current accepted replay remains27 complete tasks and338 individual graphs.
+
+## Complete singleton source qualification
+
+Under committed a040057,12 independent CUDA programs pass72 finite output comparisons with zero error. The full seven-family/55-variant replay accepts four complete families and20 individual graphs at nominal t=-5. Two other evaluated graphs fail the strict numerical point, while33 variants remain unexecuted because their complete family stops at an end-to-end export check. No threshold changes or family filtering occur. Source/artifact/log/scorer identity and all165 source files are verified. Cumulative replay reaches31 complete tasks/358 individual graphs, with289 inside complete tasks; import eligibility remains1251/76. Reference21 explains scope and retained failures.

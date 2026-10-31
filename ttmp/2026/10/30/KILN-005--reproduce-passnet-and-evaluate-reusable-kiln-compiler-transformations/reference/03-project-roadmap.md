@@ -20,12 +20,12 @@ The target is evaluation across all 200 PassBench tasks and 2,060 variants with 
 | Workspace and acquisition | Complete | Worktree, ticket, pinned paper/code/dataset and materialization receipts |
 | Intern design | Progress edition delivered | Updated technical guide with actual final architecture and verified reMarkable delivery |
 | Original baselines | Full exploratory audit complete; controlled measurements pending | All task results, isolated reruns, settings reconciled, official aggregation |
-| Basic integration | Twenty-seven complete tasks / 338 individually passing graphs, cumulative modified-protocol evidence | Matching/checking/score evidence with protocol identity |
+| Basic integration | 31 complete tasks / 358 individually passing graphs, cumulative modified-protocol evidence | Matching/checking/score evidence with protocol identity |
 | Precision and layouts | Active | Real-task FP16/BF16, stride/layout and stream correctness |
-| Operation coverage | Active: 1,196 graph imports / 69 complete families; broader execution qualification pending | Task dependency matrix and implementation/tests for all required operations |
+| Operation coverage | Active: 1,251 graph imports / 76 complete families; broader execution qualification pending | Task dependency matrix and implementation/tests for all required operations |
 | Full benchmark integration | Pending | Every task/variant accounted for with integrity/correctness/scoring |
 | Controlled measurements | Pending | Isolated timing, stability checks, provenance and complete comparisons |
-| Original PassAgent | No configured provider; local serving feasibility documented | Recorded model/budget/trajectories on declared task set |
+| Original PassAgent | One declared50-step local run terminal; seven no-match evaluations; full population pending | Recorded model/budget/trajectories on declared task set |
 | Kiln meta-optimization | Reusable policies measured; singleton reshape rewrite improves the development replay; fresh exact-model confirmation complete (1.053746x e2e) | Fixed train/held-out split, reusable policies/passes and measured generalization |
 | Reports and delivery | Ongoing | Milestone vault reports committed/pushed and updated guide editions |
 | Completion audit | Pending | Requirement-by-requirement current-state evidence |
@@ -34,7 +34,8 @@ Teacher trajectory generation/student fine-tuning remains a separate expensive r
 
 ## Priority change: start reusable-policy optimization before full corpus support
 
-The user explicitly requested streamlining toward self-optimization. Full 200-task compiler support remains a separate active track; it is no longer a prerequisite for the first compiler-policy experiment. Current exact acceptance at nominal t=-5 is twenty-seven complete tasks containing 273 graphs, with 338 individually passing graphs including partial tasks. Translation succeeds for 1,196 graphs and 69 complete tasks; the repaired ten-family/93-variant softmax cohort accepts every variant after the functional-default matching repair. Compilation and numerical eligibility remain separate gates for the broader set.
+The user explicitly requested streamlining toward self-optimization. Full200-task compiler support remains an active track, not a prerequisite for the first reusable-policy experiment. Current cumulative nominal replay acceptance is31 complete tasks containing289 graphs, with358 individually passing graphs including partial tasks. Import eligibility is1251 graphs/76 complete families. Reference21 and singleton-view-source-cohort-v1-verified-facts.json own the newest qualification; kernel correctness and complete task acceptance remain separate gates.
+
 
 The initial self-optimization dependency sequence is implemented and measured through held-out confirmation; broader external-agent synthesis remains open:
 
@@ -159,3 +160,8 @@ The pinned unquantized local provider now serves real tool calls, and the unchan
 The shipping50-step original-agent run is terminal: seven evaluator calls all reject matching with the0.1 penalty; original top-level reward1.0 is a placeholder and is excluded. Design18/diary145 and original-agent-smoke-terminal-v1/verified-facts.json own the result. An original argument-tracing asymmetry is confirmed locally and on the exact DGX image for CPU/CUDA and original shapes; paper-version behavior remains open. Serving is now stopped.
 
 Static singleton views reuse existing reshape, with57 FX tests passing. Import eligibility reaches1251 graphs/76 complete families, with no regressions. Every newly complete family is frozen in singleton-view-source-cohort-plan.json (seven tasks/55 variants). CUDA/original evaluation qualification is pending; accepted coverage remains27 complete tasks/338 individual graphs. Design15 and diary144 own semantics/provenance.
+
+
+### Complete singleton qualification and terminal reference audit
+
+All seven frozen families/55 variants are accounted for under a040057. Twelve native fixture programs pass72 exact finite output comparisons. Four complete tasks and20 individual graphs pass nominal t=-5, two evaluated graphs fail that criterion, and33 variants remain unexecuted after an export check stops their family. Cumulative replay reaches31 tasks/358 graphs (289 in complete tasks), while import eligibility is1251/76. The original50-step agent run is terminal with seven no-match evaluations and a placeholder top-level reward excluded from scoring. Exact DGX tracing diagnosis is confirmed. Reference21 and diary146 own the current milestone; full support/reproduction and numerical repairs remain open.

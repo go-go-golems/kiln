@@ -4,10 +4,10 @@
   "coverage_scope": "Cumulative original replay evidence across recorded compiler snapshots; not a uniform full-corpus release evaluation",
   "tasks_total": 200,
   "graphs_total": 2060,
-  "tasks_verified": 27,
-  "graphs_verified": 338,
-  "graphs_in_complete_tasks": 273,
-  "tasks_remaining": 173,
+  "tasks_verified": 31,
+  "graphs_verified": 358,
+  "graphs_in_complete_tasks": 289,
+  "tasks_remaining": 169,
   "records": [
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/62/91/6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8",
@@ -1055,12 +1055,68 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/dc/35/dc35bd4d621737741640e86e4ee98c08a163c1d3c1ea9dd54e91a1a7f56860f8",
       "graphs": 6,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 6,
+      "evidence": "singleton-view-source-cohort-v1/task-039/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmseg/PIDNet-l/_decomposed/PIDNet-l_start113_end117_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/mmseg/PIDNet-l/_decomposed/PIDNet-l_start113_end117_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/3/samples/mmseg/PIDNet-l/_decomposed/PIDNet-l_start113_end117_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/0/samples/mmseg/PIDNet-l/_decomposed/PIDNet-l_start113_end117_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/6/samples/mmseg/PIDNet-l/_decomposed/PIDNet-l_start113_end117_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/mmseg/PIDNet-l/_decomposed/PIDNet-l_start113_end117_2": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "eb61fe8921b69314ba62decd1f0642f2f78fcb5944f41668797bf77d542d9aec"
+      },
       "limitations": []
     },
     {
@@ -2701,11 +2757,44 @@
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/6f/d9/6fd9ed69c9a416c15df581860dfc1a8be371a355d62c3d9fef7a0297ce983575",
       "graphs": 3,
       "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "verified_graphs": 2,
+      "evidence": "singleton-view-source-cohort-v1/task-088/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/mmseg/K-Net_fcn/_decomposed/K-Net_fcn_start199_end209_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmseg/K-Net_fcn/_decomposed/K-Net_fcn_start199_end209_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmseg/K-Net_deeplabv3/_decomposed/K-Net_deeplabv3_start210_end220_3": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1",
+        "kiln-pattern-multi-output/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "eb61fe8921b69314ba62decd1f0642f2f78fcb5944f41668797bf77d542d9aec"
+      },
       "limitations": []
     },
     {
@@ -2859,11 +2948,43 @@
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/d9/c1/d9c1f63611716b510c8fe57e6a239241c8456418893841d10165b14635272ba8",
       "graphs": 3,
       "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "verified_graphs": 2,
+      "evidence": "singleton-view-source-cohort-v1/task-095/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmseg/K-Net_fcn/_decomposed/K-Net_fcn_start212_end222_4": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": false,
+          "numerical_failure_at_tminus5": "accuracy",
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmseg/K-Net_fcn/_decomposed/K-Net_fcn_start212_end222_4": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/mmseg/K-Net_fcn/_decomposed/K-Net_fcn_start212_end222_4": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "eb61fe8921b69314ba62decd1f0642f2f78fcb5944f41668797bf77d542d9aec"
+      },
       "limitations": []
     },
     {
@@ -2946,12 +3067,68 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/3b/38/3b38401289c80bbb5f541b3aee079949b11ed3d8f87a9453d518dda551c47b90",
       "graphs": 6,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 6,
+      "evidence": "singleton-view-source-cohort-v1/task-103/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/torchvision/googlenet/_decomposed/googlenet_start2_end13_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/torchvision/googlenet/_decomposed/googlenet_start2_end13_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/torchvision/googlenet/_decomposed/googlenet_start2_end13_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/torchvision/googlenet/_decomposed/googlenet_start2_end13_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/torchvision/googlenet/_decomposed/googlenet_start2_end13_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/torchvision/googlenet/_decomposed/googlenet_start2_end13_1": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "eb61fe8921b69314ba62decd1f0642f2f78fcb5944f41668797bf77d542d9aec"
+      },
       "limitations": []
     },
     {
@@ -3556,12 +3733,36 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/9a/f8/9af88aed93361c915c1eb155c6d1ad46cb788e53e9bc97111cb9efaa49002ef9",
       "graphs": 2,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 2,
+      "evidence": "singleton-view-source-cohort-v1/task-138/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/MIT_ast-finetuned-audioset-10-10-0.4593/_decomposed/MIT_ast-finetuned-audioset-10-10-0.4593_start0_end2_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/MIT_ast-finetuned-audioset-10-10-0.4593/_decomposed/MIT_ast-finetuned-audioset-10-10-0.4593_start0_end2_0": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "eb61fe8921b69314ba62decd1f0642f2f78fcb5944f41668797bf77d542d9aec"
+      },
       "limitations": []
     },
     {
@@ -5026,12 +5227,36 @@
     {
       "task": "samples/hf_subgraphs_v2/fusible_subgraphs/ef/42/ef428cf100c89595ef4d164f6ea678172a805bf8250bc819a65ad47208f2d514",
       "graphs": 2,
-      "status": "not_verified",
-      "verified_graphs": 0,
-      "evidence": null,
-      "graph_results": {},
-      "protocols": [],
-      "compiler_configuration": null,
+      "status": "verified_modified_protocol",
+      "verified_graphs": 2,
+      "evidence": "singleton-view-source-cohort-v1/task-190/benchmark.log",
+      "graph_results": {
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/torchaudio/squim_subjective/_decomposed/squim_subjective_start617_end619_14": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        },
+        "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchaudio/squim_subjective/_decomposed/squim_subjective_start617_end619_14": {
+          "success": true,
+          "numerical_correct_at_t1": true,
+          "numerical_failure": null,
+          "numerical_correct_at_tminus5": true,
+          "numerical_failure_at_tminus5": null,
+          "matches": 1
+        }
+      },
+      "protocols": [
+        "kiln-normalized-fx/1",
+        "kiln-dispatch-record-stream/1",
+        "kiln-pattern-autowrap/1"
+      ],
+      "compiler_configuration": {
+        "contraction": "separate",
+        "source_snapshot_sha256": "eb61fe8921b69314ba62decd1f0642f2f78fcb5944f41668797bf77d542d9aec"
+      },
       "limitations": []
     },
     {

@@ -130,3 +130,7 @@ Preserved first genuine original PassBench no-match feedback; published 2357-wor
 ## 2026-10-31
 
 Singleton view binding passes57 FX tests and expands import eligibility to1251/76; froze all seven new families/55 variants. Original50-step run audited:7 no-match evaluations, placeholder reward excluded; exact DGX tracer mismatch confirmed and server stopped (diary144–145).
+
+## 2026-10-31
+
+Completed singleton cohort audit:31 tasks/358 graphs cumulative nominal acceptance,72 exact finite native outputs; retained2 numerical failures and33 unexecuted variants. Reference21 and updated intern overview explain terminal agent and matcher diagnostics (Step146).

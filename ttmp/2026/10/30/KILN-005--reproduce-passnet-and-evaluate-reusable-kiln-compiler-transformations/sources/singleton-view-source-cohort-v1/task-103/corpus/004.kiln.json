@@ -1,0 +1,151 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../singleton-view-source-cohort-v1/task-103/corpus/004.kiln.js",
+  "sha256": "5c86794da6c55a107ccfca5626a47772bcf1d3200fdd50fae68c392d2243d300",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    1,
+    32,
+    32
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    2,
+    16,
+    32,
+    32
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    2,
+    3,
+    32,
+    32
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 2048,
+   "bytes": 4096
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 32768,
+   "bytes": 65536
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 3,
+   "bytes": 12,
+   "name": null,
+   "data": "AAAAAAAAgD8AAAAA"
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 3,
+   "bytes": 12,
+   "name": null,
+   "data": "AAAAAAAAAAAAAIA/"
+  },
+  {
+   "id": 4,
+   "dtype": "bf16",
+   "elements": 6144,
+   "bytes": 12288
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_concat_reshape_ew__dot8hhdtqh",
+   "identity": "dot8hhdtqh",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "writes": 4,
+   "grid": 96,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    96,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    3,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     2,
+     1,
+     32,
+     32
+    ],
+    [
+     2,
+     16,
+     32,
+     32
+    ],
+    [
+     1,
+     3,
+     1,
+     1
+    ],
+    [
+     1,
+     3,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_concat_reshape_ew__dot8hhdtqh(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in2 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, in3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f, in4 = 0.0f, v8 = 0.0f, v9 = 0.0f, v10 = 0.0f, v11 = 0.0f, v12 = 0.0f, v13 = 0.0f, v14 = 0.0f, v15 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 6144)) {\n        in0 = src3[((e / 1024) % 3)];\n        in2 = src2[((e / 1024) % 3)];\n        in1 = __bfloat162float(src1[((((32 * ((e / 32) % 32)) + (e % 32)) + (16384 * (e / 3072))) + 2048)]);\n        v0 = __fmul_rn(in1, 0.45f);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        v2 = __fadd_rn(v1, -0.18799999999999994f);\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        in3 = __bfloat162float(src1[((((32 * ((e / 32) % 32)) + (e % 32)) + (16384 * (e / 3072))) + 1024)]);\n        v4 = __fmul_rn(in3, 0.448f);\n        v5 = __bfloat162float(__float2bfloat16_rn(v4));\n        v6 = __fadd_rn(v5, -0.08799999999999997f);\n        v7 = __bfloat162float(__float2bfloat16_rn(v6));\n        in4 = __bfloat162float(src0[((((1024 * min(max(((e / 1024) % 3), 0), 0)) + (32 * ((e / 32) % 32))) + (e % 32)) + (1024 * (e / 3072)))]);\n        v8 = __fmul_rn(in4, 0.458f);\n        v9 = __bfloat162float(__float2bfloat16_rn(v8));\n        v10 = __fadd_rn(v9, -0.030000000000000027f);\n        v11 = __bfloat162float(__float2bfloat16_rn(v10));\n        v12 = ((in2) > 0.0f ? (v7) : (v11));\n        v13 = __bfloat162float(__float2bfloat16_rn(v12));\n        v14 = ((in0) > 0.0f ? (v3) : (v13));\n        v15 = __bfloat162float(__float2bfloat16_rn(v14));\n        dst[((((1024 * ((e / 1024) % 3)) + (32 * ((e / 32) % 32))) + (e % 32)) + (3072 * (e / 3072)))] = __float2bfloat16_rn(v15);\n    }\n}"
+  }
+ ]
+}

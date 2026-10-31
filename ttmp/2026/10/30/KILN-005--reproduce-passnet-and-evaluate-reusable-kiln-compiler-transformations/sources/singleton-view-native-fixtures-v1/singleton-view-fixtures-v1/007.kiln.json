@@ -1,0 +1,346 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../singleton-view-fixtures-v1/007.kiln.js",
+  "sha256": "da7fe49119a5fc9de731523864e8fc8cbd5608d222754c6a0739f0a2094734c5"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    16,
+    1,
+    257
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    1,
+    16,
+    1,
+    257
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "out1",
+   "buffer": 2,
+   "shape": [
+    16,
+    1,
+    257,
+    1
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "out2",
+   "buffer": 3,
+   "shape": [
+    16,
+    257
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "out3",
+   "buffer": 4,
+   "shape": [
+    16,
+    257
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "out4",
+   "buffer": 5,
+   "shape": [
+    16,
+    1,
+    257
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "out5",
+   "buffer": 6,
+   "shape": [
+    257,
+    1,
+    1,
+    16
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 4112,
+   "bytes": 8224
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 4112,
+   "bytes": 8224
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 4112,
+   "bytes": 8224
+  },
+  {
+   "id": 3,
+   "dtype": "f16",
+   "elements": 4112,
+   "bytes": 8224
+  },
+  {
+   "id": 4,
+   "dtype": "f16",
+   "elements": 4112,
+   "bytes": 8224
+  },
+  {
+   "id": 5,
+   "dtype": "f16",
+   "elements": 4112,
+   "bytes": 8224
+  },
+  {
+   "id": 6,
+   "dtype": "f16",
+   "elements": 4112,
+   "bytes": 8224
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__ma24y6sc6r",
+   "identity": "ma24y6sc6r",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 65,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    16,
+    1,
+    257
+   ],
+   "inShapes": [
+    [
+     16,
+     1,
+     257
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out0__ma24y6sc6r(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4112)) {\n        in0 = __half2float(src0[((e % 257) + (257 * (e / 257)))]);\n        dst[((e % 257) + (257 * (e / 257)))] = __float2half_rn(in0);\n    }\n}"
+  },
+  {
+   "name": "k_out1__1lp3fqsri26",
+   "identity": "1lp3fqsri26",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 2,
+   "grid": 65,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    1,
+    257,
+    1
+   ],
+   "inShapes": [
+    [
+     16,
+     1,
+     257
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out1__1lp3fqsri26(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4112)) {\n        in0 = __half2float(src0[((e % 257) + (257 * (e / 257)))]);\n        dst[((e % 257) + (257 * (e / 257)))] = __float2half_rn(in0);\n    }\n}"
+  },
+  {
+   "name": "k_out2__w2pgf0wv94",
+   "identity": "w2pgf0wv94",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 3,
+   "grid": 65,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    257
+   ],
+   "inShapes": [
+    [
+     16,
+     1,
+     257
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out2__w2pgf0wv94(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4112)) {\n        in0 = __half2float(src0[((e % 257) + (257 * (e / 257)))]);\n        dst[((e % 257) + (257 * (e / 257)))] = __float2half_rn(in0);\n    }\n}"
+  },
+  {
+   "name": "k_out3__w2pgf0wv94",
+   "identity": "w2pgf0wv94",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 4,
+   "grid": 65,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    257
+   ],
+   "inShapes": [
+    [
+     16,
+     1,
+     257
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out3__w2pgf0wv94(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4112)) {\n        in0 = __half2float(src0[((e % 257) + (257 * (e / 257)))]);\n        dst[((e % 257) + (257 * (e / 257)))] = __float2half_rn(in0);\n    }\n}"
+  },
+  {
+   "name": "k_out4__2bw70w8246j",
+   "identity": "2bw70w8246j",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 5,
+   "grid": 65,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    1,
+    257
+   ],
+   "inShapes": [
+    [
+     16,
+     1,
+     257
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out4__2bw70w8246j(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4112)) {\n        in0 = __half2float(src0[((e % 257) + (257 * (e / 257)))]);\n        dst[((e % 257) + (257 * (e / 257)))] = __float2half_rn(in0);\n    }\n}"
+  },
+  {
+   "name": "k_out5__1yp746q07d",
+   "identity": "1yp746q07d",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 6,
+   "grid": 65,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65,
+    1,
+    1
+   ],
+   "shape": [
+    257,
+    1,
+    1,
+    16
+   ],
+   "inShapes": [
+    [
+     16,
+     1,
+     257
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out5__1yp746q07d(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4112)) {\n        in0 = __half2float(src0[((257 * (e % 16)) + (e / 16))]);\n        dst[((e % 16) + (16 * (e / 16)))] = __float2half_rn(in0);\n    }\n}"
+  }
+ ]
+}

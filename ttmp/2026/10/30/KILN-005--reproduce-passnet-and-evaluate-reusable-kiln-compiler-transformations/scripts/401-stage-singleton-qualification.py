@@ -6,7 +6,7 @@ p=Path(__file__).resolve().parents[1];repo=next(d for d in p.parents if (d/'inte
 from evaluate_tasks import snapshot
 s=p/'sources';up=s/'upstream';base='/home/manuel/passnet-kiln/KILN-005';dest='manuel@bling:'+base;ssh=['ssh','-o','HostKeyAlias=bling.local'];rsh='ssh -o HostKeyAlias=bling.local'
 # No shared source mutation while a prior evaluator or serving job is active.
-check="test -z \"$(docker ps -q --filter name=kiln005-qwen-original-server-v1)\" && ! tmux has-session -t passnet-original-agent-smoke-v5 2>/dev/null"
+check="test -z \"$(docker ps -q --filter name=kiln005-qwen-original-server-v1)\" && ! tmux has-session -t passnet-original-agent-smoke-v5 2>/dev/null && ! tmux has-session -t passnet-singleton-qualification-v1 2>/dev/null && ! tmux has-session -t passnet-singleton-qualification-v2 2>/dev/null"
 subprocess.run(ssh+['manuel@bling',check],check=True)
 state=snapshot(repo);revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip()
 for relative,digest in state['files'].items():assert hashlib.sha256(subprocess.check_output(['git','show',revision+':'+relative],cwd=repo)).hexdigest()==digest,'Commit source before qualification: '+relative

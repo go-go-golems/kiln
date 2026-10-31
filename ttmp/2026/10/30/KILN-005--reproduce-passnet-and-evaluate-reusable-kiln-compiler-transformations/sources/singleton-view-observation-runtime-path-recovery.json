@@ -1,0 +1,74 @@
+{
+  "returncode": 0,
+  "stderr": "",
+  "observation": {
+    "session": "passnet-singleton-qualification-v2",
+    "live": true,
+    "pane": "1579375 bash 0",
+    "compile": {
+      "records": 12,
+      "all_passed": true,
+      "output_comparisons": 0,
+      "all_exact": null
+    },
+    "fixtures": {
+      "records": 12,
+      "all_passed": true,
+      "output_comparisons": 72,
+      "all_exact": true
+    },
+    "cohort": {
+      "status": "running",
+      "records": [
+        {
+          "index": 10,
+          "status": "phase_failed",
+          "current_phase": "compile"
+        },
+        {
+          "index": 39,
+          "status": "running",
+          "current_phase": "compile"
+        }
+      ]
+    },
+    "singleton-view-qualification-v2.log": [
+      "PASS:12 fixture programs/72 exact finite output comparisons",
+      "START 10 export",
+      "DONE 10 export 0",
+      "START 10 compile",
+      "DONE 10 compile 1",
+      "START 39 export",
+      "DONE 39 export 0",
+      "START 39 compile"
+    ],
+    "singleton-view-fixture-compile-v1.log": [
+      "004.kiln.js 0",
+      "005.kiln.js 0",
+      "006.kiln.js 0",
+      "007.kiln.js 0",
+      "008.kiln.js 0",
+      "009.kiln.js 0",
+      "010.kiln.js 0",
+      "011.kiln.js 0"
+    ],
+    "singleton-view-fixture-cuda-v1.log": [
+      "Traceback (most recent call last):",
+      "  File \"/work/kiln/integrations/passnet/check_corpus_cuda.py\", line 10, in <module>",
+      "    from runtime import TorchProgram",
+      "  File \"/work/kiln/integrations/passnet/runtime.py\", line 3, in <module>",
+      "    from kiln_launch import load, open_program",
+      "ModuleNotFoundError: No module named 'kiln_launch'"
+    ],
+    "singleton-view-fixture-cuda-v2.log": [
+      "4 PASS graphs/scalar-float16",
+      "5 PASS graphs/single-float16",
+      "6 PASS graphs/interior-float16",
+      "7 PASS graphs/tail-float16",
+      "8 PASS graphs/scalar-bfloat16",
+      "9 PASS graphs/single-bfloat16",
+      "10 PASS graphs/interior-bfloat16",
+      "11 PASS graphs/tail-bfloat16"
+    ]
+  }
+}

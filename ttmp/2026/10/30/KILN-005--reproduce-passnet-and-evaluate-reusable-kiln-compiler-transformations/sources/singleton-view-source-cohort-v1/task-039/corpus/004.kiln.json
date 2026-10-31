@@ -1,0 +1,119 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/3",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../singleton-view-source-cohort-v1/task-039/corpus/004.kiln.js",
+  "sha256": "4911758c0e1eb9064b78d7c0283ef6101aaafa750692e7d56132027fb085d6fc",
+  "contraction": "separate"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    24,
+    64,
+    64,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    24,
+    64,
+    64,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    24,
+    1,
+    64,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 6291456,
+   "bytes": 25165824
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 6291456,
+   "bytes": 25165824
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 98304,
+   "bytes": 393216
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_cast_reduce_reduce__h0um4gnwhw",
+   "identity": "h0um4gnwhw",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 1536,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    1536,
+    1,
+    1
+   ],
+   "shape": [
+    24,
+    1,
+    64,
+    64
+   ],
+   "inShapes": [
+    [
+     24,
+     64,
+     64,
+     64
+    ],
+    [
+     24,
+     64,
+     64,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_ew_cast_reduce_reduce__h0um4gnwhw(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc0 = 0.0f, in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 98304)) {\n        acc0 = 0.0f;\n        for (int r0 = 0; r0 < 64; r0 += 1) {\n            in0 = src0[((((64 * ((e / 64) % 64)) + (e % 64)) + (262144 * (e / 4096))) + (4096 * r0))];\n            in1 = src1[((((64 * ((e / 64) % 64)) + (e % 64)) + (262144 * (e / 4096))) + (4096 * r0))];\n            v0 = __fmul_rn(in0, in1);\n            v1 = v0;\n            acc0 = (acc0 + v1);\n        }\n        v2 = acc0;\n        v3 = v2;\n        v4 = (1.0f / (1.0f + expf(-(v3))));\n        v5 = v4;\n        dst[(((64 * ((e / 64) % 64)) + (e % 64)) + (4096 * (e / 4096)))] = v5;\n    }\n}"
+  }
+ ]
+}

@@ -6755,3 +6755,70 @@ See Steps140–143 and the original reproduction/self-optimization objective. Th
 ### Technical details
 - Model artifact remains available under remote sources; the server process is stopped rather than deleting weights or changing the original experimental inputs.
 - The first-feedback vault article remains historically accurate. A later milestone report should include the terminal audit and exact-runtime diagnosis.
+
+## Step 146: Qualify the full singleton cohort and audit its exact failure accounting
+
+The committed source checkpoint a040057 is qualified through independent CUDA views and the complete frozen seven-family population. Four families and20 individual graphs pass nominal acceptance; two evaluated graphs fail numerically and33 variants remain unexecuted after their family stops at an export check. The cumulative ledger reaches31 complete tasks/358 individual graphs, with289 in complete tasks. Import eligibility remains1251/76, not execution support.
+
+The original50-step reference run and exact-runtime matching diagnosis are now incorporated into reference21. The report explains the real penalty score versus placeholder reward and keeps the reference protocol separate from the modified Kiln integration. Publication follows after this complete report/evidence checkpoint is committed.
+
+### Prompt Context
+See the standing request for complete implementation/measurement, detailed diaries, provenance and milestone textbook-style vault reports. Step145 records the terminal original-agent audit. Runtime metadata is continuation context rather than a new authored user request.
+**Assistant interpretation:** Finish complete-family qualification, retain all failures and publish a coherent current-state account instead of promoting import success to accepted support.
+**Inferred user intent:** Advance the full200-task goal with reproducible compiler evidence and a trustworthy original-agent comparison.
+**Commit (compiler):** a0400576e1eafd20ce018db903e6e0639a92ee62 — source singleton views and terminal reference audit.
+
+### What I did
+- Scripts400–403 export12 independent fixture models, stage exact committed source and every declared family/variant, then launch one named qualification job.
+- Observed terminal first-launch import failure, preserved its log and diagnosed the missing kiln_launch module path. Scripts406–407 reuse the compiled artifacts with the documented explicit runtime path.
+- All12 native programs pass72 finite output comparisons with zero error before the complete55-variant corpus run starts.
+- Collected only after run.json is terminal and its tmux session is missing; final source bytes match the staged committed snapshot.
+- Reused summarize_task_run.py for nominal matching/numerical accounting; script411 verifies165 source files,24 compilation attempts,23 artifacts, all graph membership and scorer/log identities.
+- Added this terminal cohort to the existing ordered coverage builder, preserving prior coverage as coverage-before-singleton-views.json.
+- Consolidated the current guide/roadmap overview, labeled historical checkpoint sections, updated the actual fusion factory signature and wrote detailed reference21.
+- Generalized the existing vault publisher into script387-publish-vault-report.py, requiring a committed source report and staging only one intended note rather than adding another hardcoded publisher.
+
+### Why
+- Independent singleton-copy correctness does not establish arithmetic correctness in every larger composition, and compilation success alone is not original evaluator acceptance.
+- Complete-family accounting must include unexecuted variants after a gate failure. Selecting only passing shapes would change the task.
+- Current guide statements had fallen behind appended history; one authoritative current overview avoids contradictory progress counts for a new intern.
+
+### What worked
+- All57 FX tests and all72 finite native output comparisons pass. Four complete families contain16 graphs; four additional accepted graphs belong to two incomplete families.
+- Full cohort:55 variants =20 nominally accepted +2 evaluated numerical rejections +33 unexecuted. Complete accepted tasks are indices39,103,138,190.
+- Cumulative ledger:31/200 complete tasks,358/2060 individual graphs,289 graphs inside complete tasks. No import regressions;1251/76 remains a distinct eligibility metric.
+- Exact runtime diagnostics verify the original pattern-tracer asymmetry on CPU/CUDA and original/small shapes. The original reward stub and all seven no-match evaluations remain visible.
+- Both old and final remote source snapshots match165 committed files; native fixture source hashes are checked against actual committed generated scripts.
+
+### What didn't work
+- First fixture launch fails before native execution: ModuleNotFoundError: No module named 'kiln_launch'. This repeats a known launcher-path requirement; the diagnosed recovery supplies PYTHONPATH explicitly and succeeds. No compiler source or tolerance changes are used to recover it.
+- Task10's FP16 S-ViPNAS-Res50 variant fails with ': end-to-end check FAILED'. One earlier artifact exists, but none of the33 family variants receives original evaluation. Their cause remains unresolved.
+- Task88 has one FP32 original numerical failure at-5/-4, passing-3; task95 has one FP16 failure at-5, passing-4. Each executes one replacement, so they are numerical rather than matching failures. They remain rejected at nominal-5.
+- First final-verifier attempt raises KeyError: 'source_sha256' for an independent fixture manifest. That field belongs to generated task manifests; the corrected verifier binds each actual fixture script to its committed bytes and artifact hash instead of assuming the wrong schema.
+
+### What I learned
+- The first33-variant family dominates unexecuted accounting. Its first successful compile cannot be counted as an accepted graph without original replay.
+- The retained agent best snapshot is from strict score improvement; all seven scores tie, preserving the initial empty kernel. It does not establish that all later edits were identical.
+- The131072 token limit is a run budget, not an outgoing request max_tokens parameter. Paper-version matcher source inspection does not prove complete paper-runtime behavior.
+
+### What was tricky to build
+- Three separate populations require explicit identities: independent native fixtures, full newly complete families, and the shipped original-agent smoke. They validate different properties and must not share misleading success counts.
+- The source checkpoint remains unchanged during measurement, while versioned launch recovery and post-run audit code are retained separately. Staging guards now also reject overwriting sources during named qualification sessions.
+
+### What warrants a second pair of eyes
+- Review task10's protected export failure and both strict numerical rejection curves before designing a precision repair.
+- Confirm that all55 graph identities remain in the accounting and that graph counts inside complete tasks increase by16 rather than20.
+
+### What should be done in the future
+- Resolve33 unexecuted variants and the two strict numerical failures; taskpis5 remains open because all seven families are not qualified.
+- Confirm paper-version reference matching and declare any repair separately, then expand original-agent evaluation and reusable compiler synthesis.
+- Consolidate native validation startup in the shared CLI after this measurement checkpoint to prevent repeated import-path launcher mistakes.
+- Publish reference21 append-only to the vault and verify its committed/remote bytes. Updated reMarkable delivery remains pending the earlier explicit approval request.
+
+### Code review instructions
+- Start with singleton-view-source-cohort-v1-verified-facts.json, coverage-before-singleton-views.json, current kiln-coverage.json and reference21.
+- Inspect scripts400–411, source staging/final verification, independent native artifacts, original scorer receipts and preserved failed compile log.
+
+### Technical details
+- Both named qualification sessions are terminal; the model server is stopped. No replacement live job is inferred from a state file alone.
+- This is cumulative modified-protocol support evidence, not a uniform release run, successful original-agent kernel or fresh compiler-policy speedup claim. The full objective remains active.
