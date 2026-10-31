@@ -6412,3 +6412,56 @@ See Steps136–138 and earlier authored requests to maintain the detailed diary,
 ### Technical details
 - Worktree research/passnet; runtime endpoint manuel@bling with HostKeyAlias=bling.local; supplied IP192.168.0.65 remains available.
 - Both GELU GPU jobs are terminal according to collected complete run receipts; no restarted or duplicate workload is claimed.
+
+## Step 140: Pin original-agent dependencies, checkpoint and complete evaluation membership
+
+The next phase targets the original PassAgent rather than another importer increment. Complete public llama.cpp and R2E-Gym source archives are pinned and downloaded, and the original Qwen3-30B-A3B checkpoint is frozen before any model-dependent feedback. The planned unquantized BF16 conversion avoids introducing quantization or a smaller model into the initial agent comparison.
+
+A concrete dataset assumption is corrected: the shipped passbench_demo_dataset_200.jsonl contains200 graph records, one per task, whereas the official evaluation list contains2060 graphs over200 tasks. Directory-name overlap is zero. A derived original-runner dataset preserves the complete official membership in original order, without filtering by Kiln capability.
+
+### Prompt Context
+See earlier authored requests to reproduce PassNet, implement/measure the complete system, preserve sources/scripts and maintain detailed diaries. The user supplied manuel@bling and192.168.0.65 in Step136.
+**Assistant interpretation:** Provision an explicit public local model endpoint and original framework runtime instead of leaving the agent path indefinitely waiting for a commercial provider.
+**Inferred user intent:** Reach actual agent-driven optimization and a credible reference comparison while keeping the full benchmark denominator intact.
+
+### What I did
+- Script338 pins llama.cpp0ec4027a and R2E-Gym0d94c4eb and archives their primary server/build/tool-call documentation.
+- Script339 downloads complete source tar archives and records SHA256; script340 extracts critical build/runtime/framework files with parent archive provenance.
+- Script341 freezes original Qwen checkpointad44e777, all required files and the complete200-task/2060-graph agent manifest.
+- Prepared source-verified CUDA server build and bounded/resumable hash-checked checkpoint acquisition drivers; both preserve explicit status receipts and do not overwrite prior jobs.
+- Documented design18, original source identities, precision/context limits, membership distinction and the remaining trajectory gates.
+
+### Why
+- A smaller or quantized model would add another cause of differences before the original agent framework is exercised.
+- The shipping filename containing200 does not prove equivalent benchmark membership. Counts and graph-list bytes must be checked.
+- Public local inference avoids dependence on a missing commercial credential while using the authorized DGX.
+
+### What worked
+- Both complete source archives and all selected primary documents download successfully and are hashed.
+- Original safetensors weights total61066575648 bytes; the complete planned download is61084185821 bytes.
+- Exactly200 official task rows and2060 graph records are frozen; shipping demo has200 tasks/200 graphs.
+- Existing container provides CUDA13.2.78 and CMake3.31.6; host reports about126.3GB available physical memory and3.4TB free storage at the inspected checkpoint.
+
+### What didn't work
+- The HF API could not be opened through the web tool; direct public HTTPS acquisition succeeds and its raw metadata is archived.
+- Original PassAgent is not yet executed; successful source acquisition is not a working provider or trajectory.
+- Serving arithmetic/context, unquantized conversion, dependency compatibility and actual original-tool execution remain unverified.
+
+### What I learned
+- Two different200-task artifacts have different graph cardinalities; using the shipped demo JSONL as the official2060-variant evaluation would silently narrow the experiment.
+
+### What was tricky to build
+- The model checkpoint, tokenizer/template, serving source, R2E framework and task membership are distinct inputs. Each needs an independent identity before outcomes can be attributed.
+
+### What warrants a second pair of eyes
+- Review BF16 conversion versus parameter identity, tool-call schema behavior, fresh pass workspaces and shared-GPU timing isolation before interpreting an agent score.
+
+### What should be done in the future
+- Launch and observe one pinned build and download job, then validate conversion/API/dependencies and original evaluator setup before trajectories.
+- Keep every official task and all failures visible; do not count original-agent outcomes as additional Kiln support.
+
+### Code review instructions
+- Start with design18, model-download-plan.json, evaluation-membership.json and the pinned archive receipts. Scripts338–344 preserve acquisition and intended execution.
+
+### Technical details
+- Full goal stays active. No model inference, agent trajectory, new accepted task or whole-goal completion is claimed at this preparation checkpoint.
