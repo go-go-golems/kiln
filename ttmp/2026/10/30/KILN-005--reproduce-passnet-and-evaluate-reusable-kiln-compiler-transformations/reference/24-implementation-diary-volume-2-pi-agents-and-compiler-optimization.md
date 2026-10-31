@@ -167,3 +167,51 @@ See Step 159 for the user's Pi integration request.
 ### Technical details
 - A failure sets closed and retains the error for all later observation/execution attempts.
 - This is tool-side protection only. It does not yet stop provider network requests or qualify an end-to-end Pi experiment.
+
+## Step 163: Add an inference admission gate outside extension hooks
+
+Located the actual nested pi-agent-core dependency and confirmed that Agent exposes streamFunction. Added a request gate intended for that boundary. It reserves completion allowance before dispatch, enforces model identity and request count, and passes maxRetries zero to the provider. This is a tested component, not yet a verified live SDK integration.
+
+### Prompt Context
+See Step 159 for the authored Pi/LunaRoute request.
+**Assistant interpretation:** Establish enforceable inference limits independently of swallowed extension exceptions.
+**Inferred user intent:** Bounded, reproducible agent experiments.
+**Previous commit:** d8f2048 — Stop policy tool execution after swallowed accounting failures.
+
+### What I did
+- Discovered nested pi-agent-core/dist/agent.js and agent.d.ts using rg --files.
+- Inspected pi-ai/dist/api/openai-completions.js: the OpenAI client uses maxRetries zero, while the outer retryProviderRequest receives options.maxRetries.
+- Implemented createRequestGate with explicit provider/model identity, request count and conservative completion reservation.
+- Tested model mismatch, token cap override, retry override, exhaustion, closed state and failed dispatch without refund.
+
+### Why
+- The stream entry point is outside extension-hook exception suppression.
+- Reserving the full allowed output before dispatch avoids relying on missing usage receipts after provider failures. This differs from charging only observed completion tokens and must be declared in the next protocol.
+
+### What worked
+- Both focused Node test files passed, containing four cases in total.
+- The fake provider received allowances of ten and five tokens under a fifteen-token budget; a third dispatch was rejected.
+
+### What didn't work
+- No new failure occurred. Actual LunaRoute payload enforcement and SDK installation remain unverified.
+
+### What I learned
+- There are two retry layers in the installed OpenAI-compatible implementation. The explicit stream option controls the outer retry helper.
+
+### What was tricky to build
+- Requests that fail after admission must retain their reservations; otherwise repeated failures could evade the declared allowance.
+
+### What warrants a second pair of eyes
+- Verify that the selected LunaRoute route uses the inspected provider implementation and that extensions cannot raise the final payload token cap.
+- Keep actual usage separate from reserved allowance in reports.
+
+### What should be done in the future
+- Install the gate on the session agent, connect the RPC owner and native tools, inspect actual payloads, and run the bounded policy experiment.
+
+### Code review instructions
+- Read pi_request_gate.mjs and run Node 26 --test on pi_request_gate.test.mjs and pi_policy_tools.test.mjs.
+
+### Technical details
+- The gate forwards existing options but overrides maxTokens and maxRetries.
+- Failure recording is conservative: reservations occur before recording or provider dispatch, with no automatic refund.
+- No new optimization, benchmark coverage or end-to-end agent result is claimed.
