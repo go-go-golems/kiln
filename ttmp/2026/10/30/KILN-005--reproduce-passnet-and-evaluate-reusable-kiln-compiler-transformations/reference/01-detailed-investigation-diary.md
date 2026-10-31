@@ -1622,3 +1622,45 @@ Original all-variant correctness/scoring requirement and intermediate script pre
 
 ### Technical details
 - Six variants, four FP16/one FP32/one BF16; fixed compatible [1000,128] activation and [128] channel vectors.
+
+## Step 39: Inspect complete-task failure and isolate rerun
+
+Corrected full-task run matched every graph; five passed and BF16 failed evaluator timing-stability checking with Environment fluctuation detected. Preserved the failure instead of claiming complete task correctness. Identified our own reference container by exact command and launched isolated rerun with automatic unpause on exit.
+
+### Prompt Context
+Original controlled measurement and full-task evidence requirements.
+**Assistant interpretation:** Preserve stability failures and remove known workload interference.
+**Inferred user intent:** Trustworthy all-variant validation.
+
+### What I did
+- Archived sources/first-task-v2.log; added original scoring driver script 19.
+- Identified container 2481540b02eb as the exact reference-full runner via docker inspect.
+- Saved script 20, which checks command identity, pauses only that container, runs six variants and resumes in EXIT trap.
+- Launched tmux passnet-first-isolated.
+
+### Why
+- Existing overlapping exploratory runs cannot establish stable final timing results.
+
+### What worked
+- Six matches observed, five success statuses. Baseline reached 39 tasks before isolated rerun.
+
+### What didn't work
+- BF16 variant: RuntimeError Environment fluctuation detected; evaluator status failed. No complete-task success/score claim.
+
+### What I learned
+- Numerical smoke success does not override evaluator stability rejection.
+
+### What was tricky to build
+- Pause ownership checked against exact container command and automatic resume protects ongoing baseline work. The paused baseline task may have interrupted timing; baseline remains exploratory and requires isolated rerun.
+
+### What warrants a second pair of eyes
+- Pausing known workloads does not prove exclusive GPU access; nvidia-smi state is logged. Desktop GPU processes can remain.
+
+### What should be done in the future
+- Observe isolated run, verify automatic baseline resume, score only after complete results and preserve all attempts.
+
+### Code review instructions
+- Inspect scripts 19/20 and archived first-task-v2.log.
+
+### Technical details
+- Original evaluator stability checks retained unchanged under declared normalized/metadata integration protocol.
