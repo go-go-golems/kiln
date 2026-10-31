@@ -2710,3 +2710,51 @@ Inspect scripts604–606 and their JSON outputs, task195/corpus/000.kiln.js, app
 
 ### Technical details
 The internal compiler check compares frontend and last evaluable IR with rtol1e-3,atol1e-4; original PassBench uses its separate t=-5 curve. Neither check was changed in this step.
+
+## Step 214: Compare task195 against the original PassBench acceptance gate
+
+The preceding stage trace showed a three-element BF16 disagreement between Kiln's frontend and loop evaluators, after a small FP32 reduction difference. I ran the unchanged task195 source and generated pass through the original PassBench matcher and numerical evaluator, using only Kiln's supported `--no-check` export option to get past that internal gate. PassBench selected the replacement and reported success with zero measured output difference and a score of1.07568. This establishes a false internal rejection for this one task relative to the external benchmark, without changing the normal coverage ledger.
+
+### Prompt Context
+The user's standing request is to implement and measure the PassNet–Kiln integration, keep intermediate scripts and a detailed diary, and continue toward reusable compiler optimization (see prior entries).
+**Assistant interpretation:** Test whether the task195 internal reference failure predicts original PassBench failure.
+**Inferred user intent:** Gain valid benchmark coverage while preserving the published evaluator's matching and correctness requirements.
+
+### What I did
+- Read `evaluate_tasks.py`, `corpus.py`, `run_task.py`, the original task195 manifest, generated pass, and compiler receipt. The original command used target A100 and `--contraction separate`.
+- Wrote `scripts/607-task195-no-check-passbench.sh`. It copies the task into an isolated remote directory, archives source hashes, compiles with the original settings plus `--no-check`, then runs the original PassBench evaluator and scorer in the pinned image with20 warmups and100 trials.
+- Started the GPU run under tmux session `kiln-task195-diag` on `manuel@bling`. Streamed the output into `sources/task195-no-check-diagnostic-v1/` and wrote `reference/30-task195-internal-reference-versus-passbench-diagnostic.md`.
+- Confirmed that the copied Kiln source SHA256 matches the previously failed source: `4b17acb2d800e83840dcb0d5a5e4a241a7b083f29b9e9661fcc0a0e47e60b6e1`.
+
+### Why
+An internal frontend-versus-loop evaluator disagreement is a different observation from a GPU-versus-PyTorch failure on PassBench inputs. The external comparison determines benchmark acceptance; the internal check remains useful as a diagnostic, but its false rejection rate must be measured.
+
+### What worked
+- The original matcher wrote `True` and PassBench logged `[Result] status: success` for the complete one-graph task.
+- The t=-5 correctness line was `1 1`, and PassBench reported `max_diff: 0.0 0.0`.
+- The original score command, with negative-speedup penalty0, returned `1.07568`; median end-to-end latency was0.142336 ms eager versus0.132322 ms compiled, and GPU speedup was1.08171.
+- The diagnostic files include the compiled program, pass, manifest, logs, score receipt, and source hashes. The normal coverage ledger remains53/200 tasks and505/2060 graphs.
+
+### What didn't work
+- A recursive `scp` transfer progressed slowly through individual files and was interrupted; a single compressed `tar` stream transferred the complete evidence.
+- The ordinary Kiln internal check still fails on this task. This experiment intentionally bypassed it and therefore is not counted in the normal qualification cohort.
+
+### What I learned
+Task195 is a concrete false rejection by the internal synthetic-input reference check relative to the original PassBench benchmark input. The external GPU output can pass exactly while the loop interpreter disagrees with Kiln's frontend on three BF16 reference values.
+
+### What was tricky to build
+The generated pass embeds `/work/results/task-195/corpus`. Mounting the isolated diagnostic root at `/work` preserved that path without editing the pass; mounting Kiln and upstream separately read-only preserved the original evaluator code. The diagnostic script kept the failed original compile receipt under a distinct filename so it cannot be confused with the bypassed export.
+
+### What warrants a second pair of eyes
+Review the difference between synthetic Kiln inputs and PassBench benchmark inputs before revising the internal gate. One accepted graph cannot justify a global low-precision tolerance change.
+
+### What should be done in the future
+- Replay the other seven blocked families through the same isolated original evaluator, explicitly recording any `--no-check` export.
+- If external acceptance recurs, design a receipt-bearing qualification mode and verify that deliberately wrong low-precision programs still fail.
+- Continue investigating reduction order and BF16 rounding separately from external benchmark coverage.
+
+### Code review instructions
+Read script607, reference30, `sources/task195-no-check-diagnostic-v1/benchmark.log`, `benchmark.matches.txt`, `score.receipt.json`, and the original task195 compile receipt. Compare the task source SHA256 and compiler flags.
+
+### Technical details
+Only the export-time internal check was disabled. The original PassBench matching, numerical checks, reverse-order behavior, and scoring code were unchanged. The measured score is diagnostic evidence, not a silently added normal-coverage result.
