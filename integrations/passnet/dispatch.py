@@ -14,6 +14,12 @@ def freeze_constants(values):
     return tuple((type(v).__name__,v) for v in values)
 
 
+def count_outputs(structure):
+    if 'output' in structure or 'input_alias' in structure: return 1
+    kind, children = next(iter(structure.items()))
+    return sum(count_outputs(child) for child in (children.values() if kind == 'dict' else children))
+
+
 def restore_outputs(structure, outputs, inputs):
     if 'output' in structure:
         return outputs[structure['output']]
@@ -38,13 +44,21 @@ class CorpusDispatch:
             key=(descriptor,freeze_constants(record.get('specialization',[])))
             source=(directory/record['script']).read_bytes()
             if key in plans:
+                # The same rule identity and input metadata denote the same computation
+                # (generate_pass classes patterns modulo output order), so equivalent
+                # variants may differ only in output naming. Keep the first program.
                 old=plans[key]
-                if source!=old['source'] or record['output_structure']!=old['structure'] or record['input_mutations']!=old['mutations']:
+                same_class='output_permutation' in record and old['classed']
+                if same_class:
+                    conflict=len(record['input_mutations'])!=len(old['mutations']) or count_outputs(record['output_structure'])!=count_outputs(old['structure'])
+                else:
+                    conflict=source!=old['source'] or record['output_structure']!=old['structure'] or record['input_mutations']!=old['mutations']
+                if conflict:
                     raise ValueError('Conflicting programs share a dispatch key')
             else:
                 plans[key]={'artifact':(directory/record['script']).with_suffix('.json'),
                             'source':source,'structure':record['output_structure'],
-                            'mutations':record['input_mutations']}
+                            'mutations':record['input_mutations'],'classed':'output_permutation' in record}
         if program_factory is None:
             from runtime import TorchProgram
             program_factory=TorchProgram
