@@ -247,3 +247,44 @@ See Steps 1–3 for original scope and source provenance instructions.
 
 ### Technical details
 - Full evaluation compares each compiled graph to eager within the original evaluator, preserving its checks. Hardware/software deviations remain as documented in Step 3.
+
+## Step 6: Implement the first FX serialization boundary
+
+Added integrations/passnet/fx_export.py, an independent implementation using PyTorch FX metadata propagation and node APIs. It preserves argument/container structure and exact ATen overloads, and rejects unsupported captured constants rather than silently dropping them. This is the first integration component; it does not yet compile graphs through Kiln.
+
+### Prompt Context
+See Step 3 for source/port provenance requirements.
+**Assistant interpretation:** Establish an explicit graph representation before importer implementation.
+**Inferred user intent:** Preserve semantics and make compiler extensions reviewable.
+
+### What I did
+- Added kiln-fx/1 export with node identities, targets, args/kwargs, shape/dtype/stride metadata and nested output structure.
+- Added CPU tests for broadcasting metadata, nested tuple/dict outputs and explicit get_attr rejection.
+- Verified reference-full live with first task receipt progress; materializer processed first shard, 147,701 records and zero duplicates at observation.
+
+### Why
+- A typed boundary prevents implicit guesses about FX overloads and tensor layout.
+
+### What worked
+- Local PyTorch 2.11.0+cu130 is available for CPU FX validation; no installation required.
+
+### What didn't work
+- No new failure diagnostics at authoring time. Full graph import, constants and CUDA execution are still pending.
+
+### What I learned
+- ShapeProp executes graph code; use only trusted graphs in the evaluation environment.
+
+### What was tricky to build
+- Namedtuple tensor metadata must be recognized before generic tuple handling. Output containers and node references use explicit tags to avoid ambiguity.
+
+### What warrants a second pair of eyes
+- Stable target names and unsupported metadata/value classes must remain explicit as corpus coverage expands.
+
+### What should be done in the future
+- Add constants and real graph export, implement Kiln importer, and verify the same numerical semantics end to end.
+
+### Code review instructions
+- Run python3 -m unittest discover -s integrations/passnet -p 'test_*.py'.
+
+### Technical details
+- Source provenance: public PyTorch FX Node/GraphModule/ShapeProp APIs, local runtime 2.11.0+cu130. No upstream source copied or adapted. ATen OpOverload uses its qualified string name.
