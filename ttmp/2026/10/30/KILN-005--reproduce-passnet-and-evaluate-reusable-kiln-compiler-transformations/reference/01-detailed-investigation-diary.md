@@ -5928,3 +5928,52 @@ See Steps 128–129, task p4wv, and the user's authored requests to progress thr
 
 ### Technical details
 - Candidate fed37d1 is fixed before this data. Current original acceptance remains 24 tasks/313 graphs; import eligibility remains 1,136/64. The overall goal is active.
+
+## Step 131: Preserve an incomplete confirmation scan and broaden its metadata envelope before compilation
+
+The first declaration's source scan exhausts all 4,476 training tasks but finds only nine reduction families alongside the required ten matrix families. The attempt remains failed at 19/20. No selected confirmation graph has been compiled or timed. A second declaration broadens only the static memory envelope, retaining the twenty-family quota, fixed compiler pair and all numerical/timing rules.
+
+The new execution code reuses the existing compiler pipeline and timing sampler. It introduces a fixed-compiler qualification/summary contract rather than fabricating training or default-policy controls. Critical summary checks preserve every failure and disable aggregate speedup whenever the complete declared population does not qualify.
+
+### Prompt Context
+See Step 130, task p4wv and the user's request to implement and measure the full goal without losing failed attempts or fragmenting the architecture.
+**Assistant interpretation:** Fulfill the declared twenty-family experiment through an explicitly broader source population instead of silently accepting nineteen or filtering failures.
+**Inferred user intent:** Obtain defensible fresh-family evidence with reproducible exclusions and failure accounting.
+
+### What I did
+- Preserved reshape-confirmation-v1 at 4,476 tasks scanned, ten matrix/nine reduction families selected and `ValueError: Selection incomplete; preserve partial audit`.
+- Script 287 declares v2 with input limit 8M, per-tensor limit 32M and total tensor limit 128M. Quotas, matrix-work cap, compiler source pins and execution budgets are unchanged.
+- Documented that metadata-only v1 choices may appear in v2; they are not independent confirmations or previously timed examples.
+- Added compiler_confirmation.py for frozen declaration/source/dependency validation, isolated compiler builds and a complete fixed-pair summary.
+- Added measure_compiler_confirmation.py, sharing the existing CUDA launcher, source checker, original input construction and timing sampler.
+- Added tests for exact aliases, incomplete membership/repeat budgets and failure categories disabling aggregation.
+
+### Why
+- There is no complete corpus under the first envelope. Reducing the required population after seeing availability would obscure the declared gate.
+- Baseline/candidate compilation must remain isolated, with complete production snapshots and identical parser bytes; source-version comparison is distinct from profitability-policy selection.
+
+### What worked
+- Three fixed-comparison summary regressions pass. They cover alias identity, all five failure classes, reference errors, missing graphs and missing repeats.
+- The candidate remains fed37d1. No compiler production code changes during confirmation setup.
+
+### What didn't work
+- The initial source scan fails its full quota despite scanning the complete list. Unsupported first blockers include in-place ReLU, adaptive average pooling and non-floating inputs; the full audit is retained.
+- No confirmation generalization or latency improvement has yet been established.
+
+### What I learned
+- Exact-model exclusions can exhaust a bounded reduction population even when matrix quotas fill. A metadata-only population amendment remains distinguishable from post-performance selection.
+
+### What was tricky to build
+- Fixed-source comparison needs exact executable alias checks but no fictitious trained winner. Both builds preserve the unchanged fusion policy while the pinned compiler version supplies the difference.
+
+### What warrants a second pair of eyes
+- Review v1 failure, v2 bounds, unchanged protocol fields, metadata retry scope and all failure-to-aggregate rules before selecting or compiling v2.
+
+### What should be done in the future
+- Commit v2 and the execution code before scanning the broader population. Validate the isolated control/toolchain with independent synthetic fixtures, then freeze execution hashes before compiling or timing confirmation sources.
+
+### Code review instructions
+- Read design 16, scripts 287/288, both declarations and the preserved v1 audit. Review new fixed-comparison code and its summary regressions without interpreting setup as confirmation success.
+
+### Technical details
+- Overall original coverage stays 24 tasks/313 graphs and import eligibility 1,136/64. Original PassAgent, native precision compatibility and the remaining full goal stay open.

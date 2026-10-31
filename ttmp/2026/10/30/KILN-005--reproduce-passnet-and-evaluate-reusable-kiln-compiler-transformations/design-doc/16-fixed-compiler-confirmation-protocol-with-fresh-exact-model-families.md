@@ -53,3 +53,13 @@ Every selected graph remains in the result. Compile, source-reference, correctne
 6. Audit complete membership, source/measurement hashes and all failure records before interpreting a generalization result.
 
 The full reproduction, source/dtype/layout coverage, original PassAgent and updated device-document delivery remain separate active requirements. Completing this confirmation does not complete the overall goal.
+
+## Initial metadata failure and explicitly broader second declaration
+
+The first scan reaches all 4,476 training tasks and selects ten matrix families but only nine reduction families. It remains failed at 19/20 with its audit and generated sources preserved. No confirmation source is compiled or timed before this result.
+
+The second declaration keeps the same quotas, salt, exclusion inventory, compiler pair and numerical/timing/failure rules. It increases the memory envelope to eight million total input elements, 32 million elements per tensor and 128 million total tensor elements. The matrix product ceiling stays 64 million. This broadens the eligible population rather than lowering the quota to nineteen.
+
+The second attempt may reuse metadata-only choices from the first attempt; those are not independent additional confirmations. All official evaluation models and previous policy-study selections remain excluded. The fixed rewrite is unchanged and no artifact or timing feedback informs this amendment.
+
+The confirmation harness reuses compile_policy.mjs with unchanged fusion configuration in each pinned compiler, and measure_policy.sample for timing. Its fixed-source qualification and all-heldout summary are independent of policy-search training-selection receipts. Critical regression tests verify exact alias handling, missing members/repeats and the rule that every compile/reference/correctness/timing failure disables aggregate speedup reporting.
