@@ -2160,3 +2160,49 @@ Review std/pooling.js, layout.js, tensor.js, fns.js, emit.js and fx_import.py wi
 
 ### Technical details
 PyTorch v2.9.1 max-pooling source is archived under max-pooling-semantics-v1; other corpus census and implementation notes are in ticket sources. All Kiln lowerings are independent implementations. The acceptance ledger aggregates exact original replay evidence across compiler snapshots and is not a uniform 200-task run.
+
+## Step 202: Audit the parallel import batch and execute max pooling on CUDA
+
+The broad import pass translated158/201 previously blocked graphs, and16/24 touched task families are fully importable. This is eligibility evidence, not accepted PassBench coverage. Native GPU comparison passed78/78 compiled max-pooling fixtures against PyTorch. All16 importable families,158 graphs total, are frozen for original-evaluator replay.
+
+### Prompt Context
+The user requested broader operator batches and parallel work. The current branch was pushed for independent research before this continuation.
+**Assistant interpretation:** Measure the batch as one corpus unit and one CUDA fixture cohort, then select complete task families for benchmark replay.
+**Inferred user intent:** Move coverage forward quickly while keeping every second blocker visible.
+
+### What I did
+- Script570 reimported every historical first failure targeted by the batch. Script571 checked all graph_list members in the24 affected task families.
+- Script541 exported78 max-pool programs; scripts572–575 ran them on the authorized GB10 in the pinned CUDA image and collected exact per-case comparisons.
+- Script576 froze all16 fully importable families with task indices, graph counts and graph-list hashes.
+
+### Why
+Historical first failures can hide subsequent unsupported operations. Reimporting complete family membership prevents inflating coverage with successful isolated graphs. Native CUDA fixtures test max-pool lowering beyond JavaScript reference and SIMT evaluation.
+
+### What worked
+-158/201 previously blocked graphs import. All graph lists in the24 touched families contain exactly201 graphs;16 families,158 graphs, are wholly importable.
+-78/78 compiled max-pool fixtures pass native PyTorch CUDA comparison at exact tolerance, across FP32/FP16/BF16 and the tested NaN/infinity cases. The run used NVIDIA GB10 and Torch2.12.0a0+5aff3928d8.nv26.05.
+
+### What didn't work
+-43 graphs still fail import:10 in-place hardtanh ownership,13 rsqrt,9 encoded device arguments,6 expand,3 unfold and2 tanh. The new ports exposed those second blockers; they were not silently filtered from the audit.
+- The16 families have not yet been run through full PassBench; recorded accepted coverage stays39/200 tasks and404/2060 graphs.
+
+### What I learned
+A single family-level census gives a precise next benchmark cohort. The max-pool edge cases required fixing the shared IEEE constant and reduction identity path, which then passed native CUDA execution.
+
+### What was tricky to build
+- Preserve exact task graph_list ordering and hashes during selection.
+- Compare NaNs as equal while retaining exact finite and infinity equality; the checker also verifies that source inputs are unchanged.
+
+### What warrants a second pair of eyes
+- Inspect full PassBench replay for numerical failures at original tolerance. Fixture inputs and comparison do not establish benchmark acceptance or performance.
+- Investigate the six remaining blocker classes using the archived per-graph errors, especially device arguments and aliasing.
+
+### What should be done in the future
+- Stage the committed source snapshot and replay the16 frozen families via the original evaluator.
+- Address common second blockers in another batch, then rerun the affected complete-family import audit.
+
+### Code review instructions
+Read parallel-port-batch-import-v1.json, parallel-port-family-import-v1.json, parallel-port-task-plan-v1.json, and max-pooling-cuda-results-v1/summary.json. Run scripts570–576 to regenerate the selection and check source hashes.
+
+### Technical details
+All78 artifacts carry source-file SHA256 values in the fixture manifest. The GPU checker used the pinned PassBench image digest and native torch.nn.functional.max_pool2d. No tolerance relaxation or evaluator change occurred in this fixture cohort.
