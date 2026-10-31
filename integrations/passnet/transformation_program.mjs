@@ -2,6 +2,7 @@
 import { prepareFusionPolicy } from './fusion_policy.mjs';
 import { applySchedulingFusion } from './scheduling_fusion.mjs';
 import { applyPointwiseConvolution } from './pointwise_convolution.mjs';
+import { createFusionRule } from '../../packages/kiln/src/std/loop.js';
 
 export function prepareOptimizationProgram(program) {
   if (program?.format !== 'kiln-transformation-program/1') return prepareFusionPolicy(program);
@@ -21,4 +22,18 @@ export function prepareOptimizationProgram(program) {
     apply: false, nodeCount,
     transform: (pipeline, target, onDecision) => applySchedulingFusion(pointwise ? applyPointwiseConvolution(pipeline) : pipeline, target, { expose, cleanup, onDecision }),
   };
+}
+
+/** Apply a validated program to the standard pipeline used by both exporters. */
+export function applyOptimizationProgram(pipeline, target, prepared, onDecision = () => {}) {
+  let result = pipeline;
+  if (prepared.apply) {
+    result = result.replaceRule('loop/fusion', 'merge_loop_ops', createFusionRule({
+      decide: prepared.decide,
+      selectConsumers: prepared.selectConsumers,
+      onDecision,
+    }));
+  }
+  if (prepared.transform) result = prepared.transform(result, target, onDecision);
+  return result;
 }

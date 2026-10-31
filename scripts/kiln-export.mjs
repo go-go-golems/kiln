@@ -11,6 +11,7 @@
 //     --out PATH          write here (default: stdout)
 //     --no-check          skip the end-to-end check of the compiled program against the frontend graph
 //     --contraction MODE  allow (default) or separate add/subtract/multiply rounding in CUDA
+//     --optimization-program PATH  apply a validated Kiln transformation program to the standard pipeline
 //
 // Exits non-zero when the script does not compile, the check fails, or a kernel argument cannot be exported.
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
@@ -21,6 +22,7 @@ import { params as paramSet } from "../packages/kiln/src/core/kiln.js";
 import { SPECS, WEBGPU_DEFAULT, target as mkTarget } from "../packages/kiln/src/std/targets.js";
 import { exportProgram } from "../packages/kiln/src/std/export.js";
 import { compileScript, endToEnd } from "../apps/workbench/src/compile.js";
+import { prepareOptimizationProgram, applyOptimizationProgram } from "../integrations/passnet/transformation_program.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PRESETS = join(ROOT, "apps/workbench/presets");
@@ -44,6 +46,7 @@ function parseArgs(argv) {
     else if (a === "--out") o.out = next();
     else if (a === "--no-check") o.check = false;
     else if (a === "--contraction") { o.contraction = next(); if (!["allow", "separate"].includes(o.contraction)) usage(2); }
+    else if (a === "--optimization-program") o.optimizationProgram = next();
     else { process.stderr.write(`unknown argument ${a}\n`); usage(2); }
   }
   if (!!o.preset === !!o.script) usage(2);
@@ -58,7 +61,11 @@ function scriptPath(o) {
 }
 
 function compileOne(pins) {
-  const c = compileScript(text, { params: paramSet([]), target, pins, contraction: o.contraction });
+  const c = compileScript(text, { params: paramSet([]), target, pins, contraction: o.contraction,
+    transformPipeline: preparedProgram ? (pipe, { project, target }) => {
+      if (project._pipe) throw new TypeError("optimization programs require the standard pipeline");
+      return applyOptimizationProgram(pipe, target, preparedProgram);
+    } : null });
   const at = Object.entries(pins).map(([k, v]) => `${k}=${v}`).join(" ");
   for (const d of c.diags || []) process.stderr.write(`${at}: ${d.level}${d.line ? ` line ${d.line}` : ""}: ${d.message}\n`);
   if (!c.ok || !c.prog) { process.stderr.write(`${at}: compile failed\n`); process.exit(1); }
@@ -70,6 +77,7 @@ function compileOne(pins) {
   }
   const values = Object.fromEntries([...c.project._params].map((p) => [p.name, c.params.get(p)]));
   const program = exportProgram(c.run, c.prog, { name: o.name || c.project.name, params: values, target, source });
+  if (optimizationProgram) program.compiler_policy = optimizationProgram;
   process.stderr.write(`${at}: ${program.kernels.map((k) => `${k.name} ${k.row}`).join("; ")}\n`);
   return program;
 }
@@ -79,7 +87,12 @@ const spec = o.target === "webgpu" ? WEBGPU_DEFAULT : SPECS[o.target];
 if (!spec) { process.stderr.write(`unknown target ${o.target}; one of webgpu ${Object.keys(SPECS).join(" ")}\n`); process.exit(2); }
 const target = mkTarget(spec);
 const file = scriptPath(o), text = readFileSync(file, "utf8");
-const source = { path: relative(ROOT, file), sha256: createHash("sha256").update(text).digest("hex"), ...(o.contraction ? { contraction: o.contraction } : {}) };
+const optimizationText = o.optimizationProgram ? readFileSync(resolve(o.optimizationProgram), "utf8") : null;
+const optimizationProgram = optimizationText ? JSON.parse(optimizationText) : null;
+const preparedProgram = optimizationProgram ? prepareOptimizationProgram(optimizationProgram) : null;
+const source = { path: relative(ROOT, file), sha256: createHash("sha256").update(text).digest("hex"),
+  ...(o.contraction ? { contraction: o.contraction } : {}),
+  ...(optimizationText ? { optimization_program_sha256: createHash("sha256").update(optimizationText).digest("hex") } : {}) };
 // every combination of the listed values, first parameter slowest
 const combos = Object.entries(o.params).reduce((acc, [k, v]) => acc.flatMap((c) => v.split(",").map((x) => ({ ...c, [k]: x }))), [{}]);
 const programs = combos.map(compileOne);

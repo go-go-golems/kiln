@@ -2808,3 +2808,50 @@ Start with reference31 and the two audits. Inspect `evaluate_normalized.py`, `fx
 
 ### Technical details
 Seven-task pinned image `sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba`, NVIDIA GB10, A100 scheduling proxy, separate contraction,20 warmups,100 trials. The two-task replay changes only the matcher source snapshot while reusing the earlier `--no-check` artifacts. Both runs use the declared modified FX matching protocol and original PassBench t=-5 numerical and scoring code.
+
+## Step 216: Route reusable transformation programs through the PassBench exporter
+
+The compiler-policy study and PassBench corpus compiler now apply the same validated transformation program through one helper. The ordinary exporter accepts `--optimization-program`, records its content hash and full policy in the artifact, and the corpus CLI forwards that choice. A pointwise convolution fixture compiled through the new route produces the same CUDA as the earlier policy-study artifact; the unchanged control remains byte-identical at the kernel level. This is the first concrete bridge from reusable compiler optimization to PassBench corpus exports, with GPU and score comparison still to follow.
+
+### Prompt Context
+See Step215 for the user's verbatim request to move beyond detailed diagnostics toward ambitious compiler work.
+**Assistant interpretation:** Consolidate the existing policy application code and expose it through the PassBench corpus compilation path.
+**Inferred user intent:** Measure automatically generated reusable compiler transformations in the benchmark without creating another compiler or evaluator stack.
+
+### What I did
+- Added `applyOptimizationProgram` to `integrations/passnet/transformation_program.mjs` and replaced the duplicate policy-application block in `compile_policy.mjs` with that helper.
+- Added the optional `transformPipeline` callback to `apps/workbench/src/compile.js`; the default pipeline path remains unchanged.
+- Added `--optimization-program PATH` to `scripts/kiln-export.mjs`. It validates the program with the existing grammar, applies it to the standard pipeline, rejects custom project pipelines, and records the policy plus exact file SHA256 in the exported artifact.
+- Added forwarding options to `integrations/passnet/corpus.py`: `--optimization-program` and an explicitly labeled `--skip-internal-reference-check` for diagnostic exports only.
+- Wrote reference32 and saved the compiled smoke artifacts, corpus receipt and comparisons in `sources/optimization-export-bridge-smoke-v1/`.
+
+### Why
+The previously measured agent and fixed transformations were unavailable to the PassBench corpus export path. Sharing preparation and application keeps policy semantics identical between direct compiler studies and the benchmark wrapper.
+
+### What worked
+- Node syntax checks passed for `kiln-export.mjs`, `compile_policy.mjs` and `transformation_program.mjs`; Python AST parsing passed for `corpus.py`.
+- The ordinary exporter built the known FP32 pointwise fixture as one kernel; the policy exporter built a tiled contraction plus elementwise kernel, with the local reference check skipped because the estimated interpreter work exceeded60 million operations.
+- `corpus.py compile --optimization-program ...` returned0 and wrote a receipt with the policy command. Its two CUDA kernels match the direct optimized exporter and the previously committed policy-study artifact.
+- Re-running `compile_policy.mjs` on all eight pointwise development graphs succeeded. All eight kernel identity lists and CUDA source lists equal the pre-change artifacts. The default exporter control also matches its previous CUDA.
+
+### What didn't work
+No GPU timing or PassBench task scoring was run for the new export path. The smoke fixture establishes compilation identity and API plumbing, not a new optimization speedup or accepted task.
+
+### What I learned
+The policy-study source and normal corpus exporter can share one prepared pipeline transformation without introducing a new IR or duplicating the agent grammar. Existing kernel artifacts give a strong regression oracle for this boundary.
+
+### What was tricky to build
+The standard exporter must preserve its existing frontend, parameter and reference-check behavior while allowing a policy to replace only the compiler pipeline. The policy is applicable to the standard Emmy pipeline, so custom project pipelines are rejected explicitly. The artifact carries the policy hash while runtime code continues to consume the same `kiln-program/1` structure.
+
+### What warrants a second pair of eyes
+Review whether `transformPipeline` should remain a generic workbench compile hook or move to a narrower compiler entry point as more transformation classes are introduced. Check that candidate and control artifacts use identical numerical settings before any GPU comparison.
+
+### What should be done in the future
+- Freeze a new supported PassBench task population and one fixed transformation program; compile control and candidate from one current source snapshot.
+- Run both through the same declared matcher and original numerical/scoring path on bling, retaining failures and exact executable identities. Use the results to decide where agent search is warranted.
+
+### Code review instructions
+Read `transformation_program.mjs` and its shared helper, `compile_policy.mjs`, `compileScript` in workbench `compile.js`, the new exporter flag, and `corpus.py`. Compare the eight saved policy-study artifacts with `sources/optimization-export-bridge-smoke-v1/comparison.json` and reference32.
+
+### Technical details
+Node26.13.0, target A100 and separate contraction were used for the local smoke. The policy file SHA256 is `de482bd2b23ee1296ca97336a8ff8a7214492782e147b8118f4c0bd826e149b5`; the source script SHA256 is `df2341558c9d4d362ab7a6d7687e2b77679419c357fcbaee87fc630bb035a52b`. No default compiler policy or original PassBench evaluator code changed.

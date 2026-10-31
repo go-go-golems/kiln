@@ -6,7 +6,7 @@ import {runScript} from '../../packages/kiln/src/core/script.js';
 import {std} from '../../packages/kiln/src/std/index.js';
 import {exportProgram} from '../../packages/kiln/src/std/export.js';
 import {endToEnd} from '../../apps/workbench/src/compile.js';
-import {prepareOptimizationProgram} from './transformation_program.mjs';
+import {prepareOptimizationProgram,applyOptimizationProgram} from './transformation_program.mjs';
 const args={};
 for(let i=2;i<process.argv.length;i+=2){
  const key=process.argv[i];if(!['--directory','--output','--policy','--target','--phase'].includes(key)||!process.argv[i+1])throw new Error('Expected --directory --output --policy --target [--phase train|heldout|all]');
@@ -52,9 +52,7 @@ for(const record of manifest.variants.filter(r=>phase==='all'||r.split===phase))
    for(let i=0;i<values.length;i++)values[i]=Math.abs(values[i])+constraint.offset;
   }
   project.data({...explicitData,...referenceInputs});
-  let pipe=std.emmy.pipeline({target,contraction:numericalPolicy.contraction});
-  if(preparedPolicy.apply)pipe=pipe.replaceRule('loop/fusion','merge_loop_ops',std.loop.createFusionRule({decide:preparedPolicy.decide,selectConsumers:preparedPolicy.selectConsumers,onDecision:event=>decisions.push(event)}));
-  if(preparedPolicy.transform)pipe=preparedPolicy.transform(pipe,target,event=>decisions.push(event));
+  const pipe=applyOptimizationProgram(std.emmy.pipeline({target,contraction:numericalPolicy.contraction}),target,preparedPolicy,event=>decisions.push(event));
   const run=pipe.run(graph);if(!run.ok)throw new Error(run.error?.message||'Compilation failed');
   const check=endToEnd(run,graph,project).e2e;
   if(check.error||(!check.skipped&&!check.ok))throw new Error('Reference check failed: '+JSON.stringify(check));

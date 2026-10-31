@@ -20,10 +20,13 @@ export function pipelineFor(project, target, kernelPins = {}, contraction) {
  * Compile `text` without touching any workbench: `params` is cloned (the script's params are declared on the clone),
  * `store` is the evidence store forks may read for `deviceId`. → { ok, diags, project, graph, run, prog, pipe }
  */
-export function compileScript(text, { params, kernelPins = {}, target, deviceId, store = null, pins = null, contraction }) {
+export function compileScript(text, { params, kernelPins = {}, target, deviceId, store = null, pins = null, contraction, transformPipeline = null }) {
   const res = runScript(text);
   if (!res.ok) return { ok: false, diags: res.diags };
-  const project = res.project, pipe = pipelineFor(project, target, kernelPins, contraction);
+  if (transformPipeline !== null && typeof transformPipeline !== "function") throw new TypeError("transformPipeline must be a function");
+  const project = res.project;
+  let pipe = pipelineFor(project, target, kernelPins, contraction);
+  if (transformPipeline) pipe = transformPipeline(pipe, { project, target });
   const ps = params.clone();
   for (const p of [...project._params, ...pipe.allParams()]) ps.declare(p);
   if (pins) ps.pin(pins);
