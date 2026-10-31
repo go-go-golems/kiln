@@ -11,7 +11,7 @@ import contextlib, hashlib, io, json, math, sys
 from pathlib import Path
 
 ticket = Path(__file__).resolve().parent.parent
-study = ticket / 'sources/cost-gate-held-out-v1'
+study = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ticket / 'sources/cost-gate-held-out-v1'
 sys.path.insert(0, str(ticket / 'sources/upstream'))
 from pass_bench.analysis_util import parse_logs_to_data
 
