@@ -904,3 +904,55 @@ See Steps 169 and 173 for research-first direction and the matrix scheduling hyp
 - For M=82,N=K=512, estimated row cost is 30.8142 us and tiled cost 22.8348 us.
 - For M=15,N=K=1280, estimated row cost is 34.6940 us and tiled cost 40.7927 us.
 - No new compiler API or behavior was introduced in this investigation.
+
+## Step 178: Implement staged scheduling-aware fusion and recover both regressions
+
+Implemented an opt-in two-stage transformation using existing rule and pipeline interfaces. The first stage exposes the matrix kernels with the discovered selective policy. The second applies ordinary fusion only to producers whose cheapest estimated mapping is not tiled. On the six changed training graphs, this produces exact executable matches to glm-28 for all four wins and baseline for both regressions. GPU measurement and broader qualification remain pending.
+
+### Prompt Context
+See Steps 169 and 173 for research-first direction and the targeted scheduling hypothesis.
+**Assistant interpretation:** Turn the observed cost-model distinction into a reusable transformation program.
+**Inferred user intent:** Improve compiler behavior through concrete, measurable changes.
+**Starting commit:** 63190c6 — Analyze contraction recognition and schedule costs in winning policy.
+
+### What I did
+- Added integrations/passnet/scheduling_fusion.mjs with preferredMapping and applySchedulingFusion.
+- Composed existing createFusionRule, matcher, pass and insertAfter interfaces without adding a compiler-core API.
+- Added script 458 to compare default and staged compilation on all six changed graphs.
+- Compared complete exported executable structures after removing name/source/policy metadata against previously measured artifacts.
+- Ran the existing fusion-policy test successfully.
+
+### Why
+- The first stage exposes schedule choices before the second stage decides whether to fuse them away.
+- Keeping producer kernels only when tiled is preferred addresses the distinction observed in both regressions.
+
+### What worked
+- All twelve probe compilations passed local reference checks.
+- Graphs 3, 6, 8 and 10 exactly match measured glm-28 executable structures.
+- Graphs 7 and 11 exactly match measured baseline executable structures.
+- Existing default/fanout/diagnostic fusion tests passed.
+
+### What didn't work
+- No probe failure occurred. The transformation has not yet been timed as a complete candidate or tested on additional families.
+
+### What I learned
+- A staged transformation can recover the observed scheduling benefits without the earlier ineffective edge predicate.
+- Existing pipeline composition is sufficient; no new generic callback or compiler-core dependency is needed.
+
+### What was tricky to build
+- The second stage runs after selective fusion has exposed contractions. Applying a structurally similar condition during the first reverse-order fusion sweep did not suffice.
+
+### What warrants a second pair of eyes
+- This heuristic protects every producer preferring tiled mapping; it does not compare complete fused and materialized total costs.
+- Schedule enumeration adds compilation work that should be measured. The implementation currently reads the existing fork tree representation.
+
+### What should be done in the future
+- Compile the full development set, measure the new candidate with fresh baseline timings, and evaluate additional graph families before promotion.
+
+### Code review instructions
+- Start with scheduling_fusion.mjs and script 458, then scheduling-fusion-probe-v1/results.json and generated artifacts.
+
+### Technical details
+- The first stage uses consumer work threshold 2 and default aggregate threshold 1.02.
+- The second stage uses the existing target-specific estimate over legal schedule domains.
+- This is a manually derived transformation informed by a model-generated policy; do not attribute the new algorithm itself to GLM.

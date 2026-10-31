@@ -1,0 +1,486 @@
+[
+  {
+    "index": 3,
+    "variant": "default",
+    "reference": {
+      "skipped": "the reference would take ~129M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          82
+        ],
+        "row": "TPB=64"
+      },
+      {
+        "shape": [
+          1,
+          8,
+          82,
+          64
+        ],
+        "row": "MAP=row,TPB=1024"
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "variant": "preserve",
+    "reference": {
+      "skipped": "the reference would take ~129M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          82
+        ],
+        "row": "TPB=64"
+      },
+      {
+        "shape": [
+          1,
+          82,
+          1,
+          512
+        ],
+        "row": "MAP=tiled,BM=32,BN=16,BK=8"
+      },
+      {
+        "shape": [
+          1,
+          8,
+          82,
+          64
+        ],
+        "row": "TPB=64"
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "variant": "default",
+    "reference": {
+      "skipped": "the reference would take ~174M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "row": "TPB=128"
+      },
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "row": "TPB=128"
+      },
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "row": "MAP=row,TPB=64"
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "variant": "preserve",
+    "reference": {
+      "skipped": "the reference would take ~174M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "row": "TPB=128"
+      },
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "row": "TPB=128"
+      },
+      {
+        "shape": [
+          1,
+          49,
+          1,
+          768
+        ],
+        "row": "MAP=tiled,BM=32,BN=16,BK=8"
+      },
+      {
+        "shape": [
+          1,
+          12,
+          49,
+          64
+        ],
+        "row": "TPB=128"
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "variant": "default",
+    "reference": {
+      "level": "loop",
+      "checks": [
+        {
+          "name": "out0",
+          "ok": true,
+          "maxAbs": 0,
+          "maxRel": 0,
+          "bad": 0,
+          "n": 225,
+          "first": -1,
+          "message": "max abs diff 0.00e+0"
+        },
+        {
+          "name": "out1",
+          "ok": true,
+          "maxAbs": 0,
+          "maxRel": 0,
+          "bad": 0,
+          "n": 240,
+          "first": -1,
+          "message": "max abs diff 0.00e+0"
+        },
+        {
+          "name": "out2",
+          "ok": true,
+          "maxAbs": 9.5367431640625e-7,
+          "maxRel": 0.000011048319825738386,
+          "bad": 0,
+          "n": 240,
+          "first": -1,
+          "message": "max abs diff 9.54e-7"
+        }
+      ],
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          1,
+          15,
+          15
+        ],
+        "row": "TPB=1024"
+      },
+      {
+        "shape": [
+          1,
+          4,
+          15,
+          4
+        ],
+        "row": "TPB=1024"
+      },
+      {
+        "shape": [
+          1,
+          4,
+          15,
+          4
+        ],
+        "row": "MAP=row,TPB=32"
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "variant": "preserve",
+    "reference": {
+      "level": "loop",
+      "checks": [
+        {
+          "name": "out0",
+          "ok": true,
+          "maxAbs": 0,
+          "maxRel": 0,
+          "bad": 0,
+          "n": 225,
+          "first": -1,
+          "message": "max abs diff 0.00e+0"
+        },
+        {
+          "name": "out1",
+          "ok": true,
+          "maxAbs": 0,
+          "maxRel": 0,
+          "bad": 0,
+          "n": 240,
+          "first": -1,
+          "message": "max abs diff 0.00e+0"
+        },
+        {
+          "name": "out2",
+          "ok": true,
+          "maxAbs": 9.5367431640625e-7,
+          "maxRel": 0.000011048319825738386,
+          "bad": 0,
+          "n": 240,
+          "first": -1,
+          "message": "max abs diff 9.54e-7"
+        }
+      ],
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          1,
+          15,
+          15
+        ],
+        "row": "TPB=1024"
+      },
+      {
+        "shape": [
+          1,
+          4,
+          15,
+          4
+        ],
+        "row": "TPB=1024"
+      },
+      {
+        "shape": [
+          1,
+          4,
+          15,
+          4
+        ],
+        "row": "MAP=row,TPB=32"
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "variant": "default",
+    "reference": {
+      "skipped": "the reference would take ~101M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          1,
+          1,
+          64
+        ],
+        "row": "TPB=1024"
+      },
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "row": "TPB=64"
+      },
+      {
+        "shape": [
+          1,
+          8,
+          1,
+          64
+        ],
+        "row": "TPB=64"
+      },
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "row": "MAP=row,TPB=64"
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "variant": "preserve",
+    "reference": {
+      "skipped": "the reference would take ~101M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          1,
+          1,
+          64
+        ],
+        "row": "TPB=1024"
+      },
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "row": "TPB=64"
+      },
+      {
+        "shape": [
+          1,
+          8,
+          1,
+          64
+        ],
+        "row": "TPB=64"
+      },
+      {
+        "shape": [
+          1,
+          64,
+          1,
+          512
+        ],
+        "row": "MAP=tiled,BM=32,BN=16,BK=8"
+      },
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "row": "TPB=64"
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "variant": "default",
+    "reference": {
+      "skipped": "the reference would take ~101M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "row": "MAP=row,TPB=64"
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "variant": "preserve",
+    "reference": {
+      "skipped": "the reference would take ~101M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          64,
+          1,
+          512
+        ],
+        "row": "MAP=tiled,BM=32,BN=16,BK=8"
+      },
+      {
+        "shape": [
+          1,
+          8,
+          64,
+          64
+        ],
+        "row": "TPB=64"
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "variant": "default",
+    "reference": {
+      "skipped": "the reference would take ~148M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          32,
+          15,
+          40
+        ],
+        "row": "MAP=row,TPB=64"
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "variant": "preserve",
+    "reference": {
+      "skipped": "the reference would take ~148M operations; per-kernel checks still run on every measurement",
+      "custom": [],
+      "ok": true
+    },
+    "kernels": [
+      {
+        "shape": [
+          1,
+          32,
+          15,
+          40
+        ],
+        "row": "MAP=row,TPB=64"
+      }
+    ]
+  }
+]
