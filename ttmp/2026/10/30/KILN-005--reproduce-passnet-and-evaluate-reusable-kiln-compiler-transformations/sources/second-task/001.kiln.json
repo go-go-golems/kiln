@@ -1,0 +1,93 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../second-task/001.kiln.js",
+  "sha256": "30d81caea573ec945f32dec9aea5586ce0c50792b850b11d0bc90958443d6b0f"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    64,
+    4,
+    128,
+    8
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    64,
+    4,
+    8,
+    128
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 262144,
+   "bytes": 524288
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 262144,
+   "bytes": 524288
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_transpose__2evvgi212yy",
+   "identity": "2evvgi212yy",
+   "row": "TPB=64,COARSEN=2",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 2048,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    2048,
+    1,
+    1
+   ],
+   "shape": [
+    64,
+    4,
+    8,
+    128
+   ],
+   "inShapes": [
+    [
+     64,
+     4,
+     128,
+     8
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_ew_transpose__2evvgi212yy(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((128 * bid) + (64 * j)) + tid);\n        if ((e < 262144)) {\n            in0 = __half2float(src0[((((1024 * ((e / 1024) % 4)) + ((e / 128) % 8)) + (8 * (e % 128))) + (4096 * (e / 4096)))]);\n            v0 = (in0 / 1.6817928305074292f);\n            v1 = __half2float(__float2half_rn(v0));\n            dst[((((1024 * ((e / 1024) % 4)) + (128 * ((e / 128) % 8))) + (e % 128)) + (4096 * (e / 4096)))] = __float2half_rn(v1);\n        }\n    }\n}"
+  }
+ ]
+}

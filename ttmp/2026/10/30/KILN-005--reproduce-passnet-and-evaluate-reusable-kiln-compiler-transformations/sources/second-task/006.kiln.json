@@ -1,0 +1,93 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../second-task/006.kiln.js",
+  "sha256": "1eedd3d325f6168ab95c01445f2afbd3936a219dd7c5bc6415b3bf9b6344b67b"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    8,
+    4,
+    256,
+    8
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    8,
+    4,
+    8,
+    256
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 65536,
+   "bytes": 131072
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 65536,
+   "bytes": 131072
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_transpose__14u9iexpa75",
+   "identity": "14u9iexpa75",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 512,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    8,
+    4,
+    8,
+    256
+   ],
+   "inShapes": [
+    [
+     8,
+     4,
+     256,
+     8
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_ew_transpose__14u9iexpa75(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 65536)) {\n        in0 = __bfloat162float(src0[((((2048 * ((e / 2048) % 4)) + ((e / 256) % 8)) + (8 * (e % 256))) + (8192 * (e / 8192)))]);\n        v0 = (in0 / 1.6817928305074292f);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        dst[((((2048 * ((e / 2048) % 4)) + (256 * ((e / 256) % 8))) + (e % 256)) + (8192 * (e / 8192)))] = __float2bfloat16_rn(v1);\n    }\n}"
+  }
+ ]
+}

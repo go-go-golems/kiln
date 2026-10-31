@@ -1,0 +1,93 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../second-task/004.kiln.js",
+  "sha256": "cb5b439a5aff697f2169beaba345751b4d3e17a1fa8586122dcf87689ad9f203"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    8,
+    4,
+    256,
+    8
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    8,
+    4,
+    8,
+    256
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 65536,
+   "bytes": 131072
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 65536,
+   "bytes": 131072
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_transpose__qh66kiz04a",
+   "identity": "qh66kiz04a",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 512,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    8,
+    4,
+    8,
+    256
+   ],
+   "inShapes": [
+    [
+     8,
+     4,
+     256,
+     8
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_ew_transpose__qh66kiz04a(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 65536)) {\n        in0 = __half2float(src0[((((2048 * ((e / 2048) % 4)) + ((e / 256) % 8)) + (8 * (e % 256))) + (8192 * (e / 8192)))]);\n        v0 = (in0 / 1.6817928305074292f);\n        v1 = __half2float(__float2half_rn(v0));\n        dst[((((2048 * ((e / 2048) % 4)) + (256 * ((e / 256) % 8))) + (e % 256)) + (8192 * (e / 8192)))] = __float2half_rn(v1);\n    }\n}"
+  }
+ ]
+}

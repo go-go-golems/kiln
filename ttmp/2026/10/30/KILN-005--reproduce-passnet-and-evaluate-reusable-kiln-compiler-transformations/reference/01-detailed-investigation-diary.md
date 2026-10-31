@@ -1791,3 +1791,46 @@ Original corpus-wide implementation and reproducible script requirements.
 
 ### Technical details
 - All twelve variants retained; verified coverage remains 1/200. No low-coverage filtering or new performance claims.
+
+## Step 43: Validate all twelve second-task exports and prepare constant-aware pass
+
+All twelve compiler exports completed with exit 0, then all twelve GPU comparisons passed against original GraphModule source with dtype-specific tolerances. Original matcher/checker task acceptance is still pending, so verified benchmark coverage remains one task.
+
+### Prompt Context
+Original complete corpus coverage and reusable pass requirements.
+**Assistant interpretation:** Preserve every variant and capture actual varying constants.
+**Inferred user intent:** Generalize pass dispatch beyond one example.
+
+### What I did
+- Polled existing staging/compiler handles; all twelve compile entries returned 0.
+- Ran receipt-gated check_second_task_cuda.py; twelve variants passed.
+- Inspected emitted division constants: two variants use 2.8284271247461903; others use 1.6817928305074292.
+- Added scripts 24/25 to generate constant-aware pattern/dispatch and run original checker per graph.
+- Started archiving artifacts and receipts through existing transfer handle.
+
+### Why
+- Hardcoding the first constant would implement the wrong computation for two variants.
+
+### What worked
+- Twelve source-based GPU value/dtype checks passed after compilation completion.
+
+### What didn't work
+- No numerical failures; remote generation/transfer still being observed. Full evaluator outcomes pending.
+
+### What I learned
+- Task pattern can share operator structure while scalar constants vary; dispatch must include captured constant.
+
+### What was tricky to build
+- Deduplicate artifacts by shape/dtype/constant without excluding any variant or substituting model-name lookup.
+
+### What warrants a second pair of eyes
+- Original SubgraphMatcher scalar placeholder handling, output layout and integrity acceptance remain unverified.
+
+### What should be done in the future
+- Observe transfer completion, launch per-graph evaluator, isolate stable scoring, update coverage only after checker acceptance.
+
+### Code review instructions
+- Inspect scripts 23–25, manifest, GPU receipt and original model.py constants.
+
+### Technical details
+- No performance claim; GPU comparison success is a separate gate from complete PassBench task support.

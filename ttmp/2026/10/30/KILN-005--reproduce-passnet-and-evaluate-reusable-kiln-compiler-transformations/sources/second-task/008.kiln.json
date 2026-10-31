@@ -1,0 +1,92 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/2",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../second-task/008.kiln.js",
+  "sha256": "4dd7864fa5d0f66f17e2754cf0bcf212d9c0c08c1b29b8b1d6c37b069af9a47d"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    8,
+    4,
+    256,
+    8
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    8,
+    4,
+    8,
+    256
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 65536,
+   "bytes": 262144
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 65536,
+   "bytes": 262144
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_transpose__113td5x4rrv",
+   "identity": "113td5x4rrv",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 512,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    512,
+    1,
+    1
+   ],
+   "shape": [
+    8,
+    4,
+    8,
+    256
+   ],
+   "inShapes": [
+    [
+     8,
+     4,
+     256,
+     8
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 512i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((128i * bid) + tid);\n    if (n_e < 65536i) {\n        v_in0 = b0[((((2048i * ((n_e / 2048i) % 4i)) + ((n_e / 256i) % 8i)) + (8i * (n_e % 256i))) + (8192i * (n_e / 8192i)))];\n        v_v0 = (v_in0 / 1.6817928305074292);\n        bout[((((2048i * ((n_e / 2048i) % 4i)) + (256i * ((n_e / 256i) % 8i))) + (n_e % 256i)) + (8192i * (n_e / 8192i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_ew_transpose__113td5x4rrv(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 65536)) {\n        in0 = src0[((((2048 * ((e / 2048) % 4)) + ((e / 256) % 8)) + (8 * (e % 256))) + (8192 * (e / 8192)))];\n        v0 = (in0 / 1.6817928305074292f);\n        dst[((((2048 * ((e / 2048) % 4)) + (256 * ((e / 256) % 8))) + (e % 256)) + (8192 * (e / 8192)))] = v0;\n    }\n}"
+  }
+ ]
+}
