@@ -71,6 +71,16 @@ The largest import blocker in the capability frontier is `in_0: only supported f
 
 **Gate.** As in slice 1: census, then a CUDA fixture (embedding with repeated and boundary indices), then a frozen replay.
 
+### Amendment (Step 253): the indirect index is an `IX` leaf, not an `E` entry
+
+Reading `inlineInto` (`loop.js`) settles the representation. Fusing a producer into a consumer substitutes the producer's coordinates `a_j` with the consumer's `IX` index expressions. An `E`-valued index entry would therefore have to be substituted into `IX` positions of the producer's loads, which mixes the two domains. The simpler representation is an `IX` leaf `ld(i, idx)`: "the integer stored in kernel input `i` at affine index `idx`". With it:
+
+- `IX.subst`, `vars`, `keyOf`, `print`, `interval` (unbounded) and `affine` (non-affine) recurse or answer conservatively without new cases elsewhere;
+- input renumbering during inlining (`mapC`/`mapP`) needs one `IX.remapLoads(e, f)`;
+- emission needs a callback that turns `ld(i, idx)` into `(int)src_i[flat(idx)]` (with an `i64` index source);
+- the reference evaluator binds a lookup for `ld`;
+- a producer may be inlined into an `ld` only if its expression is itself a pure load (a view chain), giving another `ld`. Otherwise fusion keeps the integer producer as a separate kernel. That is a legality rule, not a heuristic.
+
 ## Slice 3: integer arithmetic and Boolean values
 
 Typed function tables per dtype: integer `+ − × // %` with PyTorch's floor-division semantics, comparisons producing `bool`, `where/masked_fill` with Boolean conditions, and `cumsum` on integers, a scan that needs its own reduction form. Constant folding is per dtype, with BigInt for `i64`. This slice touches the reference interpreter (`compileSerial`/`compilePoint`) most heavily, and it comes last because it has the largest semantic surface.
