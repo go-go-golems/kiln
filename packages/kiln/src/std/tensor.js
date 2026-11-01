@@ -174,6 +174,38 @@ function roundedReference(value, type) {
   return value;
 }
 const T_ = (shape, dtype = "f32") => k.tensor(shape, dtype);
+
+// gathers (P3a slice 2): out[pre, j, post] = x[pre, ids[j], post] along one axis of x, where j ranges
+// over ids' coordinates. The index map reads ids through the data-dependent term LD(1, j) (argument 1).
+// `wrap` normalizes negative indices as Python indexing does; embedding/index_select do not.
+export function gatherSpec(xShape, idsShape, axis) {
+  const a = axis < 0 ? xShape.length + axis : axis;
+  if (!(a >= 0 && a < xShape.length)) throw new KilnError("ShapeError", `gather axis ${axis} out of range for (${xShape})`);
+  return { a, shape: [...xShape.slice(0, a), ...idsShape, ...xShape.slice(a + 1)] };
+}
+export function gatherMap(xShape, idsShape, axis, wrap = false) {
+  const { a, shape } = gatherSpec(xShape, idsShape, axis);
+  return IX.map(shape.length, (c) => {
+    let id = IX.LD(1, c.slice(a, a + idsShape.length));
+    if (wrap) id = id.add(id.lt(0).mul(xShape[a]));   // exact in C and JS, unlike a truncating %
+    return [...c.slice(0, a), id, ...c.slice(a + idsShape.length)];
+  });
+}
+const gatherIndices = (ids) => { if (ids.type.dtype !== "i64") throw new KilnError("TypeError", `gather indices must be int64, got ${ids.type.dtype || "f32"}`); };
+// reference: out-of-range indices are an error, as PyTorch's device-side assert is
+export function gatherRef(x, ids, shape, map) {
+  x = asT(x); ids = asT(ids);
+  const xs = strides(x.shape), is = strides(ids.shape), os = strides(shape), n = numel(shape);
+  const out = new Tensor(shape, new x.data.constructor(n));
+  const env = { __ld: (_, idx) => Number(ids.data[idx.reduce((acc, v, j) => acc + v * is[j], 0)]) };
+  for (let o = 0; o < n; o++) {
+    shape.forEach((_, j) => { env["a" + j] = Math.floor(o / os[j]) % shape[j]; });
+    const at = map.exprs.map((e) => IX.evalIx(e, env));
+    if (at.some((v, j) => v < 0 || v >= x.shape[j])) throw new KilnError("EvalError", `gather index (${at}) out of range for (${x.shape})`);
+    out.data[o] = x.data[at.reduce((acc, v, j) => acc + v * xs[j], 0)];
+  }
+  return out;
+}
 const sameAs = ({ x }) => x.type;
 
 export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like op set, each with reference semantics")
@@ -245,6 +277,8 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1, keepdim: true }, infer: ({ x, axis, keepdim }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(keepdim ? s.map((d, i) => (i === a ? 1 : d)) : s.filter((_, i) => i !== a)); }, eval: ({ x, fn, axis, keepdim }) => reduceRef(fn, x, axis, keepdim), print: "{fn}({x}, axis={axis})" })
   .op("transpose", { args: ["x"], attrs: { d0: -2, d1: -1 }, infer: ({ x, d0, d1 }) => { const s = x.type.shape.slice(); const n = s.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; [s[i], s[j]] = [s[j], s[i]]; return T_(s, x.type.dtype); }, eval: ({ x, d0, d1, type }) => { const n = asT(x).shape.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; return viewRef(x, type.shape, IX.map(n, (a) => { const b = a.slice(); [b[i], b[j]] = [b[j], b[i]]; return b; })); }, print: "transpose({x}, {d0}, {d1})" })
   .op("reshape", { args: ["x"], attrs: { shape: [] }, infer: ({ x, shape }) => { if (numel(shape) !== numel(x.type.shape)) throw new KilnError("ShapeError", `reshape (${x.type.shape}) → (${shape}): sizes differ`); return T_(shape, x.type.dtype); }, eval: ({ x, shape }) => new Tensor(shape, asT(x).data.slice()), print: "reshape({x}, {shape})" })
+  .op("gather", { args: ["x", "ids"], attrs: { axis: 0, wrap: false }, infer: ({ x, ids, axis }) => { gatherIndices(ids); return T_(gatherSpec(x.type.shape, ids.type.shape, axis).shape, x.type.dtype); },
+    eval: ({ x, ids, axis, wrap, type }) => gatherRef(x, ids, type.shape, gatherMap(asT(x).shape, asT(ids).shape, axis, wrap)), print: "gather({x}, {ids}, axis={axis})" })
   .op("slice", { args: ["x"], attrs: { axis: 0, start: 0, end: 1 }, infer: ({ x, axis, start, end }) => { const s = x.type.shape.slice(); const a = axis < 0 ? s.length + axis : axis; s[a] = end - start; return T_(s, x.type.dtype); }, eval: ({ x, axis, start, type }) => { const n = asT(x).shape.length; const a = axis < 0 ? n + axis : axis; return viewRef(x, type.shape, IX.map(n, (c) => c.map((v, i) => (i === a ? v.add(start) : v)))); }, print: "{x}[{axis}: {start}..{end}]" });
 
 export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, reduction and index-map primitives")
@@ -254,6 +288,8 @@ export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, redu
   .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add", dtype: null }, traits: ["pure"], infer: ({ xs, dtype }) => T_(xs[0].type.shape, dtype || elementwiseDtype(xs)), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs), type),
     validate: ({ args }) => args.every((a) => a.type.shape.join() === args[0].type.shape.join()) || "elementwise inputs must share a shape (insert views)", print: "{fn}({xs})" })
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1 }, traits: ["pure"], infer: ({ x, axis }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(s.map((d, i) => (i === a ? 1 : d))); }, eval: ({ x, fn, axis }) => reduceRef(fn, x, axis), print: "{fn}({x}, axis={axis})" })
+  .op("gather", { args: ["x", "ids"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, ids, shape }) => { gatherIndices(ids); return T_(shape, x.type.dtype); },
+    eval: ({ x, ids, shape, map }) => gatherRef(x, ids, shape, map), print: ({ x, map }) => `${x}[${map.exprs.map((e) => IX.print(e)).join(", ")}]` })
   .op("view", { args: ["x"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, shape }) => T_(shape, x.type.dtype), eval: ({ x, shape, map }) => viewRef(x, shape, map),
     print: ({ x, map }) => `${x}[${map.exprs.map((e) => IX.print(e)).join(", ")}]` });
 
@@ -314,6 +350,9 @@ export const N = {
   // a cast to the value's own dtype is the value (PyTorch .long() on int64, .float() on f32)
   cast: (x, dtype) => ((x.type?.dtype || "f32") === dtype ? x : nn.cast(x, { dtype })),
   expect: (x, shape, dtype) => nn.expect(x, { shape, dtype }),
+  gather: (x, ids, axis = 0, wrap = false) => nn.gather(x, ids, { axis, wrap }),
+  embedding: (ids, weight) => N.gather(weight, ids, 0),
+  indexSelect: (x, axis, ids) => N.gather(x, ids, axis),
   ew: (f, ...xs) => nn.ew(xs.map(nv), { fn: f }),
   add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b), div: (a, b) => N.ew("div", a, b),
   max: (a, b) => N.ew("max", a, b), min: (a, b) => N.ew("min", a, b), pow: (a, b) => N.ew("pow", a, b),
@@ -370,6 +409,7 @@ export const decompositions = [
   decompose("nn.bilinear", ({x,size}) => lowerBilinear(T,x,size)),
   decompose("nn.conv2d", ({x,w,b,stride,padding,dilation,groups}) => lowerConv2d(T,x,w,b,{stride,padding,dilation,groups})),
   decompose("nn.expect", ({ x }) => x),
+  decompose("nn.gather", ({ x, ids, axis, wrap }) => tensor.gather(x, ids, { shape: gatherSpec(x.type.shape, ids.type.shape, axis).shape, map: gatherMap(x.type.shape, ids.type.shape, axis, wrap) })),
   decompose("nn.cast", ({ x, dtype }) => tensor.ew([x], { fn: dtype === "f32" ? "copy" : "round_" + dtype, dtype })),
   // Broadcasting turns a 0-dim operand into a dimensioned view, so tensor.ew would re-infer its
   // dtype without the nn-level 0-dim rule. Keep the frontend's dtype when the two disagree.

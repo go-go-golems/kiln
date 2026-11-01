@@ -18,4 +18,9 @@ assert.equal(IX.keyOf(IX.bounded(IX.LD(0, [ix.div("a0", 96)]), () => 96)), IX.ke
 assert.equal(IX.emit(f, "c", (v) => v, (i, idx, r) => `(int)src${i}[${idx.map(r).join("")}]`), "(a1 + (64 * (int)src1[a0]))");
 assert.throws(() => IX.emit(f, "wgsl"), /no wgsl spelling/);
 assert.equal(IX.loadsOf(f).length, 1);
+// floor semantics for a possibly negative dividend: C's % truncates
+const spell = (e) => IX.emit(e, "c", (v) => v, (i, idx, r) => `L${i}`);
+const fm = eval(`(L1) => ${spell(IX.ix.mod(IX.LD(1, ["a0"]), 8))}`);
+for (const v of [-9, -8, -1, 0, 7, 8]) assert.equal(fm(v), ((v % 8) + 8) % 8);
+assert.equal(IX.emit(IX.ix.mod("a0", 8), "c"), "(a0 % 8)", "coordinates keep the plain spelling");
 console.log("data-dependent index terms substitute, key, evaluate and emit through their own index");

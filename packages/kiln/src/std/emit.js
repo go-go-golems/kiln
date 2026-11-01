@@ -16,7 +16,14 @@ const flit = (v, lang) => {
 export function toCuda(K) {
   // buffers are src0…srcN and dst: kernel temporaries are named in0, in1… after the Loop IR's loads
   const bufName = (b) => (b === "out" ? "dst" : "src" + b);
-  const ix = (e) => IX.emit(e, "c");
+  // a data-dependent index term reads an integer input at its row-major offset
+  const ldSpell = (i, idx, r) => {
+    const shape = K.params.filter((p) => p.role === "in")[i].shape;
+    let stride = 1, flat = IX.C(0);
+    for (let j = shape.length - 1; j >= 0; j--) { flat = flat.add(IX.lift(idx[j]).mul(stride)); stride *= shape[j]; }
+    return `(int)${bufName(i)}[${r(flat)}]`;
+  };
+  const ix = (e) => IX.emit(e, "c", (v) => v, ldSpell);
   const fx = (e) => (e.k === "num" ? flit(e.v, "c") : e.k === "var" ? e.n : fill(FNS[e.fn].c, e.a.map(fx)));
   const ins = K.params.filter((p) => p.role === "in");
   const lines = [];

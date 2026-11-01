@@ -197,7 +197,8 @@ export function timeModel(c, t) {
 
 // coalescing: 32-byte sectors per warp access for an address stride (in floats) between lanes
 const sectorsFor = (stride) => { const s = Math.abs(stride); return s === 0 ? 1 : Math.min(32, 4 * s); };
-const coefOf = (f, v) => { const a = IX.affine(f, [...IX.vars(f)]); return a ? a.k[v] || 0 : 8; };
+// a data-dependent term that does not vary with v is constant along v (a gathered row); one that does is not affine
+const coefOf = (f, v) => { const g = IX.mapLoads(f, (l) => (IX.vars(l).has(v) ? l : IX.C(0))); const a = IX.affine(g, [...IX.vars(g)]); return a ? a.k[v] || 0 : 8; };
 
 // analytic counts for one option: the prior the greedy compile ranks with
 export function estimate(an, kn, t) {

@@ -62,7 +62,9 @@ export const E = {
 export function substE(x, env, remapIn = null) {
   switch (x.k) {
     case "num": return x;
-    case "in": return E.load(remapIn ? remapIn(x.i) : x.i, x.idx.map((e) => IX.subst(e, env)));
+    // remapIn renumbers this expression's own inputs, including data-dependent index terms; it applies
+    // before env, whose values already use the caller's numbering
+    case "in": return E.load(remapIn ? remapIn(x.i) : x.i, x.idx.map((e) => IX.subst(remapIn ? IX.remapLoads(e, remapIn) : e, env)));
     case "op": return E.op(x.fn, ...x.a.map((a) => substE(a, env, remapIn)));
     case "red": { const r = freshR(); return E.red(x.fn, r, x.n, substE(x.body, { ...env, [x.r]: IX.V(r) }, remapIn)); }
   }
@@ -196,6 +198,12 @@ export function workOf(sched) {
 }
 
 // ----------------------------------------------------------------------------- serial evaluator
+// JS spelling of an index over inputs I0…: data-dependent terms read the (possibly BigInt) input element
+const jsIndex = (inShapes) => {
+  const flat = (idx, st) => idx.reduce((acc, e, j) => (st[j] === 0 ? acc : acc.add(IX.lift(e).mul(st[j]))), IX.C(0));
+  const js = (e) => IX.emit(e, "js", (v) => v, (i, idx, r) => `Number(I${i}[${r(flat(idx, strides(inShapes[i])))}])`);
+  return { js, flat };
+};
 // compiles the nest to a JS function: the reference every GPU schedule is checked against
 const EVAL = new WeakMap();
 export function compileSerial(sched, inShapes) {
@@ -203,8 +211,7 @@ export function compileSerial(sched, inShapes) {
   const ck = EVAL.get(sched);
   if (ck && ck.key === key) return ck.fn;
   const outSt = strides(sched.shape);
-  const flat = (idx, st) => idx.reduce((acc, e, j) => (st[j] === 0 ? acc : acc.add(e.mul(st[j]))), IX.C(0));
-  const js = (e) => IX.emit(e, "js");
+  const { js, flat } = jsIndex(inShapes);
   const body = [];
   const op = (o) => (o.ref ?? `(${Math.fround(o.num)})`);
   const walk = (ss, pad) => {
@@ -232,8 +239,7 @@ export function compilePoint(sched, inShapes) {
   const ck = POINT.get(sched);
   if (ck && ck.key === key) return ck.fn;
   const outSt = strides(sched.shape);
-  const flat = (idx, st) => idx.reduce((acc, e, j) => acc.add(e.mul(st[j])), IX.C(0));
-  const js = (e) => IX.emit(e, "js");
+  const { js, flat } = jsIndex(inShapes);
   const op = (o) => (o.ref ?? `(${Math.fround(o.num)})`);
   const body = [];
   for (const d of sched.dims) body.push(`  const ${d.v} = Math.floor(e / ${outSt[d.dim]}) % ${d.n};`);
@@ -298,12 +304,16 @@ export const liftReduce = k.rule("lift_reduce").match(P.op("tensor.reduce").as("
   return mkKernel([x], E.red(n.attrs.fn, r, s[ax], E.load(0, idx)), n.type.shape, n.attrs.origin, n.type.dtype);
 });
 export const liftView = k.rule("lift_indexmap").match(P.op("tensor.view").as("n")).rewrite(({ n }) => mkKernel([n.arg("x")], E.load(0, n.attrs.map.exprs), n.attrs.shape, n.attrs.origin, n.type.dtype));
+// a gather is a view whose map reads its index argument through data-dependent terms LD(1, …)
+export const liftGather = k.rule("lift_gather").match(P.op("tensor.gather").as("n")).rewrite(({ n }) => mkKernel([n.arg("x"), n.arg("ids")], E.load(0, n.attrs.map.exprs), n.attrs.shape, n.attrs.origin, n.type.dtype));
 export const liftSplatOut = k.rule("lift_constant_output").match(P.op("tensor.const").as("n").where(({ n, graph }) => !n.attrs.data && graph.isOutput(n.id)))
   .rewrite(({ n }) => mkKernel([], E.num(n.attrs.value), n.type.shape, "constant"));
-export const lift = k.pass("loop/lowering").short("l").rules(liftEw, liftReduce, liftView, liftSplatOut)
+export const lift = k.pass("loop/lowering").short("l").rules(liftEw, liftReduce, liftView, liftGather, liftSplatOut)
   .describe("each Tensor IR primitive becomes a one-op loop kernel");
 
 // ----------------------------------------------------------------------------- f: fusion
+// a producer that cannot be substituted into a consumer; the fusion rule skips it
+export class FusionIllegal extends Error {}
 // inline producer kernel p into consumer c: every load of p becomes p's expression at that index
 export function inlineInto(c, p) {
   const cArgs = c.args, pArgs = p.args;
@@ -313,12 +323,20 @@ export function inlineInto(c, p) {
   cArgs.forEach((a, i) => { if (a.id !== p.id) mapC.set(i, args.findIndex((b) => b.id === a.id)); });
   pArgs.forEach((a, i) => { let j = args.findIndex((b) => b.id === a.id); if (j < 0) { args.push(a); j = args.length - 1; } mapP.set(i, j); });
   const pe = p.attrs.expr;
+  // data-dependent index terms: renumber their inputs; one that reads p itself becomes p's value at
+  // that index, which is expressible only when p is a pure load (a view of an integer tensor)
+  const remapIdx = (e) => IX.mapLoads(e, (l) => {
+    if (cArgs[l.v.i].id !== p.id) return IX.LD(mapC.get(l.v.i), l.v.idx);
+    if (pe.k !== "in") throw new FusionIllegal(`${c.id} indexes by ${p.id}, which is not a view`);
+    const env = {}; l.v.idx.forEach((x, j) => { env["a" + j] = x; });
+    return IX.LD(mapP.get(pe.i), pe.idx.map((x) => IX.remapLoads(IX.subst(x, env), (i) => mapP.get(i))));
+  });
   // every reduction gets a fresh variable, so two reductions never share a name in one kernel
   const rw = (x, ren) => {
     switch (x.k) {
       case "num": return x;
       case "in": {
-        const idx = x.idx.map((e) => IX.subst(e, ren));
+        const idx = x.idx.map((e) => remapIdx(IX.subst(e, ren)));
         if (cArgs[x.i].id === p.id) { const env = {}; idx.forEach((e, j) => { env["a" + j] = e; }); return substE(pe, env, (i) => mapP.get(i)); }
         return E.load(mapC.get(x.i), idx);
       }
@@ -346,7 +364,8 @@ export function createFusionRule(options={}) {
     // describe one proposed edge substitution, not a removed producer.
     const producerWork=selectConsumers?kernelWork(p):null,producerElements=numel(p.attrs.shape);
     for (const [consumerIndex,u] of consumers.entries()) {
-      const replacement=inlineInto(u,p);
+      let replacement;
+      try { replacement=inlineInto(u,p); } catch (e) { if (e instanceof FusionIllegal) skip(e.message); throw e; }
       replacements.push(replacement);
       if (selectConsumers) {
         edges.push(Object.freeze({producerWork,consumerWork:kernelWork(u),

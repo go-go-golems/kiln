@@ -26,14 +26,6 @@ export const V = (name) => new Ix("v", null, null, name);
 // Opaque to the affine algebra; substitution, variables and keys recurse into idx.
 export const LD = (i, idx) => new Ix("ld", null, null, Object.freeze({ i, idx: Object.freeze(idx.map(lift)) }));
 const mapLd = (e, f) => LD(e.v.i, e.v.idx.map(f));
-// renumber the inputs that data-dependent terms read (kernel fusion merges argument lists)
-export function remapLoads(e, f) {
-  switch (e.t) {
-    case "c": case "v": return e;
-    case "ld": return LD(f(e.v.i), e.v.idx.map((x) => remapLoads(x, f)));
-    default: return new Ix(e.t, remapLoads(e.a, f), remapLoads(e.b, f), e.v);
-  }
-}
 export const loadsOf = (e, out = []) => { if (e.t === "ld") { out.push(e); e.v.idx.forEach((x) => loadsOf(x, out)); } else if (e.t !== "c" && e.t !== "v") { loadsOf(e.a, out); loadsOf(e.b, out); } return out; };
 export const isIx = (x) => x instanceof Ix;
 export function lift(x) {
@@ -145,19 +137,35 @@ export function vars(e, out = new Set()) {
   else if (e.t !== "c") { vars(e.a, out); vars(e.b, out); }
   return out;
 }
+// the simplifying constructor for a binary node kind
+function op2(t, a, b) {
+  switch (t) {
+    case "+": return add(a, b);
+    case "*": return mul(a, b);
+    case "/": return div(a, b);
+    case "%": return mod(a, b);
+    case "min": case "max": case "&&": case "||": return bin(t, a, b);
+    default: return cmp(t, a, b);
+  }
+}
 export function subst(e, env) {
   switch (e.t) {
     case "c": return e;
     case "v": return env[e.v] !== undefined ? lift(env[e.v]) : e;
     case "ld": return mapLd(e, (x) => subst(x, env));
-    case "+": return add(subst(e.a, env), subst(e.b, env));
-    case "*": return mul(subst(e.a, env), subst(e.b, env));
-    case "/": return div(subst(e.a, env), subst(e.b, env));
-    case "%": return mod(subst(e.a, env), subst(e.b, env));
-    case "min": case "max": case "&&": case "||": return bin(e.t, subst(e.a, env), subst(e.b, env));
-    default: return cmp(e.t, subst(e.a, env), subst(e.b, env));
+    default: return op2(e.t, subst(e.a, env), subst(e.b, env));
   }
 }
+// rewrite every data-dependent term bottom-up: f receives an ld whose index is already rewritten
+export function mapLoads(e, f) {
+  switch (e.t) {
+    case "c": case "v": return e;
+    case "ld": return f(mapLd(e, (x) => mapLoads(x, f)));
+    default: return op2(e.t, mapLoads(e.a, f), mapLoads(e.b, f));
+  }
+}
+// renumber the inputs that data-dependent terms read (kernel fusion merges argument lists)
+export const remapLoads = (e, f) => mapLoads(e, (l) => LD(f(l.v.i), l.v.idx));
 export function evalIx(e, env) {
   switch (e.t) {
     case "c": return e.v;
@@ -216,14 +224,7 @@ export function bounded(e, extent) {
     const r = interval(a, extent);
     if (r && Math.floor(r[0] / b.v) === Math.floor(r[1] / b.v)) return e.t === "/" ? C(Math.floor(r[0] / b.v)) : add(a, C(-b.v * Math.floor(r[0] / b.v)));
   }
-  switch (e.t) {
-    case "+": return add(a, b);
-    case "*": return mul(a, b);
-    case "/": return div(a, b);
-    case "%": return mod(a, b);
-    case "min": case "max": case "&&": case "||": return bin(e.t, a, b);
-    default: return cmp(e.t, a, b);
-  }
+  return op2(e.t, a, b);
 }
 // a coefficient-and-constant reading when e is affine in `names` (null otherwise)
 export function affine(e, names) {
@@ -253,6 +254,7 @@ export function print(e, parent = 0) {
 }
 
 // target spellings. `name` maps a variable to its spelling in the target.
+const floorMod = (a, b) => `(((${a} % ${b}) + ${b}) % ${b})`;
 // `load(i, idx)` spells a data-dependent term; emitters without integer buffers leave it unset.
 export function emit(e, lang, name = (v) => v, load = null) {
   const r = (x) => emit(x, lang, name, load);
@@ -262,8 +264,10 @@ export function emit(e, lang, name = (v) => v, load = null) {
     case "ld": if (!load) throw new Error(`no ${lang} spelling for data-dependent index ld${e.v.i}`); return load(e.v.i, e.v.idx, r);
     case "+": return `(${r(e.a)} + ${r(e.b)})`;
     case "*": return `(${r(e.a)} * ${r(e.b)})`;
-    case "/": return lang === "js" ? `Math.floor(${r(e.a)} / ${r(e.b)})` : `(${r(e.a)} / ${r(e.b)})`;
-    case "%": return `(${r(e.a)} % ${r(e.b)})`;
+    // the algebra is floor division/modulo; C truncates. Coordinates are nonnegative, so the spellings
+    // agree, but a dividend with a data-dependent term may be negative: spell floor semantics there
+    case "/": return lang === "js" ? `Math.floor(${r(e.a)} / ${r(e.b)})` : lang === "c" && loadsOf(e.a).length ? `((${r(e.a)} - ${floorMod(r(e.a), r(e.b))}) / ${r(e.b)})` : `(${r(e.a)} / ${r(e.b)})`;
+    case "%": return lang !== "wgsl" && loadsOf(e.a).length ? floorMod(r(e.a), r(e.b)) : `(${r(e.a)} % ${r(e.b)})`;
     case "min": return lang === "js" ? `Math.min(${r(e.a)}, ${r(e.b)})` : lang === "wgsl" ? `min(${r(e.a)}, ${r(e.b)})` : `min(${r(e.a)}, ${r(e.b)})`;
     case "max": return lang === "js" ? `Math.max(${r(e.a)}, ${r(e.b)})` : `max(${r(e.a)}, ${r(e.b)})`;
     case "&&": case "||": return `(${r(e.a)} ${e.t} ${r(e.b)})`;
