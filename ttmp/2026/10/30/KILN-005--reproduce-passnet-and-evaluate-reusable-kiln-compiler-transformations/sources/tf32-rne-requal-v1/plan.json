@@ -1,0 +1,104 @@
+{
+  "format": "kiln-task-plan/1",
+  "band": "tf32-rne-requal",
+  "selection": "Re-qualification after RNE TF32 (44f030c), 1x1-convolution TF32 and FP32-pinned attention (fe45148): the P0 TF32 families 27 93 52 72 88 157 118 133; composed-ops misses 5 (SDPA) and 119 (f32 1x1 conv); thread-guard families 32 75 107; 55 and 162, whose 658 capture needs CUDA. Gates: local compile 674 174/174 (55, 162: 9/9 earlier); 658 on CPU 165/174 matched, the 9 graphs of 52 fail only at CUDA capture and matched on the GPU in the P0 replay",
+  "nominal_tolerance": -5,
+  "target": "a100",
+  "hardware": "NVIDIA GB10; modified FX matching integration protocol",
+  "contraction": "separate",
+  "skip_internal_reference_check": true,
+  "matmul_precision": "tf32",
+  "import_census_sha256": "f781c90d4ab5ed441bb6e7d71582c72ee544b15173a1ef0cf9ea47ca1e398a06",
+  "tasks": [
+    {
+      "index": 27,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/08/b8/08b8a5e223a87d4e2871a8dd7d77a8629dda33725a5a0fa4db2a967ea3d3ef89",
+      "graphs": 14,
+      "graph_list_sha256": "9757c5581bc5963b321e35093955a42fdf6251a47b5b8cf9a29f2291cf2e357a"
+    },
+    {
+      "index": 93,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/29/91/299158a00f835a0d5c5947f232f093efd116958328572b16310dcc426b106176",
+      "graphs": 9,
+      "graph_list_sha256": "f90376dc638675b928ae7feab08d9bdd619fba6c3c01fb29811a4a8ead0468f0"
+    },
+    {
+      "index": 52,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d6/71/d671362ecd1fc02b99cbed7120d702ae6fa801c30ef2baf8d7b705a40be31ac0",
+      "graphs": 9,
+      "graph_list_sha256": "4493103ea21c4113d242001379fd72bd22b197bb0f8f32c39fd6dc217c25d1c0"
+    },
+    {
+      "index": 72,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a9/83/a983b1af910c31795c87bff72b8876dcc5d96a8cd9d9355528f5ebde5895076c",
+      "graphs": 9,
+      "graph_list_sha256": "222e97e8bb01d0b78239ebc52f3096f013589ef0c049c1abfea399801870ce9d"
+    },
+    {
+      "index": 88,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/6f/d9/6fd9ed69c9a416c15df581860dfc1a8be371a355d62c3d9fef7a0297ce983575",
+      "graphs": 3,
+      "graph_list_sha256": "02f91b4efdf5dd1db52ad3dab58e7d84bde9dfe96f1dc467ea04843ff201750e"
+    },
+    {
+      "index": 157,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/58/8a586520e1bb88066353e657ab7cb1ed73f8d699968ab0dc3122e974911a193d",
+      "graphs": 3,
+      "graph_list_sha256": "cdb3eaa89cd439d47295e60ecdfbdb50358362f203f4940e7d76172287c70c42"
+    },
+    {
+      "index": 118,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d7/ad/d7ad0d2d634451a6b6fac042293936d43c8b785a92f5aa282d5441f5d802a2af",
+      "graphs": 6,
+      "graph_list_sha256": "e35a3cacd2e0474f23a9512681d80403fb1cd1349c5c030b26d1511bb5bbcf9d"
+    },
+    {
+      "index": 133,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/f3/4a/f34ab32ce39797b10e66e8e046b776b54a4ba629efc60047c64678cc83aabeeb",
+      "graphs": 20,
+      "graph_list_sha256": "e68cd78ed6840e9d23f81d52b5d9ade7202fdce3a51000e9a7f06d2718e4cb4e"
+    },
+    {
+      "index": 5,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/73/90/7390444999773fd1bdda6c7188e799a632f735a77e15238998c49735f34a4ba1",
+      "graphs": 23,
+      "graph_list_sha256": "4bd35d2de58faf9f8714f091d3e7dee61a6ce1a0c2ad3c83562aba800699e39a"
+    },
+    {
+      "index": 119,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d7/6b/d76b857d18e4950f46a498a6e1de4ba7776c59d88cf1215278a41a5c49b9b697",
+      "graphs": 6,
+      "graph_list_sha256": "48f02aaa7460551f5f82bb6279991453883e64cfbcab4a738b8c0efdaa992568"
+    },
+    {
+      "index": 32,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e0/33/e033e1d95e1e24804cf7caef66c4b838c2efb8f300faf631aada9b7771f8c7f2",
+      "graphs": 6,
+      "graph_list_sha256": "90eca6230774990bda04b65b1ff4360eff0a88eb7ff09a2eb6d193d59cf5963e"
+    },
+    {
+      "index": 75,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/84/78/8478ed264facdc29b6e815b4ec27d80f6252f35bf5807734fd9ad9d149e7a506",
+      "graphs": 48,
+      "graph_list_sha256": "870c2d61bdc44fd1ddc040b7c01a9e050068f691f80919fcbf6726a16bb58240"
+    },
+    {
+      "index": 107,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/0e/0f/0e0f7d6e3fe31f591aaf7380cc45cc57dbc393538f3e2cbff9aa93d8f8613415",
+      "graphs": 18,
+      "graph_list_sha256": "365ffc8557bd8dbf3e6f9ecfb81de6aac0ac4bcc278203e4ccf227479482601e"
+    },
+    {
+      "index": 55,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/61/2e/612e71bc7125fc39e1fda48acbab7229f7fd751fca19b640c66f26d8d3e3217b",
+      "graphs": 3,
+      "graph_list_sha256": "8ef8c17e45469ad80f1c73c76da6821d52cafaf6394923ac368c402b14524052"
+    },
+    {
+      "index": 162,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/39/0b/390b4b97cfd49cdc03a343ac8f919aeb86bb477f3815380c2edd98e0844cb50d",
+      "graphs": 6,
+      "graph_list_sha256": "b96cf43262a901960a2ffd705800b163b82a3a3b97c36cae7a7014ed91624c6e"
+    }
+  ]
+}
