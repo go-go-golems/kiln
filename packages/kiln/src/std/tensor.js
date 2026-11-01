@@ -129,6 +129,21 @@ export function viewRef(x, shape, map) {
   fn(x.data, out.data, (a, b) => ((a % b) + b) % b);
   return out;
 }
+// an index tensor: element c is the index expression e at coordinates c (BigInt storage for int64)
+export function ixvalRef(shape, e, dtype) {
+  const out = new Tensor(shape, null, dtype), n = out.data.length, os = strides(shape), env = {};
+  for (let o = 0; o < n; o++) {
+    shape.forEach((d, j) => { env["a" + j] = Math.floor(o / os[j]) % d; });
+    const v = IX.evalIx(e, env);
+    out.data[o] = dtype === "i64" ? BigInt(v) : v;
+  }
+  return out;
+}
+// arange(start, end, step): integer arguments; the length is ceil((end - start) / step), at least 0
+export function arangeSpec(start, end, step) {
+  if (![start, end, step].every(Number.isSafeInteger) || step === 0) throw new KilnError("ShapeError", `arange requires integer start, end and a nonzero step, got (${start}, ${end}, ${step})`);
+  return { n: Math.max(0, Math.ceil((end - start) / step)) };
+}
 const rows = (x) => { const D = x.shape.at(-1); return [x.data.length / D, D]; };
 function rmsRef(x, w, eps) { x = asT(x); w = asT(w); const [R, D] = rows(x); const o = new Tensor(x.shape); for (let r = 0; r < R; r++) { let s = 0; for (let j = 0; j < D; j++) s += x.data[r * D + j] ** 2; const inv = 1 / Math.sqrt(s / D + eps); for (let j = 0; j < D; j++) o.data[r * D + j] = x.data[r * D + j] * inv * w.data[j]; } return o; }
 function lnRef(x, w, b, eps) { x = asT(x); w = asT(w); b = asT(b); const [R, D] = rows(x); const o = new Tensor(x.shape); for (let r = 0; r < R; r++) { let m = 0; for (let j = 0; j < D; j++) m += x.data[r * D + j]; m /= D; let v = 0; for (let j = 0; j < D; j++) v += (x.data[r * D + j] - m) ** 2; const inv = 1 / Math.sqrt(v / D + eps); for (let j = 0; j < D; j++) o.data[r * D + j] = (x.data[r * D + j] - m) * inv * w.data[j] + b.data[j]; } return o; }
@@ -272,12 +287,18 @@ export function gatherRef(x, ids, shape, map) {
   return out;
 }
 const sameAs = ({ x }) => x.type;
+function ixvalType(shape, map, dtype) {
+  if (!["i64", "i32", "bool"].includes(dtype)) throw new KilnError("TypeError", `an index tensor is i64, i32 or bool, got ${dtype}`);
+  if (!(map instanceof IX.IxMap) || map.n !== shape.length || map.exprs.length !== 1) throw new KilnError("ShapeError", "an index tensor's map has one expression over its coordinates");
+  if (IX.loadsOf(map.exprs[0]).length) throw new KilnError("TypeError", "an index tensor reads no data");
+  return T_(shape, dtype);
+}
 
 export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like op set, each with reference semantics")
   .op("concat", { args: {variadic:"xs"}, attrs: {axis:0}, traits:["pure"], infer: ({xs,axis}) => {
     const spec=concatSpec(xs.map(x=>x.type.shape),axis);
     const dtype=xs[0].type.dtype;
-    if (!["f32","f16","bf16"].includes(dtype) || xs.some(x=>x.type.dtype!==dtype)) throw new KilnError("TypeError","concat requires matching floating dtypes");
+    if (!["f32","f16","bf16","i64","i32","bool"].includes(dtype) || xs.some(x=>x.type.dtype!==dtype)) throw new KilnError("TypeError","concat requires matching dtypes (floating, integer or bool)");
     return k.tensor(spec.shape,dtype);
   }, eval: ({xs,axis}) => concatReference(xs,axis), print:"concat({xs}, axis={axis})" })
   .op("bilinear", { args: ["x"], attrs: { size: [1,1] }, infer: ({x,size}) => {
@@ -321,6 +342,17 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
       throw new KilnError("TypeError", `expected (${shape.join(", ")}) ${dtype} from the source graph, Kiln inferred (${x.type.shape.join(", ")}) ${x.type.dtype || "f32"}`);
     return x.type;
   }, eval: ({ x }) => x, print: "expect({x}, {dtype})" })
+  // factories (KILN-010): torch.arange with integer arguments, and an index tensor over a lambda of
+  // coordinates. Both decompose to tensor.ixval; a floating arange converts the exact integers.
+  .op("arange", { attrs: { start: 0, end: 1, step: 1, dtype: "i64" }, traits: ["pure"], infer: ({ start, end, step, dtype }) => {
+    if (!Object.hasOwn(CATEGORY, dtype) || dtype === "u8" || dtype === "bool") throw new KilnError("TypeError", `arange dtype unsupported: ${dtype}`);
+    const { n } = arangeSpec(start, end, step);
+    if (!INTEGER_DTYPES.has(dtype) && Math.max(Math.abs(start), Math.abs(start + step * (n - 1))) > 2 ** 24) throw new KilnError("TypeError", "a floating arange past 2^24 is not exact");
+    return T_([n], dtype);
+  }, eval: ({ start, end, step, dtype }) => { const { n } = arangeSpec(start, end, step); const t = ixvalRef([n], IX.V("a0").mul(step).add(start), INTEGER_DTYPES.has(dtype) ? dtype : "i64"); return INTEGER_DTYPES.has(dtype) ? t : castRef(t, dtype); },
+    print: "arange({start}, {end}, {step}) : {dtype}" })
+  .op("index_value", { attrs: { shape: [], map: null, dtype: "i64" }, traits: ["pure"], infer: ({ shape, map, dtype }) => ixvalType(shape, map, dtype),
+    eval: ({ shape, map, dtype }) => ixvalRef(shape, map.exprs[0], dtype), print: ({ map, dtype }) => `index_value ${IX.print(map.exprs[0])} : ${dtype}` })
   .op("cast", { args: ["x"], attrs: { dtype: "f32" }, traits: ["pure"], infer: ({ x, dtype }) => {
     if (!Object.hasOwn(CATEGORY, dtype) || dtype === "u8") throw new KilnError("TypeError", `unsupported cast: ${dtype}`);
     return k.tensor(x.type.shape, dtype);
@@ -372,7 +404,10 @@ export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, redu
   .op("gather", { args: ["x", "ids"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, ids, shape }) => { gatherIndices(ids); return T_(shape, x.type.dtype); },
     eval: ({ x, ids, shape, map }) => gatherRef(x, ids, shape, map), print: ({ x, map }) => `${x}[${map.exprs.map((e) => IX.print(e)).join(", ")}]` })
   .op("view", { args: ["x"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, shape }) => T_(shape, x.type.dtype), eval: ({ x, shape, map }) => viewRef(x, shape, map),
-    print: ({ x, map }) => `${x}[${map.exprs.map((e) => IX.print(e)).join(", ")}]` });
+    print: ({ x, map }) => `${x}[${map.exprs.map((e) => IX.print(e)).join(", ")}]` })
+  // an index tensor (KILN-010): element c is the integer expression map.exprs[0] at c, without memory
+  .op("ixval", { attrs: { shape: [], map: null, dtype: "i64" }, traits: ["pure"], infer: ({ shape, map, dtype }) => ixvalType(shape, map, dtype),
+    eval: ({ shape, map, dtype }) => ixvalRef(shape, map.exprs[0], dtype), print: ({ map, dtype }) => `ixval ${IX.print(map.exprs[0])} : ${dtype}` });
 
 // constants: splat values lift to tensor.const; data constants carry a Tensor
 for (const d of [nn, tensor]) d.lifts((v) => (v instanceof Tensor ? tensor.const({ data: v, shape: v.shape }) : tensor.const({ value: v, shape: [] })));
@@ -462,7 +497,16 @@ export const N = {
   transpose: (x, d0 = -2, d1 = -1) => nn.transpose(x, { d0, d1 }), reshape: (x, shape) => nn.reshape(x, { shape }),
   slice: (x, axis, start, end, step = 1) => nn.slice(x, { axis, start, end, step }),
   resizeNearest: (x, size) => nn.nearest(x, { size }),
-  weight, const: (v, shape = []) => tensor.const({ value: v, shape }),
+  weight, const: (v, shape = [], dtype = "f32") => tensor.const({ value: v, shape, dtype }),
+  // factories: a typed splat (PyTorch zeros/ones/full); the value converts to dtype as PyTorch's fill does
+  full: (shape, value, dtype = "f32") => tensor.const({ value: dtype === "bool" ? +(value != 0) : INTEGER_DTYPES.has(dtype) ? Math.trunc(value) : value, shape, dtype }),
+  zeros: (shape, dtype = "f32") => N.full(shape, 0, dtype),
+  ones: (shape, dtype = "f32") => N.full(shape, 1, dtype),
+  arange: (start, end, step = 1, dtype = "i64") => nn.arange({ start, end, step, dtype }),
+  // escape hatch: an index tensor over a lambda of coordinates, N.indexValue([L, S], ([i, j]) => j.le(i), "bool")
+  indexValue: (shape, fn, dtype = "i64") => nn.index_value({ shape, map: IX.map(shape.length, (c) => [fn(c)]), dtype }),
+  // PyTorch's is_causal mask: query i attends to key j when j <= i (top-left aligned for L != S)
+  causalMask: (L, S) => N.indexValue([L, S], ([i, j]) => j.le(i), "bool"),
 };
 nn.methods({
   add: (a, b) => N.add(a, b), sub: (a, b) => N.sub(a, b), mul: (a, b) => N.mul(a, b), div: (a, b) => N.div(a, b), pow: (a, b) => N.pow(a, b),
@@ -509,10 +553,16 @@ export const decompositions = [
   decompose("nn.roll", ({x,shifts,dims}) => lowerRoll(T,x,shifts,dims)),
   decompose("nn.expand", ({x,shape}) => T.bc(x,expandShape(x.type.shape,shape))),
   decompose("nn.unfold", ({x,axis,size,step}) => {const spec=unfoldShape(x.type.shape,axis,size,step);return T.view(x,spec.shape,c=>c.slice(0,-1).map((v,i)=>i===spec.axis?v.mul(step).add(c.at(-1)):v));}),
-  decompose("nn.concat", ({xs,axis,out}) => lowerConcat(T,tensor,xs,axis,out.type.dtype)),
+  decompose("nn.concat", ({xs,axis,out}) => lowerConcat(T,tensor,xs,axis,out.type.dtype,IX)),
   decompose("nn.bilinear", ({x,size}) => lowerBilinear(T,x,size)),
   decompose("nn.conv2d", ({x,w,b,stride,padding,dilation,groups}) => lowerConv2d(T,x,w,b,{stride,padding,dilation,groups})),
   decompose("nn.expect", ({ x }) => x),
+  decompose("nn.index_value", ({ shape, map, dtype }) => tensor.ixval({ shape, map, dtype })),
+  decompose("nn.arange", ({ start, end, step, dtype }) => {
+    const { n } = arangeSpec(start, end, step);
+    const t = tensor.ixval({ shape: [n], map: IX.map(1, ([i]) => [i.mul(step).add(start)]), dtype: INTEGER_DTYPES.has(dtype) ? dtype : "i64" });
+    return INTEGER_DTYPES.has(dtype) ? t : convert(t, dtype);
+  }),
   decompose("nn.gather", ({ x, ids, axis, wrap }) => tensor.gather(x, ids, { shape: gatherSpec(x.type.shape, ids.type.shape, axis).shape, map: gatherMap(x.type.shape, ids.type.shape, axis, wrap) })),
   decompose("nn.cast", ({ x, dtype }) => convert(x, dtype)),
   // Broadcasting turns a 0-dim operand into a dimensioned view, so tensor.ew would re-infer its
@@ -521,13 +571,13 @@ export const decompositions = [
     const e = T.ew(fn, ...xs.map((x, i) => convert(x, casts?.[i])));
     return e.type.dtype === out.type.dtype ? e : tensor.ew(e.args, { ...e.attrs, dtype: out.type.dtype });
   }),
-  // out[..i..] = sum_j [j <= i] x[..j..]: a reduction over a new last axis, masked through a view of
-  // the table [1, 0] indexed by (i - j < 0), which needs no data proportional to the axis
+  // out[..i..] = sum_j [j <= i] x[..j..]: a reduction over a new last axis, masked by the index
+  // value j <= i (no data table)
   decompose("nn.cumsum", ({ x, axis, out }) => {
     const a = lastAxis(x, axis), s = x.type.shape, n = s[a], d = out.type.dtype;
     const xs = convert(x, d), wide = [...s, n];
     const spread = T.view(xs, wide, (c) => c.slice(0, -1).map((v, i) => (i === a ? c.at(-1) : v)));
-    const mask = T.view(tensor.const({ data: new Tensor([2], Float32Array.of(1, 0)), shape: [2] }), wide, (c) => [c[a].sub(c.at(-1)).lt(0)]);
+    const mask = tensor.ixval({ shape: wide, map: IX.map(wide.length, (c) => [c.at(-1).le(c[a])]), dtype: "bool" });
     const masked = tensor.ew([mask, spread, T.bc(tensor.const({ value: 0, shape: [], dtype: d }), wide)], { fn: "select", dtype: d });
     return T.squeeze(T.reduce(masked, typedReducer("add", d), -1), -1);
   }),
@@ -567,13 +617,32 @@ export const composeViews = k.rule("compose_views")
   .rewrite(({ p, c }) => tensor.view(p.arg("x"), { shape: c.attrs.shape, map: IX.compose(p.attrs.map, c.attrs.map), origin: c.attrs.origin }));
 export const foldSplatView = k.rule("fold_splat_view")
   .match(P.op("tensor.view").as("v").where(({ v }) => isSplat(v.arg("x"))))
-  .rewrite(({ v }) => tensor.const({ value: v.arg("x").attrs.value, shape: v.attrs.shape }));
+  .rewrite(({ v }) => tensor.const({ value: v.arg("x").attrs.value, shape: v.attrs.shape, dtype: v.arg("x").type.dtype }));
+// a view of an index tensor is an index tensor: substitute the view's map into the expression
+// (meshgrid, stack, flatten and permute chains over arange collapse to one expression)
+export const foldViewOfIxval = k.rule("fold_view_of_ixval")
+  .match(P.op("tensor.view").as("v").where(({ v }) => v.arg("x").is("tensor.ixval")))
+  .rewrite(({ v }) => {
+    const x = v.arg("x"), env = Object.fromEntries(v.attrs.map.exprs.map((e, j) => ["a" + j, e]));
+    return tensor.ixval({ shape: v.attrs.shape, map: new IX.IxMap(v.attrs.shape.length, [IX.subst(x.attrs.map.exprs[0], env)]), dtype: x.attrs.dtype });
+  });
 export const dropIdentityView = k.rule("drop_identity_view")
   .match(P.op("tensor.view").as("v").where(({ v }) => v.attrs.map.isIdentity(v.arg("x").type.shape.length) && v.arg("x").type.shape.join() === v.attrs.shape.join()))
   .rewrite(({ v }) => v.arg("x"));
+// A typed integer function folds exactly when its result is a safe integer (i64 functions compute in
+// BigInt); a float result is kept as computed (storage rounds it). The splat keeps the
+// result dtype (a fold of int64 zeros stays int64).
+const splatFold = (e) => {
+  const spec = F(e.attrs.fn), d = e.type.dtype || "f32";
+  const ops = e.args.map((a) => (spec.args === "i64" ? BigInt(Math.trunc(a.attrs.value)) : a.attrs.value));
+  const v = spec.js(...ops);
+  if (!INTEGER_DTYPES.has(d)) return Number(v);
+  const n = Number(v);
+  return Number.isSafeInteger(n) ? n : null;
+};
 export const foldSplatEw = k.rule("fold_splat_ew")
-  .match(P.op("tensor.ew").as("e").where(({ e }) => e.args.every(isSplat)))
-  .rewrite(({ e }) => tensor.const({ value: F(e.attrs.fn).js(...e.args.map((a) => a.attrs.value)), shape: e.type.shape }));
+  .match(P.op("tensor.ew").as("e").where(({ e }) => e.args.every(isSplat) && splatFold(e) !== null))
+  .rewrite(({ e }) => tensor.const({ value: splatFold(e), shape: e.type.shape, dtype: e.type.dtype || "f32" }));
 // a·b + c → fma(a, b, c): one instruction, one rounding (what nvcc does by default with -fmad=true).
 // FP32 only: an f16/bf16 multiply rounds its result to storage precision, and contracting it would
 // drop that source-visible rounding (eager PyTorch rounds after each low-precision operation).
@@ -612,7 +681,7 @@ export const tf32Pass = k.pass("frontend/tf32-contraction-inputs").rules(tf32Lin
   .describe("round FP32 matrix-product operands to TF32 to match a cuBLAS TF32 reference");
 // Convolutions keep FP32 operands: under the same rounding, the P0 replay matched cuDNN's TF32
 // convolutions worse than FP32 did (1 graph fixed, 4 broken), while linear layers matched (8 fixed, 0 broken).
-export const optimization = k.pass("frontend/optimization").short("o").rules(composeViews, foldSplatView, dropIdentityView, foldSplatEw, contractFma)
+export const optimization = k.pass("frontend/optimization").short("o").rules(composeViews, foldSplatView, foldViewOfIxval, dropIdentityView, foldSplatEw, contractFma)
   .describe("compose index-map chains, fold constant views and constant arithmetic, contract multiply-add into fma");
 
 export { asT, ewRef, reduceRef };

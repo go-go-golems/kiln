@@ -36,11 +36,14 @@ export function toCuda(K) {
     return `(int)${bufName(i)}[${r(flat)}]`;
   };
   const ix = (e) => IX.emit(e, "c", (v) => v, ldSpell);
+  // an index value is signed: floor division and modulo where a dividend may be negative
+  const ixValue = (e) => { const v = IX.emit(e.e, "c", (n) => n, ldSpell, true); return e.dtype === "i64" ? `((long long)(${v}))` : e.dtype === "i32" ? `((int)(${v}))` : `((${v}) != 0)`; };
   const values = K.values ?? {};
   // ctx: the dtype a literal here must have (a typed function's operand dtype, or the target's)
   const fx = (e, ctx = "f32") => {
     if (e.k === "num") return ctx === "f32" ? flit(e.v, "c") : ilit(e, ctx);
     if (e.k === "var") return e.n;
+    if (e.k === "ix") return ixValue(e);
     const spec = FNS[e.fn];
     const argCtx = (i) => (spec.args && spec.args !== "*" ? spec.args : !spec.args && (e.fn === "copy" || (e.fn === "select" && i > 0)) ? ctx : "f32");
     return fill(spec.c, e.a.map((a, i) => fx(a, argCtx(i))));
@@ -98,6 +101,7 @@ export function wgslUnavailableReason(K) {
     if (!allowed.includes(dtype)) return `WGSL storage dtype unsupported: ${dtype} (${parameter.role})`;
   }
   const expression = e => {
+    if (e?.k === "ix") return "WGSL index values not implemented";
     if (!e || e.k !== "op") return null;
     if (!FNS[e.fn].w) return `WGSL scalar guarantee not implemented: ${e.fn}`;
     for (const a of e.a) { const why = expression(a); if (why) return why; }
@@ -171,20 +175,37 @@ export function toWgsl(K) {
 // Runs one block at a time in lockstep: every statement executes for all active threads before the
 // next one, with a mask for divergent branches and loops. That is exactly the semantics of a
 // race-free, barrier-correct CUDA kernel. With `instrument`, it records what each warp did.
+// Integer values (P3a, KILN-010): every temporary lives in a per-thread array of its static type
+// (K.values: BigInt64Array for i64, Int32Array for i32, Uint8Array for bool), as do shared arrays
+// (K.smem dtype) and the output buffer the caller passes. An assignment into int64 storage converts a
+// number operand (a literal, an i32 select branch) to BigInt; reference values are BigInt there too.
+const SIM_STORAGE = { f32: "Float32Array", i64: "BigInt64Array", i32: "Int32Array", bool: "Uint8Array" };
 export function toSim(K, { instrument = false } = {}) {
   const T = K.block;
-  const floats = K.floats, ints = K.ints;
+  const floats = K.floats, ints = K.ints, values = K.values ?? {};
+  const outDtype = K.params.find((p) => p.role === "out")?.dtype || "f32";
+  const smemType = Object.fromEntries(K.smem.map((s) => [s.name, s.dtype ?? "f32"]));
+  const into = (dtype, x) => (dtype === "i64" ? `B64(${x})` : x);
+  const inShapes = K.params.filter((p) => p.role === "in").map((p) => p.shape);
   const uniform = new Set(["bid"]);
   const perThreadInts = new Set(ints);
   let id = 0;
   const out = [];
   const L = (s) => out.push(s);
   const INLINE = { add: "+", sub: "-", mul: "*", div: "/" };
-  const fexpr = (e) => (e.k === "num" ? `(${+e.v})` : e.k === "var" ? `F_${e.n}[t]` : INLINE[e.fn] && e.a.length === 2 ? `(${fexpr(e.a[0])} ${INLINE[e.fn]} ${fexpr(e.a[1])})` : `FN.${e.fn}(${e.a.map(fexpr).join(", ")})`);
+  const fexpr = (e) => (e.k === "num" ? (e.exact != null ? `(${e.exact}n)` : `(${+e.v})`) : e.k === "var" ? `F_${e.n}[t]` : e.k === "ix" ? ixValue(e) : INLINE[e.fn] && e.a.length === 2 ? `(${fexpr(e.a[0])} ${INLINE[e.fn]} ${fexpr(e.a[1])})` : `FN.${e.fn}(${e.a.map(fexpr).join(", ")})`);
   // active warps and lanes per mask, recounted only when a mask changes (instrumented runs)
   const recount = (md) => (instrument ? ` aw${md} = 0; al${md} = 0; for (let w = 0; w < T; w += 32) { let c = 0; const e = w + 32 < T ? w + 32 : T; for (let t = w; t < e; t++) c += ${md}[t]; al${md} += c; if (c) aw${md}++; }` : "");
   const iname = (v) => (v === "tid" ? "t" : v === "bid" ? "bid" : uniform.has(v) ? "u_" + v : `I_${v}[t]`);
-  const ix = (e) => IX.emit(e, "js", iname);
+  // a data-dependent index term reads an integer input at its row-major offset
+  const ldSim = (i, idx, r) => {
+    const shape = inShapes[i];
+    let stride = 1, flat = IX.C(0);
+    for (let j = shape.length - 1; j >= 0; j--) { flat = flat.add(IX.lift(idx[j]).mul(stride)); stride *= shape[j]; }
+    return `Number(B[${i}][${r(flat)}])`;
+  };
+  const ix = (e) => IX.emit(e, "js", iname, ldSim);
+  const ixValue = (e) => { const v = IX.emit(e.e, "js", iname, ldSim, true); return e.dtype === "i64" ? `BigInt(${v})` : `(${v})`; };
   const isUniform = (e) => [...IX.vars(e)].every((v) => uniform.has(v));
   const opFlops = (e) => (e.k === "op" ? (FNS[e.fn]?.flops ?? 1) + e.a.reduce((a, x) => a + opFlops(x), 0) : 0);
   let depth = 0;
@@ -202,23 +223,23 @@ export function toSim(K, { instrument = false } = {}) {
     for (const s of ss) {
       const sid = id++;
       switch (s.s) {
-        case "let": call(`for (let t = 0; t < T; t++) if (${m}[t]) F_${s.n}[t] = ${fexpr(s.e)};${instrument ? ` M.insC(aw${m}, al${m}, ${opFlops(s.e)});` : ""}`); break;
+        case "let": call(`for (let t = 0; t < T; t++) if (${m}[t]) F_${s.n}[t] = ${into(values[s.n], fexpr(s.e))};${instrument ? ` M.insC(aw${m}, al${m}, ${opFlops(s.e)});` : ""}`); break;
         case "iset": call(`for (let t = 0; t < T; t++) if (${m}[t]) I_${s.n}[t] = ${ix(s.e)};${instrument ? ` M.insC(aw${m}, al${m}, 0);` : ""}`); break;
         case "load":
           if (instrument) call(`const buf = B[${s.buf === "out" ? "OUT" : s.buf}]; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= buf.length) M.oob(${sid}, a, "load"); F_${s.n}[t] = buf[a]; } else A[t] = -1; } M.gmem(A, "ld");`);
           else call(`const buf = B[${s.buf === "out" ? "OUT" : s.buf}]; for (let t = 0; t < T; t++) if (${m}[t]) F_${s.n}[t] = buf[${ix(s.idx)}];`);
           break;
         case "store":
-          if (instrument) call(`const o = B[OUT]; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= o.length) M.oob(${sid}, a, "store"); else { o[a] = ${fexpr(s.e)}; M.cov[a] = 1; } } else A[t] = -1; } M.gmem(A, "st");`);
-          else call(`const o = B[OUT]; for (let t = 0; t < T; t++) if (${m}[t]) o[${ix(s.idx)}] = ${fexpr(s.e)};`);
+          if (instrument) call(`const o = B[OUT]; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= o.length) M.oob(${sid}, a, "store"); else { o[a] = ${into(outDtype, fexpr(s.e))}; M.cov[a] = 1; } } else A[t] = -1; } M.gmem(A, "st");`);
+          else call(`const o = B[OUT]; for (let t = 0; t < T; t++) if (${m}[t]) o[${ix(s.idx)}] = ${into(outDtype, fexpr(s.e))};`);
           break;
         case "sload":
           if (instrument) call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= sa.length) M.oob(${sid}, a, "shared load"); F_${s.n}[t] = sa[a]; } else A[t] = -1; } M.smem(A);`);
           else call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) if (${m}[t]) F_${s.n}[t] = sa[${ix(s.idx)}];`);
           break;
         case "sstore":
-          if (instrument) call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= sa.length) M.oob(${sid}, a, "shared store"); else sa[a] = ${fexpr(s.e)}; } else A[t] = -1; } M.smem(A);`);
-          else call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) if (${m}[t]) sa[${ix(s.idx)}] = ${fexpr(s.e)};`);
+          if (instrument) call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= sa.length) M.oob(${sid}, a, "shared store"); else sa[a] = ${into(smemType[s.arr], fexpr(s.e))}; } else A[t] = -1; } M.smem(A);`);
+          else call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) if (${m}[t]) sa[${ix(s.idx)}] = ${into(smemType[s.arr], fexpr(s.e))};`);
           break;
         case "sync": if (instrument) L(`M.sync(${m}, ${sid});`); break;
         case "note": break;
@@ -263,11 +284,13 @@ export function toSim(K, { instrument = false } = {}) {
   const nIn = K.params.filter((p) => p.role === "in").length;
   const head = [
     `const T = ${T}; const OUT = ${nIn};`,
+    `const B64 = (v) => (typeof v === "bigint" ? v : BigInt(v));`,
     ...floats.map((f) => `const F_${f} = new Float32Array(T);`),
+    ...Object.entries(values).map(([n, d]) => `const F_${n} = new ${SIM_STORAGE[d]}(T);`),
     ...[...perThreadInts].map((v) => `const I_${v} = new Int32Array(T);`),
     ...Array.from({ length: nMasks }, (_, i) => `const M${i} = new Uint8Array(T); let awM${i} = 0, alM${i} = 0;`),
     `const A = new Float64Array(T);`,
-    `const S = { ${K.smem.map((s) => `${s.name}: new Float32Array(${s.size})`).join(", ")} };`,
+    `const S = { ${K.smem.map((s) => `${s.name}: new ${SIM_STORAGE[s.dtype ?? "f32"]}(${s.size})`).join(", ")} };`,
     ...defs,
     `return function run(B, blocks, M) {`,
     `  for (const bid of blocks) {`,

@@ -15,7 +15,7 @@ export function concatSpec(shapes, axis = 0) {
 
 export function concatReference(xs, axis = 0) {
   const spec = concatSpec(xs.map(x => x.shape), axis);
-  const output = new Tensor(spec.shape);
+  const output = new Tensor(spec.shape, null, xs[0].dtype);
   const inner = numel(spec.shape.slice(spec.axis+1));
   const outer = numel(spec.shape.slice(0,spec.axis));
   for (let row=0;row<outer;row++) {
@@ -29,7 +29,7 @@ export function concatReference(xs, axis = 0) {
   return output;
 }
 
-export function lowerConcat(T, tensor, xs, axis, dtype) {
+export function lowerConcat(T, tensor, xs, axis, dtype, IX) {
   const {shape,axis:dim} = concatSpec(xs.map(x => x.type.shape),axis);
   let offset=0, result=null;
   for (const x of xs) {
@@ -39,10 +39,8 @@ export function lowerConcat(T, tensor, xs, axis, dtype) {
     const read=T.view(x,shape,c => c.map((v,i) => i===dim ? v.sub(start).max(0).min(width-1) : v));
     if (result===null) result=read;
     else {
-      const maskShape=shape.map((d,i) => i===dim ? d : 1);
-      const mask=new Tensor(maskShape);
-      for(let i=start;i<start+width;i++) mask.data[i]=1;
-      const condition=T.bc(mask,shape);
+      // the selected range as a bool index value: start <= c[dim] < start + width
+      const condition=tensor.ixval({shape,map:IX.map(shape.length,c => [c[dim].ge(start).and(c[dim].lt(start+width))]),dtype:'bool'});
       result=tensor.ew([condition,read,result],{fn:'select',dtype});
     }
     offset+=width;

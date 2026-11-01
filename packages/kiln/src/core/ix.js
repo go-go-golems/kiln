@@ -256,8 +256,13 @@ export function print(e, parent = 0) {
 // target spellings. `name` maps a variable to its spelling in the target.
 const floorMod = (a, b) => `(((${a} % ${b}) + ${b}) % ${b})`;
 // `load(i, idx)` spells a data-dependent term; emitters without integer buffers leave it unset.
-export function emit(e, lang, name = (v) => v, load = null) {
-  const r = (x) => emit(x, lang, name, load);
+// `signed`: the expression is a value (an index value), not an address, so a dividend may be negative
+// even without a data-dependent term (BEiT's i - j). Every variable is still nonnegative (coordinates,
+// thread and loop indices), so a dividend whose interval is nonnegative keeps the truncating spelling.
+const mayBeNegative = (e) => { const r = interval(e, () => 2 ** 31); return !r || r[0] < 0; };
+export function emit(e, lang, name = (v) => v, load = null, signed = false) {
+  const r = (x) => emit(x, lang, name, load, signed);
+  const floorNeeded = (a) => (signed ? mayBeNegative(a) : loadsOf(a).length > 0);
   switch (e.t) {
     case "c": return lang === "wgsl" ? `${e.v}i` : e.v < 0 ? `(${e.v})` : String(e.v);
     case "v": return name(e.v);
@@ -266,8 +271,8 @@ export function emit(e, lang, name = (v) => v, load = null) {
     case "*": return `(${r(e.a)} * ${r(e.b)})`;
     // the algebra is floor division/modulo; C truncates. Coordinates are nonnegative, so the spellings
     // agree, but a dividend with a data-dependent term may be negative: spell floor semantics there
-    case "/": return lang === "js" ? `Math.floor(${r(e.a)} / ${r(e.b)})` : lang === "c" && loadsOf(e.a).length ? `((${r(e.a)} - ${floorMod(r(e.a), r(e.b))}) / ${r(e.b)})` : `(${r(e.a)} / ${r(e.b)})`;
-    case "%": return lang !== "wgsl" && loadsOf(e.a).length ? floorMod(r(e.a), r(e.b)) : `(${r(e.a)} % ${r(e.b)})`;
+    case "/": return lang === "js" ? `Math.floor(${r(e.a)} / ${r(e.b)})` : lang === "c" && floorNeeded(e.a) ? `((${r(e.a)} - ${floorMod(r(e.a), r(e.b))}) / ${r(e.b)})` : `(${r(e.a)} / ${r(e.b)})`;
+    case "%": return lang !== "wgsl" && floorNeeded(e.a) ? floorMod(r(e.a), r(e.b)) : `(${r(e.a)} % ${r(e.b)})`;
     case "min": return lang === "js" ? `Math.min(${r(e.a)}, ${r(e.b)})` : lang === "wgsl" ? `min(${r(e.a)}, ${r(e.b)})` : `min(${r(e.a)}, ${r(e.b)})`;
     case "max": return lang === "js" ? `Math.max(${r(e.a)}, ${r(e.b)})` : `max(${r(e.a)}, ${r(e.b)})`;
     case "&&": case "||": return `(${r(e.a)} ${e.t} ${r(e.b)})`;

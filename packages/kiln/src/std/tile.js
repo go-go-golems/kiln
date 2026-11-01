@@ -80,10 +80,12 @@ export function analyze(expr, shape, inShapes) {
       const loopScope = s.scopes.find((x) => x.red === C);
       const inC = [...s.placed.entries()].filter(([, sc]) => sc === loopScope).map(([nd]) => nd);
       const mVar = s.dims[n - 2].v, nVar = s.dims[n - 1].v;
-      let ok = !inC.some((x) => x.k === "red");
+      // an index value in the contraction body would need the tile's coordinates, which the tiled
+      // body does not bind (its operands come from shared tiles): keep such kernels off MAP=tiled
+      let ok = !inC.some((x) => x.k === "red" || x.k === "ix");
       // the tiled materializer emits the loop body from tile operands and accumulators only: a value the body
       // reads from an outer scope (hoisted by code motion, like p[i] in Σ_j (p[j] − p[i])·w[i,j]) has no home there
-      const isNode = (a) => a && typeof a === "object" && (a.k === "in" || a.k === "op" || a.k === "red");
+      const isNode = (a) => a && typeof a === "object" && (a.k === "in" || a.k === "ix" || a.k === "op" || a.k === "red");
       if (ok && inC.some((x) => x.k === "op" && x.a.some((a) => isNode(a) && s.placed.get(a) !== loopScope))) ok = false;
       const A = [], B = [];
       for (const x of inC) if (x.k === "in") {
@@ -295,7 +297,7 @@ export function printTile(an, kn, args, name) {
   const lines = [`launch grid=${L.grid} block=${L.block}${L.smem ? ` smem=${L.smem} B` : ""}`];
   const staged = new Map((L.staged || []).map((x) => [x.i, x]));
   const stmt = (st, pad) => {
-    if (st.s === "let") return `${pad}${st.name} = ${st.e.k === "in" ? `load ${staged.has(st.e.i) ? buf(st.e.i) + "_smem" : buf(st.e.i)}[${st.e.idx.map(ix).join(", ")}]` : `${st.e.fn}(${st.e.a.map(op).join(", ")})`}`;
+    if (st.s === "let") return `${pad}${st.name} = ${st.e.k === "in" ? `load ${staged.has(st.e.i) ? buf(st.e.i) + "_smem" : buf(st.e.i)}[${st.e.idx.map(ix).join(", ")}]` : st.e.k === "ix" ? `ix ${ix(st.e.e)} : ${st.e.dtype}` : `${st.e.fn}(${st.e.a.map(op).join(", ")})`}`;
     if (st.s === "init") return `${pad}${st.name} = init(${st.fn})`;
     if (st.s === "acc") return `${pad}${st.name} <- ${st.fn}(${st.name}, ${op(st.val)})`;
     if (st.s === "write") return `${pad}out[${st.idx.map(ix).join(", ")}] = ${op(st.val)}`;
