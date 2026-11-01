@@ -9,7 +9,19 @@ Topics:
 DocType: reference
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://packages/kiln/src/std/emit.js
+      Note: cudaMma inline PTX, WGSL refusal, simulator mma case (Phase 2)
+    - Path: repo://packages/kiln/src/std/kernel.js
+      Note: mma statement, warp-tile helpers, matMma (Phases 2-3)
+    - Path: repo://packages/kiln/src/std/mma.js
+      Note: MMA_OPS layout table, atom emulation, padding (Phase 1)
+    - Path: repo://packages/kiln/src/std/tile.js
+      Note: operandPrecision, mmaPlan, MAP=mma knobs, estimateMma, costPrior gate (Phases 3-4)
+    - Path: repo://packages/kiln/test/mma-kernel.mjs
+      Note: pinned MAP=mma end-to-end CPU tests
+    - Path: repo://ttmp/2026/11/01/KILN-006--kiln-tensor-core-matrix-products-intern-analysis-design-and-implementation-guide/scripts/02-mma-gpu-fixtures.mjs
+      Note: GPU handoff fixtures (Phase 0 probe, Phase 5 kernels)
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-11-01T07:32:28.302727435-05:00
@@ -274,3 +286,317 @@ I related the key files to the design doc, added one task per implementation pha
 
 ### Technical details
 - Doctor output: "## Doctor Report (1 findings) / ### KILN-006 / - ✅ All checks passed".
+
+## Step 6: Implementation begins — Phase 1, the atom table and warp emulator (`mma.js`)
+
+This is the first implementation step, in the worktree `worktrees/kiln-006-tensor-cores` on branch `impl/kiln-006-tensor-cores`. I re-read the design guide, then the code it cites at the current revision (`tile.js`, `kernel.js`, `emit.js`, `program.js`, `targets.js`, `loop.js` schedule, `core/kiln.js` fork tree and pins, `store.js` evidence keying), and wrote `packages/kiln/src/std/mma.js` with its test `packages/kiln/test/mma-layout.mjs`. The module is the single source of truth the guide asks for: atom shapes, operand formats, per-lane fragment layouts, the PTX strings, a pure atom reference with four explicit accumulation orders, the warp-collective emulation `runAtom` that the simulator will call, a representability check, and the shared-memory padding chooser that the materializer and the cost model will both call.
+
+The baseline suite passed before any change (`npm test`: "all 48 passed", 10.9 s). The new test passes on its own.
+
+### Prompt Context
+**User prompt (verbatim):** "then, can we work on them in parallel (in separate worktrees maybe?)" and "tell each agent to use their own diary and to folow the diary format as they go, and to write a full report for the go-go-parc vault once they are done ( write a detailed project report for the obsidian vault as a deep dive technical analysis blog post using a textbook writing style (no analogies, see skill). Commit and push the bsidian vault when done (go-go-parc vault). )"
+
+Coordinator brief (relayed, not user-authored): implement KILN-006 (tensor-core matrix products) in this worktree; give the CUDA emission a faithful simulator/JS-reference model of the fragment semantics (operand rounding, accumulation order as far as the guide specifies) and test codegen structurally; NVRTC compile and numeric GPU validation are deferred to the coordinator; KILN-007 (fused attention) will build on the matrix-product tiles, so keep the tile/kernel-layer API clean and documented. Common rules: no GPU host, no backward-compatibility shims, tests pass before each commit, local commits only, own diary in investigation format.
+**Assistant interpretation:** Implement Phases 1-4 of the guide (CPU-buildable), in order, with tests; list Phase 0/5 GPU validations for the coordinator; write the vault report at the end.
+**Inferred user intent:** Several Kiln tickets progress in parallel without stepping on each other; each leaves an auditable record.
+**Commit (code):** see Step 7 (Phase 1 is committed together with its diary entry).
+
+### What I did
+- Re-derived every fragment layout of the guide (Section 6.3) from my reading of the PTX ISA fragment figures and compared formula by formula: `m16n8k8.tf32` A `[g + 8(i&1), t + 4(i>>1)]`, B `[t + 4i, g]`; `m16n8k16` A `[g + 8(r&1), 2t + (e&1) + 8(r>>1)]` with `r = e>>1`, B `[2t + (e&1) + 8(e>>1), g]`; C/D `[g + 8(i>>1), 2t + (i&1)]`. They agree with the guide.
+- `mma.js`: `MMA_OPS` (frozen; `aElems`/`bElems` added beside `aRegs`/`perReg`), `accLayout`, `OP_FOR_PRECISION`, `roundOperand`, `representable`, `dot(c, a, b, order)`, `atomReference`, `runAtom(op, w, acc, a, b, order)`, `layoutTables`, `bankDegree`, `mmaSmemLayout(op, {BM, BN, BK})`, `mmaSmemBytes`.
+- `test/mma-layout.mjs`: bijection of every A, B and C/D layout; PTX string shape; spot checks at lane 5; a full-warp scatter → `runAtom` → gather equals the sequential FP32 sum computed independently (bit-exact) and is within 1e-5 of the exact sum; every order within an FP32 bound; a constructed order-sensitive dot product; truncation semantics of `chunk-rz`; representability for TF32/f16/bf16; an unrepresentable operand is reported with lane, operand and slot; padding makes TF32 A fragment reads conflict-free.
+
+### Why
+- One table consumed by materializer, emitter, simulator and cost model means a transcription error is at least consistent everywhere and fixable in one place (guide Risk 11.1).
+- Accumulation order is unspecified by the PTX ISA. The guide specifies "exact products, `Math.fround` after each addition in ascending k" as the default and asks for `reverse`/`pairwise` alternatives. I added a fourth, `chunk-rz`, that models the truncating multi-term adder measured by Fasi et al. (2021) on V100/T4/A100, clearly labelled a model, so a test can bound the effect of a hardware-like adder rather than only of reordering.
+
+### What worked
+- `node test/mma-layout.mjs` → "mma layouts are bijections; the emulated atom computes A·B + C with exact products; unrepresentable operands are reported".
+
+### What didn't work
+- My first expectation for the order-sensitivity case was wrong: `assert.equal(dot(0, a, b, "reverse"), 1 + 2 ** -23)` failed with `actual 1.000000238418579, expected 1.0000001192092896`. Three products of `2^-24` sum exactly to `3·2^-24 = 1.5 ulp(1)`; adding 1 gives a tie that rounds to even, `1 + 2^-22`. The emulator was right; I fixed the expectation and its message.
+
+### What I learned
+- The simulator stores every per-thread value in a `Float32Array`, so any value an `mma` reads has already been rounded to FP32; the emulator only needs the operand-format check, not an FP32 one.
+- `kernelInputs` (program.js) seeds every input with unrounded `r()*2-1` FP32 values, including inputs that in the real graph come from a `round_tf32` producer or from f16 storage. An isolated kernel check of a tensor-core kernel would therefore trip the representability check on every operand. This shapes Phase 2/3 (Step 7).
+- `k.knobs.canonical` (core/kiln.js:510) includes every key of a knob object, and `EvidenceStore.statsFor` matches records by it. Adding `WM`/`WN` levels that set `0` on every existing option would silently orphan every stored measurement. This shapes Phase 3.
+
+### What was tricky to build
+- Round toward zero in `chunk-rz`: `Math.fround` rounds to nearest, so the RZ result is `fround(x)` when that does not exceed `|x|`, and otherwise the float one ulp closer to zero, obtained by decrementing the bit pattern (valid for either sign because IEEE floats are sign-magnitude, and `r ≠ 0` whenever `|r| > |x|`).
+
+### What warrants a second pair of eyes
+- The layout formulas. They are now cross-checked twice from the same documentation (guide, and my reading), and are bijections, but only the Phase 0 GPU probe can confirm them.
+- `chunk-rz`'s chunk size 4 is an assumption; it does not decide anything by default.
+
+### What should be done in the future
+- Phase 0 probe should also measure which accumulation order (if any) of `ORDERS` reproduces GB10 bit-exactly; that would let the simulator default to it.
+
+### Code review instructions
+- `packages/kiln/src/std/mma.js` top comment, `MMA_OPS`, `runAtom`, `mmaSmemLayout`.
+- `node packages/kiln/test/mma-layout.mjs`.
+
+### Technical details
+- `runAtom` returns `null` or the first violation `{ lane, operand: "A"|"B", slot, value }`; NaN counts as representable.
+- `mmaSmemLayout` picks `pad ∈ {0, 4, 8}` minimizing the summed per-slot bank-conflict degree of one k-step's fragment reads; ties go to the smaller pad. TF32 `BK=8` → `padA = 4` (stride 12, conflict-free; stride 8 is 2-way).
+
+## Step 7: Phase 2 — the warp-collective `mma` statement through Kernel IR, CUDA, WGSL and the simulator
+
+I added the one new Kernel IR statement, `mma {op, acc, a, b}`, and taught every consumer of Kernel IR about it: `KB.mma`, `valueTypes`, `printKernelBody` (kernel.js); `toCuda`, `wgslUnavailableReason`, `toSim` and `SimMetrics` (emit.js); and the checking path in program.js (`simulateKernel`, `metricsOf`, `regsOf`, a new `operandInputs`). A handwritten two-warp kernel per op (`test/mma-kernel-ir.mjs`) runs through the simulator and matches `atomReference` bit for bit, its CUDA text has the expected PTX and constraint list, WGSL refuses it, and a partial warp and an unrepresentable operand are both reported. The full suite passed (50 files).
+
+### Prompt Context
+**User prompt (verbatim):** see Step 6.
+**Assistant interpretation:** Phase 2 of the guide: statement and emitters, tested on a handwritten body.
+**Inferred user intent:** A simulable, emit-able tensor-core primitive that the materializer (Phase 3) and later KILN-007 can target.
+**Commit (code):** the commit following this entry — "KILN-006 Phase 2: warp-collective mma statement in Kernel IR, CUDA, WGSL and the simulator".
+
+### What I did
+- kernel.js: statement documented in the header; `KB.mma(op, acc, a, b)` registers the accumulators as floats; `valueTypes` refuses a non-f32 fragment and types accumulators f32; printer line `mma.<op> {acc…} += {a…}·{b…}`.
+- emit.js: `mmaOpsOf(body)`, `cudaMma(s)` (exported, the single CUDA spelling), `CUDA_PACK` helpers `kiln_pack_f16`/`kiln_pack_bf16` emitted once per kernel when an op needs them, `cuda_fp16.h`/`cuda_bf16.h` included on the same condition; WGSL refusal `tensor-core mma (<op>) has no WGSL lowering`; simulator case that counts active lanes per warp, skips an inactive warp, reports a partial warp, calls `runAtom` (bound into the generated function as `MMA`, with the order as `ORDER`), reports a violation; `toSim(K, { mmaOrder })`; `SimMetrics.mma(flops)` (one warp instruction, `tensorFlops`), `badMma`, `badMmas`.
+- mma.js: `fragmentIx(op, "a"|"b"|"c", slot, lane)` returns the coordinates as `Ix` over `lane/4`, `lane%4`, derived from the numeric table by sampling and verified affine over all 32 lanes, so the materializer never re-states a layout.
+- program.js: `operandInputs(kern, ins)` rounds the kernel's A and B inputs to the operand format when `K.mma` is set; `simulateKernel(…, { mmaOrder })`; the simulator cache key includes the order; a reported `mma` problem fails the check; `metricsOf` passes `tensorFlops` and the target's tensor rate to `timeModel`.
+
+### Why
+- One emulated atom per warp is possible because the simulator already runs a statement for all threads of the block before the next (emit.js:171-173): all 32 lanes' fragments are in the per-thread arrays when the `mma` statement runs.
+- A non-instrumented run (`simulateFull`) has no metrics object, so a violation throws there rather than being silently ignored (`MMAFAIL`).
+- `operandInputs` is the answer to the problem found in Step 6: the kernel is only legal because its producer delivers operand-format values, and an isolated check must model that. Seeded inputs themselves (`kernelInputs`, used for content ids and the workbench job protocol) are unchanged, so no existing record identity moves.
+
+### What worked
+- `node test/mma-kernel-ir.mjs` → "the mma statement simulates as one emulated atom per warp, renders inline PTX, and is refused by WGSL" on the first run. `npm test` → "all 50 passed".
+
+### What didn't work
+- No failures in this step.
+
+### What I learned
+- The C string in `asm volatile` must contain the two characters `\n`; in the JS template that is `\\\\n` inside a Python-written source (escaping twice). The test asserts the exact emitted text, so a wrong escape would be caught.
+
+### What was tricky to build
+- Packing order: `kiln_pack_*(lo, hi)` puts `lo` in `.x`, the low 16 bits, which is where the PTX ISA puts the lower-indexed element of an `.f16x2` register. The materializer's slot order (`e = 2j` low, `2j+1` high) and `MMA_OPS` both follow that convention; the emitter is the only place that knows registers exist.
+
+### What warrants a second pair of eyes
+- Whether NVRTC for `sm_121` accepts the inline asm verbatim (deferred to the coordinator). A sample of the emitted bf16 source is in Technical details.
+- Using `__float_as_uint` for TF32 operands relies on the legality rule (low 13 bits zero). If a future change feeds unrounded values, hardware behavior is unspecified; the simulator would report it.
+
+### What should be done in the future
+- The handwritten kernels of `test/mma-kernel-ir.mjs` are a ready-made Phase 0 layout probe: compile them with NVRTC on GB10, run them on coordinate-encoding inputs and compare with `atomReference`.
+
+### Code review instructions
+- emit.js `cudaMma`, the `case "mma"` of `toSim`; kernel.js `KB.mma`, `valueTypes`; program.js `operandInputs`.
+- `node packages/kiln/test/mma-kernel-ir.mjs`; `cd packages/kiln && npm test`.
+
+### Technical details
+Emitted CUDA for the handwritten bf16 atom (excerpt):
+```cuda
+#include <cuda_bf16.h>
+__device__ __forceinline__ unsigned kiln_pack_bf16(float lo, float hi) { __nv_bfloat162 h = __floats2bfloat162_rn(lo, hi); return *reinterpret_cast<unsigned*>(&h); }
+    a0 = __bfloat162float(src0[((2 * (lane % 4)) + (16 * (lane / 4)))]);
+    asm volatile("mma.sync.aligned.m16n8k16.row.col.f32.bf16.bf16.f32 {%0,%1,%2,%3}, {%4,%5,%6,%7}, {%8,%9}, {%0,%1,%2,%3};\n" : "+f"(c0), "+f"(c1), "+f"(c2), "+f"(c3) : "r"(kiln_pack_bf16(a0, a1)), "r"(kiln_pack_bf16(a2, a3)), "r"(kiln_pack_bf16(a4, a5)), "r"(kiln_pack_bf16(a6, a7)), "r"(kiln_pack_bf16(b0, b1)), "r"(kiln_pack_bf16(b2, b3)));
+```
+
+## Step 8: Phase 3 — `MAP=mma` in Tile IR and the `matMma` materializer
+
+The tensor-core mapping now exists end to end on CPU. `scheduleRule` computes `operandPrecision` for every kernel and asks `mmaPlan` whether the contraction can run on tensor cores; if so the fork tree offers `MAP=mma` with `BM`, `BN`, `BK`, `WM`, `WN` levels. `matMma` (kernel.js) writes the warp-tiled GEMM from three exported building blocks (`mmaAccumulators`, `mmaWarpStep`, `mmaAccElements`) that KILN-007 can reuse. Pinned `MAP=mma` kernels for TF32, f16 and bf16 linear layers, a batched matmul, tile tails and fused epilogues all pass `simulateKernel` against the Loop IR reference, under every accumulation order. The default compile is byte-identical to the base revision for 36 program/target/precision combinations.
+
+One design change against the guide came from the first run of the tail test: at small sizes fusion *does* inline the `round_tf32` producers into the contraction, so the body is `mul(round_tf32(in0[..]), round_tf32(in1[..]))`. The guide's `isProductOf` would refuse it. I generalized the operand rule to "a load under a chain of format functions" (`copy`, `round_tf32`, `round_f16`, `round_bf16`) and made the tile loader apply the chain once per staged element. That is the guide's deferred "rounding during staging" (Section 11.2), obtained for free where fusion already made the decision.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 6.
+**Assistant interpretation:** Phase 3: `operandPrecision`, `mmaPlan`, `MAP=mma` with `WM`/`WN`, fork tree, launch, print, `inPrecisions`, `matMma`, `materialize` dispatch, tests with `MAP=mma` pinned.
+**Inferred user intent:** A correct, CPU-validated tensor-core schedule that changes nothing until chosen.
+**Commit (code):** the commit following this entry — "KILN-006 Phase 3: MAP=mma mapping, mmaPlan legality and the matMma materializer".
+
+### What I did
+- core/kiln.js `expandFork`: a level value `undefined` leaves the knob unset. `WM`/`WN` levels return `[undefined]` off `MAP=mma`, so no existing option gains keys (Step 6 finding: `k.knobs.canonical` keys evidence records by every key).
+- tile.js: `MAP` gains `"mma"`; knobs `WM ∈ {16,32,64}`, `WN ∈ {8,16,32,64}`; `operandPrecision(n)`; `operandChain` + `mmaPlan(an, prec, t)` → `{ op, operand, a, b, aFns, bFns, roundsA, roundsB }` or `{ reason }`; `legalMaps(an, plan)`; `forkTree(an, t, plan)` (BK multiple of the atom's k, padded shared tiles within `smemPerBlock`, `warps·32 ≤ maxThreadsPerBlock`); `launch(an, kn, plan)`; `regsEstimate(kn, values, op)`; `estimateMma` (also Phase 4 material, see Step 9); `printTile` mma branch; `planOf(node)`; `tile.kernel` attr `inPrecisions` (in `keyIgnore`); `scheduleRule` passes the plan; `costPrior` and `predictedCost` pass the plan to `estimate`.
+- kernel.js: `mmaAccumulators`, `mmaWarpStep(kb, op, lane, acc, a, b)`, `mmaAccElements(op, acc, lane)`; `matMma(an, kn, plan)`; `materialize` refuses an illegal pinned plan by name and records `K.mma = { op, operand, a, b }` (`a`/`b` null when the operand is rounded in-kernel, so `operandInputs` leaves that input alone).
+- test/mma-kernel.mjs (new): the cases of guide Section 10.1 (see Technical details).
+- Comparison script (scratch, `KILN-006-impl/cmp/dump.mjs`): compiles attention, swiglu, linear+relu, a 1024³ matmul, an f16 linear and a 1x1 conv for gb10, a100 and rtx5090 under `highest` and `tf32`, and prints every kernel's name, identity, row, knobs, CUDA and WGSL hashes and the program's `predictedCost`. Run against `git archive 373766b` and against the working tree: `IDENTICAL` (123 lines, 87 kernels).
+
+### Why
+- Legality per operand chain rather than per body shape: the values are what matter. `round_tf32(load)` is exactly as TF32-representable as a load from a `round_tf32` producer, and rounding at staging is the same RNE function (`fns.js roundTf32` / `kiln_round_tf32`), as the TF32 decision record requires.
+- Tile loads write the `mv` temporary, not `tv`: KILN-008 owns the reuse problem of `matTiled`'s `tv`; a distinct name keeps this path independent of that fix.
+- `costPrior` returns `Infinity` for an `mma` option when the target's tensor rate is unknown and other maps compete; with `MAP=mma` pinned it ranks the remaining knobs with the FP32 peak as prior. Reason: the guide's claim that the pessimistic prior alone keeps `mma` from winning does not hold in the issue term (one warp instruction per 1024 multiply-adds), so an explicit gate is the only guarantee that defaults do not change. Step 9 records the numbers.
+
+### What worked
+- `node test/mma-kernel.mjs` → "MAP=mma: TF32/f16/bf16 products, batches, tails and fused epilogues simulate correctly; refusals are exact". The 512×256×384 TF32 kernel matched the reference with `maxAbs 0` under the sequential order.
+- `npm test` → "all 51 passed"; `python3 -m pytest -q` → "177 passed, 7 subtests passed".
+
+### What didn't work
+- Tail test, first run: `TypeError: Cannot read properties of undefined (reading 'K')` at `kt.K.grid` — no `MAP=mma` kernel; the warning was `pins MAP=mma,BM=32,BN=16,BK=16 are not offered by schedule at n17`. The printed expression was `add_{r7<19} mul(round_tf32(in0[a1, r7]), round_tf32(in1[a0, r7]))`: fused rounding. Fixed by the operand-chain rule above.
+- Tail test, second run: `f32 tails: every output written and right (512)`: my assertion expected `n === 561`, but `simulateKernel` caps the compared sample at 512 of the covered outputs. Fixed the assertion.
+- Refusal test: `Cannot read properties of undefined (reading 'attrs')` — the 32×16×32 case also fused its rounding, so no tile kernel had a `tf32` input precision. I moved that case to 256×128×192.
+- Operational mistake (no code effect): building the base-revision tree for the comparison, `ln -s …/node_modules $S/base/node_modules` succeeded silently (stderr discarded), so my next `ln -sfn $S/base/packages/evidence $S/base/node_modules/@kiln/evidence` rewrote the *worktree's* `node_modules/@kiln/evidence` symlink to point into the scratch copy. I noticed it in the `ls` output, restored `node_modules/@kiln/evidence -> ../../packages/evidence` (same form as the `kiln` link beside it), replaced the scratch symlink with a real directory, and re-ran both dumps. The full test run of this step happened before the mistake; the evidence package is byte-identical between the two trees.
+
+### What I learned
+- Whether rounding stays a separate kernel depends on size (the fusion work guard), so any legality rule must handle both forms; the guide's probe used one size.
+- The pin mechanism (`core/kiln.js:999-1004`) ignores a pin where it is not offered and warns, which is exactly the right behaviour for `MAP=mma` pins on whole programs (rounding kernels keep their maps).
+
+### What was tricky to build
+- Keeping the fork tree's knob keys stable. Without the `undefined` level value, every existing option would gain `WM=0,WN=0`, `canonRow` would still print the same row (it drops off-values), and the only symptom would be evidence lookups silently returning nothing. The comparison dump includes `knobs=` JSON so this cannot regress unnoticed.
+- The warp-collective contract: atoms are emitted outside every `if`; tails rely on zero fill of the shared tiles (A rows ≥ M, B columns ≥ N, and k ≥ K are zero), and only the epilogue is guarded.
+
+### What warrants a second pair of eyes
+- `mmaPlan`'s format-chain rule: `round_f16(round_tf32(x))` is classified by the outermost rounding (f16). Correct for values, but worth a reviewer's check.
+- `matMma` with `WM=64, WN=64` holds 128 accumulators per lane; register pressure on hardware is unmeasured.
+- Whether `__launch_bounds__(1024)` kernels with large warp tiles compile without spills (GPU-side check).
+
+### What should be done in the future
+- Phase 4 (Step 9): target rates and ranking tests.
+- KILN-007 should build on `mmaWarpStep`/`mmaAccElements`; the accumulator layout differs from the A-fragment layout, so P·V after softmax needs either a shared-memory round trip or a register re-layout (a new helper in this section).
+
+### Code review instructions
+- tile.js `operandChain`, `mmaPlan`, `forkTree`, `launch`, `costPrior`; kernel.js section "warp-level tensor-core tiles" and `matMma`; core/kiln.js `expandFork`.
+- `node packages/kiln/test/mma-kernel.mjs`; `cd packages/kiln && npm test`; the comparison: `node <scratch>/cmp/dump.mjs <kiln root>` for both trees, then `diff`.
+
+### Technical details
+- Cases in `test/mma-kernel.mjs`: TF32 linear+bias+relu 512×256×384 (CUDA has inline PTX, no packing; WGSL null with reason; four accumulation orders pass; a check with `K.mma` removed fails with "not representable in tf32"); three explicit knob sets (`64/64/16/32/32`, `32/64/8/16/64`, `128/16/32/64/8`); f16 and bf16 linear 64×48×40 (packing helpers, includes, `__float2half_rn`/`__float2bfloat16_rn` stores); batched matmul `[4,96,80]@[4,80,72]`; tails `M=33, K=19, N=17` for TF32 (fused rounding, `K.mma.a/b = null`, `kiln_round_tf32(` in the mma kernel) and f16; bias+GELU; scale+residual; refusals (FP32 highest, `matmul(..., "highest")` under tf32, mixed f16/bf16, WebGPU `sm 0`, `sm 70`, f32 precisions, `max` reduction, `mul(sub(a, c), b)`, a second multiply, `add(a, b)` body); default gb10 compile has no `mma` and no `WM`/`WN` keys.
+- First pinned compile on GB10 (model-ranked knobs under the FP32-peak prior): `k_linear_ew_reduce MAP=mma,BM=128,BN=32,BK=16,WM=16,WN=8`, grid 48, block 1024, 12800 B shared memory; simulated 145 ms.
+
+## Step 9: Phase 4 — the tensor-core cost model, and why defaults need an explicit gate
+
+`estimateMma` (written in Step 8 so that the fork tree could be ranked at all) counts what `matMma` writes: tensor flops, global traffic of the tile loads, shared-memory wavefronts of padded tile stores and fragment reads, warp instructions for loads, atoms and packing, and the scalar epilogue. `timeModel` gains a `tensor` resource only when a kernel has tensor flops, so every existing estimate's `parts` object is unchanged. I compared the estimate with the instrumented simulator on a pinned 256×192×320 TF32 kernel: tensor flops and shared-memory wavefronts agree exactly, warp instructions within 0.4 %, traffic within 13 %. `test/mma-cost.mjs` pins those agreements and the ranking behaviour.
+
+The guide's decision "use `peakTflops` as a pessimistic prior, then `MAP=mma` is never predicted faster" turned out to be false in this model: at equal compute rate, the 1024³ TF32 product is predicted at 86 µs on `mma` against 254 µs on `tiled` on GB10, because `tiled` is shared-memory bound and an atom needs 6 fragment loads per 1024 multiply-adds. The explicit gate in `costPrior` (Step 8) is therefore what keeps the default compile unchanged, not the prior.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 6.
+**Assistant interpretation:** Phase 4 of the guide: per-precision rates, estimate branch, tensor term, `regsEstimate`; tests that defaults are unchanged without rates and that ranking works with them.
+**Inferred user intent:** The model must be able to choose tensor cores once the GB10 rates are measured, and must not do so before.
+**Commit (code):** the commit following this entry — "KILN-006 Phase 4: tensor-core cost model and ranking tests".
+
+### What I did
+- targets.js: documented the optional `mma: { tf32, f16, bf16 }` field; no spec carries it (A100 datasheet figures recorded in the comment only).
+- test/mma-cost.mjs (new): ranking with an A100-like test spec (`mma: {156, 312, 312}`): 1024³ TF32 → `mma` by `model`; 16³ → not `mma`; `SPECS.a100` and `SPECS.gb10` (no rates) → no `mma`; FP32 highest → no `mma`; an f16 1024×512×768 linear → `mma`; a `MAP=mma` pin on an unrated target → `pinned-partial`, "the rest by model". Counts: tensor flops and wavefronts equal the simulator's, warp instructions within 5 %, traffic within 25 %, `regs` formula for TF32 and f16, tensor part equal, `timeModel` uses the rate when given, `tiled` estimates have no `tensor` part, `predictedCost` equals the per-kernel sum and differs between pinned `mma` and pinned `tiled`, `estimate` of `MAP=mma` without a plan throws.
+- Re-ran the Step 8 comparison dump: still `IDENTICAL` to the base revision.
+
+### Why
+- No real spec gets a rate: (1) GB10's are unmeasured (guide Open question 1); (2) giving A100/H100 datasheet rates would switch default compiles on those targets to kernels that have never been compiled by NVRTC, let alone run; (3) a new spec field changes `specHash(device.spec)` and with it the content ids of records simulated on that spec (records.js `contentOf`). A derived test spec exercises the ranking without any of these effects.
+
+### What worked
+- `node test/mma-cost.mjs` → "mma cost model: unchanged defaults without rates, ranking with rates, counts agree with the simulator". `npm test` → "all 52 passed"; pytest → "177 passed, 7 subtests passed".
+
+### What didn't work
+- No failures in this step. (The numbers that falsified the guide's prior assumption are in Technical details.)
+
+### What I learned
+- At equal FP32 peak, the model already prefers `mma` for large products because of the shared-memory term; the real speedup on hardware will come from both the tensor rate and the lower shared-memory traffic per multiply-add.
+- The model's favourite warp tile at the peak prior is small (`WM=16, WN=8`); larger tiles reuse fragments better but cost registers and occupancy. Calibration on hardware decides.
+
+### What was tricky to build
+- Matching wavefront counts exactly required `estimateMma` to use the same padded strides (`mmaSmemLayout`) as `matMma`, and the same lane→address mapping for tile stores as the loader (`kFast` choice from the operand's coefficients).
+
+### What warrants a second pair of eyes
+- The `Infinity` gate in `costPrior` depends on `fork.options` being passed to cost functions (core/kiln.js `decide.cost` passes `fork: fp`). If evidence later measures an `mma` row, `decide.evidence` can still choose it, which is intended.
+- Traffic is 13 % below the simulator on the test kernel; the epilogue traffic approximation (`numelOut · 4 · (1 + epilogue loads)`) is the likely source.
+
+### What should be done in the future
+- Phase 0: measure GB10 dense TF32/f16/bf16 rates with FP32 accumulation; set `SPECS.gb10.mma` (this changes the gb10 spec hash, so do it together with a planned record refresh).
+- Phase 5: recalibrate `estimateMma` from measured kernels (KILN-005 reference 47's method).
+
+### Code review instructions
+- tile.js `estimateMma`, `timeModel` (`raw.tensor`), `costPrior`; targets.js comment.
+- `node packages/kiln/test/mma-cost.mjs`.
+
+### Technical details
+Per-mapping best estimates (µs), TF32 square matmul, scratch script `KILN-006-impl/try3.mjs`:
+
+| target | n | tiled best | mma best (bound) | chosen by default |
+|---|---|---|---|---|
+| gb10 (no rate, FP32-peak prior) | 128 | 4.76 | 5.82 (dram) | tiled |
+| gb10 (no rate, FP32-peak prior) | 1024 | 253.95 | 86.00 (tensor) | tiled (gate) |
+| a100 + test rates | 128 | 5.93 | 3.73 (launch) | mma |
+| a100 + test rates | 1024 | 243.98 | 42.44 (smem) | mma |
+
+At n = 16 fusion inlines the TF32 rounding and the kernel is a `MAP=row` kernel.
+
+Estimate vs simulator (`a100-tensor-test`, `MAP=mma,BM=64,BN=64,BK=16,WM=32,WN=32`, 256×192×320, all 20 blocks): tensorFlops 31457280 / 31457280; smemWavefronts 53760 / 53760; warpInstr 143360 / 143920; traffic 2293760 / 2621440; regs 72 / 72; us 9.30 / 10.21; check `max abs diff 0.00e+0`.
+
+## Step 10: GPU handoff — fixtures for the layout probe and the pinned kernels, and a large-K finding
+
+Phases 0 and 5 need the GB10 host, which this agent must not use. I wrote `scripts/02-mma-gpu-fixtures.mjs`, which produces launcher round-trip fixtures in the existing `runtime/test/fixtures.mjs` format, so the coordinator can validate everything with one existing command (`kiln_launch.py check-fixtures --backend cuda`). It writes three Phase 0 layout probes (one hand-written atom per op, inputs rounded in-kernel) and six Phase 5 programs with `MAP=mma` pinned (TF32), each simulated on CPU against the same reference before it is written. I also fixed one export check that would have misclassified `mma` kernels, and measured in simulation how the accumulation-order model behaves at large K.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 6.
+**Assistant interpretation:** Leave the coordinator exact, runnable GPU validations.
+**Inferred user intent:** GPU work is serialized through one coordinator; each agent hands over a ready-to-run package.
+**Commit (code):** the commit following this entry — "KILN-006: GPU validation fixtures script, export treats mma kernels as block-mapped".
+
+### What I did
+- export.js: the 32-bit thread-id guard treats `MAP=mma` like `row`/`tiled` (block-mapped: offsets derive from `bid`, not `bid·block + tid`).
+- `scripts/02-mma-gpu-fixtures.mjs <dir>`: `probe-tf32`, `probe-f16`, `probe-bf16` (grid 1, block 32, hand-assembled kiln-program/1; expected = `atomReference` of the rounded inputs; the script first checks the simulated probe equals it bit for bit) and `mma-linear-relu` (512×256×384), `mma-linear-64x64` (32×32 warp tiles), `mma-large-k` (128×4096×128), `mma-bmm`, `mma-tails` (fused TF32 rounding), `mma-bias-gelu` (expected = Loop IR reference with TF32 semantics). Run: 1.8 s; 18 files, about 6 MB, written to scratch, not committed (deterministic, regenerate on the host).
+- Scratch experiment `try5.mjs`: a 64×K×64 TF32 product with `MAP=mma,BM=64,BN=64,BK=32,WM=32,WN=32` simulated under each accumulation order.
+- docmgr: Phase 1-4 tasks checked; tasks added for the handoff (checked), split-K accumulators and launcher f16/bf16 packing; changelog entry; six files related to this diary.
+
+### Why
+- Reusing `check-fixtures` means no new GPU-side code: the launcher already compiles each kernel with NVRTC for the device's `sm_XY` and compares with rtol 1e-3 / atol 1e-4.
+- The probes round inside the kernel because the launcher's inputs are generic FP32 values; rounding there is the same RNE function as Kiln's reference, so the probe tests the layout and nothing else.
+
+### What worked
+- All nine cases generated; every kernel's CPU simulation passed before writing. Suites: `npm test` "all 52 passed"; pytest "177 passed, 7 subtests passed".
+
+### What didn't work
+- Under the `chunk-rz` model (truncating 4-term adder), long reductions fail the simulator's check: K = 4096 → `1 of 512 values differ (first at 226: 0.09136402606964111 vs 0.09092199802398682), max abs diff 1.51e-3`; K = 16384 → `9 of 512 values differ …, max abs diff 1.23e-2`. Sequential, reverse and pairwise orders pass (max abs diff 9.2e-5 / 1.3e-4 at K = 4096; 2.9e-4 / 6.0e-4 at K = 16384). This is a model result, not a failure of the code; it makes the guide's large-K risk concrete.
+
+### What I learned
+- If GB10's adder truncates like the model, the bias grows linearly with K (one truncation per chunk), unlike reordering error, which grows like √K. `mma-large-k` is in the fixtures precisely to measure this on hardware.
+- The Python CUDA launcher packs only f32 and u8 (`_packed`) and reads outputs as f32 (`_host`), so f16/bf16 mma programs cannot go through `check-fixtures` today.
+
+### What was tricky to build
+- Hand-assembling a kiln-program/1 for a kernel that has no graph: the fields must match what `exportProgram` produces (buffers with `bytes`, `dispatch`, `reads`/`writes` buffer ids, the CUDA entry named like the kernel). I mirrored export.js field by field.
+
+### What warrants a second pair of eyes
+- NVRTC include paths for `cuda_fp16.h`/`cuda_bf16.h` in the probe kernels: `check-fixtures` opens programs without `include_paths`. Existing f16 kernels have the same dependency; if NVRTC cannot find the headers there, pass the toolkit include directory.
+
+### What should be done in the future
+- If `mma-large-k` fails on GB10: split the K loop into several accumulator sets combined with FP32 adds (a knob), as the guide's risk mitigation says.
+- f16/bf16 fixtures after the launcher learns to pack half types (task added).
+
+### Code review instructions
+- `scripts/02-mma-gpu-fixtures.mjs`; export.js `threadMapped`.
+- `node ttmp/2026/11/01/KILN-006-…/scripts/02-mma-gpu-fixtures.mjs /tmp/kiln-mma-fixtures` (from the repository root).
+
+### Technical details
+Remaining GPU validations (coordinator):
+1. `node ttmp/2026/11/01/KILN-006--kiln-tensor-core-matrix-products-intern-analysis-design-and-implementation-guide/scripts/02-mma-gpu-fixtures.mjs <dir>` then on bling `python3 runtime/python/kiln_launch.py check-fixtures <dir> --backend cuda`. `probe-*` pass ⇒ the three layouts match silicon (Phase 0 layout half); `mma-*` pass ⇒ NVRTC accepts the inline PTX for sm_121 and the kernels agree with Kiln's reference (Phase 5 first half). `mma-large-k` is the accumulation-drift probe.
+2. Tensor throughput on GB10 (Phase 0 second half): time `mma-linear-64x64` / `mma-large-k` scaled up, or a dedicated loop of atoms; record dense TF32/f16/bf16 TFLOP/s with FP32 accumulate; set `SPECS.gb10.mma`.
+3. PassBench replays of tasks 5, 32, 52, 72 and the TF32 P0 families with `--param MAP=mma` (kiln-export pin) against the unchanged baseline, under the KILN-005 frozen protocol; f16/bf16 families through integrations/passnet TorchProgram (the Python launcher cannot pack half inputs).
+
+## Step 11: Vault report and close-out
+
+I wrote the deep-dive report for the go-go-parc vault in textbook style and pushed it, then re-ran ticket validation. The report explains the warp-collective constraints first, then legality, the statement and its three emitters, the materializer, the cost model (including the refuted prior assumption), the identity-preservation mechanisms, results and the GPU handoff.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 6.
+**Assistant interpretation:** Final deliverables: vault note committed and pushed, ticket clean.
+**Inferred user intent:** A durable, self-contained explanation of the work outside the repository.
+**Commit (code):** the commit following this entry — "KILN-006 diary Step 11: vault report".
+
+### What I did
+- Vault: `Projects/2026/11/01/ARTICLE - Kiln - Tensor-Core Matrix Products Built and Checked Without a GPU.md` (frontmatter with repo, branch, ticket, revisions; an architecture mermaid flowchart, pseudocode for `operandChain`/`mmaPlan`, the simulator case and `matMma`, a cost table, results table, GPU handoff, open questions). Staged only that file; `git pull --rebase` (autostash of the vault's unrelated working-tree changes was created and re-applied by git) and `git push`: vault commit `c65ac3e`.
+- `docmgr doctor --ticket KILN-006 --stale-after 30`.
+
+### Why
+- The common rules require the report and the push; staging only the note keeps other agents' and the user's vault changes out of this commit.
+
+### What worked
+- Push succeeded on the first attempt.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- N/A.
+
+### What was tricky to build
+- N/A.
+
+### What warrants a second pair of eyes
+- The report states one hardware-dependent risk as an open question (truncating accumulation at large K); it must not be read as a measured GB10 property.
+
+### What should be done in the future
+- Run the GPU validations listed in Step 10 Technical details.
+
+### Code review instructions
+- Read the vault note; compare its numbers with Steps 8-10.
+
+### Technical details
+- Branch commits: `34c9444`, `ad0013c`, `eb71719`, `13a3767`, `33f1f5c`, `33327e7`.

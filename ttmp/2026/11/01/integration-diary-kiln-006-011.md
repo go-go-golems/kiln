@@ -221,3 +221,54 @@ Two small fixes in `packages/kiln/src/std/loop.js`, plus tests:
 - `test/scan.mjs`: the Phase 7 block now simulates the integer kernels too (it filtered `outDtype === "f32"` because integer simulation did not exist); a new block checks `cumsum(arange)`, `cumsum(x + arange)`, `cumsum(x + 2^60 + 1)` and an i64 cumsum under `MAP=thread` and `MAP=row`: Loop IR equals the frontend reference and every kernel simulates exactly.
 
 After the follow-up: `npm test` all 55 passed, `pytest` 195 passed, 7 subtests passed (logs `m008b-*`). Probe output before/after is in the "What didn't work" bullets of Step 4.
+
+## Step 5: Merge KILN-006 (tensor-core matrix products)
+
+KILN-006 adds `mma.js` (atom table, fragment layouts, warp emulator), the warp-collective `mma` Kernel IR statement with CUDA/WGSL/simulator spellings, `MAP=mma` with `mmaPlan` legality and the `matMma` materializer, `estimateMma`, the `costPrior` refusal of `mma` without a measured tensor rate, `expandFork` accepting `undefined` knob levels, `program.js` `operandInputs`, and block-mapped `mma` in `export.js`. Four files conflicted, all at places where KILN-008 (scans), KILN-010 (typed simulator storage) or KILN-011 (CUDA helper table) had changed the same function headers or dispatch lines.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 1.
+**Assistant interpretation:** Merge the fifth branch keeping MAP=mma beside the scan maps and the integer simulator.
+**Inferred user intent:** No feature lost.
+**Commit (code):** merge commit "Merge KILN-006: tensor-core matrix products".
+
+### What I did
+- Read KILN-006 design-doc Section 13 and diary Steps 7-11.
+- `git merge --no-ff --no-commit impl/kiln-006-tensor-cores` → conflicts in `packages/kiln/src/std/emit.js`, `kernel.js`, `program.js`, `tile.js`.
+- `emit.js`:
+  - imports: `FNS, CUDA_HELPERS, fill` (KILN-011) and `MMA_OPS, runAtom, ORDERS` (KILN-006).
+  - `toCuda` includes: KILN-006's `mmaOperands`-aware `cuda_fp16.h`/`cuda_bf16.h` includes and `CUDA_PACK` lines, then KILN-011's `for (const h of cudaHelpers(K.body)) lines.push(CUDA_HELPERS[h]);`. KILN-006's inline `kiln_round_tf32` line (the base's spelling, which KILN-011 moved into `CUDA_HELPERS`) is **dropped**: keeping both would define `kiln_round_tf32` twice in any kernel that rounds to TF32 — a CUDA compile error that no CPU test catches.
+  - `toSim`: KILN-010's `SIM_STORAGE` and its comment, with KILN-006's signature `toSim(K, { instrument = false, mmaOrder = "sequential" } = {})` and `ORDERS` check.
+  - simulator prelude: KILN-006's `MMAFAIL` helper and KILN-010's typed shared arrays (`new ${SIM_STORAGE[s.dtype ?? "f32"]}(…)`).
+- `program.js`: both imports (`IX` for KILN-010's `dataIndexedInputs`, `roundOperand` for KILN-006); both helper blocks (`simInputs`/`outputStorage`/`checkExact` and `operandInputs`); `simulateKernel` composes them: `const ins = operandInputs(kern, simInputs(kern, seed))`, `out = outputStorage(kern.outDtype, …)`. `operandInputs` only rewrites the A/B inputs of an `mma` kernel, which are floating, so integer inputs are untouched.
+- `kernel.js`: header comment lists the `mma` statement and KILN-010's `ix` float-expression kind; KILN-008's scan materializers and KILN-006's `mmaAccumulators`/`mmaWarpStep`/`mmaAccElements`/`matMma` both kept; `materialize` computes `plan` (KILN-006), calls `launch(an, kn, plan)`, then dispatches scans first (`an.scan ? matScanRow/matScanThread`) and `MAP=mma` to `matMma`.
+- `tile.js`, six hunks: the MAP header comment lists both the scan reading of MAP and `MAP=mma`; imports `FNS, reducer` (KILN-008) and the `mma.js` names; `operandPrecision`/`operandChain`/`mmaPlan`/`warpsOf` kept and `legalMaps(an, plan = null)` starts with KILN-008's scan early return; `forkTree` uses `legalMaps(an, plan)` with KILN-008's scan-aware `TPB` level; `launch(an, kn, plan = null)` with KILN-008's scan geometry first; `estimate(an, kn, t, plan = null)` dispatches `an.scan` to `estimateScan` and then `MAP=mma` to `estimateMma`.
+
+### Why
+- A scan kernel never has a contraction-only map (its `legalMaps` returns before `mma` could be pushed), so dispatching scans first in `materialize`, `launch` and `estimate` is equivalent to either order and keeps each feature's own code path intact.
+
+### What worked
+- `npm test`: all 59 passed (adds `mma-cost`, `mma-kernel-ir`, `mma-kernel`, `mma-layout`). `pytest`: 195 passed, 7 subtests passed.
+
+### What didn't work
+- No test failures. The duplicate `kiln_round_tf32` definition would have been invisible to every CPU test (the simulator does not compile CUDA); found by reading the combined hunk. Checked with `probes/mma-tf32-helper.mjs`: a 32×32·32×16 TF32 product pinned to `MAP=mma` fuses its rounding into `k_ew_matmul_reduce` and its CUDA has `kiln_round_tf32 defs: 1 uses: 3`.
+
+### What I learned
+- When a branch rewrites a line another branch moved into a table, git shows the moved line as unchanged context on one side; the conflict is the only place where the duplication can be seen.
+
+### What was tricky to build
+- Nothing beyond reading which side's version of the include block already contained the other side's change.
+
+### What warrants a second pair of eyes
+- No test exercises a KILN-009 in-place mutation whose producer is a `MAP=mma` kernel (`x += a @ w` with MAP=mma pinned): `sameIndexSlots` will either refuse it (write-back) or prove it; the program oracle would catch a wrong proof but nothing runs it on an mma producer.
+- `matMma` epilogues with a KILN-010 index value (e.g. `a @ w + arange`) are not tested; `mmaPlan` only constrains the contraction body, so such an epilogue is accepted.
+
+### What should be done in the future
+- NVRTC compile of a TF32 `MAP=mma` kernel from this branch on the GPU host (it is the one path where the helper table and the mma includes meet).
+
+### Code review instructions
+- `git show <merge> -- packages/kiln/src/std/emit.js packages/kiln/src/std/tile.js packages/kiln/src/std/kernel.js packages/kiln/src/std/program.js`.
+- `cd packages/kiln && node test/mma-kernel.mjs && node test/mma-cost.mjs && node test/scan.mjs`.
+
+### Technical details
+- Logs: `m006-npm.log`, `m006-py.log`. Resolution inputs: `bin/r006-*.py`.

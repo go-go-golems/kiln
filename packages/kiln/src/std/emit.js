@@ -1,6 +1,7 @@
 // Emitters over Kernel IR: CUDA C++, WGSL, and a lockstep SIMT simulator in JavaScript.
 import * as IX from "../core/ix.js";
 import { FNS, CUDA_HELPERS, fill } from "./fns.js";
+import { MMA_OPS, runAtom, ORDERS } from "./mma.js";
 
 const cname = (s) => String(s || "kernel").replace(/[^\w]/g, "_");
 const flit = (v, lang) => {
@@ -19,6 +20,31 @@ const ilit = ({ v, exact }, dtype) => {
   if (b === null) throw new TypeError(`non-integral literal ${v} in a ${dtype} context`);
   if (dtype === "i32") return String(b);
   return b === -(2n ** 63n) ? "(-9223372036854775807LL - 1)" : `${b}LL`;
+};
+
+// the mma ops a Kernel IR body uses (KILN-006)
+export function mmaOpsOf(body) {
+  const ops = new Set();
+  const walk = (ss) => { for (const s of ss) { if (s.s === "mma") ops.add(s.op); if (s.body) walk(s.body); } };
+  walk(body);
+  return ops;
+}
+// CUDA for one warp-collective mma statement: inline PTX mma.sync with FP32 accumulators read and written in
+// place ("+f"), operands passed as 32-bit registers. A TF32 element is its FP32 bit pattern (the legality rule and
+// the simulator guarantee its low 13 mantissa bits are zero, so no cvt is needed); two f16/bf16 elements pack
+// into one register, element 2j in bits 0-15 (kiln_pack_*: exact, the values are representable).
+export function cudaMma(s) {
+  const op = MMA_OPS[s.op];
+  if (!op) throw new TypeError(`unknown mma op ${s.op}`);
+  const reg = (names) => op.perReg === 1 ? names.map((n) => `"r"(__float_as_uint(${n}))`) : Array.from({ length: names.length / 2 }, (_, j) => `"r"(kiln_pack_${op.operand}(${names[2 * j]}, ${names[2 * j + 1]}))`);
+  const a = reg(s.a), b = reg(s.b);
+  const list = (from, n) => `{${Array.from({ length: n }, (_, i) => `%${from + i}`).join(",")}}`;
+  const text = `${op.ptx} ${list(0, 4)}, ${list(4, a.length)}, ${list(4 + a.length, b.length)}, ${list(0, 4)};\\n`;
+  return `asm volatile("${text}" : ${s.acc.map((n) => `"+f"(${n})`).join(", ")} : ${[...a, ...b].join(", ")});`;
+}
+const CUDA_PACK = {
+  f16: "__device__ __forceinline__ unsigned kiln_pack_f16(float lo, float hi) { __half2 h = __floats2half2_rn(lo, hi); return *reinterpret_cast<unsigned*>(&h); }",
+  bf16: "__device__ __forceinline__ unsigned kiln_pack_bf16(float lo, float hi) { __nv_bfloat162 h = __floats2bfloat162_rn(lo, hi); return *reinterpret_cast<unsigned*>(&h); }",
 };
 
 // ----------------------------------------------------------------------------- CUDA
@@ -68,8 +94,10 @@ export function toCuda(K, { alias = [] } = {}) {
   };
   const out = K.params.find((p) => p.role === "out") || {};
   const types = [...ins, out].map((p) => p.dtype || "f32");
-  if (types.includes("f16") || JSON.stringify(K.body).includes('"round_f16"')) lines.push("#include <cuda_fp16.h>");
-  if (types.includes("bf16") || JSON.stringify(K.body).includes('"round_bf16"')) lines.push("#include <cuda_bf16.h>");
+  const mmaOperands = new Set([...mmaOpsOf(K.body)].map((o) => MMA_OPS[o].operand));
+  if (types.includes("f16") || JSON.stringify(K.body).includes('"round_f16"') || mmaOperands.has("f16")) lines.push("#include <cuda_fp16.h>");
+  if (types.includes("bf16") || JSON.stringify(K.body).includes('"round_bf16"') || mmaOperands.has("bf16")) lines.push("#include <cuda_bf16.h>");
+  for (const operand of ["f16", "bf16"]) if (mmaOperands.has(operand)) lines.push(CUDA_PACK[operand]);
   for (const h of cudaHelpers(K.body)) lines.push(CUDA_HELPERS[h]);
   const load = (dtype, expr) => dtype === "f16" ? `__half2float(${expr})` : dtype === "bf16" ? `__bfloat162float(${expr})` : dtype === "u8" ? `(float)${expr}` : expr;
   const store = (expr) => out.dtype === "f16" ? `__float2half_rn(${expr})` : out.dtype === "bf16" ? `__float2bfloat16_rn(${expr})` : expr;
@@ -94,6 +122,7 @@ export function toCuda(K, { alias = [] } = {}) {
         case "note": lines.push(`${pad}// ${s.text}`); break;
         case "for": lines.push(`${pad}for (int ${s.v} = ${ix(s.from)}; ${s.v} < ${ix(s.to)}; ${s.v} += ${ix(s.step)}) {`); walk(s.body, pad + "    "); lines.push(`${pad}}`); break;
         case "if": lines.push(`${pad}if (${ix(s.c)}) {`); walk(s.body, pad + "    "); lines.push(`${pad}}`); break;
+        case "mma": lines.push(`${pad}${cudaMma(s)}`); break;
       }
     }
   };
@@ -119,6 +148,7 @@ export function wgslUnavailableReason(K) {
   };
   const statements = ss => {
     for (const s of ss) {
+      if (s.s === "mma") return `tensor-core mma (${s.op}) has no WGSL lowering`;
       const why = expression(s.e) || (s.body && statements(s.body));
       if (why) return why;
     }
@@ -190,7 +220,8 @@ export function toWgsl(K) {
 // (K.smem dtype) and the output buffer the caller passes. An assignment into int64 storage converts a
 // number operand (a literal, an i32 select branch) to BigInt; reference values are BigInt there too.
 const SIM_STORAGE = { f32: "Float32Array", i64: "BigInt64Array", i32: "Int32Array", bool: "Uint8Array" };
-export function toSim(K, { instrument = false } = {}) {
+export function toSim(K, { instrument = false, mmaOrder = "sequential" } = {}) {
+  if (!ORDERS.includes(mmaOrder)) throw new TypeError(`unknown mma accumulation order ${mmaOrder}`);
   const T = K.block;
   const floats = K.floats, ints = K.ints, values = K.values ?? {};
   const outDtype = K.params.find((p) => p.role === "out")?.dtype || "f32";
@@ -252,6 +283,19 @@ export function toSim(K, { instrument = false } = {}) {
           else call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) if (${m}[t]) sa[${ix(s.idx)}] = ${into(smemType[s.arr], fexpr(s.e))};`);
           break;
         case "sync": if (instrument) L(`M.sync(${m}, ${sid});`); break;
+        case "mma": {
+          // warp-collective (KILN-006): every warp with any active lane must have all 32 active; then one emulated atom
+          // per warp over the per-thread fragment arrays (mma.js runAtom: layout table, operand check, FP32 accumulation)
+          const op = MMA_OPS[s.op];
+          if (!op) throw new TypeError(`unknown mma op ${s.op}`);
+          const arr = (ns) => `[${ns.map((n) => "F_" + n).join(", ")}]`;
+          call(`for (let w = 0; w < T; w += 32) { let c = 0; const e = w + 32 < T ? w + 32 : T; for (let t = w; t < e; t++) c += ${m}[t]; if (!c) continue;` +
+            ` if (c !== 32) { MMAFAIL(M, ${sid}, "a warp-collective mma runs with " + c + " of 32 lanes active (warp " + (w >> 5) + ")"); continue; }` +
+            ` const bad = MMA(${JSON.stringify(s.op)}, w, ${arr(s.acc)}, ${arr(s.a)}, ${arr(s.b)}, ORDER);` +
+            ` if (bad) MMAFAIL(M, ${sid}, "mma ${s.op} operand " + bad.operand + " slot " + bad.slot + " of lane " + bad.lane + " (warp " + (w >> 5) + ") is " + bad.value + ", not representable in ${op.operand}");` +
+            `${instrument ? ` M.mma(${2 * op.m * op.n * op.k});` : ""} }`);
+          break;
+        }
         case "note": break;
         case "for": {
           const uni = isUniform(s.from) && isUniform(s.to) && isUniform(s.step);
@@ -300,6 +344,7 @@ export function toSim(K, { instrument = false } = {}) {
     ...[...perThreadInts].map((v) => `const I_${v} = new Int32Array(T);`),
     ...Array.from({ length: nMasks }, (_, i) => `const M${i} = new Uint8Array(T); let awM${i} = 0, alM${i} = 0;`),
     `const A = new Float64Array(T);`,
+    `const MMAFAIL = (M, sid, msg) => { if (M) M.badMma(sid, msg); else throw new Error(msg); };`,
     `const S = { ${K.smem.map((s) => `${s.name}: new ${SIM_STORAGE[s.dtype ?? "f32"]}(${s.size})`).join(", ")} };`,
     ...defs,
     `return function run(B, blocks, M) {`,
@@ -309,8 +354,8 @@ export function toSim(K, { instrument = false } = {}) {
   ];
   const src = [...head, ...out.map((l) => "    " + l), "  }", "};"].join("\n");
   const FN = Object.fromEntries(Object.entries(FNS).map(([k, v]) => [k, v.js]));
-  const make = new Function("FN", src);
-  const fnc = make(FN);
+  const make = new Function("FN", "MMA", "ORDER", src);
+  const fnc = make(FN, runAtom, mmaOrder);
   fnc.source = src;
   return fnc;
 }
@@ -319,7 +364,7 @@ export function toSim(K, { instrument = false } = {}) {
 export class SimMetrics {
   constructor(T, outSize) {
     this.T = T; this.cov = new Uint8Array(outSize);
-    Object.assign(this, { ldReq: 0, ldSect: 0, stReq: 0, stSect: 0, shReq: 0, shWave: 0, flops: 0, warpInstr: 0, syncs: 0, divWarps: 0, branchWarps: 0, blocks: 0, oobs: [], badSyncs: [] });
+    Object.assign(this, { ldReq: 0, ldSect: 0, stReq: 0, stSect: 0, shReq: 0, shWave: 0, flops: 0, tensorFlops: 0, warpInstr: 0, syncs: 0, divWarps: 0, branchWarps: 0, blocks: 0, oobs: [], badSyncs: [], badMmas: [] });
   }
   block() { this.blocks++; }
   insC(aw, al, fl) { this.warpInstr += aw; this.flops += al * fl; }
@@ -363,4 +408,7 @@ export class SimMetrics {
   div(m, md) { const T = this.T; for (let w = 0; w < T; w += 32) { let a = 0, b = 0; for (let t = w; t < w + 32 && t < T; t++) { a += m[t]; b += md[t]; } if (a) { this.branchWarps++; if (b && b < a) this.divWarps++; } } }
   sync(m, sid) { this.syncs++; for (let t = 0; t < this.T; t++) if (!m[t]) { if (this.badSyncs.length < 5) this.badSyncs.push(sid); return; } }
   oob(sid, a, what) { if (this.oobs.length < 5) this.oobs.push({ sid, a, what }); }
+  // one warp-collective tensor-core atom (KILN-006): one warp instruction, 2·m·n·k tensor flops
+  mma(flops) { this.warpInstr++; this.tensorFlops += flops; }
+  badMma(sid, message) { if (this.badMmas.length < 5) this.badMmas.push({ sid, message }); }
 }

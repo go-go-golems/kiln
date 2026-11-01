@@ -5,13 +5,16 @@
 // statements:  let {n, e} · iset {n, e:Ix} · load {n, buf, idx} · store {buf, idx, e}
 //              sload {n, arr, idx} · sstore {arr, idx, e} · sync · for {v, from, to, step, body}
 //              if {c:Ix, body} · note {text}
+//              mma {op, acc:[4 names], a:[aElems names], b:[bElems names]}   acc ← A·B + acc, warp-collective
+//                  (KILN-006; op is a key of mma.js MMA_OPS; every name is an f32 temporary holding one element)
 // float expressions: {k:"num", v} · {k:"var", n} · {k:"op", fn, a:[…]} · {k:"ix", e:Ix, dtype}
 //   (an index value: the integer expression e over kernel index variables, as an i64/i32/bool scalar)
 import { k, P, KilnError } from "../core/kiln.js";
 import { numel, strides, hash, inKey, dtypeBytes } from "../core/util.js";
 import * as IX from "../core/ix.js";
 import { reducer, FNS, INTEGER_DTYPES } from "./fns.js";
-import { analyze, launch, stagedOf, canonRow } from "./tile.js";
+import { analyze, launch, stagedOf, canonRow, mmaPlan } from "./tile.js";
+import { MMA_OPS, ACC_ELEMS, fragmentIx, mmaSmemLayout } from "./mma.js";
 import { displayNames } from "./loop.js";
 
 // an int64 literal past 2^53 keeps its exact decimal spelling beside the (JSON-safe) number
@@ -31,6 +34,8 @@ export class KB {
   sstore(arr, idx, e) { this.push({ s: "sstore", arr, idx: IX.lift(idx), e }); }
   sync() { const last = this.cur[this.cur.length - 1]; if (last?.s !== "sync") this.push({ s: "sync" }); }
   note(text) { this.push({ s: "note", text }); }
+  // warp-collective: all 32 lanes of every warp that reaches it must be active (the simulator checks)
+  mma(op, acc, a, b) { for (const n of acc) this.floats.add(n); this.push({ s: "mma", op, acc: [...acc], a: [...a], b: [...b] }); }
   for(v, from, to, step, fn) {
     const st = this.push({ s: "for", v, from: IX.lift(from), to: IX.lift(to), step: IX.lift(step), body: [] });
     const prev = this.cur; this.cur = st.body; fn(V(v)); this.cur = prev;
@@ -333,6 +338,111 @@ function matScanRow(an, kn) {
   return kb;
 }
 
+// ----------------------------------------------------------------------------- warp-level tensor-core tiles (KILN-006)
+// Building blocks for any kernel that multiplies shared-memory tiles on tensor cores (matMma below; KILN-007's fused
+// attention). A warp tile is MI×NI atoms of op (mma.js MMA_OPS): rows 16·mi … of A, columns 8·ni … of B. All
+// addressing is Ix over `lane` (0…31), derived from the one layout table; no layout formula is restated here.
+// Contract: every warp of the block executes each mma statement with all 32 lanes active (never inside a guard).
+
+/** MI×NI×4 accumulator temporaries, initialized to 0: acc[mi][ni] = [4 names]. */
+export function mmaAccumulators(kb, MI, NI, prefix = "acc") {
+  return Array.from({ length: MI }, (_, mi) => Array.from({ length: NI }, (_, ni) => Array.from({ length: ACC_ELEMS }, (_, i) => kb.let(kx.num(0), `${prefix}_${mi}_${ni}_${i}`))));
+}
+/**
+ * One k-step of a warp tile: fragment loads from shared tiles, then MI·NI atoms, acc ← A·B + acc.
+ *   a: { arr, ld, row0, k0 }  A tile row-major [row][k] in shared array arr with row stride ld; this warp's rows start
+ *      at Ix row0 and this step's k at Ix k0 (A element (r, q) is at (row0 + r)·ld + k0 + q).
+ *   b: { arr, ld, col0, k0 }  B tile row-major [k][col]: element (q, c) is at (k0 + q)·ld + col0 + c.
+ * Fragment temporaries are named `${prefix}a_${mi}_${e}` / `${prefix}b_${ni}_${e}` (reassigned each step).
+ */
+export function mmaWarpStep(kb, opName, lane, acc, a, b, { prefix = "f" } = {}) {
+  const op = MMA_OPS[opName], MI = acc.length, NI = acc[0].length;
+  const fa = Array.from({ length: MI }, (_, mi) => Array.from({ length: op.aElems }, (_, e) => {
+    const [r, q] = fragmentIx(opName, "a", e, lane);
+    return kb.sload(a.arr, IX.lift(a.row0).add(mi * op.m).add(r).mul(a.ld).add(IX.lift(a.k0)).add(q), `${prefix}a_${mi}_${e}`);
+  }));
+  const fb = Array.from({ length: NI }, (_, ni) => Array.from({ length: op.bElems }, (_, e) => {
+    const [q, c] = fragmentIx(opName, "b", e, lane);
+    return kb.sload(b.arr, IX.lift(b.k0).add(q).mul(b.ld).add(IX.lift(b.col0)).add(ni * op.n).add(c), `${prefix}b_${ni}_${e}`);
+  }));
+  for (let mi = 0; mi < MI; mi++) for (let ni = 0; ni < NI; ni++) kb.mma(opName, acc[mi][ni], fa[mi], fb[ni]);
+}
+/** The accumulator elements a lane holds in an MI×NI warp tile: { mi, ni, i, name, row, col } with row/col Ix within the tile. */
+export function mmaAccElements(opName, acc, lane) {
+  const op = MMA_OPS[opName], out = [];
+  acc.forEach((rowAcc, mi) => rowAcc.forEach((names, ni) => names.forEach((name, i) => {
+    const [r, c] = fragmentIx(opName, "c", i, lane);
+    out.push({ mi, ni, i, name, row: r.add(mi * op.m), col: c.add(ni * op.n) });
+  })));
+  return out;
+}
+
+// ----------------------------------------------------------------------------- MAP=mma
+// The tensor-core GEMM (guide §8.1). Block = (BM/WM)·(BN/WN) warps; warp (wm, wn) owns a WM×WN output tile of
+// (WM/16)·(WN/8) atoms. Per BK slab: cooperative, guarded, zero-filled loads of the A and B tiles into padded f32
+// shared tiles (the padding minimizes fragment-read bank conflicts, mma.js mmaSmemLayout), a barrier, BK/k unrolled
+// warp steps, a barrier. The atoms run unguarded (zero fill makes the tails exact); the epilogue (every Loop IR
+// statement outside the contraction) runs once per held accumulator element, guarded by m < M and n < N.
+function matMma(an, kn, plan) {
+  const kb = new KB();
+  const ct = an.contraction, op = MMA_OPS[plan.op];
+  const { BM, BN, BK, WM, WN } = kn;
+  const MI = WM / 16, NI = WN / 8, WX = BN / WN;
+  const T = (BM / WM) * WX * 32;
+  const lay = mmaSmemLayout(plan.op, kn);
+  const gm = Math.ceil(ct.M / BM), gn = Math.ceil(ct.N / BN);
+  const bz = kb.int(V("bid").div(gm * gn), "bz"), bm = kb.int(V("bid").div(gn).mod(gm), "bm"), bn = kb.int(V("bid").mod(gn), "bn");
+  const warp = kb.int(V("tid").div(32), "warp"), lane = kb.int(V("tid").mod(32), "lane");
+  const wm = kb.int(warp.div(WX), "wm"), wn = kb.int(warp.mod(WX), "wn");
+  const benv = ct.batch.length ? decode(bz, ct.batch) : {};
+  const s = an.sched;
+  const accName = s.names.get(ct.C);
+  const acc = mmaAccumulators(kb, MI, NI);
+  const sA = kb.shared("sA", lay.sizeA), sB = kb.shared("sB", lay.sizeB);
+  const A = ct.A[0], B = ct.B[0];
+  if (A.i !== plan.a || B.i !== plan.b) throw new KilnError("MaterializeError", "the tensor-core plan does not match the contraction's operands");
+  const coef = (f, v) => { const a = IX.affine(f, [...IX.vars(f)]); return a ? Math.abs(a.k[v] || 0) : 1; };
+  // fns: the operand's format chain (copy, round_tf32, …: mmaPlan aFns/bFns), applied once per staged element
+  const tileLoad = (ld, arr, rows, rowVar, rowBase, lim, isA, k0, fns) => {
+    const f0 = an.flat(ld.i, ld.idx);
+    const sK = coef(f0, ct.C.r), sR = coef(f0, rowVar);
+    const kFast = sK !== 0 && (sR === 0 || sK <= sR);
+    kb.for(isA ? "la" : "lb", V("tid"), rows * BK, T, (l) => {
+      const rr = kb.int(kFast ? l.div(BK) : l.mod(rows), "rr"), kk = kb.int(kFast ? l.mod(BK) : l.div(rows), "kq");
+      const gRow = rowBase.add(rr), gK = k0.add(kk);
+      const v = kb.let(kx.num(0), "mv");
+      kb.if(gRow.lt(lim).and(gK.lt(ct.K)), () => {
+        const env = { ...benv, [rowVar]: gRow, [ct.C.r]: gK };
+        const x = fns.filter((fn) => fn !== "copy").reduce((e, fn) => kx.op(fn, e), kx.v(kb.load(ld.i, an.flat(ld.i, ld.idx.map((e) => IX.subst(e, env))))));
+        kb.let(x, v);
+      });
+      kb.sstore(arr, isA ? rr.mul(lay.ldA).add(kk) : kk.mul(lay.ldB).add(rr), kx.v(v));
+    });
+  };
+  kb.for("k0", 0, ct.K, BK, (k0) => {
+    tileLoad(A, sA, BM, ct.mVar, bm.mul(BM), ct.M, true, k0, plan.aFns);
+    tileLoad(B, sB, BN, ct.nVar, bn.mul(BN), ct.N, false, k0, plan.bFns);
+    kb.sync();
+    for (let ks = 0; ks < BK / op.k; ks++) mmaWarpStep(kb, plan.op, lane, acc, { arr: sA, ld: lay.ldA, row0: wm.mul(WM), k0: ks * op.k }, { arr: sB, ld: lay.ldB, col0: wn.mul(WN), k0: ks * op.k });
+    kb.sync();
+  });
+  for (const el of mmaAccElements(plan.op, acc, lane)) {
+    const m = bm.mul(BM).add(wm.mul(WM)).add(el.row), n = bn.mul(BN).add(wn.mul(WN)).add(el.col);
+    kb.if(m.lt(ct.M).and(n.lt(ct.N)), () => {
+      const sfx = `_${el.mi}_${el.ni}_${el.i}`;
+      const ctx = baseCtx(an, kb);
+      ctx.nm = (nn) => nn + sfx;
+      ctx.env = { ...benv, [ct.mVar]: m, [ct.nVar]: n };
+      ctx.load = (st, c) => kb.load(st.e.i, c.flat(c, st.e.i, st.e.idx), c.nm(st.name));
+      ctx.onFree = (st, c) => emitNest(kb, st.body, c);
+      ctx.onReduce = (init, loopSt, c) => { if (loopSt?.red === accName) { c.vals.set(accName, kx.v(el.name)); return true; } return false; };
+      ctx.write = (st, c) => kb.store("out", outFlat(an, st.idx, c.env), opnd(st.val, c));
+      emitNest(kb, s.stmts, ctx);
+    });
+  }
+  return kb;
+}
+
 // ----------------------------------------------------------------------------- materialize
 // Integer storage (P3a slice 1): an integer value may only be copied from a load to a store of the
 // same dtype, or converted to float. Arithmetic, comparisons, conversions and shared-memory staging of integers are refused
@@ -378,6 +488,10 @@ function valueTypes(body, params, name) {
         const t = typeOf(s.e) ?? "f32", prev = smem.get(s.arr);
         if (prev && prev !== t) refuse(`shared array ${s.arr} holds both ${prev} and ${t} values`);
         smem.set(s.arr, t);
+      } else if (s.s === "mma") {
+        // fragments and accumulators are f32 temporaries: an integer value in an mma is a materializer bug
+        for (const n of [...s.a, ...s.b]) { const t = types.get(n); if (t && t !== "f32") refuse(`mma operand ${n} is a ${t} value`); }
+        for (const n of s.acc) assign(n, "f32");
       } else if (s.s === "store") {
         const t = typeOf(s.e), o = value(out.dtype || "f32");
         if (t !== null && t !== o) refuse(`store of a ${t} value into ${out.dtype || "f32"} storage`);
@@ -397,9 +511,11 @@ export function materialize(node) {
   // Do not modify the cached analysis or schedule shared with other materializers.
   const an = {...analysis,reductionNames:displayNames(analysis.sched)};
   const kn = a.map;
-  const L = launch(an, kn);
+  const plan = kn.MAP === "mma" ? mmaPlan(an, a.inPrecisions) : null;
+  if (plan && !plan.op) throw new KilnError("MaterializeError", `MAP=mma is not legal for ${a.name || "kernel"}: ${plan.reason}`);
+  const L = launch(an, kn, plan);
   const kb = an.scan ? (kn.MAP === "row" ? matScanRow(an, kn) : matScanThread(an, kn))
-    : kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : matThread(an, kn);
+    : kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : kn.MAP === "mma" ? matMma(an, kn, plan) : matThread(an, kn);
   const params = [...a.inShapes.map((s, i) => ({ name: "in" + i, size: numel(s), shape: s, role: "in", dtype: a.inDtypes?.[i] || "f32" })), { name: "out", size: numel(a.shape), shape: a.shape, role: "out", dtype: a.outDtype || "f32" }];
   const { values, smem: smemTypes } = valueTypes(kb.body, params, a.name || "kernel");
   const smem = kb.smem.map((x) => ({ ...x, dtype: smemTypes.get(x.name) ?? "f32" }));
@@ -411,6 +527,9 @@ export function materialize(node) {
     ints: [...kb.ints].filter((v) => v !== "tid" && v !== "bid"),
     params,
     map: kn, row: canonRow(kn),
+    // tensor-core kernels: the atom and which inputs are its A and B operands (program.js operandInputs, metricsOf)
+    // (a/b null: that operand is rounded to the format inside the kernel, so its input may hold any FP32 value)
+    ...(plan ? { mma: { op: plan.op, operand: plan.operand, a: plan.roundsA ? null : plan.a, b: plan.roundsB ? null : plan.b } } : {}),
   };
 }
 
@@ -434,6 +553,7 @@ export function printKernelBody(K, args = []) {
         case "note": lines.push(`${pad}# ${s.text}`); break;
         case "for": lines.push(`${pad}for ${s.v} = ${ix(s.from)}; ${s.v} < ${ix(s.to)}; ${s.v} += ${ix(s.step)}:`); walk(s.body, pad + "    "); break;
         case "if": lines.push(`${pad}if ${ix(s.c)}:`); walk(s.body, pad + "    "); break;
+        case "mma": lines.push(`${pad}mma.${s.op} {${s.acc.join(", ")}} += {${s.a.join(", ")}}·{${s.b.join(", ")}}`); break;
       }
     }
   };

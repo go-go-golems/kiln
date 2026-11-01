@@ -4,6 +4,12 @@
 // static __shared__ array over 48 KiB does not compile.
 // l2GBs, where present, is measured L2 read bandwidth (gb10: probe 671, 1-4 MB resident buffers);
 // targets without it use 3x bwGBs.
+// mma (KILN-006), where present: dense tensor-core TFLOP/s with FP32 accumulation per operand precision,
+// { tf32, f16, bf16 }. No spec carries it yet: a rate enters only once measured on the device (the KILN-006 Phase 0
+// probe; GB10's are not published), as peakTflops did. Without it the cost model never ranks MAP=mma above another
+// mapping (tile.js costPrior), and estimates a pinned mma kernel at peakTflops. For reference, NVIDIA's A100
+// datasheet gives 156 (TF32) and 312 (f16, bf16) dense; GeForce parts publish lower f16 rates with FP32 accumulate.
+// (Adding the field to a spec also changes specHash and so the content ids of records simulated on it.)
 export const SPECS = {
   rtx5090: { id: "rtx5090", name: "RTX 5090", arch: "Blackwell sm_120", sm: 120, sms: 170, clockGHz: 2.41, peakTflops: 104.8, bwGBs: 1792, l2MB: 96, smemPerSM: 128 * 1024, smemPerBlock: 48 * 1024, maxThreadsPerBlock: 1024, maxThreadsPerSM: 1536, maxBlocksPerSM: 24, regsPerSM: 65536, launchUs: 2.5 },
   rtx4090: { id: "rtx4090", name: "RTX 4090", arch: "Ada sm_89", sm: 89, sms: 128, clockGHz: 2.52, peakTflops: 82.6, bwGBs: 1008, l2MB: 72, smemPerSM: 100 * 1024, smemPerBlock: 48 * 1024, maxThreadsPerBlock: 1024, maxThreadsPerSM: 1536, maxBlocksPerSM: 24, regsPerSM: 65536, launchUs: 2.5 },
