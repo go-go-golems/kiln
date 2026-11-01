@@ -571,7 +571,7 @@ I wrote the deep-dive report for the go-go-parc vault in textbook style and push
 **Commit (code):** the commit following this entry — "KILN-006 diary Step 11: vault report".
 
 ### What I did
-- Vault: `Projects/2026/11/01/ARTICLE - Kiln - Tensor-Core Matrix Products Built and Checked Without a GPU.md` (frontmatter with repo, branch, ticket, revisions; two mermaid-free-of-analogy sections: an architecture flowchart, pseudocode for `operandChain`/`mmaPlan`, the simulator case and `matMma`, a cost table, results table, GPU handoff, open questions). Staged only that file; `git pull --rebase` (autostash of the vault's unrelated working-tree changes was created and re-applied by git) and `git push`: vault commit `c65ac3e`.
+- Vault: `Projects/2026/11/01/ARTICLE - Kiln - Tensor-Core Matrix Products Built and Checked Without a GPU.md` (frontmatter with repo, branch, ticket, revisions; an architecture mermaid flowchart, pseudocode for `operandChain`/`mmaPlan`, the simulator case and `matMma`, a cost table, results table, GPU handoff, open questions). Staged only that file; `git pull --rebase` (autostash of the vault's unrelated working-tree changes was created and re-applied by git) and `git push`: vault commit `c65ac3e`.
 - `docmgr doctor --ticket KILN-006 --stale-after 30`.
 
 ### Why
