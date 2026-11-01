@@ -12,15 +12,19 @@
 //   MAP=thread  one thread per row (the other output coordinates); the scan loop runs serially, carry in a register
 //   MAP=row     one block per row; chunks of TPB positions, a Hillis-Steele scan of each chunk in shared memory,
 //               and a block-wide carry between chunks
+//   MAP=flash   a recognized softmax contraction (attention.js): BR query rows per block, K and V streamed
+//               BC keys at a time through shared memory, online softmax in registers (flash.js)
 import { k, P, KilnError } from "../core/kiln.js";
 import { numel, strides, hash, inKey, dtypeBytes } from "../core/util.js";
 import * as IX from "../core/ix.js";
 import { schedule, free, printNest, displayNames, workOf } from "./loop.js";
 import { FNS, reducer } from "./fns.js";
 import { MMA_OPS, OP_FOR_PRECISION, mmaSmemLayout, mmaSmemBytes } from "./mma.js";
+import { matchSoftmaxContraction } from "./attention.js";
+import { flashBR, flashBC, flashRM, flashTPB, flashLaunch, flashCounts, printFlash } from "./flash.js";
 
 // ----------------------------------------------------------------------------- knobs
-export const MAP = k.param.enum("MAP", ["thread", "row", "tiled", "mma"], { off: "thread" }).group("schedule").help("how the kernel maps onto the GPU");
+export const MAP = k.param.enum("MAP", ["thread", "row", "tiled", "mma", "flash"], { off: "thread" }).group("schedule").help("how the kernel maps onto the GPU");
 export const TPB = k.param.enum("TPB", [32, 64, 128, 256, 512, 1024], { off: 0, default: 256 }).group("schedule").help("threads per block");
 export const COARSEN = k.param.enum("COARSEN", [1, 2, 4], { off: 1 }).group("schedule").help("outputs per thread (thread map)");
 export const STAGE = k.param.enum("STAGE", ["none", "reused", "all"], { off: "none" }).group("schedule").help("stage row inputs in shared memory (row map)");
@@ -31,7 +35,10 @@ export const TM = k.param.enum("TM", [1, 2, 4, 8], { off: 1 }).group("tile").hel
 export const TN = k.param.enum("TN", [1, 2, 4, 8], { off: 1 }).group("tile").help("register tile columns per thread");
 export const WM = k.param.enum("WM", [16, 32, 64], { off: 0 }).group("tile").help("warp tile rows (mma map)");
 export const WN = k.param.enum("WN", [8, 16, 32, 64], { off: 0 }).group("tile").help("warp tile columns (mma map)");
-export const KNOBS = [MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, WM, WN];
+export const BR = k.param.enum("BR", [8, 16, 32, 64], { off: 0 }).group("tile").help("query rows per block (flash map)");
+export const BC = k.param.enum("BC", [16, 32, 64], { off: 0 }).group("tile").help("keys per shared-memory tile (flash map)");
+export const RM = k.param.enum("RM", [1, 2, 4], { off: 0 }).group("tile").help("query rows per thread (flash map)");
+export const KNOBS = [MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, WM, WN, BR, BC, RM];
 export const canonRow = (kn) => KNOBS.filter((p) => kn[p.name] !== undefined && kn[p.name] !== p.off).map((p) => `${p.name}=${kn[p.name]}`).join(",") || "MAP=thread";
 
 // ----------------------------------------------------------------------------- analysis
@@ -116,6 +123,8 @@ export function analyze(expr, shape, inShapes) {
       if (ok && (A.length || B.length)) an.contraction = { C, loopScope, inC, A, B, mVar, nVar, M: s.dims[n - 2].n, N: s.dims[n - 1].n, K: C.n, batch: s.dims.slice(0, n - 2) };
     }
   }
+  // a softmax contraction (attention) the flash map can run; null otherwise
+  an.attention = matchSoftmaxContraction(expr, shape, inShapes);
   AN.set(expr, { key, an });
   return an;
 }
@@ -183,6 +192,7 @@ export function legalMaps(an, plan = null) {
   if (an.rd != null) out.push("row");
   if (an.contraction) out.push("tiled");
   if (plan?.op) out.push("mma");
+  if (an.attention) out.push("flash");
   return out;
 }
 export function forkTree(an, t, plan = null) {
@@ -190,10 +200,14 @@ export function forkTree(an, t, plan = null) {
   const smemMax = t.smemPerBlock;
   const ct = an.contraction;
   const nA = ct ? ct.A.length : 0, nB = ct ? ct.B.length : 0;
+  const att = an.attention;
   return k.fork.tree()
     .level(MAP, () => legalMaps(an, plan))
+    .level(BR, (kn) => (kn.MAP === "flash" ? flashBR(att) : [0]))
+    .level(BC, (kn) => (kn.MAP === "flash" ? flashBC(att, kn.BR, t) : [0]))
+    .level(RM, (kn) => (kn.MAP === "flash" ? flashRM(att, kn.BR) : [0]))
     // a scan's thread map has one thread per row: blocks wider than the row count only add idle threads
-    .level(TPB, (kn) => (kn.MAP === "thread" && an.scan ? [32, 64, 128, 256, 512, 1024].filter((v) => v <= maxT && v <= Math.max(32, pow2(an.scan.rows))) : kn.MAP === "thread" ? [64, 128, 256, 512, 1024].filter((v) => v <= maxT) : kn.MAP === "row" ? [32, 64, 128, 256, 512, 1024].filter((v) => v <= maxT && v <= Math.max(32, pow2(an.maxExtent) * (an.scan ? 1 : 2))) : [0]))
+    .level(TPB, (kn) => (kn.MAP === "flash" ? flashTPB(att, kn.BR, kn.BC, kn.RM, t) : kn.MAP === "thread" && an.scan ? [32, 64, 128, 256, 512, 1024].filter((v) => v <= maxT && v <= Math.max(32, pow2(an.scan.rows))) : kn.MAP === "thread" ? [64, 128, 256, 512, 1024].filter((v) => v <= maxT) : kn.MAP === "row" ? [32, 64, 128, 256, 512, 1024].filter((v) => v <= maxT && v <= Math.max(32, pow2(an.maxExtent) * (an.scan ? 1 : 2))) : [0]))
     .level(COARSEN, (kn) => (kn.MAP === "thread" ? [1, 2, 4] : [1]))
     .level(STAGE, (kn) => {
       if (kn.MAP !== "row" || !an.stage.length) return ["none"];
@@ -218,6 +232,7 @@ export function forkTree(an, t, plan = null) {
 // ----------------------------------------------------------------------------- launch geometry
 // plan: mmaPlan's result, required for MAP=mma (the atom fixes the shared-memory padding)
 export function launch(an, kn, plan = null) {
+  if (kn.MAP === "flash") return flashLaunch(an.attention, kn);
   if (an.scan) {
     const sc = an.scan;
     if (kn.MAP === "row") return { grid: sc.rows, block: kn.TPB, smem: sc.carries.reduce((a, c) => a + kn.TPB * dtypeBytes(c.dtype), 0), staged: [] };
@@ -383,6 +398,12 @@ export function estimate(an, kn, t, plan = null) {
     const stride = fvar ? coefOf(f, fvar) : 0;
     traffic += (trips / 32) * sectorsFor(stride) * 32;
   };
+  if (kn.MAP === "flash") {
+    const c = flashCounts(an.attention, kn);
+    const dram = Math.min(c.traffic, Math.max(uniq + outBytes, c.traffic * (uniq > t.l2MB * 1048576 ? 0.6 : 0.12)));
+    const counts = { ...c, dram };
+    return { ...counts, ...timeModel(counts, t) };
+  }
   if (kn.MAP === "thread") {
     const walk = (ss, trips) => {
       for (const st of ss) {
@@ -497,6 +518,7 @@ const bankDeg = (addr) => { const banks = new Map(); for (let u = 0; u < 32; u++
 
 // ----------------------------------------------------------------------------- the dialect
 export function printTile(an, kn, args, name, plan = null) {
+  if (kn.MAP === "flash") return printFlash(an.attention, kn, (i) => args[i] ?? "in" + i);
   const L = launch(an, kn, plan);
   const s = an.sched;
   const R = displayNames(s);
@@ -599,7 +621,7 @@ export const scheduleRule = k.rule("schedule").match(P.op("loop.kernel").as("n")
   const an = analyze(n.attrs.expr, n.attrs.shape, inShapes);
   const inPrecisions = operandPrecision(n);
   return forkTree(an, ctx.target, mmaPlan(an, inPrecisions, ctx.target)).leaf((kn) => n.lower(tile.kernel, { ...n.attrs, map: { ...kn }, inShapes, inDtypes, inPrecisions }));
-}).describe("fork over GPU mappings (thread, row, tiled, mma) and their knobs; legality only");
+}).describe("fork over GPU mappings (thread, row, tiled, mma, flash) and their knobs; legality only");
 
 // the prior: rank options with the analytic model on the pipeline's target
 // A tensor-core option whose rate the target does not know (targets.js mma: null, e.g. GB10 until measured) is not
@@ -613,6 +635,20 @@ export const costPrior = k.decide.cost(({ knobs, node, ctx, fork }) => {
   if (ctx.target.mma?.[plan.operand] == null && fork?.options?.some((o) => o.knobs.MAP !== "mma")) return Infinity;
   return estimate(an, knobs, ctx.target, plan).us;
 }, { name: "model" }).for("schedule");
+
+/** The cheapest option of a Loop IR kernel under the analytic model: { us, knobs, … } over every legal leaf. */
+export function bestEstimate(expr, shape, inShapes, t) {
+  const an = analyze(expr, shape, inShapes);
+  const f = forkTree(an, t).leaf((kn) => kn);
+  let best = null;
+  const rec = (i, kn) => {
+    if (i === f.meta.tree.length) { const e = estimate(an, kn, t); if (!best || e.us < best.us) best = { ...e, knobs: kn }; return; }
+    const { p, valuesFn } = f.meta.tree[i];
+    for (const v of valuesFn(kn)) rec(i + 1, { ...kn, [p.name]: v });
+  };
+  rec(0, {});
+  return best;
+}
 
 /** The analytic model's predicted time (µs) of every scheduled kernel in a Tile IR graph, summed. */
 export function predictedCost(tileGraph, t) {

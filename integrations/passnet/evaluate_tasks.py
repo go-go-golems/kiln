@@ -71,6 +71,7 @@ def main():
         compile_command=['python3','integrations/passnet/corpus.py','compile','--directory',str(corpus),'--kiln',str(kiln),'--target','a100']
         if 'contraction' in plan:compile_command.extend(['--contraction',plan['contraction']])
         if 'matmul_precision' in plan:compile_command.extend(['--matmul-precision',plan['matmul_precision']])
+        if 'attention' in plan:compile_command.extend(['--attention',plan['attention']])
         if policy:compile_command.extend(['--optimization-program',str(policy)])
         if skip_internal:compile_command.append('--skip-internal-reference-check')
         phases=[('export',docker(['-c',stage])),

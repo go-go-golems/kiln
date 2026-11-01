@@ -16,6 +16,7 @@ import { reducer, FNS, INTEGER_DTYPES } from "./fns.js";
 import { analyze, launch, stagedOf, canonRow, mmaPlan } from "./tile.js";
 import { MMA_OPS, ACC_ELEMS, fragmentIx, mmaSmemLayout } from "./mma.js";
 import { displayNames } from "./loop.js";
+import { matFlash } from "./flash-kernel.js";
 
 // an int64 literal past 2^53 keeps its exact decimal spelling beside the (JSON-safe) number
 export const kx = { num: (v) => (typeof v === "bigint" ? { k: "num", v: Number(v), exact: String(v) } : { k: "num", v: +v }), v: (n) => ({ k: "var", n }), op: (fn, ...a) => ({ k: "op", fn, a }), ix: (e, dtype) => ({ k: "ix", e: IX.lift(e), dtype }) };
@@ -515,7 +516,7 @@ export function materialize(node) {
   if (plan && !plan.op) throw new KilnError("MaterializeError", `MAP=mma is not legal for ${a.name || "kernel"}: ${plan.reason}`);
   const L = launch(an, kn, plan);
   const kb = an.scan ? (kn.MAP === "row" ? matScanRow(an, kn) : matScanThread(an, kn))
-    : kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : kn.MAP === "mma" ? matMma(an, kn, plan) : matThread(an, kn);
+    : kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : kn.MAP === "mma" ? matMma(an, kn, plan) : kn.MAP === "flash" ? matFlash(an, kn) : matThread(an, kn);
   const params = [...a.inShapes.map((s, i) => ({ name: "in" + i, size: numel(s), shape: s, role: "in", dtype: a.inDtypes?.[i] || "f32" })), { name: "out", size: numel(a.shape), shape: a.shape, role: "out", dtype: a.outDtype || "f32" }];
   const { values, smem: smemTypes } = valueTypes(kb.body, params, a.name || "kernel");
   const smem = kb.smem.map((x) => ({ ...x, dtype: smemTypes.get(x.name) ?? "f32" }));

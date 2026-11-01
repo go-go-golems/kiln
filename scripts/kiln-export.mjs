@@ -13,6 +13,7 @@
 //     --contraction MODE  allow (default) or separate add/subtract/multiply rounding in CUDA
 //     --matmul-precision P  highest (default) or tf32: round FP32 matmul/linear/conv operands to TF32,
 //                         matching a reference backend with PyTorch allow_tf32 enabled
+//     --attention MODE    composed (default) or fused: one MAP=flash kernel per recognized attention (KILN-007)
 //     --optimization-program PATH  apply a validated Kiln transformation program to the standard pipeline
 //     --mutation OUT=IN    the source graph mutates input IN to output OUT's value: the program writes it in place
 //     --mutation-strategy S  auto (default): the producing kernel stores into the input when inplace.js proves it
@@ -53,6 +54,7 @@ function parseArgs(argv) {
     else if (a === "--no-check") o.check = false;
     else if (a === "--contraction") { o.contraction = next(); if (!["allow", "separate"].includes(o.contraction)) usage(2); }
     else if (a === "--matmul-precision") { o.matmulPrecision = next(); if (!["highest", "tf32"].includes(o.matmulPrecision)) usage(2); }
+    else if (a === "--attention") { o.attention = next(); if (!["composed", "fused"].includes(o.attention)) usage(2); }
     else if (a === "--optimization-program") o.optimizationProgram = next();
     else if (a === "--mutation-strategy") { o.mutationStrategy = next(); if (!["auto", "writeback"].includes(o.mutationStrategy)) usage(2); }
     else if (a === "--mutation") { const [out, input, ...rest] = next().split("="); if (!out || !input || rest.length) usage(2); o.mutations[out] = input; }
@@ -70,7 +72,7 @@ function scriptPath(o) {
 }
 
 function compileWith(pins, prepared) {
-  return compileScript(text, { params: paramSet([]), target, pins, contraction: o.contraction, matmulPrecision: o.matmulPrecision,
+  return compileScript(text, { params: paramSet([]), target, pins, contraction: o.contraction, matmulPrecision: o.matmulPrecision, attention: o.attention,
     transformPipeline: prepared ? (pipe, { project, target }) => {
       if (project._pipe) throw new TypeError("optimization programs require the standard pipeline");
       return applyOptimizationProgram(pipe, target, prepared);
@@ -124,6 +126,7 @@ const preparedProgram = optimizationProgram ? prepareOptimizationProgram(optimiz
 const source = { path: relative(ROOT, file), sha256: createHash("sha256").update(text).digest("hex"),
   ...(o.contraction ? { contraction: o.contraction } : {}),
   ...(o.matmulPrecision ? { matmul_precision: o.matmulPrecision } : {}),
+  ...(o.attention ? { attention: o.attention } : {}),
   ...(optimizationText ? { optimization_program_sha256: createHash("sha256").update(optimizationText).digest("hex") } : {}) };
 // every combination of the listed values, first parameter slowest
 const combos = Object.entries(o.params).reduce((acc, [k, v]) => acc.flatMap((c) => v.split(",").map((x) => ({ ...c, [k]: x }))), [{}]);

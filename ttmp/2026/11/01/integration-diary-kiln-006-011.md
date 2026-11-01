@@ -272,3 +272,60 @@ KILN-006 adds `mma.js` (atom table, fragment layouts, warp emulator), the warp-c
 
 ### Technical details
 - Logs: `m006-npm.log`, `m006-py.log`. Resolution inputs: `bin/r006-*.py`.
+
+## Step 6: Merge KILN-007 (fused attention)
+
+KILN-007 adds the attention recognizer (`attention.js`), the `loop/attention` pass, `MAP=flash` (`flash.js` geometry/cost, `flash-kernel.js` `matFlash` with the `products` seam), `N.safeSoftmax` (used by `fx_compose.lower_sdpa`), and `--attention` plumbing through `kiln_eval.mjs`, `corpus.py`, `evaluate_tasks.py`, `prepare_study.py`, `kiln-export.mjs` and the workbench. Six files conflicted; all were "both sides added an item to the same list" conflicts (MAP enum, knobs, dispatch chains, CLI arguments) plus the JSON encoding of non-finite test inputs, which KILN-010 and KILN-007 had solved differently. Green after the merge; a probe then found that a KILN-010 causal mask crashes the flash materializer (Step 6b).
+
+### Prompt Context
+**User prompt (verbatim):** see Step 1.
+**Assistant interpretation:** Merge the last branch; MAP=flash beside MAP=mma and the scan maps; one encoding for non-finite inputs.
+**Inferred user intent:** No feature lost.
+**Commit (code):** merge commit "Merge KILN-007: fused attention"; follow-up "Integrate KILN-007: index-value masks in flash kernels".
+
+### What I did
+- Read KILN-007 design-doc Section 13 and diary Steps 7-11.
+- `git merge --no-ff --no-commit impl/kiln-007-fused-attention` → conflicts in `integrations/passnet/corpus.py`, `integrations/passnet/kiln_eval.mjs`, `integrations/passnet/test_fx_compose.py`, `packages/kiln/src/std/export.js`, `kernel.js`, `tile.js`.
+- `corpus.py`: `compile_task(..., matmul_precision=None, mutation_strategy=None, attention=None)` and the `main()` call passes `args.mutation_strategy, args.attention` (both CLI options already auto-merged).
+- `kiln_eval.mjs` / `test_fx_compose.py` (`run_kiln`): KILN-010 sent NaN inputs as JSON `null`; KILN-007 sent every non-finite value as a string (`"NaN"`, `"Infinity"`, `"-Infinity"`) and decoded with `Number`. KILN-007's encoding covers KILN-010's case, so it is the one kept: `kiln_eval.mjs` decodes strings only, `run_kiln` takes KILN-007's `attention` argument and encoding; KILN-010's argmax-with-NaN test passes through it unchanged. (`test_fx_factories.py` sends only finite data.)
+- `export.js`: `threadMapped = !/(^|,)MAP=(row|tiled|mma|flash)(,|$)/.test(kn.row)` and the comment.
+- `kernel.js` `materialize`: KILN-006's plan and `launch(an, kn, plan)`, KILN-008's scan dispatch first, then `row | tiled | mma | flash | thread`.
+- `tile.js`, nine hunks: header lists `MAP=mma`, the scan reading of MAP and `MAP=flash`; imports from `fns.js`, `mma.js`, `attention.js`, `flash.js`; `MAP` enum `["thread", "row", "tiled", "mma", "flash"]`; knobs `WM, WN` and `BR, BC, RM`, `KNOBS = [MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, WM, WN, BR, BC, RM]`; `legalMaps` pushes `mma` (when `plan.op`) and `flash` (when `an.attention`); `forkTree` uses `legalMaps(an, plan)`, KILN-007's `BR`/`BC`/`RM` levels, and a `TPB` level that tries `flash`, then KILN-008's scan thread map, then thread/row; `launch(an, kn, plan)` returns `flashLaunch` first, then the scan geometry; `printTile(an, kn, args, name, plan = null)` with the flash early return; `scheduleRule` keeps KILN-006's operand precisions and describes `(thread, row, tiled, mma, flash)`.
+
+### Why
+- `KNOBS` order only affects `canonRow` for knobs that are set; mma rows never set `BR/BC/RM` and flash rows never set `WM/WN`, so every existing row string (and evidence key) of either branch is unchanged.
+- The scan early return in `analyze` comes before KILN-007's `matchSoftmaxContraction` call, so scan kernels have no `an.attention` and never offer `flash`.
+
+### What worked
+- `npm test`: all 60 passed (adds `attention.mjs`). `pytest`: 195 passed, 7 subtests passed.
+
+### What didn't work
+- Green tests again hid a cross-feature defect. Probe `probes/attention-masks.mjs` (KILN-007's `graph()` helper extended with `mask: 'causal'` = `N.select(N.causalMask(L, S), s, -Infinity)`) under `attention: 'fused'`:
+  - `{"mask":"causal","L":7,"S":7,"D":8}`: recognized, but every flash option fails with `lowering/kernel/materialize at n76: a reduction inside a flash fragment`; `{"mask":"causal","L":5,"S":9,"D":8}` fails the default compile with the same message. `flash-kernel.js` `emitFrag` handles `num`/`in`/`op` and reports anything else as a reduction; the causal mask is a KILN-010 `ix` node.
+  - The pytest `test_causal_attention` with `attention='fused'` does **not** catch this (`kiln_eval.mjs` compares Loop IR values, and on its A100 target the chosen option was not materialized as flash), so the node test is the regression guard.
+
+### What I learned
+- KILN-007's "bool-mask kernels cannot run in the SIMT simulator" limit is closed by KILN-010's bool storage: `{"mask":"bool"}` → `options 3 simulated ok 3`, `{"mask":"bool",…,"variant":"plain"}` → `options 9 simulated ok 9` without any change.
+
+### What was tricky to build
+- The fork tree's `TPB` level is one chained conditional per map; three branches each extended it. The resolved chain is ordered `flash → scan thread → thread → row → 0` so that each branch's own subsequence is unchanged.
+
+### What warrants a second pair of eyes
+- `tile.js` `bestEstimate` (KILN-007's fusion cost gate) builds `forkTree(an, t)` without an mma plan and calls `estimate` without one, so the composed side of the gate never considers `MAP=mma`. Today that matches `costPrior` (mma is refused without a measured tensor rate on every spec); once a target gets `mma` rates, the gate will compare flash against a composed program without tensor cores and favor fusion.
+
+### What should be done in the future
+- Pass the mma plan into `bestEstimate` once any target carries measured `mma` rates.
+
+### Code review instructions
+- `git show <merge> -- packages/kiln/src/std/tile.js integrations/passnet/kiln_eval.mjs integrations/passnet/test_fx_compose.py`.
+
+### Technical details
+- Logs: `m007-npm.log`, `m007-py.log`. Resolution inputs: `bin/r007-*.py`.
+
+## Step 6b: Follow-up, index-value masks in flash kernels
+
+- `packages/kiln/src/std/flash-kernel.js` `emitFrag`: `else if (n.k === "ix") v = kx.v(kb.let(kx.ix(IX.subst(n.e, env), n.dtype)));` (the spelling `kernel.js` `emitNest` uses), and literals keep KILN-011's exact digits (`kx.num(n.exact != null ? BigInt(n.exact) : n.v)`).
+- `packages/kiln/test/attention.mjs`: `graph()` gains `mask: 'causal'`; new `simulateAll` cases: bool mask (sdpa and plain) at L=9, S=11, D=16, and causal at (L, S) = (7, 7), (5, 9), (9, 5) in f32 and (9, 5) in bf16. The test's simulated-option count went from the merge's value to 160.
+- `integrations/passnet/test_fx_compose.py` `test_causal_attention`: also checks `attention='fused'` with `attention_kernels=1` (recognition through the importer; not a guard for the materializer, see Step 6).
+- Probe after the fix: every case `simulated ok` on all options (`causal 7/7: 3 of 3`, `5/9: 3 of 3`, `9/5 bf16: 9 of 9`). The flash CUDA spells the mask as `bool f0 = 0; … f0 = ((((c0 + j0) <= (r0 + (8 * rb)))) != 0);` (`probes/causal-cuda.mjs`).
+- Verified the guard: with KILN-007's original `flash-kernel.js`, `node test/attention.mjs` fails with `AssertionError [ERR_ASSERTION]: lowering/kernel/materialize at n76: a reduction inside a flash fragment`.

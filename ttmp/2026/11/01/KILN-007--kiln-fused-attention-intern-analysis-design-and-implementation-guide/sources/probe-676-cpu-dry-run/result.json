@@ -1,0 +1,1105 @@
+{
+ "torch": "2.11.0+cu130",
+ "device": "cpu (dry run)",
+ "flags": {
+  "matmul_allow_tf32": false,
+  "allow_fp16_reduced_precision_reduction": true,
+  "allow_bf16_reduced_precision_reduction": true
+ },
+ "cases": {
+  "float16/L128/add": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0005103382472562146,
+     "mean_abs": 3.91799453345671e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0004687629399366955,
+     "mean_abs": 3.6350628649443736e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0004985981110081639,
+     "mean_abs": 3.6288454678271516e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0004687629399366955,
+     "mean_abs": 3.6350628649443776e-05
+    },
+    "s_q": {
+     "max_abs": 0.0015582703947065735,
+     "mean_abs": 0.00012033837831298987
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.0005103382472562146,
+     "mean_abs": 3.91799453345671e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0004687629399366955,
+     "mean_abs": 3.6350628649443736e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0004985981110081639,
+     "mean_abs": 3.6288454678271516e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0004687629399366955,
+     "mean_abs": 3.6350628649443776e-05
+    },
+    "s_q": {
+     "max_abs": 0.0015582703947065735,
+     "mean_abs": 0.00012033837831298987
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.00046622425274378543,
+     "mean_abs": 2.799311921330117e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0005077995600633045,
+     "mean_abs": 3.860633948975016e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0004985981110081639,
+     "mean_abs": 3.83022369202035e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0005077995600633045,
+     "mean_abs": 3.860633948975016e-05
+    },
+    "s_q": {
+     "max_abs": 0.0015582703947065735,
+     "mean_abs": 0.00011702969481282829
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "float16/L128/bool": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0003147202298521279,
+     "mean_abs": 3.418226321717139e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00038753277394465435,
+     "mean_abs": 3.179979694849681e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0003671285023495452,
+     "mean_abs": 3.187471258211766e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00038753277394454333,
+     "mean_abs": 3.1799796948496695e-05
+    },
+    "s_q": {
+     "max_abs": 0.0007714917368195628,
+     "mean_abs": 6.112791447600763e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.0003147202298521279,
+     "mean_abs": 3.418226321717139e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00038753277394465435,
+     "mean_abs": 3.179979694849681e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0003671285023495452,
+     "mean_abs": 3.187471258211766e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00038753277394454333,
+     "mean_abs": 3.1799796948496695e-05
+    },
+    "s_q": {
+     "max_abs": 0.0007714917368195628,
+     "mean_abs": 6.112791447600763e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.00024267552342749354,
+     "mean_abs": 2.3153091612002286e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00031211710520073765,
+     "mean_abs": 3.400760456664998e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0003312286019749866,
+     "mean_abs": 3.3908942330163446e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00031211710520073765,
+     "mean_abs": 3.400760456664977e-05
+    },
+    "s_q": {
+     "max_abs": 0.0007714917368195628,
+     "mean_abs": 5.693960344435785e-05
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "float16/L128/none": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0002748866203177158,
+     "mean_abs": 2.9537085834461136e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00027503988447374894,
+     "mean_abs": 2.726284962287309e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0002783617081225098,
+     "mean_abs": 2.722605894871917e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00027503988447374894,
+     "mean_abs": 2.7262849622873166e-05
+    },
+    "s_q": {
+     "max_abs": 0.000800799271356567,
+     "mean_abs": 5.4546243669850955e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.0002748866203177158,
+     "mean_abs": 2.9537085834461136e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00027503988447374894,
+     "mean_abs": 2.726284962287309e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0002783617081225098,
+     "mean_abs": 2.722605894871917e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00027503988447374894,
+     "mean_abs": 2.7262849622873166e-05
+    },
+    "s_q": {
+     "max_abs": 0.000800799271356567,
+     "mean_abs": 5.4546243669850955e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0002368144815605433,
+     "mean_abs": 1.965638186294953e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00029062119902878436,
+     "mean_abs": 2.8888765384485278e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00029268613947841526,
+     "mean_abs": 2.872430099339027e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00029062119902867334,
+     "mean_abs": 2.8888765384485417e-05
+    },
+    "s_q": {
+     "max_abs": 0.0005921528414880584,
+     "mean_abs": 5.027570014235829e-05
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "float16/L512/add": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0002512376082003387,
+     "mean_abs": 2.27999389109513e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00025565555334605694,
+     "mean_abs": 2.126455948361704e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00025712718067805174,
+     "mean_abs": 2.1253283361225178e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00025565555334605694,
+     "mean_abs": 2.1264559483617135e-05
+    },
+    "s_q": {
+     "max_abs": 0.0014699313848949291,
+     "mean_abs": 8.061392619423472e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.0002512376082003387,
+     "mean_abs": 2.27999389109513e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00025565555334605694,
+     "mean_abs": 2.126455948361704e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00025712718067805174,
+     "mean_abs": 2.1253283361225178e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00025565555334605694,
+     "mean_abs": 2.1264559483617135e-05
+    },
+    "s_q": {
+     "max_abs": 0.0014699313848949291,
+     "mean_abs": 8.061392619423472e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.00024318070862827668,
+     "mean_abs": 1.571314490341831e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00026400999741116316,
+     "mean_abs": 2.2494152794064824e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00026052922329145023,
+     "mean_abs": 2.2397028612907165e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00026400999741116316,
+     "mean_abs": 2.249415279406497e-05
+    },
+    "s_q": {
+     "max_abs": 0.0014699313848949291,
+     "mean_abs": 7.915598997032071e-05
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "float16/L512/bool": {
+   "default": {
+    "p32": {
+     "max_abs": 0.00017383309683394188,
+     "mean_abs": 1.8788603690541337e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00017758714420390564,
+     "mean_abs": 1.7455176892502993e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0001765070887885245,
+     "mean_abs": 1.7455967992340944e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00017758714420390564,
+     "mean_abs": 1.7455176892503034e-05
+    },
+    "s_q": {
+     "max_abs": 0.0006258149850772998,
+     "mean_abs": 3.5325550944567466e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.00017383309683394188,
+     "mean_abs": 1.8788603690541337e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00017758714420390564,
+     "mean_abs": 1.7455176892502993e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0001765070887885245,
+     "mean_abs": 1.7455967992340944e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00017758714420390564,
+     "mean_abs": 1.7455176892503034e-05
+    },
+    "s_q": {
+     "max_abs": 0.0006258149850772998,
+     "mean_abs": 3.5325550944567466e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0001541339108714901,
+     "mean_abs": 1.215408068934474e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00015708901699218458,
+     "mean_abs": 1.8475570252904222e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00015410714732450037,
+     "mean_abs": 1.843727969996041e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0001570890169922956,
+     "mean_abs": 1.84755702529042e-05
+    },
+    "s_q": {
+     "max_abs": 0.0006258149850772998,
+     "mean_abs": 3.261641665075278e-05
+    },
+    "closest": "pq_lq",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "float16/L512/none": {
+   "default": {
+    "p32": {
+     "max_abs": 0.00012989765501941752,
+     "mean_abs": 1.5789335656675713e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0001401638061471755,
+     "mean_abs": 1.4674102054702063e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0001329616477082629,
+     "mean_abs": 1.4674844404108776e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.000140163806147231,
+     "mean_abs": 1.4674102054702097e-05
+    },
+    "s_q": {
+     "max_abs": 0.0005954734023505548,
+     "mean_abs": 2.9636276616029607e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.00012989765501941752,
+     "mean_abs": 1.5789335656675713e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0001401638061471755,
+     "mean_abs": 1.4674102054702063e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0001329616477082629,
+     "mean_abs": 1.4674844404108776e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.000140163806147231,
+     "mean_abs": 1.4674102054702097e-05
+    },
+    "s_q": {
+     "max_abs": 0.0005954734023505548,
+     "mean_abs": 2.9636276616029607e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0001220099330135338,
+     "mean_abs": 1.0123265331591169e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0001401638061471755,
+     "mean_abs": 1.558318199004412e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00013724843303786205,
+     "mean_abs": 1.555845730854974e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.000140163806147231,
+     "mean_abs": 1.5583181990044186e-05
+    },
+    "s_q": {
+     "max_abs": 0.0005954734023505548,
+     "mean_abs": 2.7335468955995105e-05
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "bfloat16/L128/add": {
+   "default": {
+    "p32": {
+     "max_abs": 0.003509851170097278,
+     "mean_abs": 0.00031231309613163904
+    },
+    "pq_l32": {
+     "max_abs": 0.003574660608246294,
+     "mean_abs": 0.0002391469422903019
+    },
+    "pq_lq": {
+     "max_abs": 0.003642122256401592,
+     "mean_abs": 0.00024028725775987944
+    },
+    "pq_exp2": {
+     "max_abs": 0.003574660608246516,
+     "mean_abs": 0.00023914694229030213
+    },
+    "s_q": {
+     "max_abs": 0.019349903470931906,
+     "mean_abs": 0.0009552283693964482
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.003509851170097278,
+     "mean_abs": 0.00031231309613163904
+    },
+    "pq_l32": {
+     "max_abs": 0.003574660608246294,
+     "mean_abs": 0.0002391469422903019
+    },
+    "pq_lq": {
+     "max_abs": 0.003642122256401592,
+     "mean_abs": 0.00024028725775987944
+    },
+    "pq_exp2": {
+     "max_abs": 0.003574660608246516,
+     "mean_abs": 0.00023914694229030213
+    },
+    "s_q": {
+     "max_abs": 0.019349903470931906,
+     "mean_abs": 0.0009552283693964482
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.003509851170097278,
+     "mean_abs": 0.00022765937478128376
+    },
+    "pq_l32": {
+     "max_abs": 0.003574660608246294,
+     "mean_abs": 0.00031382746109446174
+    },
+    "pq_lq": {
+     "max_abs": 0.003642122256401592,
+     "mean_abs": 0.00031112074391210966
+    },
+    "pq_exp2": {
+     "max_abs": 0.003574660608246516,
+     "mean_abs": 0.0003138274610944619
+    },
+    "s_q": {
+     "max_abs": 0.019349903470931906,
+     "mean_abs": 0.0009343094945970685
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "bfloat16/L128/bool": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0024762274333909318,
+     "mean_abs": 0.0002706855620034158
+    },
+    "pq_l32": {
+     "max_abs": 0.00220872573809916,
+     "mean_abs": 0.00019554367010231094
+    },
+    "pq_lq": {
+     "max_abs": 0.0024139141737941072,
+     "mean_abs": 0.000197031534202113
+    },
+    "pq_exp2": {
+     "max_abs": 0.00220872573809916,
+     "mean_abs": 0.00019554367010231073
+    },
+    "s_q": {
+     "max_abs": 0.004570271976660933,
+     "mean_abs": 0.0004758913735110027
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.0024762274333909318,
+     "mean_abs": 0.0002706855620034158
+    },
+    "pq_l32": {
+     "max_abs": 0.00220872573809916,
+     "mean_abs": 0.00019554367010231094
+    },
+    "pq_lq": {
+     "max_abs": 0.0024139141737941072,
+     "mean_abs": 0.000197031534202113
+    },
+    "pq_exp2": {
+     "max_abs": 0.00220872573809916,
+     "mean_abs": 0.00019554367010231073
+    },
+    "s_q": {
+     "max_abs": 0.004570271976660933,
+     "mean_abs": 0.0004758913735110027
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0019518552506951892,
+     "mean_abs": 0.0001839271259183656
+    },
+    "pq_l32": {
+     "max_abs": 0.002377013139520434,
+     "mean_abs": 0.0002708795480666809
+    },
+    "pq_lq": {
+     "max_abs": 0.0024139141737941072,
+     "mean_abs": 0.000269598087635075
+    },
+    "pq_exp2": {
+     "max_abs": 0.002377013139520323,
+     "mean_abs": 0.000270879548066681
+    },
+    "s_q": {
+     "max_abs": 0.004143723061559967,
+     "mean_abs": 0.0004386152925117716
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "bfloat16/L128/none": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0020226531928670965,
+     "mean_abs": 0.00023284144738806848
+    },
+    "pq_l32": {
+     "max_abs": 0.0018778734001194675,
+     "mean_abs": 0.00016872140020784518
+    },
+    "pq_lq": {
+     "max_abs": 0.0019225050204489946,
+     "mean_abs": 0.00016948016818994123
+    },
+    "pq_exp2": {
+     "max_abs": 0.0018778734001196895,
+     "mean_abs": 0.0001687214002078451
+    },
+    "s_q": {
+     "max_abs": 0.003749016379615,
+     "mean_abs": 0.00041828371212144556
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.0020226531928670965,
+     "mean_abs": 0.00023284144738806848
+    },
+    "pq_l32": {
+     "max_abs": 0.0018778734001194675,
+     "mean_abs": 0.00016872140020784518
+    },
+    "pq_lq": {
+     "max_abs": 0.0019225050204489946,
+     "mean_abs": 0.00016948016818994123
+    },
+    "pq_exp2": {
+     "max_abs": 0.0018778734001196895,
+     "mean_abs": 0.0001687214002078451
+    },
+    "s_q": {
+     "max_abs": 0.003749016379615,
+     "mean_abs": 0.00041828371212144556
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0019424490231401137,
+     "mean_abs": 0.0001579785136846131
+    },
+    "pq_l32": {
+     "max_abs": 0.002285849721028521,
+     "mean_abs": 0.00023309823418733413
+    },
+    "pq_lq": {
+     "max_abs": 0.002257778648056319,
+     "mean_abs": 0.0002320226324381057
+    },
+    "pq_exp2": {
+     "max_abs": 0.002285849721028521,
+     "mean_abs": 0.0002330982341873343
+    },
+    "s_q": {
+     "max_abs": 0.003765894965184202,
+     "mean_abs": 0.00038854352720530826
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "bfloat16/L512/add": {
+   "default": {
+    "p32": {
+     "max_abs": 0.001975110707927774,
+     "mean_abs": 0.0001796743280125672
+    },
+    "pq_l32": {
+     "max_abs": 0.0019606451732592234,
+     "mean_abs": 0.00013288393560246134
+    },
+    "pq_lq": {
+     "max_abs": 0.0020401443869986213,
+     "mean_abs": 0.00013334684753287375
+    },
+    "pq_exp2": {
+     "max_abs": 0.0019606451732588903,
+     "mean_abs": 0.00013288393560246115
+    },
+    "s_q": {
+     "max_abs": 0.010035245548614125,
+     "mean_abs": 0.0006477814180737432
+    },
+    "closest": "pq_exp2",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.001975110707927774,
+     "mean_abs": 0.0001796743280125672
+    },
+    "pq_l32": {
+     "max_abs": 0.0019606451732592234,
+     "mean_abs": 0.00013288393560246134
+    },
+    "pq_lq": {
+     "max_abs": 0.0020401443869986213,
+     "mean_abs": 0.00013334684753287375
+    },
+    "pq_exp2": {
+     "max_abs": 0.0019606451732588903,
+     "mean_abs": 0.00013288393560246115
+    },
+    "s_q": {
+     "max_abs": 0.010035245548614125,
+     "mean_abs": 0.0006477814180737432
+    },
+    "closest": "pq_exp2",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0019505813216299517,
+     "mean_abs": 0.00012563087298637438
+    },
+    "pq_l32": {
+     "max_abs": 0.002123755225617807,
+     "mean_abs": 0.00018000600100269762
+    },
+    "pq_lq": {
+     "max_abs": 0.0020401443869986213,
+     "mean_abs": 0.00017924169250109403
+    },
+    "pq_exp2": {
+     "max_abs": 0.002123755225618029,
+     "mean_abs": 0.0001800060010026976
+    },
+    "s_q": {
+     "max_abs": 0.010035245548614125,
+     "mean_abs": 0.0006349107441543157
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "bfloat16/L512/bool": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0012656615308657138,
+     "mean_abs": 0.00014765045864274107
+    },
+    "pq_l32": {
+     "max_abs": 0.0012937447174941052,
+     "mean_abs": 0.00010492773408407973
+    },
+    "pq_lq": {
+     "max_abs": 0.0012606287863554666,
+     "mean_abs": 0.0001050707059810658
+    },
+    "pq_exp2": {
+     "max_abs": 0.0012937447174941608,
+     "mean_abs": 0.00010492773408407983
+    },
+    "s_q": {
+     "max_abs": 0.005487045674375857,
+     "mean_abs": 0.00027830482348000895
+    },
+    "closest": "pq_lq",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.0012656615308657138,
+     "mean_abs": 0.00014765045864274107
+    },
+    "pq_l32": {
+     "max_abs": 0.0012937447174941052,
+     "mean_abs": 0.00010492773408407973
+    },
+    "pq_lq": {
+     "max_abs": 0.0012606287863554666,
+     "mean_abs": 0.0001050707059810658
+    },
+    "pq_exp2": {
+     "max_abs": 0.0012937447174941608,
+     "mean_abs": 0.00010492773408407983
+    },
+    "s_q": {
+     "max_abs": 0.005487045674375857,
+     "mean_abs": 0.00027830482348000895
+    },
+    "closest": "pq_lq",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0009757427912759908,
+     "mean_abs": 9.722697732314851e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.001245415428675567,
+     "mean_abs": 0.00014704302933687442
+    },
+    "pq_lq": {
+     "max_abs": 0.0012570972313216688,
+     "mean_abs": 0.0001466508876844983
+    },
+    "pq_exp2": {
+     "max_abs": 0.001245415428675678,
+     "mean_abs": 0.00014704302933687437
+    },
+    "s_q": {
+     "max_abs": 0.005487045674375857,
+     "mean_abs": 0.00025697946246474365
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "bfloat16/L512/none": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0012408822241960493,
+     "mean_abs": 0.00012412273877527108
+    },
+    "pq_l32": {
+     "max_abs": 0.0010013943543925596,
+     "mean_abs": 8.769773587052467e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.001058160341334935,
+     "mean_abs": 8.777817604821867e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0010013943543925596,
+     "mean_abs": 8.76977358705247e-05
+    },
+    "s_q": {
+     "max_abs": 0.0038203153649440935,
+     "mean_abs": 0.00023410831164858862
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.0012408822241960493,
+     "mean_abs": 0.00012412273877527108
+    },
+    "pq_l32": {
+     "max_abs": 0.0010013943543925596,
+     "mean_abs": 8.769773587052467e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.001058160341334935,
+     "mean_abs": 8.777817604821867e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0010013943543925596,
+     "mean_abs": 8.76977358705247e-05
+    },
+    "s_q": {
+     "max_abs": 0.0038203153649440935,
+     "mean_abs": 0.00023410831164858862
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0009617361533269531,
+     "mean_abs": 8.098757498663573e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.001124156282700961,
+     "mean_abs": 0.000123988077043321
+    },
+    "pq_lq": {
+     "max_abs": 0.0011127099562815435,
+     "mean_abs": 0.00012370463138682505
+    },
+    "pq_exp2": {
+     "max_abs": 0.0011241562827010165,
+     "mean_abs": 0.000123988077043321
+    },
+    "s_q": {
+     "max_abs": 0.0038203153649440935,
+     "mean_abs": 0.00021731727923913943
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  }
+ },
+ "fully_masked": {
+  "float32": {
+   "bool/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/flash": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "bool/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "add/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/flash": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "add/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "float16": {
+   "bool/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/flash": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "bool/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "add/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/flash": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "add/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  },
+  "bfloat16": {
+   "bool/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/flash": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "bool/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "add/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/flash": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/efficient": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   },
+   "add/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/cudnn": {
+    "error": "RuntimeError('No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.')"
+   }
+  }
+ }
+}

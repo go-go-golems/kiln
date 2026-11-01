@@ -630,7 +630,12 @@ export const N = {
   linear: (x, w, b) => (b ? N.add(nn.linear(x, w), b) : nn.linear(x, w)),
   matmul: (a, b, precision = null) => nn.matmul(a, b, { precision }),
   rms_norm: (x, w, o = {}) => nn.rms_norm(x, w, o), layer_norm: (x, w, b, o = {}) => nn.layer_norm(x, w, b, o),
-  softmax: (x, dim = -1) => nn.softmax(x, { dim }), gelu: (x, approximate = "tanh") => nn.gelu(x, { approximate }), silu: (x) => nn.silu(x),
+  softmax: (x, dim = -1) => nn.softmax(x, { dim }),
+  // softmax whose fully masked row (every entry -inf) is 0, as PyTorch's scaled_dot_product_attention returns
+  // (torch 2.11 CPU, every backend; KILN-007 probe 676 checks the GPU). Bit-identical to softmax on any other
+  // row: the maximum is floored at -FLT_MAX (a finite row is above it), the sum at FLT_MIN (a live row's is >= 1)
+  safeSoftmax: (x, dim = -1) => { const e = N.exp(N.sub(x, N.max(N.amax(x, dim), -3.4028234663852886e38))); return N.div(e, N.max(N.sum(e, dim), 1.1754943508222875e-38)); },
+  gelu: (x, approximate = "tanh") => nn.gelu(x, { approximate }), silu: (x) => nn.silu(x),
   transpose: (x, d0 = -2, d1 = -1) => nn.transpose(x, { d0, d1 }), reshape: (x, shape) => nn.reshape(x, { shape }),
   slice: (x, axis, start, end, step = 1) => nn.slice(x, { axis, start, end, step }),
   resizeNearest: (x, size) => nn.nearest(x, { size }),

@@ -12,6 +12,12 @@ Owners: []
 RelatedFiles:
     - Path: repo://integrations/passnet/fx_compose.py
       Note: lower_sdpa, today's composed FP32-pinned SDPA lowering
+    - Path: repo://packages/kiln/src/std/attention.js
+      Note: recognizer and fusion rule
+    - Path: repo://packages/kiln/src/std/flash-kernel.js
+      Note: matFlash materializer and product seam
+    - Path: repo://packages/kiln/src/std/flash.js
+      Note: MAP=flash geometry, legality, cost counts
     - Path: repo://packages/kiln/src/std/kernel.js
       Note: KB builder, matRow/matTiled; where matFlash goes
     - Path: repo://packages/kiln/src/std/loop.js
@@ -22,8 +28,12 @@ RelatedFiles:
       Note: 48 KiB static shared-memory cap and GB10 spec
     - Path: repo://packages/kiln/src/std/tile.js
       Note: analyze/legalMaps/forkTree/estimate; where MAP=flash and BR/BC knobs go
+    - Path: repo://packages/kiln/test/attention.mjs
+      Note: Phase 1-4 tests
     - Path: repo://ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/gpu-probes-v2/result.json
       Note: probe 675, f32 SDPA runs memory-efficient kernel in pure FP32
+    - Path: repo://ttmp/2026/11/01/KILN-007--kiln-fused-attention-intern-analysis-design-and-implementation-guide/sources/nvrtc-flash-v1/nvrtc-121.log
+      Note: NVRTC compile evidence
 ExternalSources: []
 Summary: 'Intern guide to replacing Kiln''s three-kernel attention with one flash-style kernel: today''s composed lowering, why fusion declines it, a recognizer + MAP=flash Tile mapping + Kernel IR materializer design, dtype rounding points, phases, and a CPU-first validation plan.'
 LastUpdated: 2026-11-01T07:33:32.304947453-05:00
@@ -865,3 +875,39 @@ Experiments in this ticket (`scripts/`):
 
 Literature: Milakov and Gimelshein, *Online normalizer calculation for softmax* (2018); Dao et al.,
 *FlashAttention* (2022); Dao, *FlashAttention-2* (2023).
+
+## 13. Implementation status and deviations (2026-11-01)
+
+Phases 1 to 4 are implemented on branch `impl/kiln-007-fused-attention` (diary Steps 6-10); Phase 0's
+probe is written and dry-run on CPU. Where the code departs from Sections 6 to 9 it is authoritative:
+
+- **Pass placement.** `fuse_attention` is its own pass, `loop/attention` (short `a`), after ordinary
+  fusion, enabled by `pipeline({ attention: "fused" })` (default `"composed"` until Phase 5). The
+  fixpoint scan interleaves rules per node, so "before `merge_loop_ops`" has no fixed meaning; inlining
+  is substitution, so the fused expression does not depend on how ordinary fusion partitioned it.
+- **Region.** A breadth-first search over producer sets (at most 6 kernels, 48 states) stops at the
+  smallest set the recognizer accepts, which keeps Q/K/V projections out of the region.
+- **Profitability.** The rule also requires the best flash option to be predicted no slower than the
+  composed kernels (`tile.js bestEstimate`); D=128 at L=S=256 stays composed on gb10.
+- **Recognizer.** Size-1 output coordinates are substituted by 0 before matching (views spell them `a0`
+  or `0`). The match carries floors of the row maximum and sum (see below).
+- **Kernel.** Register-tiled, not the one-row-per-lane pseudocode of 8.2: knob `RM` (rows per thread);
+  per thread an `RM×KN` score tile and `RM×DPT` accumulators; per-lane partial maxima `sM`
+  (`BR×TPR`) instead of a score tile; probabilities written once to `sP`; four barriers per key tile.
+  Shared memory: `4·(BR(E+1) + BC(E+1) + BC·D + BR·SS + BR·TPR)` bytes, `SS ≡ TPR (mod 32)`.
+- **Fully masked rows (8.3).** torch 2.11 on CPU returns 0, not NaN, on every SDPA backend
+  (`sources/probe-676-cpu-dry-run/result.json`). `fx_compose.lower_sdpa` now uses `N.safeSoftmax`
+  (maximum floored at −FLT_MAX, sum at FLT_MIN; bit-identical on live rows), and `matFlash` reproduces
+  the floors.
+- **Product seam.** `flash-kernel.js products.simt = { scores, pv }`: `scores` returns held inner
+  products as `{ slot, row, key, value }` elements (the shape of KILN-006's `mmaAccElements`), `pv` owns
+  the key-tile update from `sP`/`sV`. P passes through shared memory, so the accumulator/A-operand layout
+  gap of chained mma products does not arise.
+- **Model results (gb10, not measured).** BERT 2×12×128×64: 44.1 → 20.2 µs; family 5 1×2×512×64:
+  55.7 → 45.8 µs; 1×16×1024×64: 1166.8 → 622.8 µs. The kernel stays shared-memory bound in FP32 SIMT.
+- **Known limits.** Bool-mask kernels cannot run in the SIMT simulator (no bool storage; KILN-010); the
+  fused expression's serial reference is O(L·D·S·E), so `kiln-export`'s end-to-end check is skipped at
+  realistic shapes.
+
+GPU work remaining: probe 676; ptxas registers/spills for `sources/nvrtc-flash-v1/flash-kernels.json`;
+the family-5 replay with `attention: "fused"` against `"composed"`; then the default flip and Phase 6.

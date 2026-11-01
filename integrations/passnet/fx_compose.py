@@ -152,7 +152,8 @@ def lower_sdpa(c):
         if mm['dtype'] == 'torch.bool': scores = f'N.select({mask}, {scores}, -Infinity)'
         elif mm['dtype'] in FLOATING: scores = f'N.add({scores}, N.cast({mask}, "f32"))'
         else: raise ValueError(f'{c.name}: attention mask dtype {mm["dtype"]} unsupported')
-    return f'N.cast(N.matmul(N.softmax({scores}, -1), {v}, "highest"), {json.dumps(dtype)})'
+    # a fully masked row is 0, not NaN, in PyTorch's attention (N.safeSoftmax)
+    return f'N.cast(N.matmul(N.safeSoftmax({scores}, -1), {v}, "highest"), {json.dumps(dtype)})'
 
 
 def lower_im2col(c):

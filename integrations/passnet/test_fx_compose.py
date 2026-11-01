@@ -1,6 +1,7 @@
 """Composed lowerings (fx_compose) and slice-3 integer graphs agree numerically with PyTorch on CPU:
 both Kiln's frontend reference and its compiled Loop IR."""
 import json
+import math
 import subprocess
 import unittest
 from pathlib import Path
@@ -13,11 +14,11 @@ HERE = Path(__file__).resolve().parent
 KILN_DTYPE = {torch.float32: 'f32', torch.int64: 'i64', torch.int32: 'i32', torch.bool: 'bool'}
 
 
-def run_kiln(model, inputs):
-    # JSON has no NaN: a NaN input element travels as null
+def run_kiln(model, inputs, attention='composed'):
+    # JSON has no NaN or infinities: a non-finite input element travels as the string "NaN", "Infinity" or "-Infinity"
     imported = import_graph(export_graph(symbolic_trace(model), inputs))
     names = list(imported['inputs'])
-    request = {'script': imported['script'], 'inputs': {n: {'shape': list(x.shape), 'dtype': KILN_DTYPE[x.dtype], 'data': [None if v != v else v for v in x.flatten().tolist()]} for n, x in zip(names, inputs)}}
+    request = {'attention': attention, 'script': imported['script'], 'inputs': {n: {'shape': list(x.shape), 'dtype': KILN_DTYPE[x.dtype], 'data': [v if not isinstance(v, float) or math.isfinite(v) else {'inf': 'Infinity', '-inf': '-Infinity'}.get(str(v), 'NaN') for v in x.flatten().tolist()]} for n, x in zip(names, inputs)}}
     out = subprocess.run(['node', str(HERE / 'kiln_eval.mjs')], input=json.dumps(request), capture_output=True, text=True, check=True)
     result = json.loads(out.stdout)
     if result.get('error'): raise AssertionError(result['error'])
@@ -25,10 +26,11 @@ def run_kiln(model, inputs):
 
 
 class ComposeNumericTests(unittest.TestCase):
-    def check(self, model, inputs, atol=1e-5, rtol=1e-5):
+    def check(self, model, inputs, atol=1e-5, rtol=1e-5, attention='composed', attention_kernels=None):
         with torch.no_grad(): expected = model(*[x.clone() for x in inputs])
         expected = expected if isinstance(expected, tuple) else (expected,)
-        imported, result = run_kiln(model, inputs)
+        imported, result = run_kiln(model, inputs, attention)
+        if attention_kernels is not None: self.assertEqual(result['attention_kernels'], attention_kernels)
         keys = [k for k in result['frontend'] if not k.startswith('__mut')]
         self.assertEqual(len(keys), len(expected))
         for key, want in zip(keys, expected):
@@ -59,7 +61,16 @@ class ComposeNumericTests(unittest.TestCase):
         torch.manual_seed(2)
         keep = torch.rand(2, 1, 4, 6) > 0.3
         keep[..., 0] = True
-        self.check(Model(), [torch.randn(2, 3, 4, 8), torch.randn(2, 3, 6, 8), torch.randn(2, 3, 6, 8), torch.randn(2, 1, 4, 6), keep], atol=1e-5)
+        inputs = [torch.randn(2, 3, 4, 8), torch.randn(2, 3, 6, 8), torch.randn(2, 3, 6, 8), torch.randn(2, 1, 4, 6), keep]
+        self.check(Model(), inputs, atol=1e-5, attention_kernels=0)
+        # KILN-007: the importer's composition fuses into one recognized kernel per call, same numerics
+        self.check(Model(), inputs, atol=1e-5, attention='fused', attention_kernels=2)
+        # a fully masked row: PyTorch returns 0 (not NaN) on every CPU backend; the safe softmax matches it
+        keep[0, 0, 2, :] = False
+        additive = inputs[3].clone(); additive[1, 0, 3, :] = float('-inf')
+        masked = [*inputs[:3], additive, keep]
+        with torch.no_grad(): self.assertEqual(Model()(*masked)[1][0, :, 2].abs().max().item(), 0.0)
+        for attention in ('composed', 'fused'): self.check(Model(), masked, atol=1e-5, attention=attention)
 
     def test_causal_attention(self):
         class Model(torch.nn.Module):

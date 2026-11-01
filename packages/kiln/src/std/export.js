@@ -95,9 +95,9 @@ export function exportProgram(run, prog, { name, params = {}, target = null, sou
   for (const kn of kernels) {
     // CUDA's x grid dimension is itself limited to 2^31 - 1 blocks
     if (kn.grid > INT32_INDEX_LIMIT) throw new KilnError("ExportError", `kernel ${kn.name} launches ${kn.grid} blocks: CUDA grids are limited to ${INT32_INDEX_LIMIT}`);
-    // only thread-mapped kernels form a global thread id (bid * block + tid); row, tiled and mma kernels
+    // only thread-mapped kernels form a global thread id (bid * block + tid); row, tiled, mma and flash kernels
     // derive offsets from bid, bounded by the buffer extents checked above
-    const threadMapped = !/(^|,)MAP=(row|tiled|mma)(,|$)/.test(kn.row);
+    const threadMapped = !/(^|,)MAP=(row|tiled|mma|flash)(,|$)/.test(kn.row);
     if (threadMapped && kn.grid * kn.block > INT32_INDEX_LIMIT) throw new KilnError("ExportError", `kernel ${kn.name} launches ${kn.grid * kn.block} threads: CUDA thread ids are 32-bit (limit ${INT32_INDEX_LIMIT})`);
   }
   const outputs = g.outputs.map((o) => {
