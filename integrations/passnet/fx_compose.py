@@ -147,3 +147,19 @@ def lower_sdpa(c):
         elif mm['dtype'] in FLOATING: scores = f'N.add({scores}, N.cast({mask}, "f32"))'
         else: raise ValueError(f'{c.name}: attention mask dtype {mm["dtype"]} unsupported')
     return f'N.cast(N.matmul(N.softmax({scores}, -1), {v}, "highest"), {json.dumps(dtype)})'
+
+
+def lower_im2col(c):
+    """F.unfold (im2col): sliding windows over the last two axes, then
+    [N, C, oh, ow, kh, kw] -> [N, C, kh, kw, oh, ow] -> [N, C*kh*kw, oh*ow]."""
+    bound = bind(c.name, 'unfold', c.args, c.kwargs, ['input', 'kernel_size', 'dilation', 'padding', 'stride'], require_first=False)
+    meta = c.ctx.resolve(bound['input'])
+    pair = lambda v: [v, v] if type(v) is int else list(v)
+    k, d, p, s = (pair(c.ctx.literal(bound.get(f, default))) for f, default in [('kernel_size', 'null'), ('dilation', '1'), ('padding', '0'), ('stride', '1')])
+    if len(meta['shape']) != 4 or d != [1, 1] or any(type(v) is not int for v in k + p + s): raise ValueError(f'{c.name}: 4-d input, static sizes and dilation 1 required')
+    n, ch, h, w = meta['shape']
+    x = bound['input']
+    if p != [0, 0]: x = f'N.pad({x}, {json.dumps([p[1], p[1], p[0], p[0]])})'
+    oh, ow = (h + 2 * p[0] - k[0]) // s[0] + 1, (w + 2 * p[1] - k[1]) // s[1] + 1
+    windows = f'N.unfold(N.unfold({x}, 2, {k[0]}, {s[0]}), 3, {k[1]}, {s[1]})'
+    return f'N.reshape({permute(windows, [0, 1, 4, 5, 2, 3])}, {json.dumps([n, ch * k[0] * k[1], oh * ow])})'

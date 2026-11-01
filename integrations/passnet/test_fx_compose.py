@@ -71,6 +71,21 @@ class ComposeNumericTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'training=False'):
             import_graph(export_graph(symbolic_trace(Training()), [torch.randn(2, 3)]))
 
+    def test_strided_slices_conv1d_nearest(self):
+        class Model(torch.nn.Module):
+            def forward(self, x, s, w, b, img):
+                return (s[..., 1::2], s[..., ::2], torch.conv1d(x, w, b, (2,), (3,), (1,), 2),
+                        torch.nn.functional.interpolate(img, size=(7, 10), mode='nearest'))
+        torch.manual_seed(3)
+        self.check(Model(), [torch.randn(2, 4, 11), torch.randn(2, 3, 9), torch.randn(6, 2, 5), torch.randn(6), torch.randn(1, 2, 5, 4)], atol=1e-5)
+
+    def test_im2col(self):
+        class Model(torch.nn.Module):
+            def forward(self, x):
+                f = torch.nn.functional.unfold
+                return f(x, kernel_size=(2, 2), stride=(2, 2)), f(x, kernel_size=(3, 2), stride=(1, 2), padding=1)
+        self.check(Model(), [torch.randn(2, 3, 6, 8)])
+
     def test_integer_positions_match_torch(self):
         class Positions(torch.nn.Module):
             def forward(self, ids):

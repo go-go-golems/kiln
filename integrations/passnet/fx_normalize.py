@@ -17,7 +17,7 @@ TARGETS = {torch.nn.functional.relu, torch.nn.functional.batch_norm,
            torch.nn.functional.embedding,
            torch.nn.functional.dropout1d, torch.nn.functional.dropout2d, torch.nn.functional.dropout3d,
            torch.nn.functional.alpha_dropout, torch.nn.functional.feature_alpha_dropout,
-           torch.nn.functional.normalize, torch.functional.norm}
+           torch.nn.functional.normalize, torch.functional.norm, torch.nn.functional.unfold}
 
 # The builtin GELU has no inspectable Python signature. Its public schema has a
 # keyword-only approximation selector; keep that selector in canonical kwargs.

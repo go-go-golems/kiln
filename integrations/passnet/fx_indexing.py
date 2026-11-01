@@ -100,13 +100,15 @@ def lower_index(value, key, shape, output_shape):
             if any(v is not None and type(v) is not int for v in (item.start,item.stop,item.step)):
                 raise ValueError('Static integer slice bounds required')
             start, stop, step = item.indices(size)
-            if step != 1:
-                raise ValueError('Strided tensor slices require compiler lowering')
+            if step <= 0:
+                raise ValueError('Negative-step tensor slices unsupported')
             if stop <= start:
                 raise ValueError('Empty tensor slices require zero-size support')
-            if start != 0 or stop != size:
+            if step != 1:
+                expression = f'N.slice({expression}, {axis}, {start}, {stop}, {step})'
+            elif start != 0 or stop != size:
                 expression = f'N.slice({expression}, {axis}, {start}, {stop})'
-            result_shape.append(stop-start)
+            result_shape.append(len(range(start, stop, step)))
         else:
             raise ValueError('Advanced or dynamic tensor indexing unsupported')
         axis += 1

@@ -88,6 +88,10 @@ function reduceRef(name, x, axis, keep = true) {
   return keep ? out : new Tensor(oshape.filter((_, i) => i !== axis), out.data);
 }
 // a dtype conversion with C++'s semantics (truncation toward zero; nonzero is true); floats narrow by rounding
+function nearestMap(from, to) {
+  const n = to.length, [H, W] = from.slice(-2), [h, w] = to.slice(-2);
+  return IX.map(n, (c) => [...c.slice(0, -2), c[n - 2].mul(H).div(h), c[n - 1].mul(W).div(w)]);
+}
 function castRef(x, dtype) {
   x = asT(x);
   const from = x.dtype, convert = FNS["to_" + (INTEGER_DTYPES.has(dtype) ? dtype : "f32")].js;
@@ -351,7 +355,12 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
   .op("reshape", { args: ["x"], attrs: { shape: [] }, infer: ({ x, shape }) => { if (numel(shape) !== numel(x.type.shape)) throw new KilnError("ShapeError", `reshape (${x.type.shape}) → (${shape}): sizes differ`); return T_(shape, x.type.dtype); }, eval: ({ x, shape }) => new Tensor(shape, asT(x).data.slice()), print: "reshape({x}, {shape})" })
   .op("gather", { args: ["x", "ids"], attrs: { axis: 0, wrap: false }, infer: ({ x, ids, axis }) => { gatherIndices(ids); return T_(gatherSpec(x.type.shape, ids.type.shape, axis).shape, x.type.dtype); },
     eval: ({ x, ids, axis, wrap, type }) => gatherRef(x, ids, type.shape, gatherMap(asT(x).shape, asT(ids).shape, axis, wrap)), print: "gather({x}, {ids}, axis={axis})" })
-  .op("slice", { args: ["x"], attrs: { axis: 0, start: 0, end: 1 }, infer: ({ x, axis, start, end }) => { const s = x.type.shape.slice(); const a = axis < 0 ? s.length + axis : axis; s[a] = end - start; return T_(s, x.type.dtype); }, eval: ({ x, axis, start, type }) => { const n = asT(x).shape.length; const a = axis < 0 ? n + axis : axis; return viewRef(x, type.shape, IX.map(n, (c) => c.map((v, i) => (i === a ? v.add(start) : v)))); }, print: "{x}[{axis}: {start}..{end}]" });
+  // nearest-neighbour resize of the last two axes: out[.., i, j] = x[.., floor(i*H/h), floor(j*W/w)]
+  // (PyTorch mode="nearest"; exact integer arithmetic where PyTorch multiplies by a float32 scale)
+  .op("nearest", { args: ["x"], attrs: { size: [1, 1] }, traits: ["pure"], infer: ({ x, size }) => T_([...x.type.shape.slice(0, -2), ...size], x.type.dtype),
+    eval: ({ x, type }) => viewRef(x, type.shape, nearestMap(asT(x).shape, type.shape)), print: "nearest({x}, {size})" })
+  // elements start, start + step, … below end along one axis (step > 0)
+  .op("slice", { args: ["x"], attrs: { axis: 0, start: 0, end: 1, step: 1 }, infer: ({ x, axis, start, end, step }) => { const s = x.type.shape.slice(); const a = axis < 0 ? s.length + axis : axis; if (!(step >= 1)) throw new KilnError("ShapeError", "slice step must be positive"); s[a] = Math.ceil((end - start) / step); return T_(s, x.type.dtype); }, eval: ({ x, axis, start, step, type }) => { const n = asT(x).shape.length; const a = axis < 0 ? n + axis : axis; return viewRef(x, type.shape, IX.map(n, (c) => c.map((v, i) => (i === a ? v.mul(step).add(start) : v)))); }, print: "{x}[{axis}: {start}..{end}:{step}]" });
 
 export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, reduction and index-map primitives")
   .op("const", { attrs: { value: 0, shape: [], data: null, dtype: "f32" }, traits: ["pure", "any-ir"], infer: ({ shape, data, dtype }) => T_(data ? data.shape : shape, data?.dtype || dtype),
@@ -451,7 +460,8 @@ export const N = {
   rms_norm: (x, w, o = {}) => nn.rms_norm(x, w, o), layer_norm: (x, w, b, o = {}) => nn.layer_norm(x, w, b, o),
   softmax: (x, dim = -1) => nn.softmax(x, { dim }), gelu: (x, approximate = "tanh") => nn.gelu(x, { approximate }), silu: (x) => nn.silu(x),
   transpose: (x, d0 = -2, d1 = -1) => nn.transpose(x, { d0, d1 }), reshape: (x, shape) => nn.reshape(x, { shape }),
-  slice: (x, axis, start, end) => nn.slice(x, { axis, start, end }),
+  slice: (x, axis, start, end, step = 1) => nn.slice(x, { axis, start, end, step }),
+  resizeNearest: (x, size) => nn.nearest(x, { size }),
   weight, const: (v, shape = []) => tensor.const({ value: v, shape }),
 };
 nn.methods({
@@ -544,7 +554,8 @@ export const decompositions = [
   decompose("nn.reduce", ({ x, fn, axis, keepdim }) => { const t = reduction(fn, dtypeOf(x)); const r = T.reduce(convert(x, t.cast), t.fn, lastAxis(x, axis)); return keepdim ? r : T.squeeze(r, lastAxis(x, axis)); }),
   decompose("nn.transpose", ({ x, d0, d1, out }) => { const n = x.type.shape.length; const i = lastAxis(x, d0), j = lastAxis(x, d1); return T.view(x, out.type.shape, (c) => { const b = c.slice(); [b[i], b[j]] = [b[j], b[i]]; return b; }); }),
   decompose("nn.reshape", ({ x, shape }) => T.reshape(x, shape)),
-  decompose("nn.slice", ({ x, axis, start, out }) => { const a = lastAxis(x, axis); return T.view(x, out.type.shape, (c) => c.map((v, i) => (i === a ? v.add(start) : v))); }),
+  decompose("nn.nearest", ({ x, out }) => tensor.view(x, { shape: out.type.shape, map: nearestMap(x.type.shape, out.type.shape) })),
+  decompose("nn.slice", ({ x, axis, start, step, out }) => { const a = lastAxis(x, axis); return T.view(x, out.type.shape, (c) => c.map((v, i) => (i === a ? v.mul(step).add(start) : v))); }),
 ];
 export const decomposition = k.pass("frontend/decomposition").short("d").rules(...decompositions).helpers("tensor", T)
   .describe("each nn op becomes elementwise, reduction and index-map primitives");

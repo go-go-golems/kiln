@@ -98,6 +98,7 @@ for _name, _lower, _functions, _methods in [
         ('normalize', fx_compose.lower_normalize, ('torch.nn.functional.normalize',), ()),
         ('prelu', fx_compose.lower_prelu, ('torch.prelu', 'torch.nn.functional.prelu'), ()),
         ('einsum', fx_compose.lower_einsum, ('torch.functional.einsum', 'torch.einsum'), ()),
+        ('im2col', fx_compose.lower_im2col, ('torch.nn.functional.unfold',), ()),
         ('attention', fx_compose.lower_sdpa, ('torch._C._nn.scaled_dot_product_attention', 'torch.nn.functional.scaled_dot_product_attention'), ())]:
     op(_name, functions=_functions, methods=_methods)(lambda c, _lower=_lower: Lowered(_lower(c)))
 
@@ -500,6 +501,21 @@ def lower_conv2d(c):
     return Lowered(f'N.conv2d({bound["input"]}, {bound["weight"]}, {bound.get("bias", "null")}, {json.dumps(options)})')
 
 
+@op('conv1d', functions=('torch.conv1d', 'torch.nn.functional.conv1d'))
+def lower_conv1d(c):
+    """A 1-d convolution is a 2-d one over a unit height axis."""
+    bound = bind(c.name, 'conv1d', c.args, c.kwargs, ['input', 'weight', 'bias', 'stride', 'padding', 'dilation', 'groups'], require_first=False)
+    one = lambda v: v[0] if isinstance(v, list) and len(v) == 1 else v
+    options = {key: one(c.ctx.literal(bound.get(key, default))) for key, default in [('stride', '1'), ('padding', '0'), ('dilation', '1'), ('groups', '1')]}
+    if any(type(options[k]) is not int for k in options): raise ValueError(f'{c.name}: static integer conv1d options required')
+    options2 = {'stride': [1, options['stride']], 'padding': [0, options['padding']], 'dilation': [1, options['dilation']], 'groups': options['groups']}
+    x, w = c.ctx.resolve(bound['input']), c.ctx.resolve(bound['weight'])
+    if len(x['shape']) != 3 or len(w['shape']) != 3: raise ValueError(f'{c.name}: batched 3-d input and weight required')
+    x4 = f'N.reshape({bound["input"]}, {json.dumps([x["shape"][0], x["shape"][1], 1, x["shape"][2]])})'
+    w4 = f'N.reshape({bound["weight"]}, {json.dumps([w["shape"][0], w["shape"][1], 1, w["shape"][2]])})'
+    return Lowered(f'N.reshape(N.conv2d({x4}, {w4}, {bound.get("bias", "null")}, {json.dumps(options2)}), {json.dumps(c.meta["shape"])})')
+
+
 @op('interpolate', functions=('torch.nn.functional.interpolate',))
 def lower_interpolate(c):
     kwargs = c.kwargs
@@ -507,9 +523,13 @@ def lower_interpolate(c):
         raise ValueError(f'{c.name}: interpolation requires supported floating dtype and explicit keyword options')
     if set(kwargs) - {'size', 'scale_factor', 'mode', 'align_corners', 'recompute_scale_factor', 'antialias'}:
         raise ValueError(f'{c.name}: unsupported interpolation arguments')
-    if kwargs.get('mode') != '"bilinear"' or kwargs.get('align_corners') != 'false' or kwargs.get('scale_factor', 'null') != 'null' or kwargs.get('antialias', 'false') != 'false' or kwargs.get('recompute_scale_factor', 'null') not in ('null', 'false'):
-        raise ValueError(f'{c.name}: only explicit-size bilinear align_corners=False supported')
-    return Lowered(f'N.resizeBilinear({c.args[0]}, {json.dumps(c.ctx.literal(kwargs["size"]))})')
+    explicit = kwargs.get('scale_factor', 'null') == 'null' and kwargs.get('antialias', 'false') == 'false' and kwargs.get('recompute_scale_factor', 'null') in ('null', 'false') and 'size' in kwargs
+    size = c.ctx.literal(kwargs['size']) if 'size' in kwargs else None
+    if explicit and kwargs.get('mode') == '"nearest"' and kwargs.get('align_corners', 'null') == 'null':
+        return Lowered(f'N.resizeNearest({c.args[0]}, {json.dumps(size)})')
+    if not explicit or kwargs.get('mode') != '"bilinear"' or kwargs.get('align_corners') != 'false':
+        raise ValueError(f'{c.name}: only explicit-size nearest and bilinear align_corners=False supported')
+    return Lowered(f'N.resizeBilinear({c.args[0]}, {json.dumps(size)})')
 
 
 @op('batch_norm', functions=('torch.nn.functional.batch_norm',))
