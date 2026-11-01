@@ -1,0 +1,161 @@
+
+=============
+== PyTorch ==
+=============
+
+NVIDIA Release 26.05 (build 313520560)
+PyTorch Version 2.12.0a0+5aff392
+Container image Copyright (c) 2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+Copyright (c) 2014-2024 Facebook Inc.
+Copyright (c) 2011-2014 Idiap Research Institute (Ronan Collobert)
+Copyright (c) 2012-2014 Deepmind Technologies    (Koray Kavukcuoglu)
+Copyright (c) 2011-2012 NEC Laboratories America (Koray Kavukcuoglu)
+Copyright (c) 2011-2013 NYU                      (Clement Farabet)
+Copyright (c) 2006-2010 NEC Laboratories America (Ronan Collobert, Leon Bottou, Iain Melvin, Jason Weston)
+Copyright (c) 2006      Idiap Research Institute (Samy Bengio)
+Copyright (c) 2001-2004 Idiap Research Institute (Ronan Collobert, Samy Bengio, Johnny Mariethoz)
+Copyright (c) 2015      Google Inc.
+Copyright (c) 2015      Yangqing Jia
+Copyright (c) 2013-2016 The Caffe contributors
+All rights reserved.
+
+Various files include modifications (c) NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
+
+GOVERNING TERMS: The software and materials are governed by the NVIDIA Software License Agreement
+(found at https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-software-license-agreement/)
+and the Product-Specific Terms for NVIDIA AI Products
+(found at https://www.nvidia.com/en-us/agreements/enterprise-software/product-specific-terms-for-ai-products/).
+
+NOTE: CUDA Forward Compatibility mode ENABLED.
+  Using CUDA 13.2 driver version 595.58.03 with kernel driver version 580.178.04.
+  See https://docs.nvidia.com/deploy/cuda-compatibility/ for details.
+
+NOTE: The SHMEM allocation limit is set to the default of 64MB.  This may be
+   insufficient for PyTorch.  NVIDIA recommends the use of the following flags:
+   docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 ...
+
+/w/probe.py:40: UserWarning: Memory efficient kernel not used because: (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:999.)
+  with sdpa_kernel(be): backends[name] = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/w/probe.py:40: UserWarning: Memory Efficient attention has been runtime disabled. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:552.)
+  with sdpa_kernel(be): backends[name] = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/w/probe.py:40: UserWarning: Flash attention kernel not used because: (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:1001.)
+  with sdpa_kernel(be): backends[name] = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/w/probe.py:40: UserWarning: Flash Attention does not support non-null attn_mask. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:262.)
+  with sdpa_kernel(be): backends[name] = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/w/probe.py:40: UserWarning: cuDNN attention kernel not used because: (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:1003.)
+  with sdpa_kernel(be): backends[name] = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/w/probe.py:40: UserWarning: cuDNN attention has been runtime disabled. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:718.)
+  with sdpa_kernel(be): backends[name] = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/w/probe.py:40: UserWarning: Flash attention has been runtime disabled. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:540.)
+  with sdpa_kernel(be): backends[name] = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/w/probe.py:40: UserWarning: Expected query, key and value to all be of dtype: {Half, BFloat16}. Got Query dtype: float, Key dtype: float, and Value dtype: float instead. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:91.)
+  with sdpa_kernel(be): backends[name] = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+{
+ "format": "kiln-gpu-probes/2",
+ "torch": "2.12.0a0+5aff3928d8.nv26.05",
+ "device": "NVIDIA GB10",
+ "attention_f32": {
+  "flags": {
+   "matmul_allow_tf32": true,
+   "cudnn_allow_tf32": true,
+   "float32_matmul_precision": "high"
+  },
+  "default": {
+   "fp32": {
+    "max_abs": 1.162794487030716e-06,
+    "mean_abs": 4.441914698972885e-08
+   },
+   "rne": {
+    "max_abs": 0.0007375556554052309,
+    "mean_abs": 3.4889932758786304e-05
+   },
+   "closest": "fp32",
+   "equals_default": true
+  },
+  "flash": {
+   "error": "RuntimeError('No available kernel. Aborting execution.')"
+  },
+  "efficient": {
+   "fp32": {
+    "max_abs": 1.162794487030716e-06,
+    "mean_abs": 4.441914698972885e-08
+   },
+   "rne": {
+    "max_abs": 0.0007375556554052309,
+    "mean_abs": 3.4889932758786304e-05
+   },
+   "closest": "fp32",
+   "equals_default": true
+  },
+  "math": {
+   "fp32": {
+    "max_abs": 0.00138927454308857,
+    "mean_abs": 3.5333658718941395e-05
+   },
+   "rne": {
+    "max_abs": 0.0012384677891077445,
+    "mean_abs": 4.317809242184784e-05
+   },
+   "closest": "rne",
+   "equals_default": false
+  },
+  "cudnn": {
+   "error": "RuntimeError('No available kernel. Aborting execution.')"
+  }
+ },
+ "low_precision_products": {
+  "torch.float16": {
+   "default_flag": true,
+   "linear_True": {
+    "differ_fraction": 0.2898828387260437,
+    "max_abs": 0.00390625
+   },
+   "conv1x1_True": {
+    "differ_fraction": 0.0015125572681427002,
+    "max_abs": 0.001953125
+   },
+   "linear_False": {
+    "differ_fraction": 0.0007812500116415322,
+    "max_abs": 0.001953125
+   },
+   "conv1x1_False": {
+    "differ_fraction": 0.0015125572681427002,
+    "max_abs": 0.001953125
+   }
+  },
+  "torch.bfloat16": {
+   "default_flag": true,
+   "linear_True": {
+    "differ_fraction": 0.28772658109664917,
+    "max_abs": 0.03125
+   },
+   "conv1x1_True": {
+    "differ_fraction": 0.00013086199760437012,
+    "max_abs": 0.015625
+   },
+   "linear_False": {
+    "differ_fraction": 9.375000081490725e-05,
+    "max_abs": 0.00390625
+   },
+   "conv1x1_False": {
+    "differ_fraction": 0.00013086199760437012,
+    "max_abs": 0.015625
+   }
+  }
+ },
+ "conv1x1_f32_task119": {
+  "fp32": {
+   "max_abs": 0.0014563133271221496,
+   "mean_abs": 0.00024035749736827286
+  },
+  "rne": {
+   "max_abs": 8.975093805929646e-06,
+   "mean_abs": 9.937615949291995e-07
+  },
+  "rna": {
+   "max_abs": 0.00033039829577319324,
+   "mean_abs": 2.1268548941163124e-06
+  },
+  "closest": "rne"
+ }
+}

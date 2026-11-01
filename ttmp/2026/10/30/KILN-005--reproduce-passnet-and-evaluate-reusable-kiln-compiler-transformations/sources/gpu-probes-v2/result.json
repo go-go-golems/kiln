@@ -1,0 +1,109 @@
+{
+ "format": "kiln-gpu-probes/2",
+ "torch": "2.12.0a0+5aff3928d8.nv26.05",
+ "device": "NVIDIA GB10",
+ "attention_f32": {
+  "flags": {
+   "matmul_allow_tf32": true,
+   "cudnn_allow_tf32": true,
+   "float32_matmul_precision": "high"
+  },
+  "default": {
+   "fp32": {
+    "max_abs": 1.162794487030716e-06,
+    "mean_abs": 4.441914698972885e-08
+   },
+   "rne": {
+    "max_abs": 0.0007375556554052309,
+    "mean_abs": 3.4889932758786304e-05
+   },
+   "closest": "fp32",
+   "equals_default": true
+  },
+  "flash": {
+   "error": "RuntimeError('No available kernel. Aborting execution.')"
+  },
+  "efficient": {
+   "fp32": {
+    "max_abs": 1.162794487030716e-06,
+    "mean_abs": 4.441914698972885e-08
+   },
+   "rne": {
+    "max_abs": 0.0007375556554052309,
+    "mean_abs": 3.4889932758786304e-05
+   },
+   "closest": "fp32",
+   "equals_default": true
+  },
+  "math": {
+   "fp32": {
+    "max_abs": 0.00138927454308857,
+    "mean_abs": 3.5333658718941395e-05
+   },
+   "rne": {
+    "max_abs": 0.0012384677891077445,
+    "mean_abs": 4.317809242184784e-05
+   },
+   "closest": "rne",
+   "equals_default": false
+  },
+  "cudnn": {
+   "error": "RuntimeError('No available kernel. Aborting execution.')"
+  }
+ },
+ "low_precision_products": {
+  "torch.float16": {
+   "default_flag": true,
+   "linear_True": {
+    "differ_fraction": 0.2898828387260437,
+    "max_abs": 0.00390625
+   },
+   "conv1x1_True": {
+    "differ_fraction": 0.0015125572681427002,
+    "max_abs": 0.001953125
+   },
+   "linear_False": {
+    "differ_fraction": 0.0007812500116415322,
+    "max_abs": 0.001953125
+   },
+   "conv1x1_False": {
+    "differ_fraction": 0.0015125572681427002,
+    "max_abs": 0.001953125
+   }
+  },
+  "torch.bfloat16": {
+   "default_flag": true,
+   "linear_True": {
+    "differ_fraction": 0.28772658109664917,
+    "max_abs": 0.03125
+   },
+   "conv1x1_True": {
+    "differ_fraction": 0.00013086199760437012,
+    "max_abs": 0.015625
+   },
+   "linear_False": {
+    "differ_fraction": 9.375000081490725e-05,
+    "max_abs": 0.00390625
+   },
+   "conv1x1_False": {
+    "differ_fraction": 0.00013086199760437012,
+    "max_abs": 0.015625
+   }
+  }
+ },
+ "conv1x1_f32_task119": {
+  "fp32": {
+   "max_abs": 0.0014563133271221496,
+   "mean_abs": 0.00024035749736827286
+  },
+  "rne": {
+   "max_abs": 8.975093805929646e-06,
+   "mean_abs": 9.937615949291995e-07
+  },
+  "rna": {
+   "max_abs": 0.00033039829577319324,
+   "mean_abs": 2.1268548941163124e-06
+  },
+  "closest": "rne"
+ }
+}
