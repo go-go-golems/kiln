@@ -1,6 +1,6 @@
 // Emitters over Kernel IR: CUDA C++, WGSL, and a lockstep SIMT simulator in JavaScript.
 import * as IX from "../core/ix.js";
-import { FNS, fill } from "./fns.js";
+import { FNS, CUDA_HELPERS, fill } from "./fns.js";
 
 const cname = (s) => String(s || "kernel").replace(/[^\w]/g, "_");
 const flit = (v, lang) => {
@@ -25,6 +25,12 @@ const ilit = ({ v, exact }, dtype) => {
 // CUDA spelling of each storage dtype
 export const CUDA_STORAGE = Object.freeze({ f32: "float", u8: "unsigned char", f16: "__half", bf16: "__nv_bfloat16", i32: "int", i64: "long long", bool: "bool" });
 
+// the device helpers a kernel body uses, each once: functions applied anywhere in it name their helper
+const cudaHelpers = (body) => {
+  const used = new Set();
+  JSON.stringify(body, (key, v) => { if (key === "fn" && FNS[v]?.helper) used.add(FNS[v].helper); return v; });
+  return [...used].sort();
+};
 export function toCuda(K) {
   // buffers are src0…srcN and dst: kernel temporaries are named in0, in1… after the Loop IR's loads
   const bufName = (b) => (b === "out" ? "dst" : "src" + b);
@@ -58,7 +64,7 @@ export function toCuda(K) {
   const types = [...ins, out].map((p) => p.dtype || "f32");
   if (types.includes("f16") || JSON.stringify(K.body).includes('"round_f16"')) lines.push("#include <cuda_fp16.h>");
   if (types.includes("bf16") || JSON.stringify(K.body).includes('"round_bf16"')) lines.push("#include <cuda_bf16.h>");
-  if (JSON.stringify(K.body).includes('"round_tf32"')) lines.push(`__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned b = __float_as_uint(x); if ((b & 0x7f800000u) == 0x7f800000u) return x; return __uint_as_float((b + 0xfffu + ((b >> 13) & 1u)) & 0xffffe000u); }`);
+  for (const h of cudaHelpers(K.body)) lines.push(CUDA_HELPERS[h]);
   const load = (dtype, expr) => dtype === "f16" ? `__half2float(${expr})` : dtype === "bf16" ? `__bfloat162float(${expr})` : dtype === "u8" ? `(float)${expr}` : expr;
   const store = (expr) => out.dtype === "f16" ? `__float2half_rn(${expr})` : out.dtype === "bf16" ? `__float2bfloat16_rn(${expr})` : expr;
   lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `const ${ctype(p)}* __restrict__ src${i}`), `${ctype(out)}* __restrict__ dst`].join(", ")}) {`);

@@ -31,7 +31,7 @@ assert.equal(dtypeOf(({ y }) => N.sum(y), I), "i64", "integer sums widen to int6
 assert.equal(dtypeOf(({ y }) => N.amax(y), I), "i32");
 assert.equal(dtypeOf(({ b }) => N.cumsum(b), I), "i64");
 assert.throws(() => dtypeOf(({ b }) => N.add(b, b), I), /add over bool values is not lowered/);
-assert.throws(() => dtypeOf(({ x }) => N.div(x, x), I), /div over i64 values is not lowered/);
+assert.equal(dtypeOf(({ x }) => N.div(x, x), I), "f32", "true division of integers is float division");
 assert.throws(() => dtypeOf(({ x }) => N.maskedFill(x, x, 0), I), /bool mask/);
 
 // the reference is exact past 2^53 and wraps at 2^63, as CUDA's two's-complement arithmetic does

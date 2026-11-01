@@ -2,6 +2,7 @@
 // CUDA / WGSL / JS emitters. One table, so a new function is one entry here.
 import { roundToDtype } from "../core/dtypes.js";
 import { erf } from "./special.js";
+import { KilnError } from "../core/kiln.js";
 const f = Math.fround;
 // TF32: FP32 storage with a 10-bit explicit mantissa. Under allow_tf32, cuBLAS products and 1x1
 // convolutions on GB10 round FP32 operands to nearest, ties to even (probe 671: RNE max error 3.8e-4
@@ -21,7 +22,7 @@ export const FNS = {
   sub_rn: { n: 2, js: (a, b) => f(f(a) - f(b)), c: "__fsub_rn({0}, {1})", w: null, flops: 1 },
   mul_rn: { n: 2, js: (a, b) => f(f(a) * f(b)), c: "__fmul_rn({0}, {1})", w: null, flops: 1 },
   round_f16: { n: 1, js: (x) => roundToDtype(x, "f16"), c: "__half2float(__float2half_rn({0}))", w: "unpack2x16float(pack2x16float(vec2<f32>({0}, 0.0))).x", flops: 1 },
-  round_tf32: { n: 1, js: roundTf32, c: "kiln_round_tf32({0})", w: "kiln_round_tf32({0})", flops: 1 },
+  round_tf32: { n: 1, js: roundTf32, c: "kiln_round_tf32({0})", w: "kiln_round_tf32({0})", flops: 1, helper: "kiln_round_tf32" },
   round_bf16: { n: 1, js: (x) => roundToDtype(x, "bf16"), c: "__bfloat162float(__float2bfloat16_rn({0}))", w: "kiln_round_bf16({0})", flops: 1 },
   add: { n: 2, js: (a, b) => a + b, c: "({0} + {1})", w: "({0} + {1})", flops: 1 },
   sub: { n: 2, js: (a, b) => a - b, c: "({0} - {1})", w: "({0} - {1})", flops: 1 },
@@ -78,6 +79,37 @@ for (const [t, ops] of Object.entries(INTEGER_OPS)) {
   FNS[`max_${t}`] = { n: 2, js: (a, b) => (a > b ? a : b), c: "(({0}) > ({1}) ? ({0}) : ({1}))", w: null, flops: 1, args: t, type: t };
   FNS[`min_${t}`] = { n: 2, js: (a, b) => (a < b ? a : b), c: "(({0}) < ({1}) ? ({0}) : ({1}))", w: null, flops: 1, args: t, type: t };
 }
+// Integer division (KILN-011). PyTorch's // and % round toward negative infinity (remainder has the
+// divisor's sign); torch.div(rounding_mode="trunc") and fmod round toward zero (fmod has the dividend's
+// sign). BigInt / and % truncate, so truncdiv and fmod are the bare operators; floordiv and remainder
+// step the truncated result when the remainder is nonzero and its sign differs from the divisor's.
+// INT_MIN / -1 wraps to INT_MIN (asIntN, | 0), as the CUDA helpers make explicit. A zero divisor raises,
+// as PyTorch CPU does; kernels leave it unspecified (C and CUDA integer division by zero is undefined).
+const zeroDivide = () => { throw new KilnError("ZeroDivisionError", "integer division by zero"); };
+const stepsDown = (r, b) => r != 0 && (r < 0) !== (b < 0);
+const INTEGER_DIVISION = {
+  i64: {
+    floordiv: (a, b) => { a = big(a); b = big(b); if (b === 0n) zeroDivide(); const q = a / b; return wrap64(stepsDown(a % b, b) ? q - 1n : q); },
+    remainder: (a, b) => { a = big(a); b = big(b); if (b === 0n) zeroDivide(); const r = a % b; return stepsDown(r, b) ? r + b : r; },
+    truncdiv: (a, b) => { a = big(a); b = big(b); if (b === 0n) zeroDivide(); return wrap64(a / b); },
+    fmod: (a, b) => { a = big(a); b = big(b); if (b === 0n) zeroDivide(); return a % b; },
+  },
+  // int32 operands: Math.trunc(a / b) is exact (the true quotient is at least 2^-31 from the next
+  // integer, above double precision) and a - q * b is exact (|q * b| <= |a|); neither yields -0 here
+  i32: {
+    floordiv: (a, b) => { if (b === 0) zeroDivide(); const q = Math.trunc(a / b); return (stepsDown(a - q * b, b) ? q - 1 : q) | 0; },
+    remainder: (a, b) => { if (b === 0) zeroDivide(); const r = a - Math.trunc(a / b) * b; return (stepsDown(r, b) ? r + b : r) | 0; },
+    truncdiv: (a, b) => { if (b === 0) zeroDivide(); return Math.trunc(a / b) | 0; },
+    fmod: (a, b) => { if (b === 0) zeroDivide(); return (a - Math.trunc(a / b) * b) | 0; },
+  },
+};
+/** Frontend names of the integer divisions; each has a typed function per integer dtype (floordiv_i64, …). */
+export const INTEGER_DIVISIONS = new Set(Object.keys(INTEGER_DIVISION.i64));
+// flops: unmeasured placeholders. CUDA has no integer divide instruction; a data divisor costs a
+// software sequence (i64 is several times longer than i32), a literal one a multiply-high sequence.
+const DIVISION_FLOPS = { i32: 20, i64: 60 };
+for (const [t, ops] of Object.entries(INTEGER_DIVISION)) for (const [name, js] of Object.entries(ops))
+  FNS[`${name}_${t}`] = { n: 2, js, c: `kiln_${name}_${t}({0}, {1})`, w: null, flops: DIVISION_FLOPS[t], args: t, type: t, helper: `kiln_${name}_${t}` };
 // comparisons yield bool; JS compares BigInt and number operands exactly
 const COMPARE = { eq: ["==", (a, b) => a == b], ne: ["!=", (a, b) => a != b], lt: ["<", (a, b) => a < b], le: ["<=", (a, b) => a <= b], gt: [">", (a, b) => a > b], ge: [">=", (a, b) => a >= b] };
 for (const t of ["f32", "i32", "i64", "bool"]) for (const [name, [op, js]] of Object.entries(COMPARE))
@@ -88,6 +120,21 @@ FNS.to_i64 = { n: 1, js: (x) => (typeof x === "bigint" ? x : BigInt(Math.trunc(x
 FNS.to_i32 = { n: 1, js: (x) => (typeof x === "bigint" ? Number(BigInt.asIntN(32, x)) : Math.trunc(x) | 0), c: "((int)({0}))", w: null, flops: 1, args: "*", type: "i32" };
 FNS.to_bool = { n: 1, js: (x) => (x != 0 ? 1 : 0), c: "(({0}) != 0)", w: null, flops: 1, args: "*", type: "bool" };
 export const INTEGER_DTYPES = new Set(["i32", "i64", "bool"]);
+// CUDA device functions a kernel defines once when its body applies a function with that helper.
+// Division helpers: C guarantees a == q * b + r with q truncated and r of a's sign; the floor quotient
+// is q - 1 exactly when r != 0 and r, b differ in sign, and then the floor remainder is r + b. b == -1 is
+// explicit because INT_MIN / -1 is undefined behavior in C; NVRTC folds the test for a literal divisor.
+const cudaDivisionHelpers = (t, c, u) => ({
+  [`kiln_floordiv_${t}`]: `__device__ __forceinline__ ${c} kiln_floordiv_${t}(${c} a, ${c} b) { if (b == -1) return (${c})(0u - (${u})a); ${c} q = a / b, r = a % b; return q - (${c})((r != 0) & ((r ^ b) < 0)); }`,
+  [`kiln_remainder_${t}`]: `__device__ __forceinline__ ${c} kiln_remainder_${t}(${c} a, ${c} b) { if (b == -1) return 0; ${c} r = a % b; return r + (((r != 0) & ((r ^ b) < 0)) ? b : 0); }`,
+  [`kiln_truncdiv_${t}`]: `__device__ __forceinline__ ${c} kiln_truncdiv_${t}(${c} a, ${c} b) { return b == -1 ? (${c})(0u - (${u})a) : a / b; }`,
+  [`kiln_fmod_${t}`]: `__device__ __forceinline__ ${c} kiln_fmod_${t}(${c} a, ${c} b) { return b == -1 ? 0 : a % b; }`,
+});
+export const CUDA_HELPERS = Object.freeze({
+  kiln_round_tf32: `__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned b = __float_as_uint(x); if ((b & 0x7f800000u) == 0x7f800000u) return x; return __uint_as_float((b + 0xfffu + ((b >> 13) & 1u)) & 0xffffe000u); }`,
+  ...cudaDivisionHelpers("i32", "int", "unsigned int"),
+  ...cudaDivisionHelpers("i64", "long long", "unsigned long long"),
+});
 /** The result dtype of a function application: f32 unless the function is typed. */
 export const resultType = (name) => FNS[name]?.type ?? "f32";
 export const REDUCERS = {

@@ -11,7 +11,7 @@ import { roundToDtype } from "../core/dtypes.js";
 import { k, P, Value, KilnError, Node } from "../core/kiln.js";
 import { Tensor, numel, strides, rng } from "../core/util.js";
 import * as IX from "../core/ix.js";
-import { fn as F, reducer, FNS, INTEGER_DTYPES, resultType, typedReducer } from "./fns.js";
+import { fn as F, reducer, FNS, INTEGER_DTYPES, INTEGER_DIVISIONS, resultType, typedReducer } from "./fns.js";
 
 // ----------------------------------------------------------------------------- reference helpers
 const asT = (x) => (x instanceof Tensor ? x : typeof x === "number" ? new Tensor([], Float32Array.of(x)) : Array.isArray(x) ? new Tensor([x.length], Float32Array.from(x)) : x);
@@ -209,6 +209,7 @@ function elementwiseDtype(fn, xs, casts = []) {
 }
 export const COMPARISONS = new Set(["eq", "ne", "lt", "le", "gt", "ge"]);
 const needsCast = (from, to) => from !== to && (INTEGER_DTYPES.has(from) || INTEGER_DTYPES.has(to));
+const isLiteralZero = (x) => x.is("tensor.const") && !x.attrs.data && x.attrs.value == 0;
 // a frontend elementwise op resolved to one typed function and the conversions its operands need
 export function resolveEw(fn, xs) {
   if (fn === "select") {
@@ -216,6 +217,12 @@ export function resolveEw(fn, xs) {
     return { fn, casts: xs.map((x, i) => (i > 0 && needsCast(dtypeOf(x), t) ? t : null)) };
   }
   const t = promoteDtypes(xs);
+  // true division of integers is float division (PyTorch: int / int is the default float dtype)
+  if (fn === "div" && INTEGER_DTYPES.has(t)) return { fn, casts: xs.map((x) => (dtypeOf(x) === "f32" ? null : "f32")) };
+  if (INTEGER_DIVISIONS.has(fn)) {
+    if (t !== "i32" && t !== "i64") throw new KilnError("TypeError", `${fn} over ${t} values is not lowered`);
+    if (isLiteralZero(xs[1])) throw new KilnError("ZeroDivisionError", "integer division by zero");
+  }
   const compute = COMPARISONS.has(fn) ? (INTEGER_DTYPES.has(t) ? t : "f32") : t;
   let typed = fn;
   if (COMPARISONS.has(fn)) typed = `${fn}_${compute}`;
@@ -440,7 +447,16 @@ export const N = {
   embedding: (ids, weight) => N.gather(weight, ids, 0),
   indexSelect: (x, axis, ids) => N.gather(x, ids, axis),
   ew: (f, ...xs) => { xs = xs.map(nv); return nn.ew(xs, resolveEw(f, xs)); },
-  add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b), div: (a, b) => N.ew("div", a, b),
+  add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b),
+  // torch.div: rounding null is true division (integers divide as floats), "floor" is a // b, "trunc" rounds toward zero
+  div: (a, b, rounding = null) => {
+    if (rounding === null || rounding === undefined) return N.ew("div", a, b);
+    if (rounding === "floor") return N.floordiv(a, b);
+    if (rounding === "trunc") return N.ew("truncdiv", a, b);
+    throw new KilnError("TypeError", `div rounding mode must be null, "floor" or "trunc", got ${JSON.stringify(rounding)}`);
+  },
+  // a // b and a % b round toward negative infinity (the remainder has b's sign); fmod has a's sign
+  floordiv: (a, b) => N.ew("floordiv", a, b), remainder: (a, b) => N.ew("remainder", a, b), fmod: (a, b) => N.ew("fmod", a, b),
   max: (a, b) => N.ew("max", a, b), min: (a, b) => N.ew("min", a, b), pow: (a, b) => N.ew("pow", a, b),
   exp: (x) => N.ew("exp", x), log: (x) => N.ew("log", x), sqrt: (x) => N.ew("sqrt", x), rsqrt: (x) => N.ew("rsqrt", x), tanh: (x) => N.ew("tanh", x),
   sigmoid: (x) => N.ew("sigmoid", x), relu: (x) => N.ew("relu", x), abs: (x) => N.ew("abs", x), floor: (x) => N.ew("floor", x), neg: (x) => N.ew("neg", x), square: (x) => N.ew("square", x),
@@ -467,7 +483,8 @@ export const N = {
   weight, const: (v, shape = []) => tensor.const({ value: v, shape }),
 };
 nn.methods({
-  add: (a, b) => N.add(a, b), sub: (a, b) => N.sub(a, b), mul: (a, b) => N.mul(a, b), div: (a, b) => N.div(a, b), pow: (a, b) => N.pow(a, b),
+  add: (a, b) => N.add(a, b), sub: (a, b) => N.sub(a, b), mul: (a, b) => N.mul(a, b), div: (a, b, rounding) => N.div(a, b, rounding), pow: (a, b) => N.pow(a, b),
+  floordiv: (a, b) => N.floordiv(a, b), remainder: (a, b) => N.remainder(a, b), fmod: (a, b) => N.fmod(a, b),
   exp: (a) => N.exp(a), log: (a) => N.log(a), tanh: (a) => N.tanh(a), relu: (a) => N.relu(a), sigmoid: (a) => N.sigmoid(a), sqrt: (a) => N.sqrt(a), neg: (a) => N.neg(a), square: (a) => N.square(a),
   sum: (a, ax, kd) => N.sum(a, ax, kd), mean: (a, ax, kd) => N.mean(a, ax, kd), amax: (a, ax, kd) => N.amax(a, ax, kd),
   matmul: (a, b) => N.matmul(a, b), linear: (a, w, b) => N.linear(a, w, b), softmax: (a, d) => N.softmax(a, d), t: (a) => N.transpose(a), reshape: (a, s) => N.reshape(a, s),
