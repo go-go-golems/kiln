@@ -202,7 +202,9 @@ function matTiled(an, kn) {
     kb.for(isA ? "la" : "lb", V("tid"), rows * BK, T, (l) => {
       const rr = kb.int(kFast ? l.div(BK) : l.mod(rows), "rr"), kk = kb.int(kFast ? l.mod(BK) : l.div(rows), "kq");
       const gRow = rowBase.add(rr), gK = k0.add(kk);
-      const v = kb.let(kx.num(0), "tv");
+      // one staging temporary per operand: operands may differ in dtype (an f32 mask beside i64 data), and a
+      // Kernel IR value has one static type
+      const v = kb.let(kx.num(0), kb.fresh("tv"));
       kb.if(gRow.lt(lim).and(gK.lt(ct.K)), () => {
         const env = { ...benv, [rowVar]: gRow, [ct.C.r]: gK };
         const g = kb.load(ld.i, an.flat(ld.i, ld.idx.map((e) => IX.subst(e, env))));

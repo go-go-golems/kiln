@@ -294,3 +294,70 @@ This step wrote the design guide in the writing-style section order, related the
 
 - Design doc: `ttmp/2026/11/01/KILN-008--kiln-cumsum-as-a-scan-primitive-intern-analysis-design-and-implementation-guide/design-doc/01-cumsum-as-a-scan-primitive-analysis-design-and-implementation-guide.md`.
 - No scratchpad files were created by this agent; all artifacts are in the ticket directory.
+
+## Step 4: Implementation start and Phase 0, per-operand staging temporaries in the tiled materializer
+
+This is the first implementation step. I read the common implementation rules, the whole design guide and the diary, ran both test suites to get a baseline, reproduced the integer cumsum failure at 8x1024 with the ticket probe, and fixed the shared defect this ticket owns: `matTiled`'s `tileLoad` named every operand's staging temporary `"tv"`, so a contraction whose operands differ in dtype (an f32 table view beside i64 data) was refused by `valueTypes`. Each operand now gets its own temporary from `kb.fresh("tv")` (`tv0`, `tv1`, ...). A new test pins `MAP=tiled` on the masked integer contraction (the old cumsum lowering written directly in Tensor IR) so the regression stays covered after cumsum stops using that path.
+
+The simulator half of Phase 0 (integer `toSim`) is owned by KILN-010 and is not done here. Integer Kernel IR in this ticket is validated through the Loop IR evaluators and the JS references until KILN-010 merges.
+
+### Prompt Context
+
+**User prompt (verbatim):** "then, can we work on them in parallel (in separate worktrees maybe?)"
+
+**User prompt (verbatim):** "tell each agent to use their own diary and to folow the diary format as they go, and to write a full report for the go-go-parc vault once they are done ( write a detailed project report for the obsidian vault as a deep dive technical analysis blog post using a textbook writing style (no analogies, see skill). Commit and push the bsidian vault when done (go-go-parc vault). )"
+
+**Coordinator instruction (summary, not user-authored):** implement KILN-008 in worktree `/home/manuel/code/wesen/kiln/worktrees/kiln-008-cumsum-scan` on branch `impl/kiln-008-cumsum-scan`, CPU-buildable phases only, no GPU host; this ticket also owns the `tv` temporary fix at `kernel.js` ~205; integer simulator support is KILN-010's, so validate integer scans through the Loop IR reference and JS evaluation until it merges; tests must pass before each commit; commit locally, never push the kiln repo.
+
+**Assistant interpretation:** Implement Phases 0 (the `tv` half), 1-5 of the design guide in order, with a diary step per phase, then write the vault report.
+
+**Inferred user intent:** Several tickets progress in parallel without stepping on each other, each with an auditable record and a published deep-dive note.
+
+**Commit (code):** see the commit that follows this entry — "KILN-008 Phase 0: per-operand staging temporaries in matTiled".
+
+### What I did
+
+- Baseline: `cd packages/kiln && npm test` → "all 48 passed", exit 0; `cd integrations/passnet && python3 -m pytest -q -x` → "177 passed, 7 subtests passed", exit 0.
+- Probe before the fix: `node .../scripts/01-inspect-cumsum-lowering.mjs 8 1024 i64 --no-sim` → `ERROR lowering/kernel/materialize at n14: tv holds both i64 and f32 values in k_cumsum_reduce`; `8 512 f32` → `MAP=row,TPB=256,STAGE=all grid=4096 model=14.87us`; `8 4096 f32` → `MAP=tiled,BM=16,BN=16,BK=8 grid=256 model=200.93us` (the guide's numbers).
+- `packages/kiln/src/std/kernel.js`, `matTiled` → `tileLoad`: `kb.let(kx.num(0), "tv")` became `kb.let(kx.num(0), kb.fresh("tv"))`.
+- New test `packages/kiln/test/tiled-mixed-dtype.mjs`: traces `sum_j select([1,0][i - j < 0], x[r, j], 0)` over i64 in Tensor IR, runs the pipeline with `params: { MAP: "tiled" }` at 8x1024 and 2x40, asserts the CUDA declares one `float tvN` and one `long long tvN`, and checks the Loop IR eval against a BigInt running sum (values scaled by 2^40, so exactness past 2^53 is exercised).
+
+### Why
+
+- `kb.fresh` is the builder's existing name allocator; `tileLoad` is called once per operand when the `k0` loop body is built, so the names are deterministic per kernel.
+- The test builds the masked contraction directly rather than through `nn.cumsum`, because Phase 1 removes that decomposition and the defect must stay covered.
+
+### What worked
+
+- After the fix the probe at 8x1024 i64 compiles: `MAP=tiled,BM=16,BN=16,BK=8 grid=64 block=256 model=33.21us`, with `float tv1` and `long long ... tv0` in the CUDA.
+- With the fix reverted the new test fails with `AssertionError [ERR_ASSERTION]: 8x1024: lowering/kernel/materialize at n13: tv holds both i64 and f32 values in k_kernel_reduce`; restored, it passes in 0.3 s.
+- `npm test` → "all 49 passed", exit 0.
+
+### What didn't work
+
+- My first probe loop failed with `Error: Cannot find module '.../KILN-008*/scripts/01-inspect-cumsum-lowering.mjs'`: zsh does not glob inside a quoted variable assignment. Resolved by expanding the path with `$(echo ...)`.
+
+### What I learned
+
+- Only the staging temporary was shared; `rr`/`kq` are integer index temporaries (always `int`) and are safe to reuse.
+
+### What was tricky to build
+
+- Nothing in the fix itself. Choosing a test that survives the cumsum switch was the only design point.
+
+### What warrants a second pair of eyes
+
+- Whether other materializers reuse a fixed float temporary name across operands of different dtypes. I checked `matThread` and `matRow`: they name temporaries after Loop IR values, which already have one type each.
+
+### What should be done in the future
+
+- KILN-010's integer simulator will let `tiled-mixed-dtype.mjs` also simulate the Kernel IR.
+
+### Code review instructions
+
+- `packages/kiln/src/std/kernel.js` `matTiled` `tileLoad`; `packages/kiln/test/tiled-mixed-dtype.mjs`.
+- `cd packages/kiln && node test/tiled-mixed-dtype.mjs && npm test`.
+
+### Technical details
+
+- CUDA declarations after the fix (8x1024 i64): `float tv1 = 0.0f, g1 = 0.0f, b0_0 = 0.0f;` and `long long g0 = 0, tv0 = 0, a0_0 = 0, v0_0_0 = 0, acc_0_0 = 0;`.
