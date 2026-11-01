@@ -610,3 +610,11 @@ The export exposed one limitation that matters beyond this ticket: the exporter'
   - `python3 ttmp/2026/11/01/KILN-011-*/scripts/12-generate-division-programs.py . --target <spec>` (only if the target differs from a100; otherwise use the committed JSON);
   - `cd integrations/passnet && python3 check_integer_division_cuda.py ../../ttmp/2026/11/01/KILN-011-*/sources/division-cuda-v1 --report ../../ttmp/2026/11/01/KILN-011-*/sources/division-cuda-v1/report.json`.
 - Corpus replay on the GPU (the 25 sole-op graphs): they are in `hf_sole_op_subgraphs*.txt`, not in the PassBench evaluation population; the CPU check is `scripts/07-corpus-tensor-division-cpu.py` (25/25 exact). A GPU replay needs a staging list built from `sources/03-corpus-tensor-division-cpu-phase3.json`'s graph paths with the coordinator's PassBench staging tools.
+
+## Step 12: Vault report (milestone)
+
+The deep-dive article for the go-go-parc vault is written and pushed: `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/11/01/ARTICLE - Kiln - Integer Floor Division and Modulo, Signs, Overflow and Exact Literals.md`, vault commit `87bd9ea` on `main` (`git pull --rebase` then `git push`; only the note was staged).
+
+- Code commits on `impl/kiln-011-floordiv-mod`: e1fad06 (Phase 0), f83c346 (Phase 1), b093150 (Phase 2), a2dfa44 (Phase 3), 7c4ca98 (Phase 4 prep), 73d99d9 (docs).
+- Last validation: `npm test` exit 0, "all 51 passed"; `pytest -q` exit 0, 180 passed; `docmgr doctor --ticket KILN-011 --stale-after 30`: all checks passed.
+- Open: task `9idx`, Phase 4 on the GPU host (Step 11, Technical details).
