@@ -23,7 +23,8 @@ const inputs = Object.fromEntries(Object.entries(request.inputs).map(([name, t0]
   t = { ...t, data: t.data.map((x) => (typeof x === "string" ? Number(x) : x)) };
   return [name, new Tensor(t.shape, Storage === BigInt64Array ? BigInt64Array.from(t.data.map(BigInt)) : Storage.from(t.data), t.dtype)];
 }));
-const plain = (outs) => Object.fromEntries(Object.entries(outs).map(([n, t]) => [n, [...t.data].map(Number)]));
+// JSON has no NaN or infinities: a non-finite output element travels as "NaN", "Infinity" or "-Infinity" (as inputs do)
+const plain = (outs) => Object.fromEntries(Object.entries(outs).map(([n, t]) => [n, [...t.data].map((x) => { const v = Number(x); return Number.isFinite(v) ? v : String(v); })]));
 const frontend = plain(res.project.graph().eval(inputs));
 const c = compileScript(request.script, { params: paramSet([]), target: target(SPECS.a100), contraction: "separate", matmulPrecision: "highest", attention: request.attention ?? "composed" });
 const loop = c.ok ? plain(c.run.at("loop").eval(inputs)) : null;

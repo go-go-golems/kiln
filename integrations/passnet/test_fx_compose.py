@@ -35,7 +35,7 @@ class ComposeNumericTests(unittest.TestCase):
         self.assertEqual(len(keys), len(expected))
         for key, want in zip(keys, expected):
             for level in ('frontend', 'loop'):
-                got = torch.tensor(result[level][key], dtype=torch.float64).reshape(want.shape)
+                got = torch.tensor([float(v) for v in result[level][key]], dtype=torch.float64).reshape(want.shape)
                 self.assertTrue(torch.allclose(got, want.to(torch.float64), atol=atol, rtol=rtol, equal_nan=True), f'{level} {key}: max diff {(got - want.to(torch.float64)).abs().max()}')
         return imported
 

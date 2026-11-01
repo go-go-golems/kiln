@@ -38,7 +38,7 @@ class FactoryTests(unittest.TestCase):
         self.assertEqual(len(keys), len(want))
         for key, w in zip(keys, want):
             for level in ('frontend', 'loop'):
-                got = torch.tensor(out[level][key], dtype=torch.float64).reshape(w.shape)
+                got = torch.tensor([float(v) for v in out[level][key]], dtype=torch.float64).reshape(w.shape)
                 ok = torch.equal(got, w.to(torch.float64)) if exact else torch.allclose(got, w.to(torch.float64), atol=1e-5)
                 self.assertTrue(ok, f'{level} {key}: {got} vs {w}')
         return result
