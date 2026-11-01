@@ -228,4 +228,17 @@ for (const MAP of ["thread", "row"]) {
 }
 // causal mask: j <= i, top-left aligned
 assert.deepEqual([...k.trace("cm", () => ({ m: N.causalMask(2, 3) }), {}).eval({}).m.data], [1, 0, 0, 1, 1, 0]);
+// integration (KILN-011 exact literals): a constant int64 index value past 2^24 is an exact literal, not an
+// index value; int32 constants past 2^24 stay index values (a number literal may be rounded through f32)
+{
+  assert.equal(E.ix(IX.C(2 ** 25 + 1), "i64").exact, "33554433");
+  assert.equal(E.ix(IX.C(2 ** 25 + 1), "i32").k, "ix");
+  assert.equal(E.ix(IX.C(7), "i64"), E.num(7), "small constants fold to the same number literal as before");
+  const big = 2 ** 30 + 3;
+  const { g, r, prog } = run("x + arange(big)", ({ x }) => ({ out: N.add(x, N.arange(big, big + 1)) }), { x: k.tensor([4], "i64") });
+  const x = new Tensor([4], BigInt64Array.of(0n, 1n, 2n, -5n));
+  same(r.at("loop").eval({ x }).out, g.eval({ x }).out, "exact literal through the Loop IR evaluator");
+  assert.match(prog.kernels[0].cuda, /1073741827LL/);
+  assert.ok(simulateKernel(prog.kernels[0], hw).check.ok);
+}
 console.log("index values: Loop IR invariants, fusion, schedules (thread/row/tiled), floor spellings, integer simulation, factories");

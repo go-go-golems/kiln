@@ -89,9 +89,12 @@ export const E = {
     if (!IX_DTYPES.has(dtype)) throw new KilnError("TypeError", `index value dtype must be i64, i32 or bool, got ${dtype}`);
     e = IX.lift(e);
     if (dtype === "bool" && !PREDICATES.has(e.t) && !(e.t === "c" && (e.v === 0 || e.v === 1))) throw new KilnError("TypeError", `a bool index value must be a predicate, got ${IX.print(e)}`);
-    // a constant index value is a literal (a region predicate that substitution decided); literals
-    // pass through f32 spellings, so only constants exact in f32 fold
+    // a constant index value is a literal (a region predicate that substitution decided). A number
+    // literal may pass through f32 spellings (an operand of an untyped function), so it folds only when
+    // exact in f32; an int64 constant past that is an exact BigInt literal (KILN-011), which every
+    // evaluator and CUDA spell exactly. An int32 constant past 2^24 stays an index value.
     if (e.t === "c" && Math.abs(e.v) <= 2 ** 24) return E.num(e.v);
+    if (e.t === "c" && dtype === "i64") return E.num(BigInt(e.v));
     return intern({ k: "ix", e, dtype });
   },
   // inclusive scan: fold_{r = 0..end} body, with the reducer's operation and identity. end is an index
