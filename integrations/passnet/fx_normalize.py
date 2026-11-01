@@ -14,7 +14,10 @@ TARGETS = {torch.nn.functional.relu, torch.nn.functional.batch_norm,
            torch.nn.functional.layer_norm, torch.nn.functional.max_pool2d,
            torch.nn.functional.hardtanh, torch.nn.functional.pad, torch._C._nn.pad,
            # symbolic tracing drops embedding's explicit defaults; TorchDynamo records all seven
-           torch.nn.functional.embedding}
+           torch.nn.functional.embedding,
+           torch.nn.functional.dropout1d, torch.nn.functional.dropout2d, torch.nn.functional.dropout3d,
+           torch.nn.functional.alpha_dropout, torch.nn.functional.feature_alpha_dropout,
+           torch.nn.functional.normalize, torch.functional.norm}
 
 # The builtin GELU has no inspectable Python signature. Its public schema has a
 # keyword-only approximation selector; keep that selector in canonical kwargs.

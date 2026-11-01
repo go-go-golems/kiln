@@ -63,7 +63,16 @@ export function endToEnd(run, g, project) {
     const want = g.eval(inputs);
     const level = ["loop", "gpu", ...[...run.irOrder].reverse()].find((n) => run.at(n) && canEval(run.at(n)));
     const got = level ? run.at(level).eval(inputs) : run.graph.eval(inputs);
-    const checks = Object.keys(want).map((name) => ({ name, ...compare(got[name], want[name], { rtol: 1e-3, atol: 1e-4 }) }));
+    // a low-precision output may differ by a few ulps of its dtype when the two levels sum in different
+    // orders: an f32 result near a rounding boundary flips one ulp, and later operations amplify it
+    // (4 ulps: 2^-8 relative for f16, 2^-5 for bf16). A small output computed from large rounded
+    // operands carries their absolute error: atol is one ulp at the output's largest magnitude.
+    // PassBench's own tolerance judges acceptance.
+    const ulp = { f16: 2 ** -10, bf16: 2 ** -7 };
+    const dtypeOf = (name) => g.nodes.get(g.outputs.find((o) => o.name === name)?.id)?.type.dtype;
+    const scale = (t) => { let m = 0; for (const v of t.data) { const a = Math.abs(Number(v)); if (a > m && a < Infinity) m = a; } return m; };
+    const tolerance = (name) => { const u = ulp[dtypeOf(name)]; return u ? { rtol: 4 * u, atol: Math.max(1e-4, u * scale(want[name])) } : { rtol: 1e-3, atol: 1e-4 }; };
+    const checks = Object.keys(want).map((name) => ({ name, ...compare(got[name], want[name], tolerance(name)) }));
     const custom = project._checks.map((c) => { try { return checkResult(c, c.fn({ outputs: got, reference: want, inputs, run, graph: g, compare })); } catch (e) { return { name: c.name, ok: false, message: e.message }; } });
     return { e2e: { level, checks, custom, ok: checks.every((c) => c.ok) && custom.every((c) => c.ok) }, outputs: { inputs, got, want, level } };
   } catch (e) { return { e2e: { error: e.message }, outputs: null }; }

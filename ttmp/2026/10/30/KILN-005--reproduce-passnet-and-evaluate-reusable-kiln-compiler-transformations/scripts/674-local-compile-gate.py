@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Local compile gate before freezing a GPU replay: export and compile every graph of the given
-tasks with the replay's qualification settings (a100 spec, contraction separate, tf32, mutations
-written by the program, internal reference check ON), and report per task.
+tasks with the replay's settings (a100 spec, contraction separate, mutations written by the program)
+and the internal reference check ON, and report per task. Products compile in FP32 ("highest"): the
+check compares against the untransformed f32 reference, and TF32 is a rounding policy only the GPU
+reference can judge (the replay itself compiles with tf32).
 
 usage: 674-local-compile-gate.py --output DIR INDEX...
 """
@@ -24,7 +26,7 @@ for index in a.indices:
     if e.returncode:
         report.append({'index': index, 'export': e.stderr.strip().splitlines()[-1:]}); print(index, 'EXPORT FAILED', e.stderr[-300:], flush=True); continue
     subprocess.run([sys.executable, str(corpus), 'compile', '--directory', str(d), '--kiln', str(ROOT), '--target', 'a100',
-                    '--contraction', 'separate', '--matmul-precision', 'tf32'], capture_output=True, text=True, cwd=ROOT)
+                    '--contraction', 'separate', '--matmul-precision', 'highest'], capture_output=True, text=True, cwd=ROOT)
     manifest = json.loads((d / 'manifest.json').read_text())
     graphs = [(v['script'], (d / v['script']).with_suffix('.json').exists()) for v in manifest['variants']]
     failures = {}

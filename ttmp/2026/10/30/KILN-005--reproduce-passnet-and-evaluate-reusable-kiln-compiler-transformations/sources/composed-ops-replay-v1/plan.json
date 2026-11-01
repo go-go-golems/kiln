@@ -1,0 +1,74 @@
+{
+  "format": "kiln-task-plan/1",
+  "band": "composed-ops",
+  "selection": "Families complete-importable after norm, normalize, prelu, einsum, masked SDPA and eval-mode dropout lowerings; gates: local compile 674 (FP32 products, internal check on, low-precision outputs at 4 ulps) 104/104 graphs incl. 55, 658 Dynamo simulation 101/101 for the frozen tasks. 55 excluded: .to(cuda) cannot be captured on the CPU gate host",
+  "nominal_tolerance": -5,
+  "target": "a100",
+  "hardware": "NVIDIA GB10; modified FX matching integration protocol",
+  "contraction": "separate",
+  "skip_internal_reference_check": true,
+  "matmul_precision": "tf32",
+  "import_census_sha256": "f781c90d4ab5ed441bb6e7d71582c72ee544b15173a1ef0cf9ea47ca1e398a06",
+  "tasks": [
+    {
+      "index": 5,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/73/90/7390444999773fd1bdda6c7188e799a632f735a77e15238998c49735f34a4ba1",
+      "graphs": 23,
+      "graph_list_sha256": "4bd35d2de58faf9f8714f091d3e7dee61a6ce1a0c2ad3c83562aba800699e39a"
+    },
+    {
+      "index": 23,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/60/76/60761f646e12bce2468d8e6da76300b1f67bdd9be3546181b781e4a8782839de",
+      "graphs": 6,
+      "graph_list_sha256": "d0caaad6abfd0b8e82d0ee09868dadf5f7d3ca8c38d86a09df36abfbeb95ee93"
+    },
+    {
+      "index": 37,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/02/0a/020a70177db82f29bea1c288da83e1af1780aaeee9faca1e851595a03c500c5a",
+      "graphs": 22,
+      "graph_list_sha256": "cf641e070e039b2008e9e4f126733c8d5769edcc726fb0a0ef25c1bbd1c8f5b1"
+    },
+    {
+      "index": 57,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/61/bb/61bbb91dc77906f74f82a81862452ff8f7b27974727c9e715e6bab118f7ef813",
+      "graphs": 6,
+      "graph_list_sha256": "592284c9db8de003ab4e01a28307160f446297618bbb852ce4ba4be0e8749034"
+    },
+    {
+      "index": 63,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/89/5f/895fb1ccc628999dceebd393249714d32a6bc544efbc10282c0c1f5c17bdfbbd",
+      "graphs": 2,
+      "graph_list_sha256": "bc6d7377eeab4d5c6c0d031a7f1f1cf44853cdf8f6698837db9f6d838da977f8"
+    },
+    {
+      "index": 78,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/4e/64/4e64b5ff9ef03d13fee4ce1c7e9c74fb56eaa69cf5d84a394d7490e733ad5d76",
+      "graphs": 6,
+      "graph_list_sha256": "97a55a077f3b5912fe0ca962460ffd0edcd1d059a1537a10a58ff77249454ecf"
+    },
+    {
+      "index": 80,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/06/69/0669488eaa82de2ee7d42061f967fca8dfc2790f0746d68cd3c42dc7d859a162",
+      "graphs": 18,
+      "graph_list_sha256": "512b3397d215d95a2abc822cc500bbd1ceb9d7662f3d2844f9deb9425a9d17d2"
+    },
+    {
+      "index": 99,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/87/14/8714bc64850946075c686b884d2831aedfa0b37f8fa82aa731bc55ab7d02ae87",
+      "graphs": 6,
+      "graph_list_sha256": "5836725e3768a4f365f562503dcd498b8e4f36f18ef2b8ba56ea0e40db64bdc0"
+    },
+    {
+      "index": 119,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d7/6b/d76b857d18e4950f46a498a6e1de4ba7776c59d88cf1215278a41a5c49b9b697",
+      "graphs": 6,
+      "graph_list_sha256": "48f02aaa7460551f5f82bb6279991453883e64cfbcab4a738b8c0efdaa992568"
+    },
+    {
+      "index": 156,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/31/8a31c5d5488b5eeb1e507d07d30ea83c1f2ea0227320cf9865fc09ff23daa843",
+      "graphs": 6,
+      "graph_list_sha256": "a712ebd88c7e659022e21a6edf13f26d0c5345ac2aa82c00bd17a2b03ab36e86"
+    }
+  ]
+}
