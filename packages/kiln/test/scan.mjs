@@ -225,7 +225,29 @@ console.log("scan: tensor.scan, E.scan carried loop, fusion legality, thread/row
   const r = compile(g), want = g.eval({ x, y }), got = r.at("loop").eval({ x, y });
   for (const name of Object.keys(want)) assert.deepEqual([...got[name].data], [...want[name].data], name);
   assert.equal(want.p.data[299], BigInt.asIntN(64, [...x.data.slice(0, 300)].reduce((a, v) => a * BigInt(v), 1n)), "an int64 product wraps like CUDA");
-  for (const kern of programOf(r.graph).kernels.filter((q) => q.outDtype === "f32")) assert.ok(simulateKernel(kern, t).check.ok, kern.name);
+  // integer kernels simulate too since KILN-010 gave toSim integer values (integration step)
+  for (const kern of programOf(r.graph).kernels) assert.ok(simulateKernel(kern, t).check.ok, kern.name);
   assert.match(programOf(r.graph).kernels.map((q) => q.cuda).join("\n"), /1LL/, "the int64 product's identity is an exact literal");
 }
 console.log("scan: cumprod, cummax and cummin values");
+
+// ---------------------------------------------------------------- integration: scans with index values and exact literals
+// KILN-008 x KILN-010 x KILN-011: an index value (arange) fused into a scan body, and an exact int64 literal
+// past 2^53 in one, through the scheduler's carry rewrite, the point reference and the SIMT simulator
+{
+  const i64 = (shape, f) => new Tensor(shape, BigInt64Array.from({ length: numel(shape) }, (_, i) => BigInt(f(i))));
+  const cases = [
+    ["cumsum(arange)", () => ({ out: N.cumsum(N.add(N.arange(0, 8), N.int(0)), -1) }), {}, {}],
+    ["cumsum(x + arange)", ({ x }) => ({ out: N.cumsum(N.add(x, N.arange(0, 8)), -1) }), { x: k.tensor([3, 8], "i64") }, { x: i64([3, 8], (i) => i - 5) }],
+    ["cumsum(x + 2^60 + 1)", ({ x }) => ({ out: N.cumsum(N.add(x, N.add(N.int(2 ** 60), N.int(1))), -1) }), { x: k.tensor([2, 4], "i64") }, { x: i64([2, 4], (i) => i) }],
+    ["cumsum(i64)", ({ x }) => ({ out: N.cumsum(x, -1) }), { x: k.tensor([3, 40], "i64") }, { x: i64([3, 40], (i) => (i % 7) - 3) }],
+  ];
+  for (const [name, fn, sig, inputs] of cases) for (const MAP of ["thread", "row"]) {
+    const g = k.trace("ix", fn, sig), want = g.eval(inputs).out, r = compile(g, { MAP });
+    assert.deepEqual([...r.at("loop").eval(inputs).out.data], [...want.data], `${name} ${MAP}: loop`);
+    const kerns = programOf(r.graph).kernels;
+    assert.ok(kerns.some((q) => schedule(q.expr, q.shape).scanV), `${name} ${MAP}: a scan kernel`);
+    for (const kern of kerns) { const c = simulateKernel(kern, t).check; assert.ok(c.ok, `${name} ${MAP} ${kern.name}: ${c.message}`); }
+  }
+}
+console.log("scan: index values and exact int64 literals in scan bodies, integer scans simulated");

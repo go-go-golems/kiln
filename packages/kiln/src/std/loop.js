@@ -174,7 +174,7 @@ export function schedule(expr, shape) {
     const rb = (y) => {
       if (memo.has(y)) return memo.get(y);
       let z;
-      if (y.k === "num" || y.k === "in") z = y;
+      if (y.k === "num" || y.k === "in" || y.k === "ix") z = y;
       else if (y.k === "op") z = E.op(y.fn, ...y.a.map(rb));
       else if (y.k === "red") z = E.red(y.fn, y.r, y.n, rb(y.body));
       else z = intern({ k: "carry", fn: y.fn, v: scanV, n: y.n, body: rb(substE(y.body, { [y.r]: IX.V(scanV) })) });
@@ -385,11 +385,14 @@ export function compilePoint(sched, inShapes) {
 }
 // JS for an expression by its definition: reductions and scans become immediately invoked loops
 function pointExpr(x, js, flat, inShapes) {
-  const g = (y) => {
+  // literals spell as the nest's operands do (jsLiteral: exact i64 digits, integer-context literals
+  // unrounded, KILN-011); index values as in the nest (ixValue, KILN-010)
+  const g = (y, spec = null) => {
     switch (y.k) {
-      case "num": return `(${Math.fround(y.v)})`;
+      case "num": return jsLiteral(y.exact != null ? { num: y.v, exact: y.exact } : { num: y.v }, spec);
       case "in": return `I${y.i}[${js(flat(y.idx, strides(inShapes[y.i])))}]`;
-      case "op": return `F.${y.fn}(${y.a.map(g).join(", ")})`;
+      case "ix": return ixValue(y, js);
+      case "op": return `F.${y.fn}(${y.a.map((a) => g(a, FNS[y.fn])).join(", ")})`;
       case "red": return `((() => { let q = ${jsInit(y.fn)}; for (let ${y.r} = 0; ${y.r} < ${y.n}; ${y.r}++) q = R.${y.fn}(q, ${g(y.body)}); return q; })())`;
       case "scan": return `((() => { let q = ${jsInit(y.fn)}; for (let ${y.r} = 0; ${y.r} <= ${js(y.end)}; ${y.r}++) q = R.${y.fn}(q, ${g(y.body)}); return q; })())`;
     }
