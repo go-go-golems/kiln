@@ -559,3 +559,44 @@ Remaining GPU validations (coordinator):
 1. `node ttmp/2026/11/01/KILN-006--kiln-tensor-core-matrix-products-intern-analysis-design-and-implementation-guide/scripts/02-mma-gpu-fixtures.mjs <dir>` then on bling `python3 runtime/python/kiln_launch.py check-fixtures <dir> --backend cuda`. `probe-*` pass ⇒ the three layouts match silicon (Phase 0 layout half); `mma-*` pass ⇒ NVRTC accepts the inline PTX for sm_121 and the kernels agree with Kiln's reference (Phase 5 first half). `mma-large-k` is the accumulation-drift probe.
 2. Tensor throughput on GB10 (Phase 0 second half): time `mma-linear-64x64` / `mma-large-k` scaled up, or a dedicated loop of atoms; record dense TF32/f16/bf16 TFLOP/s with FP32 accumulate; set `SPECS.gb10.mma`.
 3. PassBench replays of tasks 5, 32, 52, 72 and the TF32 P0 families with `--param MAP=mma` (kiln-export pin) against the unchanged baseline, under the KILN-005 frozen protocol; f16/bf16 families through integrations/passnet TorchProgram (the Python launcher cannot pack half inputs).
+
+## Step 11: Vault report and close-out
+
+I wrote the deep-dive report for the go-go-parc vault in textbook style and pushed it, then re-ran ticket validation. The report explains the warp-collective constraints first, then legality, the statement and its three emitters, the materializer, the cost model (including the refuted prior assumption), the identity-preservation mechanisms, results and the GPU handoff.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 6.
+**Assistant interpretation:** Final deliverables: vault note committed and pushed, ticket clean.
+**Inferred user intent:** A durable, self-contained explanation of the work outside the repository.
+**Commit (code):** the commit following this entry — "KILN-006 diary Step 11: vault report".
+
+### What I did
+- Vault: `Projects/2026/11/01/ARTICLE - Kiln - Tensor-Core Matrix Products Built and Checked Without a GPU.md` (frontmatter with repo, branch, ticket, revisions; two mermaid-free-of-analogy sections: an architecture flowchart, pseudocode for `operandChain`/`mmaPlan`, the simulator case and `matMma`, a cost table, results table, GPU handoff, open questions). Staged only that file; `git pull --rebase` (autostash of the vault's unrelated working-tree changes was created and re-applied by git) and `git push`: vault commit `c65ac3e`.
+- `docmgr doctor --ticket KILN-006 --stale-after 30`.
+
+### Why
+- The common rules require the report and the push; staging only the note keeps other agents' and the user's vault changes out of this commit.
+
+### What worked
+- Push succeeded on the first attempt.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- N/A.
+
+### What was tricky to build
+- N/A.
+
+### What warrants a second pair of eyes
+- The report states one hardware-dependent risk as an open question (truncating accumulation at large K); it must not be read as a measured GB10 property.
+
+### What should be done in the future
+- Run the GPU validations listed in Step 10 Technical details.
+
+### Code review instructions
+- Read the vault note; compare its numbers with Steps 8-10.
+
+### Technical details
+- Branch commits: `34c9444`, `ad0013c`, `eb71719`, `13a3767`, `33f1f5c`, `33327e7`.
