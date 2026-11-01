@@ -27,12 +27,13 @@
 - [ ] Re-qualify families 32, 75 and 107 (row-mapped launches past the 32-bit thread count; guard fixed in 88c2ad1) and the P0-repaired families on the next uniform snapshot. <!-- t:puyg -->
 - [ ] After the cost-gate study: measure GB10 L2 bandwidth (microbenchmark), set it in the gb10 spec, then re-test the per-slice working-set DRAM rule (tried in Step 250; alone it moved paired rho by less than 0.002 because the L2 term binds). <!-- t:ndyg -->
 - [ ] Replicate the held-out gated arm (or task 31 alone) to resolve the one timing-fluctuation rejection behind reference 49's unmet acceptance condition <!-- t:ic1j -->
-- [ ] Emit round-to-nearest-even TF32 operand rounding for matrix products and 1x1 convolutions (probe 671), then re-run the P0 TF32 families <!-- t:1jyk -->
+- [ ] Emit round-to-nearest-even TF32 operand rounding for matrix products and 1x1 convolutions (probe 671), then re-run the P0 TF32 families — Kiln side done 44f030c (RNE); GPU re-run pending <!-- t:1jyk -->
 - [x] Collect typed-slice1-replay-gpu-v1 (5 families, 37 graphs) and typed-slice2-replay-gpu-v1 (5 families, 52 graphs) with script 669 <!-- t:n6j4 -->
 - [x] P3a slice 3: integer arithmetic, comparisons and masks with PyTorch result dtypes — implemented 07fb998, 681fe04 (Step 259); GPU replay frozen as typed-slice3-replay-v1 <!-- t:bugh -->
 - [ ] Launch typed-slice3-replay-v1 on bling when the GPU is free (10 families, 45 graphs; plan frozen 8167642), then collect with 669 <!-- t:s3gp -->
 - [ ] Gate task 162 (jina reranker, .to(cuda)) with 658 on a CUDA host; local compile already 6/6 <!-- t:s162 -->
-- [ ] Families 94, 111, 172, 176 (accumulating input mutation) cannot pass PassBench: compiled and eager share one input dict (Step 258). Report as a benchmark limitation; exclude from acceptance denominators with that reason <!-- t:shin -->
+- [ ] GPU probe: families 17 and 147 one-ulp f16/bf16 matrix-product misses; rerun with allow_fp16/bf16_reduced_precision_reduction False and compare (reference 50) <!-- t:rprr -->
+- [x] Families 94, 111, 172, 176 (accumulating input mutation) cannot pass PassBench: compiled and eager share one input dict (Step 258). Report as a benchmark limitation; exclude from acceptance denominators with that reason — written up in reference 50 <!-- t:shin -->
 - [x] Design in-place input mutation through kernel-level aliasing: PassBench forbids aten copy_ in replacements, blocking tasks 92 and 134 and 78 graphs of the input-mutation wave <!-- t:tc2t -->
 - [ ] Run the Dynamo matcher simulation 658 as a freeze gate for every new operation family before staging GPU replays <!-- t:db41 -->
 - [x] Collect typed-slice2-embedding-replay-gpu-v1 and the input-mutation wave with script 669 <!-- t:8mrc -->
