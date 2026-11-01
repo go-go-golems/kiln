@@ -160,7 +160,7 @@ def inspect_corpus(upstream, sample_list, output):
         print(task_index+1, sample, flush=True)
 
 
-def compile_task(directory, kiln, target, contraction=None, optimization_program=None, skip_internal_reference_check=False, matmul_precision=None):
+def compile_task(directory, kiln, target, contraction=None, optimization_program=None, skip_internal_reference_check=False, matmul_precision=None, mutation_strategy=None):
     directory = directory.resolve()
     manifest = read_manifest(directory)
     results = []
@@ -176,6 +176,7 @@ def compile_task(directory, kiln, target, contraction=None, optimization_program
         # the program writes mutated inputs itself (PassBench's dispatch admits no tensor operation)
         names=list(record['inputs'])
         for mutation in record['input_mutations']:command.extend(['--mutation',f"{mutation['output']}={names[mutation['input_index']]}"])
+        if mutation_strategy is not None and record['input_mutations']:command.extend(['--mutation-strategy',mutation_strategy])
         with source.with_suffix('.compile.log').open('w') as log:
             result = subprocess.run(command, cwd=kiln, stdout=log, stderr=subprocess.STDOUT)
         results.append({'graph': record['graph'], 'command': command,
@@ -203,6 +204,8 @@ def main():
     compile.add_argument('--optimization-program',type=Path)
     compile.add_argument('--skip-internal-reference-check',action='store_true',
                          help='Diagnostic export bypass; external benchmark correctness is still required')
+    compile.add_argument('--mutation-strategy',choices=['auto','writeback'],
+                         help='auto (Kiln default): the producing kernel writes a mutated input when provably safe; writeback: always a final copy kernel')
     audit = commands.add_parser('inspect')
     audit.add_argument('--upstream', type=Path, required=True)
     audit.add_argument('--sample-list', type=Path, required=True)
@@ -212,7 +215,7 @@ def main():
         export_task(args.upstream, args.sample, args.output, args.metadata_mode)
     elif args.command == 'compile':
         compile_task(args.directory, args.kiln, args.target, args.contraction,
-                     args.optimization_program,args.skip_internal_reference_check,args.matmul_precision)
+                     args.optimization_program,args.skip_internal_reference_check,args.matmul_precision,args.mutation_strategy)
     else:
         inspect_corpus(args.upstream, args.sample_list, args.output)
 

@@ -25,7 +25,10 @@ const ilit = ({ v, exact }, dtype) => {
 // CUDA spelling of each storage dtype
 export const CUDA_STORAGE = Object.freeze({ f32: "float", u8: "unsigned char", f16: "__half", bf16: "__nv_bfloat16", i32: "int", i64: "long long", bool: "bool" });
 
-export function toCuda(K) {
+// `alias` lists the source parameters bound to the same storage as dst (an in-place input write, inplace.js): those
+// parameters and dst are declared without __restrict__, and the aliased sources without const, because both
+// qualifiers promise the compiler that no other pointer reaches the object.
+export function toCuda(K, { alias = [] } = {}) {
   // buffers are src0…srcN and dst: kernel temporaries are named in0, in1… after the Loop IR's loads
   const bufName = (b) => (b === "out" ? "dst" : "src" + b);
   // a data-dependent index term reads an integer input at its row-major offset
@@ -61,7 +64,8 @@ export function toCuda(K) {
   if (JSON.stringify(K.body).includes('"round_tf32"')) lines.push(`__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned b = __float_as_uint(x); if ((b & 0x7f800000u) == 0x7f800000u) return x; return __uint_as_float((b + 0xfffu + ((b >> 13) & 1u)) & 0xffffe000u); }`);
   const load = (dtype, expr) => dtype === "f16" ? `__half2float(${expr})` : dtype === "bf16" ? `__bfloat162float(${expr})` : dtype === "u8" ? `(float)${expr}` : expr;
   const store = (expr) => out.dtype === "f16" ? `__float2half_rn(${expr})` : out.dtype === "bf16" ? `__float2bfloat16_rn(${expr})` : expr;
-  lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `const ${ctype(p)}* __restrict__ src${i}`), `${ctype(out)}* __restrict__ dst`].join(", ")}) {`);
+  const shared = new Set(alias), restrict = (q) => (q ? "* " : "* __restrict__ ");
+  lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `${shared.has(i) ? "" : "const "}${ctype(p)}${restrict(shared.has(i))}src${i}`), `${ctype(out)}${restrict(shared.size > 0)}dst`].join(", ")}) {`);
   lines.push(`    const int tid = threadIdx.x;`, `    const int bid = blockIdx.x;`);
   for (const s of K.smem) lines.push(`    __shared__ ${storage[s.dtype ?? "f32"]} ${s.name}[${s.size}];`);
   if (K.floats.length) lines.push(`    float ${K.floats.map((f) => `${f} = 0.0f`).join(", ")};`);
@@ -205,11 +209,11 @@ export function toSim(K, { instrument = false } = {}) {
         case "let": call(`for (let t = 0; t < T; t++) if (${m}[t]) F_${s.n}[t] = ${fexpr(s.e)};${instrument ? ` M.insC(aw${m}, al${m}, ${opFlops(s.e)});` : ""}`); break;
         case "iset": call(`for (let t = 0; t < T; t++) if (${m}[t]) I_${s.n}[t] = ${ix(s.e)};${instrument ? ` M.insC(aw${m}, al${m}, 0);` : ""}`); break;
         case "load":
-          if (instrument) call(`const buf = B[${s.buf === "out" ? "OUT" : s.buf}]; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= buf.length) M.oob(${sid}, a, "load"); F_${s.n}[t] = buf[a]; } else A[t] = -1; } M.gmem(A, "ld");`);
+          if (instrument) call(`const buf = B[${s.buf === "out" ? "OUT" : s.buf}]; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= buf.length) M.oob(${sid}, a, "load"); F_${s.n}[t] = buf[a]; } else A[t] = -1; } M.gmem(A, "ld", ${JSON.stringify(s.buf)});`);
           else call(`const buf = B[${s.buf === "out" ? "OUT" : s.buf}]; for (let t = 0; t < T; t++) if (${m}[t]) F_${s.n}[t] = buf[${ix(s.idx)}];`);
           break;
         case "store":
-          if (instrument) call(`const o = B[OUT]; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= o.length) M.oob(${sid}, a, "store"); else { o[a] = ${fexpr(s.e)}; M.cov[a] = 1; } } else A[t] = -1; } M.gmem(A, "st");`);
+          if (instrument) call(`const o = B[OUT]; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= o.length) M.oob(${sid}, a, "store"); else { o[a] = ${fexpr(s.e)}; M.cov[a] = 1; } } else A[t] = -1; } M.gmem(A, "st", "out");`);
           else call(`const o = B[OUT]; for (let t = 0; t < T; t++) if (${m}[t]) o[${ix(s.idx)}] = ${fexpr(s.e)};`);
           break;
         case "sload":
