@@ -1,0 +1,187 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-096/corpus/005.kiln.js",
+  "sha256": "ea38da461648fa8b39a13c2ce9f4f06888df6f7a64bdadbdd9cefc0fe446342e",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    16,
+    128,
+    32,
+    24
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    16,
+    128,
+    32,
+    24
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    16,
+    128,
+    32,
+    24
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    16,
+    128,
+    32,
+    24
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 1572864,
+   "bytes": 6291456
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 1572864,
+   "bytes": 6291456
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 1572864,
+   "bytes": 6291456
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k___mut0__278qvk2dzpm",
+   "identity": "278qvk2dzpm",
+   "row": "TPB=128,COARSEN=2",
+   "reads": [
+    0
+   ],
+   "writes": 0,
+   "grid": 6144,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    6144,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    128,
+    32,
+    24
+   ],
+   "inShapes": [
+    [
+     16,
+     128,
+     32,
+     24
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "in-place input write is emitted for CUDA only",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k___mut0__278qvk2dzpm(float* src0, float* dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((256 * bid) + (128 * j)) + tid);\n        if ((e < 1572864)) {\n            in0 = src0[((((24 * ((e / 24) % 32)) + (768 * ((e / 768) % 128))) + (e % 24)) + (98304 * (e / 98304)))];\n            v0 = (1.0f / (1.0f + expf(-(in0))));\n            v1 = __fmul_rn(in0, v0);\n            dst[((((24 * ((e / 24) % 32)) + (768 * ((e / 768) % 128))) + (e % 24)) + (98304 * (e / 98304)))] = v1;\n        }\n    }\n}",
+   "inPlace": {
+    "input": "v0",
+    "slots": [
+     0
+    ],
+    "of": "1vbd7aake4v"
+   }
+  },
+  {
+   "name": "k_out0__9z9vzj8i14",
+   "identity": "9z9vzj8i14",
+   "row": "TPB=128,COARSEN=2",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 6144,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    6144,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    128,
+    32,
+    24
+   ],
+   "inShapes": [
+    [
+     16,
+     128,
+     32,
+     24
+    ],
+    [
+     16,
+     128,
+     32,
+     24
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out0__9z9vzj8i14(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((256 * bid) + (128 * j)) + tid);\n        if ((e < 1572864)) {\n            in0 = src0[((((24 * ((e / 24) % 32)) + (768 * ((e / 768) % 128))) + (e % 24)) + (98304 * (e / 98304)))];\n            in1 = src1[((((24 * ((e / 24) % 32)) + (768 * ((e / 768) % 128))) + (e % 24)) + (98304 * (e / 98304)))];\n            v0 = __fadd_rn(in0, in1);\n            dst[((((24 * ((e / 24) % 32)) + (768 * ((e / 768) % 128))) + (e % 24)) + (98304 * (e / 98304)))] = v0;\n        }\n    }\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "direct",
+   "producer": "k___mut0__278qvk2dzpm",
+   "slots": [
+    0
+   ]
+  }
+ ]
+}

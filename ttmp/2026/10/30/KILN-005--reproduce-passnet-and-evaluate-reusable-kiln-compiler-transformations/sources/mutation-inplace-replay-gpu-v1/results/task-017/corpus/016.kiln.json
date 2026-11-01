@@ -1,0 +1,318 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-017/corpus/016.kiln.js",
+  "sha256": "b48e6aea0bca289176a872af19277465bc613dfc429cb03cbebd0946ab0c1a66",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    128,
+    64,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    128,
+    64,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v6",
+   "buffer": 6,
+   "shape": [
+    128,
+    128,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "__mut6",
+   "buffer": 6,
+   "shape": [
+    128,
+    128,
+    28,
+    28
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 6422528,
+   "bytes": 25690112
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 8192,
+   "bytes": 32768
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 128,
+   "bytes": 512
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 12845056,
+   "bytes": 51380224
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 8192,
+   "bytes": 32768
+  },
+  {
+   "id": 8,
+   "dtype": "f32",
+   "elements": 6422528,
+   "bytes": 25690112
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew__18iydzf1as9",
+   "identity": "18iydzf1as9",
+   "row": "TPB=128",
+   "reads": [
+    1
+   ],
+   "writes": 7,
+   "grid": 64,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    64,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     128,
+     64,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "fn kiln_round_tf32(x: f32) -> f32 {\n  let bits = bitcast<u32>(x);\n  if ((bits & 0x7f800000u) == 0x7f800000u) { return x; }\n  return bitcast<f32>((bits + 0xfffu + ((bits >> 13u) & 1u)) & 0xffffe000u);\n}\n@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 64i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((128i * bid) + tid);\n    if (n_e < 8192i) {\n        v_in0 = b0[((n_e % 64i) + (64i * (n_e / 64i)))];\n        v_v0 = kiln_round_tf32(v_in0);\n        bout[((n_e % 64i) + (64i * (n_e / 64i)))] = v_v0;\n    }\n}",
+   "cuda": "__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned b = __float_as_uint(x); if ((b & 0x7f800000u) == 0x7f800000u) return x; return __uint_as_float((b + 0xfffu + ((b >> 13) & 1u)) & 0xffffe000u); }\nextern \"C\" __global__ void __launch_bounds__(128) k_ew__18iydzf1as9(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 8192)) {\n        in0 = src0[((e % 64) + (64 * (e / 64)))];\n        v0 = kiln_round_tf32(in0);\n        dst[((e % 64) + (64 * (e / 64)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_ew_2__11j2d62uyo3",
+   "identity": "11j2d62uyo3",
+   "row": "TPB=64,COARSEN=2",
+   "reads": [
+    0
+   ],
+   "writes": 8,
+   "grid": 50176,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    50176,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    64,
+    28,
+    28
+   ],
+   "inShapes": [
+    [
+     128,
+     64,
+     28,
+     28
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "fn kiln_round_tf32(x: f32) -> f32 {\n  let bits = bitcast<u32>(x);\n  if ((bits & 0x7f800000u) == 0x7f800000u) { return x; }\n  return bitcast<f32>((bits + 0xfffu + ((bits >> 13u) & 1u)) & 0xffffe000u);\n}\n@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(64)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 50176i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    for (var n_j: i32 = 0i; n_j < 2i; n_j = n_j + 1i) {\n        n_e = (((128i * bid) + (64i * n_j)) + tid);\n        if (n_e < 6422528i) {\n            v_in0 = b0[((((28i * ((n_e / 28i) % 28i)) + (784i * ((n_e / 784i) % 64i))) + (n_e % 28i)) + (50176i * (n_e / 50176i)))];\n            v_v0 = kiln_round_tf32(v_in0);\n            bout[((((28i * ((n_e / 28i) % 28i)) + (784i * ((n_e / 784i) % 64i))) + (n_e % 28i)) + (50176i * (n_e / 50176i)))] = v_v0;\n        }\n    }\n}",
+   "cuda": "__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned b = __float_as_uint(x); if ((b & 0x7f800000u) == 0x7f800000u) return x; return __uint_as_float((b + 0xfffu + ((b >> 13) & 1u)) & 0xffffe000u); }\nextern \"C\" __global__ void __launch_bounds__(64) k_ew_2__11j2d62uyo3(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((128 * bid) + (64 * j)) + tid);\n        if ((e < 6422528)) {\n            in0 = src0[((((28 * ((e / 28) % 28)) + (784 * ((e / 784) % 64))) + (e % 28)) + (50176 * (e / 50176)))];\n            v0 = kiln_round_tf32(in0);\n            dst[((((28 * ((e / 28) % 28)) + (784 * ((e / 784) % 64))) + (e % 28)) + (50176 * (e / 50176)))] = v0;\n        }\n    }\n}"
+  },
+  {
+   "name": "k_conv2d_ew_reshape_reduce__w322yhermh",
+   "identity": "w322yhermh",
+   "row": "TPB=64,COARSEN=4",
+   "reads": [
+    6,
+    5,
+    4,
+    3,
+    2,
+    7,
+    8
+   ],
+   "writes": 6,
+   "grid": 50176,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    50176,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    128,
+    28,
+    28
+   ],
+   "inShapes": [
+    [
+     128,
+     128,
+     28,
+     28
+    ],
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128
+    ],
+    [
+     128,
+     64,
+     1,
+     1
+    ],
+    [
+     128,
+     64,
+     28,
+     28
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "in-place input write is emitted for CUDA only",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_conv2d_ew_reshape_reduce__w322yhermh(float* src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, const float* __restrict__ src4, const float* __restrict__ src5, const float* __restrict__ src6, float* dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in3 = 0.0f, in4 = 0.0f, v3 = 0.0f, v4 = 0.0f, in5 = 0.0f, in6 = 0.0f, in0 = 0.0f, acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in1 = 0.0f, in2 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f, v8 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 4; j += 1) {\n        e = (((256 * bid) + (64 * j)) + tid);\n        if ((e < 12845056)) {\n            in3 = src4[((e / 784) % 128)];\n            in4 = src3[((e / 784) % 128)];\n            v3 = __fadd_rn(in4, 0.00001f);\n            v4 = sqrtf(v3);\n            in5 = src2[((e / 784) % 128)];\n            in6 = src1[((e / 784) % 128)];\n            in0 = src0[((((28 * ((e / 28) % 28)) + (784 * ((e / 784) % 128))) + (e % 28)) + (100352 * (e / 100352)))];\n            acc2 = 0.0f;\n            for (int r0 = 0; r0 < 64; r0 += 1) {\n                acc1 = 0.0f;\n                for (int r1 = 0; r1 < 1; r1 += 1) {\n                    acc0 = 0.0f;\n                    for (int r2 = 0; r2 < 1; r2 += 1) {\n                        in1 = src6[(((((((50176 * (((e / 784) % 128) / 128)) + (28 * ((e / 28) % 28))) + (e % 28)) + (50176 * (e / 100352))) + (784 * r0)) + (28 * r1)) + r2)];\n                        in2 = src5[((((64 * ((e / 784) % 128)) + r0) + r1) + r2)];\n                        v0 = __fmul_rn(in1, in2);\n                        acc0 = (acc0 + v0);\n                    }\n                    acc1 = (acc1 + acc0);\n                }\n                acc2 = (acc2 + acc1);\n            }\n            v1 = __fadd_rn(acc2, 0.0f);\n            v2 = __fsub_rn(v1, in3);\n            v5 = (v2 / v4);\n            v6 = __fmul_rn(v5, in5);\n            v7 = __fadd_rn(v6, in6);\n            v8 = __fadd_rn(in0, v7);\n            dst[((((28 * ((e / 28) % 28)) + (784 * ((e / 784) % 128))) + (e % 28)) + (100352 * (e / 100352)))] = v8;\n        }\n    }\n}",
+   "inPlace": {
+    "input": "v6",
+    "slots": [
+     0
+    ],
+    "of": "1dk4ji5qc6p"
+   }
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut6",
+   "input": "v6",
+   "strategy": "direct",
+   "producer": "k_conv2d_ew_reshape_reduce__w322yhermh",
+   "slots": [
+    0
+   ]
+  }
+ ]
+}

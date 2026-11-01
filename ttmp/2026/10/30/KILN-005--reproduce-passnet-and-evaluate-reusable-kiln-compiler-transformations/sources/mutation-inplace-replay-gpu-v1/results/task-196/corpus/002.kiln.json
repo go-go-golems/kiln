@@ -1,0 +1,162 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-196/corpus/002.kiln.js",
+  "sha256": "f50e476bc86742c41e773b0403b7a58aeea2455f93bca4459790956750335567",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    16,
+    256,
+    1,
+    1
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    16,
+    256,
+    1,
+    1
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    16,
+    256,
+    1,
+    1
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 4096,
+   "bytes": 8192
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 4096,
+   "bytes": 8192
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k___mut0__e9l4cpjxxw",
+   "identity": "e9l4cpjxxw",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 0,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     16,
+     256,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "in-place input write is emitted for CUDA only",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k___mut0__e9l4cpjxxw(__nv_bfloat16* src0, __nv_bfloat16* dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = __bfloat162float(src0[((e % 256) + (256 * (e / 256)))]);\n        v0 = fmaxf(in0, 0.0f);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        dst[((e % 256) + (256 * (e / 256)))] = __float2bfloat16_rn(v1);\n    }\n}",
+   "inPlace": {
+    "input": "v0",
+    "slots": [
+     0
+    ],
+    "of": "27e6gtwihot"
+   }
+  },
+  {
+   "name": "k_out0__1dzi3hu2q3j",
+   "identity": "1dzi3hu2q3j",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     16,
+     256,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out0__1dzi3hu2q3j(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = __bfloat162float(src0[((e % 256) + (256 * (e / 256)))]);\n        v0 = in0;\n        v1 = (1.0f / (1.0f + expf(-(v0))));\n        v2 = __bfloat162float(__float2bfloat16_rn(v1));\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        dst[((e % 256) + (256 * (e / 256)))] = __float2bfloat16_rn(v3);\n    }\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "direct",
+   "producer": "k___mut0__e9l4cpjxxw",
+   "slots": [
+    0
+   ]
+  }
+ ]
+}

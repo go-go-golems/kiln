@@ -1,0 +1,357 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-131/corpus/001.kiln.js",
+  "sha256": "d1edc267633808e0d4bd541ba00964891447c63862685bd9c8fe6711ed7c1c01",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    4,
+    17,
+    1152
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    2,
+    128
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    1,
+    1,
+    2,
+    128
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "out1",
+   "buffer": 4,
+   "shape": [
+    4,
+    17,
+    512
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "out2",
+   "buffer": 5,
+   "shape": [
+    4,
+    17,
+    1,
+    128
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "out3",
+   "buffer": 6,
+   "shape": [
+    4,
+    17,
+    512
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    4,
+    17,
+    1152
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 78336,
+   "bytes": 156672
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 256,
+   "bytes": 512
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 256,
+   "bytes": 512
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 78336,
+   "bytes": 156672
+  },
+  {
+   "id": 4,
+   "dtype": "bf16",
+   "elements": 34816,
+   "bytes": 69632
+  },
+  {
+   "id": 5,
+   "dtype": "bf16",
+   "elements": 8704,
+   "bytes": 17408
+  },
+  {
+   "id": 6,
+   "dtype": "bf16",
+   "elements": 34816,
+   "bytes": 69632
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__22xxmlvclwd",
+   "identity": "22xxmlvclwd",
+   "row": "TPB=1024",
+   "reads": [
+    1
+   ],
+   "writes": 2,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1,
+    2,
+    128
+   ],
+   "inShapes": [
+    [
+     2,
+     128
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_out0__22xxmlvclwd(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 256)) {\n        in0 = __bfloat162float(src0[((e % 128) + (128 * (e / 128)))]);\n        dst[((e % 128) + (128 * (e / 128)))] = __float2bfloat16_rn(in0);\n    }\n}"
+  },
+  {
+   "name": "k___mut0__tylfu01xdq",
+   "identity": "tylfu01xdq",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 3,
+   "grid": 612,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    612,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    17,
+    1152
+   ],
+   "inShapes": [
+    [
+     4,
+     17,
+     1152
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k___mut0__tylfu01xdq(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 78336)) {\n        in0 = __bfloat162float(src0[(((1152 * ((e / 1152) % 17)) + (e % 1152)) + (19584 * (e / 19584)))]);\n        v0 = in0;\n        v1 = (1.0f / (1.0f + expf(-(v0))));\n        v2 = __fmul_rn(v0, v1);\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        v4 = __bfloat162float(__float2bfloat16_rn(v3));\n        dst[(((1152 * ((e / 1152) % 17)) + (e % 1152)) + (19584 * (e / 19584)))] = __float2bfloat16_rn(v4);\n    }\n}"
+  },
+  {
+   "name": "k_out1__25uqly0tjx",
+   "identity": "25uqly0tjx",
+   "row": "TPB=128",
+   "reads": [
+    3
+   ],
+   "writes": 4,
+   "grid": 272,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    272,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    17,
+    512
+   ],
+   "inShapes": [
+    [
+     4,
+     17,
+     1152
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_out1__25uqly0tjx(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 34816)) {\n        in0 = __bfloat162float(src0[(((1152 * ((e / 512) % 17)) + (e % 512)) + (19584 * (e / 8704)))]);\n        dst[(((512 * ((e / 512) % 17)) + (e % 512)) + (8704 * (e / 8704)))] = __float2bfloat16_rn(in0);\n    }\n}"
+  },
+  {
+   "name": "k_out2__2sy0ajy0vd",
+   "identity": "2sy0ajy0vd",
+   "row": "TPB=128",
+   "reads": [
+    3
+   ],
+   "writes": 5,
+   "grid": 68,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    68,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    17,
+    1,
+    128
+   ],
+   "inShapes": [
+    [
+     4,
+     17,
+     1152
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_out2__2sy0ajy0vd(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 8704)) {\n        in0 = __bfloat162float(src0[((((1152 * ((e / 128) % 17)) + (e % 128)) + (19584 * (e / 2176))) + 1024)]);\n        dst[(((128 * ((e / 128) % 17)) + (e % 128)) + (2176 * (e / 2176)))] = __float2bfloat16_rn(in0);\n    }\n}"
+  },
+  {
+   "name": "k_out3__1tni9i1i3wc",
+   "identity": "1tni9i1i3wc",
+   "row": "TPB=128",
+   "reads": [
+    3
+   ],
+   "writes": 6,
+   "grid": 272,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    272,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    17,
+    512
+   ],
+   "inShapes": [
+    [
+     4,
+     17,
+     1152
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_out3__1tni9i1i3wc(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 34816)) {\n        in0 = __bfloat162float(src0[((((1152 * ((e / 512) % 17)) + (e % 512)) + (19584 * (e / 8704))) + 512)]);\n        dst[(((512 * ((e / 512) % 17)) + (e % 512)) + (8704 * (e / 8704)))] = __float2bfloat16_rn(in0);\n    }\n}"
+  },
+  {
+   "name": "k_writeback__wto7vxqrn7",
+   "identity": "wto7vxqrn7",
+   "row": "MAP=thread",
+   "reads": [
+    3
+   ],
+   "writes": 0,
+   "grid": 306,
+   "block": 256,
+   "smemBytes": 0,
+   "dispatch": [
+    306,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    17,
+    1152
+   ],
+   "inShapes": [
+    [
+     4,
+     17,
+     1152
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgslUnavailable": "input mutation write-back is emitted for CUDA only",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(256) k_writeback__wto7vxqrn7(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int e = blockIdx.x * 256 + threadIdx.x;\n    if (e < 78336) dst[e] = src0[e];\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "writeback",
+   "reason": "forced (mutation strategy writeback)",
+   "planned": "direct"
+  }
+ ]
+}

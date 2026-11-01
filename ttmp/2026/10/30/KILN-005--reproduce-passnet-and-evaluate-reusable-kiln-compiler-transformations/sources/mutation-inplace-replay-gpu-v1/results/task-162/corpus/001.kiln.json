@@ -1,0 +1,208 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-162/corpus/001.kiln.js",
+  "sha256": "4fdee6759bb454229651297e330cc4f15a3b0e1c299455a15449d96f49bbe359",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    32,
+    64
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    32,
+    64
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    32,
+    1
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "out1",
+   "buffer": 3,
+   "shape": [
+    3,
+    32,
+    64
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "out2",
+   "buffer": 2,
+   "shape": [
+    32,
+    64
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 2048,
+   "bytes": 16384
+  },
+  {
+   "id": 1,
+   "dtype": "i64",
+   "elements": 2048,
+   "bytes": 16384
+  },
+  {
+   "id": 2,
+   "dtype": "i64",
+   "elements": 2048,
+   "bytes": 16384
+  },
+  {
+   "id": 3,
+   "dtype": "i64",
+   "elements": 6144,
+   "bytes": 49152
+  },
+  {
+   "id": 4,
+   "dtype": "i64",
+   "elements": 32,
+   "bytes": 256
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out2__25atkgsbvux",
+   "identity": "25atkgsbvux",
+   "row": "MAP=row,TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 32,
+   "block": 64,
+   "smemBytes": 512,
+   "dispatch": [
+    32,
+    1,
+    1
+   ],
+   "shape": [
+    32,
+    64
+   ],
+   "inShapes": [
+    [
+     32,
+     64
+    ],
+    [
+     32,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "i64",
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out2__25atkgsbvux(const long long* __restrict__ src0, const long long* __restrict__ src1, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ long long s_scan0[64];\n    long long in0 = 0, in1 = 0, acc0_x = 0, acc0_y = 0, acc0_p = 0, acc0_t = 0, acc0 = 0, v1 = 0, v2 = 0;\n    bool v0 = 0;\n    int p = 0;\n    acc0 = 0LL;\n    for (int c0 = 0; c0 < 64; c0 += 64) {\n        p = (c0 + tid);\n        acc0_x = 0LL;\n        if ((p < 64)) {\n            in0 = src1[((64 * bid) + p)];\n            v0 = ((in0) == (0LL));\n            in1 = src0[((64 * bid) + p)];\n            acc0_x = in1;\n        }\n        s_scan0[tid] = acc0_x;\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((1 <= tid)) {\n            acc0_y = s_scan0[(tid + (-1))];\n        }\n        __syncthreads();\n        if ((1 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((2 <= tid)) {\n            acc0_y = s_scan0[(tid + (-2))];\n        }\n        __syncthreads();\n        if ((2 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((4 <= tid)) {\n            acc0_y = s_scan0[(tid + (-4))];\n        }\n        __syncthreads();\n        if ((4 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((8 <= tid)) {\n            acc0_y = s_scan0[(tid + (-8))];\n        }\n        __syncthreads();\n        if ((8 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((16 <= tid)) {\n            acc0_y = s_scan0[(tid + (-16))];\n        }\n        __syncthreads();\n        if ((16 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((32 <= tid)) {\n            acc0_y = s_scan0[(tid + (-32))];\n        }\n        __syncthreads();\n        if ((32 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_p = (acc0 + acc0_x);\n        acc0_t = s_scan0[63];\n        acc0 = (acc0 + acc0_t);\n        if ((p < 64)) {\n            v1 = (acc0_p - 1LL);\n            v2 = ((v0) > 0.0f ? (1LL) : (v1));\n            dst[((64 * bid) + p)] = v2;\n        }\n        __syncthreads();\n    }\n}"
+  },
+  {
+   "name": "k_out1__1zvbm03pcuu",
+   "identity": "1zvbm03pcuu",
+   "row": "TPB=64",
+   "reads": [
+    2
+   ],
+   "writes": 3,
+   "grid": 96,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    96,
+    1,
+    1
+   ],
+   "shape": [
+    3,
+    32,
+    64
+   ],
+   "inShapes": [
+    [
+     32,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out1__1zvbm03pcuu(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 6144)) {\n        in0 = src0[((64 * ((e / 64) % 32)) + (e % 64))];\n        dst[(((64 * ((e / 64) % 32)) + (e % 64)) + (2048 * (e / 2048)))] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_out0__1nx6du3p7q",
+   "identity": "1nx6du3p7q",
+   "row": "MAP=row,TPB=128",
+   "reads": [
+    3
+   ],
+   "writes": 4,
+   "grid": 32,
+   "block": 128,
+   "smemBytes": 1024,
+   "dispatch": [
+    32,
+    1,
+    1
+   ],
+   "shape": [
+    32,
+    1
+   ],
+   "inShapes": [
+    [
+     3,
+     32,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out0__1nx6du3p7q(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ long long s_red_i64[128];\n    long long in0 = 0, acc0 = 0, acc1 = 0, sv0 = 0, sv1 = 0, sv2 = 0, sv3 = 0, sv4 = 0, sv5 = 0, sv6 = 0, sv7 = 0, sv8 = 0, sv9 = 0, sv10 = 0, sv11 = 0, sv12 = 0, sv13 = 0, v0 = 0, v1 = 0;\n    acc1 = (-9223372036854775807LL - 1);\n    for (int r0 = tid; r0 < 64; r0 += 128) {\n        acc0 = (-9223372036854775807LL - 1);\n        for (int r1 = 0; r1 < 3; r1 += 1) {\n            in0 = src0[(((64 * bid) + r0) + (2048 * r1))];\n            acc0 = ((acc0) > (in0) ? (acc0) : (in0));\n        }\n        acc1 = ((acc1) > (acc0) ? (acc1) : (acc0));\n    }\n    __syncthreads();\n    s_red_i64[tid] = acc1;\n    __syncthreads();\n    if ((tid < 64)) {\n        sv0 = s_red_i64[tid];\n        sv1 = s_red_i64[(tid + 64)];\n        s_red_i64[tid] = ((sv0) > (sv1) ? (sv0) : (sv1));\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv2 = s_red_i64[tid];\n        sv3 = s_red_i64[(tid + 32)];\n        s_red_i64[tid] = ((sv2) > (sv3) ? (sv2) : (sv3));\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv4 = s_red_i64[tid];\n        sv5 = s_red_i64[(tid + 16)];\n        s_red_i64[tid] = ((sv4) > (sv5) ? (sv4) : (sv5));\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv6 = s_red_i64[tid];\n        sv7 = s_red_i64[(tid + 8)];\n        s_red_i64[tid] = ((sv6) > (sv7) ? (sv6) : (sv7));\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv8 = s_red_i64[tid];\n        sv9 = s_red_i64[(tid + 4)];\n        s_red_i64[tid] = ((sv8) > (sv9) ? (sv8) : (sv9));\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv10 = s_red_i64[tid];\n        sv11 = s_red_i64[(tid + 2)];\n        s_red_i64[tid] = ((sv10) > (sv11) ? (sv10) : (sv11));\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv12 = s_red_i64[tid];\n        sv13 = s_red_i64[(tid + 1)];\n        s_red_i64[tid] = ((sv12) > (sv13) ? (sv12) : (sv13));\n    }\n    __syncthreads();\n    acc1 = s_red_i64[0];\n    v0 = (acc1 + 1LL);\n    v1 = (v0 - 9LL);\n    if ((tid == 0)) {\n        dst[bid] = v1;\n    }\n}"
+  }
+ ]
+}

@@ -1,0 +1,222 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-045/corpus/003.kiln.js",
+  "sha256": "7aeeb5384d5a80e1916ff5489785d38b526b6b3c4aea454e5c88057fb9ed35f1",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    64,
+    1280,
+    3,
+    3
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    64,
+    1280
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    64,
+    1280,
+    3,
+    3
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 737280,
+   "bytes": 2949120
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 737280,
+   "bytes": 2949120
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 1,
+   "bytes": 4,
+   "name": null,
+   "data": "AABAQA=="
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 1,
+   "bytes": 4,
+   "name": null,
+   "data": "AABAQA=="
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 81920,
+   "bytes": 327680
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k___mut0__5algpmh3q7",
+   "identity": "5algpmh3q7",
+   "row": "TPB=128,COARSEN=2",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 2880,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    2880,
+    1,
+    1
+   ],
+   "shape": [
+    64,
+    1280,
+    3,
+    3
+   ],
+   "inShapes": [
+    [
+     64,
+     1280,
+     3,
+     3
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: lt_f32",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k___mut0__5algpmh3q7(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v1 = 0.0f, v3 = 0.0f;\n    bool v0 = 0, v2 = 0;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((256 * bid) + (128 * j)) + tid);\n        if ((e < 737280)) {\n            in0 = src0[((((3 * ((e / 3) % 3)) + (9 * ((e / 9) % 1280))) + (e % 3)) + (11520 * (e / 11520)))];\n            v0 = ((in0) < (0.0f));\n            v1 = ((v0) > 0.0f ? (0.0f) : (in0));\n            v2 = ((v1) > (6.0f));\n            v3 = ((v2) > 0.0f ? (6.0f) : (v1));\n            dst[((((3 * ((e / 3) % 3)) + (9 * ((e / 9) % 1280))) + (e % 3)) + (11520 * (e / 11520)))] = v3;\n        }\n    }\n}"
+  },
+  {
+   "name": "k_out0__o7xl902jcx",
+   "identity": "o7xl902jcx",
+   "row": "TPB=128",
+   "reads": [
+    2,
+    3,
+    1
+   ],
+   "writes": 4,
+   "grid": 640,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    640,
+    1,
+    1
+   ],
+   "shape": [
+    64,
+    1280
+   ],
+   "inShapes": [
+    [
+     1,
+     1,
+     1,
+     1
+    ],
+    [
+     1,
+     1,
+     1,
+     1
+    ],
+    [
+     64,
+     1280,
+     3,
+     3
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read> b2: array<f32>;\n@group(0) @binding(3) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 640i) { return; }\n    var v_in1: f32 = 0.0;\n    var v_in2: f32 = 0.0;\n    var v_acc0: f32 = 0.0;\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var v_v1: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((128i * bid) + tid);\n    if (n_e < 81920i) {\n        v_in1 = b1[0i];\n        v_in2 = b0[0i];\n        v_acc0 = 0.0;\n        for (var n_r0: i32 = 0i; n_r0 < 9i; n_r0 = n_r0 + 1i) {\n            v_in0 = b2[((((3i * min((((((9i * (n_e % 1280i)) + (11520i * (n_e / 1280i))) + n_r0) / 3i) % 3i), 2i)) + (11520i * (((((9i * (n_e % 1280i)) + (11520i * (n_e / 1280i))) + n_r0) / 11520i) % 64i))) + (9i * (((((9i * (n_e % 1280i)) + (11520i * (n_e / 1280i))) + n_r0) / 9i) % 1280i))) + min((n_r0 % 3i), 2i))];\n            v_acc0 = (v_acc0 + v_in0);\n        }\n        v_v0 = (v_acc0 / v_in1);\n        v_v1 = (v_v0 / v_in2);\n        bout[((n_e % 1280i) + (1280i * (n_e / 1280i)))] = v_v1;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out0__o7xl902jcx(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in1 = 0.0f, in2 = 0.0f, acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 81920)) {\n        in1 = src1[0];\n        in2 = src0[0];\n        acc0 = 0.0f;\n        for (int r0 = 0; r0 < 9; r0 += 1) {\n            in0 = src2[((((3 * min((((((9 * (e % 1280)) + (11520 * (e / 1280))) + r0) / 3) % 3), 2)) + (11520 * (((((9 * (e % 1280)) + (11520 * (e / 1280))) + r0) / 11520) % 64))) + (9 * (((((9 * (e % 1280)) + (11520 * (e / 1280))) + r0) / 9) % 1280))) + min((r0 % 3), 2))];\n            acc0 = (acc0 + in0);\n        }\n        v0 = (acc0 / in1);\n        v1 = (v0 / in2);\n        dst[((e % 1280) + (1280 * (e / 1280)))] = v1;\n    }\n}"
+  },
+  {
+   "name": "k_writeback__2dlybd96v63",
+   "identity": "2dlybd96v63",
+   "row": "MAP=thread",
+   "reads": [
+    1
+   ],
+   "writes": 0,
+   "grid": 2880,
+   "block": 256,
+   "smemBytes": 0,
+   "dispatch": [
+    2880,
+    1,
+    1
+   ],
+   "shape": [
+    64,
+    1280,
+    3,
+    3
+   ],
+   "inShapes": [
+    [
+     64,
+     1280,
+     3,
+     3
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgslUnavailable": "input mutation write-back is emitted for CUDA only",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(256) k_writeback__2dlybd96v63(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int e = blockIdx.x * 256 + threadIdx.x;\n    if (e < 737280) dst[e] = src0[e];\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "writeback",
+   "reason": "forced (mutation strategy writeback)",
+   "planned": "direct"
+  }
+ ]
+}

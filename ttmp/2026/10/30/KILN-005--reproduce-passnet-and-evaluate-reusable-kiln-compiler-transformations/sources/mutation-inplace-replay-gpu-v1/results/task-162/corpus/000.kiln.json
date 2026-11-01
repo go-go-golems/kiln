@@ -1,0 +1,208 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-162/corpus/000.kiln.js",
+  "sha256": "af68667e96936e7b6add7f0373a889228e9db74fd64ba450aaf41a88dece9a2e",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    9
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    9
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    1,
+    1
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "out1",
+   "buffer": 3,
+   "shape": [
+    3,
+    1,
+    9
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "out2",
+   "buffer": 2,
+   "shape": [
+    1,
+    9
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 9,
+   "bytes": 72
+  },
+  {
+   "id": 1,
+   "dtype": "i64",
+   "elements": 9,
+   "bytes": 72
+  },
+  {
+   "id": 2,
+   "dtype": "i64",
+   "elements": 9,
+   "bytes": 72
+  },
+  {
+   "id": 3,
+   "dtype": "i64",
+   "elements": 27,
+   "bytes": 216
+  },
+  {
+   "id": 4,
+   "dtype": "i64",
+   "elements": 1,
+   "bytes": 8
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out2__qx4ethok70",
+   "identity": "qx4ethok70",
+   "row": "TPB=32",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 1,
+   "block": 32,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    9
+   ],
+   "inShapes": [
+    [
+     1,
+     9
+    ],
+    [
+     1,
+     9
+    ]
+   ],
+   "inDtypes": [
+    "i64",
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(32) k_out2__qx4ethok70(const long long* __restrict__ src0, const long long* __restrict__ src1, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, in1 = 0, acc0 = 0, v1 = 0, v2 = 0;\n    bool v0 = 0;\n    int e = 0;\n    e = ((32 * bid) + tid);\n    if ((e < 1)) {\n        acc0 = 0LL;\n        for (int a1 = 0; a1 < 9; a1 += 1) {\n            in0 = src1[a1];\n            v0 = ((in0) == (0LL));\n            in1 = src0[a1];\n            acc0 = (acc0 + in1);\n            v1 = (acc0 - 1LL);\n            v2 = ((v0) > 0.0f ? (1LL) : (v1));\n            dst[a1] = v2;\n        }\n    }\n}"
+  },
+  {
+   "name": "k_out1__1pwcs6lky0",
+   "identity": "1pwcs6lky0",
+   "row": "TPB=1024",
+   "reads": [
+    2
+   ],
+   "writes": 3,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    3,
+    1,
+    9
+   ],
+   "inShapes": [
+    [
+     1,
+     9
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_out1__1pwcs6lky0(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 27)) {\n        in0 = src0[(e % 9)];\n        dst[((e % 9) + (9 * (e / 9)))] = in0;\n    }\n}"
+  },
+  {
+   "name": "k_out0__1ff13jlhlkx",
+   "identity": "1ff13jlhlkx",
+   "row": "TPB=1024",
+   "reads": [
+    3
+   ],
+   "writes": 4,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     3,
+     1,
+     9
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_out0__1ff13jlhlkx(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, acc0 = 0, acc1 = 0, v0 = 0, v1 = 0;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 1)) {\n        acc1 = (-9223372036854775807LL - 1);\n        for (int r0 = 0; r0 < 9; r0 += 1) {\n            acc0 = (-9223372036854775807LL - 1);\n            for (int r1 = 0; r1 < 3; r1 += 1) {\n                in0 = src0[(r0 + (9 * r1))];\n                acc0 = ((acc0) > (in0) ? (acc0) : (in0));\n            }\n            acc1 = ((acc1) > (acc0) ? (acc1) : (acc0));\n        }\n        v0 = (acc1 + 1LL);\n        v1 = (v0 - 9LL);\n        dst[0] = v1;\n    }\n}"
+  }
+ ]
+}

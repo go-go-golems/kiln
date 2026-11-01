@@ -1,0 +1,191 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-161/corpus/000.kiln.js",
+  "sha256": "c3e94c722f048b51822583ce83d4a48f84370ce715c307d4a2a587aeb48b702e",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    128,
+    1280,
+    1,
+    1
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    128,
+    1280
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    128,
+    1280,
+    1,
+    1
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 163840,
+   "bytes": 327680
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 163840,
+   "bytes": 327680
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 163840,
+   "bytes": 327680
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k___mut0__291czg5ftim",
+   "identity": "291czg5ftim",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1280,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1280,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    1280,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     128,
+     1280,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k___mut0__291czg5ftim(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 163840)) {\n        in0 = __half2float(src0[((e % 1280) + (1280 * (e / 1280)))]);\n        v0 = fmaxf(in0, 0.0f);\n        v1 = __half2float(__float2half_rn(v0));\n        dst[((e % 1280) + (1280 * (e / 1280)))] = __float2half_rn(v1);\n    }\n}"
+  },
+  {
+   "name": "k_out0__76bgpu7tr6",
+   "identity": "76bgpu7tr6",
+   "row": "TPB=128",
+   "reads": [
+    1
+   ],
+   "writes": 2,
+   "grid": 1280,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1280,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    1280
+   ],
+   "inShapes": [
+    [
+     128,
+     1280,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_out0__76bgpu7tr6(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 163840)) {\n        in0 = __half2float(src0[((e % 1280) + (1280 * (e / 1280)))]);\n        dst[((e % 1280) + (1280 * (e / 1280)))] = __float2half_rn(in0);\n    }\n}"
+  },
+  {
+   "name": "k_writeback__ptt0xftp7j",
+   "identity": "ptt0xftp7j",
+   "row": "MAP=thread",
+   "reads": [
+    1
+   ],
+   "writes": 0,
+   "grid": 640,
+   "block": 256,
+   "smemBytes": 0,
+   "dispatch": [
+    640,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    1280,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     128,
+     1280,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgslUnavailable": "input mutation write-back is emitted for CUDA only",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(256) k_writeback__ptt0xftp7j(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int e = blockIdx.x * 256 + threadIdx.x;\n    if (e < 163840) dst[e] = src0[e];\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "writeback",
+   "reason": "forced (mutation strategy writeback)",
+   "planned": "direct"
+  }
+ ]
+}

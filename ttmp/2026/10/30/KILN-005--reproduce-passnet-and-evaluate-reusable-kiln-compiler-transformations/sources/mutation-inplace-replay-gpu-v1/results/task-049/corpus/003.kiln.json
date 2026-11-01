@@ -1,0 +1,495 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-049/corpus/003.kiln.js",
+  "sha256": "896ade59a2f534ebac05f6e27aaa191b46f8cfb3aac30a07554f6748871995f5",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    16,
+    256,
+    20,
+    20
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 10,
+   "shape": [
+    16,
+    1024,
+    20,
+    20
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    16,
+    256,
+    20,
+    20
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 1638400,
+   "bytes": 3276800
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 576,
+   "bytes": 2304,
+   "name": null,
+   "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 2359296,
+   "bytes": 9437184
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 1638400,
+   "bytes": 6553600
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 576,
+   "bytes": 2304,
+   "name": null,
+   "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 2359296,
+   "bytes": 9437184
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 1638400,
+   "bytes": 6553600
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 576,
+   "bytes": 2304,
+   "name": null,
+   "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  },
+  {
+   "id": 8,
+   "dtype": "f32",
+   "elements": 2359296,
+   "bytes": 9437184
+  },
+  {
+   "id": 9,
+   "dtype": "f32",
+   "elements": 1638400,
+   "bytes": 6553600
+  },
+  {
+   "id": 10,
+   "dtype": "bf16",
+   "elements": 6553600,
+   "bytes": 13107200
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k___mut0__20obrgc5x4j",
+   "identity": "20obrgc5x4j",
+   "row": "TPB=64,COARSEN=2",
+   "reads": [
+    0
+   ],
+   "writes": 0,
+   "grid": 12800,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    12800,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256,
+    20,
+    20
+   ],
+   "inShapes": [
+    [
+     16,
+     256,
+     20,
+     20
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "in-place input write is emitted for CUDA only",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k___mut0__20obrgc5x4j(__nv_bfloat16* src0, __nv_bfloat16* dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((128 * bid) + (64 * j)) + tid);\n        if ((e < 1638400)) {\n            in0 = __bfloat162float(src0[((((20 * ((e / 20) % 20)) + (400 * ((e / 400) % 256))) + (e % 20)) + (102400 * (e / 102400)))]);\n            v0 = fmaxf(in0, 0.0f);\n            v1 = __bfloat162float(__float2bfloat16_rn(v0));\n            dst[((((20 * ((e / 20) % 20)) + (400 * ((e / 400) % 256))) + (e % 20)) + (102400 * (e / 102400)))] = __float2bfloat16_rn(v1);\n        }\n    }\n}",
+   "inPlace": {
+    "input": "v0",
+    "slots": [
+     0
+    ],
+    "of": "14aaaocs38m"
+   }
+  },
+  {
+   "name": "k_max_pool2d_cast__15815e6enqo",
+   "identity": "15815e6enqo",
+   "row": "TPB=128",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 18432,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    18432,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256,
+    24,
+    24
+   ],
+   "inShapes": [
+    [
+     16,
+     256,
+     20,
+     20
+    ],
+    [
+     1,
+     1,
+     24,
+     24
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_max_pool2d_cast__15815e6enqo(const __nv_bfloat16* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 2359296)) {\n        in0 = src1[((24 * ((e / 24) % 24)) + (e % 24))];\n        in1 = __bfloat162float(src0[((((20 * min(max((((e / 24) % 24) + (-2)), 0), 19)) + min(max(((e % 24) + (-2)), 0), 19)) + (400 * ((e / 576) % 256))) + (102400 * (e / 147456)))]);\n        v0 = in1;\n        v1 = ((in0) > 0.0f ? (v0) : (__int_as_float(0xff800000)));\n        dst[((((24 * ((e / 24) % 24)) + (576 * ((e / 576) % 256))) + (e % 24)) + (147456 * (e / 147456)))] = v1;\n    }\n}"
+  },
+  {
+   "name": "k_max_pool2d_reduce__1t0gwo79cvc",
+   "identity": "1t0gwo79cvc",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    2
+   ],
+   "writes": 3,
+   "grid": 1638400,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    65535,
+    26,
+    1
+   ],
+   "shape": [
+    16,
+    256,
+    20,
+    20,
+    1
+   ],
+   "inShapes": [
+    [
+     16,
+     256,
+     24,
+     24
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\nvar<workgroup> s_red: array<f32, 32>;\n\n@compute @workgroup_size(32)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1638400i) { return; }\n    var v_acc0: f32 = 0.0;\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var v_v1: f32 = 0.0;\n    var v_v2: f32 = 0.0;\n    var v_v3: f32 = 0.0;\n    var v_sv0: f32 = 0.0;\n    var v_sv1: f32 = 0.0;\n    var v_sv2: f32 = 0.0;\n    var v_sv3: f32 = 0.0;\n    var v_sv4: f32 = 0.0;\n    var v_sv5: f32 = 0.0;\n    var v_sv6: f32 = 0.0;\n    var v_sv7: f32 = 0.0;\n    var v_sv8: f32 = 0.0;\n    var v_sv9: f32 = 0.0;\n    var v_acc1: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_sv10: f32 = 0.0;\n    var v_sv11: f32 = 0.0;\n    var v_sv12: f32 = 0.0;\n    var v_sv13: f32 = 0.0;\n    var v_sv14: f32 = 0.0;\n    var v_sv15: f32 = 0.0;\n    var v_sv16: f32 = 0.0;\n    var v_sv17: f32 = 0.0;\n    var v_sv18: f32 = 0.0;\n    var v_sv19: f32 = 0.0;\n    var v_v4: f32 = 0.0;\n    v_acc0 = bitcast<f32>(0xff800000u);\n    for (var n_r0: i32 = tid; n_r0 < 25i; n_r0 = n_r0 + 32i) {\n        v_in0 = b0[((((((576i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 10000i) % 256i)) + (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 25i) % 20i)) + (147456i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 2560000i) % 16i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 5i) % 5i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 500i) % 20i))) + (n_r0 % 5i))];\n        v_v0 = select(0.0, 1.0, (v_in0) > (0.0));\n        v_v1 = select(0.0, 1.0, (v_in0) < (1.0));\n        v_v2 = select(1.0, 0.0, (v_v1) > 0.0);\n        v_v3 = select(v_v2, 0.0, (v_v0) > 0.0);\n        v_acc0 = max(v_acc0, v_v3);\n    }\n    workgroupBarrier();\n    s_red[tid] = v_acc0;\n    workgroupBarrier();\n    if (tid < 16i) {\n        v_sv0 = s_red[tid];\n        v_sv1 = s_red[(tid + 16i)];\n        s_red[tid] = max(v_sv0, v_sv1);\n    }\n    workgroupBarrier();\n    if (tid < 8i) {\n        v_sv2 = s_red[tid];\n        v_sv3 = s_red[(tid + 8i)];\n        s_red[tid] = max(v_sv2, v_sv3);\n    }\n    workgroupBarrier();\n    if (tid < 4i) {\n        v_sv4 = s_red[tid];\n        v_sv5 = s_red[(tid + 4i)];\n        s_red[tid] = max(v_sv4, v_sv5);\n    }\n    workgroupBarrier();\n    if (tid < 2i) {\n        v_sv6 = s_red[tid];\n        v_sv7 = s_red[(tid + 2i)];\n        s_red[tid] = max(v_sv6, v_sv7);\n    }\n    workgroupBarrier();\n    if (tid < 1i) {\n        v_sv8 = s_red[tid];\n        v_sv9 = s_red[(tid + 1i)];\n        s_red[tid] = max(v_sv8, v_sv9);\n    }\n    workgroupBarrier();\n    v_acc0 = s_red[0i];\n    v_acc1 = bitcast<f32>(0xff800000u);\n    for (var n_r1: i32 = tid; n_r1 < 25i; n_r1 = n_r1 + 32i) {\n        v_in1 = b0[((((((576i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 10000i) % 256i)) + (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 25i) % 20i)) + (147456i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 2560000i) % 16i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 5i) % 5i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 500i) % 20i))) + (n_r1 % 5i))];\n        v_acc1 = max(v_acc1, v_in1);\n    }\n    workgroupBarrier();\n    s_red[tid] = v_acc1;\n    workgroupBarrier();\n    if (tid < 16i) {\n        v_sv10 = s_red[tid];\n        v_sv11 = s_red[(tid + 16i)];\n        s_red[tid] = max(v_sv10, v_sv11);\n    }\n    workgroupBarrier();\n    if (tid < 8i) {\n        v_sv12 = s_red[tid];\n        v_sv13 = s_red[(tid + 8i)];\n        s_red[tid] = max(v_sv12, v_sv13);\n    }\n    workgroupBarrier();\n    if (tid < 4i) {\n        v_sv14 = s_red[tid];\n        v_sv15 = s_red[(tid + 4i)];\n        s_red[tid] = max(v_sv14, v_sv15);\n    }\n    workgroupBarrier();\n    if (tid < 2i) {\n        v_sv16 = s_red[tid];\n        v_sv17 = s_red[(tid + 2i)];\n        s_red[tid] = max(v_sv16, v_sv17);\n    }\n    workgroupBarrier();\n    if (tid < 1i) {\n        v_sv18 = s_red[tid];\n        v_sv19 = s_red[(tid + 1i)];\n        s_red[tid] = max(v_sv18, v_sv19);\n    }\n    workgroupBarrier();\n    v_acc1 = s_red[0i];\n    v_v4 = select(v_acc1, bitcast<f32>(0x7fc00000u), (v_acc0) > 0.0);\n    if (tid == 0i) {\n        bout[((((20i * ((bid / 20i) % 20i)) + (400i * ((bid / 400i) % 256i))) + (bid % 20i)) + (102400i * (bid / 102400i)))] = v_v4;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(32) k_max_pool2d_reduce__1t0gwo79cvc(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, acc1 = 0.0f, in1 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, sv14 = 0.0f, sv15 = 0.0f, sv16 = 0.0f, sv17 = 0.0f, sv18 = 0.0f, sv19 = 0.0f, v4 = 0.0f;\n    acc0 = __int_as_float(0xff800000);\n    for (int r0 = tid; r0 < 25; r0 += 32) {\n        in0 = src0[((((((576 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 10000) % 256)) + (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 25) % 20)) + (147456 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 2560000) % 16))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 5) % 5))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 500) % 20))) + (r0 % 5))];\n        v0 = ((in0) > (0.0f) ? 1.0f : 0.0f);\n        v1 = ((in0) < (1.0f) ? 1.0f : 0.0f);\n        v2 = ((v1) > 0.0f ? (0.0f) : (1.0f));\n        v3 = ((v0) > 0.0f ? (0.0f) : (v2));\n        acc0 = fmaxf(acc0, v3);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = fmaxf(sv0, sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = fmaxf(sv2, sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = fmaxf(sv4, sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = fmaxf(sv6, sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = fmaxf(sv8, sv9);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    acc1 = __int_as_float(0xff800000);\n    for (int r1 = tid; r1 < 25; r1 += 32) {\n        in1 = src0[((((((576 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 10000) % 256)) + (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 25) % 20)) + (147456 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 2560000) % 16))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 5) % 5))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 500) % 20))) + (r1 % 5))];\n        acc1 = fmaxf(acc1, in1);\n    }\n    __syncthreads();\n    s_red[tid] = acc1;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 16)];\n        s_red[tid] = fmaxf(sv10, sv11);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 8)];\n        s_red[tid] = fmaxf(sv12, sv13);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv14 = s_red[tid];\n        sv15 = s_red[(tid + 4)];\n        s_red[tid] = fmaxf(sv14, sv15);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv16 = s_red[tid];\n        sv17 = s_red[(tid + 2)];\n        s_red[tid] = fmaxf(sv16, sv17);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv18 = s_red[tid];\n        sv19 = s_red[(tid + 1)];\n        s_red[tid] = fmaxf(sv18, sv19);\n    }\n    __syncthreads();\n    acc1 = s_red[0];\n    v4 = ((acc0) > 0.0f ? (__int_as_float(0x7fc00000)) : (acc1));\n    if ((tid == 0)) {\n        dst[((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400)))] = v4;\n    }\n}"
+  },
+  {
+   "name": "k_max_pool2d_cast_2__15815e6enqo",
+   "identity": "15815e6enqo",
+   "row": "TPB=128",
+   "reads": [
+    0,
+    4
+   ],
+   "writes": 5,
+   "grid": 18432,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    18432,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256,
+    24,
+    24
+   ],
+   "inShapes": [
+    [
+     16,
+     256,
+     20,
+     20
+    ],
+    [
+     1,
+     1,
+     24,
+     24
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_max_pool2d_cast_2__15815e6enqo(const __nv_bfloat16* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 2359296)) {\n        in0 = src1[((24 * ((e / 24) % 24)) + (e % 24))];\n        in1 = __bfloat162float(src0[((((20 * min(max((((e / 24) % 24) + (-2)), 0), 19)) + min(max(((e % 24) + (-2)), 0), 19)) + (400 * ((e / 576) % 256))) + (102400 * (e / 147456)))]);\n        v0 = in1;\n        v1 = ((in0) > 0.0f ? (v0) : (__int_as_float(0xff800000)));\n        dst[((((24 * ((e / 24) % 24)) + (576 * ((e / 576) % 256))) + (e % 24)) + (147456 * (e / 147456)))] = v1;\n    }\n}"
+  },
+  {
+   "name": "k_max_pool2d_reduce_2__1t0gwo79cvc",
+   "identity": "1t0gwo79cvc",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    5
+   ],
+   "writes": 6,
+   "grid": 1638400,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    65535,
+    26,
+    1
+   ],
+   "shape": [
+    16,
+    256,
+    20,
+    20,
+    1
+   ],
+   "inShapes": [
+    [
+     16,
+     256,
+     24,
+     24
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\nvar<workgroup> s_red: array<f32, 32>;\n\n@compute @workgroup_size(32)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1638400i) { return; }\n    var v_acc0: f32 = 0.0;\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var v_v1: f32 = 0.0;\n    var v_v2: f32 = 0.0;\n    var v_v3: f32 = 0.0;\n    var v_sv0: f32 = 0.0;\n    var v_sv1: f32 = 0.0;\n    var v_sv2: f32 = 0.0;\n    var v_sv3: f32 = 0.0;\n    var v_sv4: f32 = 0.0;\n    var v_sv5: f32 = 0.0;\n    var v_sv6: f32 = 0.0;\n    var v_sv7: f32 = 0.0;\n    var v_sv8: f32 = 0.0;\n    var v_sv9: f32 = 0.0;\n    var v_acc1: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_sv10: f32 = 0.0;\n    var v_sv11: f32 = 0.0;\n    var v_sv12: f32 = 0.0;\n    var v_sv13: f32 = 0.0;\n    var v_sv14: f32 = 0.0;\n    var v_sv15: f32 = 0.0;\n    var v_sv16: f32 = 0.0;\n    var v_sv17: f32 = 0.0;\n    var v_sv18: f32 = 0.0;\n    var v_sv19: f32 = 0.0;\n    var v_v4: f32 = 0.0;\n    v_acc0 = bitcast<f32>(0xff800000u);\n    for (var n_r0: i32 = tid; n_r0 < 25i; n_r0 = n_r0 + 32i) {\n        v_in0 = b0[((((((576i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 10000i) % 256i)) + (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 25i) % 20i)) + (147456i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 2560000i) % 16i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 5i) % 5i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 500i) % 20i))) + (n_r0 % 5i))];\n        v_v0 = select(0.0, 1.0, (v_in0) > (0.0));\n        v_v1 = select(0.0, 1.0, (v_in0) < (1.0));\n        v_v2 = select(1.0, 0.0, (v_v1) > 0.0);\n        v_v3 = select(v_v2, 0.0, (v_v0) > 0.0);\n        v_acc0 = max(v_acc0, v_v3);\n    }\n    workgroupBarrier();\n    s_red[tid] = v_acc0;\n    workgroupBarrier();\n    if (tid < 16i) {\n        v_sv0 = s_red[tid];\n        v_sv1 = s_red[(tid + 16i)];\n        s_red[tid] = max(v_sv0, v_sv1);\n    }\n    workgroupBarrier();\n    if (tid < 8i) {\n        v_sv2 = s_red[tid];\n        v_sv3 = s_red[(tid + 8i)];\n        s_red[tid] = max(v_sv2, v_sv3);\n    }\n    workgroupBarrier();\n    if (tid < 4i) {\n        v_sv4 = s_red[tid];\n        v_sv5 = s_red[(tid + 4i)];\n        s_red[tid] = max(v_sv4, v_sv5);\n    }\n    workgroupBarrier();\n    if (tid < 2i) {\n        v_sv6 = s_red[tid];\n        v_sv7 = s_red[(tid + 2i)];\n        s_red[tid] = max(v_sv6, v_sv7);\n    }\n    workgroupBarrier();\n    if (tid < 1i) {\n        v_sv8 = s_red[tid];\n        v_sv9 = s_red[(tid + 1i)];\n        s_red[tid] = max(v_sv8, v_sv9);\n    }\n    workgroupBarrier();\n    v_acc0 = s_red[0i];\n    v_acc1 = bitcast<f32>(0xff800000u);\n    for (var n_r1: i32 = tid; n_r1 < 25i; n_r1 = n_r1 + 32i) {\n        v_in1 = b0[((((((576i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 10000i) % 256i)) + (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 25i) % 20i)) + (147456i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 2560000i) % 16i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 5i) % 5i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 500i) % 20i))) + (n_r1 % 5i))];\n        v_acc1 = max(v_acc1, v_in1);\n    }\n    workgroupBarrier();\n    s_red[tid] = v_acc1;\n    workgroupBarrier();\n    if (tid < 16i) {\n        v_sv10 = s_red[tid];\n        v_sv11 = s_red[(tid + 16i)];\n        s_red[tid] = max(v_sv10, v_sv11);\n    }\n    workgroupBarrier();\n    if (tid < 8i) {\n        v_sv12 = s_red[tid];\n        v_sv13 = s_red[(tid + 8i)];\n        s_red[tid] = max(v_sv12, v_sv13);\n    }\n    workgroupBarrier();\n    if (tid < 4i) {\n        v_sv14 = s_red[tid];\n        v_sv15 = s_red[(tid + 4i)];\n        s_red[tid] = max(v_sv14, v_sv15);\n    }\n    workgroupBarrier();\n    if (tid < 2i) {\n        v_sv16 = s_red[tid];\n        v_sv17 = s_red[(tid + 2i)];\n        s_red[tid] = max(v_sv16, v_sv17);\n    }\n    workgroupBarrier();\n    if (tid < 1i) {\n        v_sv18 = s_red[tid];\n        v_sv19 = s_red[(tid + 1i)];\n        s_red[tid] = max(v_sv18, v_sv19);\n    }\n    workgroupBarrier();\n    v_acc1 = s_red[0i];\n    v_v4 = select(v_acc1, bitcast<f32>(0x7fc00000u), (v_acc0) > 0.0);\n    if (tid == 0i) {\n        bout[((((20i * ((bid / 20i) % 20i)) + (400i * ((bid / 400i) % 256i))) + (bid % 20i)) + (102400i * (bid / 102400i)))] = v_v4;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(32) k_max_pool2d_reduce_2__1t0gwo79cvc(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, acc1 = 0.0f, in1 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, sv14 = 0.0f, sv15 = 0.0f, sv16 = 0.0f, sv17 = 0.0f, sv18 = 0.0f, sv19 = 0.0f, v4 = 0.0f;\n    acc0 = __int_as_float(0xff800000);\n    for (int r0 = tid; r0 < 25; r0 += 32) {\n        in0 = src0[((((((576 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 10000) % 256)) + (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 25) % 20)) + (147456 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 2560000) % 16))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 5) % 5))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 500) % 20))) + (r0 % 5))];\n        v0 = ((in0) > (0.0f) ? 1.0f : 0.0f);\n        v1 = ((in0) < (1.0f) ? 1.0f : 0.0f);\n        v2 = ((v1) > 0.0f ? (0.0f) : (1.0f));\n        v3 = ((v0) > 0.0f ? (0.0f) : (v2));\n        acc0 = fmaxf(acc0, v3);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = fmaxf(sv0, sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = fmaxf(sv2, sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = fmaxf(sv4, sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = fmaxf(sv6, sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = fmaxf(sv8, sv9);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    acc1 = __int_as_float(0xff800000);\n    for (int r1 = tid; r1 < 25; r1 += 32) {\n        in1 = src0[((((((576 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 10000) % 256)) + (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 25) % 20)) + (147456 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 2560000) % 16))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 5) % 5))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 500) % 20))) + (r1 % 5))];\n        acc1 = fmaxf(acc1, in1);\n    }\n    __syncthreads();\n    s_red[tid] = acc1;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 16)];\n        s_red[tid] = fmaxf(sv10, sv11);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 8)];\n        s_red[tid] = fmaxf(sv12, sv13);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv14 = s_red[tid];\n        sv15 = s_red[(tid + 4)];\n        s_red[tid] = fmaxf(sv14, sv15);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv16 = s_red[tid];\n        sv17 = s_red[(tid + 2)];\n        s_red[tid] = fmaxf(sv16, sv17);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv18 = s_red[tid];\n        sv19 = s_red[(tid + 1)];\n        s_red[tid] = fmaxf(sv18, sv19);\n    }\n    __syncthreads();\n    acc1 = s_red[0];\n    v4 = ((acc0) > 0.0f ? (__int_as_float(0x7fc00000)) : (acc1));\n    if ((tid == 0)) {\n        dst[((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400)))] = v4;\n    }\n}"
+  },
+  {
+   "name": "k_max_pool2d_cast_3__15815e6enqo",
+   "identity": "15815e6enqo",
+   "row": "TPB=128",
+   "reads": [
+    0,
+    7
+   ],
+   "writes": 8,
+   "grid": 18432,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    18432,
+    1,
+    1
+   ],
+   "shape": [
+    16,
+    256,
+    24,
+    24
+   ],
+   "inShapes": [
+    [
+     16,
+     256,
+     20,
+     20
+    ],
+    [
+     1,
+     1,
+     24,
+     24
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_max_pool2d_cast_3__15815e6enqo(const __nv_bfloat16* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 2359296)) {\n        in0 = src1[((24 * ((e / 24) % 24)) + (e % 24))];\n        in1 = __bfloat162float(src0[((((20 * min(max((((e / 24) % 24) + (-2)), 0), 19)) + min(max(((e % 24) + (-2)), 0), 19)) + (400 * ((e / 576) % 256))) + (102400 * (e / 147456)))]);\n        v0 = in1;\n        v1 = ((in0) > 0.0f ? (v0) : (__int_as_float(0xff800000)));\n        dst[((((24 * ((e / 24) % 24)) + (576 * ((e / 576) % 256))) + (e % 24)) + (147456 * (e / 147456)))] = v1;\n    }\n}"
+  },
+  {
+   "name": "k_max_pool2d_reduce_3__1t0gwo79cvc",
+   "identity": "1t0gwo79cvc",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    8
+   ],
+   "writes": 9,
+   "grid": 1638400,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    65535,
+    26,
+    1
+   ],
+   "shape": [
+    16,
+    256,
+    20,
+    20,
+    1
+   ],
+   "inShapes": [
+    [
+     16,
+     256,
+     24,
+     24
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\nvar<workgroup> s_red: array<f32, 32>;\n\n@compute @workgroup_size(32)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 1638400i) { return; }\n    var v_acc0: f32 = 0.0;\n    var v_in0: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var v_v1: f32 = 0.0;\n    var v_v2: f32 = 0.0;\n    var v_v3: f32 = 0.0;\n    var v_sv0: f32 = 0.0;\n    var v_sv1: f32 = 0.0;\n    var v_sv2: f32 = 0.0;\n    var v_sv3: f32 = 0.0;\n    var v_sv4: f32 = 0.0;\n    var v_sv5: f32 = 0.0;\n    var v_sv6: f32 = 0.0;\n    var v_sv7: f32 = 0.0;\n    var v_sv8: f32 = 0.0;\n    var v_sv9: f32 = 0.0;\n    var v_acc1: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_sv10: f32 = 0.0;\n    var v_sv11: f32 = 0.0;\n    var v_sv12: f32 = 0.0;\n    var v_sv13: f32 = 0.0;\n    var v_sv14: f32 = 0.0;\n    var v_sv15: f32 = 0.0;\n    var v_sv16: f32 = 0.0;\n    var v_sv17: f32 = 0.0;\n    var v_sv18: f32 = 0.0;\n    var v_sv19: f32 = 0.0;\n    var v_v4: f32 = 0.0;\n    v_acc0 = bitcast<f32>(0xff800000u);\n    for (var n_r0: i32 = tid; n_r0 < 25i; n_r0 = n_r0 + 32i) {\n        v_in0 = b0[((((((576i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 10000i) % 256i)) + (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 25i) % 20i)) + (147456i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 2560000i) % 16i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 5i) % 5i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r0) / 500i) % 20i))) + (n_r0 % 5i))];\n        v_v0 = select(0.0, 1.0, (v_in0) > (0.0));\n        v_v1 = select(0.0, 1.0, (v_in0) < (1.0));\n        v_v2 = select(1.0, 0.0, (v_v1) > 0.0);\n        v_v3 = select(v_v2, 0.0, (v_v0) > 0.0);\n        v_acc0 = max(v_acc0, v_v3);\n    }\n    workgroupBarrier();\n    s_red[tid] = v_acc0;\n    workgroupBarrier();\n    if (tid < 16i) {\n        v_sv0 = s_red[tid];\n        v_sv1 = s_red[(tid + 16i)];\n        s_red[tid] = max(v_sv0, v_sv1);\n    }\n    workgroupBarrier();\n    if (tid < 8i) {\n        v_sv2 = s_red[tid];\n        v_sv3 = s_red[(tid + 8i)];\n        s_red[tid] = max(v_sv2, v_sv3);\n    }\n    workgroupBarrier();\n    if (tid < 4i) {\n        v_sv4 = s_red[tid];\n        v_sv5 = s_red[(tid + 4i)];\n        s_red[tid] = max(v_sv4, v_sv5);\n    }\n    workgroupBarrier();\n    if (tid < 2i) {\n        v_sv6 = s_red[tid];\n        v_sv7 = s_red[(tid + 2i)];\n        s_red[tid] = max(v_sv6, v_sv7);\n    }\n    workgroupBarrier();\n    if (tid < 1i) {\n        v_sv8 = s_red[tid];\n        v_sv9 = s_red[(tid + 1i)];\n        s_red[tid] = max(v_sv8, v_sv9);\n    }\n    workgroupBarrier();\n    v_acc0 = s_red[0i];\n    v_acc1 = bitcast<f32>(0xff800000u);\n    for (var n_r1: i32 = tid; n_r1 < 25i; n_r1 = n_r1 + 32i) {\n        v_in1 = b0[((((((576i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 10000i) % 256i)) + (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 25i) % 20i)) + (147456i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 2560000i) % 16i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 5i) % 5i))) + (24i * (((((((500i * ((bid / 20i) % 20i)) + (10000i * ((bid / 400i) % 256i))) + (25i * (bid % 20i))) + (2560000i * (bid / 102400i))) + n_r1) / 500i) % 20i))) + (n_r1 % 5i))];\n        v_acc1 = max(v_acc1, v_in1);\n    }\n    workgroupBarrier();\n    s_red[tid] = v_acc1;\n    workgroupBarrier();\n    if (tid < 16i) {\n        v_sv10 = s_red[tid];\n        v_sv11 = s_red[(tid + 16i)];\n        s_red[tid] = max(v_sv10, v_sv11);\n    }\n    workgroupBarrier();\n    if (tid < 8i) {\n        v_sv12 = s_red[tid];\n        v_sv13 = s_red[(tid + 8i)];\n        s_red[tid] = max(v_sv12, v_sv13);\n    }\n    workgroupBarrier();\n    if (tid < 4i) {\n        v_sv14 = s_red[tid];\n        v_sv15 = s_red[(tid + 4i)];\n        s_red[tid] = max(v_sv14, v_sv15);\n    }\n    workgroupBarrier();\n    if (tid < 2i) {\n        v_sv16 = s_red[tid];\n        v_sv17 = s_red[(tid + 2i)];\n        s_red[tid] = max(v_sv16, v_sv17);\n    }\n    workgroupBarrier();\n    if (tid < 1i) {\n        v_sv18 = s_red[tid];\n        v_sv19 = s_red[(tid + 1i)];\n        s_red[tid] = max(v_sv18, v_sv19);\n    }\n    workgroupBarrier();\n    v_acc1 = s_red[0i];\n    v_v4 = select(v_acc1, bitcast<f32>(0x7fc00000u), (v_acc0) > 0.0);\n    if (tid == 0i) {\n        bout[((((20i * ((bid / 20i) % 20i)) + (400i * ((bid / 400i) % 256i))) + (bid % 20i)) + (102400i * (bid / 102400i)))] = v_v4;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(32) k_max_pool2d_reduce_3__1t0gwo79cvc(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, acc1 = 0.0f, in1 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, sv14 = 0.0f, sv15 = 0.0f, sv16 = 0.0f, sv17 = 0.0f, sv18 = 0.0f, sv19 = 0.0f, v4 = 0.0f;\n    acc0 = __int_as_float(0xff800000);\n    for (int r0 = tid; r0 < 25; r0 += 32) {\n        in0 = src0[((((((576 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 10000) % 256)) + (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 25) % 20)) + (147456 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 2560000) % 16))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 5) % 5))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r0) / 500) % 20))) + (r0 % 5))];\n        v0 = ((in0) > (0.0f) ? 1.0f : 0.0f);\n        v1 = ((in0) < (1.0f) ? 1.0f : 0.0f);\n        v2 = ((v1) > 0.0f ? (0.0f) : (1.0f));\n        v3 = ((v0) > 0.0f ? (0.0f) : (v2));\n        acc0 = fmaxf(acc0, v3);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = fmaxf(sv0, sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = fmaxf(sv2, sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = fmaxf(sv4, sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = fmaxf(sv6, sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = fmaxf(sv8, sv9);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    acc1 = __int_as_float(0xff800000);\n    for (int r1 = tid; r1 < 25; r1 += 32) {\n        in1 = src0[((((((576 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 10000) % 256)) + (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 25) % 20)) + (147456 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 2560000) % 16))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 5) % 5))) + (24 * (((((((500 * ((bid / 20) % 20)) + (10000 * ((bid / 400) % 256))) + (25 * (bid % 20))) + (2560000 * (bid / 102400))) + r1) / 500) % 20))) + (r1 % 5))];\n        acc1 = fmaxf(acc1, in1);\n    }\n    __syncthreads();\n    s_red[tid] = acc1;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 16)];\n        s_red[tid] = fmaxf(sv10, sv11);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 8)];\n        s_red[tid] = fmaxf(sv12, sv13);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv14 = s_red[tid];\n        sv15 = s_red[(tid + 4)];\n        s_red[tid] = fmaxf(sv14, sv15);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv16 = s_red[tid];\n        sv17 = s_red[(tid + 2)];\n        s_red[tid] = fmaxf(sv16, sv17);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv18 = s_red[tid];\n        sv19 = s_red[(tid + 1)];\n        s_red[tid] = fmaxf(sv18, sv19);\n    }\n    __syncthreads();\n    acc1 = s_red[0];\n    v4 = ((acc0) > 0.0f ? (__int_as_float(0x7fc00000)) : (acc1));\n    if ((tid == 0)) {\n        dst[((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400)))] = v4;\n    }\n}"
+  },
+  {
+   "name": "k_out0__1rjthukma0d",
+   "identity": "1rjthukma0d",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    3,
+    6,
+    9
+   ],
+   "writes": 10,
+   "grid": 102400,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65535,
+    2,
+    1
+   ],
+   "shape": [
+    16,
+    1024,
+    20,
+    20
+   ],
+   "inShapes": [
+    [
+     16,
+     256,
+     20,
+     20
+    ],
+    [
+     16,
+     256,
+     20,
+     20,
+     1
+    ],
+    [
+     16,
+     256,
+     20,
+     20,
+     1
+    ],
+    [
+     16,
+     256,
+     20,
+     20,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out0__1rjthukma0d(const __nv_bfloat16* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, in1 = 0.0f, v2 = 0.0f, v3 = 0.0f, in2 = 0.0f, v4 = 0.0f, v5 = 0.0f, in3 = 0.0f, v6 = 0.0f, v7 = 0.0f, v8 = 0.0f, v9 = 0.0f, v10 = 0.0f, v11 = 0.0f;\n    bool x0 = 0, x1 = 0, x2 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 6553600)) {\n        x0 = ((((768 <= ((e / 400) % 1024)) && (((e / 400) % 1024) < 1024))) != 0);\n        x1 = ((((512 <= ((e / 400) % 1024)) && (((e / 400) % 1024) < 768))) != 0);\n        x2 = ((((256 <= ((e / 400) % 1024)) && (((e / 400) % 1024) < 512))) != 0);\n        in0 = src3[((((400 * min(max((((e / 400) % 1024) + (-768)), 0), 255)) + (20 * ((e / 20) % 20))) + (e % 20)) + (102400 * (e / 409600)))];\n        v0 = __bfloat162float(__float2bfloat16_rn(in0));\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        in1 = src2[((((400 * min(max((((e / 400) % 1024) + (-512)), 0), 255)) + (20 * ((e / 20) % 20))) + (e % 20)) + (102400 * (e / 409600)))];\n        v2 = __bfloat162float(__float2bfloat16_rn(in1));\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        in2 = src1[((((400 * min(max((((e / 400) % 1024) + (-256)), 0), 255)) + (20 * ((e / 20) % 20))) + (e % 20)) + (102400 * (e / 409600)))];\n        v4 = __bfloat162float(__float2bfloat16_rn(in2));\n        v5 = __bfloat162float(__float2bfloat16_rn(v4));\n        in3 = __bfloat162float(src0[((((400 * min(max(((e / 400) % 1024), 0), 255)) + (20 * ((e / 20) % 20))) + (e % 20)) + (102400 * (e / 409600)))]);\n        v6 = ((x2) > 0.0f ? (v5) : (in3));\n        v7 = __bfloat162float(__float2bfloat16_rn(v6));\n        v8 = ((x1) > 0.0f ? (v3) : (v7));\n        v9 = __bfloat162float(__float2bfloat16_rn(v8));\n        v10 = ((x0) > 0.0f ? (v1) : (v9));\n        v11 = __bfloat162float(__float2bfloat16_rn(v10));\n        dst[((((20 * ((e / 20) % 20)) + (400 * ((e / 400) % 1024))) + (e % 20)) + (409600 * (e / 409600)))] = __float2bfloat16_rn(v11);\n    }\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "direct",
+   "producer": "k___mut0__20obrgc5x4j",
+   "slots": [
+    0
+   ]
+  }
+ ]
+}

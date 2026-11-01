@@ -1,0 +1,158 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-161/corpus/000.kiln.js",
+  "sha256": "c3e94c722f048b51822583ce83d4a48f84370ce715c307d4a2a587aeb48b702e",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    128,
+    1280,
+    1,
+    1
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    128,
+    1280
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    128,
+    1280,
+    1,
+    1
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 163840,
+   "bytes": 327680
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 163840,
+   "bytes": 327680
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k___mut0__1rxlmfwonxk",
+   "identity": "1rxlmfwonxk",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 0,
+   "grid": 1280,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1280,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    1280,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     128,
+     1280,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "in-place input write is emitted for CUDA only",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k___mut0__1rxlmfwonxk(__half* src0, __half* dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 163840)) {\n        in0 = __half2float(src0[((e % 1280) + (1280 * (e / 1280)))]);\n        v0 = fmaxf(in0, 0.0f);\n        v1 = __half2float(__float2half_rn(v0));\n        dst[((e % 1280) + (1280 * (e / 1280)))] = __float2half_rn(v1);\n    }\n}",
+   "inPlace": {
+    "input": "v0",
+    "slots": [
+     0
+    ],
+    "of": "291czg5ftim"
+   }
+  },
+  {
+   "name": "k_out0__76bgpu7tr6",
+   "identity": "76bgpu7tr6",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1280,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1280,
+    1,
+    1
+   ],
+   "shape": [
+    128,
+    1280
+   ],
+   "inShapes": [
+    [
+     128,
+     1280,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_out0__76bgpu7tr6(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 163840)) {\n        in0 = __half2float(src0[((e % 1280) + (1280 * (e / 1280)))]);\n        dst[((e % 1280) + (1280 * (e / 1280)))] = __float2half_rn(in0);\n    }\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "direct",
+   "producer": "k___mut0__1rxlmfwonxk",
+   "slots": [
+    0
+   ]
+  }
+ ]
+}

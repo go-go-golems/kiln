@@ -1,0 +1,207 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-175/corpus/000.kiln.js",
+  "sha256": "dc6f70d29de523ba97d3a655ee17c726c5949e1ee30b9cf55072cb14d7c9684d",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    512,
+    20,
+    20
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    256,
+    80,
+    80
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1,
+    512,
+    40,
+    40
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    1,
+    256,
+    80,
+    80
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "out1",
+   "buffer": 2,
+   "shape": [
+    1,
+    512,
+    40,
+    40
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "out2",
+   "buffer": 3,
+   "shape": [
+    1,
+    512,
+    20,
+    20
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    1,
+    512,
+    20,
+    20
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 204800,
+   "bytes": 409600
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 1638400,
+   "bytes": 3276800
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 819200,
+   "bytes": 1638400
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 204800,
+   "bytes": 409600
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_silu__191pjl0h58o",
+   "identity": "191pjl0h58o",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 3,
+   "grid": 1600,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1600,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    512,
+    20,
+    20
+   ],
+   "inShapes": [
+    [
+     1,
+     512,
+     20,
+     20
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_cast_silu__191pjl0h58o(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 204800)) {\n        in0 = __bfloat162float(src0[(((20 * ((e / 20) % 20)) + (e % 20)) + (400 * (e / 400)))]);\n        v0 = in0;\n        v1 = (1.0f / (1.0f + expf(-(v0))));\n        v2 = __fmul_rn(v0, v1);\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        v4 = __bfloat162float(__float2bfloat16_rn(v3));\n        dst[(((20 * ((e / 20) % 20)) + (e % 20)) + (400 * (e / 400)))] = __float2bfloat16_rn(v4);\n    }\n}"
+  },
+  {
+   "name": "k_writeback__2b370zhalkd",
+   "identity": "2b370zhalkd",
+   "row": "MAP=thread",
+   "reads": [
+    3
+   ],
+   "writes": 0,
+   "grid": 800,
+   "block": 256,
+   "smemBytes": 0,
+   "dispatch": [
+    800,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    512,
+    20,
+    20
+   ],
+   "inShapes": [
+    [
+     1,
+     512,
+     20,
+     20
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgslUnavailable": "input mutation write-back is emitted for CUDA only",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(256) k_writeback__2b370zhalkd(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int e = blockIdx.x * 256 + threadIdx.x;\n    if (e < 204800) dst[e] = src0[e];\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "writeback",
+   "reason": "output out2 also holds the value"
+  }
+ ]
+}

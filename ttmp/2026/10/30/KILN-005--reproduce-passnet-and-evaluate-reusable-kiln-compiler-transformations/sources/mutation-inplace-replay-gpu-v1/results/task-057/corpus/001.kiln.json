@@ -1,0 +1,334 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-057/corpus/001.kiln.js",
+  "sha256": "bf3fce77518df870109bdf3cd11347df95f556c30b2eda1dbcc6091952ecbb35",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    4,
+    512,
+    64,
+    64
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    4,
+    64,
+    64,
+    64
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    4,
+    512,
+    64,
+    64
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    4,
+    512,
+    64,
+    64
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 7,
+   "shape": [
+    4,
+    512,
+    64,
+    64
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "__mut2",
+   "buffer": 2,
+   "shape": [
+    4,
+    512,
+    64,
+    64
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 8388608,
+   "bytes": 16777216
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 1048576,
+   "bytes": 2097152
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 8388608,
+   "bytes": 16777216
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 1,
+   "bytes": 4
+  },
+  {
+   "id": 4,
+   "dtype": "bf16",
+   "elements": 8388608,
+   "bytes": 16777216
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 1048576,
+   "bytes": 4194304
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 8388608,
+   "bytes": 33554432
+  },
+  {
+   "id": 7,
+   "dtype": "bf16",
+   "elements": 8388608,
+   "bytes": 16777216
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_reshape_ew__1519hxp5l14",
+   "identity": "1519hxp5l14",
+   "row": "TPB=128",
+   "reads": [
+    1
+   ],
+   "writes": 5,
+   "grid": 8192,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    8192,
+    1,
+    1
+   ],
+   "shape": [
+    256,
+    64,
+    64
+   ],
+   "inShapes": [
+    [
+     4,
+     64,
+     64,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\n__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned b = __float_as_uint(x); if ((b & 0x7f800000u) == 0x7f800000u) return x; return __uint_as_float((b + 0xfffu + ((b >> 13) & 1u)) & 0xffffe000u); }\nextern \"C\" __global__ void __launch_bounds__(128) k_cast_reshape_ew__1519hxp5l14(const __nv_bfloat16* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 1048576)) {\n        in0 = __bfloat162float(src0[((((262144 * (((((64 * ((e / 64) % 64)) + (e % 64)) + (4096 * (e / 4096))) / 262144) % 4)) + (4096 * (((((64 * ((e / 64) % 64)) + (e % 64)) + (4096 * (e / 4096))) / 4096) % 64))) + (((((64 * ((e / 64) % 64)) + (e % 64)) + (4096 * (e / 4096))) / 64) % 64)) + (64 * ((e % 64) % 64)))]);\n        v0 = in0;\n        v1 = kiln_round_tf32(v0);\n        dst[(((64 * ((e / 64) % 64)) + (e % 64)) + (4096 * (e / 4096)))] = v1;\n    }\n}"
+  },
+  {
+   "name": "k_cast_reshape_ew_2__17m2fqzid8m",
+   "identity": "17m2fqzid8m",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 6,
+   "grid": 65536,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    65535,
+    2,
+    1
+   ],
+   "shape": [
+    256,
+    512,
+    64
+   ],
+   "inShapes": [
+    [
+     4,
+     512,
+     64,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\n__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned b = __float_as_uint(x); if ((b & 0x7f800000u) == 0x7f800000u) return x; return __uint_as_float((b + 0xfffu + ((b >> 13) & 1u)) & 0xffffe000u); }\nextern \"C\" __global__ void __launch_bounds__(128) k_cast_reshape_ew_2__17m2fqzid8m(const __nv_bfloat16* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 8388608)) {\n        in0 = __bfloat162float(src0[((((2097152 * (((((64 * ((e / 64) % 512)) + (e % 64)) + (32768 * (e / 32768))) / 2097152) % 4)) + (64 * (((((64 * ((e / 64) % 512)) + (e % 64)) + (32768 * (e / 32768))) / 32768) % 64))) + (4096 * (((((64 * ((e / 64) % 512)) + (e % 64)) + (32768 * (e / 32768))) / 64) % 512))) + ((e % 64) % 64))]);\n        v0 = in0;\n        v1 = kiln_round_tf32(v0);\n        dst[(((64 * ((e / 64) % 512)) + (e % 64)) + (32768 * (e / 32768)))] = v1;\n    }\n}"
+  },
+  {
+   "name": "k___mut2__2486oga504o",
+   "identity": "2486oga504o",
+   "row": "TPB=128",
+   "reads": [
+    2,
+    5,
+    6
+   ],
+   "writes": 2,
+   "grid": 65536,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    65535,
+    2,
+    1
+   ],
+   "shape": [
+    4,
+    512,
+    64,
+    64
+   ],
+   "inShapes": [
+    [
+     4,
+     512,
+     64,
+     64
+    ],
+    [
+     256,
+     64,
+     64
+    ],
+    [
+     256,
+     512,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "in-place input write is emitted for CUDA only",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k___mut2__2486oga504o(__nv_bfloat16* src0, const float* __restrict__ src1, const float* __restrict__ src2, __nv_bfloat16* dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, acc0 = 0.0f, in1 = 0.0f, in2 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 8388608)) {\n        in0 = __bfloat162float(src0[((((4096 * ((e / 4096) % 512)) + (64 * ((e / 64) % 64))) + (e % 64)) + (2097152 * (e / 2097152)))]);\n        acc0 = 0.0f;\n        for (int r0 = 0; r0 < 64; r0 += 1) {\n            in1 = src2[(((32768 * ((((((64 * ((e / 4096) % 512)) + (32768 * ((e / 64) % 64))) + (e % 64)) + (2097152 * (e / 2097152))) / 32768) % 256)) + (64 * ((((((64 * ((e / 4096) % 512)) + (32768 * ((e / 64) % 64))) + (e % 64)) + (2097152 * (e / 2097152))) / 64) % 512))) + r0)];\n            in2 = src1[(((4096 * ((((((64 * ((e / 4096) % 512)) + (32768 * ((e / 64) % 64))) + (e % 64)) + (2097152 * (e / 2097152))) / 32768) % 256)) + ((e % 64) % 64)) + (64 * r0))];\n            v0 = __fmul_rn(in1, in2);\n            acc0 = (acc0 + v0);\n        }\n        v1 = __bfloat162float(__float2bfloat16_rn(acc0));\n        v2 = __bfloat162float(__float2bfloat16_rn(v1));\n        v3 = __fadd_rn(in0, v2);\n        v4 = __bfloat162float(__float2bfloat16_rn(v3));\n        dst[((((4096 * ((e / 4096) % 512)) + (64 * ((e / 64) % 64))) + (e % 64)) + (2097152 * (e / 2097152)))] = __float2bfloat16_rn(v4);\n    }\n}",
+   "inPlace": {
+    "input": "v2",
+    "slots": [
+     0
+    ],
+    "of": "1fa13qm52uw"
+   }
+  },
+  {
+   "name": "k_out0__xtef9efm88",
+   "identity": "xtef9efm88",
+   "row": "TPB=64,COARSEN=2",
+   "reads": [
+    4,
+    2,
+    3
+   ],
+   "writes": 7,
+   "grid": 65536,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65535,
+    2,
+    1
+   ],
+   "shape": [
+    4,
+    512,
+    64,
+    64
+   ],
+   "inShapes": [
+    [
+     4,
+     512,
+     64,
+     64
+    ],
+    [
+     4,
+     512,
+     64,
+     64
+    ],
+    []
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out0__xtef9efm88(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, const __nv_bfloat16* __restrict__ src2, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in1 = 0.0f, in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, in2 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((128 * bid) + (64 * j)) + tid);\n        if ((e < 8388608)) {\n            in1 = __bfloat162float(src2[0]);\n            in0 = __bfloat162float(src1[((((4096 * ((e / 4096) % 512)) + (64 * ((e / 64) % 64))) + (e % 64)) + (2097152 * (e / 2097152)))]);\n            v0 = __fmul_rn(in0, in1);\n            v1 = __bfloat162float(__float2bfloat16_rn(v0));\n            in2 = __bfloat162float(src0[((((4096 * ((e / 4096) % 512)) + (64 * ((e / 64) % 64))) + (e % 64)) + (2097152 * (e / 2097152)))]);\n            v2 = __fadd_rn(v1, in2);\n            v3 = __bfloat162float(__float2bfloat16_rn(v2));\n            dst[((((4096 * ((e / 4096) % 512)) + (64 * ((e / 64) % 64))) + (e % 64)) + (2097152 * (e / 2097152)))] = __float2bfloat16_rn(v3);\n        }\n    }\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut2",
+   "input": "v2",
+   "strategy": "direct",
+   "producer": "k___mut2__2486oga504o",
+   "slots": [
+    0
+   ]
+  }
+ ]
+}

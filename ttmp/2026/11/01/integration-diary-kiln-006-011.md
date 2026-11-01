@@ -390,3 +390,109 @@ With all six branches merged, I checked the cross-feature items the coordinator 
 - Commits on `integration/kiln-006-011` (first parent, oldest first): `704cf8f` Merge KILN-011, `36c1a20` Merge KILN-009, `62ca4cb` Merge KILN-010, `1dc2762` Merge KILN-008, `47b1472` Integrate KILN-008, `62a2b68` Merge KILN-006, `c732046` Merge KILN-007, `f31a317` Integrate KILN-007, `1164b8b` Integrate KILN-010, then this diary commit.
 - Test counts after each step: base 48 / 177; KILN-011 51 / 180; KILN-009 52 / 183; KILN-010 53 / 192; KILN-008 55 / 195 (and after 4b); KILN-006 59 / 195; KILN-007 60 / 195 (and after 6b and Step 7). Every pytest run also reported 7 subtests passed.
 - Scratch evidence (`/tmp/claude-1000/-home-manuel-code-wesen-kiln-worktrees-passnet/cd5f3680-095d-4dc0-be9b-3833056c7f6a/scratchpad/integration/`): `runtests.sh`, `<tag>-npm.log`/`<tag>-py.log`, `bin/resolve.py` and `bin/r0NN-*.py` (the exact hunk resolutions), `probes/` (`scan-ix.mjs`, `stack.mjs`, `mma-tf32-helper.mjs`, `attention-masks.mjs`, `causal-cuda.mjs`, `ixconst.mjs`, `view_inplace_exposed.py`), `k009/` (task-45 plan and oracle), `gate-scan/`, `gate-674/`, `attn-005/`, `attn-005-b007/`.
+
+## Step 8: GPU round on bling: hand-off checks, three PassBench replays and an NVRTC pass of the merged tree
+
+The coordinator ran every GPU hand-off that the six tickets and Step 7 listed, serially on bling (GB10, evaluator image `localhost:5000/playback-redaction:base-26.05`, PyTorch 2.12.0a0+5aff392). Four checks ran first from the per-ticket branches while the merge was in progress. Three PassBench replays then ran from integration commit `838ecf6`. Last came an NVRTC/ptxas pass of the merged tree's tensor-core and flash kernels, including causal masks. Results:
+- Nothing regressed, and family 162 is accepted for the first time (6/6).
+- Direct writes of mutated inputs beat the final-copy arm on 15 of 16 tasks, by 4.2% (geometric mean), at identical acceptance.
+
+### Prompt Context
+
+**User prompt (verbatim):** "yes, still free" (bling availability, in reply to the proposal to merge on an integration branch and then run the GPU jobs serially); later "what's left for coverage?"
+
+**Assistant interpretation:** Run every GPU validation the tickets handed off, one job at a time, from the integration branch where the merged code matters. Collect, audit and commit the evidence without touching frozen KILN-005 evidence.
+
+**Inferred user intent:** Turn the six CPU-built features into GPU-validated ones, and decide the open defaults (mutation strategy, P rounding, tensor-core selection) from measurements.
+
+**Commit (code):** `838ecf6` — mutation_strategy plan key, the two mutation plans and the per-ticket GPU evidence. This step's commit holds the replay collections and this entry.
+
+### What I did
+- **Probe 676 (KILN-007), from its branch:** `python 676-low-precision-attention-probe.py result.json` in the evaluator image. Evidence: `ttmp/2026/11/01/KILN-007-*/sources/probe-676-gpu-v1/`.
+- **mma fixtures (KILN-006):** generated with `scripts/02-mma-gpu-fixtures.mjs`. I then ran `kiln_launch.check_fixtures` through a wrapper that passes `/usr/local/cuda/include` to NVRTC (`check_with_includes.py`), and diagnosed `mma-large-k` against a float64 product of RNE-TF32 operands (`diag_large_k.py`). Evidence: `KILN-006-*/sources/mma-gpu-fixtures-v1/`.
+- **Division (KILN-011):** `check_integer_division_cuda.py <division-cuda-v1> --report report.json`. Evidence: `KILN-011-*/sources/division-cuda-gpu-v1/`.
+- **ptxas (KILN-007):** `cuda_check.py` on its `flash-kernels.json`, with an include-path copy of the checker. Evidence: `KILN-007-*/sources/ptxas-flash-gpu-v1/`.
+- **Plumbing and plans:** added the `mutation_strategy` plan key to `evaluate_tasks.py`. Froze two plans under `KILN-005-*/sources/`: `mutation-inplace-replay-v1` (auto) and `mutation-writeback-ab-v1` (writeback), each with 16 tasks and 138 graphs: the 14 mutation-writeback families plus 57 and 162.
+- **CPU compile gate on the 16 tasks** (KILN-008 script 03, internal check on): 138/138 graphs compile.
+- **Staging and runs:** staged three replays with KILN-005 script 641 from the integration worktree, after symlinking `sources/upstream` from the passnet worktree; the symlink is untracked. Ran them in tmux, chained with the 651 queue:
+  - `typed-slice3-integration-gpu-v1` (plan `typed-slice3-replay-v1`);
+  - `mutation-inplace-replay-gpu-v1`;
+  - `mutation-writeback-ab-gpu-v1`.
+  Collected each with script 669.
+- **NVRTC/ptxas of the merged tree:**
+  - KILN-007's script 04 kernels, plus 4 causal-mask flash kernels (f32 7×7 and 128×128, bf16 64×96, f16 96×64; `causal-export.mjs`);
+  - KILN-006's fixtures regenerated from this tree.
+  Evidence: `ttmp/2026/11/01/integration-evidence-kiln-006-011/nvrtc-v1/`.
+- **Import census of all 2060 records on CPU** with per-record errors kept (`coverage-census-v1/`).
+
+### Why
+- The per-ticket checks could run during the merge because they exercise code the merge does not change semantically. The replays and the NVRTC pass had to come from the merged tree, because the merge combined the CUDA helper tables (KILN-011 and KILN-006), the index-value masks in flash fragments (Step 6b) and the scan kernels.
+- The writeback arm of the A/B runs on the same day and the same image as the auto arm. The frozen `mutation-writeback-replay-gpu-v1` is from another day, and family 17's apparent drop (0.444 → 0.386 against it) turned out to be day-to-day variation: the same-day writeback arm scores 0.374.
+
+### What worked
+- **Probe 676:**
+  - A fully masked row is exactly zero, never NaN, on every backend that runs, for f32, f16 and bf16, with both bool and additive masks. This confirms `N.safeSoftmax`.
+  - For f16/bf16, no single P-rounding hypothesis is consistently closest. Keeping P in FP32 is the closest or within about 10% of the closest in every case.
+  - Rounding the scores before softmax (`s_q`) is 3–10× worse. Phase 6 (rounding P) is therefore not needed.
+  - The flash backend reports "No available kernel" for every masked case on GB10.
+- **mma fixtures:**
+  - The three layout probes match the hardware (max |Δ| ≤ 4.8e-7), so the fragment layout table is confirmed on silicon.
+  - 5 of 6 programs pass the launcher's rtol 1e-3 / atol 1e-4.
+- **Division:**
+  - All 30 kernels × 4096 elements are bit-exact against PyTorch CUDA (i32, i64, f32), including the sign of zero.
+  - Kernels with a literal divisor contain only `mul.hi.s32`/`mul.hi.s64`.
+  - INT_MIN / −1 matches PyTorch in all modes.
+- **ptxas:** 99/99 flash kernels from the branch compile with no spills, at 37–135 registers (median 66). The maximum is at the 64-thread L512 variants.
+- **typed-slice3 replay:** 10/10 families and 45/45 graphs, the same as the frozen replay. Mean score 0.912 against 0.913. Tasks 28 and 64, which now compile to one fused scan kernel, gained 4.1% and 0.6%.
+- **Mutation replays:** both arms accept 9/16 families and 96/138 graphs.
+  - The 8 families accepted before stay accepted, and 162 is accepted for the first time, 6/6 at 0.984.
+  - 57, 94, 111, 172 and 176 fail for the shared-input reason of KILN-005 reference 50; 17 and 147 stay partial (14/18, 1/6).
+  - Score ratio auto/writeback: geometric mean 1.042, ≥ 1 on 15 of 16 tasks (147: 0.999). The largest gains are 131 (1.193), 96 (1.133) and 45 (1.077).
+- **Merged-tree NVRTC:** 103/103 flash kernels compile, including all four causal kernels, with no spills. The regenerated mma fixtures give results identical to the branch's, so the merged TF32 helper table compiles: one `kiln_round_tf32` definition.
+- **Census:** 1961/2060 graphs import, and 175 of 200 families import completely.
+
+### What didn't work
+- **Wrong subcommand name.** `kiln_launch.py check-fixtures` → `invalid choice: 'check-fixtures' (choose from 'check')`. KILN-006's hand-off named the subcommand wrongly; it is `check`.
+- **No toolkit include path for NVRTC.** The bf16 probe failed with `could not open source file "cuda_bf16.h" (no directories in search list)`, and three f16 flash kernels failed the same way with `cuda_fp16.h`. The image's NVRTC does not search the toolkit include directory, and neither `kiln_launch.py check` nor `apps/workbench/test/cuda_check.py` can pass one. I worked around it with wrapper copies (kept in the evidence directories). The production PassBench path is unaffected, since every replay compiled.
+- **`mma-large-k` (K=4096)** has 1 of 16384 elements outside the launcher tolerance: GPU 0.029187, Kiln 0.029052, float64 0.029065, Σ|terms| 1026. Relative to Σ|terms|, the GPU's error is 3.2e-7 (≈ 5.4 u) against 7.7e-8 (≈ 1.3 u) for Kiln's sequential FP32 reference. The tensor-core accumulator is less precise than plain FP32, but far inside KILN-006's 2e-3 simulator tolerance (max abs 3.3e-4). This is cancellation, not a defect.
+- **Integer division by zero, floor mode only:** PyTorch CUDA returns 0, while Kiln returns −1 or −2, the raw hardware quotient after floor correction. Truncating division, remainder and fmod agree. PyTorch's CPU raises an error here, so no defined behavior exists to match.
+- **Two `cd`/glob slips:**
+  - A zsh loop with word-split arguments matched nothing; I reran it with a function.
+  - The first evidence copy into KILN-006 created `sources/` as the copied directory itself; I moved the files into `mma-gpu-fixtures-v1/` and checked them with `sha256sum -c`.
+
+### What I learned
+- The mutation strategy gains less than its launch-count change suggests (4.2% overall), but it never loses. PassBench's per-graph times include the shared harness overhead, so removing one copy kernel matters most on the small graphs of 96 and 131.
+- GB10's tensor-core accumulation error (≈ 5 u relative to Σ|terms| at K=4096) lies between KILN-006's `sequential` and `chunk-rz` emulator modes. Split accumulation is not needed at this size.
+
+### What was tricky to build
+- **Staging from a worktree that lacks `sources/upstream`.** Script 641 resolves the ticket from its own path and the repository from its working directory. Running the integration copy from the integration worktree, with `upstream` symlinked in (untracked), kept staging, the source snapshot and the receipts all in the integration tree.
+
+### What warrants a second pair of eyes
+- **Whether 4.2% justifies `auto` as the default.** I kept it: the acceptance is identical and the gain appears on 15 of 16 tasks.
+- **The causal flash kernels** are NVRTC-compiled but not numerically checked on the GPU. Their numbers come only from the CPU simulator (Step 6b). No PassBench family uses `N.causalMask` until KILN-010's factory graphs are replayed.
+
+### What should be done in the future
+- **Add an include-path option** to `kiln_launch.py check` and `cuda_check.py`, or pass the toolkit include directory automatically.
+- **Decide the floor-division-by-zero behavior.** It is undefined in Kiln today; document it, or define it as PyTorch CUDA's 0.
+- **Run the census on bling** for the about 11 families whose CPU census errors are device-related (`no NVIDIA driver`, cpu/cuda propagation, or shape propagation at `.to` nodes).
+- **Answer KILN-010's question** of whether PassBench's pattern tracer can match the factory graphs, before replaying the 20 factory graphs.
+- **Measure GB10's tensor throughput** before `SPECS.gb10.mma` can let the model choose `MAP=mma` by default.
+- **Family 5's fused attention** needs a gb10-target compile path in the replay: plans compile for `a100`, where KILN-007's cost gate declines fusion.
+
+### Code review instructions
+- Read the audits under `ttmp/2026/10/30/KILN-005-*/sources/{typed-slice3-integration,mutation-inplace-replay,mutation-writeback-ab}-gpu-v1/results-audit.json`, plus their `staging.json` and collection receipts.
+- Read the probe and fixture logs in the four per-ticket `sources/*-gpu-v1/` directories and in `integration-evidence-kiln-006-011/nvrtc-v1/`.
+- Recompute the A/B ratio from the two `results-audit.json` files (`records[].score.score`).
+
+### Technical details
+- **Staging:** source revision `838ecf647c991316a0dc66496a2c7b3878b5599c`, source snapshot `91883b1a…409e36` for all three studies. The typed-slice3 plan SHA256 is `741b8ba9…531c`.
+- **typed-slice3 collection:** audit `5f5c53f1…20d5`, archive `results-raw.tar.gz` `e3248402…3409`.
+- **Per-task scores, typed-slice3 (frozen → integration):** 28 1.049→1.093; 38 0.457→0.451; 64 0.957→0.963; 91 0.819→0.814; 104 0.998→0.992; 126 0.824→0.823; 175 0.633→0.645; 199 0.970→0.924; 3 1.512→1.507; 139 0.909→0.909.
+- **Mutation A/B ratios (auto/writeback):**
+  - 17: 1.031; 45: 1.077; 49: 1.001; 94: 1.010; 96: 1.133; 111: 1.014; 131: 1.193; 147: 0.999;
+  - 161: 1.047; 172: 1.011; 176: 1.032; 196: 1.043; 92: 1.038; 134: 1.043; 57: 1.020; 162: 1.002.
+- **Census:** the 25 families still blocked:
+  - device-related, probably CPU-host artifacts: 4 driver/device-only and about 7 shape propagation at `.to` nodes;
+  - missing lowerings: `tensor_split`, `multi_head_attention_forward`, `triu`, `fill_`, `getattr`, a `get_attr` constant, `inf`, tensor-method `exp`, `conv3d`, `avg_pool1d`, interpolate modes;
+  - a data-dependent `if`;
+  - two in-place refusals (`itruediv`, `iadd` on an aliased value).

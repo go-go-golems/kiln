@@ -1,0 +1,220 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-096/corpus/003.kiln.js",
+  "sha256": "06d41283c5ca228cc3bb9d66aaab8a3b562bc7da8da3932f9a620b517be36c17",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    8,
+    128,
+    32,
+    32
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    8,
+    128,
+    32,
+    32
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 3,
+   "shape": [
+    8,
+    128,
+    32,
+    32
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    8,
+    128,
+    32,
+    32
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 1048576,
+   "bytes": 2097152
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 1048576,
+   "bytes": 2097152
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 1048576,
+   "bytes": 2097152
+  },
+  {
+   "id": 3,
+   "dtype": "bf16",
+   "elements": 1048576,
+   "bytes": 2097152
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k___mut0__2d7osmnfc8z",
+   "identity": "2d7osmnfc8z",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 2,
+   "grid": 8192,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    8192,
+    1,
+    1
+   ],
+   "shape": [
+    8,
+    128,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     8,
+     128,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k___mut0__2d7osmnfc8z(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 1048576)) {\n        in0 = __bfloat162float(src0[((((1024 * ((e / 1024) % 128)) + (32 * ((e / 32) % 32))) + (e % 32)) + (131072 * (e / 131072)))]);\n        v0 = in0;\n        v1 = (1.0f / (1.0f + expf(-(v0))));\n        v2 = __fmul_rn(v0, v1);\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        v4 = __bfloat162float(__float2bfloat16_rn(v3));\n        dst[((((1024 * ((e / 1024) % 128)) + (32 * ((e / 32) % 32))) + (e % 32)) + (131072 * (e / 131072)))] = __float2bfloat16_rn(v4);\n    }\n}"
+  },
+  {
+   "name": "k_out0__1w9t7izli7t",
+   "identity": "1w9t7izli7t",
+   "row": "TPB=128",
+   "reads": [
+    2,
+    1
+   ],
+   "writes": 3,
+   "grid": 8192,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    8192,
+    1,
+    1
+   ],
+   "shape": [
+    8,
+    128,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     8,
+     128,
+     32,
+     32
+    ],
+    [
+     8,
+     128,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_out0__1w9t7izli7t(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 1048576)) {\n        in0 = __bfloat162float(src0[((((1024 * ((e / 1024) % 128)) + (32 * ((e / 32) % 32))) + (e % 32)) + (131072 * (e / 131072)))]);\n        in1 = __bfloat162float(src1[((((1024 * ((e / 1024) % 128)) + (32 * ((e / 32) % 32))) + (e % 32)) + (131072 * (e / 131072)))]);\n        v0 = __fadd_rn(in0, in1);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        dst[((((1024 * ((e / 1024) % 128)) + (32 * ((e / 32) % 32))) + (e % 32)) + (131072 * (e / 131072)))] = __float2bfloat16_rn(v1);\n    }\n}"
+  },
+  {
+   "name": "k_writeback__1nw3y60oml3",
+   "identity": "1nw3y60oml3",
+   "row": "MAP=thread",
+   "reads": [
+    2
+   ],
+   "writes": 0,
+   "grid": 4096,
+   "block": 256,
+   "smemBytes": 0,
+   "dispatch": [
+    4096,
+    1,
+    1
+   ],
+   "shape": [
+    8,
+    128,
+    32,
+    32
+   ],
+   "inShapes": [
+    [
+     8,
+     128,
+     32,
+     32
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgslUnavailable": "input mutation write-back is emitted for CUDA only",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(256) k_writeback__1nw3y60oml3(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int e = blockIdx.x * 256 + threadIdx.x;\n    if (e < 1048576) dst[e] = src0[e];\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "writeback",
+   "reason": "forced (mutation strategy writeback)",
+   "planned": "direct"
+  }
+ ]
+}
