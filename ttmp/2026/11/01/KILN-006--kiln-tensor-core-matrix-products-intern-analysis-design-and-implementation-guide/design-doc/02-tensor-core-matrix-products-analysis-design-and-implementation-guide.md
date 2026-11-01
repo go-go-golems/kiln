@@ -691,3 +691,17 @@ External documentation this guide relies on (verify against the installed toolki
 - NVIDIA, *Parallel Thread Execution ISA*, "Warp-level matrix multiply-accumulate instructions": `mma.sync` shapes, types, `.row.col`, fragment layouts for `m16n8k8` and `m16n8k16`; `cvt` rounding modes for `.tf32`; `ldmatrix`.
 - NVIDIA, *CUDA C++ Programming Guide*, "Warp Matrix Functions" (WMMA) and the `cuda_fp16.h`/`cuda_bf16.h` conversion intrinsics.
 - NVIDIA A100 Tensor Core GPU datasheet (dense TF32 and FP16 throughput figures cited in Section 6.6).
+
+## 13. Implementation status and deviations (2026-11-01)
+
+Phases 1 to 4 are implemented on branch `impl/kiln-006-tensor-cores` (diary Steps 6-10). Where the implementation departs from Sections 6 to 9, the code is authoritative and the reasons are these:
+
+- **Operand rule.** `isProductOf` became `operandChain` (tile.js): each operand is a load under `copy`, `round_tf32`, `round_f16` or `round_bf16`, and its precision is the outermost rounding's format, else the input's `operandPrecision`. At small sizes fusion inlines the `round_tf32` producers into the contraction, which Section 3.5 assumed never happens; the tile loader of `matMma` then applies the chain once per staged element. This is the "rounding during staging" of Section 11.2, where fusion already chose it.
+- **Default compile.** The pessimistic `peakTflops` prior of Section 6.6 does not keep `MAP=mma` from winning: at equal compute rate the model predicts 86 µs (`mma`) against 254 µs (`tiled`) for a 1024³ TF32 product on GB10, because `tiled` is shared-memory bound. `costPrior` therefore returns `Infinity` for an `mma` option when the target has no measured rate and other mappings compete. Pinned `MAP=mma` is still ranked by the model.
+- **Target rates.** No spec in `targets.js` carries `mma` rates, A100 included: a new field changes `specHash` (simulated content ids), and datasheet rates would switch default compiles on those targets to kernels never compiled by NVRTC. Tests use a derived A100-like spec.
+- **Knobs.** Fork-tree levels may return `undefined` (core/kiln.js `expandFork`); `WM`/`WN` are unset off `MAP=mma`, so existing options keep their canonical knob objects and evidence keys.
+- **Isolated checks.** `simulateKernel` rounds a tensor-core kernel's A/B inputs to the operand format (program.js `operandInputs`) when the producer, not the kernel, did the rounding; seeded inputs and content ids are unchanged.
+- **Accumulation orders.** `mma.js` adds a fourth order, `chunk-rz`, modelling a truncating multi-term adder. Under it the simulator check fails for K ≥ 4096 (diary Step 10), which makes the large-K risk of Section 11.1 measurable on hardware (`mma-large-k` fixture).
+- **API for KILN-007.** kernel.js exports `mmaAccumulators`, `mmaWarpStep` and `mmaAccElements`; `matMma` is built only from them.
+
+GPU validation (Phases 0 and 5) is packaged as `scripts/02-mma-gpu-fixtures.mjs` for `kiln_launch.py check-fixtures --backend cuda`.
