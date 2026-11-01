@@ -32,6 +32,12 @@ function akey(o, bound) {
       const env = {}; for (const v of bound) env[v] = IX.V(name(v));
       return `in${o.i}[${o.idx.map((e) => IX.keyOf(IX.subst(e, env))).join(",")}]`;
     }
+    // an index value is a load without memory: its expression renames bound variables the same way
+    case "ix": {
+      if (!bound.length) return `ix:${o.dtype}:${IX.keyOf(o.e)}`;
+      const env = {}; for (const v of bound) env[v] = IX.V(name(v));
+      return `ix:${o.dtype}:${IX.keyOf(IX.subst(o.e, env))}`;
+    }
     case "op": return `${o.fn}(${o.a.map((x) => (bound.length && intersects(free(x), bound) ? akey(x, bound) : x.__key || akey(x, []))).join(",")})`;
     case "red": return `red:${o.fn}:${o.n}{${akey(o.body, [...bound, o.r])}}`;
   }
@@ -43,6 +49,7 @@ export function free(x) {
   if (f) return f;
   if (x.k === "num") f = new Set();
   else if (x.k === "in") { f = new Set(); for (const e of x.idx) IX.vars(e, f); }
+  else if (x.k === "ix") f = IX.vars(x.e);
   else if (x.k === "op") { f = new Set(); for (const a of x.a) for (const v of free(a)) f.add(v); }
   else { f = new Set(free(x.body)); f.delete(x.r); }
   FREE.set(x, f);
@@ -66,7 +73,21 @@ export const E = {
     return intern({ k: "op", fn: fnName, a });
   },
   red: (fnName, r, n, body) => { reducer(fnName); return intern({ k: "red", fn: fnName, r, n, body }); },
+  // an index value: the integer index expression e at the current coordinates (a0…, reduction
+  // variables, data-dependent LD terms), as a scalar of an integer dtype. A bool index value is a
+  // predicate (a comparison, && or ||: 0 or 1).
+  ix: (e, dtype = "i64") => {
+    if (!IX_DTYPES.has(dtype)) throw new KilnError("TypeError", `index value dtype must be i64, i32 or bool, got ${dtype}`);
+    e = IX.lift(e);
+    if (dtype === "bool" && !PREDICATES.has(e.t) && !(e.t === "c" && (e.v === 0 || e.v === 1))) throw new KilnError("TypeError", `a bool index value must be a predicate, got ${IX.print(e)}`);
+    // a constant index value is a literal (a region predicate that substitution decided); literals
+    // pass through f32 spellings, so only constants exact in f32 fold
+    if (e.t === "c" && Math.abs(e.v) <= 2 ** 24) return E.num(e.v);
+    return intern({ k: "ix", e, dtype });
+  },
 };
+const IX_DTYPES = new Set(["i64", "i32", "bool"]);
+const PREDICATES = new Set(["<", "<=", "==", "&&", "||"]);
 // substitute index variables (coordinates or reduction vars) inside an expression
 export function substE(x, env, remapIn = null) {
   switch (x.k) {
@@ -74,6 +95,7 @@ export function substE(x, env, remapIn = null) {
     // remapIn renumbers this expression's own inputs, including data-dependent index terms; it applies
     // before env, whose values already use the caller's numbering
     case "in": return E.load(remapIn ? remapIn(x.i) : x.i, x.idx.map((e) => IX.subst(remapIn ? IX.remapLoads(e, remapIn) : e, env)));
+    case "ix": return E.ix(IX.subst(remapIn ? IX.remapLoads(x.e, remapIn) : x.e, env), x.dtype);
     case "op": return E.op(x.fn, ...x.a.map((a) => substE(a, env, remapIn)));
     case "red": { const r = freshR(); return E.red(x.fn, r, x.n, substE(x.body, { ...env, [x.r]: IX.V(r) }, remapIn)); }
   }
@@ -89,6 +111,7 @@ export function printE(x, names = (i) => "in" + i) {
   switch (x.k) {
     case "num": return x.exact ?? String(+x.v.toPrecision(6));
     case "in": return `${names(x.i)}[${x.idx.map((e) => IX.print(e)).join(", ")}]`;
+    case "ix": return `ix(${IX.print(x.e)}):${x.dtype}`;
     case "op": return `${x.fn}(${x.a.map((a) => printE(a, names)).join(", ")})`;
     case "red": return `${x.fn}_{${x.r}<${x.n}} ${printE(x.body, names)}`;
   }
@@ -135,8 +158,12 @@ export function schedule(expr, shape) {
   for (const n of order) { if (n.k === "red") { placed.get(n).items.push(n); continue; } const s = deepest([...free(n)]); placed.set(n, s); s.items.push(n); }
   // names
   const names = new Map();
-  let ni = 0, nv = 0, na = 0;
-  for (const n of order) names.set(n, n.k === "in" ? "in" + ni++ : n.k === "op" ? "v" + nv++ : "acc" + na++);
+  let ni = 0, nv = 0, na = 0, nx = 0;
+  for (const n of order) names.set(n, n.k === "in" ? "in" + ni++ : n.k === "ix" ? "x" + nx++ : n.k === "op" ? "v" + nv++ : "acc" + na++);
+  // an index value computes in the kernel's 32-bit index arithmetic before it widens: every
+  // subexpression must stay in int32 over the loop ranges. A bare LD (a widening read) is exempt.
+  const extentOf = (v) => dims.find((d) => d.v === v)?.n ?? reds.find((r) => r.r === v)?.n;
+  for (const n of order) if (n.k === "ix") checkIxRange(n, extentOf);
   const opnd = (n) => (n.k === "num" ? (n.exact != null ? { num: n.v, exact: n.exact } : { num: n.v }) : { ref: names.get(n) });
   const loopOf = new Map(scopes.filter((s) => s.red).map((s) => [s.red, s]));
   // emission
@@ -144,6 +171,7 @@ export function schedule(expr, shape) {
     const out = [];
     for (const n of s.items) {
       if (n.k === "in") out.push({ s: "let", name: names.get(n), e: { k: "in", i: n.i, idx: n.idx }, node: n });
+      else if (n.k === "ix") out.push({ s: "let", name: names.get(n), e: { k: "ix", e: n.e, dtype: n.dtype }, node: n });
       else if (n.k === "op") out.push({ s: "let", name: names.get(n), e: { k: "op", fn: n.fn, a: n.a.map(opnd) }, node: n });
       else {
         const L = loopOf.get(n);
@@ -163,6 +191,19 @@ export function schedule(expr, shape) {
   return res;
 }
 
+const INT32 = [-(2 ** 31), 2 ** 31 - 1];
+function checkIxRange(n, extentOf) {
+  if (n.e.t === "ld") { if (n.dtype !== "i64") throw new KilnError("ScheduleError", `index value ${IX.print(n.e)} reads data into a ${n.dtype} value`); return; }
+  const walk = (e) => {
+    if (e.t === "c" || e.t === "v") { if (e.t === "c" && (e.v < INT32[0] || e.v > INT32[1])) throw new KilnError("ScheduleError", `index value ${IX.print(n.e)}: constant ${e.v} exceeds int32`); return; }
+    if (e.t === "ld") return;
+    walk(e.a); walk(e.b);
+    const r = IX.interval(e, extentOf);
+    if (!r) throw new KilnError("ScheduleError", `index value ${IX.print(n.e)} is unbounded (a data-dependent term inside arithmetic)`);
+    if (r[0] < INT32[0] || r[1] > INT32[1]) throw new KilnError("ScheduleError", `index value ${IX.print(n.e)}: ${IX.print(e)} ranges over [${r[0]}, ${r[1]}], outside int32`);
+  };
+  walk(n.e);
+}
 // display names for reduction variables: r0, r1, … in order of appearance
 export function displayNames(sched) {
   const m = {};
@@ -180,7 +221,7 @@ export function printNest(sched, bufName = (i) => "in" + i, outName = "out") {
     const pad = "    ".repeat(d);
     for (const s of ss) {
       if (s.s === "for") { lines.push(`${pad}for ${s.kind === "reduce" ? R[s.v].v : s.v} in 0..${s.n}:  # ${s.kind}`); walk(s.body, d + 1); }
-      else if (s.s === "let") lines.push(`${pad}${s.name} = ${s.e.k === "in" ? `load ${bufName(s.e.i)}[${s.e.idx.map(ix).join(", ")}]` : `${s.e.fn}(${s.e.a.map(op).join(", ")})`}`);
+      else if (s.s === "let") lines.push(`${pad}${s.name} = ${s.e.k === "in" ? `load ${bufName(s.e.i)}[${s.e.idx.map(ix).join(", ")}]` : s.e.k === "ix" ? `ix ${ix(s.e.e)} : ${s.e.dtype}` : `${s.e.fn}(${s.e.a.map(op).join(", ")})`}`);
       else if (s.s === "init") lines.push(`${pad}${s.name} = ${((v) => (v == 0 ? "0" : v == 1 ? "1" : typeof v === "bigint" ? String(v) : s.fn === "max" ? "-inf" : "+inf"))(reducer(s.fn).init)}`);
       else if (s.s === "acc") lines.push(`${pad}${s.name} <- ${s.fn}(${s.name}, ${op(s.val)})`);
       else if (s.s === "write") lines.push(`${pad}${outName}[${s.idx.map(ix).join(", ")}] = ${op(s.val)}`);
@@ -197,7 +238,7 @@ export function workOf(sched) {
   const walk = (ss, trips) => {
     for (const s of ss) {
       if (s.s === "for") walk(s.body, trips * s.n);
-      else if (s.s === "let") w += trips * (s.e.k === "in" ? W_MEM : FNS[s.e.fn]?.flops ?? 1);
+      else if (s.s === "let") w += trips * (s.e.k === "in" ? W_MEM : s.e.k === "ix" ? 1 : FNS[s.e.fn]?.flops ?? 1);
       else if (s.s === "acc") w += trips;
       else if (s.s === "write") w += trips * W_MEM;
     }
@@ -210,7 +251,7 @@ export function workOf(sched) {
 // JS spelling of an index over inputs I0…: data-dependent terms read the (possibly BigInt) input element
 const jsIndex = (inShapes) => {
   const flat = (idx, st) => idx.reduce((acc, e, j) => (st[j] === 0 ? acc : acc.add(IX.lift(e).mul(st[j]))), IX.C(0));
-  const js = (e) => IX.emit(e, "js", (v) => v, (i, idx, r) => `Number(I${i}[${r(flat(idx, strides(inShapes[i])))}])`);
+  const js = (e, signed = false) => IX.emit(e, "js", (v) => v, (i, idx, r) => `Number(I${i}[${r(flat(idx, strides(inShapes[i])))}])`, signed);
   return { js, flat };
 };
 // JS spelling of an operand. A literal is an f32 register value (rounded) unless it is exact (an i64
@@ -220,6 +261,8 @@ const jsLiteral = (o, spec = null) => {
   if (o.exact != null) return `(${o.exact}n)`;
   return INTEGER_DTYPES.has(spec?.args) ? `(${o.num})` : `(${Math.fround(o.num)})`;
 };
+// an index value in JS: exact floor semantics (signed spelling), BigInt for i64 as integer storage holds it
+const ixValue = (x, js) => (x.dtype === "i64" ? `BigInt(${js(x.e, true)})` : js(x.e, true));
 // compiles the nest to a JS function: the reference every GPU schedule is checked against
 const EVAL = new WeakMap();
 export function compileSerial(sched, inShapes) {
@@ -235,6 +278,7 @@ export function compileSerial(sched, inShapes) {
       if (s.s === "for") { body.push(`${pad}for (let ${s.v} = 0; ${s.v} < ${s.n}; ${s.v}++) {`); walk(s.body, pad + "  "); body.push(`${pad}}`); }
       else if (s.s === "let") {
         if (s.e.k === "in") body.push(`${pad}const ${s.name} = I${s.e.i}[${js(flat(s.e.idx, strides(inShapes[s.e.i])))}];`);
+        else if (s.e.k === "ix") body.push(`${pad}const ${s.name} = ${ixValue(s.e, js)};`);
         else { const f = FNS[s.e.fn]; if (!f) throw new KilnError("EvalError", "unknown fn " + s.e.fn); body.push(`${pad}const ${s.name} = F.${s.e.fn}(${s.e.a.map((o) => op(o, f)).join(", ")});`); }
       } else if (s.s === "init") body.push(`${pad}let ${s.name} = ${jsInit(s.fn)};`);
       else if (s.s === "acc") body.push(`${pad}${s.name} = R.${s.fn}(${s.name}, ${op(s.val)});`);
@@ -264,7 +308,7 @@ export function compilePoint(sched, inShapes) {
     for (const s of ss) {
       if (s.s === "for" && s.kind === "free") walk(s.body, pad);
       else if (s.s === "for") { body.push(`${pad}for (let ${s.v} = 0; ${s.v} < ${s.n}; ${s.v}++) {`); walk(s.body, pad + "  "); body.push(`${pad}}`); }
-      else if (s.s === "let") body.push(s.e.k === "in" ? `${pad}const ${s.name} = I${s.e.i}[${js(flat(s.e.idx, strides(inShapes[s.e.i])))}];` : `${pad}const ${s.name} = F.${s.e.fn}(${s.e.a.map((o) => op(o, FNS[s.e.fn])).join(", ")});`);
+      else if (s.s === "let") body.push(s.e.k === "in" ? `${pad}const ${s.name} = I${s.e.i}[${js(flat(s.e.idx, strides(inShapes[s.e.i])))}];` : s.e.k === "ix" ? `${pad}const ${s.name} = ${ixValue(s.e, js)};` : `${pad}const ${s.name} = F.${s.e.fn}(${s.e.a.map((o) => op(o, FNS[s.e.fn])).join(", ")});`);
       else if (s.s === "init") body.push(`${pad}let ${s.name} = ${jsInit(s.fn)};`);
       else if (s.s === "acc") body.push(`${pad}${s.name} = R.${s.fn}(${s.name}, ${op(s.val)});`);
       else if (s.s === "write") body.push(`${pad}return ${op(s.val)};`);
@@ -311,6 +355,8 @@ export const liftEw = k.rule("lift_elementwise").match(P.op("tensor.ew").as("n")
   const shape = n.type.shape;
   const ops = n.args.map((a) => {
     if (isSplat(a)) return splatLiteral(a);
+    // an index tensor operand is an index value at the same coordinates (elementwise shapes agree)
+    if (a.is("tensor.ixval")) return E.ix(a.attrs.map.exprs[0], a.attrs.dtype);
     let i = ins.findIndex((x) => x.id === a.id);
     if (i < 0) { ins.push(a); i = ins.length - 1; }
     return E.load(i, coords(shape.length).slice(shape.length - a.type.shape.length));
@@ -330,7 +376,9 @@ export const liftView = k.rule("lift_indexmap").match(P.op("tensor.view").as("n"
 export const liftGather = k.rule("lift_gather").match(P.op("tensor.gather").as("n")).rewrite(({ n }) => mkKernel([n.arg("x"), n.arg("ids")], E.load(0, n.attrs.map.exprs), n.attrs.shape, n.attrs.origin, n.type.dtype));
 export const liftSplatOut = k.rule("lift_constant_output").match(P.op("tensor.const").as("n").where(({ n, graph }) => !n.attrs.data && graph.isOutput(n.id)))
   .rewrite(({ n }) => mkKernel([], splatLiteral(n), n.type.shape, "constant", n.type.dtype));
-export const lift = k.pass("loop/lowering").short("l").rules(liftEw, liftReduce, liftView, liftGather, liftSplatOut)
+export const liftIxval = k.rule("lift_ixval").match(P.op("tensor.ixval").as("n"))
+  .rewrite(({ n }) => mkKernel([], E.ix(n.attrs.map.exprs[0], n.attrs.dtype), n.attrs.shape, n.attrs.origin, n.attrs.dtype));
+export const lift = k.pass("loop/lowering").short("l").rules(liftEw, liftReduce, liftView, liftGather, liftSplatOut, liftIxval)
   .describe("each Tensor IR primitive becomes a one-op loop kernel");
 
 // ----------------------------------------------------------------------------- f: fusion
@@ -362,6 +410,8 @@ export function inlineInto(c, p) {
         if (cArgs[x.i].id === p.id) { const env = {}; idx.forEach((e, j) => { env["a" + j] = e; }); return substE(pe, env, (i) => mapP.get(i)); }
         return E.load(mapC.get(x.i), idx);
       }
+      // an index value takes the same renaming and input renumbering as a load's index
+      case "ix": return E.ix(remapIdx(IX.subst(x.e, ren)), x.dtype);
       case "op": return E.op(x.fn, ...x.a.map((a) => rw(a, ren)));
       case "red": { const r = freshR(); return E.red(x.fn, r, x.n, rw(x.body, { ...ren, [x.r]: IX.V(r) })); }
     }

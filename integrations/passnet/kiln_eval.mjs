@@ -15,7 +15,8 @@ const res = runScript(request.script);
 if (!res.ok) { process.stdout.write(JSON.stringify({ error: res.diags.map((d) => d.message).join("; ") })); process.exit(0); }
 const inputs = Object.fromEntries(Object.entries(request.inputs).map(([name, t]) => {
   const Storage = STORAGE[t.dtype];
-  return [name, new Tensor(t.shape, Storage === BigInt64Array ? BigInt64Array.from(t.data.map(BigInt)) : Storage.from(t.data), t.dtype)];
+  const data = t.data.map((v) => (v === null ? NaN : v));   // JSON has no NaN: null stands for it
+  return [name, new Tensor(t.shape, Storage === BigInt64Array ? BigInt64Array.from(data.map(BigInt)) : Storage.from(data), t.dtype)];
 }));
 const plain = (outs) => Object.fromEntries(Object.entries(outs).map(([n, t]) => [n, [...t.data].map(Number)]));
 const frontend = plain(res.project.graph().eval(inputs));

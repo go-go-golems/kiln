@@ -14,9 +14,10 @@ KILN_DTYPE = {torch.float32: 'f32', torch.int64: 'i64', torch.int32: 'i32', torc
 
 
 def run_kiln(model, inputs):
+    # JSON has no NaN: a NaN input element travels as null
     imported = import_graph(export_graph(symbolic_trace(model), inputs))
     names = list(imported['inputs'])
-    request = {'script': imported['script'], 'inputs': {n: {'shape': list(x.shape), 'dtype': KILN_DTYPE[x.dtype], 'data': x.flatten().tolist()} for n, x in zip(names, inputs)}}
+    request = {'script': imported['script'], 'inputs': {n: {'shape': list(x.shape), 'dtype': KILN_DTYPE[x.dtype], 'data': [None if v != v else v for v in x.flatten().tolist()]} for n, x in zip(names, inputs)}}
     out = subprocess.run(['node', str(HERE / 'kiln_eval.mjs')], input=json.dumps(request), capture_output=True, text=True, check=True)
     result = json.loads(out.stdout)
     if result.get('error'): raise AssertionError(result['error'])
@@ -59,6 +60,23 @@ class ComposeNumericTests(unittest.TestCase):
         keep = torch.rand(2, 1, 4, 6) > 0.3
         keep[..., 0] = True
         self.check(Model(), [torch.randn(2, 3, 4, 8), torch.randn(2, 3, 6, 8), torch.randn(2, 3, 6, 8), torch.randn(2, 1, 4, 6), keep], atol=1e-5)
+
+    def test_causal_attention(self):
+        class Model(torch.nn.Module):
+            def forward(self, q, k, v):
+                return torch.nn.functional.scaled_dot_product_attention(q, k, v, is_causal=True)
+        torch.manual_seed(4)
+        for L, S in [(3, 5), (4, 4), (5, 3)]:
+            imported = self.check(Model(), [torch.randn(2, 2, L, 8), torch.randn(2, 2, S, 8), torch.randn(2, 2, S, 8)], atol=1e-5)
+            self.assertIn(f'N.causalMask({L}, {S})', imported['script'])
+
+    def test_argmax_indices_match_torch(self):
+        class Model(torch.nn.Module):
+            def forward(self, x):
+                return x.max(-1)[1], torch.min(x, 0, keepdim=True)[1], torch.argmax(x, 1), x.argmin(), torch.argmax(x, keepdim=True)
+        x = torch.tensor([[1., 3., 3., 0.], [float('nan'), 2., float('nan'), 5.], [5., 2., float('nan'), 5.], [2., 2., 2., 2.]])
+        self.check(Model(), [x], atol=0, rtol=0)
+        self.check(Model(), [torch.randn(3, 4)], atol=0, rtol=0)
 
     def test_eval_dropout_is_identity(self):
         class Model(torch.nn.Module):

@@ -70,10 +70,10 @@ export const FNS = {
 const big = (x) => (typeof x === "bigint" ? x : BigInt(x));
 const wrap64 = (x) => BigInt.asIntN(64, x);
 const INTEGER_OPS = {
-  i64: { add: (a, b) => wrap64(big(a) + big(b)), sub: (a, b) => wrap64(big(a) - big(b)), mul: (a, b) => wrap64(big(a) * big(b)), neg: (a) => wrap64(-big(a)) },
-  i32: { add: (a, b) => (a + b) | 0, sub: (a, b) => (a - b) | 0, mul: (a, b) => Math.imul(a, b), neg: (a) => -a | 0 },
+  i64: { add: (a, b) => wrap64(big(a) + big(b)), sub: (a, b) => wrap64(big(a) - big(b)), mul: (a, b) => wrap64(big(a) * big(b)), neg: (a) => wrap64(-big(a)), abs: (a) => wrap64(big(a) < 0n ? -big(a) : big(a)) },
+  i32: { add: (a, b) => (a + b) | 0, sub: (a, b) => (a - b) | 0, mul: (a, b) => Math.imul(a, b), neg: (a) => -a | 0, abs: (a) => Math.abs(a) | 0 },
 };
-const SPELL = { add: "({0} + {1})", sub: "({0} - {1})", mul: "({0} * {1})", neg: "(-{0})" };
+const SPELL = { add: "({0} + {1})", sub: "({0} - {1})", mul: "({0} * {1})", neg: "(-{0})", abs: "(({0}) < 0 ? -({0}) : ({0}))" };
 for (const [t, ops] of Object.entries(INTEGER_OPS)) {
   for (const [name, js] of Object.entries(ops)) FNS[`${name}_${t}`] = { n: js.length, js, c: SPELL[name], w: null, flops: 1, args: t, type: t };
   FNS[`max_${t}`] = { n: 2, js: (a, b) => (a > b ? a : b), c: "(({0}) > ({1}) ? ({0}) : ({1}))", w: null, flops: 1, args: t, type: t };
@@ -141,8 +141,17 @@ for (const t of ["f32", "i32", "i64", "bool"]) for (const [name, [op, js]] of Ob
   FNS[`${name}_${t}`] = { n: 2, js: (a, b) => (js(a, b) ? 1 : 0), c: `(({0}) ${op} ({1}))`, w: null, flops: 1, args: t, type: "bool" };
 // conversions from any dtype, with C++'s (and PyTorch's) semantics: truncation toward zero, x != 0 for bool
 FNS.to_f32 = { n: 1, js: (x) => f(Number(x)), c: "((float)({0}))", w: null, flops: 1, args: "*", type: "f32" };
-FNS.to_i64 = { n: 1, js: (x) => (typeof x === "bigint" ? x : BigInt(Math.trunc(x))), c: "((long long)({0}))", w: null, flops: 1, args: "*", type: "i64" };
-FNS.to_i32 = { n: 1, js: (x) => (typeof x === "bigint" ? Number(BigInt.asIntN(32, x)) : Math.trunc(x) | 0), c: "((int)({0}))", w: null, flops: 1, args: "*", type: "i32" };
+// A float outside the integer range (inf, or log(0) in MPNet's relative buckets, a branch where then
+// discards) has no C++ value; the reference saturates like CUDA's cvt.rzi (NaN gives 0) instead of throwing.
+const saturate = (x, lo, hi) => (Number.isNaN(x) ? 0 : x <= lo ? lo : x >= hi ? hi : Math.trunc(x));
+const toI64 = (x) => {
+  if (typeof x === "bigint") return x;
+  if (Number.isNaN(x)) return 0n;
+  if (x >= 2 ** 63) return 2n ** 63n - 1n;
+  return x <= -(2 ** 63) ? -(2n ** 63n) : BigInt(Math.trunc(x));
+};
+FNS.to_i64 = { n: 1, js: toI64, c: "((long long)({0}))", w: null, flops: 1, args: "*", type: "i64" };
+FNS.to_i32 = { n: 1, js: (x) => (typeof x === "bigint" ? Number(BigInt.asIntN(32, x)) : saturate(x, -(2 ** 31), 2 ** 31 - 1) | 0), c: "((int)({0}))", w: null, flops: 1, args: "*", type: "i32" };
 FNS.to_bool = { n: 1, js: (x) => (x != 0 ? 1 : 0), c: "(({0}) != 0)", w: null, flops: 1, args: "*", type: "bool" };
 export const INTEGER_DTYPES = new Set(["i32", "i64", "bool"]);
 // CUDA device functions a kernel defines once when its body applies a function with that helper.

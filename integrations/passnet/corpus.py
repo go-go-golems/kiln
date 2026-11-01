@@ -102,13 +102,29 @@ def eliminate_dead_code(graph):
     capture it). An in-place call with an unused result is kept when its effect is observable:
     it updates an input, or a value read after it.
     """
+    import operator
+    # operator.setitem (x[i] = v, traced by KILN-010's MutationProxy) is a write with no result: it is kept
+    # here like an in-place call, but it is not inplace_node, so expose_inplace_results never returns it.
     order={node:i for i,node in enumerate(graph.nodes)}
+    views={'view','reshape','permute','transpose','expand','expand_as','view_as','unsqueeze','squeeze','flatten','t',
+           'contiguous','narrow','select','unfold','detach','as_strided','movedim','swapaxes','unflatten','split','chunk'}
+    def is_view(node):
+        if node.op=='call_method':return node.target in views
+        return node.op=='call_function' and (node.target is operator.getitem or getattr(node.target,'__name__',None) in views)
+    def storage(target):
+        """target and every value it may be a view of: a write through a view (x[:, 0] += 1,
+        x.permute(1, 0)[0] = 1) is observable through its source. Over-approximate: keeping a
+        node can only cause an explicit import refusal, erasing it would drop a write."""
+        out=[target]
+        while is_view(target) and target.args and hasattr(target.args[0],'users'):
+            target=target.args[0];out.append(target)
+        return out
     for node in reversed(list(graph.nodes)):
         if node.op in ('call_function','call_method') and not node.users:
-            if inplace_node(node):
+            if inplace_node(node) or node.target is operator.setitem:
                 target=node.args[0] if node.args else None
                 if not hasattr(target,'users'):raise ValueError(f'{node.name}: in-place operation without a tensor target')
-                if target.op=='placeholder' or any(order[user]>order[node] for user in target.users):continue
+                if any(t.op=='placeholder' or any(order[user]>order[node] for user in t.users) for t in storage(target)):continue
             graph.erase_node(node)
 
 

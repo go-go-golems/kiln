@@ -65,7 +65,7 @@ for (const name of Object.keys(ref)) assert.deepEqual([...got[name].data], [...r
 const p = exportProgram(r, programOf(r.graph));
 const cuda = p.kernels.map((kn) => kn.cuda).join("\n");
 assert.match(cuda, /\(\(in\d\) != \(0LL\)\)/, "an int64 comparison against an exact integer literal");
-assert.match(cuda, /__shared__ long long s_red\[/, "an int64 tree combine stages int64 partial sums");
+assert.match(cuda, /__shared__ long long s_red_i64\[/, "an int64 tree combine stages int64 partial sums in its own array");
 assert.match(cuda, /\(-9223372036854775807LL - 1\)/, "the int64 max identity is spelled without overflow");
 assert.match(cuda, /\(\(float\)\(in\d\)\)/, "integer to float is an explicit conversion");
 assert.ok(!/[0-9]\.0f \+|\+ [0-9.]+f\)/.test(cuda.split("\n").filter((l) => /long long|LL/.test(l)).join("\n")), "no float literal in integer arithmetic");

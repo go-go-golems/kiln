@@ -107,3 +107,59 @@ KILN-009 adds `inplace.js` (the same-index and store-injectivity proofs, `planMu
 
 ### Technical details
 - Logs: `m009-npm.log`, `m009-py.log`.
+
+## Step 3: Merge KILN-010 (index values, factories, slice assignment)
+
+KILN-010 is the largest overlap with KILN-011 and KILN-009: it adds `E.ix` through every stage, `tensor.ixval`, the factories, integer and bool values in the SIMT simulator (`toSim`), per-dtype `s_red`, integer `nn.concat`, `nn.assign`, the factory-preserving tracer and `fx_assign.py`, and it fixed `foldSplatView`/`foldSplatEw` independently of KILN-011. Five files conflicted. The resolution keeps both sides everywhere except the two splat-fold rules, where KILN-011's version is kept and KILN-010's `splatFold` helper is dropped, as KILN-010's own diary (Step 9) asked.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 1.
+**Assistant interpretation:** Merge the third branch; for the duplicated splat-fold fix keep one coherent implementation and make both branches' tests pass.
+**Inferred user intent:** No feature lost, no duplicate implementations of the same rule.
+**Commit (code):** merge commit "Merge KILN-010: index values, factories and slice assignment".
+
+### What I did
+- Read KILN-010 diary Steps 6-10, in particular the Step 9 merge note for KILN-011.
+- `git merge --no-ff --no-commit impl/kiln-010-index-values` → conflicts in `integrations/passnet/corpus.py`, `integrations/passnet/fx_import.py`, `packages/kiln/src/std/emit.js`, `packages/kiln/src/std/loop.js`, `packages/kiln/src/std/tensor.js`. Hunks were resolved with a small script (`bin/resolve.py` in the scratch dir) that replaces each conflict block, in order, with a hand-written resolution.
+- `corpus.py` `eliminate_dead_code`: KILN-009 had moved the in-place set into a shared `inplace_node(node)` (also used by `expose_inplace_results`); KILN-010 added `operator.setitem` to that set and an observability walk through views (`storage(target)`, auto-merged). Resolution: keep `inplace_node`, keep the local `import operator` (KILN-010's `is_view` uses `operator.getitem`), and keep `setitem` with `if inplace_node(node) or node.target is operator.setitem:`. `setitem` is deliberately **not** added to `inplace_node`: a traced `setitem` node never has users (it returns `None`), so `expose_inplace_results` would append every one of them to the graph's outputs.
+- `fx_import.py` `UNARY`: union of KILN-011's `torch.floor` and KILN-010's `torch.abs`/`aten.abs.default`/`torch.log`/`aten.log.default`.
+- `emit.js` `toSim` store: KILN-010 wraps the stored value as `into(outDtype, …)` (BigInt for int64 storage); KILN-009 added the `"out"` slot argument to `M.gmem(A, "st", "out")`. Both kept.
+- `loop.js`, six hunks:
+  - `schedule` names: KILN-010's `x` names and `checkIxRange` plus KILN-011's exact-literal operand `{ num, exact }`.
+  - KILN-011's `jsLiteral` and KILN-010's `ixValue` are both kept (separate helpers).
+  - `compileSerial` / `compilePoint` `let`: KILN-010's `s.e.k === "ix"` branch plus KILN-011's `op(o, f)` (integer-context literals unrounded) and KILN-011's "throw before use" ordering for an unknown fn.
+  - `liftEw`: KILN-011's `splatLiteral(a)` plus KILN-010's `tensor.ixval` operand as `E.ix`.
+  - `liftSplatOut`: KILN-011's `splatLiteral(n)`; KILN-010's `liftIxval` rule and its registration in `lift`.
+- `tensor.js`:
+  - `foldSplatView`: KILN-011's (`dtype: dtypeOf(x)`, same semantics as KILN-010's `x.type.dtype` with the f32 default), plus KILN-010's new `foldViewOfIxval` rule that followed it.
+  - `foldSplatEw`: KILN-011's (`F(fn).js(...values)`, `dtype: dtypeOf(e)`), and KILN-010's `splatFold` helper removed, with a comment explaining the choice.
+
+### Why
+- `foldSplatEw`: KILN-010's `splatFold` converted i64 results to `Number` and refused the fold when the result was not a safe integer. KILN-011's typed i64 functions (`fns.js` `big`/`wrap64`) take number or BigInt operands and return exact BigInts, and the rest of KILN-011 (`splatLiteral`, `E.num(bigint)`, `constText`) carries a BigInt splat value to CUDA exactly; so KILN-011's version strictly covers KILN-010's (dtype kept; exact rather than refused past 2^53).
+
+### What worked
+- `npm test`: all 53 passed (adds `index-values.mjs`; `integer-arithmetic.mjs` auto-merged both edits, incl. `s_red_i64`). `pytest`: 192 passed, 7 subtests passed (adds `test_fx_factories.py`, causal/argmax tests).
+- KILN-010's "typed splats keep their dtype" block (`index-values.mjs`) passes against KILN-011's fold rules, as KILN-010's diary predicted.
+
+### What didn't work
+- No test failures after the resolution.
+
+### What I learned
+- KILN-010 code paths that read a splat `attrs.value` now may see a BigInt (int64 splats folded by KILN-011's rule). No test hit a `Math.trunc(BigInt)`-style TypeError, but that is the class of bug to watch for.
+
+### What was tricky to build
+- The `setitem` keep rule: putting it into the shared `inplace_node` predicate looks natural but would interact with KILN-009's `expose_inplace_results`, which treats every kept in-place node without users as a hidden result. The two branches never saw each other's predicate.
+
+### What warrants a second pair of eyes
+- KILN-009 `expose_inplace_results` + KILN-010 view-observability: an in-place method on a view (`x[:, 0].add_(1)`) with no users is now kept (KILN-010) *and* exposed as an extra output (KILN-009). KILN-010's importer lowers such a call to a `view_write`; whether exposing that node as a program output imports correctly was not exercised by any test. PassBench patterns of this shape are rare (families 124/162 are `masked_fill_` on whole tensors).
+- The `generate_pass` AST side and the FX side must agree on exposed results; neither treats `x[i] = v` as a result, so they agree.
+
+### What should be done in the future
+- Lift the ±2^24 bound of the constant `E.ix` fold now that KILN-011 carries exact literals (Step 7).
+
+### Code review instructions
+- `git show <merge> -- packages/kiln/src/std/loop.js packages/kiln/src/std/tensor.js integrations/passnet/corpus.py` (combined diff).
+- `cd packages/kiln && node test/index-values.mjs && node test/integer-constant-folding.mjs && node test/integer-division.mjs`.
+
+### Technical details
+- Logs: `m010-npm.log`, `m010-py.log`. Resolution inputs: `bin/r010-emit.py`, `bin/r010-loop.py`, `bin/r010-tensor.py` in the scratch dir.

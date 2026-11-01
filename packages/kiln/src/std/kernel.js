@@ -5,7 +5,8 @@
 // statements:  let {n, e} · iset {n, e:Ix} · load {n, buf, idx} · store {buf, idx, e}
 //              sload {n, arr, idx} · sstore {arr, idx, e} · sync · for {v, from, to, step, body}
 //              if {c:Ix, body} · note {text}
-// float expressions: {k:"num", v} · {k:"var", n} · {k:"op", fn, a:[…]}
+// float expressions: {k:"num", v} · {k:"var", n} · {k:"op", fn, a:[…]} · {k:"ix", e:Ix, dtype}
+//   (an index value: the integer expression e over kernel index variables, as an i64/i32/bool scalar)
 import { k, P, KilnError } from "../core/kiln.js";
 import { numel, strides, hash, inKey, dtypeBytes } from "../core/util.js";
 import * as IX from "../core/ix.js";
@@ -14,7 +15,7 @@ import { analyze, launch, stagedOf, canonRow } from "./tile.js";
 import { displayNames } from "./loop.js";
 
 // an int64 literal past 2^53 keeps its exact decimal spelling beside the (JSON-safe) number
-export const kx = { num: (v) => (typeof v === "bigint" ? { k: "num", v: Number(v), exact: String(v) } : { k: "num", v: +v }), v: (n) => ({ k: "var", n }), op: (fn, ...a) => ({ k: "op", fn, a }) };
+export const kx = { num: (v) => (typeof v === "bigint" ? { k: "num", v: Number(v), exact: String(v) } : { k: "num", v: +v }), v: (n) => ({ k: "var", n }), op: (fn, ...a) => ({ k: "op", fn, a }), ix: (e, dtype) => ({ k: "ix", e: IX.lift(e), dtype }) };
 const V = IX.V, C = IX.C;
 
 export class KB {
@@ -50,6 +51,9 @@ function emitNest(kb, stmts, ctx) {
   for (let i = 0; i < stmts.length; i++) {
     const st = stmts[i];
     if (st.s === "let" && st.e.k === "in") ctx.vals.set(st.name, kx.v(ctx.load(st, ctx)));
+    // an index value: its expression in the kernel's spelling of the coordinates (the substitution
+    // load addresses get); data-dependent terms keep the kernel's input numbering
+    else if (st.s === "let" && st.e.k === "ix") ctx.vals.set(st.name, kx.v(kb.let(kx.ix(IX.subst(st.e.e, ctx.env), st.e.dtype), ctx.nm(st.name))));
     else if (st.s === "let") ctx.vals.set(st.name, kx.v(kb.let(kx.op(st.e.fn, ...st.e.a.map((o) => opnd(o, ctx))), ctx.nm(st.name))));
     else if (st.s === "init") {
       const next = stmts[i + 1];
@@ -103,8 +107,11 @@ function matThread(an, kn) {
 }
 
 // ----------------------------------------------------------------------------- MAP=row
+// one combine array per accumulator dtype: an f32 and an i64 row reduction (argmax's two passes)
+// cannot share storage. The f32 array keeps the historical name s_red.
 function treeCombine(kb, T, fnName, accName) {
-  const red = "s_red";
+  const dtype = reducer(fnName).type ?? "f32";
+  const red = dtype === "f32" ? "s_red" : `s_red_${dtype}`;
   if (!kb.smem.find((s) => s.name === red)) kb.shared(red, T);
   kb.sync();
   kb.sstore(red, V("tid"), kx.v(accName));
@@ -263,6 +270,7 @@ function valueTypes(body, params, name) {
   const typeOf = (e) => {
     if (e.k === "num") return null;
     if (e.k === "var") return types.get(e.n) ?? (literal.has(e.n) ? null : "f32");
+    if (e.k === "ix") return e.dtype;
     const spec = FNS[e.fn], ts = e.a.map(typeOf);
     if (spec.args) {
       ts.forEach((t) => { if (spec.args !== "*" && t !== null && t !== spec.args) refuse(`${e.fn} applied to a ${t} value`); });
@@ -329,7 +337,7 @@ export function materialize(node) {
 // ----------------------------------------------------------------------------- printing
 export function printKernelBody(K, args = []) {
   const bn = (b) => (b === "out" ? "out" : args[b] ?? "in" + b);
-  const fx = (e) => (e.k === "num" ? (e.exact ?? String(+e.v.toPrecision(7))) : e.k === "var" ? e.n : `${e.fn}(${e.a.map(fx).join(", ")})`);
+  const fx = (e) => (e.k === "num" ? (e.exact ?? String(+e.v.toPrecision(7))) : e.k === "var" ? e.n : e.k === "ix" ? `ix(${IX.print(e.e)}):${e.dtype}` : `${e.fn}(${e.a.map(fx).join(", ")})`);
   const ix = (e) => IX.print(e);
   const lines = [`grid=${K.grid} block=${K.block}${K.smemBytes ? ` smem=${K.smemBytes} B` : ""}  [${K.row}]`];
   for (const s of K.smem) lines.push(`Smem ${s.name}[${s.size}] (${s.dtype ?? "f32"})`);
