@@ -160,6 +160,52 @@ export function evalIx(e, env) {
   }
   throw new Error("bad index expression " + e.t);
 }
+// Interval of e when every variable v lies in [0, extent(v)); null when unbounded.
+export function interval(e, extent) {
+  switch (e.t) {
+    case "c": return [e.v, e.v];
+    case "v": { const n = extent(e.v); return n > 0 ? [0, n - 1] : null; }
+    case "+": { const a = interval(e.a, extent), b = interval(e.b, extent); return a && b ? [a[0] + b[0], a[1] + b[1]] : null; }
+    case "*": {
+      const a = interval(e.a, extent), b = interval(e.b, extent);
+      if (!a || !b) return null;
+      const p = [a[0] * b[0], a[0] * b[1], a[1] * b[0], a[1] * b[1]];
+      return [Math.min(...p), Math.max(...p)];
+    }
+    case "/": {
+      const a = interval(e.a, extent);
+      return a && isC(e.b) && e.b.v > 0 ? [Math.floor(a[0] / e.b.v), Math.floor(a[1] / e.b.v)] : null;
+    }
+    case "%": {
+      if (!isC(e.b) || e.b.v <= 0) return null;
+      const a = interval(e.a, extent);
+      return a && a[0] >= 0 && a[1] < e.b.v ? a : [0, e.b.v - 1];
+    }
+    case "min": case "max": {
+      const a = interval(e.a, extent), b = interval(e.b, extent), f = Math[e.t];
+      return a && b ? [f(a[0], b[0]), f(a[1], b[1])] : null;
+    }
+    default: return [0, 1];
+  }
+}
+// Simplify e using variable ranges [0, extent(v)): a quotient whose dividend stays within one
+// multiple of the divisor is constant, and a remainder of an in-range dividend is the dividend.
+export function bounded(e, extent) {
+  if (e.t === "c" || e.t === "v") return e;
+  const a = bounded(e.a, extent), b = bounded(e.b, extent);
+  if ((e.t === "/" || e.t === "%") && isC(b) && b.v > 0) {
+    const r = interval(a, extent);
+    if (r && Math.floor(r[0] / b.v) === Math.floor(r[1] / b.v)) return e.t === "/" ? C(Math.floor(r[0] / b.v)) : add(a, C(-b.v * Math.floor(r[0] / b.v)));
+  }
+  switch (e.t) {
+    case "+": return add(a, b);
+    case "*": return mul(a, b);
+    case "/": return div(a, b);
+    case "%": return mod(a, b);
+    case "min": case "max": case "&&": case "||": return bin(e.t, a, b);
+    default: return cmp(e.t, a, b);
+  }
+}
 // a coefficient-and-constant reading when e is affine in `names` (null otherwise)
 export function affine(e, names) {
   const L = linear(e);

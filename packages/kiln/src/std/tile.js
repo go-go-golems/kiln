@@ -40,7 +40,10 @@ export function analyze(expr, shape, inShapes) {
   // the row depth: the outermost output scope that holds a reduction (n means: per output element)
   const rd = outReds.length ? Math.min(...outReds.map((r) => scopeDepth(s.placed.get(r)))) : null;
   const numelOut = numel(shape);
-  const an = { sched: s, n, dims: s.dims, shape, inShapes, numelOut, rd, rows: null, inner: null, contraction: null, stage: [], flat: (i, idx) => flatOf(idx, inShapes[i]) };
+  const extent = (v) => s.reds.find((r) => r.r === v)?.n ?? s.dims.find((d) => d.v === v)?.n;
+  const an = { sched: s, n, dims: s.dims, shape, inShapes, numelOut, rd, rows: null, inner: null, contraction: null, stage: [], flat: (i, idx) => flatOf(idx, inShapes[i]),
+    // the flat index with loop ranges applied: what the cost model reads strides from (codegen keeps flat)
+    boundedFlat: (i, idx) => IX.bounded(flatOf(idx, inShapes[i]), extent) };
   if (rd != null) {
     an.rows = s.dims.slice(0, rd).reduce((a, d) => a * d.n, 1);
     an.inner = s.dims.slice(rd).reduce((a, d) => a * d.n, 1);
@@ -50,7 +53,6 @@ export function analyze(expr, shape, inShapes) {
     // stageable inputs: every load is base(row) + v with one loop variable and the same extent
     const byIn = new Map();
     for (const L of s.loads) { if (!byIn.has(L.i)) byIn.set(L.i, []); byIn.get(L.i).push(L); }
-    const extentOf = (v) => s.reds.find((r) => r.r === v)?.n ?? s.dims.find((d) => d.v === v)?.n;
     for (const [i, loads] of byIn) {
       let ok = true, base = null, L0 = null, v0 = new Set();
       for (const L of loads) {
@@ -63,7 +65,7 @@ export function analyze(expr, shape, inShapes) {
         const aff = IX.affine(f, [v, ...an.rowVars]);
         if (!aff || aff.k[v] !== 1) { ok = false; break; }
         const b = IX.subst(f, { [v]: IX.C(0) });
-        const ext = extentOf(v);
+        const ext = extent(v);
         if (base && IX.keyOf(b) !== IX.keyOf(base)) { ok = false; break; }
         if (L0 != null && ext !== L0) { ok = false; break; }
         base = b; L0 = ext; v0.add(v);
@@ -208,7 +210,7 @@ export function estimate(an, kn, t) {
   const fl = (st) => (st.e?.k === "op" ? FNS[st.e.fn]?.flops ?? 1 : 0);
   const access = (trips, fvar, st, staged) => {
     if (staged) { smemWave += trips / 32; return; }
-    const f = an.flat(st.e.i, st.e.idx);
+    const f = an.boundedFlat(st.e.i, st.e.idx);
     const stride = fvar ? coefOf(f, fvar) : 0;
     traffic += (trips / 32) * sectorsFor(stride) * 32;
   };
@@ -257,7 +259,7 @@ export function estimate(an, kn, t) {
     const TX = kn.BN / kn.TN;
     const tileLoads = (list, rows, other, isA) => {
       for (const x of list) {
-        const f = an.flat(x.i, x.idx);
+        const f = an.boundedFlat(x.i, x.idx);
         const sK = coefOf(f, ct.C.r), sR = coefOf(f, other);
         const stride = Math.min(Math.abs(sK) || 99, Math.abs(sR) || 99) === 99 ? 0 : Math.min(Math.abs(sK) || 99, Math.abs(sR) || 99);
         const n = L.grid * kt * rows * kn.BK;
