@@ -686,3 +686,7 @@ The 10 extra imports (GAE/RECT_L `start3_end6_1`, six `jhu-clsp_ettin-decoder-15
 ### Technical details
 
 - Output format `kiln-010-census-regression/1`: `records`, `imported_before`, `imported_now`, `changes` with the three lists.
+
+## Step 10: Vault report (milestone)
+
+Wrote the textbook-style deep-dive note `Projects/2026/11/01/ARTICLE - Kiln - Index Values, Factory Ops and Slice Assignment in a Functional Tensor Compiler.md` in the go-go-parc vault, committed only that file (vault commit f30be08) and pushed after `git pull --rebase` (an autostash of other agents' unstaged vault files was created and re-applied by git; nothing of theirs was committed). Prompt: see Step 6.
