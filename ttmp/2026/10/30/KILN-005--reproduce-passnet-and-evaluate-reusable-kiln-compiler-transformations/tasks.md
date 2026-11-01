@@ -33,6 +33,9 @@
 - [ ] Launch typed-slice3-replay-v1 on bling when the GPU is free (10 families, 45 graphs; plan frozen 8167642), then collect with 669 <!-- t:s3gp -->
 - [ ] Gate task 162 (jina reranker, .to(cuda)) with 658 on a CUDA host; local compile already 6/6 <!-- t:s162 -->
 - [ ] GPU probe: families 17 and 147 one-ulp f16/bf16 matrix-product misses; rerun with allow_fp16/bf16_reduced_precision_reduction False and compare (reference 50) <!-- t:rprr -->
+- [ ] Launch composed-ops-replay-v1 on bling when free (10 families, 101 graphs; plan 45cb29a), then collect with 669; gate task 55 with 658 on a CUDA host <!-- t:cogp -->
+- [ ] Decide from the composed-ops replay whether PyTorch's f32 SDPA on GB10 uses TF32 (task 5's 21 attention rules compile with tf32 products); if not, exempt SDPA products from tf32Pass <!-- t:sdtf -->
+- [ ] Install esbuild in this worktree (apps/workbench build step) so notes/presets/sandbox/server-sync tests run <!-- t:esbd -->
 - [x] Families 94, 111, 172, 176 (accumulating input mutation) cannot pass PassBench: compiled and eager share one input dict (Step 258). Report as a benchmark limitation; exclude from acceptance denominators with that reason — written up in reference 50 <!-- t:shin -->
 - [x] Design in-place input mutation through kernel-level aliasing: PassBench forbids aten copy_ in replacements, blocking tasks 92 and 134 and 78 graphs of the input-mutation wave <!-- t:tc2t -->
 - [ ] Run the Dynamo matcher simulation 658 as a freeze gate for every new operation family before staging GPU replays <!-- t:db41 -->
