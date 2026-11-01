@@ -942,3 +942,59 @@ assumed NaN, and Kiln's composed lowering produced NaN. I changed the SDPA lower
 ### Technical details
 
 - `−FLT_MAX = -3.4028234663852886e38`, `FLT_MIN = 1.1754943508222875e-38` (both exact in f32).
+
+## Step 11: Ticket bookkeeping, vault article, and the GPU hand-off
+
+This step closed the CPU-side work: tasks Phases 1-4 checked, three follow-up tasks added, a changelog
+entry, five related files on the design doc, a Section 13 "implementation status and deviations" in the
+design doc, `docmgr doctor --ticket KILN-007 --stale-after 30` clean, and the vault article written and
+pushed. Phase 0's probe is written and dry-run; Phases 5 and 6 need the GB10.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 6.
+**Assistant interpretation:** Finish with a reviewable ticket and a textbook-style vault report.
+**Inferred user intent:** The coordinator can run the GPU jobs from the receipt alone.
+**Commit (code):** db0d4f0 — "KILN-007: design-doc implementation status, tasks, changelog, related files"
+
+### What I did
+
+- Vault: `Projects/2026/11/01/ARTICLE - Kiln - Fused Attention as a Recognized Expression and an
+  Online-Softmax Kernel.md` in go-go-parc, commit f43794d, `git pull --rebase` then push succeeded.
+
+### What worked
+
+- `docmgr doctor`: "✅ All checks passed". Final suites: `npm test` all 49 passed; `pytest -q` 177 passed.
+
+### What didn't work
+
+- No failures observed.
+
+### What I learned
+
+- N/A.
+
+### What was tricky to build
+
+- N/A.
+
+### What warrants a second pair of eyes
+
+- The default stays `attention: "composed"`; flipping it is a Phase 5 decision.
+
+### What should be done in the future
+
+GPU validations remaining (coordinator):
+1. Probe 676: `python 676-low-precision-attention-probe.py OUT.json` in the evaluator image on the GB10.
+2. ptxas registers/spills: `sources/nvrtc-flash-v1/flash-kernels.json` through
+   `apps/workbench/test/cuda_check.py --nvrtc … --ptxas $(which ptxas) --arch 121`.
+3. Family-5 replay: `evaluate_tasks.py` plan with `"attention": "fused"` (and `"contraction":
+   "separate"`) against the same plan with `"composed"`.
+
+### Code review instructions
+
+- Design doc Section 13; then Steps 6-10.
+
+### Technical details
+
+- Branch `impl/kiln-007-fused-attention`: c6a4634, f9bd114, a141628, b21c7a5, 32d2104, db0d4f0.
