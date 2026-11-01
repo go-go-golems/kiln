@@ -2,7 +2,8 @@
 // over one buffer table indexed by buffer id, so a kernel that writes a buffer it also reads really shares it, as on
 // the GPU. The simulator executes a block in lockstep (emit.js), which hides an intra-block race, so the instrumented
 // mode also records, for every kernel that writes a buffer it reads, which thread loaded and which stored each
-// address, and reports a hazard when a thread reads an element another thread stores, or reads one after storing it.
+// address, and reports a hazard when a thread reads an element another thread stores (unless both are in one block
+// and a __syncthreads() separates the read from the later store), or reads one after storing it.
 import { SimMetrics, toSim } from "./emit.js";
 import { loopIrOf } from "./export.js";
 
@@ -10,8 +11,10 @@ const fromBase64 = (s) => new Float32Array(Uint8Array.from(atob(s), (c) => c.cha
 
 // per-thread loads from the aliased slots and stores to dst, in the order the lockstep simulator issued them
 class AliasWatch extends SimMetrics {
-  constructor(T, n, slots) { super(T, n); Object.assign(this, { slots: new Set(slots), bid: 0, seq: 0, stored: new Map(), loads: [], hazards: [] }); }
-  block(bid) { super.block(); this.bid = bid; }
+  constructor(T, n, slots) { super(T, n); Object.assign(this, { slots: new Set(slots), bid: 0, epoch: 0, seq: 0, stored: new Map(), loads: [], hazards: [] }); }
+  block(bid) { super.block(); this.bid = bid; this.epoch = 0; }
+  // barriers split a block's run into epochs; a block-wide barrier orders every earlier access before every later one
+  sync(m, sid) { super.sync(m, sid); this.epoch++; }
   gmem(A, kind, slot) {
     super.gmem(A, kind);
     const st = kind === "st", seq = ++this.seq;
@@ -20,17 +23,17 @@ class AliasWatch extends SimMetrics {
       const a = A[t];
       if (a < 0) continue;
       const thread = this.bid * this.T + t;
-      if (!st) { this.loads.push([a, thread, seq]); continue; }
+      if (!st) { this.loads.push([a, thread, seq, this.bid, this.epoch]); continue; }
       const prev = this.stored.get(a);
       if (prev && prev.thread !== thread) this.hazards.push(`threads ${prev.thread} and ${thread} both store element ${a}`);
-      this.stored.set(a, { thread, seq });
+      this.stored.set(a, { thread, seq, bid: this.bid, epoch: this.epoch });
     }
   }
   finish() {
-    for (const [a, thread, seq] of this.loads) {
+    for (const [a, thread, seq, bid, epoch] of this.loads) {
       const s = this.stored.get(a);
       if (!s) continue;
-      if (s.thread !== thread) this.hazards.push(`thread ${thread} reads element ${a}, which thread ${s.thread} stores`);
+      if (s.thread !== thread) { if (!(s.bid === bid && epoch < s.epoch)) this.hazards.push(`thread ${thread} reads element ${a}, which thread ${s.thread} stores${s.bid === bid ? " with no barrier between" : ""}`); }
       else if (s.seq < seq) this.hazards.push(`thread ${thread} reads element ${a} after storing it`);
     }
     return this.hazards;

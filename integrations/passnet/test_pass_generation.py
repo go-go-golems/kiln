@@ -52,6 +52,51 @@ class PatternExtractionTests(unittest.TestCase):
             self.assertEqual(list(result['inputs']),['v0','v1']);self.assertNotIn('relu',result['script'])
             with self.assertRaisesRegex(ValueError,'omits a live'):translate_graph(Path(temporary),'g','fake',input_order=[0])
 
+    # KILN-009 family 162: an unused in-place result on a live intermediate, and x.__eq__(0) spelled by name
+    FAMILY_162='import torch\nclass GraphModule(torch.nn.Module):\n def forward(self,in_0,in_1):\n  tmp_1 = in_1.cumsum(-1)\n  tmp_2 = tmp_1 - 1\n  tmp_3 = in_0.__eq__(0)\n  tmp_4 = tmp_2.masked_fill_(tmp_3, 1);  tmp_3 = tmp_4 = None\n  tmp_5 = tmp_2 * 2\n  return (tmp_5,)\n'
+
+    def test_unused_inplace_result_is_returned_and_matches(self):
+        import ast,copy
+        from torch.fx.passes.utils.matcher_utils import SubgraphMatcher
+        from generate_pass import drop_dead_statements
+        from fx_normalize import trace_pattern,normalize_arguments
+        function=copy.deepcopy(ast.parse(self.FAMILY_162).body[1].body[0])
+        self.assertEqual(drop_dead_statements(function),['tmp_4'])
+        pattern=extract_pattern(self.FAMILY_162,2)
+        self.assertIn('return (tmp_5, tmp_4)',pattern.text);self.assertFalse(pattern.singleton);self.assertEqual(len(pattern.returns),2)
+        namespace={};exec(compile(pattern.text,'<pattern>','exec'),namespace)
+        traced=trace_pattern(namespace['pattern']);normalize_arguments(traced)
+        matcher=SubgraphMatcher(traced.graph,match_output=False,match_placeholder=False,remove_overlapping_matches=True,ignore_literals=False)
+        # the target as TorchDynamo records it: call_method __eq__, and masked_fill_ without users
+        namespace={};exec(compile(self.FAMILY_162,'<model>','exec'),namespace)
+        graphs=[]
+        torch._dynamo.reset()
+        torch.compile(namespace['GraphModule'](),backend=lambda gm,example:(graphs.append(gm),gm.forward)[1],dynamic=False,fullgraph=True)(torch.zeros(2,5,dtype=torch.int64),torch.ones(2,5,dtype=torch.int64))
+        target=graphs[0]
+        self.assertTrue(any(n.op=='call_method' and n.target=='__eq__' for n in target.graph.nodes))
+        changed=normalize_arguments(target)
+        self.assertIn('call_method:__eq__',[c.get('spelling') for c in changed])
+        matches=matcher.match(target.graph)
+        self.assertEqual(len(matches),1);self.assertEqual(len(matches[0].returning_nodes),2)
+
+    def test_unused_inplace_result_is_a_program_output(self):
+        import tempfile
+        from pathlib import Path
+        from corpus import translate_graph
+        with tempfile.TemporaryDirectory() as temporary:
+            graph=Path(temporary)/'g';graph.mkdir()
+            (graph/'model.py').write_text(self.FAMILY_162)
+            (graph/'input_meta.py').write_text('\n'.join(f'class Meta{i}:\n name="in_{i}"\n shape=[2,5]\n dtype="torch.int64"\n' for i in range(2)))
+            (graph/'weight_meta.py').write_text('')
+            result=translate_graph(Path(temporary),'g','fake')
+            kind,leaves=next(iter(result['output_structure'].items()))
+            self.assertEqual(kind,'tuple');self.assertEqual(len(leaves),len(extract_pattern(self.FAMILY_162,2).returns))
+            self.assertEqual(result['input_mutations'],[])
+
+    def test_rebound_unused_inplace_result_is_refused(self):
+        source='import torch\nclass GraphModule(torch.nn.Module):\n def forward(self,x):\n  t = x * 2\n  r = t.relu_()\n  r = t + 1\n  return (r,)\n'
+        with self.assertRaisesRegex(ValueError,'rebound later'):extract_pattern(source,1)
+
     def test_output_permutation_assigns_duplicate_returns(self):
         from generate_pass import output_permutation,reorder_outputs
         self.assertEqual(output_permutation([4,4,5],[5,4,4]),[1,2,0])

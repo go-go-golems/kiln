@@ -27,43 +27,109 @@ function assigned(s, out = new Set()) {
   return out;
 }
 
+// Enumerating every store address is cheap next to running the kernel; past this many (thread, iteration) pairs the
+// proof gives up and the write-back stays.
+export const ENUMERATION_LIMIT = 2 ** 26;
+
+/**
+ * Every address the kernel's single store writes, enumerated over the whole launch (every block, thread and loop
+ * iteration whose guards hold), must be in range and distinct. `frames` is the path from K.body to the store:
+ * [{ list, at }], one per enclosing statement list. → null when injective, else the reason it is not (or cannot be
+ * shown). Index arithmetic is evaluated as the CUDA emitter spells it, over nonnegative coordinates.
+ */
+export function storeInjective(K, frames, { limit = ENUMERATION_LIMIT } = {}) {
+  const n = K.params.find((p) => p.role === "out").size, name = (v) => `v_${v}`;
+  const ix = (e) => IX.emit(e, "js", name);
+  const ints = new Set(K.ints);
+  // a loop or branch beside the path may assign integer variables (a reduction's loop counter): harmless unless the
+  // path to the store reads one of them
+  const pathUses = new Set(), skipped = [];
+  frames.forEach(({ list, at }, d) => {
+    for (let j = 0; j < at; j++) if (list[j].s === "iset") IX.vars(list[j].e, pathUses); else if (list[j].body) skipped.push(list[j]);
+    const s = list[at];
+    for (const e of d === frames.length - 1 ? [s.idx] : controlIndices(s)) IX.vars(e, pathUses);
+  });
+  for (const s of skipped) {
+    const hit = [...assigned(s)].find((v) => pathUses.has(v));
+    if (hit) return `a ${s.s} beside the path to the store assigns ${hit}, which the store's address depends on`;
+  }
+  const level = (d) => {
+    const { list, at } = frames[d];
+    let src = "";
+    for (let j = 0; j < at; j++) {
+      const s = list[j];
+      if (s.s === "iset") { ints.add(s.n); src += `${name(s.n)} = ${ix(s.e)};`; }
+    }
+    const s = list[at];
+    if (d === frames.length - 1) return src + `{ const a = ${ix(s.idx)}; if (!(a >= 0 && a < ${n})) return "the store writes address " + a + ", outside [0, ${n})"; if (seen[a]) return "element " + a + " is stored twice"; seen[a] = 1; }`;
+    if (s.s === "if") return src + `if (${ix(s.c)}) { ${level(d + 1)} }`;
+    if (s.s === "for") { ints.add(s.v); return src + `for (${name(s.v)} = ${ix(s.from)}; ${name(s.v)} < ${ix(s.to)}; ${name(s.v)} += ${ix(s.step)}) { if (++work > ${limit}) return null; ${level(d + 1)} }`; }
+    throw new TypeError(`a store nested in ${s.s}`);
+  };
+  let body;
+  try { body = level(0); } catch (e) { return `the store's address is not enumerable: ${e.message}`; }
+  ints.delete("tid"); ints.delete("bid");
+  const declared = [...ints].map((v) => `${name(v)} = 0`).join(", ");
+  const src = `const seen = new Uint8Array(${n}); let work = 0${declared ? ", " + declared : ""};
+    for (let v_bid = 0; v_bid < ${K.grid}; v_bid++) for (let v_tid = 0; v_tid < ${K.block}; v_tid++) {
+      if (++work > ${limit}) return null;${declared ? " " + [...ints].map((v) => `${name(v)} = 0;`).join(" ") : ""} ${body}
+    }
+    return "ok";`;
+  const r = new Function(src)();
+  return r === "ok" ? null : r === null ? `more than ${limit} (thread, iteration) pairs to enumerate` : r;
+}
+
 /**
  * The in-kernel half of the proof, over Loop IR. `slots` are the source parameter indices bound to the buffer the
- * kernel's single store will write. → { ok: true } or { ok: false, reason }
+ * kernel's single store writes. → { ok: true } or { ok: false, reason }
  *
- * First-slice rule (KILN-009 guide, Decision 7.2): exactly one global store, outside any loop; every load from an
- * aliased slot sits in the store's own statement list, before it, at a structurally equal index (IX.keyOf over the
- * normalized form), and no statement between them reassigns a variable that index uses. No index expression anywhere
- * may read an aliased slot through a data-dependent term (a gather through the mutated input).
+ * Rule (KILN-009 guide, Decision 7.2, extended to the coarsened and row-reduction kernels of the PassBench corpus):
+ *   - exactly one global store, and its addresses over the whole launch are distinct (storeInjective);
+ *   - no index expression reads an aliased slot through a data-dependent term (a gather through the mutated input);
+ *   - every load from an aliased slot is either
+ *       (same list)  in the store's own statement list, before it, at a structurally equal index (IX.keyOf over the
+ *                    normalized form), with no statement between them reassigning a variable that index uses; or
+ *       (barrier)    at the kernel's top level, at a structurally equal index that depends on the block index only,
+ *                    with a __syncthreads() at top level between it and the branch (ifs only, no loop) holding the
+ *                    store: every thread of the block reads the element before the one thread that stores it.
+ * With distinct store addresses, an element is loaded only by the (block, thread, iteration) that stores it, before
+ * it stores it, or (barrier) by threads of that block before a barrier the store follows.
  */
-export function sameIndexSlots(K, slots) {
+export function sameIndexSlots(K, slots, { limit } = {}) {
   const aliased = new Set(slots);
   const stores = [], loads = [];
-  // where every load and store lives: its statement list, its position, and whether a loop encloses it
-  const visit = (list, inLoop) => list.forEach((s, at) => {
-    if (s.s === "store") stores.push({ s, list, at, inLoop });
+  // where every load and store lives: its statement list, its position, and the path of enclosing lists
+  const visit = (list, path) => list.forEach((s, at) => {
+    const frames = [...path, { list, at }];
+    if (s.s === "store") stores.push({ s, list, at, frames });
     if (s.s === "load" && aliased.has(s.buf)) loads.push({ s, list, at });
-    if (s.body) visit(s.body, inLoop || s.s === "for");
+    if (s.body) visit(s.body, frames);
   });
-  visit(K.body, false);
+  visit(K.body, []);
   if (stores.length !== 1) return fail(`the kernel has ${stores.length} stores`);
   const st = stores[0];
-  if (st.inLoop) return fail("the store is inside a loop");
   // a data-dependent index term that reads an aliased slot is a read of the input at a computed, other element
   const gathers = (e) => IX.loadsOf(e).some((l) => aliased.has(l.v.i));
   const everyIndex = (list, f) => list.every((s) => [...controlIndices(s), ...(s.s === "load" || s.s === "store" ? [s.idx] : [])].every(f) && everyIndex(s.body || [], f));
   if (!everyIndex(K.body, (e) => !gathers(e))) return fail("an index expression reads the mutated input (a gather through it)");
   const key = IX.keyOf(st.s.idx), uses = IX.vars(st.s.idx);
+  const top = st.frames[0].at, branchesOnly = st.frames.slice(0, -1).every(({ list, at }) => list[at].s === "if");
   for (const ld of loads) {
-    if (ld.list !== st.list) return fail(`a load from slot ${ld.s.buf} is in a different loop or branch than the store`);
-    if (ld.at > st.at) return fail(`a load from slot ${ld.s.buf} follows the store`);
-    if (IX.keyOf(ld.s.idx) !== key) return fail(`a load from slot ${ld.s.buf} reads index ${IX.print(ld.s.idx)}, the store writes ${IX.print(st.s.idx)}`);
-    for (let j = ld.at + 1; j < st.at; j++) {
-      const hit = [...assigned(st.list[j])].find((v) => uses.has(v));
-      if (hit) return fail(`index variable ${hit} is reassigned between a load from slot ${ld.s.buf} and the store`);
-    }
+    const where = `a load from slot ${ld.s.buf}`;
+    if (IX.keyOf(ld.s.idx) !== key) return fail(`${where} reads index ${IX.print(ld.s.idx)}, the store writes ${IX.print(st.s.idx)}`);
+    if (ld.list === st.list) {
+      if (ld.at > st.at) return fail(`${where} follows the store`);
+      for (let j = ld.at + 1; j < st.at; j++) {
+        const hit = [...assigned(st.list[j])].find((v) => uses.has(v));
+        if (hit) return fail(`index variable ${hit} is reassigned between ${where} and the store`);
+      }
+    } else if (ld.list === K.body && branchesOnly && ld.at < top) {
+      if ([...uses].some((v) => v !== "bid")) return fail(`${where} is outside the store's branch at an index that depends on more than the block`);
+      if (!K.body.slice(ld.at + 1, top).some((s) => s.s === "sync")) return fail(`${where} is outside the store's branch with no barrier between them`);
+    } else return fail(`${where} is in a different loop or branch than the store`);
   }
-  return { ok: true };
+  const why = storeInjective(K, st.frames, { limit });
+  return why ? fail(why) : { ok: true };
 }
 
 /**

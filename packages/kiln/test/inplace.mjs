@@ -15,7 +15,8 @@ import { SPECS, target } from "../src/std/targets.js";
 const pipe = pipeline({ target: target(SPECS.rtx5090) });
 let failed = 0;
 const check = (ok, what) => { console.log(`${ok ? "ok  " : "FAIL"} ${what}`); if (!ok) failed++; };
-const build = (fn, inputs) => { const g = k.trace("m", fn, inputs), r = pipe.run(g); return { g, r, prog: programOf(r.graph) }; };
+const a100 = pipeline({ target: target(SPECS.a100) });
+const build = (fn, inputs, p = pipe) => { const g = k.trace("m", fn, inputs), r = p.run(g); return { g, r, prog: programOf(r.graph) }; };
 const exp = ({ r, prog }, opts) => exportProgram(r, prog, opts);
 const values = (n, seed) => { const f = rng(seed); return Float32Array.from({ length: n }, () => f() * 2 - 1); };
 const close = (a, b) => a.length === b.length && a.every((v, i) => Math.abs(v - b[i]) <= 1e-5 + 1e-4 * Math.abs(b[i]));
@@ -25,12 +26,17 @@ const CASES = {
   "relu_ then mean": { fn: ({ x }) => ({ y: N.mean(N.relu(x), -1), __mut0: N.relu(x) }), inputs: { x: k.tensor([4, 8]) }, want: "direct" },
   "x += y; out = 2x": { fn: ({ x, y }) => { const s = N.add(x, y); return { out: N.mul(s, 2), __mut0: s }; }, inputs: { x: k.tensor([4, 8]), y: k.tensor([4, 8]) }, want: "direct" },
   "x += y; out = softmax(x)": { fn: ({ x, y }) => { const s = N.add(x, y); return { out: N.softmax(s), __mut0: s }; }, inputs: { x: k.tensor([4, 8]), y: k.tensor([4, 8]) }, want: "direct" },
-  "x <- x - mean(x)": { fn: ({ x }) => ({ __mut0: N.sub(x, N.mean(x, -1, true)) }), inputs: { x: k.tensor([4, 8]) }, want: "writeback", reason: /producer 0: a load from slot 0 is in a different loop or branch than the store/ },
+  "x <- x - mean(x)": { fn: ({ x }) => ({ __mut0: N.sub(x, N.mean(x, -1, true)) }), inputs: { x: k.tensor([4, 8]) }, want: "writeback", reason: /producer 0: a load from slot 0 reads index 8 \* \(e \/ 8\) \+ r0/ },
   "x += y over 3x224x224 (multi-block)": { fn: ({ x, y }) => { const s = N.add(x, y); return { out: N.mul(s, 2), __mut0: s }; }, inputs: { x: k.tensor([3, 224, 224]), y: k.tensor([3, 224, 224]) }, want: "direct" },
+  // KILN-005 family 57/111 shape: x += a row reduction; every thread loads x[row], a barrier, thread 0 stores it
+  "x += a @ w (row kernel, barrier rule)": { fn: ({ x, a, w }) => { const s = N.add(x, N.matmul(a, w)); return { out: N.mul(s, 2), __mut0: s }; }, inputs: { x: k.tensor([64, 1]), a: k.tensor([64, 64]), w: k.tensor([64, 1]) }, want: "direct", row: /MAP=row/ },
+  "x += sum(a * w) (staged row kernel)": { fn: ({ x, a, w }) => { const s = N.add(x, N.sum(N.mul(a, w), -1, true)); return { out: N.mul(s, 2), __mut0: s }; }, inputs: { x: k.tensor([64, 1]), a: k.tensor([64, 64]), w: k.tensor([64, 64]) }, want: "direct", row: /MAP=row/ },
+  // KILN-005 family 49 shape on a100: a coarsened relu_ (a loop of 4 elements per thread)
+  "relu_ coarsened (a100, loop rule)": { fn: ({ x }) => ({ y: N.mul(N.relu(x), 2), __mut0: N.relu(x) }), inputs: { x: k.tensor([24, 256, 20, 20]) }, want: "direct", pipe: a100, row: /COARSEN=/ },
 };
 
 for (const [label, c] of Object.entries(CASES)) {
-  const b = build(c.fn, c.inputs);
+  const b = build(c.fn, c.inputs, c.pipe);
   const auto = exp(b, { mutations: { __mut0: "x" } }), wb = exp(b, { mutations: { __mut0: "x" }, mutationStrategy: "writeback" });
   const m = auto.mutations[0], x = auto.inputs.find((i) => i.name === "x");
   check(m.strategy === c.want && (!c.reason || c.reason.test(m.reason)), `${label}: ${m.strategy}${m.reason ? ` (${m.reason})` : ""}`);
@@ -49,6 +55,7 @@ for (const [label, c] of Object.entries(CASES)) {
     const restrictOk = params.every((q, j) => (j === params.length - 1 ? (aliasedSlots.length ? !/__restrict__/.test(q) : /__restrict__/.test(q)) : aliasedSlots.includes(j) ? !/__restrict__|const/.test(q) : /const .*__restrict__/.test(q)));
     check(restrictOk && new RegExp(`void __launch_bounds__\\(\\d+\\) ${p.name}\\(`).test(p.cuda), `${label}: in-place CUDA signature (${sig})`);
     check(p.identity !== p.inPlace.of, `${label}: the in-place variant has its own identity`);
+    if (c.row) check(c.row.test(p.row), `${label}: the producer is ${p.row}`);
   }
   // the oracle: both strategies, with aliasing, against the frontend graph
   const feed = Object.fromEntries(Object.entries(c.inputs).map(([n, t], j) => [n, values(t.shape.reduce((a, d) => a * d, 1), 11 + j)]));
@@ -94,14 +101,28 @@ for (const [label, c] of Object.entries(CASES)) {
 {
   const e = IX.V("e"), r = IX.V("r");
   const ld = (buf, idx) => ({ s: "load", n: "in" + buf, buf, idx }), st = (idx) => ({ s: "store", buf: "out", idx, e: { k: "var", n: "in0" } });
-  const K = (body) => ({ body });
+  // one block of 8 threads over 8 elements, e = tid
+  const K = (body, extra = {}) => ({ body: [{ s: "iset", n: "e", e: IX.V("tid") }, ...body], params: [{ role: "in", size: 8 }, { role: "in", size: 8 }, { role: "out", size: 8 }], grid: 1, block: 8, ints: ["e"], ...extra });
   check(sameIndexSlots(K([ld(0, e), st(e)]), [0]).ok, "same index: load then store of element e");
   check(sameIndexSlots(K([ld(0, IX.C(0).add(e)), st(e.add(0))]), [0]).ok, "same index: equal after normalization");
   check(/reads index/.test(sameIndexSlots(K([ld(0, e.add(1)), st(e)]), [0]).reason), "same index: a neighbour load refuses");
   check(/follows the store/.test(sameIndexSlots(K([st(e), ld(0, e)]), [0]).reason), "same index: a load after the store refuses");
   check(/2 stores/.test(sameIndexSlots(K([ld(0, e), st(e), st(e.add(1))]), [0]).reason), "same index: two stores refuse");
-  check(/inside a loop/.test(sameIndexSlots(K([{ s: "for", v: "r", from: IX.C(0), to: IX.C(4), step: IX.C(1), body: [ld(0, e), st(e)] }]), [0]).reason), "same index: a store inside a loop refuses");
-  check(/different loop or branch/.test(sameIndexSlots(K([ld(0, e), { s: "if", c: e.lt(4), body: [st(e)] }]), [0]).reason), "same index: a load outside the store's branch refuses");
+  check(/stored twice/.test(sameIndexSlots(K([{ s: "for", v: "r", from: IX.C(0), to: IX.C(4), step: IX.C(1), body: [ld(0, e), st(e)] }]), [0]).reason), "same index: a loop that rewrites the element it read refuses");
+  check(/depends on more than the block/.test(sameIndexSlots(K([ld(0, e), { s: "if", c: e.lt(4), body: [st(e)] }]), [0]).reason), "same index: a per-thread load outside the store's branch refuses");
+  check(/different loop or branch/.test(sameIndexSlots(K([{ s: "if", c: e.lt(4), body: [ld(0, e)] }, { s: "if", c: e.lt(4), body: [st(e)] }]), [0]).reason), "same index: a load in a sibling branch refuses");
+  // row kernels: every thread reads the block's element, a barrier, then thread 0 stores it (KILN-005 families 57, 111)
+  const b = IX.V("bid"), tid = IX.V("tid"), rowK = (body) => ({ body, params: [{ role: "in", size: 4 }, { role: "out", size: 4 }], grid: 4, block: 8, ints: [] });
+  check(sameIndexSlots(rowK([ld(0, b), { s: "sync" }, { s: "if", c: tid.eq(0), body: [st(b)] }]), [0]).ok, "barrier: a block-indexed load, a barrier, then one thread's store");
+  check(/no barrier/.test(sameIndexSlots(rowK([ld(0, b), { s: "if", c: tid.eq(0), body: [st(b)] }]), [0]).reason), "barrier: without the barrier it refuses");
+  check(/stored twice/.test(sameIndexSlots(rowK([ld(0, b), { s: "sync" }, st(b)]), [0]).reason), "barrier: every thread storing the block's element refuses");
+  check(/stored twice/.test(sameIndexSlots(rowK([ld(0, b), st(b)]), [0]).reason), "same list: every thread of a block loading and storing one element refuses");
+  // coarsened thread kernels: e = 16 * bid + 8 * j + tid inside a loop over j (COARSEN=2)
+  const j = IX.V("j"), coarse = (eOf, n) => ({ body: [{ s: "for", v: "j", from: IX.C(0), to: IX.C(2), step: IX.C(1), body: [{ s: "iset", n: "e", e: eOf }, { s: "if", c: e.lt(n), body: [ld(0, e), st(e)] }] }], params: [{ role: "in", size: n }, { role: "out", size: n }], grid: 2, block: 8, ints: ["e"] });
+  check(sameIndexSlots(coarse(b.mul(16).add(j.mul(8)).add(tid), 32), [0]).ok, "loop: a coarsened elementwise kernel with distinct addresses");
+  check(/stored twice/.test(sameIndexSlots(coarse(b.mul(16).add(tid), 32), [0]).reason), "loop: a loop that stores one element on every iteration refuses");
+  check(/more than 10/.test(sameIndexSlots(coarse(b.mul(16).add(j.mul(8)).add(tid), 32), [0], { limit: 10 }).reason), "loop: past the enumeration limit it refuses");
+  check(/outside \[0, 16\)/.test(sameIndexSlots({ ...coarse(b.mul(16).add(j.mul(8)).add(tid), 32), params: [{ role: "in", size: 16 }, { role: "out", size: 16 }] }, [0]).reason), "loop: an address outside the buffer refuses");
   check(/reassigned/.test(sameIndexSlots(K([ld(0, e), { s: "iset", n: "e", e: e.add(1) }, st(e)]), [0]).reason), "same index: reassigning the index between load and store refuses");
   check(/gather/.test(sameIndexSlots(K([ld(1, IX.LD(0, [e])), ld(0, e), st(e)]), [0]).reason), "same index: a gather through the mutated input refuses");
   check(sameIndexSlots(K([ld(1, r), ld(0, e), st(e)]), [0]).ok, "same index: loads from unaliased slots are unconstrained");

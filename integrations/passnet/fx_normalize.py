@@ -4,6 +4,7 @@ Integration-protocol transformation, not part of original PassBench. Does not
 rewrite tensor computations, relax predicates, or modify replacement code.
 """
 import inspect
+import operator
 import torch
 
 # Narrow explicit scope: functions whose inspectable Python signatures and
@@ -46,9 +47,19 @@ ALIASES = {'sigmoid': torch.sigmoid, 'tanh': torch.tanh}
 FUNCTION_ALIASES = {torch.nn.functional.sigmoid: torch.sigmoid, torch.nn.functional.tanh: torch.tanh}
 
 
+# A source that calls a comparison dunder by name (`in_0.__eq__(0)`, KILN-009 family 162): symbolic
+# tracing of the pattern dispatches it through Proxy's magic method and records operator.eq,
+# while TorchDynamo records call_method __eq__. Both spell one binary comparison.
+DUNDER_ALIASES = {f'__{name}__': getattr(operator, name) for name in ('eq', 'ne', 'lt', 'le', 'gt', 'ge')}
+
+
 def canonicalize_spellings(graph_module):
     changed = []
     for node in graph_module.graph.nodes:
+        if node.op == 'call_method' and node.target in DUNDER_ALIASES and len(node.args) == 2 and not node.kwargs:
+            changed.append({'node': node.name, 'spelling': 'call_method:' + node.target})
+            node.op, node.target = 'call_function', DUNDER_ALIASES[node.target]
+            continue
         target = (ALIASES.get(node.target) if node.op == 'call_method' and isinstance(node.target, str) else
                   FUNCTION_ALIASES.get(node.target) if node.op == 'call_function' else None)
         if target is None or len(node.args) != 1 or node.kwargs:
