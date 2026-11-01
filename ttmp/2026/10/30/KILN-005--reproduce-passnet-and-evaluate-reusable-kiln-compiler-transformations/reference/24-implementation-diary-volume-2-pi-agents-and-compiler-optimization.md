@@ -4872,3 +4872,55 @@ The slice-1 and slice-2 replays finished. **Five typed families are complete und
 
 ### Technical details
 - Re-replay staged at revision `5d492b0`, snapshot `47880f3c…`.
+
+## Step 257: In-place mutation written by the compiled program; embedding families accepted
+
+The user asked to continue P3a slice 3 and in-place mutation, then run the gates and qualifications. I started with mutation because its design turned on a protocol fact. PassBench wraps a replacement's tensors in `PosionDispatchTensor`, whose `__torch_dispatch__` admits only factories (`empty`, `zeros`, `ones`, `full`, `as_tensor`, aliasing and `_to_copy`) plus metadata queries. Kiln's kernels write through raw device pointers and are invisible to it. So the write-back moved from the dispatcher (`destination.copy_`) into the compiled program: a final Kiln copy kernel writes the computed value into the input's own buffer.
+
+In the same step the embedding re-replay passed completely: tasks 21, 61 and 152, 46 of 46 graphs. Eight typed families are now accepted on the GPU.
+
+### Prompt Context
+**User prompt (verbatim):** "ok, let's continue P3a slice 3 and in -place mutation, then we can do all the gates and qualifications and all."
+**Assistant interpretation:** Implement integer arithmetic (slice 3) and protocol-legal input mutation; defer re-qualification until both are done.
+**Inferred user intent:** Close the two largest remaining coverage blocks, then measure everything uniformly.
+**Commit (code):**
+- 2be8918 — write-back
+- b1a7ce4 — old wave collected; replay frozen
+- this step's commit — replay launch and embedding collection
+
+### What I did
+- Read `pass_bench/torch/posion_dispatch_tensor.py` (144 lines), `runtime.TorchProgram.__call__` and `kiln_launch.launch`. An output spec whose buffer is an input buffer is not allocated: `TorchProgram` returns the caller's input tensor.
+- `export.js`: `writebackKernel(from, to)` (CUDA copy, 256 threads, int index under the existing 32-bit guard). `exportProgram(…, {mutations})` appends one per mutation, checks shape and dtype, and re-points the output to the input buffer. `CUDA_STORAGE` moved to `emit.js` and is shared.
+- `kiln-export.mjs --mutation OUT=IN`. `corpus.compile_task` passes one flag per `input_mutations` record (index → the input's program variable). `dispatch.py` only asserts `outputs[out] is inputs[i]`.
+- Tests: an `export.mjs` block (the write-back is last, it targets the input buffer, no earlier kernel writes the input, a type mismatch is refused). `test_dispatch` now models an in-place program, plus a rejection case for a program that does not write in place.
+- Collected the old input-mutation wave: 0 of 12 families, 9 of 96 graphs; 11 families show the copy_ refusal.
+- Gates for the new replay: the 658 Dynamo simulation passed 126/126, and a local compile with `--mutation` and tf32 passed 126/126. Froze `mutation-writeback-replay-v1` (14 families) and launched it.
+- Collected `typed-slice2-embedding-replay-gpu-v1`: 21 (10/10, score 1.066), 61 (6/6, 0.835), 152 (30/30, 0.953).
+
+### Why
+- A final copy kernel is correct for any graph, because every read of the original value precedes it in launch order. Writing the producer's output directly into the input is faster but needs a launch-order proof. That is a later optimization; here SiLU's kernel could already target the input.
+
+### What worked
+- Task 92's artifact: kernels `k___mut1` (reads 1, writes 2), `k_out0` (reads 2, writes 3), `k_writeback` (reads 2, writes 1); output `__mut1` points at buffer 1 (input `v1`).
+- `packages/kiln` 47/47; pytest 169.
+
+### What didn't work
+- `test_dispatch::test_mutated_input_storage_and_return_alias` failed after the change, because its fake program returned `x+1` (the old copy contract). I rewrote it for the new contract.
+
+### What I learned
+- The gate order "simulate, then compile, then freeze" caught nothing new this time. It still turns a 30-minute GPU replay into a confirmation step instead of a discovery step.
+
+### What was tricky to build
+- The mutated output name `__mut<k>` refers to the source input *index*. The exporter needs the input's program *name*. `corpus` maps it through the manifest's `inputs` order, which is the placeholder order.
+
+### What warrants a second pair of eyes
+- If a graph both mutates an input and returns the original (pre-mutation) value, the earlier output buffer is untouched by the write-back, which is correct. The `input_alias` structure handles outputs that alias the mutated input.
+
+### What should be done in the future
+- Collect the mutation replay. Then direct in-place writes when no later kernel reads the input. Then slice 3.
+
+### Code review instructions
+- `writebackKernel` and the mutation loop in `exportProgram`; `corpus.compile_task`; `CorpusDispatch.__call__`.
+
+### Technical details
+- Replay staged at `b1a7ce4`, snapshot `77300073…`; tmux `kiln-mutation-writeback-v1`.
