@@ -14,6 +14,7 @@ from fx_norm_ops import LAYER_NORM,lower_layer_norm,SOFTMAX,lower_softmax
 from fx_max_pooling import MAX_POOL2D,lower_max_pool2d
 from fx_layout import PAD,ROLL,PARTITION,PARTITION_METHODS,STACK,UNBIND,UNBIND_METHODS,lower_pad,lower_roll,lower_partition,lower_stack,lower_unbind
 from fx_scalar_ops import FUNCTIONS as SCALAR_FUNCTIONS,METHODS as SCALAR_METHODS,lower_scalar
+import fx_compose
 
 REGISTRY = Registry()
 
@@ -90,6 +91,15 @@ helper('softmax', lower_softmax, functions=SOFTMAX, methods=('softmax',),
 helper('layer_norm', lower_layer_norm, functions=LAYER_NORM)
 helper('singleton_view', lower_singleton_view, functions=SINGLETON_FUNCTIONS, methods=SINGLETON_METHODS, fresh=False)
 helper('flatten', lower_flatten, functions=FLATTEN_FUNCTIONS, methods=('flatten',), fresh=False)
+
+
+for _name, _lower, _functions, _methods in [
+        ('norm', fx_compose.lower_norm, ('torch.functional.norm', 'torch.norm'), ('norm',)),
+        ('normalize', fx_compose.lower_normalize, ('torch.nn.functional.normalize',), ()),
+        ('prelu', fx_compose.lower_prelu, ('torch.prelu', 'torch.nn.functional.prelu'), ()),
+        ('einsum', fx_compose.lower_einsum, ('torch.functional.einsum', 'torch.einsum'), ()),
+        ('attention', fx_compose.lower_sdpa, ('torch._C._nn.scaled_dot_product_attention', 'torch.nn.functional.scaled_dot_product_attention'), ())]:
+    op(_name, functions=_functions, methods=_methods)(lambda c, _lower=_lower: Lowered(_lower(c)))
 
 
 @op('scalar', functions=SCALAR_FUNCTIONS, methods=SCALAR_METHODS)
@@ -534,11 +544,16 @@ def lower_batch_norm(c):
     return Lowered(f'N.cast({expr}, {json.dumps(floating_dtype(c, "batch_norm"))})')
 
 
-@op('dropout', functions=('torch.nn.functional.dropout',), fresh=False)
+DROPOUT = ('torch.nn.functional.dropout', 'torch.nn.functional.dropout1d', 'torch.nn.functional.dropout2d',
+           'torch.nn.functional.dropout3d', 'torch.nn.functional.alpha_dropout', 'torch.nn.functional.feature_alpha_dropout')
+
+
+@op('dropout', functions=DROPOUT, fresh=False)
 def lower_dropout(c):
-    bound = dict(zip(['input', 'p', 'training', 'inplace'], c.args)); bound.update(c.kwargs)
-    if bound.get('training', 'true') != 'false' or bound.get('inplace', 'false') != 'false':
-        raise ValueError(f'{c.name}: only disabled non-inplace dropout supported')
+    """Dropout with training=False is the identity, in place or not."""
+    bound = bind(c.name, 'dropout', c.args, c.kwargs, ['input', 'p', 'training', 'inplace'])
+    if c.ctx.literal(bound.get('training', 'true')) is not False or type(c.ctx.literal(bound.get('inplace', 'false'))) is not bool:
+        raise ValueError(f'{c.name}: only dropout with training=False is lowered')
     return Lowered(bound['input'])
 
 
