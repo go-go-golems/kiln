@@ -1,6 +1,7 @@
 // kiln-program/1: a compiled program as a consumer loads it. Kernels in launch order, the buffer each argument reads
 // and each kernel writes, the dispatch geometry, and the identity that ties every kernel back to its record.
 import { numel, dtypeBytes, hash } from "../core/util.js";
+import { toF16Bits, toBf16Bits } from "../core/dtypes.js";
 import { KilnError } from "../core/kiln.js";
 import { CODEGEN_VERSION } from "./records.js";
 import { CUDA_STORAGE, toCuda } from "./emit.js";
@@ -13,6 +14,21 @@ const cname = (s) => String(s || "kernel").replace(/[^\w]/g, "_");
 // refuse an artifact whose buffers or launches could exceed that range instead of overflowing silently.
 export const INT32_INDEX_LIMIT = 2 ** 31 - 1;
 const storageBytes = (dtype, n) => Math.max(4, Math.ceil(n * dtypeBytes(dtype) / 4) * 4);
+// constant values in a storage dtype's little-endian bytes, zero-padded to `bytes`
+export function constantBytes(values, dtype, bytes) {
+  const out = new Uint8Array(bytes), view = new DataView(out.buffer), n = values.length;
+  for (let i = 0; i < n; i++) {
+    const v = values[i];
+    if (dtype === "f32") view.setFloat32(4 * i, Number(v), true);
+    else if (dtype === "f16") view.setUint16(2 * i, toF16Bits(Number(v)), true);
+    else if (dtype === "bf16") view.setUint16(2 * i, toBf16Bits(Number(v)), true);
+    else if (dtype === "i32") view.setInt32(4 * i, Number(v), true);
+    else if (dtype === "i64") view.setBigInt64(8 * i, BigInt.asIntN(64, typeof v === "bigint" ? v : BigInt(Math.trunc(Number(v)))), true);
+    else if (dtype === "bool" || dtype === "u8") out[i] = dtype === "bool" ? (Number(v) ? 1 : 0) : Number(v) & 0xff;
+    else throw new KilnError("ExportError", `constant of dtype ${dtype} cannot be exported`);
+  }
+  return out;
+}
 const base64 = (bytes) => { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(s); };
 
 /**
@@ -73,9 +89,16 @@ export function exportProgram(run, prog, { name, params = {}, target = null, sou
     const reads = node.args.map((a, j) => {
       if (byNode.has(a)) return byNode.get(a);
       const src = g.nodes.get(a);
-      if (src?.name === "tensor.const" && src.attrs.data) {
+      if (src?.name === "tensor.const" && src.attrs.data && (src.attrs.data.dtype || "f32") === "f32") {
         const d = Float32Array.from(src.attrs.data.data);
         return add(a, "f32", src.attrs.data.shape, { name: src.attrs.name || null, data: base64(new Uint8Array(d.buffer)) });
+      }
+      if (src?.name === "tensor.const") {
+        // a typed data constant, or a splat no kernel absorbed (e.g. a scan over torch.ones): materialized in the
+        // constant's storage dtype
+        const dtype = src.type.dtype || "f32", shape = src.type.shape;
+        const values = src.attrs.data ? src.attrs.data.data : new Array(numel(shape)).fill(src.attrs.value);
+        return add(a, dtype, shape, { name: src.attrs.name || null, data: base64(constantBytes(values, dtype, storageBytes(dtype, numel(shape)))) });
       }
       throw new KilnError("ExportError", `kernel ${kn.name} argument ${j} is ${src?.name || "missing"}: an exported argument must be a program input, a data constant, or an earlier kernel's output`);
     });

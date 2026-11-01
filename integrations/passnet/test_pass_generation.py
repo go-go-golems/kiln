@@ -21,6 +21,15 @@ class PatternExtractionTests(unittest.TestCase):
         pattern=extract_pattern(self.source('v=x+x\n  v+=x\n  return (v,)'),1)
         self.assertIn('kiln_iadd',pattern.text);self.assertIn('_operator.iadd',pattern.key)
 
+    def test_other_inplace_operators_and_factories_preserved(self):
+        pattern=extract_pattern(self.source("v=x.sum(-1)\n  x/=v\n  m=torch.ones((2,3),device='cuda')\n  m*=-1.0\n  return (x,m)"),1)
+        self.assertIn('kiln_itruediv',pattern.text);self.assertIn('kiln_imul',pattern.text)
+        self.assertIn('_operator.itruediv',pattern.key);self.assertIn('torch.ones',pattern.key)
+
+    def test_inplace_write_through_a_view_kept(self):
+        pattern=extract_pattern(self.source("m=torch.zeros((1,4,4))\n  v=m[(slice(None),slice(-1,None),slice(None))]\n  w=v.fill_(1)\n  v=w=None\n  r=m.reshape(1,16)\n  y=r+x\n  return (y,)"),1)
+        self.assertIn('fill_',pattern.text);self.assertEqual(len(pattern.returns),2)
+
     def test_output_order_and_container_are_not_identity(self):
         two='import torch\nclass GraphModule(torch.nn.Module):\n def forward(self,x,y):\n  u=x+y\n  v=x*y\n  return '
         ab=extract_pattern(two+'(u, v)\n',2);ba=extract_pattern(two+'(v, u)\n',2)

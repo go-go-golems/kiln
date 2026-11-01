@@ -26,9 +26,16 @@ class Pattern:
     returns: list          # returned node indices in this source's order
 
 
+# augmented assignment operator -> the directly imported operator.i<name> a pattern calls instead
+# (fx_normalize.trace_pattern autowraps them; TorchDynamo captures x op= y as operator.i<name>)
+AUGMENTED={ast.Add:'add',ast.Sub:'sub',ast.Mult:'mul',ast.Div:'truediv',ast.FloorDiv:'floordiv',ast.Mod:'mod',ast.Pow:'pow',
+           ast.MatMult:'matmul',ast.BitAnd:'and',ast.BitOr:'or',ast.BitXor:'xor',ast.LShift:'lshift',ast.RShift:'rshift'}
+INPLACE_NAMES={name:'kiln_i'+name for name in AUGMENTED.values()}
+
+
 def inplace_call(value):
     if not isinstance(value,ast.Call):return False
-    if isinstance(value.func,ast.Name) and value.func.id=='kiln_iadd':return True
+    if isinstance(value.func,ast.Name) and value.func.id in INPLACE_NAMES.values():return True
     if isinstance(value.func,ast.Attribute) and value.func.attr.endswith('_') and not value.func.attr.startswith('_'):return True
     return any(k.arg=='inplace' and isinstance(k.value,ast.Constant) and k.value.value is True for k in value.keywords)
 
@@ -48,6 +55,21 @@ def drop_dead_statements(function):
     """
     *body,ret=function.body
     arguments={a.arg for a in function.args.args}
+    # name -> the name it is a view of (x[...] or a view method of a name): an in-place call through a view
+    # updates the viewed value, so it is kept when the view or anything it views is read later
+    # (corpus.eliminate_dead_code follows the same chain over FX nodes)
+    VIEWS={'view','reshape','permute','transpose','expand','expand_as','view_as','unsqueeze','squeeze','flatten','t',
+           'contiguous','narrow','select','unfold','detach','as_strided','movedim','swapaxes','unflatten','split','chunk'}
+    viewed={}
+    for statement in body:
+        if isinstance(statement,ast.Assign) and len(statement.targets)==1 and isinstance(statement.targets[0],ast.Name):
+            v=statement.value
+            if isinstance(v,ast.Subscript) and isinstance(v.value,ast.Name):viewed[statement.targets[0].id]=v.value.id
+            elif isinstance(v,ast.Call) and isinstance(v.func,ast.Attribute) and v.func.attr in VIEWS and isinstance(v.func.value,ast.Name):viewed[statement.targets[0].id]=v.func.value.id
+    def chain(name):
+        out=[name]
+        while out[-1] in viewed and viewed[out[-1]] not in out:out.append(viewed[out[-1]])
+        return out
     live={n.id for n in ast.walk(ret) if isinstance(n,ast.Name)};kept=[];unused=[];bound=set()
     for statement in reversed(body):
         if isinstance(statement,ast.Assign) and isinstance(statement.value,ast.Constant) and statement.value.value is None:
@@ -61,7 +83,7 @@ def drop_dead_statements(function):
             call=statement.value
             receiver=call.func.value if isinstance(call.func,ast.Attribute) and call.func.attr.endswith('_') else call.args[0] if call.args else None
             if not isinstance(receiver,ast.Name):raise ValueError('In-place source statement without a named target')
-            if receiver.id in live or receiver.id in arguments:
+            if any(n in live or n in arguments for n in chain(receiver.id)):
                 if len(statement.targets)!=1 or not isinstance(statement.targets[0],ast.Name):raise ValueError('In-place source statement must bind one name')
                 if statement.targets[0].id in bound:raise ValueError(f'{statement.targets[0].id}: an unused in-place result is rebound later')
                 live|={n.id for n in ast.walk(call) if isinstance(n,ast.Name)}
@@ -92,12 +114,14 @@ def extract_pattern(source,arity):
     elif isinstance(value,ast.List):returns[0].value=ast.Tuple(elts=value.elts,ctx=ast.Load())
     if not isinstance(returns[0].value,(ast.Name,ast.Tuple)):raise ValueError('Flat tensor return required')
     if isinstance(returns[0].value,ast.Tuple) and any(not isinstance(n,ast.Name) for n in returns[0].value.elts):raise ValueError('Flat tensor tuple required')
-    class PreserveAdd(ast.NodeTransformer):
+    used=set()
+    class PreserveInPlace(ast.NodeTransformer):
         def visit_AugAssign(self,node):
-            if not isinstance(node.op,ast.Add) or not isinstance(node.target,ast.Name):
-                raise ValueError('Automatic match tracing currently supports explicit in-place addition only')
-            return ast.copy_location(ast.Assign(targets=[node.target],value=ast.Call(func=ast.Name(id='kiln_iadd',ctx=ast.Load()),args=[ast.Name(id=node.target.id,ctx=ast.Load()),self.visit(node.value)],keywords=[])),node)
-    function=PreserveAdd().visit(function)
+            if type(node.op) not in AUGMENTED or not isinstance(node.target,ast.Name):
+                raise ValueError('Automatic match tracing supports augmented assignment to a name only')
+            name=INPLACE_NAMES[AUGMENTED[type(node.op)]];used.add(name)
+            return ast.copy_location(ast.Assign(targets=[node.target],value=ast.Call(func=ast.Name(id=name,ctx=ast.Load()),args=[ast.Name(id=node.target.id,ctx=ast.Load()),self.visit(node.value)],keywords=[])),node)
+    function=PreserveInPlace().visit(function)
     unused=drop_dead_statements(function)
     if unused:
         # return kept in-place results too, after the source's own returns (Decision 7.7 of KILN-009)
@@ -105,7 +129,7 @@ def extract_pattern(source,arity):
         elements=list(returned.elts) if isinstance(returned,ast.Tuple) else [returned]
         returns[0].value=ast.Tuple(elts=elements+[ast.Name(id=name,ctx=ast.Load()) for name in unused],ctx=ast.Load())
         singleton=False
-    imports=[ast.ImportFrom(module='operator',names=[ast.alias(name='iadd',asname='kiln_iadd')],level=0)]+[copy.deepcopy(n) for n in tree.body if isinstance(n,(ast.Import,ast.ImportFrom))]
+    imports=[ast.ImportFrom(module='operator',names=[ast.alias(name=n.removeprefix('kiln_'),asname=n) for n in sorted(used|{'kiln_iadd'})],level=0)]+[copy.deepcopy(n) for n in tree.body if isinstance(n,(ast.Import,ast.ImportFrom))]
     module=ast.fix_missing_locations(ast.Module(body=imports+[function],type_ignores=[]))
     text=ast.unparse(module)+'\n';namespace={};exec(compile(module,'<trusted-passnet-pattern>','exec'),namespace)
     traced=trace_pattern(namespace['pattern']);normalize_arguments(traced)

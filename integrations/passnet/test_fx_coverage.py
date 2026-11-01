@@ -138,6 +138,11 @@ class CoverageTests(unittest.TestCase):
         # rsqrt/sqrt/reciprocal: Kiln's CPU reference rounds the double result once (PyTorch CPU may differ by 1 ulp)
         self.check(Model(), [torch.tensor([0.0, 1.0, 4.0, 2.0]), torch.rand(4) + 0.1], atol=1e-6)
 
+    def test_bool_products_and_sums(self):
+        class Model(torch.nn.Module):
+            def forward(self, a, b): return a * b, a + b, a.mul(b)
+        self.check(Model(), [torch.tensor([True, False, True, False]), torch.tensor([True, True, False, False])])
+
     # ------------------------------------------------------------------ fx_coverage
     def test_tensor_methods_attributes_and_copies(self):
         class Model(torch.nn.Module):

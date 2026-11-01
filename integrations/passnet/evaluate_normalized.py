@@ -13,7 +13,7 @@ from pass_bench.torch.backend import pass_mgr_backend as backend
 from dispatch_policy import install_record_stream_policy
 print("[kiln-normalized-fx/1] metadata policy "+install_record_stream_policy(),flush=True)
 
-print('[kiln-pattern-autowrap/1] preserve explicit operator.iadd in match patterns',flush=True)
+print('[kiln-pattern-autowrap/2] preserve explicit in-place operators and factory calls in match patterns',flush=True)
 
 OriginalPass = backend.PatternReplacementPass
 

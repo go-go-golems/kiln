@@ -169,10 +169,26 @@ class PatternTraceTests(unittest.TestCase):
         x,y,z=[torch.randn(2,3) for _ in range(3)]
         torch.testing.assert_close(graph(x,y,z),(y+z)+x)
 
+    def test_other_inplace_operators_and_factories_retained(self):
+        from fx_normalize import trace_pattern
+        import operator
+        graph=trace_pattern(inplace_factory_pattern)
+        targets=[n.target for n in graph.graph.nodes]
+        self.assertIn(operator.itruediv,targets);self.assertIn(operator.imul,targets)
+        self.assertIn(torch.ones,targets);self.assertIn(torch.tensor,targets)
+        self.assertNotIn('get_attr',[n.op for n in graph.graph.nodes])
+        x=torch.rand(2,3)+1
+        torch.testing.assert_close(graph(x.clone()),(x/torch.tensor(2.0))*torch.ones(2,3))
+
 # Direct global binding is what FX autowrap intercepts, without module-level
 # torch.fx.wrap registration inside a generated pass.
 from operator import iadd
 def explicit_iadd_pattern(x,y,z):
     return iadd(y+z,x)
+
+from operator import itruediv, imul
+def inplace_factory_pattern(x):
+    x=itruediv(x,torch.tensor(2.0))
+    return imul(x,torch.ones((2,3)))
 
 if __name__=='__main__': unittest.main()

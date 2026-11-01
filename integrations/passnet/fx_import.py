@@ -184,6 +184,9 @@ def lower_binary(c):
     if len(c.args) != 2 or c.kwargs:
         raise ValueError(f'{c.name}: unsupported binary arguments')
     fn = (BINARY_METHODS if c.kind == 'call_method' else BINARY)[c.target]
+    if fn in ('mul', 'add') and isinstance(c.meta, dict) and c.meta.get('dtype') == 'torch.bool':
+        # bool * bool is logical and, bool + bool logical or (PyTorch keeps bool): exact over i32 0/1
+        return Lowered(f'N.cast(N.{fn}(N.cast({operand(c, 0)}, "i32"), N.cast({operand(c, 1)}, "i32")), "bool")')
     return Lowered(f'N.{fn}({operand(c, 0)}, {operand(c, 1)})')
 
 

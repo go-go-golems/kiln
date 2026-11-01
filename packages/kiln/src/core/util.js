@@ -81,8 +81,10 @@ export function compare(a, b, { rtol = 1e-4, atol = 1e-5 } = {}) {
   }
   let maxAbs = 0, maxRel = 0, bad = 0, first = -1;
   for (let i = 0; i < A.length; i++) {
-    const d = Math.abs(A[i] - B[i]);
-    if (!(d <= atol + rtol * Math.abs(B[i]))) { bad++; if (first < 0) first = i; }
+    // equal values (an infinity included) and NaN at the same position agree: two evaluations of one program
+    // that produce the same non-finite value are consistent (inf - inf would otherwise be a NaN difference)
+    const d = A[i] === B[i] || (Number.isNaN(A[i]) && Number.isNaN(B[i])) ? 0 : Math.abs(A[i] - B[i]);
+    if (!(d === 0 || (Number.isFinite(d) && d <= atol + rtol * Math.abs(B[i])))) { bad++; if (first < 0) first = i; }
     if (d > maxAbs || Number.isNaN(d)) maxAbs = Number.isNaN(d) ? Infinity : d;
     const r = d / (Math.abs(B[i]) + 1e-12);
     if (r > maxRel) maxRel = r;

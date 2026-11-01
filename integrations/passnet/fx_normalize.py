@@ -103,14 +103,22 @@ def normalize_arguments(graph_module):
     return changed
 
 
-def trace_pattern(pattern):
-    """Preserve explicit operator.iadd calls in trusted match patterns.
+INPLACE_OPERATORS = ('add', 'sub', 'mul', 'truediv', 'floordiv', 'mod', 'pow', 'matmul', 'and', 'or', 'xor', 'lshift', 'rshift')
 
-    Ordinary Proxy += falls back to add; autowrapping a directly imported iadd
-    retains the target identity without executing or rewriting the operation.
-    No target graph nodes or evaluator predicates change.
+
+def trace_pattern(pattern):
+    """Trace a trusted match pattern so that it has the target identities TorchDynamo captures.
+
+    Ordinary Proxy += falls back to add; autowrapping a directly imported operator.iadd
+    (or isub, imul, itruediv, ...) retains the in-place target identity without executing or
+    rewriting the operation. Factory calls (torch.arange/zeros/ones/full/tensor/linspace,
+    fx_trace.FACTORIES) are recorded as call_function nodes, as TorchDynamo captures them,
+    instead of being executed into get_attr constants (which would also create CUDA tensors for
+    device=cuda arguments). No target graph nodes or evaluator predicates change.
+    Protocol identity: kiln-pattern-autowrap/2.
     """
     import operator
-    tracer = torch.fx.Tracer(autowrap_functions=(operator.iadd,))
+    from fx_trace import MutationTracer
+    tracer = MutationTracer(autowrap_functions=tuple(getattr(operator, 'i' + name) for name in INPLACE_OPERATORS))
     graph = tracer.trace(pattern)
     return torch.fx.GraphModule(tracer.root, graph)
