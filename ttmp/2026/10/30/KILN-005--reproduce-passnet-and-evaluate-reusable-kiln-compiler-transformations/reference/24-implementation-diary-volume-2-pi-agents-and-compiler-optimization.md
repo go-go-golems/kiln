@@ -4812,3 +4812,63 @@ I then re-tested Step 250's reverted working-set DRAM rule on top of it. The L2 
 
 ### Technical details
 - Working-set rule (not committed): `sliceBytes` = Σ inputs (numel·4 / extent(v0) if indexed by the outermost output variable, else numel·4) + out/extent(v0); `dram = uniq + out` when `sliceBytes ≤ l2MB`.
+
+## Step 256: First typed families accepted on the GPU; two named causes for the rest
+
+The slice-1 and slice-2 replays finished. **Five typed families are complete under the original checker**: 54, 169 and 181 (integer pass-through and conversion) and 100 and 140 (gathers). These are the first families with integer inputs the project has ever accepted. The other five families failed every graph, for two causes, each named by a log line and reproduced locally:
+
+- **Mutation write-back is outside the protocol** (92, 134). Both graphs apply an activation in place to an input. Kiln's dispatcher writes the result back with `destination.copy_(value)`, and PassBench's poison dispatch rejects it: `Unauthorized Operator (aten.copy_.default) Detected: … Only basic creation and factory methods (empty, zeros, ones, full, as_tensor) are supported`. The earlier input-mutation wave on bling shows the same message in 78 graphs (tasks 17, 94, 161, …).
+- **The embedding pattern never matched** (21, 61, 152). `symbolic_trace` records the pattern call as `embedding(in_1, in_2)`, dropping the explicit defaults, while TorchDynamo records all seven arguments. Adding `F.embedding` to `fx_normalize.TARGETS` fixes it in simulation (658: 21 → 10/10, 61 → 6/6, 152 → 30/30). A frozen re-replay is running.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 249.
+**Assistant interpretation:** Collect, audit and explain every failure before claiming coverage.
+**Inferred user intent:** Typed coverage that holds up under the original checker.
+**Commit (code):**
+- c9093dc — collection and embedding normalization
+- 5d492b0 — re-replay freeze
+
+### What I did
+- Script 669 collected both replays. The audits gave per-family results, and the benchmark logs gave the failure messages.
+- Script 658 reproduced the embedding miss on CPU (task 61: 0/6). A direct `SubgraphMatcher` run between the traced pattern and the captured Dynamo graph exposed the argument-count difference.
+- `fx_normalize.py`: `TARGETS` gains `torch.nn.functional.embedding`. `test_fx_normalize.py::test_embedding_defaults_match_dynamo_spelling`.
+- Froze (673), staged (641) and launched `typed-slice2-embedding-replay-gpu-v1` (tasks 21, 61, 152; 46 graphs) on an idle GPU.
+
+### Why
+- The normalization whitelist is the existing mechanism for call-form differences between pattern and target tracing (GELU, pad, max_pool2d, softmax). Embedding belongs in it, not in a special case.
+- Mutation write-back cannot be fixed inside dispatch: any aten op on the input is refused. It needs Kiln kernels that write the input's storage directly, with alias-aware launch order, so it is recorded as a design task.
+
+### What worked
+- Slice 1: 54 (2/2, score 1.020), 169 (2/2, 0.805), 181 (3/3, 0.746).
+- Slice 2: 100 (4/4, 0.968), 140 (2/2, 0.791).
+- Simulation after the fix: all five slice-2 families select their own rule exactly once (52/52).
+- pytest 169 passed.
+
+### What didn't work
+- Slice-1 replay: 92 and 134 failed 0/15 each (copy_ refusal, as quoted above).
+- Slice-2 replay: 21 (0/10), 61 (0/6) and 152 (0/30) with `RuntimeError: [PassMgrBackend] No passes modified the graph.`
+- My first hypothesis for the embedding miss, that symbolic tracing inlines `F.embedding` into `torch.embedding`, was wrong. Both traces keep `F.embedding`; only the argument lists differ.
+- A loop using `set -- $x` did not split in zsh, which produced paths like `typed-slice1 092-…`. I re-ran it with explicit paths.
+
+### What I learned
+- The local Dynamo simulation predicted the slice-1/2 matcher outcome exactly, but I ran it only after the GPU run. It belongs in the freeze gate for every new operation family, before staging.
+- PassBench's poison dispatch constrains replacements to pure computation plus factories. Any compiler feature that touches caller-visible storage has to happen inside the compiled kernels.
+
+### What was tricky to build
+- Seeing the cause required running the exact matcher on the exact pattern and capture. The structural printouts (op, target) were identical on both sides; only `n.args` differed.
+
+### What warrants a second pair of eyes
+- Whether in-place kernel writes are compatible with PassBench's output aliasing checks (`restore_outputs`, input-alias outputs) needs reading `posion_dispatch_tensor.py` before designing.
+
+### What should be done in the future
+- Collect the embedding re-replay.
+- Make script 658 part of every freeze gate.
+- Design in-place mutation through kernel-level aliasing (read `posion_dispatch_tensor.py` first).
+- Collect the input-mutation wave on bling with 669 and record its 78 copy_ failures.
+
+### Code review instructions
+- `fx_normalize.TARGETS`; `sources/typed-slice{1,2}-replay-gpu-v1/results-audit.json`.
+- Validate with `python3 scripts/658-simulate-pattern-dispatch-identity.py --plan sources/typed-slice2-replay-v1/plan.json --upstream sources/upstream --output /tmp/x`.
+
+### Technical details
+- Re-replay staged at revision `5d492b0`, snapshot `47880f3c…`.
