@@ -170,7 +170,8 @@ export function timeModel(c, t) {
   // each resource's time if the whole grid ran on every SM at full efficiency
   const raw = {
     dram: c.dram / perUs(t.bwGBs),
-    l2: c.traffic / perUs(3 * t.bwGBs),
+    // measured L2 read bandwidth where known (targets.js l2GBs); otherwise the 3x-DRAM prior
+    l2: c.traffic / perUs(t.l2GBs ?? 3 * t.bwGBs),
     compute: c.flops / (t.peakTflops * 1e6),
     smem: c.smemWavefronts / (t.sms * perUs(t.clockGHz)),
     issue: c.warpInstr / (t.sms * 4 * perUs(t.clockGHz)),

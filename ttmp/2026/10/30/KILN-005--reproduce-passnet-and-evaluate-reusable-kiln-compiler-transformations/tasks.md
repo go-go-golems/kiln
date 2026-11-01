@@ -22,7 +22,11 @@
 - [x] Collect and audit kiln-p0-replay-v1 (15 families, 181 graphs) when bling's queue reaches it; report per group (identity, matcher, tf32, control). <!-- t:p0rp -->
 - [x] Task 128: decide between compiling every match instance of a rule (two replacements, declared protocol change) and leaving the family unsupported. Decided 2026-10-31: unsupported with named cause (dead Dynamo branch duplicates the live pattern); the 1,514-graph census shows no second family with this structure, so no protocol change. <!-- t:t128 -->
 - [ ] Fuse round_tf32 into tiled matmul operand loads (two extra elementwise launches today). <!-- t:tf32f -->
-- [ ] Collect cost-gate-held-out-v1 (3 arms, 20 families, 237 graphs) with script 669 and analyze against declaration.json; report gated vs always vs baseline. <!-- t:vxqa -->
-- [ ] GPU probe of cuDNN TF32 convolution operand rounding (RN vs RZ vs FP32) after the cost-gate study; explain families 72 and 133 and the remaining TF32 linear failures 88, 118, 157. <!-- t:rgkk -->
+- [x] Collect cost-gate-held-out-v1 (3 arms, 20 families, 237 graphs) with script 669 and analyze against declaration.json; report gated vs always vs baseline. <!-- t:vxqa -->
+- [x] GPU probe of cuDNN TF32 convolution operand rounding (RN vs RZ vs FP32) after the cost-gate study; explain families 72 and 133 and the remaining TF32 linear failures 88, 118, 157. <!-- t:rgkk -->
 - [ ] Re-qualify families 32, 75 and 107 (row-mapped launches past the 32-bit thread count; guard fixed in 88c2ad1) and the P0-repaired families on the next uniform snapshot. <!-- t:puyg -->
 - [ ] After the cost-gate study: measure GB10 L2 bandwidth (microbenchmark), set it in the gb10 spec, then re-test the per-slice working-set DRAM rule (tried in Step 250; alone it moved paired rho by less than 0.002 because the L2 term binds). <!-- t:ndyg -->
+- [ ] Replicate the held-out gated arm (or task 31 alone) to resolve the one timing-fluctuation rejection behind reference 49's unmet acceptance condition <!-- t:ic1j -->
+- [ ] Emit round-to-nearest-even TF32 operand rounding for matrix products and 1x1 convolutions (probe 671), then re-run the P0 TF32 families <!-- t:1jyk -->
+- [ ] Collect typed-slice1-replay-gpu-v1 (5 families, 37 graphs) and typed-slice2-replay-gpu-v1 (5 families, 52 graphs) with script 669 <!-- t:n6j4 -->
+- [ ] P3a slice 3: integer arithmetic, comparisons and masks with PyTorch result dtypes (tasks 3, 139 and the ne/masked_fill/cumsum families) <!-- t:bugh -->
