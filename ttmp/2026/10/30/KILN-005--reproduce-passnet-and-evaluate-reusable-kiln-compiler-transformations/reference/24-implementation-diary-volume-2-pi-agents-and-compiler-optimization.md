@@ -4429,3 +4429,64 @@ The replay confirms the identity and matcher repairs: families 6, 24 and 79 are 
 ### Technical details
 - Gate-program SHA256 `7666ca3f…`; always-program `de482bd2…`; declaration `213f7ee0…`.
 - Held-out families: 4, 10, 20, 31, 32, 41, 46, 75, 76, 113, 115, 116, 120, 146, 168, 173, 174, 177, 184, 189.
+
+## Step 250: Explain task 106's misprediction: a range-constant quotient read as uncoalesced
+
+Reference 47 named task 106 as the cost model's clearest error. The model predicted the fixed program would make it 4–14× faster; the measured effect was neutral or a loss. While the held-out study runs, I traced the prediction kernel by kernel. The baseline is a single thread-mapped kernel that fuses a 1×1 convolution (24-deep reduction) with a ReLU6-gated multiply over `[128,96,96,96]` f16. The model charged it 90.7 GB of traffic (26.7 ms on a100, 210 ms on gb10). The measured time is 6.03 ms.
+
+The cause is the input's flat index, `221184 * (a1 / 96) + 221184 * a0 + 96 * a2 + a3 + …`. The conv lowering's group term `a1 / 96` is always 0 for `a1 ∈ [0, 96)`, but the index algebra has no ranges. It therefore leaves the quotient in place, `IX.affine` reports the access as non-affine, and `coefOf` falls back to stride 8: one 32-byte sector per lane, i.e. an uncoalesced load. A range-aware simplification removes the false term. It brings the baseline prediction down to 4.3 ms and moves the paired a100 correlation from 0.57 to 0.64.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 249 ("conyinure").
+**Assistant interpretation:** Use the GPU wait productively on the listed follow-ups; task 106 is the first model-repair target.
+**Inferred user intent:** Improve the compiler's decision quality on evidence, not on fitted constants.
+**Commit (code):** 7ea5b10 — "Cost model: read access strides from range-simplified flat indices"
+
+### What I did
+- Scratch probes (`k106.mjs`, `idx106.mjs` in the session scratchpad) printed per-kernel `estimate` parts and every input's flat index together with its `IX.affine` reading.
+- `packages/kiln/src/core/ix.js`: `interval(e, extent)` computes interval bounds of an index expression. `bounded(e, extent)` rewrites bottom-up: a quotient whose dividend stays within one multiple of the divisor becomes a constant, and a remainder becomes `dividend − k·divisor`.
+- `packages/kiln/src/std/tile.js`: `analyze` exposes `extent(v)` (from reductions and dims) and `an.boundedFlat`. `estimate` reads strides from `boundedFlat` for thread/row accesses and tiled tile loads. `an.flat`, which codegen uses, is unchanged, so emitted source is identical for every unchanged schedule.
+- `packages/kiln/test/ix-bounded.mjs`: task 106's index becomes affine after bounding. Quotients that span two multiples are kept, unknown ranges change nothing, and evaluation agrees over the ranges.
+- Recalibration into `sources/cost-model-calibration-v2/` (v1 untouched) with scripts 664 and 665.
+
+### Why
+- This is an algebra defect, not a constant to tune. The fix uses only facts the compiler already has (loop extents). Codegen stays untouched so the change can be judged on the model alone, apart from the schedules the model then chooses.
+
+### What worked
+- Task 106 baseline: 26,695 → 4,301 µs (a100); paired a100 ratios moved from 0.07–0.26 to 0.45–1.23. The measured ratios are 1.00–1.88.
+- Paired 49: a100 ρ 0.571 → 0.644, sign agreement 15 → 16 of 20. gb10 and work are unchanged.
+- Absolute 1,391:
+  - a100 ρ 0.931 → 0.937;
+  - gb10 ρ 0.898 → 0.902;
+  - median within-family gb10 ρ 0.916 → 0.913;
+  - measured/gb10 median ratio 1.07 → 1.10.
+- 185 predictions changed, all of them downward. On the 162 with unchanged schedules, the gb10 median |log(measured/predicted)| fell from 2.95 to 1.71: 120 improved, 42 got worse.
+- `packages/kiln` 44/44 and all passnet `.mjs` tests pass.
+
+### What didn't work
+- The fix does not reverse task 106's predicted sign. With 1→2 kernels the model still says 4.3 ms against 2.07 ms, while the measurement is a tie. The remaining error is the DRAM factor: `dram = 0.6 × traffic` once the whole-input footprint (566 MB) exceeds L2, although the reuse working set per batch slice is about 4 MB. A second effect is the L2 bandwidth: gb10 uses 3× DRAM, and GB10's on-die L2 is likely much faster relative to its LPDDR5x.
+- 23 graphs now choose different schedules, so their new predictions describe executables that were never measured. They are excluded from the 162-graph accuracy comparison and need re-qualification.
+
+### What I learned
+- The conv lowering keeps a group-index term even for `groups = 1`. Codegen emits the dead division as well (`(bid / 4096) % 256` chains in Step 249's kernel are related). Simplifying indices in codegen is a separate change, because it alters executables.
+- A coalescing model built on `affine()` is only as good as the simplifier in front of it. Any non-affine leftover is treated as the worst case.
+
+### What was tricky to build
+- `bounded` must recurse before testing the interval, so that inner quotients are folded before outer ones are bounded, and must rebuild through `add/mul/div/mod` to keep linear normal form. Otherwise `affine()` still sees a nested `+` it cannot read.
+- For a remainder, `a − k·b` is exact only when the whole interval lies in one multiple. The same single-multiple condition guards both rewrites.
+
+### What warrants a second pair of eyes
+- `interval` for `*` with an unbounded operand returns null, so the rewrite is conservative. Check that no case returns a too-narrow interval. Comparison and boolean ops return `[0, 1]`.
+- The running held-out study uses the old model (snapshot `e0d76a5`). Its gate result measures the pre-fix gate.
+
+### What should be done in the future
+- A reuse-distance working-set rule for the DRAM factor, evaluated the same way: v3 calibration, then paired and absolute checks.
+- Apply `bounded` in codegen as its own experiment, measured for executable change and speed.
+- Re-qualify the 23 schedule-changed graphs (covered by the re-qualification task).
+
+### Code review instructions
+- `IX.interval` and `IX.bounded` in `packages/kiln/src/core/ix.js`; `extent` and `boundedFlat` in `analyze` and the two `boundedFlat` call sites in `estimate`.
+- Validate with `node packages/kiln/test/ix-bounded.mjs`. Recompute calibration with `python3 scripts/665-paired-cost-model-check.py --output …` and `664-calibrate-cost-model.py --output …`.
+
+### Technical details
+- Task 106 measured compiled GPU medians (baseline / candidate, ms): 6.03 / 6.36, 2.61 / 3.99, 1.26 / 2.37, and 0.12 / 0.12 for the three small variants.
