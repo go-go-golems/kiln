@@ -93,6 +93,15 @@ class ComposeNumericTests(unittest.TestCase):
                 return (torch.cumsum(mask, dim=1).type_as(mask) * mask).long() + 1
         ids = torch.tensor([[5, 1, 1, 7, 2, 1], [1, 3, 3, 1, 1, 9]])
         self.check(Positions(), [ids], atol=0, rtol=0)
+        # a long row (KILN-008): the scan's block-per-row mapping, exact against PyTorch
+        self.check(Positions(), [torch.randint(0, 4, (2, 2048), generator=torch.Generator().manual_seed(8))], atol=0, rtol=0)
+
+    def test_float_cumsum_long_axis_matches_torch(self):
+        class Cumsum(torch.nn.Module):
+            def forward(self, x):
+                return torch.cumsum(x, dim=0) * 0.5 + torch.cumsum(x, dim=1)
+        x = torch.rand(300, 40, generator=torch.Generator().manual_seed(8)) * 2 - 1
+        self.check(Cumsum(), [x], atol=1e-4, rtol=1e-4)
 
 
 if __name__ == '__main__':

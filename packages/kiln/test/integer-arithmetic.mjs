@@ -10,6 +10,7 @@ import { programOf } from "../src/std/program.js";
 import { exportProgram } from "../src/std/export.js";
 import { SPECS, target } from "../src/std/targets.js";
 import { FNS } from "../src/std/fns.js";
+import { schedule } from "../src/std/loop.js";
 
 const pipe = pipeline({ target: target(SPECS.a100) });
 const i64 = (shape, values) => new Tensor(shape, BigInt64Array.from(values.map(BigInt)));
@@ -65,10 +66,20 @@ for (const name of Object.keys(ref)) assert.deepEqual([...got[name].data], [...r
 const p = exportProgram(r, programOf(r.graph));
 const cuda = p.kernels.map((kn) => kn.cuda).join("\n");
 assert.match(cuda, /\(\(in\d\) != \(0LL\)\)/, "an int64 comparison against an exact integer literal");
-assert.match(cuda, /__shared__ long long s_red\[/, "an int64 tree combine stages int64 partial sums");
+// cumsum is a scan (KILN-008): the position-id idiom is one kernel, the scan's consumer amax another
+const L = r.at("loop"), kernelOf = (name) => L.nodes.get(L.outputs.find((o) => o.name === name).id);
+assert.equal(schedule(kernelOf("pos").attrs.expr, [2, 6]).scanV, "a1", "pos fuses mask, scan and epilogue into one kernel");
+assert.deepEqual(kernelOf("pos").args, ["ids"], "the position ids read only the input ids");
+assert.equal(schedule(kernelOf("peak").attrs.expr, [2]).scanV, null, "amax(cumsum) does not inline its scan into a reduction");
+assert.equal(schedule(L.nodes.get(kernelOf("peak").args[0]).attrs.expr, [2, 6]).scanV, "a1", "peak reads a separate scan kernel");
+// one block per row: int64 partial sums stage through int64 shared arrays, in the tree combine and the block scan
+const rowRun = pipe.run(g, { params: { MAP: "row" } });
+const rowCuda = exportProgram(rowRun, programOf(rowRun.graph)).kernels.map((kn) => kn.cuda).join("\n");
+assert.match(rowCuda, /__shared__ long long s_red\[/, "an int64 tree combine stages int64 partial sums");
+assert.match(rowCuda, /__shared__ long long s_scan0\[/, "an int64 block scan stages int64 prefixes");
 assert.match(cuda, /\(-9223372036854775807LL - 1\)/, "the int64 max identity is spelled without overflow");
 assert.match(cuda, /\(\(float\)\(in\d\)\)/, "integer to float is an explicit conversion");
-assert.ok(!/[0-9]\.0f \+|\+ [0-9.]+f\)/.test(cuda.split("\n").filter((l) => /long long|LL/.test(l)).join("\n")), "no float literal in integer arithmetic");
+for (const src of [cuda, rowCuda]) assert.ok(!/[0-9]\.0f \+|\+ [0-9.]+f\)/.test(src.split("\n").filter((l) => /long long|LL/.test(l)).join("\n")), "no float literal in integer arithmetic");
 assert.deepEqual(p.outputs.map((o) => o.dtype), ["i64", "i64", "f32", "i64", "f32"]);
 
 console.log("typed integer arithmetic: promotion, exact reference, typed CUDA");

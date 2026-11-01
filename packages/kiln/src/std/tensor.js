@@ -99,16 +99,18 @@ function castRef(x, dtype) {
   for (let i = 0; i < out.data.length; i++) out.data[i] = INTEGER_DTYPES.has(from) || INTEGER_DTYPES.has(dtype) ? convert(x.data[i]) : x.data[i];
   return roundedReference(out, { dtype });
 }
-function cumsumRef(x, axis, dtype) {
-  x = castRef(x, dtype);
-  const st = strides(x.shape), n = x.shape[axis], out = new Tensor(x.shape, null, dtype);
-  const add = reducer(typedReducer("add", dtype)).js;
+// inclusive scan along axis: out[.., i, ..] = fold_{j <= i} x[.., j, ..], left to right, with the
+// reducer's operation (exact BigInt for typed integer reducers; f32 rounding after every step otherwise)
+function scanRef(x, fnName, axis) {
+  x = asT(x);
+  const R = reducer(fnName), st = strides(x.shape), n = x.shape[axis], out = new Tensor(x.shape, null, R.type ?? x.dtype);
   for (let e = 0; e < out.data.length; e++) {
     const i = Math.floor(e / st[axis]) % n;
-    out.data[e] = i === 0 ? x.data[e] : add(out.data[e - st[axis]], x.data[e]);
+    out.data[e] = i === 0 ? R.js(R.init, x.data[e]) : R.js(out.data[e - st[axis]], x.data[e]);
   }
   return out;
 }
+const cumsumRef = (x, axis, dtype) => scanRef(castRef(x, dtype), typedReducer("add", dtype), axis);
 // a view gathers through an index map; the map is compiled to a JS loop nest once per (map, shapes)
 const VIEW_FNS = new Map();
 export function viewRef(x, shape, map) {
@@ -369,6 +371,9 @@ export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, redu
   .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add", dtype: null }, traits: ["pure"], infer: ({ xs, fn, dtype }) => T_(xs[0].type.shape, dtype || elementwiseDtype(fn, xs)), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs, type.dtype), type),
     validate: ({ args }) => args.every((a) => a.type.shape.join() === args[0].type.shape.join()) || "elementwise inputs must share a shape (insert views)", print: "{fn}({xs})" })
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1 }, traits: ["pure"], infer: ({ x, fn, axis }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(s.map((d, i) => (i === a ? 1 : d)), reducer(fn).type ?? "f32"); }, eval: ({ x, fn, axis }) => reduceRef(fn, x, axis), print: "{fn}({x}, axis={axis})" })
+  // inclusive prefix fold along one axis with a reducer (add, add_i64, mul, max, …); same shape as x
+  .op("scan", { args: ["x"], attrs: { fn: "add", axis: -1 }, traits: ["pure"], infer: ({ x, fn }) => T_(x.type.shape, reducer(fn).type ?? x.type.dtype ?? "f32"),
+    eval: ({ x, fn, axis }) => scanRef(x, fn, axis < 0 ? asT(x).shape.length + axis : axis), print: "scan_{fn}({x}, axis={axis})" })
   .op("gather", { args: ["x", "ids"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, ids, shape }) => { gatherIndices(ids); return T_(shape, x.type.dtype); },
     eval: ({ x, ids, shape, map }) => gatherRef(x, ids, shape, map), print: ({ x, map }) => `${x}[${map.exprs.map((e) => IX.print(e)).join(", ")}]` })
   .op("view", { args: ["x"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, shape }) => T_(shape, x.type.dtype), eval: ({ x, shape, map }) => viewRef(x, shape, map),
@@ -521,16 +526,8 @@ export const decompositions = [
     const e = T.ew(fn, ...xs.map((x, i) => convert(x, casts?.[i])));
     return e.type.dtype === out.type.dtype ? e : tensor.ew(e.args, { ...e.attrs, dtype: out.type.dtype });
   }),
-  // out[..i..] = sum_j [j <= i] x[..j..]: a reduction over a new last axis, masked through a view of
-  // the table [1, 0] indexed by (i - j < 0), which needs no data proportional to the axis
-  decompose("nn.cumsum", ({ x, axis, out }) => {
-    const a = lastAxis(x, axis), s = x.type.shape, n = s[a], d = out.type.dtype;
-    const xs = convert(x, d), wide = [...s, n];
-    const spread = T.view(xs, wide, (c) => c.slice(0, -1).map((v, i) => (i === a ? c.at(-1) : v)));
-    const mask = T.view(tensor.const({ data: new Tensor([2], Float32Array.of(1, 0)), shape: [2] }), wide, (c) => [c[a].sub(c.at(-1)).lt(0)]);
-    const masked = tensor.ew([mask, spread, T.bc(tensor.const({ value: 0, shape: [], dtype: d }), wide)], { fn: "select", dtype: d });
-    return T.squeeze(T.reduce(masked, typedReducer("add", d), -1), -1);
-  }),
+  // an inclusive scan with the (typed) add of the output dtype: n steps per row, not n^2 masked terms
+  decompose("nn.cumsum", ({ x, axis, out }) => tensor.scan(convert(x, out.type.dtype), { fn: typedReducer("add", out.type.dtype), axis: lastAxis(x, axis) })),
   decompose("nn.linear", ({x,w}) => lowerLinear(T,x,w)),
   decompose("nn.matmul", ({a,b}) => lowerMatmul(T,a,b)),
   decompose("nn.rms_norm", ({ x, w, eps }) => {
