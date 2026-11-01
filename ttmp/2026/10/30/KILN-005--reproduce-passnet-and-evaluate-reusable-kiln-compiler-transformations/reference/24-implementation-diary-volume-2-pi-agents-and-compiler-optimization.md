@@ -4924,3 +4924,151 @@ In the same step the embedding re-replay passed completely: tasks 21, 61 and 152
 
 ### Technical details
 - Replay staged at `b1a7ce4`, snapshot `77300073…`; tmux `kiln-mutation-writeback-v1`.
+
+## Step 258: The write-back replay: 8 of 14 families, and a benchmark limit on accumulating mutations
+
+The mutation write-back replay (`mutation-writeback-replay-gpu-v1`) accepted 8 of 14 families and 90 of 126 graphs, against 0 of 12 and 9 of 96 for the old `copy_` wave. Every graph executed without error. All 36 rejections are numerical, and they split into two causes.
+
+Four families (94, 111, 172, 176) cannot pass under any faithful replacement. Their source graph accumulates into an input (`x += y`) and returns a value computed from it. PassBench's `test_single_model` builds one `input_dict` and passes it to the compiled run (20 warmups plus 100 trials) and then to the eager run. The eager reference is therefore computed after twice as many updates as the compiled output.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 257 ("ok, let's continue P3a slice 3 and in -place mutation, then we can do all the gates and qualifications and all."). Mid-step: "how much is left?" and "how much can we do on CPU (i might need bling for some other work)".
+**Assistant interpretation:** Collect and explain the mutation replay; keep later GPU work queued rather than launched.
+**Inferred user intent:** Know whether the write-back design works, and keep the GPU free.
+**Commit (code):** d2f3f97 — collection (audit, receipt, raw archive)
+
+### What I did
+- Collected with `669-collect-task-plan-run.py --study sources/mutation-writeback-replay-gpu-v1 --plan sources/mutation-writeback-replay-v1/plan.json --run results --name results`. The run was complete, the plan identical and the snapshot `77300073…` matched.
+- Per family (accepted/graphs): 17 14/18, 45 10/10, 49 6/6, 92 15/15, 94 0/2, 96 8/8, 111 0/12, 131 9/9, 134 15/15, 147 1/6, 161 6/6, 172 0/7, 176 0/6, 196 6/6.
+- For each family, read the mutated value in its Kiln script (`__mutN: vK`) and the exported program for 111. The kernels are `conv2d`, `__mut2` (reads 2, 1, 4), `out0`, then `k_writeback` (reads 5, writes 2). The output `__mut2` is buffer 2, the input itself.
+- Read `pass_bench/torch/test_compiler.py::test_single_model` (lines 240–330) and `make_model_call`.
+
+### Why
+- I needed to know whether the failures were a Kiln write-back defect (the write landing in a copy) or a property of the harness. `runtime.TorchProgram.__call__` binds input pointers to the caller's tensors (`tensor.data_ptr()`), so the write does reach the input.
+
+### What worked
+- The write-back design. Every family whose mutation is idempotent (`relu_`, the clamp in 45) or converges under repetition (`silu_` in 92, 96 and 131) passed completely.
+
+### What didn't work
+- 94, 111, 172 and 176 fail at every tolerance up to atol 1e-3 / rtol 8.4e-2. In 111 (`v4 = v2 + conv`, `out0 = reshape(transpose(v4))`), `out0` after N updates is compared with eager's after 2N.
+- 17 and 147 fail t=-5 only on f16/bf16 variants (tightest passing tolerance -4 or -3). This is a separate rounding question, not yet investigated.
+
+### What I learned
+- A replacement for an accumulating input mutation is judged against a history-dependent reference. A replacement that skipped the write-back would fail too: eager would then see N updates where compiled saw none.
+- Repeated `silu_` drives values toward 0, so the doubled history is invisible at t=-5. Those passes rest on that convergence, not on matching histories.
+
+### What was tricky to build
+- Nothing was built. The difficulty was attribution: "correct execution, wrong numbers" first pointed at the runtime's buffer binding.
+
+### What warrants a second pair of eyes
+- My reading that `exec()` returns the last trial's output and that no input reset happens between the two phases. `PerformanceMeasurer.exec` was not read line by line.
+
+### What should be done in the future
+- Report 94, 111, 172 and 176 as a benchmark limitation with this reason, and keep them out of acceptance denominators (task `shin`).
+- Diagnose the f16/bf16 near-misses in 17 and 147.
+
+### Code review instructions
+- `sources/mutation-writeback-replay-gpu-v1/results-audit.json`; upstream `pass_bench/torch/test_compiler.py:240-330`.
+
+### Technical details
+- The audit has `graphs_nominal_accepted` 90 and `unexecuted_graphs` 0; the audit sha256 is `9cf0d51d…`.
+
+## Step 259: P3a slice 3: typed integer arithmetic, from promotion to CUDA
+
+Integer arithmetic now flows through every IR. PyTorch's type promotion resolves each frontend elementwise op into one typed function (`add_i64`, `ne_i32`, `to_f32` and so on), with a conversion per operand where one is needed. Kernels give every value one static type. The reference computes int64 exactly in BigInt, wrapping as CUDA does.
+
+The import census rose from 1,769 to 1,802 graphs, and complete families from 143 to 151, with no regressions. A frozen replay (`typed-slice3-replay-v1`, 10 families, 45 graphs) passed both CPU gates. It is not launched, because bling may be needed for other work.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 257 and Step 258.
+**Assistant interpretation:** Implement slice 3 end to end, gate it on CPU, freeze it, and do not occupy the GPU.
+**Inferred user intent:** The integer families become compilable, with GPU time spent only when the user frees it.
+**Commit (code):**
+- 07fb998 — Kiln typed arithmetic
+- 681fe04 — importer
+- (fx_import max/min narrowing, script 674, census) — committed with message "Narrow floating max/min…"
+- 8167642 — plan freeze and generator fix
+
+### What I did
+- `fns.js`:
+  - Typed functions generated per dtype. `{add,sub,mul,neg,max,min}_{i32,i64}`; comparisons `{eq,ne,lt,le,gt,ge}_{f32,i32,i64,bool}` returning bool; conversions `to_{f32,i32,i64,bool}`. Each declares `args` (operand dtype, or `*`) and `type`.
+  - Typed reducers `{add,max,min}_{i32,i64}`, with exact C identities (`(-9223372036854775807LL - 1)`).
+  - `select` and `copy` marked polymorphic. `FLOAT32_FUNCTIONS` leaves typed and polymorphic results unrounded. Added `jsInit` and `typedReducer`.
+- `tensor.js`:
+  - `promoteDtypes`, PyTorch's rule. Categories bool < integer < float; dimensioned tensors dominate 0-dim tensors, which dominate scalars; a lower group changes the result only by raising the category.
+  - `resolveEw(fn, xs)` gives `{fn, casts}`. `nn.ew` stores the resolution, so its reference, inference and decomposition all read one decision.
+  - `nn.cast` accepts integer and bool targets (`castRef`: truncation toward zero, nonzero is true).
+  - `nn.reduce`: integer sums widen to int64; max/min keep their dtype.
+  - `nn.cumsum` decomposes to a reduction over a new last axis, masked by a view of the table `[1, 0]` at `(i - j < 0)`. No constant scales with the axis.
+  - `tensor.const` gained `dtype`. `N.int` and `N.bool` spell Python scalars; added `N.eq/ne/le/ge`, `N.maskedFill`, `N.cumsum`, `N.amin`.
+- `kernel.js`: `valueTypes` replaces `integerValues`. Loads take their buffer's dtype and shared arrays the dtype stored into them. Typed functions check their operands, and an untyped function refuses an integer operand. A literal-initialized accumulator is typed by its later use. `smem` entries carry `dtype`, and `smemBytes` uses `dtypeBytes`. An int64 literal past 2^53 keeps an exact decimal `exact` beside its number, so the IR stays JSON-safe.
+- `emit.js`: `fx(e, ctx)` spells a literal in its context's dtype (`0LL`, `1`, `true`). Shared arrays are declared with their storage type, and `CUDA_STORAGE` gained `i32: int`.
+- `loop.js`: typed constant folding; `runSerial` and `loop.kernel` evaluate into the output dtype; int64 writes go through `BigInt`; the splat-constant kernel keeps its dtype.
+- `ix.js`: comparisons spell `+(a < b)` in JS.
+- Importer:
+  - `operand()` spells Python int and bool scalars as `N.int`/`N.bool`.
+  - New lowerings: comparisons (functions, methods, dunders), `masked_fill` and `masked_fill_`, `cumsum`, `max/min` (over a dim: values, with argmax refused where used; over two tensors: elementwise; with neither: a full reduction), `.int()`, `neg`, `detach`, `t`, and the binary methods.
+  - An in-place call on a fresh, unaliased value rebinds every name of that storage. A per-chain storage root tracks freshness and aliasing.
+  - `int32` was added to `IMPORTED`.
+  - `corpus.eliminate_dead_code` and `generate_pass.drop_dead_statements` keep a dead in-place call whose target is an argument or is read later.
+  - Device-only `.to` compares shape and dtype.
+  - Floating `max/min` over a dim narrows back to the source dtype.
+- Tests:
+  - `test/integer-arithmetic.mjs`: promotion table, refusals, wrap at 2^63, conversions, and a position-id graph. That graph has five outputs; the loop IR equals the frontend reference exactly, and the CUDA is typed (`!= (0LL)`, `__shared__ long long s_red`).
+  - `test_fx_import::test_integer_arithmetic`, including rebinding and the aliasing refusal; `test_pass_generation` updated.
+  - Updated `casts.mjs` and `integer-storage.mjs`.
+- Script `674-local-compile-gate.py`: export plus compile with the replay settings and the internal check on.
+
+### Why
+- I resolved typed function names at the tensor level, rather than inferring types from generic names in the kernel. The frontend knows PyTorch's rules, and once names carry types the kernel check is a local consistency check that catches a missed conversion loudly. Mixed-type spellings in the emitter would need the same rules a second time.
+- The cumsum table view instead of an `E` index-value node: it reuses views, fusion and the cost model unchanged. The quadratic reduction is acceptable at these sequence lengths (≤ 512).
+- BigInt for int64 in the reference: `typed-reference-storage.mjs` already pins exactness past 2^53.
+
+### What worked
+- `packages/kiln` 48/48; pytest 170 passed.
+- Local compile gate 51/51 graphs over tasks 28, 38, 64, 91, 104, 126, 175, 199, 3, 139 and 162.
+- 658 Dynamo simulation 45/45 for the frozen 10 tasks.
+- The census found no regressions.
+
+### What didn't work
+- `add_i64 applied to a f32 value in k_out`, twice:
+  - first, `liftConst` dropped the splat's dtype (`mkKernel([], E.num(v), shape, "constant")`);
+  - then, the reduction accumulator `acc0 = 0` was typed f32 before its typed update.
+  The fixes: pass `n.type.dtype`, and type literal-only names by their later use.
+- `Do not know how to serialize a BigInt` in `toCuda`, from `JSON.stringify(K.body)`. Kernel literals now carry `exact` strings instead of BigInts.
+- `Cannot convert a BigInt value to a number`: `FLOAT32_FUNCTIONS.select` frounded an int64 operand. Polymorphic functions are now unwrapped.
+- `Cannot convert -9 to a BigInt`: a numeric literal written into int64 storage. Writes now go through `W = BigInt`.
+- Loop evaluation returned all ones for the cumsum positions: `I1[((r13 - r14) < 0)]` indexes a typed array with a boolean. IX JS comparisons now spell numbers.
+- Census regression on 6 graphs (`relu_` after `tmp += x`): my first rebinding branch stopped in-place results from inheriting freshness. Storage roots fixed it.
+- Task 38: `expected (32, 512, 1) bf16, Kiln inferred f32` for `max(dim)` on bf16. The importer now narrows back.
+- 658 on task 162: first `Dead in-place source statement has an observable effect` (the generator had its own copy of the old rule), then `Found no NVIDIA driver`, because the graph's `.to(cuda)` cannot be captured on this host.
+
+### What I learned
+- The existing float comparison functions (`gt`, `lt` returning 1.0f) were masks. Typed comparisons return bool, and `select` accepts any condition, so the clamp lowering kept working unchanged.
+- Integer literals are the subtle part of mixed typing: `x + 1.0f` with a `long long` x silently becomes float in C. Context-typed spelling closes that.
+
+### What was tricky to build
+- Literal typing across three representations: E nodes (numbers), kernel IR (numbers plus `exact`), and CUDA (context spelling). The accumulator case shows why the type must come from the use, not from the definition.
+- Rebinding semantics for in-place updates of intermediates. Earlier uses must read the old value and later uses the new one, and any alias created before the update makes the rewrite unsound, hence the refusal.
+
+### What warrants a second pair of eyes
+- `promoteDtypes` for 0-dim tensors of a higher category: I return their joined dtype, not a category default. That matches my reading of PyTorch but was not differentially tested against torch.
+- i32 overflow wraps in the reference (`| 0`, `Math.imul`), while C signed overflow is undefined. They agree on two's-complement hardware in practice.
+- `fx_import` `t()` on rank < 2 returns the value.
+- Floor division and modulo on integers are refused (`div over i64 values is not lowered`). Only true division is mapped.
+
+### What should be done in the future
+- Launch `typed-slice3-replay-v1` when bling is free, then collect it (task `s3gp`). Gate 162 on a CUDA host (task `s162`).
+- An `E` index-value node (arange, triangular masks) if attention-mask families need it; cumsum would then read it instead of the table view.
+- Integer floor division and modulo when a family needs them.
+
+### Code review instructions
+- Start at `packages/kiln/src/std/fns.js` (typed table), then `tensor.js` (`promoteDtypes`, `resolveEw`, `convert`, `nn.cumsum`), `kernel.js` (`valueTypes`) and `emit.js` (`fx`, `ilit`).
+- Validate:
+  - `cd packages/kiln && npm test`
+  - `cd integrations/passnet && python3 -m pytest -q`
+  - `python3 ttmp/…/scripts/674-local-compile-gate.py --output /tmp/g 28 3`
+
+### Technical details
+- The census is `sources/typed-slice3-import-v1.json`. The newly complete families are tasks 28, 38, 64, 91, 104, 126, 175 and 199.
+- The plan is `sources/typed-slice3-replay-v1/plan.json`, with `local-compile-gate.json` and `dynamo-simulation.json` beside it.
