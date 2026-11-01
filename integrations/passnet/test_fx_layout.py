@@ -37,7 +37,7 @@ class PartitionAlias(torch.nn.Module):
 class PartitionAliasTests(unittest.TestCase):
  def test_partition_alias_mutation_rejected(self):
   graph=export_graph(torch.fx.symbolic_trace(PartitionAlias()),(torch.randn(2,4),))
-  with self.assertRaisesRegex(ValueError,'fresh single-use'):import_graph(graph)
+  with self.assertRaisesRegex(ValueError,'fresh unaliased'):import_graph(graph)
 
 class StackUnbind(torch.nn.Module):
  def __init__(self,axis,method=False):super().__init__();self.axis=axis;self.method=method

@@ -37,6 +37,16 @@ def first_ref(c):
     return first.get('ref') if isinstance(first, dict) else None
 
 
+def operand(c, j, value=None):
+    """Positional argument j as a Kiln operand. A Python int or bool scalar is spelled N.int/N.bool:
+    PyTorch promotion gives it the integer or bool category, which a bare JS number (float) loses."""
+    raw = c.raw_args['tuple'][j] if value is None else value
+    text = c.args[j] if value is None else json.dumps(value)
+    if type(raw) is bool: return f'N.bool({json.dumps(raw)})'
+    if type(raw) is int: return f'N.int({raw})'
+    return text
+
+
 # ------------------------------------------------------------------------------ in-place arithmetic
 @op('inplace_binary', functions=('_operator.iadd', '_operator.isub', '_operator.imul', '_operator.itruediv'))
 def lower_inplace_binary(c):
@@ -44,7 +54,7 @@ def lower_inplace_binary(c):
     ref = first_ref(c) if len(c.args) == 2 else None
     if len(c.args) != 2 or c.kwargs or ref is None or c.ctx.metadata[ref] != c.meta:
         raise ValueError(f'{c.name}: unsupported in-place arithmetic arguments')
-    return Lowered(f'N.{fn}({c.args[0]}, {c.args[1]})', c.ctx.require_mutation_source(ref, c.name))
+    return Lowered(f'N.{fn}({c.args[0]}, {operand(c, 1)})', c.ctx.require_mutation_source(ref, c.name))
 
 
 @op('inplace_method', methods=('add_', 'sub_', 'mul_', 'div_'), fresh=False)
@@ -52,7 +62,7 @@ def lower_inplace_method(c):
     source = first_ref(c) if c.args else None
     if len(c.args) != 2 or c.kwargs or c.ctx.metadata[source] != c.meta:
         raise ValueError(f'{c.name}: unsupported in-place arithmetic arguments')
-    return Lowered(f'N.{c.target[:-1]}({c.args[0]}, {c.args[1]})', c.ctx.require_mutation_source(source, c.name))
+    return Lowered(f'N.{c.target[:-1]}({c.args[0]}, {operand(c, 1)})', c.ctx.require_mutation_source(source, c.name))
 
 
 @op('relu_method', methods=('relu_',), fresh=False)
@@ -120,7 +130,7 @@ def lower_activation(c):
     return Lowered(f'N.cast(N.{activation}(N.cast({value}, "f32"){option}), {json.dumps(dtype)})', mutates)
 
 
-UNARY = {'torch.relu': 'relu', 'torch.nn.functional.relu': 'relu', 'aten.relu.default': 'relu', 'torch.relu_': 'relu',
+UNARY = {'torch.relu': 'relu', 'torch.nn.functional.relu': 'relu', 'aten.relu.default': 'relu', 'torch.relu_': 'relu', '_operator.neg': 'neg',
          'torch.exp': 'exp', 'aten.exp.default': 'exp', 'torch.sqrt': 'sqrt',
          'torch.rsqrt': 'rsqrt', 'aten.rsqrt.default': 'rsqrt', 'torch.tanh': 'tanh', 'aten.tanh.default': 'tanh'}
 
@@ -144,11 +154,78 @@ BINARY = {'_operator.add': 'add', 'torch.add': 'add', 'aten.add.Tensor': 'add',
           '_operator.sub': 'sub', '_operator.truediv': 'div'}
 
 
-@op('binary', functions=BINARY)
+BINARY_METHODS = {'add': 'add', 'sub': 'sub', 'mul': 'mul', 'div': 'div'}
+
+
+@op('binary', functions=BINARY, methods=BINARY_METHODS)
 def lower_binary(c):
     if len(c.args) != 2 or c.kwargs:
         raise ValueError(f'{c.name}: unsupported binary arguments')
-    return Lowered(f'N.{BINARY[c.target]}({c.args[0]}, {c.args[1]})')
+    fn = (BINARY_METHODS if c.kind == 'call_method' else BINARY)[c.target]
+    return Lowered(f'N.{fn}({operand(c, 0)}, {operand(c, 1)})')
+
+
+@op('neg_method', methods=('neg',))
+def lower_neg_method(c):
+    if len(c.args) != 1 or c.kwargs: raise ValueError(f'{c.name}: unsupported neg arguments')
+    return Lowered(f'N.neg({c.args[0]})')
+
+
+# ------------------------------------------------------------------------------ comparisons and masks
+COMPARISONS = ('eq', 'ne', 'lt', 'le', 'gt', 'ge')
+COMPARE_FUNCTIONS = {f'{prefix}{n}': n for n in COMPARISONS for prefix in ('_operator.', 'torch.')}
+COMPARE_METHODS = {**{n: n for n in COMPARISONS}, **{f'__{n}__': n for n in COMPARISONS}}
+
+
+@op('compare', functions=COMPARE_FUNCTIONS, methods=COMPARE_METHODS)
+def lower_compare(c):
+    if len(c.args) != 2 or c.kwargs: raise ValueError(f'{c.name}: unsupported comparison arguments')
+    fn = (COMPARE_METHODS if c.kind == 'call_method' else COMPARE_FUNCTIONS)[c.target]
+    return Lowered(f'N.{fn}({operand(c, 0)}, {operand(c, 1)})')
+
+
+def lower_masked_fill(c):
+    bound = bind(c.name, 'masked_fill', c.args, c.kwargs, ['input', 'mask', 'value'], require_first=False)
+    if c.ctx.resolve(bound['mask'])['dtype'] != 'torch.bool': raise ValueError(f'{c.name}: masked_fill requires a bool mask')
+    value = bound['value']
+    if c.ctx.source_of(value) is not None: raise ValueError(f'{c.name}: a tensor fill value is not supported')
+    expr = f'N.maskedFill({bound["input"]}, {bound["mask"]}, {operand(c, None, c.ctx.literal(value))})'
+    return Lowered(expr, c.ctx.require_mutation_source(first_ref(c), c.name) if c.target == 'masked_fill_' else None)
+
+
+op('masked_fill', functions=('torch.masked_fill',), methods=('masked_fill',))(lower_masked_fill)
+op('masked_fill_', methods=('masked_fill_',), fresh=False)(lower_masked_fill)
+
+
+@op('cumsum', functions=('torch.cumsum',), methods=('cumsum',))
+def lower_cumsum(c):
+    bound = bind(c.name, 'cumsum', c.args, c.kwargs, ['input', 'dim', 'dtype'], require_first=False)
+    if c.ctx.literal(bound.get('dtype', 'null')) is not None: raise ValueError(f'{c.name}: cumsum dtype argument unsupported')
+    dim = c.ctx.literal(bound['dim'])
+    if type(dim) is not int: raise ValueError(f'{c.name}: static dimension required')
+    return Lowered(f'N.cumsum({bound["input"]}, {dim})')
+
+
+@op('max_min', functions=('torch.max', 'torch.min'), methods=('max', 'min'))
+def lower_max_min(c):
+    """max/min over a dimension is (values, indices); the indices (argmax) are not lowered and refuse
+    only where used. Over two tensors it is elementwise; with neither, a full reduction."""
+    fn = c.target.rsplit('.', 1)[-1]
+    bound = bind(c.name, fn, c.args, c.kwargs, ['input', 'dim', 'keepdim'], require_first=False)
+    x, dim = bound['input'], bound.get('dim')
+    if dim is not None and c.ctx.source_of(dim) is not None:
+        if 'keepdim' in bound: raise ValueError(f'{c.name}: elementwise {fn} takes two tensors')
+        return Lowered(f'N.{fn}({x}, {dim})')
+    reduce = 'amax' if fn == 'max' else 'amin'
+    shape = c.ctx.resolve(x)['shape']
+    if dim is None:
+        if c.kwargs: raise ValueError(f'{c.name}: unsupported {fn} arguments')
+        expr = x
+        for axis in range(len(shape)): expr = f'N.{reduce}({expr}, {axis}, true)'
+        return Lowered(f'N.reshape({expr}, [])')
+    dim, keep = c.ctx.literal(dim), c.ctx.literal(bound.get('keepdim', 'false'))
+    if type(dim) is not int or type(keep) is not bool: raise ValueError(f'{c.name}: static dim and keepdim required')
+    return Lowered([f'N.{reduce}({x}, {dim}, {json.dumps(keep)})', None])
 
 
 # ------------------------------------------------------------------------------ structure and layout
@@ -177,6 +254,7 @@ def lower_getitem(c):
             raise ValueError(f'{c.name}: partition index out of range')
         item = index % len(metadata[source])
         if c.meta != metadata[source][item]: raise ValueError(f'{c.name}: partition result metadata mismatch')
+        if c.ctx.values[source][item] is None: raise ValueError(f'{c.name}: result {item} of {source} (argmax/argmin indices) is not lowered')
         return Lowered(c.ctx.values[source][item])
     if not isinstance(metadata[source], dict): raise ValueError(f'{c.name}: basic tensor indexing requires tensor source')
     gather = tensor_index(c, c.args[1])
@@ -322,6 +400,18 @@ def lower_unfold(c):
     return Lowered(f'N.unfold({c.args[0]}, {axis}, {size}, {step})')
 
 
+@op('detach', methods=('detach',), fresh=False)
+def lower_detach(c):
+    if len(c.args) != 1 or c.kwargs: raise ValueError(f'{c.name}: invalid detach')
+    return Lowered(c.args[0])
+
+
+@op('t', methods=('t',), fresh=False)
+def lower_t(c):
+    if len(c.args) != 1 or c.kwargs or len(c.ctx.resolve(c.args[0])['shape']) > 2: raise ValueError(f'{c.name}: t() requires a tensor of rank at most 2')
+    return Lowered(f'N.transpose({c.args[0]}, 0, -1)' if len(c.ctx.resolve(c.args[0])['shape']) == 2 else c.args[0])
+
+
 @op('contiguous', methods=('contiguous',), fresh=False)
 def lower_contiguous(c):
     if len(c.args) != 1 or c.kwargs: raise ValueError(f'{c.name}: unsupported contiguous format')
@@ -359,9 +449,11 @@ def lower_type_as(c):
 @op('to', methods=('to',), fresh=False)
 def lower_to(c):
     if len(c.args) == 2 and not c.kwargs and c.args[1] in ('"cuda"', '"cuda:0"'):
+        # the value is the source's: an alias on the same device, or a contiguous copy (strides may differ)
         source = c.ctx.source_of(c.args[0])
-        if source is None or c.ctx.metadata[source] != c.meta:
-            raise ValueError(f'{c.name}: device-only conversion must preserve tensor metadata')
+        same = lambda m: {k: v for k, v in m.items() if k != 'strides'}
+        if source is None or same(c.ctx.metadata[source]) != same(c.meta):
+            raise ValueError(f'{c.name}: device-only conversion must preserve shape and dtype')
         return Lowered(c.args[0])
     if len(c.args) > 2 or set(c.kwargs) - {'dtype'}: raise ValueError(f'{c.name}: device/layout conversion unsupported')
     if (len(c.args) == 2) == ('dtype' in c.kwargs):
@@ -378,9 +470,8 @@ def floating_dtype(c, what):
     return FLOATING[dtype]
 
 
-# Kiln decides legality: a cast to the value's own dtype is the value; integer conversions are
-# refused by the compiler until typed arithmetic exists (P3a slice 3)
-CONVERSION_METHODS = {'float': 'f32', 'half': 'f16', 'bfloat16': 'bf16', 'long': 'i64', 'bool': 'bool'}
+# Kiln decides legality: a cast to the value's own dtype is the value
+CONVERSION_METHODS = {'float': 'f32', 'half': 'f16', 'bfloat16': 'bf16', 'long': 'i64', 'int': 'i32', 'bool': 'bool'}
 
 
 @op('dtype_conversion', methods=tuple(CONVERSION_METHODS), fresh=False)
@@ -457,6 +548,8 @@ class Context:
         self.by_var = {}          # Kiln variable -> FX node name
         self.inputs = {}          # placeholder FX node name -> input index
         self.fresh = set()        # FX values with fresh storage; exclusive use is checked at mutation
+        self.aliased = set()      # storage roots a view, cast or partition result may share
+        self.roots = {}           # FX value -> the value whose storage an in-place chain updates
         self.uses = {}
         def references(value):
             if isinstance(value, dict):
@@ -496,6 +589,9 @@ class Context:
         if v is None or isinstance(v, (str, int, float, bool)): return json.dumps(v)
         raise ValueError(f'Invalid argument: {v}')
 
+    def root(self, name):
+        return self.roots.get(name, name)
+
     def source_of(self, value):
         return self.by_var.get(value) if isinstance(value, str) else None
 
@@ -505,9 +601,21 @@ class Context:
         return self.metadata[source]
 
     def require_mutation_source(self, source, name):
-        if source is None or self.uses.get(source) != 1 or (source not in self.fresh and source not in self.inputs):
-            raise ValueError(f'{name}: in-place operation requires fresh single-use producer or single-use input')
-        return source
+        """An in-place call may update a single-use input (recorded as an input mutation) or a fresh
+        value nothing aliases yet: later uses of that value's name read the updated value (rebinding),
+        earlier uses already read the old one."""
+        if source in self.inputs and self.uses.get(source) == 1: return source
+        if source is not None and source in self.fresh and self.root(source) not in self.aliased: return source
+        raise ValueError(f'{name}: in-place operation requires a fresh unaliased producer or a single-use input')
+
+
+def references(value):
+    """The FX node names an encoded argument refers to."""
+    if isinstance(value, dict):
+        if set(value) == {'ref'}: return {value['ref']}
+        return set().union(*(references(v) for v in value.values()))
+    if isinstance(value, list): return set().union(*(references(v) for v in value))
+    return set()
 
 
 def expect(expr, meta):
@@ -528,7 +636,7 @@ def import_graph(graph):
         meta = node.get('tensor_meta')
         if node['kind'] == 'placeholder':
             if not isinstance(meta, dict) or meta.get('dtype') not in IMPORTED:
-                raise ValueError(f'{name}: only floating, int64 and bool tensor inputs accepted')
+                raise ValueError(f'{name}: only floating, integer and bool tensor inputs accepted')
             shape = meta['shape']
             if any(type(d) is not int or d <= 0 for d in shape): raise ValueError(f'{name}: positive static dimensions required')
             expected, size = [], 1
@@ -553,8 +661,9 @@ def import_graph(graph):
         if isinstance(expr, list):
             if not isinstance(meta, (list, tuple)) or len(meta) != len(expr) or any(not isinstance(m, dict) or m.get('dtype') not in IMPORTED for m in meta):
                 raise ValueError(f'{name}: supported result metadata required for every output')
-            ctx.bind_value(name, [f'{var}_{j}' for j in range(len(expr))])
-            lines.extend(f'const {var}_{j} = {expect(item, meta[j])};' for j, item in enumerate(expr))
+            ctx.bind_value(name, [None if item is None else f'{var}_{j}' for j, item in enumerate(expr)])
+            lines.extend(f'const {var}_{j} = {expect(item, meta[j])};' for j, item in enumerate(expr) if item is not None)
+            if not spec.fresh: ctx.aliased.update(ctx.root(r) for r in references(node['args']))
             continue
         if not isinstance(meta, dict) or meta.get('dtype') not in IMPORTED:
             raise ValueError(f'{name}: supported result metadata required')
@@ -564,6 +673,14 @@ def import_graph(graph):
             index = ctx.inputs[lowered.mutates]
             input_mutations[index] = var
             output_alias_values[var] = index
+        elif lowered.mutates is not None:
+            # every name of the updated storage reads the new value from here on
+            root = ctx.root(lowered.mutates)
+            ctx.roots[name] = root
+            for other in [n for n in ctx.values if ctx.root(n) == root]: ctx.values[other] = var
+            ctx.fresh.add(name)
+        elif not spec.fresh:
+            ctx.aliased.update(ctx.root(r) for r in references(node['args']))
         # Views, casts and disabled dropout may alias: their Op declares fresh=False, so they
         # never transfer ownership. Accepted in-place calls only consume an already owned value
         # whose sole use is this operation.

@@ -76,7 +76,7 @@ class SingletonTests(unittest.TestCase):
                     view=fresh.unsqueeze(0) if operation=='unsqueeze' else fresh.squeeze(0)
                     return torch.nn.functional.relu(view,inplace=True)
             graph=export_graph(symbolic_trace(Model()),(torch.randn(1,3),))
-            with self.assertRaisesRegex(ValueError,'fresh single-use'):import_graph(graph)
+            with self.assertRaisesRegex(ValueError,'fresh unaliased'):import_graph(graph)
 
     def test_fx_and_dynamo_match_without_new_normalization(self):
         for operation in ['unsqueeze','squeeze']:

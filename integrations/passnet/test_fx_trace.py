@@ -37,7 +37,7 @@ class MutationTraceTests(unittest.TestCase):
                 x+=y
                 return x,z
         for cls in [Alias,ReadAfter]:
-            with self.assertRaisesRegex(ValueError,'fresh single-use'):
+            with self.assertRaisesRegex(ValueError,'fresh unaliased'):
                 import_graph(export_graph(trace_module(cls()),[torch.randn(2,3),torch.randn(2,3)]))
 
     def test_unimplemented_inplace_operator_not_silently_lowered(self):

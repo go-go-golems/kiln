@@ -95,18 +95,22 @@ def translate_graph(upstream, graph, metadata_mode, *, input_order=None):
 
 
 def eliminate_dead_code(graph):
-    """Remove FX nodes that do not reach the output; refuse to remove an in-place call.
+    """Remove FX nodes that do not reach the output.
 
     Dead source computation is not part of the graph's semantics (TorchDynamo does not
-    capture it), but a dead mutation would be an observable effect.
+    capture it). An in-place call with an unused result is kept when its effect is observable:
+    it updates an input, or a value read after it.
     """
     import operator
     inplace={getattr(operator,'i'+n) for n in ['add','sub','mul','truediv','floordiv','mod','pow','matmul','and','or','xor','lshift','rshift']}
+    order={node:i for i,node in enumerate(graph.nodes)}
     for node in reversed(list(graph.nodes)):
         if node.op in ('call_function','call_method') and not node.users:
             name=node.target if isinstance(node.target,str) else getattr(node.target,'__name__','')
             if node.target in inplace or (name.endswith('_') and not name.startswith('_')) or node.kwargs.get('inplace') is True:
-                raise ValueError(f'{node.name}: dead in-place operation has an observable effect')
+                target=node.args[0] if node.args else None
+                if not hasattr(target,'users'):raise ValueError(f'{node.name}: in-place operation without a tensor target')
+                if target.op=='placeholder' or any(order[user]>order[node] for user in target.users):continue
             graph.erase_node(node)
 
 

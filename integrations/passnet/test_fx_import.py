@@ -43,7 +43,7 @@ class ImportTests(unittest.TestCase):
         class Model(torch.nn.Module):
             def forward(self,x):return torch.nn.functional.relu(torch.transpose(x,0,1),inplace=True)
         graph=export_graph(symbolic_trace(Model()),(torch.randn(2,3),))
-        with self.assertRaisesRegex(ValueError,'fresh single-use'):import_graph(graph)
+        with self.assertRaisesRegex(ValueError,'fresh unaliased'):import_graph(graph)
 
     def test_relu_add_roundtrip_structure(self):
         class Model(torch.nn.Module):
@@ -214,8 +214,47 @@ class ImportTests(unittest.TestCase):
         self.assertIn('N.cast(v0, "i64")', imported['script'])
         with self.assertRaisesRegex(ValueError, 'unsupported cast dtype'):
             class Narrow(torch.nn.Module):
-                def forward(self, ids): return ids.to(torch.int32)
+                def forward(self, ids): return ids.to(torch.int16)
             import_graph(export_graph(symbolic_trace(Narrow()), (torch.ones(2, dtype=torch.int64),)))
+
+    def test_integer_arithmetic(self):
+        """P3a slice 3: integer scalars keep their category; comparisons, masks, cumsum, max values."""
+        class Positions(torch.nn.Module):
+            def forward(self, ids):
+                mask = ids.ne(1).int()
+                return (torch.cumsum(mask, dim=1).type_as(mask) * mask).long() + 1, ids * 1e6
+        script = import_graph(export_graph(symbolic_trace(Positions()), (torch.ones(2, 6, dtype=torch.int64),)))['script']
+        self.assertIn('N.ne(v0, N.int(1))', script)
+        self.assertIn('N.cast(', script); self.assertIn('"i32"', script)
+        self.assertIn('N.cumsum(', script)
+        self.assertIn('N.mul(v0, 1000000.0)', script)
+
+        class Rerank(torch.nn.Module):
+            def forward(self, ids, ones):
+                t = ones.cumsum(-1) - 1
+                t.masked_fill_(ids.__eq__(0), 1)
+                return t.unsqueeze(0).expand(3, -1, -1).max(0, keepdim=False)[0].max(-1, keepdim=True)[0] + 1
+        script = import_graph(export_graph(symbolic_trace(Rerank()), (torch.ones(2, 6, dtype=torch.int64), torch.ones(2, 6, dtype=torch.int64))))['script']
+        self.assertIn('N.eq(v0, N.int(0))', script)
+        # rebinding: the use of t after masked_fill_ reads the filled value
+        import re
+        filled = re.search(r'const (v\d+) = N.expect\(N.maskedFill\(', script).group(1)
+        self.assertRegex(script, rf'N.reshape\({filled}, \[1, 2, 6\]\)')
+        self.assertIn('N.amax(', script)
+
+        class Indices(torch.nn.Module):
+            def forward(self, x): return x.max(-1)[1]
+        with self.assertRaisesRegex(ValueError, 'argmax/argmin indices'):
+            import_graph(export_graph(symbolic_trace(Indices()), (torch.randn(2, 3),)))
+
+        class Aliased(torch.nn.Module):
+            def forward(self, x, m):
+                y = x + 1
+                v = y.view(-1)
+                y.masked_fill_(m, 0.0)
+                return v
+        with self.assertRaisesRegex(ValueError, 'fresh unaliased'):
+            import_graph(export_graph(symbolic_trace(Aliased()), (torch.randn(2, 3), torch.ones(2, 3, dtype=torch.bool))))
 
 
 
@@ -257,13 +296,13 @@ class OwnedActivationTests(unittest.TestCase):
                 view=owned.view(2,3)
                 changed=torch.nn.functional.silu(owned,inplace=True)
                 return changed,view
-        with self.assertRaisesRegex(ValueError,'fresh single-use'):
+        with self.assertRaisesRegex(ValueError,'fresh unaliased'):
             import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
 
     def test_potentially_aliasing_view_not_owned(self):
         class Model(torch.nn.Module):
             def forward(self,x):return torch.nn.functional.silu(torch.relu(x).view(2,3),inplace=True)
-        with self.assertRaisesRegex(ValueError,'fresh single-use'):
+        with self.assertRaisesRegex(ValueError,'fresh unaliased'):
             import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
 
 

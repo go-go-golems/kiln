@@ -32,6 +32,6 @@ class FlattenTests(unittest.TestCase):
         class Model(torch.nn.Module):
             def forward(self,x):return torch.nn.functional.relu(torch.flatten(x),inplace=True)
         graph=export_graph(torch.fx.symbolic_trace(Model()),(torch.randn(2,3),))
-        with self.assertRaisesRegex(ValueError,'fresh single-use'):import_graph(graph)
+        with self.assertRaisesRegex(ValueError,'fresh unaliased'):import_graph(graph)
 
 if __name__=='__main__':unittest.main()
