@@ -12,7 +12,9 @@ TARGETS = {torch.nn.functional.relu, torch.nn.functional.batch_norm,
            torch.nn.functional.dropout, torch.nn.functional.interpolate,
            torch.nn.functional.softmax, torch.nn.functional.gelu,
            torch.nn.functional.layer_norm, torch.nn.functional.max_pool2d,
-           torch.nn.functional.hardtanh, torch.nn.functional.pad, torch._C._nn.pad}
+           torch.nn.functional.hardtanh, torch.nn.functional.pad, torch._C._nn.pad,
+           # symbolic tracing drops embedding's explicit defaults; TorchDynamo records all seven
+           torch.nn.functional.embedding}
 
 # The builtin GELU has no inspectable Python signature. Its public schema has a
 # keyword-only approximation selector; keep that selector in canonical kwargs.

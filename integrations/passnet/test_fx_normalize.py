@@ -6,6 +6,16 @@ from torch.fx.passes.utils.matcher_utils import SubgraphMatcher
 from fx_normalize import normalize_arguments
 
 class NormalizeTests(unittest.TestCase):
+    def test_embedding_defaults_match_dynamo_spelling(self):
+        # symbolic tracing records embedding(ids, w); TorchDynamo records all seven arguments
+        import torch.nn.functional as F
+        class Pattern(torch.nn.Module):
+            def forward(self, ids, w): return F.embedding(ids, w, None, None, 2.0, False, False)
+        traced = torch.fx.symbolic_trace(Pattern())
+        normalize_arguments(traced)
+        call = next(n for n in traced.graph.nodes if n.op == 'call_function')
+        self.assertEqual(len(call.args) + len(call.kwargs), 7)
+
     def test_hardtanh_and_pad_dynamo_call_forms(self):
         def pattern(x):
             return torch.nn.functional.pad(torch.nn.functional.hardtanh(x,min_val=0.0,max_val=6.0,inplace=False),(1,1),mode='constant',value=None)
