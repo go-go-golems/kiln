@@ -26,7 +26,7 @@ RelatedFiles:
       Note: probe printing the current lowering, mapping, estimate and simulator result
 ExternalSources: []
 Summary: 'Intern guide: how Kiln lowers cumsum today (an O(n^2) masked reduction), why that is the wrong shape for long rows, and a phased design for a scan primitive through Tensor, Loop, Tile and Kernel IR, with a CPU-only validation plan.'
-LastUpdated: 2026-11-01T08:30:00-05:00
+LastUpdated: 2026-11-01T14:00:00-05:00
 WhatFor: Implementing a real prefix-scan primitive in Kiln and understanding the parts of the pipeline it touches.
 WhenToUse: Read before changing nn.cumsum, adding Loop IR constructs, or adding scan-like ops (cumprod, cummax, logcumsumexp).
 ---
@@ -678,3 +678,15 @@ External:
 - D. Merrill and M. Garland, "Single-pass Parallel Prefix Scan with Decoupled Look-back", NVIDIA Technical Report NVR-2016-002, 2016.
 - G. Blelloch, "Prefix Sums and Their Applications", CMU-CS-90-190, 1990.
 - W. D. Hillis and G. L. Steele, "Data Parallel Algorithms", Communications of the ACM 29(12), 1986.
+
+## 13. Implementation notes (2026-11-01)
+
+Phases 0 (the `tv` half), 1-5 and the CPU slice of Phase 7 are implemented on branch `impl/kiln-008-cumsum-scan` (diary Steps 4-8). Where the implementation departs from sections 6-9:
+
+- `E.scan(fn, r, end, n, body)` takes an index expression `end` rather than a coordinate name. Substitution moves it with the rest of the expression, and the scheduler's check that `end` is an output coordinate is the fusion legality rule of section 6.5: a shifted read (`end = a1 - 1`) or a read inside a reduction (`end = r0`) fails to schedule, and `inlineInto` turns that into `FusionIllegal`.
+- A fused kernel with a scan holds no reduction at all (stricter than section 6.4), so the block-per-row mapping is legal for every scan kernel. `cumsum(x / sum(x))` is a reduction kernel feeding a scan kernel.
+- The point reference (`compilePoint`) evaluates a scan kernel from its expression by definition, not from the nest.
+- The cost model restricts `MAP=thread` on a scan to TPB up to the row count, and caps a contiguous load's sectors at the warp's footprint. It ranks `4096x16` (last axis) for the block mapping (3.48 us against 5.10 us), not for the sequential one as section 6.8 expected; the many-short-rows case where the sequential mapping wins is a scan along a non-last axis (`16x65536`, axis 0). Phase 6 measurements decide.
+- The lockstep simulator cannot detect a missing barrier; `test/scan.mjs` adds a structural shared-memory race check for the block scan.
+- Integer Kernel IR is not simulated until KILN-010's `toSim` lands; integer scans are validated through the Loop IR serial and point evaluators.
+- Phase 7 slice: `nn.cumprod`, `nn.cummax`, `nn.cummin` (values) share the `CUMULATIVE` table in `tensor.js`, with `mul_i64`/`mul_i32` reducers; the importer lowers them. `logcumsumexp` and the `exclusive`/`reverse` attributes are not implemented.

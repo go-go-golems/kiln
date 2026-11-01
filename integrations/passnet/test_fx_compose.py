@@ -111,6 +111,32 @@ class ComposeNumericTests(unittest.TestCase):
                 return (torch.cumsum(mask, dim=1).type_as(mask) * mask).long() + 1
         ids = torch.tensor([[5, 1, 1, 7, 2, 1], [1, 3, 3, 1, 1, 9]])
         self.check(Positions(), [ids], atol=0, rtol=0)
+        # a long row (KILN-008): the scan's block-per-row mapping, exact against PyTorch
+        self.check(Positions(), [torch.randint(0, 4, (2, 2048), generator=torch.Generator().manual_seed(8))], atol=0, rtol=0)
+
+    def test_cumulative_ops_match_torch(self):
+        class Cumulative(torch.nn.Module):
+            def forward(self, x, ids):
+                return (torch.cumprod(x, dim=1), torch.cummax(x, dim=0)[0], x.cummin(1)[0],
+                        torch.cumprod(ids, 1), torch.cummax(ids, 1)[0], ids.cummin(0)[0])
+        g = torch.Generator().manual_seed(8)
+        x = torch.rand(40, 300, generator=g) * 0.2 + 0.9
+        ids = torch.randint(-3, 4, (3, 50), generator=g)
+        self.check(Cumulative(), [x, ids], atol=1e-5, rtol=1e-4)
+
+    def test_cummax_indices_refuse(self):
+        class Indices(torch.nn.Module):
+            def forward(self, x):
+                return torch.cummax(x, 1)[1]
+        with self.assertRaisesRegex(ValueError, 'cummax/cummin indices'):
+            run_kiln(Indices(), [torch.rand(2, 5)])
+
+    def test_float_cumsum_long_axis_matches_torch(self):
+        class Cumsum(torch.nn.Module):
+            def forward(self, x):
+                return torch.cumsum(x, dim=0) * 0.5 + torch.cumsum(x, dim=1)
+        x = torch.rand(300, 40, generator=torch.Generator().manual_seed(8)) * 2 - 1
+        self.check(Cumsum(), [x], atol=1e-4, rtol=1e-4)
 
     def test_integer_division_matches_torch(self):
         """KILN-011: //, %, trunc div, fmod, floor div and true division agree exactly on every sign."""

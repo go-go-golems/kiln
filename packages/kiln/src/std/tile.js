@@ -5,11 +5,15 @@
 //               and on the row's elementwise sweep; STAGE puts the row's inputs in shared memory
 //   MAP=tiled   a contraction tiled into BM×BN output tiles with BK-deep shared-memory slabs and a
 //               TM×TN register tile per thread (generalized matmul: any body, any epilogue)
+// A kernel with a scan (an ordered loop over one output coordinate) reads MAP as what one thread or block owns:
+//   MAP=thread  one thread per row (the other output coordinates); the scan loop runs serially, carry in a register
+//   MAP=row     one block per row; chunks of TPB positions, a Hillis-Steele scan of each chunk in shared memory,
+//               and a block-wide carry between chunks
 import { k, P, KilnError } from "../core/kiln.js";
-import { numel, strides, hash, inKey } from "../core/util.js";
+import { numel, strides, hash, inKey, dtypeBytes } from "../core/util.js";
 import * as IX from "../core/ix.js";
 import { schedule, free, printNest, displayNames, workOf } from "./loop.js";
-import { FNS } from "./fns.js";
+import { FNS, reducer } from "./fns.js";
 
 // ----------------------------------------------------------------------------- knobs
 export const MAP = k.param.enum("MAP", ["thread", "row", "tiled"], { off: "thread" }).group("schedule").help("how the kernel maps onto the GPU");
@@ -44,6 +48,16 @@ export function analyze(expr, shape, inShapes) {
   const an = { sched: s, n, dims: s.dims, shape, inShapes, numelOut, rd, rows: null, inner: null, contraction: null, stage: [], flat: (i, idx) => flatOf(idx, inShapes[i]),
     // the flat index with loop ranges applied: what the cost model reads strides from (codegen keeps flat)
     boundedFlat: (i, idx) => IX.bounded(flatOf(idx, inShapes[i]), extent) };
+  if (s.scanV) {
+    // the scheduler made the scanned coordinate the innermost loop; every other output coordinate is a row
+    const sd = s.dims[n - 1], rowDims = s.dims.slice(0, n - 1);
+    an.rd = null;
+    an.scan = { v: s.scanV, n: sd.n, dim: sd.dim, rowDims, rowVars: rowDims.map((d) => d.v), rows: rowDims.reduce((a, d) => a * d.n, 1),
+      carries: s.carries.map((c) => ({ name: s.names.get(c), fn: c.fn, dtype: reducer(c.fn).type ?? "f32" })), reductions: s.reds.length };
+    an.maxExtent = sd.n;
+    AN.set(expr, { key, an });
+    return an;
+  }
   if (rd != null) {
     an.rows = s.dims.slice(0, rd).reduce((a, d) => a * d.n, 1);
     an.inner = s.dims.slice(rd).reduce((a, d) => a * d.n, 1);
@@ -101,6 +115,8 @@ export function analyze(expr, shape, inShapes) {
 }
 
 export function legalMaps(an) {
+  // a scan: one thread per row always; one block per row when no reduction shares the kernel
+  if (an.scan) return an.scan.reductions ? ["thread"] : ["thread", "row"];
   const out = ["thread"];
   if (an.rd != null) out.push("row");
   if (an.contraction) out.push("tiled");
@@ -113,7 +129,8 @@ export function forkTree(an, t) {
   const nA = ct ? ct.A.length : 0, nB = ct ? ct.B.length : 0;
   return k.fork.tree()
     .level(MAP, () => legalMaps(an))
-    .level(TPB, (kn) => (kn.MAP === "thread" ? [64, 128, 256, 512, 1024].filter((v) => v <= maxT) : kn.MAP === "row" ? [32, 64, 128, 256, 512, 1024].filter((v) => v <= maxT && v <= Math.max(32, pow2(an.maxExtent) * 2)) : [0]))
+    // a scan's thread map has one thread per row: blocks wider than the row count only add idle threads
+    .level(TPB, (kn) => (kn.MAP === "thread" && an.scan ? [32, 64, 128, 256, 512, 1024].filter((v) => v <= maxT && v <= Math.max(32, pow2(an.scan.rows))) : kn.MAP === "thread" ? [64, 128, 256, 512, 1024].filter((v) => v <= maxT) : kn.MAP === "row" ? [32, 64, 128, 256, 512, 1024].filter((v) => v <= maxT && v <= Math.max(32, pow2(an.maxExtent) * (an.scan ? 1 : 2))) : [0]))
     .level(COARSEN, (kn) => (kn.MAP === "thread" ? [1, 2, 4] : [1]))
     .level(STAGE, (kn) => {
       if (kn.MAP !== "row" || !an.stage.length) return ["none"];
@@ -133,6 +150,11 @@ export function forkTree(an, t) {
 
 // ----------------------------------------------------------------------------- launch geometry
 export function launch(an, kn) {
+  if (an.scan) {
+    const sc = an.scan;
+    if (kn.MAP === "row") return { grid: sc.rows, block: kn.TPB, smem: sc.carries.reduce((a, c) => a + kn.TPB * dtypeBytes(c.dtype), 0), staged: [] };
+    return { grid: Math.ceil(sc.rows / (kn.TPB * kn.COARSEN)), block: kn.TPB, smem: 0, staged: [] };
+  }
   if (kn.MAP === "row") {
     const st = stagedOf(an, kn);
     return { grid: an.rows, block: kn.TPB, smem: (st.reduce((a, s) => a + s.len, 0) + (an.rowReds.length ? kn.TPB : 0)) * 4, staged: st };
@@ -203,8 +225,69 @@ const sectorsFor = (stride) => { const s = Math.abs(stride); return s === 0 ? 1 
 // a data-dependent term that does not vary with v is constant along v (a gathered row); one that does is not affine
 const coefOf = (f, v) => { const g = IX.mapLoads(f, (l) => (IX.vars(l).has(v) ? l : IX.C(0))); const a = IX.affine(g, [...IX.vars(g)]); return a ? a.k[v] || 0 : 8; };
 
+// a scan kernel's counts. Thread map: each warp owns up to 32 rows and walks the scan loop serially, so a
+// statement in that loop is one warp instruction per position per warp (not per 32 positions), and a load's
+// sectors follow the address stride between adjacent rows. A load in the scan loop that walks its row
+// contiguously re-reads the sectors of earlier positions, which L1 holds: it is charged the smaller of the
+// per-access sectors and the warp's footprint (lanes × n × 4 bytes). Stores are charged per access. Row map: every chunk of T positions runs the body
+// once per thread, then log2 T Hillis-Steele rounds (a shared load, a combine, a shared store, two barriers)
+// per carried value. A barrier is charged as warp instructions: it stalls the whole block.
+const SYNC_INSTR = 8;
+function estimateScan(an, kn, t) {
+  const L = launch(an, kn), s = an.sched, sc = an.scan;
+  const fl = (st) => (st.e?.k === "op" ? FNS[st.e.fn]?.flops ?? 1 : 0);
+  let flops = 0, traffic = 0, warpInstr = 0, smemWave = 0;
+  const laneVar = sc.rowVars.at(-1) ?? null;
+  const outSt = strides(an.shape);
+  if (kn.MAP === "thread") {
+    const lanes = Math.min(32, sc.rows), warps = Math.ceil(sc.rows / 32);
+    const sectors = (stride) => (stride === 0 ? 1 : Math.min(lanes, Math.ceil((lanes * 4 * Math.abs(stride)) / 32)));
+    const walk = (ss, reps) => {
+      for (const st of ss) {
+        if (st.s === "for") walk(st.body, st.kind === "free" ? reps : reps * st.n);
+        else if (st.s === "let") {
+          warpInstr += warps * reps;
+          if (st.e.k === "in") {
+            const f = an.boundedFlat(st.e.i, st.e.idx), perAccess = reps * sectors(laneVar ? coefOf(f, laneVar) : 0);
+            const alongV = Math.abs(coefOf(f, sc.v)), footprint = alongV === 1 ? (reps / sc.n) * Math.ceil((lanes * sc.n * 4) / 32) : Infinity;
+            traffic += warps * Math.min(perAccess, footprint) * 32;
+          }
+          else flops += sc.rows * reps * fl(st);
+        } else if (st.s === "acc" || st.s === "step") { warpInstr += warps * reps; flops += sc.rows * reps; }
+        else if (st.s === "write") { warpInstr += warps * reps; traffic += warps * reps * sectors(laneVar ? outSt[sc.rowDims.at(-1).dim] : 0) * 32; }
+      }
+    };
+    walk(s.stmts, 1);
+  } else {
+    const T = kn.TPB, chunks = Math.ceil(sc.n / T), wpb = T / 32, lg = Math.log2(T);
+    const walk = (ss, inScan) => {
+      for (const st of ss) {
+        if (st.s === "for") walk(st.body, inScan || st.kind === "scan");
+        else {
+          const reps = sc.rows * (inScan ? chunks : 1) * wpb;
+          if (st.s === "let") {
+            warpInstr += reps;
+            if (st.e.k === "in") traffic += reps * (inScan ? sectorsFor(coefOf(an.boundedFlat(st.e.i, st.e.idx), sc.v)) : 1) * 32;
+            else flops += reps * 32 * fl(st);
+          } else if (st.s === "step") {
+            warpInstr += reps * (4 + 3 * lg + SYNC_INSTR * (2 * lg + 2));
+            smemWave += reps * (2 + 2 * lg);
+            flops += reps * 32 * (lg + 2);
+          } else if (st.s === "write") { warpInstr += reps; traffic += reps * sectorsFor(outSt[sc.dim]) * 32; }
+        }
+      }
+    };
+    walk(s.stmts, false);
+  }
+  const uniq = an.inShapes.reduce((a, sh) => a + numel(sh) * 4, 0), outBytes = an.numelOut * 4;
+  const dram = Math.min(traffic, Math.max(uniq + outBytes, traffic * (uniq > t.l2MB * 1048576 ? 0.6 : 0.12)));
+  const counts = { flops, traffic, dram, smemWavefronts: smemWave, warpInstr, threads: L.block, blocks: L.grid, smem: L.smem, regs: regsEstimate(kn, [...s.placed.keys()].length) };
+  return { ...counts, ...timeModel(counts, t) };
+}
+
 // analytic counts for one option: the prior the greedy compile ranks with
 export function estimate(an, kn, t) {
+  if (an.scan) return estimateScan(an, kn, t);
   const L = launch(an, kn);
   const s = an.sched;
   let flops = 0, traffic = 0, warpInstr = 0, smemWave = 0;
@@ -303,7 +386,24 @@ export function printTile(an, kn, args, name) {
     if (st.s === "write") return `${pad}out[${st.idx.map(ix).join(", ")}] = ${op(st.val)}`;
     return null;
   };
-  if (kn.MAP === "thread") {
+  if (an.scan) {
+    const sc = an.scan;
+    const rowAxes = sc.rowDims.map((d) => `${d.v}:${d.n}`).join(" × ") || "1";
+    if (kn.MAP === "thread") lines.push(`Tile(axes=(${rowAxes} → thread, ${kn.TPB}/block${kn.COARSEN > 1 ? `, ${kn.COARSEN} per thread` : ""}); ${sc.v}:${sc.n} serial scan):`);
+    else lines.push(`Tile(axes=(${[...sc.rowDims.map((d) => `${d.v}:${d.n}=BLOCK`), `lane:${kn.TPB}=THREAD`].join(", ")}); ${sc.v}:${sc.n} in chunks of ${kn.TPB}, block scan):`);
+    const walk = (ss, pad) => {
+      for (const st of ss) {
+        if (st.s === "for" && st.kind === "free") walk(st.body, pad);
+        else if (st.s === "for" && st.kind === "scan") {
+          lines.push(kn.MAP === "thread" ? `${pad}for ${st.v} in 0..${st.n}:  # scan, serial` : `${pad}ChunkLoop(${st.v} = c0 + lane; c0 < ${st.n}; c0 += ${kn.TPB}):  # scan`);
+          walk(st.body, pad + "    ");
+        } else if (st.s === "for") { lines.push(`${pad}for ${R[st.v].v} in 0..${st.n}:  # reduce, serial`); walk(st.body, pad + "    "); }
+        else if (st.s === "step") lines.push(kn.MAP === "thread" ? `${pad}${st.name} <~ ${st.fn}(${st.name}, ${op(st.val)})` : `${pad}${st.name} = BlockScan(${op(st.val)}, op=${st.fn}, carry)`);
+        else lines.push(stmt(st, pad));
+      }
+    };
+    walk(s.stmts, "    ");
+  } else if (kn.MAP === "thread") {
     lines.push(`Tile(axes=(${s.dims.map((d) => `${d.v}:${d.n}`).join(" × ") || "1"} → thread, ${kn.TPB}/block${kn.COARSEN > 1 ? `, ${kn.COARSEN} per thread` : ""})):`);
     const walk = (ss, pad) => { for (const st of ss) { if (st.s === "for" && st.kind === "free") walk(st.body, pad); else if (st.s === "for") { lines.push(`${pad}for ${R[st.v].v} in 0..${st.n}:  # reduce, serial`); walk(st.body, pad + "    "); } else lines.push(stmt(st, pad)); } };
     walk(s.stmts, "    ");

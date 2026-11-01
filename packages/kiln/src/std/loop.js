@@ -1,5 +1,6 @@
 // Loop IR. A loop.kernel holds one kernel as an expression over its output coordinates
-// (a0, a1, …): loads from its inputs, scalar ops, and reductions with their own variables.
+// (a0, a1, …): loads from its inputs, scalar ops, reductions with their own variables, and inclusive scans
+// (the fold of a body over positions 0..i of one output coordinate i).
 // Expressions are hash-consed up to renaming of reduction variables, so a reduction that appears
 // twice is one value. Scheduling places every value at the outermost loop where all its variables are
 // bound (loop-invariant hoisting), which turns fused softmax into three sweeps per row, like the blog.
@@ -40,6 +41,12 @@ function akey(o, bound) {
     }
     case "op": return `${o.fn}(${o.a.map((x) => (bound.length && intersects(free(x), bound) ? akey(x, bound) : x.__key || akey(x, []))).join(",")})`;
     case "red": return `red:${o.fn}:${o.n}{${akey(o.body, [...bound, o.r])}}`;
+    case "scan": {
+      const env = {}; for (const v of bound) env[v] = IX.V(name(v));
+      return `scan:${o.fn}:${IX.keyOf(bound.length ? IX.subst(o.end, env) : o.end)}:${o.n}{${akey(o.body, [...bound, o.r])}}`;
+    }
+    // the scheduler's form of a scan: a value carried along the loop over v (exists only inside schedule)
+    case "carry": return `carry:${o.fn}:${o.v}{${akey(o.body, bound)}}`;
   }
   throw new Error("bad expression " + o.k);
 }
@@ -51,6 +58,8 @@ export function free(x) {
   else if (x.k === "in") { f = new Set(); for (const e of x.idx) IX.vars(e, f); }
   else if (x.k === "ix") f = IX.vars(x.e);
   else if (x.k === "op") { f = new Set(); for (const a of x.a) for (const v of free(a)) f.add(v); }
+  else if (x.k === "scan") { f = new Set(free(x.body)); f.delete(x.r); IX.vars(x.end, f); }
+  else if (x.k === "carry") { f = new Set(free(x.body)); f.add(x.v); }
   else { f = new Set(free(x.body)); f.delete(x.r); }
   FREE.set(x, f);
   return f;
@@ -85,9 +94,18 @@ export const E = {
     if (e.t === "c" && Math.abs(e.v) <= 2 ** 24) return E.num(e.v);
     return intern({ k: "ix", e, dtype });
   },
+  // inclusive scan: fold_{r = 0..end} body, with the reducer's operation and identity. end is an index
+  // expression, normally an output coordinate of extent n; a constant end is an ordinary reduction.
+  scan: (fnName, r, end, n, body) => {
+    reducer(fnName);
+    end = IX.lift(end);
+    if (end.t === "c") return E.red(fnName, r, end.v + 1, body);
+    return intern({ k: "scan", fn: fnName, r, end, n, body });
+  },
 };
 const IX_DTYPES = new Set(["i64", "i32", "bool"]);
 const PREDICATES = new Set(["<", "<=", "==", "&&", "||"]);
+export const hasScan = (x) => { let y = false; walkE(x, (n) => { if (n.k === "scan") y = true; }); return y; };
 // substitute index variables (coordinates or reduction vars) inside an expression
 export function substE(x, env, remapIn = null) {
   switch (x.k) {
@@ -98,13 +116,14 @@ export function substE(x, env, remapIn = null) {
     case "ix": return E.ix(IX.subst(remapIn ? IX.remapLoads(x.e, remapIn) : x.e, env), x.dtype);
     case "op": return E.op(x.fn, ...x.a.map((a) => substE(a, env, remapIn)));
     case "red": { const r = freshR(); return E.red(x.fn, r, x.n, substE(x.body, { ...env, [x.r]: IX.V(r) }, remapIn)); }
+    case "scan": { const r = freshR(); return E.scan(x.fn, r, IX.subst(x.end, env), x.n, substE(x.body, { ...env, [x.r]: IX.V(r) }, remapIn)); }
   }
 }
 export function walkE(x, fnv, seen = new Set()) {
   if (seen.has(x)) return;
   seen.add(x);
   if (x.k === "op") x.a.forEach((a) => walkE(a, fnv, seen));
-  if (x.k === "red") walkE(x.body, fnv, seen);
+  if (x.k === "red" || x.k === "scan" || x.k === "carry") walkE(x.body, fnv, seen);
   fnv(x);
 }
 export function printE(x, names = (i) => "in" + i) {
@@ -114,12 +133,18 @@ export function printE(x, names = (i) => "in" + i) {
     case "ix": return `ix(${IX.print(x.e)}):${x.dtype}`;
     case "op": return `${x.fn}(${x.a.map((a) => printE(a, names)).join(", ")})`;
     case "red": return `${x.fn}_{${x.r}<${x.n}} ${printE(x.body, names)}`;
+    case "scan": return `scan ${x.fn}_{${x.r}<=${IX.print(x.end)}} ${printE(x.body, names)}`;
   }
 }
 
 // ----------------------------------------------------------------------------- scheduling
 // returns { dims, stmts, loads, reds, values } where stmts is the Loop IR nest:
 //   for {v, n, kind, body} · let {name, e:{in|op}} · init {name, fn} · acc {name, fn, val} · write {idx, val}
+//   · step {name, fn, val}
+// kind is "free" (independent iterations), "reduce" (an accumulator, usable after the loop) or "scan": the
+// loop over the scanned output coordinate, whose iterations are ordered. A scan's init sits right before its
+// scan loop; inside it, step folds in the current position and leaves the prefix through it in name, which
+// later statements of the same iteration (the write among them) read.
 const SCHED = new WeakMap();
 export function schedule(expr, shape) {
   const ck = SCHED.get(expr);
@@ -128,13 +153,42 @@ export function schedule(expr, shape) {
   const env = {};
   const dims = [];
   shape.forEach((d, i) => { if (d === 1) env["a" + i] = IX.C(0); else dims.push({ v: "a" + i, n: d, dim: i }); });
-  const x = Object.keys(env).length ? substE(expr, env) : expr;
+  let x = Object.keys(env).length ? substE(expr, env) : expr;
+  const source = x;
+  // scans: every scan of a kernel folds along the same output coordinate, which becomes the innermost loop
+  const scans = [];
+  walkE(x, (n) => { if (n.k === "scan") scans.push(n); });
+  let scanV = null;
+  if (scans.length) {
+    const bad = (m) => { throw new KilnError("ScheduleError", m); };
+    for (const S of scans) {
+      if (S.end.t !== "v" || !dims.some((d) => d.v === S.end.v)) bad(`a scan folds along an output coordinate, not ${IX.print(S.end)} (a scan inside a reduction or another scan)`);
+      if (scanV && S.end.v !== scanV) bad(`a kernel scans one coordinate (${scanV} and ${S.end.v})`);
+      scanV = S.end.v;
+      const fb = new Set(free(S.body)); fb.delete(S.r);
+      if (fb.has(scanV)) bad(`a scan body depends on the scanned coordinate ${scanV} other than through its position`);
+    }
+    const d = dims.findIndex((q) => q.v === scanV);
+    dims.push(...dims.splice(d, 1));
+    const memo = new Map();
+    const rb = (y) => {
+      if (memo.has(y)) return memo.get(y);
+      let z;
+      if (y.k === "num" || y.k === "in") z = y;
+      else if (y.k === "op") z = E.op(y.fn, ...y.a.map(rb));
+      else if (y.k === "red") z = E.red(y.fn, y.r, y.n, rb(y.body));
+      else z = intern({ k: "carry", fn: y.fn, v: scanV, n: y.n, body: rb(substE(y.body, { [y.r]: IX.V(scanV) })) });
+      memo.set(y, z);
+      return z;
+    };
+    x = rb(x);
+  }
   // scopes: root → a… output loops → reduction loops
   const root = { id: "root", depth: 0, items: [], kids: [] };
   const scopes = [root];
   let cur = root;
   const binder = new Map();
-  for (const d of dims) { const s = { id: d.v, depth: cur.depth + 1, parent: cur, items: [], kids: [], loop: { v: d.v, n: d.n, kind: "free" } }; cur.kids.push(s); binder.set(d.v, s); scopes.push(s); cur = s; }
+  for (const d of dims) { const s = { id: d.v, depth: cur.depth + 1, parent: cur, items: [], kids: [], loop: { v: d.v, n: d.n, kind: d.v === scanV ? "scan" : "free" } }; cur.kids.push(s); binder.set(d.v, s); scopes.push(s); cur = s; }
   const inner = cur;
   // collect nodes (post-order: deps first)
   const order = [];
@@ -166,6 +220,7 @@ export function schedule(expr, shape) {
   for (const n of order) if (n.k === "ix") checkIxRange(n, extentOf);
   const opnd = (n) => (n.k === "num" ? (n.exact != null ? { num: n.v, exact: n.exact } : { num: n.v }) : { ref: names.get(n) });
   const loopOf = new Map(scopes.filter((s) => s.red).map((s) => [s.red, s]));
+  const carries = order.filter((n) => n.k === "carry");
   // emission
   const emitScope = (s) => {
     const out = [];
@@ -173,20 +228,22 @@ export function schedule(expr, shape) {
       if (n.k === "in") out.push({ s: "let", name: names.get(n), e: { k: "in", i: n.i, idx: n.idx }, node: n });
       else if (n.k === "ix") out.push({ s: "let", name: names.get(n), e: { k: "ix", e: n.e, dtype: n.dtype }, node: n });
       else if (n.k === "op") out.push({ s: "let", name: names.get(n), e: { k: "op", fn: n.fn, a: n.a.map(opnd) }, node: n });
+      else if (n.k === "carry") out.push({ s: "step", name: names.get(n), fn: n.fn, val: opnd(n.body), node: n });
       else {
         const L = loopOf.get(n);
         out.push({ s: "init", name: names.get(n), fn: n.fn });
         out.push({ s: "for", v: n.r, n: n.n, kind: "reduce", body: [...emitScope(L), { s: "acc", name: names.get(n), fn: n.fn, val: opnd(n.body) }], red: names.get(n) });
       }
     }
-    const kid = s.kids.find((c) => c.loop && c.loop.kind === "free");
-    if (kid) out.push({ s: "for", v: kid.loop.v, n: kid.loop.n, kind: "free", body: emitScope(kid) });
+    const kid = s.kids.find((c) => c.loop && c.loop.kind !== "reduce");
+    if (kid && kid.loop.kind === "scan") for (const c of carries) out.push({ s: "init", name: names.get(c), fn: c.fn, scan: true });
+    if (kid) out.push({ s: "for", v: kid.loop.v, n: kid.loop.n, kind: kid.loop.kind, body: emitScope(kid) });
     if (s === inner) out.push({ s: "write", idx: shape.map((_, i) => (env["a" + i] ? IX.C(0) : IX.V("a" + i))), val: opnd(x) });
     return out;
   };
   const stmts = emitScope(root);
   const loads = order.filter((n) => n.k === "in");
-  const res = { dims, stmts, loads, reds: order.filter((n) => n.k === "red"), placed, names, expr: x, shape, inner, root, scopes };
+  const res = { dims, stmts, loads, reds: order.filter((n) => n.k === "red"), placed, names, expr: x, source, shape, inner, root, scopes, scanV, carries };
   SCHED.set(expr, { shape: shape.join(), s: res });
   return res;
 }
@@ -224,6 +281,7 @@ export function printNest(sched, bufName = (i) => "in" + i, outName = "out") {
       else if (s.s === "let") lines.push(`${pad}${s.name} = ${s.e.k === "in" ? `load ${bufName(s.e.i)}[${s.e.idx.map(ix).join(", ")}]` : s.e.k === "ix" ? `ix ${ix(s.e.e)} : ${s.e.dtype}` : `${s.e.fn}(${s.e.a.map(op).join(", ")})`}`);
       else if (s.s === "init") lines.push(`${pad}${s.name} = ${((v) => (v == 0 ? "0" : v == 1 ? "1" : typeof v === "bigint" ? String(v) : s.fn === "max" ? "-inf" : "+inf"))(reducer(s.fn).init)}`);
       else if (s.s === "acc") lines.push(`${pad}${s.name} <- ${s.fn}(${s.name}, ${op(s.val)})`);
+      else if (s.s === "step") lines.push(`${pad}${s.name} <~ ${s.fn}(${s.name}, ${op(s.val)})`);
       else if (s.s === "write") lines.push(`${pad}${outName}[${s.idx.map(ix).join(", ")}] = ${op(s.val)}`);
     }
   };
@@ -239,7 +297,7 @@ export function workOf(sched) {
     for (const s of ss) {
       if (s.s === "for") walk(s.body, trips * s.n);
       else if (s.s === "let") w += trips * (s.e.k === "in" ? W_MEM : s.e.k === "ix" ? 1 : FNS[s.e.fn]?.flops ?? 1);
-      else if (s.s === "acc") w += trips;
+      else if (s.s === "acc" || s.s === "step") w += trips;
       else if (s.s === "write") w += trips * W_MEM;
     }
   };
@@ -281,7 +339,7 @@ export function compileSerial(sched, inShapes) {
         else if (s.e.k === "ix") body.push(`${pad}const ${s.name} = ${ixValue(s.e, js)};`);
         else { const f = FNS[s.e.fn]; if (!f) throw new KilnError("EvalError", "unknown fn " + s.e.fn); body.push(`${pad}const ${s.name} = F.${s.e.fn}(${s.e.a.map((o) => op(o, f)).join(", ")});`); }
       } else if (s.s === "init") body.push(`${pad}let ${s.name} = ${jsInit(s.fn)};`);
-      else if (s.s === "acc") body.push(`${pad}${s.name} = R.${s.fn}(${s.name}, ${op(s.val)});`);
+      else if (s.s === "acc" || s.s === "step") body.push(`${pad}${s.name} = R.${s.fn}(${s.name}, ${op(s.val)});`);
       else if (s.s === "write") body.push(`${pad}O[${js(flat(s.idx, outSt))}] = W(${op(s.val)});`);
     }
   };
@@ -304,6 +362,8 @@ export function compilePoint(sched, inShapes) {
   const op = jsLiteral;
   const body = [];
   for (const d of sched.dims) body.push(`  const ${d.v} = Math.floor(e / ${outSt[d.dim]}) % ${d.n};`);
+  // a kernel with scans: evaluate the expression by its definition (a scan is the fold over 0..i), so the
+  // point reference does not share the scheduler's carried accumulators with the code it checks
   const walk = (ss, pad) => {
     for (const s of ss) {
       if (s.s === "for" && s.kind === "free") walk(s.body, pad);
@@ -314,11 +374,28 @@ export function compilePoint(sched, inShapes) {
       else if (s.s === "write") body.push(`${pad}return ${op(s.val)};`);
     }
   };
-  walk(sched.stmts, "  ");
+  // a kernel with scans: evaluate the expression by its definition (a scan is the fold over 0..i), so the
+  // point reference does not share the scheduler's carried accumulators with the code it checks
+  if (sched.scanV) body.push(`  return ${pointExpr(sched.source, js, flat, inShapes)};`);
+  else walk(sched.stmts, "  ");
   const src = `return function point(I, e) {\n${inShapes.map((_, i) => `  const I${i} = I[${i}];`).join("\n")}\n${body.join("\n")}\n};`;
   const fnc = new Function("F", "R", src)(FLOAT32_FUNCTIONS, FLOAT32_REDUCERS);
   POINT.set(sched, { key, fn: fnc });
   return fnc;
+}
+// JS for an expression by its definition: reductions and scans become immediately invoked loops
+function pointExpr(x, js, flat, inShapes) {
+  const g = (y) => {
+    switch (y.k) {
+      case "num": return `(${Math.fround(y.v)})`;
+      case "in": return `I${y.i}[${js(flat(y.idx, strides(inShapes[y.i])))}]`;
+      case "op": return `F.${y.fn}(${y.a.map(g).join(", ")})`;
+      case "red": return `((() => { let q = ${jsInit(y.fn)}; for (let ${y.r} = 0; ${y.r} < ${y.n}; ${y.r}++) q = R.${y.fn}(q, ${g(y.body)}); return q; })())`;
+      case "scan": return `((() => { let q = ${jsInit(y.fn)}; for (let ${y.r} = 0; ${y.r} <= ${js(y.end)}; ${y.r}++) q = R.${y.fn}(q, ${g(y.body)}); return q; })())`;
+    }
+    throw new KilnError("EvalError", "bad expression " + y.k);
+  };
+  return g(x);
 }
 export function runSerial(expr, shape, inputs, dtype = "f32") {
   const sched = schedule(expr, shape);
@@ -371,6 +448,12 @@ export const liftReduce = k.rule("lift_reduce").match(P.op("tensor.reduce").as("
   const idx = coords(s.length).map((c, i) => (i === ax ? IX.V(r) : c));
   return mkKernel([x], E.red(n.attrs.fn, r, s[ax], E.load(0, idx)), n.type.shape, n.attrs.origin, n.type.dtype);
 });
+export const liftScan = k.rule("lift_scan").match(P.op("tensor.scan").as("n")).rewrite(({ n }) => {
+  const x = n.arg("x"), s = x.type.shape, ax = n.attrs.axis;
+  const r = freshR(), cs = coords(s.length);
+  const body = E.load(0, cs.map((c, i) => (i === ax ? IX.V(r) : c)));
+  return mkKernel([x], E.scan(n.attrs.fn, r, cs[ax], s[ax], body), s, n.attrs.origin, n.type.dtype);
+});
 export const liftView = k.rule("lift_indexmap").match(P.op("tensor.view").as("n")).rewrite(({ n }) => mkKernel([n.arg("x")], E.load(0, n.attrs.map.exprs), n.attrs.shape, n.attrs.origin, n.type.dtype));
 // a gather is a view whose map reads its index argument through data-dependent terms LD(1, …)
 export const liftGather = k.rule("lift_gather").match(P.op("tensor.gather").as("n")).rewrite(({ n }) => mkKernel([n.arg("x"), n.arg("ids")], E.load(0, n.attrs.map.exprs), n.attrs.shape, n.attrs.origin, n.type.dtype));
@@ -378,7 +461,7 @@ export const liftSplatOut = k.rule("lift_constant_output").match(P.op("tensor.co
   .rewrite(({ n }) => mkKernel([], splatLiteral(n), n.type.shape, "constant", n.type.dtype));
 export const liftIxval = k.rule("lift_ixval").match(P.op("tensor.ixval").as("n"))
   .rewrite(({ n }) => mkKernel([], E.ix(n.attrs.map.exprs[0], n.attrs.dtype), n.attrs.shape, n.attrs.origin, n.attrs.dtype));
-export const lift = k.pass("loop/lowering").short("l").rules(liftEw, liftReduce, liftView, liftGather, liftSplatOut, liftIxval)
+export const lift = k.pass("loop/lowering").short("l").rules(liftEw, liftReduce, liftScan, liftView, liftGather, liftSplatOut, liftIxval)
   .describe("each Tensor IR primitive becomes a one-op loop kernel");
 
 // ----------------------------------------------------------------------------- f: fusion
@@ -414,10 +497,25 @@ export function inlineInto(c, p) {
       case "ix": return E.ix(remapIdx(IX.subst(x.e, ren)), x.dtype);
       case "op": return E.op(x.fn, ...x.a.map((a) => rw(a, ren)));
       case "red": { const r = freshR(); return E.red(x.fn, r, x.n, rw(x.body, { ...ren, [x.r]: IX.V(r) })); }
+      case "scan": { const r = freshR(); return E.scan(x.fn, r, IX.subst(x.end, ren), x.n, rw(x.body, { ...ren, [x.r]: IX.V(r) })); }
     }
   };
   if (pi < 0) throw new KilnError("FusionError", `${p.id} is not an input of ${c.id}`);
-  return { expr: rw(c.attrs.expr, {}), args, origin: [...new Set([...(p.attrs.origin || []), ...(c.attrs.origin || [])])] };
+  const expr = rw(c.attrs.expr, {});
+  if (hasScan(expr)) scanFusionLegal(expr, c, p);
+  return { expr, args, origin: [...new Set([...(p.attrs.origin || []), ...(c.attrs.origin || [])])] };
+}
+// A fused kernel with a scan must still schedule as one carried loop: every scan read at the consumer's own
+// coordinate along the scanned axis (not shifted, not inside a reduction or another scan), one scanned
+// coordinate per kernel. It also holds no reduction, which keeps the block-per-row scan mapping legal
+// (a row reduction beside a block scan is not materialized) and keeps cumsum(x) / sum(x)-like programs
+// as a reduction kernel feeding a scan kernel.
+function scanFusionLegal(expr, c, p) {
+  let red = false;
+  walkE(expr, (n) => { if (n.k === "red") red = true; });
+  if (red) throw new FusionIllegal(`${p.id} into ${c.id}: a kernel with a scan holds no reduction`);
+  try { schedule(expr, c.attrs.shape); }
+  catch (e) { if (e instanceof KilnError && e.kind === "ScheduleError") throw new FusionIllegal(`${p.id} into ${c.id}: ${e.message}`); throw e; }
 }
 const kernelWork = (n) => workOf(schedule(n.attrs.expr, n.attrs.shape));
 export { chooseFusionSubset } from "./fusion.js";
@@ -481,7 +579,8 @@ export const fuse = k.pass("loop/fusion").short("f").rules(mergeLoopOps).order("
 export const stampNames = k.rule("stamp_loop_names").match(P.op("loop.kernel").as("n").where(({ n }) => !n.attrs.name)).rewrite(({ n, graph }) => {
   const o = (n.attrs.origin || []).filter(Boolean);
   const base = o.length ? o.slice(0, 3).join("_") : "kernel";
-  const red = schedule(n.attrs.expr, n.attrs.shape).reds.length ? "_reduce" : "";
+  const sc = schedule(n.attrs.expr, n.attrs.shape);
+  const red = sc.reds.length ? "_reduce" : sc.scanV ? "_scan" : "";
   // a program with several outputs: name each output's kernel after the output
   const outs = graph.outputs.filter((x) => x.id === n.id);
   let name = (graph.outputs.length > 1 && outs.length === 1 ? `k_${outs[0].name}` : `k_${base}${red}`).replace(/[^\w]/g, "_");

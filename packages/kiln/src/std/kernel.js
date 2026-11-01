@@ -57,8 +57,15 @@ function emitNest(kb, stmts, ctx) {
     else if (st.s === "let") ctx.vals.set(st.name, kx.v(kb.let(kx.op(st.e.fn, ...st.e.a.map((o) => opnd(o, ctx))), ctx.nm(st.name))));
     else if (st.s === "init") {
       const next = stmts[i + 1];
-      if (ctx.onReduce && ctx.onReduce(st, next, ctx)) { i++; continue; }
+      if (!st.scan && ctx.onReduce && ctx.onReduce(st, next, ctx)) { i++; continue; }
       ctx.vals.set(st.name, kx.v(kb.let(kx.num(reducer(st.fn).init), ctx.nm(st.name))));
+    } else if (st.s === "for" && st.kind === "scan") {
+      // an ordered loop: a materializer that does not implement it must not parallelize it as a free loop
+      if (!ctx.onScan) throw new KilnError("MaterializeError", `this mapping does not materialize the scan loop over ${st.v}`);
+      ctx.onScan(st, ctx);
+    } else if (st.s === "step") {
+      const acc = ctx.vals.get(st.name);
+      kb.let(kx.op(reducer(st.fn).op, acc, opnd(st.val, ctx)), acc.n);
     } else if (st.s === "for" && st.kind === "reduce") {
       const v = ctx.nm(ctx.redName(st.v));
       kb.for(v, 0, st.n, 1, (rv) => emitNest(kb, st.body, { ...ctx, env: { ...ctx.env, [st.v]: rv } }));
@@ -209,7 +216,9 @@ function matTiled(an, kn) {
     kb.for(isA ? "la" : "lb", V("tid"), rows * BK, T, (l) => {
       const rr = kb.int(kFast ? l.div(BK) : l.mod(rows), "rr"), kk = kb.int(kFast ? l.mod(BK) : l.div(rows), "kq");
       const gRow = rowBase.add(rr), gK = k0.add(kk);
-      const v = kb.let(kx.num(0), "tv");
+      // one staging temporary per operand: operands may differ in dtype (an f32 mask beside i64 data), and a
+      // Kernel IR value has one static type
+      const v = kb.let(kx.num(0), kb.fresh("tv"));
       kb.if(gRow.lt(lim).and(gK.lt(ct.K)), () => {
         const env = { ...benv, [rowVar]: gRow, [ct.C.r]: gK };
         const g = kb.load(ld.i, an.flat(ld.i, ld.idx.map((e) => IX.subst(e, env))));
@@ -251,6 +260,76 @@ function matTiled(an, kn) {
       emitNest(kb, s.stmts, ctx);
     });
   }
+  return kb;
+}
+
+// ----------------------------------------------------------------------------- scans
+// MAP=thread for a scan: one thread per row (every output coordinate but the scanned one); the scan loop is
+// a serial for with the carried value in a register
+function matScanThread(an, kn) {
+  const kb = new KB();
+  const T = kn.TPB, Cn = kn.COARSEN, sc = an.scan;
+  const body = (eIx) => {
+    const e = kb.int(eIx, "e");
+    kb.if(e.lt(sc.rows), () => {
+      const ctx = baseCtx(an, kb);
+      ctx.env = decode(e, sc.rowDims);
+      ctx.load = (st, c) => kb.load(st.e.i, c.flat(c, st.e.i, st.e.idx), st.name);
+      ctx.onFree = (st, c) => emitNest(kb, st.body, c);
+      ctx.onScan = (st, c) => kb.for(st.v, 0, st.n, 1, (iv) => emitNest(kb, st.body, { ...c, env: { ...c.env, [st.v]: iv } }));
+      ctx.write = (st, c) => kb.store("out", outFlat(an, st.idx, c.env), opnd(st.val, c));
+      emitNest(kb, an.sched.stmts, ctx);
+    });
+  };
+  if (Cn === 1) body(V("bid").mul(T).add(V("tid")));
+  else kb.for("j", 0, Cn, 1, (j) => body(V("bid").mul(T * Cn).add(j.mul(T)).add(V("tid"))));
+  return kb;
+}
+// MAP=row for a scan: one block per row. The scan loop becomes a uniform loop over chunks of T positions;
+// thread tid owns position c0 + tid. Statements between steps run under the guard c0 + tid < n. Each step
+// is an inclusive Hillis-Steele scan of the chunk in shared memory (out-of-range positions hold the
+// identity), combined with the block-wide carry of the chunks before it. Every barrier is in uniform code.
+function matScanRow(an, kn) {
+  const kb = new KB();
+  const T = kn.TPB, sc = an.scan, tid = V("tid");
+  const ctx = baseCtx(an, kb);
+  ctx.env = sc.rowDims.length ? decode(V("bid"), sc.rowDims) : {};
+  const arr = new Map(sc.carries.map((c, q) => [c.name, kb.shared(`s_scan${q}`, T)]));
+  ctx.load = (st, c) => kb.load(st.e.i, c.flat(c, st.e.i, st.e.idx), st.name);
+  ctx.onFree = (st, c) => emitNest(kb, st.body, c);
+  ctx.write = (st, c) => kb.store("out", outFlat(an, st.idx, c.env), opnd(st.val, c));
+  ctx.onScan = (st, c) => {
+    kb.for("c0", 0, st.n, T, (c0) => {
+      const pos = kb.int(c0.add(tid), "p"), inside = pos.lt(st.n);
+      const cc = { ...c, env: { ...c.env, [st.v]: pos }, vals: new Map(c.vals) };
+      let seg = [];
+      const flush = (then) => { const run = seg; seg = []; if (run.length || then) kb.if(inside, () => { emitNest(kb, run, cc); then?.(); }); };
+      for (const s2 of st.body) {
+        if (s2.s !== "step") { seg.push(s2); continue; }
+        const R = reducer(s2.fn), id = kx.num(R.init), a = arr.get(s2.name), carry = c.vals.get(s2.name);
+        // x: this thread's term, the identity past the end of the row
+        const x = kb.let(id, `${s2.name}_x`);
+        flush(() => kb.let(opnd(s2.val, cc), x));
+        kb.sstore(a, tid, kx.v(x));
+        kb.sync();
+        for (let d = 1; d < T; d *= 2) {
+          const y = kb.let(id, `${s2.name}_y`);
+          kb.if(tid.ge(d), () => kb.sload(a, tid.sub(d), y));
+          kb.sync();
+          kb.if(tid.ge(d), () => { kb.let(kx.op(R.op, kx.v(y), kx.v(x)), x); kb.sstore(a, tid, kx.v(x)); });
+          kb.sync();
+        }
+        // the prefix through this position, then the carry past the whole chunk (its last slot)
+        const p = kb.let(kx.op(R.op, carry, kx.v(x)), `${s2.name}_p`);
+        cc.vals.set(s2.name, kx.v(p));
+        const tot = kb.sload(a, C(T - 1), `${s2.name}_t`);
+        kb.let(kx.op(R.op, carry, kx.v(tot)), carry.n);
+      }
+      flush();
+      kb.sync();
+    });
+  };
+  emitNest(kb, an.sched.stmts, ctx);
   return kb;
 }
 
@@ -319,7 +398,8 @@ export function materialize(node) {
   const an = {...analysis,reductionNames:displayNames(analysis.sched)};
   const kn = a.map;
   const L = launch(an, kn);
-  const kb = kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : matThread(an, kn);
+  const kb = an.scan ? (kn.MAP === "row" ? matScanRow(an, kn) : matScanThread(an, kn))
+    : kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : matThread(an, kn);
   const params = [...a.inShapes.map((s, i) => ({ name: "in" + i, size: numel(s), shape: s, role: "in", dtype: a.inDtypes?.[i] || "f32" })), { name: "out", size: numel(a.shape), shape: a.shape, role: "out", dtype: a.outDtype || "f32" }];
   const { values, smem: smemTypes } = valueTypes(kb.body, params, a.name || "kernel");
   const smem = kb.smem.map((x) => ({ ...x, dtype: smemTypes.get(x.name) ?? "f32" }));

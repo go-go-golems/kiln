@@ -163,3 +163,61 @@ KILN-010 is the largest overlap with KILN-011 and KILN-009: it adds `E.ix` throu
 
 ### Technical details
 - Logs: `m010-npm.log`, `m010-py.log`. Resolution inputs: `bin/r010-emit.py`, `bin/r010-loop.py`, `bin/r010-tensor.py` in the scratch dir.
+
+## Step 4: Merge KILN-008 (cumsum as a scan primitive)
+
+KILN-008 replaces the masked n×n cumsum lowering with `tensor.scan` / `E.scan`, a carried loop in the scheduler, two scan materializers (`matScanThread`, `matScanRow`), per-operand `tv` temporaries in `matTiled`, and the `CUMULATIVE` table (cumprod, cummax, cummin values). Four files conflicted, mostly because KILN-010 had added `E.ix` cases next to the lines where KILN-008 added `E.scan` cases. The merge itself was green, but a probe of the *combination* found two real defects where KILN-008's new code did not know KILN-010's `ix` expression kind or KILN-011's exact literals; they are fixed in a follow-up commit (Step 4b below).
+
+### Prompt Context
+**User prompt (verbatim):** see Step 1.
+**Assistant interpretation:** At this merge the scan lowering wins over KILN-010's index-value-mask cumsum; KILN-010's index-value concat mask stays.
+**Inferred user intent:** One cumsum lowering (the scan), with every other KILN-010 lowering kept.
+**Commit (code):** merge commit "Merge KILN-008: cumsum as a scan primitive"; follow-up "Integrate KILN-008: index values and exact literals in scan kernels".
+
+### What I did
+- Read KILN-008 design-doc Section 13 and diary Steps 5-8.
+- `git merge --no-ff --no-commit impl/kiln-008-cumsum-scan` → conflicts in `integrations/passnet/fx_import.py`, `packages/kiln/src/std/loop.js`, `packages/kiln/src/std/tensor.js`, `packages/kiln/test/integer-arithmetic.mjs`.
+- `fx_import.py` `lower_getitem`: KILN-010 had deleted the "indices is not lowered" refusal because max/min(dim) now return real indices; KILN-008 reworded the same line because its `cummax`/`cummin` return `[values, None]`. The `None` case is reachable again (cummax/cummin indices), so the refusal is kept, worded for what is still unlowered: `(cummax/cummin indices) is not lowered`.
+- `loop.js`: `E` gets both `ix` (KILN-010) and `scan` (KILN-008); `IX_DTYPES`/`PREDICATES` and `hasScan` both kept; `workOf` counts `ix` as 1 and `step` like `acc`; `lift` registers `liftEw, liftReduce, liftScan, liftView, liftGather, liftSplatOut, liftIxval` and `liftSplatOut` keeps KILN-011's `splatLiteral`.
+- `tensor.js`: `constText` (KILN-011) and the `CUMULATIVE` op loop (KILN-008) both kept; `N` gets KILN-010's argmax/assign/repeat/repeatInterleave/argmin and KILN-008's cumprod/cummax/cummin; in `decompositions` KILN-010's index-value-mask `nn.cumsum` decomposition is **dropped** and replaced by KILN-008's `CUMULATIVE` scan decompositions, while KILN-010's `nn.argmax`, `nn.assign`, `nn.repeat`, `nn.repeat_interleave` stay. KILN-010's concat index-value mask lives in `concat.js` and auto-merged unchanged.
+- `integer-arithmetic.mjs`: KILN-008's version (cumsum is a scan, so the int64 tree combine only appears under a pinned `MAP=row` compile), with KILN-010's renamed array: `/__shared__ long long s_red_i64\[/`.
+
+### Why
+- The cumsum choice is the coordinator's instruction and matches KILN-008's design (n steps per row instead of n² masked terms).
+
+### What worked
+- `npm test`: all 55 passed. `pytest`: 195 passed, 7 subtests passed.
+
+### What didn't work
+- Green tests hid two cross-feature defects, found with a probe (`probes/scan-ix.mjs` in the scratch dir) that fuses an `arange` into a cumsum and puts a 2^60 + 1 literal into a scan body:
+  - `cumsum(x + arange(8))` (i64): `RuleError: loop/fusion/merge_loop_ops at n8: Cannot read properties of undefined (reading 'k')`, stack `substE (loop.js:111)` ← `rb (loop.js:180)` ← `schedule (loop.js:184)` ← `scanFusionLegal` ← `inlineInto`. KILN-008's carry rewrite `rb` in `schedule` handles `num`/`in`/`op`/`red` and treats everything else as a scan, so an `ix` node was rewritten as if it were a scan (`y.body` undefined).
+  - After that fix: `simulateKernel` → `EvalError: bad expression ix` from KILN-008's `pointExpr` (the definitional point reference for scan kernels), and `cumsum(x + (2^60 + 1))` → `8 of 8 integer values differ (first at 0: 1152921504606846978 vs 1152921504606…)`: `pointExpr` spelled every literal as `Math.fround(v)`, ignoring KILN-011's exact literals.
+
+### What I learned
+- KILN-010 and KILN-011 each audited every expression-kind switch that existed when they branched; KILN-008 added two new switches (`rb`, `pointExpr`) that neither of them could see. Expression-kind switches are the place to look after any merge of IR-extending branches.
+- KILN-008's own follow-up ("simulate integer scan kernels after KILN-010") is closed by the merge: `toSim` now runs integer scan kernels under both `MAP=thread` and `MAP=row`, exactly.
+
+### What was tricky to build
+- Nothing in the textual resolution; the defects were semantic and only visible to a probe that combines the features.
+
+### What warrants a second pair of eyes
+- `tile.js` auto-merged KILN-010's "an `ix` node disqualifies `MAP=tiled`" with KILN-008's per-operand `tv` temporaries and scan analysis; no conflict and the tests pass, but no test fuses an index value into a tiled epilogue *and* a scan program.
+
+### What should be done in the future
+- N/A beyond the follow-up below.
+
+### Code review instructions
+- `git show <merge> -- packages/kiln/src/std/tensor.js` (the cumsum decomposition choice), then the follow-up commit.
+
+### Technical details
+- Logs: `m008-npm.log`, `m008-py.log`. Resolution inputs: `bin/r008-*.py`.
+
+## Step 4b: Follow-up, index values and exact literals in scan kernels
+
+Two small fixes in `packages/kiln/src/std/loop.js`, plus tests:
+
+- `schedule`'s carry rewrite `rb`: `if (y.k === "num" || y.k === "in" || y.k === "ix") z = y;` — an index value is a leaf like a load (its substitution of the scanned variable already happened in `substE`, which has an `ix` case).
+- `pointExpr`: `case "ix": return ixValue(y, js);` and literals spelled through KILN-011's `jsLiteral` with the parent function's spec (`g(a, FNS[y.fn])`), the same spelling `compilePoint`'s nest walk uses.
+- `test/scan.mjs`: the Phase 7 block now simulates the integer kernels too (it filtered `outDtype === "f32"` because integer simulation did not exist); a new block checks `cumsum(arange)`, `cumsum(x + arange)`, `cumsum(x + 2^60 + 1)` and an i64 cumsum under `MAP=thread` and `MAP=row`: Loop IR equals the frontend reference and every kernel simulates exactly.
+
+After the follow-up: `npm test` all 55 passed, `pytest` 195 passed, 7 subtests passed (logs `m008b-*`). Probe output before/after is in the "What didn't work" bullets of Step 4.
