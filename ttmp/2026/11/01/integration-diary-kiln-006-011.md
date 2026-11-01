@@ -1135,7 +1135,7 @@ I froze the fixed families into a re-replay plan after the two required gates, b
 ### Why
 - **40 is in the plan although the family cannot be accepted.** Its four bf16/f32 graphs are the measurement of the Step 15 fix in the real evaluator. The plan's `selection` says that the two f16 graphs fail for every compiler.
 - **29, 22, 44, 124 and 34 are not in the plan.** No code changed their outcome; replaying them would measure the same thing again (Steps 13–14).
-- **`import_census_sha256` is unchanged.** The fixes change scripts, not import coverage: the zero-dim scan imports all 2058 importable census graphs, the same count as `census-v2`.
+- **`import_census_sha256` is unchanged.** The fixes change scripts, not import coverage: `coverage-census-v1/census.py` at `26243a3` reports `2058 2060`, the same count as `census-v2`.
 
 ### What worked
 - **Compile gate:** `170 3/3`, `40 6/6` (8.1 s wall, 748 MB maximum RSS).
