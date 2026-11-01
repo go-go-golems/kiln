@@ -9,7 +9,19 @@ Topics:
 DocType: reference
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://packages/kiln/src/std/emit.js
+      Note: cudaMma inline PTX, WGSL refusal, simulator mma case (Phase 2)
+    - Path: repo://packages/kiln/src/std/kernel.js
+      Note: mma statement, warp-tile helpers, matMma (Phases 2-3)
+    - Path: repo://packages/kiln/src/std/mma.js
+      Note: MMA_OPS layout table, atom emulation, padding (Phase 1)
+    - Path: repo://packages/kiln/src/std/tile.js
+      Note: operandPrecision, mmaPlan, MAP=mma knobs, estimateMma, costPrior gate (Phases 3-4)
+    - Path: repo://packages/kiln/test/mma-kernel.mjs
+      Note: pinned MAP=mma end-to-end CPU tests
+    - Path: repo://ttmp/2026/11/01/KILN-006--kiln-tensor-core-matrix-products-intern-analysis-design-and-implementation-guide/scripts/02-mma-gpu-fixtures.mjs
+      Note: GPU handoff fixtures (Phase 0 probe, Phase 5 kernels)
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-11-01T07:32:28.302727435-05:00
@@ -497,3 +509,53 @@ Per-mapping best estimates (µs), TF32 square matmul, scratch script `KILN-006-i
 At n = 16 fusion inlines the TF32 rounding and the kernel is a `MAP=row` kernel.
 
 Estimate vs simulator (`a100-tensor-test`, `MAP=mma,BM=64,BN=64,BK=16,WM=32,WN=32`, 256×192×320, all 20 blocks): tensorFlops 31457280 / 31457280; smemWavefronts 53760 / 53760; warpInstr 143360 / 143920; traffic 2293760 / 2621440; regs 72 / 72; us 9.30 / 10.21; check `max abs diff 0.00e+0`.
+
+## Step 10: GPU handoff — fixtures for the layout probe and the pinned kernels, and a large-K finding
+
+Phases 0 and 5 need the GB10 host, which this agent must not use. I wrote `scripts/02-mma-gpu-fixtures.mjs`, which produces launcher round-trip fixtures in the existing `runtime/test/fixtures.mjs` format, so the coordinator can validate everything with one existing command (`kiln_launch.py check-fixtures --backend cuda`). It writes three Phase 0 layout probes (one hand-written atom per op, inputs rounded in-kernel) and six Phase 5 programs with `MAP=mma` pinned (TF32), each simulated on CPU against the same reference before it is written. I also fixed one export check that would have misclassified `mma` kernels, and measured in simulation how the accumulation-order model behaves at large K.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 6.
+**Assistant interpretation:** Leave the coordinator exact, runnable GPU validations.
+**Inferred user intent:** GPU work is serialized through one coordinator; each agent hands over a ready-to-run package.
+**Commit (code):** the commit following this entry — "KILN-006: GPU validation fixtures script, export treats mma kernels as block-mapped".
+
+### What I did
+- export.js: the 32-bit thread-id guard treats `MAP=mma` like `row`/`tiled` (block-mapped: offsets derive from `bid`, not `bid·block + tid`).
+- `scripts/02-mma-gpu-fixtures.mjs <dir>`: `probe-tf32`, `probe-f16`, `probe-bf16` (grid 1, block 32, hand-assembled kiln-program/1; expected = `atomReference` of the rounded inputs; the script first checks the simulated probe equals it bit for bit) and `mma-linear-relu` (512×256×384), `mma-linear-64x64` (32×32 warp tiles), `mma-large-k` (128×4096×128), `mma-bmm`, `mma-tails` (fused TF32 rounding), `mma-bias-gelu` (expected = Loop IR reference with TF32 semantics). Run: 1.8 s; 18 files, about 6 MB, written to scratch, not committed (deterministic, regenerate on the host).
+- Scratch experiment `try5.mjs`: a 64×K×64 TF32 product with `MAP=mma,BM=64,BN=64,BK=32,WM=32,WN=32` simulated under each accumulation order.
+- docmgr: Phase 1-4 tasks checked; tasks added for the handoff (checked), split-K accumulators and launcher f16/bf16 packing; changelog entry; six files related to this diary.
+
+### Why
+- Reusing `check-fixtures` means no new GPU-side code: the launcher already compiles each kernel with NVRTC for the device's `sm_XY` and compares with rtol 1e-3 / atol 1e-4.
+- The probes round inside the kernel because the launcher's inputs are generic FP32 values; rounding there is the same RNE function as Kiln's reference, so the probe tests the layout and nothing else.
+
+### What worked
+- All nine cases generated; every kernel's CPU simulation passed before writing. Suites: `npm test` "all 52 passed"; pytest "177 passed, 7 subtests passed".
+
+### What didn't work
+- Under the `chunk-rz` model (truncating 4-term adder), long reductions fail the simulator's check: K = 4096 → `1 of 512 values differ (first at 226: 0.09136402606964111 vs 0.09092199802398682), max abs diff 1.51e-3`; K = 16384 → `9 of 512 values differ …, max abs diff 1.23e-2`. Sequential, reverse and pairwise orders pass (max abs diff 9.2e-5 / 1.3e-4 at K = 4096; 2.9e-4 / 6.0e-4 at K = 16384). This is a model result, not a failure of the code; it makes the guide's large-K risk concrete.
+
+### What I learned
+- If GB10's adder truncates like the model, the bias grows linearly with K (one truncation per chunk), unlike reordering error, which grows like √K. `mma-large-k` is in the fixtures precisely to measure this on hardware.
+- The Python CUDA launcher packs only f32 and u8 (`_packed`) and reads outputs as f32 (`_host`), so f16/bf16 mma programs cannot go through `check-fixtures` today.
+
+### What was tricky to build
+- Hand-assembling a kiln-program/1 for a kernel that has no graph: the fields must match what `exportProgram` produces (buffers with `bytes`, `dispatch`, `reads`/`writes` buffer ids, the CUDA entry named like the kernel). I mirrored export.js field by field.
+
+### What warrants a second pair of eyes
+- NVRTC include paths for `cuda_fp16.h`/`cuda_bf16.h` in the probe kernels: `check-fixtures` opens programs without `include_paths`. Existing f16 kernels have the same dependency; if NVRTC cannot find the headers there, pass the toolkit include directory.
+
+### What should be done in the future
+- If `mma-large-k` fails on GB10: split the K loop into several accumulator sets combined with FP32 adds (a knob), as the guide's risk mitigation says.
+- f16/bf16 fixtures after the launcher learns to pack half types (task added).
+
+### Code review instructions
+- `scripts/02-mma-gpu-fixtures.mjs`; export.js `threadMapped`.
+- `node ttmp/2026/11/01/KILN-006-…/scripts/02-mma-gpu-fixtures.mjs /tmp/kiln-mma-fixtures` (from the repository root).
+
+### Technical details
+Remaining GPU validations (coordinator):
+1. `node ttmp/2026/11/01/KILN-006--kiln-tensor-core-matrix-products-intern-analysis-design-and-implementation-guide/scripts/02-mma-gpu-fixtures.mjs <dir>` then on bling `python3 runtime/python/kiln_launch.py check-fixtures <dir> --backend cuda`. `probe-*` pass ⇒ the three layouts match silicon (Phase 0 layout half); `mma-*` pass ⇒ NVRTC accepts the inline PTX for sm_121 and the kernels agree with Kiln's reference (Phase 5 first half). `mma-large-k` is the accumulation-drift probe.
+2. Tensor throughput on GB10 (Phase 0 second half): time `mma-linear-64x64` / `mma-large-k` scaled up, or a dedicated loop of atoms; record dense TF32/f16/bf16 TFLOP/s with FP32 accumulate; set `SPECS.gb10.mma`.
+3. PassBench replays of tasks 5, 32, 52, 72 and the TF32 P0 families with `--param MAP=mma` (kiln-export pin) against the unchanged baseline, under the KILN-005 frozen protocol; f16/bf16 families through integrations/passnet TorchProgram (the Python launcher cannot pack half inputs).
