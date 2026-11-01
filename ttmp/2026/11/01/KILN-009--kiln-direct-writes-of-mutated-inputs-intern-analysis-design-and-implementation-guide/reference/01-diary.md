@@ -630,3 +630,21 @@ I implemented both matcher fixes of guide Section 4.9. The pattern now returns k
 ### Technical details
 
 - Validation at commit `78f5f1b`: `npm test` → `all 49 passed`; `pytest -q` → `180 passed, 7 subtests passed`.
+
+## Step 10: Vault report and hand-off
+
+I wrote the deep-dive report for the go-go-parc vault in textbook style and pushed it, and recorded the GPU validations that remain. This is a milestone entry.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 6.
+
+**Commit (code):** none; vault commit `a106107` in `/home/manuel/code/wesen/go-go-golems/go-go-parc`.
+
+### What I did
+
+- Wrote `Projects/2026/11/01/ARTICLE - Kiln - Writing Mutated Inputs In Place with Proofs Over the Exported Program.md`; staged only that file; `git pull --rebase` (autostash of unrelated vault changes, re-applied) and `git push` succeeded on the first attempt.
+
+### What should be done in the future
+
+- GPU host: NVRTC compile of the in-place kernels; PassBench replay of the 14 input-mutation families plus 162 with `--mutation-strategy auto`; A/B timing against `--mutation-strategy writeback`; script 658 for samples 13, 124, 162, 170 on a CUDA host.
