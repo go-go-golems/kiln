@@ -1,0 +1,269 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-111/corpus/011.kiln.js",
+  "sha256": "6ce05fe7f8988a79dd9d102932b213be71a93871d1df67ed7a7d1905d5fbd60d",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    4,
+    12,
+    8
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    4,
+    1,
+    65,
+    1
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1,
+    4,
+    12,
+    8
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 5,
+   "shape": [
+    1,
+    12,
+    32
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "__mut2",
+   "buffer": 2,
+   "shape": [
+    1,
+    4,
+    12,
+    8
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 384,
+   "bytes": 768
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 260,
+   "bytes": 520
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 384,
+   "bytes": 768
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 608,
+   "bytes": 2432,
+   "name": null,
+   "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 2432,
+   "bytes": 9728
+  },
+  {
+   "id": 5,
+   "dtype": "f16",
+   "elements": 384,
+   "bytes": 768
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_conv2d_cast__1lqv0g3ef1y",
+   "identity": "1lqv0g3ef1y",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    3
+   ],
+   "writes": 4,
+   "grid": 38,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    38,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    4,
+    76,
+    8
+   ],
+   "inShapes": [
+    [
+     1,
+     4,
+     12,
+     8
+    ],
+    [
+     1,
+     1,
+     76,
+     8
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_conv2d_cast__1lqv0g3ef1y(const __half* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 2432)) {\n        in0 = src1[((8 * ((e / 8) % 76)) + (e % 8))];\n        in1 = __half2float(src0[(((8 * min(max((((e / 8) % 76) + (-32)), 0), 11)) + min(max((e % 8), 0), 7)) + (96 * (e / 608)))]);\n        v0 = in1;\n        v1 = ((in0) > 0.0f ? (v0) : (0.0f));\n        dst[(((8 * ((e / 8) % 76)) + (e % 8)) + (608 * (e / 608)))] = v1;\n    }\n}"
+  },
+  {
+   "name": "k___mut2__2cnl7racrdj",
+   "identity": "2cnl7racrdj",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    2,
+    1,
+    4
+   ],
+   "writes": 2,
+   "grid": 384,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    384,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    4,
+    12,
+    8
+   ],
+   "inShapes": [
+    [
+     1,
+     4,
+     12,
+     8
+    ],
+    [
+     4,
+     1,
+     65,
+     1
+    ],
+    [
+     1,
+     4,
+     76,
+     8
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f16",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "in-place input write is emitted for CUDA only",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(32) k___mut2__2cnl7racrdj(__half* src0, const __half* __restrict__ src1, const float* __restrict__ src2, __half* dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float in0 = 0.0f, acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in1 = 0.0f, in2 = 0.0f, v0 = 0.0f, v1 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f;\n    in0 = __half2float(src0[(((8 * ((bid / 8) % 12)) + (bid % 8)) + (96 * (bid / 96)))]);\n    acc2 = 0.0f;\n    for (int r0 = tid; r0 < 1; r0 += 32) {\n        acc1 = 0.0f;\n        for (int r1 = 0; r1 < 65; r1 += 1) {\n            acc0 = 0.0f;\n            for (int r2 = 0; r2 < 1; r2 += 1) {\n                in1 = src2[((((((8 * ((bid / 8) % 12)) + (bid % 8)) + (608 * (bid / 96))) + (608 * r0)) + (8 * r1)) + r2)];\n                in2 = __half2float(src1[((((65 * (bid / 96)) + (65 * r0)) + r1) + r2)]);\n                v0 = in2;\n                v1 = __fmul_rn(in1, v0);\n                acc0 = (acc0 + v1);\n            }\n            acc1 = (acc1 + acc0);\n        }\n        acc2 = (acc2 + acc1);\n    }\n    __syncthreads();\n    s_red[tid] = acc2;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    acc2 = s_red[0];\n    v2 = __fadd_rn(acc2, 0.0f);\n    v3 = __half2float(__float2half_rn(v2));\n    v4 = __half2float(__float2half_rn(v3));\n    v5 = __fadd_rn(in0, v4);\n    v6 = __half2float(__float2half_rn(v5));\n    if ((tid == 0)) {\n        dst[(((8 * ((bid / 8) % 12)) + (bid % 8)) + (96 * (bid / 96)))] = __float2half_rn(v6);\n    }\n}",
+   "inPlace": {
+    "input": "v2",
+    "slots": [
+     0
+    ],
+    "of": "rxrslibp0y"
+   }
+  },
+  {
+   "name": "k_out0__17oh3ytqj1m",
+   "identity": "17oh3ytqj1m",
+   "row": "TPB=64",
+   "reads": [
+    2
+   ],
+   "writes": 5,
+   "grid": 6,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    6,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    12,
+    32
+   ],
+   "inShapes": [
+    [
+     1,
+     4,
+     12,
+     8
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_out0__17oh3ytqj1m(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 384)) {\n        in0 = __half2float(src0[(((8 * ((((e % 32) + (32 * (e / 32))) / 32) % 12)) + (96 * ((((e % 32) + (32 * (e / 32))) / 8) % 4))) + ((e % 32) % 8))]);\n        dst[((e % 32) + (32 * (e / 32)))] = __float2half_rn(in0);\n    }\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut2",
+   "input": "v2",
+   "strategy": "direct",
+   "producer": "k___mut2__2cnl7racrdj",
+   "slots": [
+    0
+   ]
+  }
+ ]
+}

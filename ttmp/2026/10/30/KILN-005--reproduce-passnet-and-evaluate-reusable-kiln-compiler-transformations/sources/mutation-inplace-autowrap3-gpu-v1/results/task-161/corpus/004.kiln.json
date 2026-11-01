@@ -1,0 +1,157 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-161/corpus/004.kiln.js",
+  "sha256": "1fc2dd5a1b25f5df3fc994997a8205948c03692007e868c6c2517c81a9ff96c5",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    32,
+    1280,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    32,
+    1280
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    32,
+    1280,
+    1,
+    1
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 40960,
+   "bytes": 163840
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 40960,
+   "bytes": 163840
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k___mut0__18tfasxzp17",
+   "identity": "18tfasxzp17",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 0,
+   "grid": 320,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    320,
+    1,
+    1
+   ],
+   "shape": [
+    32,
+    1280,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     32,
+     1280,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k___mut0__18tfasxzp17(float* src0, float* dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 40960)) {\n        in0 = src0[((e % 1280) + (1280 * (e / 1280)))];\n        v0 = fmaxf(in0, 0.0f);\n        dst[((e % 1280) + (1280 * (e / 1280)))] = v0;\n    }\n}",
+   "inPlace": {
+    "input": "v0",
+    "slots": [
+     0
+    ],
+    "of": "ut8ip1s19i"
+   },
+   "wgslUnavailable": "in-place input write is emitted for CUDA only"
+  },
+  {
+   "name": "k_out0__23qnesuml49",
+   "identity": "23qnesuml49",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 320,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    320,
+    1,
+    1
+   ],
+   "shape": [
+    32,
+    1280
+   ],
+   "inShapes": [
+    [
+     32,
+     1280,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 320i) { return; }\n    var v_in0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((128i * bid) + tid);\n    if (n_e < 40960i) {\n        v_in0 = b0[((n_e % 1280i) + (1280i * (n_e / 1280i)))];\n        bout[((n_e % 1280i) + (1280i * (n_e / 1280i)))] = v_in0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out0__23qnesuml49(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 40960)) {\n        in0 = src0[((e % 1280) + (1280 * (e / 1280)))];\n        dst[((e % 1280) + (1280 * (e / 1280)))] = in0;\n    }\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "direct",
+   "producer": "k___mut0__18tfasxzp17",
+   "slots": [
+    0
+   ]
+  }
+ ]
+}

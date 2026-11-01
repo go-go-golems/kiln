@@ -1,0 +1,96 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-104/corpus/000.kiln.js",
+  "sha256": "c59ad96e2944b740b80e3d93563b0dad76d9c6074c2733ca87d629e8c3095d84",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    1,
+    22,
+    22
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    1,
+    1,
+    22,
+    22
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 484,
+   "bytes": 3872
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 484,
+   "bytes": 1936
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_ew__eutnrsnmvn",
+   "identity": "eutnrsnmvn",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 8,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    8,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1,
+    22,
+    22
+   ],
+   "inShapes": [
+    [
+     1,
+     1,
+     22,
+     22
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_cast_ew__eutnrsnmvn(const long long* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float v0 = 0.0f, v1 = 0.0f, v3 = 0.0f, v4 = 0.0f;\n    long long in0 = 0;\n    bool v2 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 484)) {\n        in0 = src0[((e % 22) + (22 * (e / 22)))];\n        v0 = ((float)(in0));\n        v1 = __fsub_rn(1.0f, v0);\n        v2 = ((v1) != 0);\n        v3 = ((v2) > 0.0f ? (-3.4028234663852886e+38f) : (v1));\n        v4 = __fmul_rn(v3, v1);\n        dst[((e % 22) + (22 * (e / 22)))] = v4;\n    }\n}"
+  }
+ ]
+}

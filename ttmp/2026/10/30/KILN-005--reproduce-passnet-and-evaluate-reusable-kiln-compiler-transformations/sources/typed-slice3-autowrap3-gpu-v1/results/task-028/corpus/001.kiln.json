@@ -1,0 +1,88 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-028/corpus/001.kiln.js",
+  "sha256": "a72d8d89b20c43432e4864eb98f49198920aacf58fc5cbfb6a6b6da1afb9948f",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    64
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    1,
+    64
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 64,
+   "bytes": 512
+  },
+  {
+   "id": 1,
+   "dtype": "i64",
+   "elements": 64,
+   "bytes": 512
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_cast_cumsum_scan__2089xmzuelv",
+   "identity": "2089xmzuelv",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 32,
+   "smemBytes": 256,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    64
+   ],
+   "inShapes": [
+    [
+     1,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(32) k_ew_cast_cumsum_scan__2089xmzuelv(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ long long s_scan0[32];\n    long long in0 = 0, v2 = 0, acc0_x = 0, acc0_y = 0, acc0_p = 0, acc0_t = 0, acc0 = 0, v6 = 0, v7 = 0;\n    bool v0 = 0;\n    int v1 = 0, v3 = 0, v4 = 0, v5 = 0;\n    int p = 0;\n    acc0 = 0LL;\n    for (int c0 = 0; c0 < 64; c0 += 32) {\n        p = (c0 + tid);\n        acc0_x = 0LL;\n        if ((p < 64)) {\n            in0 = src0[p];\n            v0 = ((in0) != (1LL));\n            v1 = ((int)(v0));\n            v2 = ((long long)(v1));\n            acc0_x = v2;\n        }\n        s_scan0[tid] = acc0_x;\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((1 <= tid)) {\n            acc0_y = s_scan0[(tid + (-1))];\n        }\n        __syncthreads();\n        if ((1 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((2 <= tid)) {\n            acc0_y = s_scan0[(tid + (-2))];\n        }\n        __syncthreads();\n        if ((2 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((4 <= tid)) {\n            acc0_y = s_scan0[(tid + (-4))];\n        }\n        __syncthreads();\n        if ((4 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((8 <= tid)) {\n            acc0_y = s_scan0[(tid + (-8))];\n        }\n        __syncthreads();\n        if ((8 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((16 <= tid)) {\n            acc0_y = s_scan0[(tid + (-16))];\n        }\n        __syncthreads();\n        if ((16 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_p = (acc0 + acc0_x);\n        acc0_t = s_scan0[31];\n        acc0 = (acc0 + acc0_t);\n        if ((p < 64)) {\n            v3 = ((int)(acc0_p));\n            v4 = (v3 + 0);\n            v5 = (v4 * v1);\n            v6 = ((long long)(v5));\n            v7 = (v6 + 1LL);\n            dst[p] = v7;\n        }\n        __syncthreads();\n    }\n}"
+  }
+ ]
+}

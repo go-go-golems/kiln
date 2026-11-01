@@ -1164,3 +1164,64 @@ I froze the fixed families into a re-replay plan after the two required gates, b
 
 ### Technical details
 - Bling working directory: `~/passnet-kiln/coverage-fix/` (`upstream/`, `kiln/` from the staged study, `kiln-fix/`, `results/` replay copies, `fix/` fixed corpora). Container outputs were chowned in the container after each run.
+
+## Step 17: Coverage-fix re-replay and autowrap/3 regression replays; the cumulative coverage table
+
+The coordinator replayed the two fixed families and guarded `kiln-pattern-autowrap/3` with the two regression sets, all from `ca11166`:
+- Family 170 is accepted (3/3, score 1.432).
+- DNLNet (40) is at 4/6 graphs. Its two f16 graphs overflow in both Kiln and eager, as Step 15 predicted.
+- typed-slice3 (10/10 families, 45/45 graphs) and the mutation set (9/16 families, 96/138 graphs) are unchanged.
+
+### Prompt Context
+
+**User prompt (verbatim):** "how far is the coverage?" and "and total coverage?" (the replays were started under "go ahead, bling is free", Step 13).
+
+**Assistant interpretation:** Collect the queued runs, then compute PassBench coverage over all 46 run audits.
+
+**Inferred user intent:** Know how much of PassBench Kiln covers now.
+
+**Commit (code):** none; evidence and diary only.
+
+### What I did
+- Staged the three studies with 641 and ran them serially through tmux and 651 (16:29–16:40):
+  - `coverage-fix-replay-gpu-v1`;
+  - `typed-slice3-autowrap3-gpu-v1`;
+  - `mutation-inplace-autowrap3-gpu-v1`.
+- Collected each with 669.
+- Computed per-family status over the 46 `kiln-task-run-audit/1` audits, ordered by the commit time of each audit, with untracked audits counted as newest.
+
+### Why
+- `autowrap/3` changes how patterns containing slice assignments are traced, and the evaluator traces every rule's pattern. The two regression sets are the cheapest check that accepted rules are untouched.
+
+### What worked
+- **Cumulative coverage:**
+  - 150 of 200 families are fully accepted, each in its most recent run.
+  - No family accepted earlier is unaccepted in its latest run.
+  - 183 families have been replayed; 1818 of their 1967 graphs are accepted (best per family).
+
+### What didn't work
+- My first tally script assumed every audit record carries `nominal_accepted`. An older audit format lacks it (`KeyError: 'nominal_accepted'`); the script now reads it with `.get`.
+
+### What I learned
+- The 33 replayed-but-unaccepted families fall into four groups:
+  - 5 mutation families blocked by the shared-input limit: 57, 94, 111, 172, 176;
+  - 5 families diagnosed as eager-library rounding or a protocol limit: 22, 29, 34, 44, 124;
+  - 40, capped at 4/6 graphs by f16 overflow;
+  - 22 partially accepted families from earlier waves, mostly the uniform-importable qualification and the TF32 re-qualification.
+
+### What was tricky to build
+- **Choosing "latest" per family.** Filesystem mtimes are checkout times, so the order comes from the git commit time of each audit.
+
+### What warrants a second pair of eyes
+- None of the 22 older partial families has been replayed since KILN-006–011 and the coverage fixes. Some may now pass.
+
+### What should be done in the future
+- Replay the 17 families never replayed: 19, 26, 33, 62, 65, 67, 85, 97, 98, 112, 135, 150, 167, 180, 192, 194, 197 (93 graphs). 194 cannot match, and RECT_L/GAE does not import.
+- Re-replay the 22 older partial families at the current revision.
+
+### Code review instructions
+- Audits: `ttmp/2026/10/30/KILN-005-*/sources/{coverage-fix-replay,typed-slice3-autowrap3,mutation-inplace-autowrap3}-gpu-v1/results-audit.json`.
+
+### Technical details
+- Source revision `ca1116697250da3fa52a0c1a44575c49760569ef` for all three studies.
+- Family 40 graphs: 4/6 accepted, score 0.539.

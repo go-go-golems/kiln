@@ -1,0 +1,187 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-096/corpus/004.kiln.js",
+  "sha256": "337d0ec36794b3ec445f3c94dea97b283b49d579f7b6fe306de5b454e8d9302f",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    4,
+    128,
+    16,
+    16
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    4,
+    128,
+    16,
+    16
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    4,
+    128,
+    16,
+    16
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    4,
+    128,
+    16,
+    16
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 131072,
+   "bytes": 524288
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 131072,
+   "bytes": 524288
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 131072,
+   "bytes": 524288
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k___mut0__263lofh09pj",
+   "identity": "263lofh09pj",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 0,
+   "grid": 2048,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    2048,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    128,
+    16,
+    16
+   ],
+   "inShapes": [
+    [
+     4,
+     128,
+     16,
+     16
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "in-place input write is emitted for CUDA only",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k___mut0__263lofh09pj(float* src0, float* dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 131072)) {\n        in0 = src0[((((16 * ((e / 16) % 16)) + (256 * ((e / 256) % 128))) + (e % 16)) + (32768 * (e / 32768)))];\n        v0 = (1.0f / (1.0f + expf(-(in0))));\n        v1 = __fmul_rn(in0, v0);\n        dst[((((16 * ((e / 16) % 16)) + (256 * ((e / 256) % 128))) + (e % 16)) + (32768 * (e / 32768)))] = v1;\n    }\n}",
+   "inPlace": {
+    "input": "v0",
+    "slots": [
+     0
+    ],
+    "of": "1wtja6pdqmv"
+   }
+  },
+  {
+   "name": "k_out0__lwcrawgshs",
+   "identity": "lwcrawgshs",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 2048,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    2048,
+    1,
+    1
+   ],
+   "shape": [
+    4,
+    128,
+    16,
+    16
+   ],
+   "inShapes": [
+    [
+     4,
+     128,
+     16,
+     16
+    ],
+    [
+     4,
+     128,
+     16,
+     16
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out0__lwcrawgshs(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 131072)) {\n        in0 = src0[((((16 * ((e / 16) % 16)) + (256 * ((e / 256) % 128))) + (e % 16)) + (32768 * (e / 32768)))];\n        in1 = src1[((((16 * ((e / 16) % 16)) + (256 * ((e / 256) % 128))) + (e % 16)) + (32768 * (e / 32768)))];\n        v0 = __fadd_rn(in0, in1);\n        dst[((((16 * ((e / 16) % 16)) + (256 * ((e / 256) % 128))) + (e % 16)) + (32768 * (e / 32768)))] = v0;\n    }\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "direct",
+   "producer": "k___mut0__263lofh09pj",
+   "slots": [
+    0
+   ]
+  }
+ ]
+}
