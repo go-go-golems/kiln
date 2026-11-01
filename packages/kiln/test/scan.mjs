@@ -213,3 +213,19 @@ function sharedRaces(K) {
   assert.ok(after < before / 4, `predicted cost ${after} us against ${before} us for the masked lowering`);
 }
 console.log("scan: tensor.scan, E.scan carried loop, fusion legality, thread/row mappings, cost ranking");
+
+// ---------------------------------------------------------------- the other cumulative ops (Phase 7, CPU)
+{
+  const g = k.trace("c", ({ x, y }) => ({ p: N.cumprod(x, 1), mx: N.cummax(y, 1), mn: N.cummin(x, 0), py: N.cumprod(y, 0) }), { x: k.tensor([2, 300], "i32"), y: k.tensor([300, 3]) });
+  const dt = (name) => g.nodes.get(g.outputs.find((o) => o.name === name).id).type.dtype;
+  assert.deepEqual(["p", "mx", "mn", "py"].map(dt), ["i64", "f32", "i32", "f32"], "products widen integers to int64; max and min keep the dtype");
+  assert.throws(() => k.trace("b", ({ b }) => ({ o: N.cummax(b, 0) }), { b: k.tensor([3], "bool") }), /cummax over bool values is not lowered/);
+  const x = new Tensor([2, 300], Int32Array.from({ length: 600 }, (_, i) => ((i * 37) % 7) - 3), "i32");
+  const y = new Tensor([300, 3], Float32Array.from({ length: 900 }, (_, i) => ((i * 13) % 11) / 10 + 0.5));
+  const r = compile(g), want = g.eval({ x, y }), got = r.at("loop").eval({ x, y });
+  for (const name of Object.keys(want)) assert.deepEqual([...got[name].data], [...want[name].data], name);
+  assert.equal(want.p.data[299], BigInt.asIntN(64, [...x.data.slice(0, 300)].reduce((a, v) => a * BigInt(v), 1n)), "an int64 product wraps like CUDA");
+  for (const kern of programOf(r.graph).kernels.filter((q) => q.outDtype === "f32")) assert.ok(simulateKernel(kern, t).check.ok, kern.name);
+  assert.match(programOf(r.graph).kernels.map((q) => q.cuda).join("\n"), /1LL/, "the int64 product's identity is an exact literal");
+}
+console.log("scan: cumprod, cummax and cummin values");

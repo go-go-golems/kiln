@@ -208,13 +208,23 @@ op('masked_fill', functions=('torch.masked_fill',), methods=('masked_fill',))(lo
 op('masked_fill_', methods=('masked_fill_',), fresh=False)(lower_masked_fill)
 
 
-@op('cumsum', functions=('torch.cumsum',), methods=('cumsum',))
-def lower_cumsum(c):
-    bound = bind(c.name, 'cumsum', c.args, c.kwargs, ['input', 'dim', 'dtype'], require_first=False)
-    if c.ctx.literal(bound.get('dtype', 'null')) is not None: raise ValueError(f'{c.name}: cumsum dtype argument unsupported')
-    dim = c.ctx.literal(bound['dim'])
-    if type(dim) is not int: raise ValueError(f'{c.name}: static dimension required')
-    return Lowered(f'N.cumsum({bound["input"]}, {dim})')
+def lower_cumulative(name, values_and_indices=False):
+    """cumsum/cumprod (with no dtype argument) and the values of cummax/cummin: inclusive scans along a
+    static dimension. cummax/cummin return (values, indices); the indices are not lowered and refuse
+    only where used, as for max/min over a dimension."""
+    def lower(c):
+        params = ['input', 'dim'] if values_and_indices else ['input', 'dim', 'dtype']
+        bound = bind(c.name, name, c.args, c.kwargs, params, require_first=False)
+        if c.ctx.literal(bound.get('dtype', 'null')) is not None: raise ValueError(f'{c.name}: {name} dtype argument unsupported')
+        dim = c.ctx.literal(bound['dim'])
+        if type(dim) is not int: raise ValueError(f'{c.name}: static dimension required')
+        expr = f'N.{name}({bound["input"]}, {dim})'
+        return Lowered([expr, None] if values_and_indices else expr)
+    return lower
+
+
+for _name in ('cumsum', 'cumprod'): op(_name, functions=(f'torch.{_name}',), methods=(_name,))(lower_cumulative(_name))
+for _name in ('cummax', 'cummin'): op(_name, functions=(f'torch.{_name}',), methods=(_name,))(lower_cumulative(_name, values_and_indices=True))
 
 
 @op('max_min', functions=('torch.max', 'torch.min'), methods=('max', 'min'))
@@ -267,7 +277,7 @@ def lower_getitem(c):
             raise ValueError(f'{c.name}: partition index out of range')
         item = index % len(metadata[source])
         if c.meta != metadata[source][item]: raise ValueError(f'{c.name}: partition result metadata mismatch')
-        if c.ctx.values[source][item] is None: raise ValueError(f'{c.name}: result {item} of {source} (argmax/argmin indices) is not lowered')
+        if c.ctx.values[source][item] is None: raise ValueError(f'{c.name}: result {item} of {source} (argmax/argmin indices, or cummax/cummin indices) is not lowered')
         return Lowered(c.ctx.values[source][item])
     if not isinstance(metadata[source], dict): raise ValueError(f'{c.name}: basic tensor indexing requires tensor source')
     gather = tensor_index(c, c.args[1])

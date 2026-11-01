@@ -110,7 +110,17 @@ function scanRef(x, fnName, axis) {
   }
   return out;
 }
-const cumsumRef = (x, axis, dtype) => scanRef(castRef(x, dtype), typedReducer("add", dtype), axis);
+// the frontend's cumulative ops: each is an inclusive scan with one reducer. Sums and products widen every
+// integer dtype (bool included) to int64, as PyTorch's do; max and min keep their dtype and are not
+// lowered over bool. Floating values scan in f32 only (f16/bf16 are refused, as for cumsum before).
+export const CUMULATIVE = Object.freeze({ cumsum: { fn: "add", widen: true }, cumprod: { fn: "mul", widen: true }, cummax: { fn: "max", widen: false }, cummin: { fn: "min", widen: false } });
+function cumulativeDtype(name, d) {
+  const { widen } = CUMULATIVE[name];
+  if (d === "f32") return "f32";
+  if (widen && INTEGER_DTYPES.has(d)) return "i64";
+  if (!widen && (d === "i32" || d === "i64")) return d;
+  throw new KilnError("TypeError", `${name} over ${d} values is not lowered`);
+}
 // a view gathers through an index map; the map is compiled to a JS loop nest once per (map, shapes)
 const VIEW_FNS = new Map();
 export function viewRef(x, shape, map) {
@@ -347,12 +357,6 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
   .op("silu", { args: ["x"], infer: sameAs, eval: ({ x }) => ewRef("mul", [x, ewRef("sigmoid", [x])]), print: "silu({x})" })
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1, keepdim: true }, infer: ({ x, fn, axis, keepdim }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(keepdim ? s.map((d, i) => (i === a ? 1 : d)) : s.filter((_, i) => i !== a), reduction(fn, dtypeOf(x)).dtype); },
     eval: ({ x, fn, axis, keepdim }) => { const r = reduction(fn, asT(x).dtype); return reduceRef(r.fn, r.cast ? castRef(x, r.cast) : x, axis, keepdim); }, print: "{fn}({x}, axis={axis})" })
-  // inclusive prefix sum along an axis; integer sums widen to int64 as PyTorch's do
-  .op("cumsum", { args: ["x"], attrs: { axis: -1 }, traits: ["pure"], infer: ({ x }) => {
-    const d = dtypeOf(x);
-    if (!INTEGER_DTYPES.has(d) && d !== "f32") throw new KilnError("TypeError", `cumsum over ${d} values is not lowered`);
-    return T_(x.type.shape, INTEGER_DTYPES.has(d) ? "i64" : "f32");
-  }, eval: ({ x, axis, type }) => cumsumRef(x, axis < 0 ? asT(x).shape.length + axis : axis, type.dtype), print: "cumsum({x}, axis={axis})" })
   .op("transpose", { args: ["x"], attrs: { d0: -2, d1: -1 }, infer: ({ x, d0, d1 }) => { const s = x.type.shape.slice(); const n = s.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; [s[i], s[j]] = [s[j], s[i]]; return T_(s, x.type.dtype); }, eval: ({ x, d0, d1, type }) => { const n = asT(x).shape.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; return viewRef(x, type.shape, IX.map(n, (a) => { const b = a.slice(); [b[i], b[j]] = [b[j], b[i]]; return b; })); }, print: "transpose({x}, {d0}, {d1})" })
   .op("reshape", { args: ["x"], attrs: { shape: [] }, infer: ({ x, shape }) => { if (numel(shape) !== numel(x.type.shape)) throw new KilnError("ShapeError", `reshape (${x.type.shape}) → (${shape}): sizes differ`); return T_(shape, x.type.dtype); }, eval: ({ x, shape }) => new Tensor(shape, asT(x).data.slice()), print: "reshape({x}, {shape})" })
   .op("gather", { args: ["x", "ids"], attrs: { axis: 0, wrap: false }, infer: ({ x, ids, axis }) => { gatherIndices(ids); return T_(gatherSpec(x.type.shape, ids.type.shape, axis).shape, x.type.dtype); },
@@ -363,6 +367,12 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
     eval: ({ x, type }) => viewRef(x, type.shape, nearestMap(asT(x).shape, type.shape)), print: "nearest({x}, {size})" })
   // elements start, start + step, … below end along one axis (step > 0)
   .op("slice", { args: ["x"], attrs: { axis: 0, start: 0, end: 1, step: 1 }, infer: ({ x, axis, start, end, step }) => { const s = x.type.shape.slice(); const a = axis < 0 ? s.length + axis : axis; if (!(step >= 1)) throw new KilnError("ShapeError", "slice step must be positive"); s[a] = Math.ceil((end - start) / step); return T_(s, x.type.dtype); }, eval: ({ x, axis, start, step, type }) => { const n = asT(x).shape.length; const a = axis < 0 ? n + axis : axis; return viewRef(x, type.shape, IX.map(n, (c) => c.map((v, i) => (i === a ? v.mul(step).add(start) : v)))); }, print: "{x}[{axis}: {start}..{end}:{step}]" });
+
+// cumsum, cumprod, cummax and cummin (values) along one axis
+for (const name of Object.keys(CUMULATIVE)) nn.op(name, { args: ["x"], attrs: { axis: -1 }, traits: ["pure"],
+  infer: ({ x }) => T_(x.type.shape, cumulativeDtype(name, dtypeOf(x))),
+  eval: ({ x, axis, type }) => scanRef(castRef(x, type.dtype), typedReducer(CUMULATIVE[name].fn, type.dtype), axis < 0 ? asT(x).shape.length + axis : axis),
+  print: `${name}({x}, axis={axis})` });
 
 export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, reduction and index-map primitives")
   .op("const", { attrs: { value: 0, shape: [], data: null, dtype: "f32" }, traits: ["pure", "any-ir"], infer: ({ shape, data, dtype }) => T_(data ? data.shape : shape, data?.dtype || dtype),
@@ -456,6 +466,9 @@ export const N = {
     return nn.ew([mask, v, x], { fn: "select", casts: [null, dtypeOf(v) === d ? null : d, null] });
   },
   cumsum: (x, axis = -1) => nn.cumsum(x, { axis }),
+  cumprod: (x, axis = -1) => nn.cumprod(x, { axis }),
+  cummax: (x, axis = -1) => nn.cummax(x, { axis }),
+  cummin: (x, axis = -1) => nn.cummin(x, { axis }),
   amin: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "min", axis, keepdim }),
   sum: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "add", axis, keepdim }),
   amax: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "max", axis, keepdim }),
@@ -526,8 +539,8 @@ export const decompositions = [
     const e = T.ew(fn, ...xs.map((x, i) => convert(x, casts?.[i])));
     return e.type.dtype === out.type.dtype ? e : tensor.ew(e.args, { ...e.attrs, dtype: out.type.dtype });
   }),
-  // an inclusive scan with the (typed) add of the output dtype: n steps per row, not n^2 masked terms
-  decompose("nn.cumsum", ({ x, axis, out }) => tensor.scan(convert(x, out.type.dtype), { fn: typedReducer("add", out.type.dtype), axis: lastAxis(x, axis) })),
+  // an inclusive scan with the (typed) reducer of the output dtype: n steps per row, not n^2 masked terms
+  ...Object.entries(CUMULATIVE).map(([name, { fn }]) => decompose("nn." + name, ({ x, axis, out }) => tensor.scan(convert(x, out.type.dtype), { fn: typedReducer(fn, out.type.dtype), axis: lastAxis(x, axis) }))),
   decompose("nn.linear", ({x,w}) => lowerLinear(T,x,w)),
   decompose("nn.matmul", ({a,b}) => lowerMatmul(T,a,b)),
   decompose("nn.rms_norm", ({ x, w, eps }) => {

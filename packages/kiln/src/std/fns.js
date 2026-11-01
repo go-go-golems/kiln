@@ -99,6 +99,8 @@ export const REDUCERS = {
   max_i64: { init: -(2n ** 63n), js: FNS.max_i64.js, op: "max_i64", c: "(-9223372036854775807LL - 1)", w: null, type: "i64" },
   min_i64: { init: 2n ** 63n - 1n, js: FNS.min_i64.js, op: "min_i64", c: "9223372036854775807LL", w: null, type: "i64" },
   add_i32: { init: 0, js: FNS.add_i32.js, op: "add_i32", c: "0", w: null, type: "i32" },
+  mul_i64: { init: 1n, js: FNS.mul_i64.js, op: "mul_i64", c: "1LL", w: null, type: "i64" },
+  mul_i32: { init: 1, js: FNS.mul_i32.js, op: "mul_i32", c: "1", w: null, type: "i32" },
   max_i32: { init: -(2 ** 31), js: FNS.max_i32.js, op: "max_i32", c: "(-2147483647 - 1)", w: null, type: "i32" },
   min_i32: { init: 2 ** 31 - 1, js: FNS.min_i32.js, op: "min_i32", c: "2147483647", w: null, type: "i32" },
 };
