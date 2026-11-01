@@ -244,8 +244,7 @@ class ImportTests(unittest.TestCase):
 
         class Indices(torch.nn.Module):
             def forward(self, x): return x.max(-1)[1]
-        with self.assertRaisesRegex(ValueError, 'argmax/argmin indices'):
-            import_graph(export_graph(symbolic_trace(Indices()), (torch.randn(2, 3),)))
+        self.assertIn('N.argmax(', import_graph(export_graph(symbolic_trace(Indices()), (torch.randn(2, 3),)))['script'])
 
         class Aliased(torch.nn.Module):
             def forward(self, x, m):

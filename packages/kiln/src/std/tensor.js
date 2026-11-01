@@ -144,6 +144,26 @@ export function arangeSpec(start, end, step) {
   if (![start, end, step].every(Number.isSafeInteger) || step === 0) throw new KilnError("ShapeError", `arange requires integer start, end and a nonzero step, got (${start}, ${end}, ${step})`);
   return { n: Math.max(0, Math.ceil((end - start) / step)) };
 }
+// argmax/argmin along an axis, PyTorch's rule: the first NaN if the row has one, else the first extreme
+export function argRef(x, axis, fn, keepdim) {
+  x = asT(x);
+  const a = axis < 0 ? x.shape.length + axis : axis, n = x.shape[a], st = strides(x.shape);
+  const oshape = x.shape.map((d, i) => (i === a ? 1 : d)), os = strides(oshape);
+  const out = new Tensor(keepdim ? oshape : oshape.filter((_, i) => i !== a), null, "i64");
+  const better = fn === "max" ? (p, q) => p > q : (p, q) => p < q;
+  for (let e = 0; e < out.data.length; e++) {
+    let r = e, base = 0;
+    for (let i = 0; i < oshape.length; i++) { const c = Math.floor(r / os[i]); r -= c * os[i]; base += c * st[i]; }
+    let best = 0, bv = x.data[base];
+    for (let j = 0; j < n; j++) {
+      const v = x.data[base + j * st[a]];
+      if (typeof v === "number" && Number.isNaN(v)) { best = j; break; }
+      if (j && better(v, bv)) { best = j; bv = v; }
+    }
+    out.data[e] = BigInt(best);
+  }
+  return out;
+}
 const rows = (x) => { const D = x.shape.at(-1); return [x.data.length / D, D]; };
 function rmsRef(x, w, eps) { x = asT(x); w = asT(w); const [R, D] = rows(x); const o = new Tensor(x.shape); for (let r = 0; r < R; r++) { let s = 0; for (let j = 0; j < D; j++) s += x.data[r * D + j] ** 2; const inv = 1 / Math.sqrt(s / D + eps); for (let j = 0; j < D; j++) o.data[r * D + j] = x.data[r * D + j] * inv * w.data[j]; } return o; }
 function lnRef(x, w, b, eps) { x = asT(x); w = asT(w); b = asT(b); const [R, D] = rows(x); const o = new Tensor(x.shape); for (let r = 0; r < R; r++) { let m = 0; for (let j = 0; j < D; j++) m += x.data[r * D + j]; m /= D; let v = 0; for (let j = 0; j < D; j++) v += (x.data[r * D + j] - m) ** 2; const inv = 1 / Math.sqrt(v / D + eps); for (let j = 0; j < D; j++) o.data[r * D + j] = (x.data[r * D + j] - m) * inv * w.data[j] + b.data[j]; } return o; }
@@ -353,6 +373,14 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
     print: "arange({start}, {end}, {step}) : {dtype}" })
   .op("index_value", { attrs: { shape: [], map: null, dtype: "i64" }, traits: ["pure"], infer: ({ shape, map, dtype }) => ixvalType(shape, map, dtype),
     eval: ({ shape, map, dtype }) => ixvalRef(shape, map.exprs[0], dtype), print: ({ map, dtype }) => `index_value ${IX.print(map.exprs[0])} : ${dtype}` })
+  // indices of the first maximum (fn "max") or minimum ("min") along axis; a row with NaN gives its first NaN
+  .op("argmax", { args: ["x"], attrs: { axis: -1, keepdim: false, fn: "max" }, traits: ["pure"], infer: ({ x, axis, keepdim, fn }) => {
+    if (!["max", "min"].includes(fn)) throw new KilnError("TypeError", `argmax fn must be max or min, got ${fn}`);
+    if (dtypeOf(x) === "bool" || dtypeOf(x) === "u8") throw new KilnError("TypeError", `arg${fn} over ${dtypeOf(x)} values is not lowered`);
+    const s = x.type.shape, a = axis < 0 ? s.length + axis : axis;
+    if (!(a >= 0 && a < s.length)) throw new KilnError("ShapeError", `arg${fn} axis ${axis} out of range`);
+    return T_(keepdim ? s.map((d, i) => (i === a ? 1 : d)) : s.filter((_, i) => i !== a), "i64");
+  }, eval: ({ x, axis, keepdim, fn }) => argRef(x, axis, fn, keepdim), print: "arg{fn}({x}, axis={axis})" })
   .op("cast", { args: ["x"], attrs: { dtype: "f32" }, traits: ["pure"], infer: ({ x, dtype }) => {
     if (!Object.hasOwn(CATEGORY, dtype) || dtype === "u8") throw new KilnError("TypeError", `unsupported cast: ${dtype}`);
     return k.tensor(x.type.shape, dtype);
@@ -486,6 +514,8 @@ export const N = {
     return nn.ew([mask, v, x], { fn: "select", casts: [null, dtypeOf(v) === d ? null : d, null] });
   },
   cumsum: (x, axis = -1) => nn.cumsum(x, { axis }),
+  argmax: (x, axis = -1, keepdim = false) => nn.argmax(x, { axis, keepdim, fn: "max" }),
+  argmin: (x, axis = -1, keepdim = false) => nn.argmax(x, { axis, keepdim, fn: "min" }),
   amin: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "min", axis, keepdim }),
   sum: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "add", axis, keepdim }),
   amax: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "max", axis, keepdim }),
@@ -580,6 +610,22 @@ export const decompositions = [
     const mask = tensor.ixval({ shape: wide, map: IX.map(wide.length, (c) => [c.at(-1).le(c[a])]), dtype: "bool" });
     const masked = tensor.ew([mask, spread, T.bc(tensor.const({ value: 0, shape: [], dtype: d }), wide)], { fn: "select", dtype: d });
     return T.squeeze(T.reduce(masked, typedReducer("add", d), -1), -1);
+  }),
+  // argmax as one integer reduction over an index-valued key (design §6.6): with m the row's extreme,
+  //   key(r) = isnan(x_r) ? r : (x_r == m ? n + r : 2n),  k = min_r key(r),  idx = k < n ? k : k - n
+  // min gives first-index ties; the first NaN wins over every maximum, as in eager PyTorch.
+  decompose("nn.argmax", ({ x, axis, keepdim, fn }) => {
+    const a = lastAxis(x, axis), s = x.type.shape, n = s[a], d = dtypeOf(x);
+    const float = !INTEGER_DTYPES.has(d), xs = float ? convert(x, "f32") : x, t = float ? "f32" : d;
+    const m = T.bc(T.reduce(xs, float ? fn : typedReducer(fn, d), a), s);
+    const at = (f) => tensor.ixval({ shape: s, map: IX.map(s.length, (c) => [f(c[a])]), dtype: "i64" });
+    const i64 = (v, shape = s) => T.bc(tensor.const({ value: v, shape: [], dtype: "i64" }), shape);
+    const eq = tensor.ew([xs, m], { fn: `eq_${t}` });
+    let key = tensor.ew([eq, at((c) => c.add(n)), i64(2 * n)], { fn: "select", dtype: "i64" });
+    if (float) key = tensor.ew([tensor.ew([xs, xs], { fn: "ne_f32" }), at((c) => c), key], { fn: "select", dtype: "i64" });
+    const k = T.reduce(key, "min_i64", a), ks = k.type.shape;
+    const idx = tensor.ew([tensor.ew([k, i64(n, ks)], { fn: "lt_i64" }), k, tensor.ew([k, i64(n, ks)], { fn: "sub_i64" })], { fn: "select", dtype: "i64" });
+    return keepdim ? idx : T.squeeze(idx, a);
   }),
   decompose("nn.linear", ({x,w}) => lowerLinear(T,x,w)),
   decompose("nn.matmul", ({a,b}) => lowerMatmul(T,a,b)),

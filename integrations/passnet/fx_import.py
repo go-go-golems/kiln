@@ -219,8 +219,8 @@ def lower_cumsum(c):
 
 @op('max_min', functions=('torch.max', 'torch.min'), methods=('max', 'min'))
 def lower_max_min(c):
-    """max/min over a dimension is (values, indices); the indices (argmax) are not lowered and refuse
-    only where used. Over two tensors it is elementwise; with neither, a full reduction."""
+    """max/min over a dimension is (values, indices); the indices are N.argmax/N.argmin (first NaN, else
+    first extreme). Over two tensors it is elementwise; with neither, a full reduction."""
     fn = c.target.rsplit('.', 1)[-1]
     bound = bind(c.name, fn, c.args, c.kwargs, ['input', 'dim', 'keepdim'], require_first=False)
     x, dim = bound['input'], bound.get('dim')
@@ -238,7 +238,22 @@ def lower_max_min(c):
         return Lowered(narrow(f'N.reshape({expr}, [])'))
     dim, keep = c.ctx.literal(dim), c.ctx.literal(bound.get('keepdim', 'false'))
     if type(dim) is not int or type(keep) is not bool: raise ValueError(f'{c.name}: static dim and keepdim required')
-    return Lowered([narrow(f'N.{reduce}({x}, {dim}, {json.dumps(keep)})'), None])
+    return Lowered([narrow(f'N.{reduce}({x}, {dim}, {json.dumps(keep)})'), f'N.arg{fn}({x}, {dim}, {json.dumps(keep)})'])
+
+
+@op('argmax', functions=('torch.argmax', 'torch.argmin'), methods=('argmax', 'argmin'))
+def lower_argmax(c):
+    """argmax/argmin along a dimension; without one, over the flattened tensor (keepdim: all-ones shape)."""
+    fn = c.target.rsplit('.', 1)[-1]
+    bound = bind(c.name, fn, c.args, c.kwargs, ['input', 'dim', 'keepdim'], require_first=False)
+    x, shape = bound['input'], c.ctx.resolve(bound['input'])['shape']
+    dim, keep = c.ctx.literal(bound.get('dim', 'null')), c.ctx.literal(bound.get('keepdim', 'false'))
+    if type(keep) is not bool or not (dim is None or type(dim) is int): raise ValueError(f'{c.name}: static dim and keepdim required')
+    if dim is not None: return Lowered(f'N.{fn}({x}, {dim}, {json.dumps(keep)})')
+    size = 1
+    for d in shape: size *= d
+    flat = f'N.{fn}(N.reshape({x}, [{size}]), 0, true)'
+    return Lowered(f'N.reshape({flat}, {json.dumps([1] * len(shape) if keep else [])})')
 
 
 # ------------------------------------------------------------------------------ structure and layout
@@ -267,7 +282,6 @@ def lower_getitem(c):
             raise ValueError(f'{c.name}: partition index out of range')
         item = index % len(metadata[source])
         if c.meta != metadata[source][item]: raise ValueError(f'{c.name}: partition result metadata mismatch')
-        if c.ctx.values[source][item] is None: raise ValueError(f'{c.name}: result {item} of {source} (argmax/argmin indices) is not lowered')
         return Lowered(c.ctx.values[source][item])
     if not isinstance(metadata[source], dict): raise ValueError(f'{c.name}: basic tensor indexing requires tensor source')
     gather = tensor_index(c, c.args[1])

@@ -125,13 +125,15 @@ def lower_einsum(c):
 
 def lower_sdpa(c):
     """softmax(q k^T * scale + mask) v. A bool mask keeps positions where it is true; a floating mask
-    is added. Dropout must be 0, causal masking and grouped-query attention are not lowered."""
+    is added; is_causal keeps key j for query i when j <= i (PyTorch's top-left aligned lower triangle,
+    an index-value mask). Dropout must be 0 and grouped-query attention is not lowered."""
     bound = bind(c.name, 'scaled_dot_product_attention', c.args, c.kwargs,
                  ['query', 'key', 'value', 'attn_mask', 'dropout_p', 'is_causal', 'scale', 'enable_gqa'], require_first=False)
     (mq, dtype), (mk, _), (mv, _) = (floating(c, bound[f], 'attention') for f in ('query', 'key', 'value'))
-    if c.ctx.literal(bound.get('dropout_p', '0.0')) != 0 or c.ctx.literal(bound.get('is_causal', 'false')) is not False \
+    causal = c.ctx.literal(bound.get('is_causal', 'false'))
+    if c.ctx.literal(bound.get('dropout_p', '0.0')) != 0 or type(causal) is not bool \
             or c.ctx.literal(bound.get('enable_gqa', 'false')) is not False:
-        raise ValueError(f'{c.name}: attention with dropout, causal masking or GQA is not lowered')
+        raise ValueError(f'{c.name}: attention with dropout or GQA is not lowered')
     if not (mq['dtype'] == mk['dtype'] == mv['dtype']) or mq['shape'][:-2] != mk['shape'][:-2] or mk['shape'][:-1] != mv['shape'][:-1] or mq['shape'][-1] != mk['shape'][-1]:
         raise ValueError(f'{c.name}: attention operand shapes or dtypes disagree')
     scale = c.ctx.literal(bound.get('scale', 'null'))
@@ -141,7 +143,11 @@ def lower_sdpa(c):
     # TF32 enabled (probe 675): pin both products to FP32
     scores = f'N.mul(N.matmul({q}, N.transpose({k}, -2, -1), "highest"), {json.dumps(scale)})'
     mask = bound.get('attn_mask', 'null')
-    if mask != 'null':
+    if causal:
+        # PyTorch rejects an explicit mask together with is_causal; row 0 always keeps key 0
+        if mask != 'null': raise ValueError(f'{c.name}: attn_mask with is_causal=True is invalid')
+        scores = f'N.select(N.causalMask({mq["shape"][-2]}, {mk["shape"][-2]}), {scores}, -Infinity)'
+    elif mask != 'null':
         mm = c.ctx.resolve(mask)
         if mm['dtype'] == 'torch.bool': scores = f'N.select({mask}, {scores}, -Infinity)'
         elif mm['dtype'] in FLOATING: scores = f'N.add({scores}, N.cast({mask}, "f32"))'

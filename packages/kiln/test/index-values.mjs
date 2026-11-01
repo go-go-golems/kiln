@@ -159,6 +159,27 @@ for (const MAP of ["thread", "row"]) {
   assert.deepEqual([...out.data], Array(6).fill(3n));
   assert.deepEqual([...k.trace("full", () => ({ out: N.full([2], 2.7, "i32") }), {}).eval({}).out.data], [2, 2], "full converts its value as PyTorch's fill does");
 }
+// argmax/argmin: first-index ties, NaN rows (first NaN), all-equal rows, keepdim; thread and row maps
+{
+  const rowsF = [[1, 3, 3, 0], [NaN, 2, NaN, 5], [5, 2, NaN, 5], [2, 2, 2, 2]];
+  const x = new Tensor([4, 4], Float32Array.from(rowsF.flat()));
+  for (const MAP of ["thread", "row"]) {
+    const { g, r, prog } = run(`argmax ${MAP}`, ({ x }) => ({ mx: N.argmax(x, -1), mn: N.argmin(x, 1, true), c0: N.argmax(x, 0) }), { x: k.tensor([4, 4]) }, { MAP });
+    const want = g.eval({ x });
+    assert.deepEqual([...want.mx.data], [1n, 0n, 2n, 0n], "torch.max(x, -1).indices (scripts/05)");
+    assert.deepEqual(want.mn.shape, [4, 1]);
+    assert.deepEqual([...want.mn.data], [3n, 0n, 2n, 0n]);
+    const got = r.at("loop").eval({ x });
+    for (const name of ["mx", "mn", "c0"]) same(got[name], want[name], `${MAP} ${name}`);
+    if (MAP === "row") assert.ok(prog.kernels.some((kn) => kn.map.MAP === "row" && /s_red_i64/.test(kn.cuda) && /s_red\[/.test(kn.cuda)), "an f32 and an int64 row combine in one kernel");
+    for (const kn of prog.kernels) { const sim = simulateKernel(kn, hw); assert.ok(sim.check.ok, `${MAP} ${kn.name}: ${sim.check.message}`); }
+  }
+  // integer argmax (no NaN term)
+  const xi = new Tensor([2, 3], BigInt64Array.from([3n, 9n, 9n, -1n, -5n, -1n]));
+  const { g, r } = run("argmax int", ({ x }) => ({ out: N.argmax(x, -1) }), { x: k.tensor([2, 3], "i64") });
+  assert.deepEqual([...g.eval({ x: xi }).out.data], [1n, 0n]);
+  same(r.at("loop").eval({ x: xi }).out, g.eval({ x: xi }).out, "integer argmax");
+}
 // causal mask: j <= i, top-left aligned
 assert.deepEqual([...k.trace("cm", () => ({ m: N.causalMask(2, 3) }), {}).eval({}).m.data], [1, 0, 0, 1, 1, 0]);
 console.log("index values: Loop IR invariants, fusion, schedules (thread/row/tiled), floor spellings, integer simulation, factories");
