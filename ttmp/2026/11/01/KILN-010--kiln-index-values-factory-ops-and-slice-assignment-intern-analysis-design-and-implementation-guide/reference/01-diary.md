@@ -11,8 +11,16 @@ Owners: []
 RelatedFiles:
     - Path: repo://integrations/passnet/fx_compose.py
       Note: lower_sdpa causal refusal examined in Step 5
+    - Path: repo://integrations/passnet/test_fx_factories.py
+      Note: importer factory/setitem tests (Step 8)
+    - Path: repo://packages/kiln/test/index-values.mjs
+      Note: Kiln index-value tests (Steps 6-8)
     - Path: repo://ttmp/2026/11/01/KILN-010--kiln-index-values-factory-ops-and-slice-assignment-intern-analysis-design-and-implementation-guide/scripts/04-factory-preserving-trace.py
       Note: Prototype factory-preserving tracer referenced by diary Step 4
+    - Path: repo://ttmp/2026/11/01/KILN-010--kiln-index-values-factory-ops-and-slice-assignment-intern-analysis-design-and-implementation-guide/sources/census-regression-v1.json
+      Note: full census regression (1931 -> 1961, 0 regressions)
+    - Path: repo://ttmp/2026/11/01/KILN-010--kiln-index-values-factory-ops-and-slice-assignment-intern-analysis-design-and-implementation-guide/sources/import-census-v1.json
+      Note: 20-record census and PyTorch reference comparison
 ExternalSources: []
 Summary: Chronological investigation diary for the KILN-010 index-value, factory-op and slice-assignment design guide.
 LastUpdated: 2026-11-01T07:32:05.70977214-05:00
@@ -399,3 +407,282 @@ The probe rows were `[1, 3, 3, 0]` (tie), `[nan, 2, nan, 5]` (leading NaN), `[5,
 ### Technical details
 
 - Ticket scripts: `scripts/01-trace-get-attr.py`, `02-dynamo-capture-factories.py`, `03-closed-forms.py`, `04-factory-preserving-trace.py`, `05-argmax-and-causal-probe.py`.
+
+## Step 6: Implementation phases 0-2 — typed splats, E.ix through every stage, integer simulation, tensor.ixval and factories
+
+This step starts the implementation in the worktree `worktrees/kiln-010-index-values` (branch `impl/kiln-010-index-values`). It implements the design guide's Phases 0, 1 and 2 in one pass, because each phase is only testable end to end through the next: an `E.ix` without `tensor.ixval` has no frontend producer, and an integer index tensor cannot be checked by the simulator until the simulator holds integers. The outcome is that `x + arange(4)` compiles to one kernel with one load, integer-output kernels simulate and compare exactly, and the cumsum and concat lowerings no longer carry data tables.
+
+All 49 Kiln test files (48 existing plus the new `test/index-values.mjs`) and 177 PassNet tests pass. One existing assertion changed by design (the int64 tree-combine array is now `s_red_i64`).
+
+### Prompt Context
+
+**User prompt (verbatim):** "then, can we work on them in parallel (in separate worktrees maybe?)" and "tell each agent to use their own diary and to folow the diary format as they go, and to write a full report for the go-go-parc vault once they are done ( write a detailed project report for the obsidian vault as a deep dive technical analysis blog post using a textbook writing style (no analogies, see skill). Commit and push the bsidian vault when done (go-go-parc vault). )"
+
+**Assistant interpretation:** The coordinator relayed these user instructions with the ticket assignment: implement KILN-010's CPU-buildable phases in a dedicated worktree, own the SIMT simulator's integer support and the shared `s_red` array, keep this diary as I go in the investigation format, and finish with a textbook-style vault note pushed to go-go-parc. GPU jobs are not mine to run.
+
+**Inferred user intent:** Several tickets progress in parallel without stepping on each other, each with a reviewable record and a durable write-up.
+
+**Commit (code):** 50f9c3a — "KILN-010: index values (E.ix, tensor.ixval), arange/full factories, integer SIMT simulation, per-dtype s_red"
+
+### What I did
+
+- Phase 0 (`packages/kiln/src/std/tensor.js`): `N.const(v, shape, dtype)`, `N.full/zeros/ones`; `foldSplatView` keeps the source dtype; `foldSplatEw` keeps the result dtype and folds typed integer functions exactly (i64 operands as BigInt; the fold is skipped when the result is not a safe integer).
+- Phase 1, Loop IR (`loop.js`): `E.ix(e, dtype)` with dtype and predicate checks; cases in `akey` (bound variables renamed like `in`), `free`, `substE`, `printE`, `schedule` (named `x0…`, emitted as `{s:"let", e:{k:"ix"}}`), `printNest`, `workOf` (weight 1), `compileSerial`/`compilePoint` (`ixValue`: signed spelling, `BigInt(...)` for i64), `inlineInto` (`E.ix(remapIdx(IX.subst(x.e, ren)))`). `checkIxRange` refuses any subexpression whose interval leaves int32, and an unbounded (data-dependent) term inside arithmetic.
+- Phase 1, IX (`core/ix.js`): `emit(e, lang, name, load, signed)`. With `signed`, a dividend whose interval (all variables nonnegative) may be negative is spelled with floor semantics; without it the output is byte-identical to before.
+- Phase 1, Kernel IR (`kernel.js`): `kx.ix`, an `emitNest` branch substituting `ctx.env`, `valueTypes` returning the dtype, printer case; `treeCombine` names its array `s_red` for f32 and `s_red_<dtype>` otherwise.
+- Phase 1, tile (`tile.js`): an `ix` node in a contraction body or hoisted into one disqualifies `MAP=tiled`; Tile IR printer case.
+- Phase 1, emitters (`emit.js`): CUDA `((long long)(…))`, `((int)(…))`, `((…) != 0)`; WGSL refusal "WGSL index values not implemented"; simulator rewritten for integer values (below).
+- Phase 1, program (`program.js`): `simInputs` (typed integer inputs; buffers read through `LD` hold 0/1), `outputStorage`, `checkExact`; `simulateKernel` compares integer outputs exactly against `compilePoint`.
+- Phase 2 (`tensor.js`, `loop.js`, `concat.js`): `tensor.ixval`, `ixvalRef`, `fold_view_of_ixval` (in `optimization`), `lift_ixval`, and `liftEw` inlining an `ixval` operand as `E.ix` like a splat operand becomes `E.num`; `nn.arange` (integer arguments; float dtypes convert exact integers below 2^24), `nn.index_value`, `N.arange`, `N.indexValue`, `N.causalMask`; cumsum mask `j <= i` and concat mask `start <= c < start + width` as bool `ixval`; `nn.concat` accepts i64/i32/bool and `concatReference` allocates the input dtype.
+- Test `packages/kiln/test/index-values.mjs`: α-equivalence, substitution, predicate/dtype checks, schedule names, int32 refusal; end to end: `x + arange`, an i64 zero-input kernel, negative-dividend floor/mod (CUDA spelling and simulator), index value inside a reduction under `MAP=thread` and `MAP=row`, int64 row reduction with `s_red_i64`, tiled epilogue, meshgrid-like views + integer concat folding to a zero-buffer kernel, cumsum with one input, typed zeros, causal mask.
+
+### Why
+
+- Inlining `ixval` at `liftEw` (rather than relying on fusion) makes the operand an index value even in pipelines that skip fusion, and gives the cost model one load instead of two from the start.
+- Keeping `s_red` for f32 preserves every existing row kernel's CUDA source byte for byte; only integer combines get a new name.
+- A separate `simInputs` keeps `kernelInputs` (shared with `devices.js` GPU runs and the workbench) unchanged for float buffers.
+
+### What worked
+
+- `node test/index-values.mjs` passed on its first full run after one test-only fix (below). Generated CUDA for the row case places `x0 = ((long long)(r0));` inside the strided reduction loop; the tiled case places `x0_0_0 = ((long long)(((16 * bn) + tx)));` in the epilogue; the floor case spells `((((-1)*(e%5)) + (e/5)) - (((… % 3) + 3) % 3)) / 3`.
+- `npm test`: `all 49 passed`; `python3 -m pytest -q`: `177 passed, 7 subtests passed`.
+
+### What didn't work
+
+- `test/integer-arithmetic.mjs` failed: `AssertionError [ERR_ASSERTION]: an int64 tree combine stages int64 partial sums` — the CUDA now declares `__shared__ long long s_red_i64[32];`. This is the intended rename; the assertion now matches `s_red_i64`.
+- My first test draft called `N.full(...)` outside `k.trace` and got `KilnError [ScopeError]: tensor.const(…) builds a node, so call it inside k.graph(…), k.trace(…) or a rule's rewrite`. Moved into a traced program.
+
+### What I learned
+
+- Before this step no integer kernel could run in the simulator at all: integer temporaries were dropped from `K.floats` and never declared, and inputs were always `Float32Array`. Gathers (`LD` terms) also had no simulator spelling for their data-dependent index. Both are fixed by the same change.
+- `IX.emit(…, "js")` spells `%` as JS truncating `%` unless the dividend has a data-dependent term; index values need the signed flag in the JS reference too, not only in CUDA.
+
+### What was tricky to build
+
+- Int64 storage in the simulator: a `BigInt64Array` rejects number assignments (`TypeError: Cannot convert 3 to a BigInt`), and select branches or literals arrive as numbers. Every assignment whose destination is int64 storage (temporary, shared array, output) is wrapped in `B64(...)`; destination types come from `K.values`, `K.smem[].dtype` and the output parameter.
+- The `signed` spelling must not change addresses: the flag is off for every existing caller, and the nonnegativity test uses `IX.interval` with every variable in `[0, 2^31)`, which is sound because every Kernel IR index variable (thread decode, loop variable, block index) is nonnegative.
+
+### What warrants a second pair of eyes
+
+- `checkIxRange` checks the Loop IR expression over loop extents; the kernel evaluates the *substituted* expression (thread decode), whose intermediate terms are bounded by the same ranges, but a reviewer should confirm no materializer introduces larger intermediates.
+- `foldSplatEw` previously folded i64 functions through `F.js` on numbers, which for `add_i64` returned BigInt; it now converts operands explicitly and refuses unsafe results. KILN-011 owns the Loop IR `E.op` fold; this change is Tensor IR only.
+- WGSL: cumsum and concat kernels now contain index values and are WGSL-unavailable (previously their table loads were WGSL-legal). No test asserted WGSL for them; the workbench browser path loses WGSL for those kernels until WGSL index values exist.
+
+### What should be done in the future
+
+- WGSL spelling of i32/bool index values (deferred design item).
+- Phase 3 (assign, importer), Phase 4 (argmax), Phase 5 (causal) next.
+
+### Code review instructions
+
+- Start at `loop.js` `E.ix`, `checkIxRange`, `inlineInto` case `"ix"`; then `kernel.js` `emitNest`/`treeCombine`; `emit.js` `toSim` (`SIM_STORAGE`, `into`, `ldSim`, `ixValue`); `program.js` `simInputs`/`checkExact`.
+- Validate: `cd packages/kiln && node test/index-values.mjs && npm test`.
+
+### Technical details
+
+- Kernel IR float-expression kinds are now `num | var | op | ix`; `ix` carries an `Ix` over kernel variables.
+- Simulator storage: `{f32: Float32Array, i64: BigInt64Array, i32: Int32Array, bool: Uint8Array}` for temporaries, shared arrays and output.
+
+## Step 7: Phases 4 and 5 — argmax over an index-valued key, causal attention
+
+This step implements the two smallest consumers before the large importer phase, because both only need what Step 6 built. `nn.argmax` (with `fn: "max" | "min"`) decomposes to one `min_i64` reduction over the key of design §6.6; the importer now returns indices from `max/min(dim)` and lowers `torch.argmax/argmin`. `lower_sdpa` accepts `is_causal=True` by selecting with `N.causalMask(L, S)`. Both agree with eager PyTorch on CPU, including the NaN rows of `scripts/05`.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 6.
+
+**Assistant interpretation:** Continue the guide's phases in order of dependency.
+
+**Inferred user intent:** Unblock argmax and causal SDPA graphs with the shared index-value machinery.
+
+**Commit (code):** 24207fb — "KILN-010: argmax/argmin via an index-valued key, causal SDPA via N.causalMask"
+
+### What I did
+
+- `tensor.js`: `argRef` (first NaN, else first extreme), `nn.argmax` op, `N.argmax/N.argmin`, decomposition: `m = bc(reduce fn)`, `key = select(isnan, ix(r), select(eq, ix(r + n), 2n))`, `k = reduce min_i64`, `idx = select(k < n, k, k - n)`; integer inputs use the typed reducer and skip the NaN term.
+- `fx_import.py`: `lower_max_min` returns `[values, N.arg{fn}(…)]`; new `argmax` op for `torch.argmax/argmin` and the methods, flattening when `dim` is absent; removed the now-unreachable "indices is not lowered" branch of `lower_getitem`.
+- `fx_compose.py`: `is_causal` must be a static bool; with `attn_mask` it is refused (PyTorch rejects the pair); otherwise `scores = N.select(N.causalMask(L, S), scores, -Infinity)`.
+- Tests: `index-values.mjs` argmax block (thread and row maps, both combine arrays in one row kernel, integer argmax); `test_fx_compose.py` `test_causal_attention` for (L, S) = (3, 5), (4, 4), (5, 3) and `test_argmax_indices_match_torch`; `test_fx_import.py` now expects `N.argmax(` instead of the refusal.
+
+### Why
+
+- The single-reduction key needs no pair reducer, and the MAP=row case is exactly the mixed-dtype combine the `s_red_i64` change of Step 6 enables.
+
+### What worked
+
+- `MAP=row` argmax kernels contain both `__shared__ float s_red[` and `__shared__ long long s_red_i64[` and simulate exactly.
+- `pytest -q`: `179 passed, 7 subtests passed`; `npm test`: `all 49 passed`.
+
+### What didn't work
+
+- `test_argmax_indices_match_torch` failed first with `subprocess.CalledProcessError: Command '['node', '…/kiln_eval.mjs']' returned non-zero exit status 1.` Running the script by hand on random data worked; the NaN input case failed because Python's `json.dumps` writes `NaN`, which `JSON.parse` rejects. The test harness now sends NaN as `null` and `kiln_eval.mjs` maps `null` back to `NaN`.
+- `torch.min(x, 0, keepdim=True).indices` would trace to a `getattr` node the importer does not lower; the test uses `[1]`.
+
+### What I learned
+
+- The importer's numeric harness had never carried a NaN input.
+
+### What was tricky to build
+
+- The key's `2n` sentinel and `n + r` offset must be computed in i64 from index values, not from a float `r`: an i64 `select` over `E.ix(r)` keeps every operand integer and the `valueTypes` check passes without conversions.
+
+### What warrants a second pair of eyes
+
+- Values output of `max(dim)` on NaN rows still follows Kiln's `max` reducer (open question Q2); only the indices are PyTorch-exact.
+
+### What should be done in the future
+
+- A pair reducer for single-pass argmax (deferred design).
+
+### Code review instructions
+
+- `tensor.js` `decompose("nn.argmax", …)`; `fx_compose.py` `lower_sdpa`; run `python3 -m pytest -q test_fx_compose.py test_fx_import.py`.
+
+### Technical details
+
+- `idx = k < n ? k : k - n` maps the key range `[0, n)` (NaN positions) and `[n, 2n)` (maxima) back to positions; `2n` never wins because every row has a maximum.
+
+## Step 8: Phase 3 — slice assignment, factory-preserving tracing, importer lowerings, census
+
+This step implements `nn.assign` and the importer work that makes the 17 `get_attr` graphs and the 3 `new_zeros` graphs import. The tracer now emits factory calls and `setitem` as nodes; the importer records basic-index views of fresh roots, lowers `setitem` and in-place arithmetic on such views to `N.assign` on the root, and re-derives every live view after each write. All 20 records import (ticket script 06), and for the float32 variants Kiln's frontend reference and the compiled Loop IR equal eager PyTorch exactly on every factory output (BEiT's 332,929- and 1,050,625-element tables, ConViT's `[1, 196, 196, 3]` table, MPNet's `[7, 7]` buckets, GAE's zeros). The BEiT table compiles to one zero-input CUDA kernel that the simulator checks exactly.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 6.
+
+**Assistant interpretation:** Implement Phase 3 and re-run the import census on the three families.
+
+**Inferred user intent:** Turn the `get_attr` refusals into compiled programs, with evidence they compute PyTorch's values.
+
+**Commit (code):** 5181a20 — "KILN-010: slice assignment, factory-preserving tracing and the importer lowerings for BEiT/ConViT/MPNet/GAE"
+
+### What I did
+
+- Kiln (`tensor.js`): `assignSpec`, `assignRef`, `nn.assign` (y broadcasts to the region, converts to x's dtype), decomposition `select(ixval(inRegion), view(bc(y), clamp), x)` with the region predicate built from `ge/le/mod` terms only where needed; `nn.repeat` (`c % d`) and `nn.repeat_interleave` (`c / r`) as views; `N.assign/N.repeat/N.repeatInterleave`.
+- Kiln (`fns.js`): `abs_i64`, `abs_i32`; `to_i64`/`to_i32` saturate (NaN → 0) instead of throwing on non-finite inputs.
+- Kiln (`loop.js`): `E.ix` of a constant within ±2^24 is `E.num` (substitution decides many region predicates).
+- `fx_trace.py`: `MutationProxy.__setitem__`; `proxied_factories` patches `torch.arange/zeros/ones/full/meshgrid` and `torch.functional.meshgrid` for one `trace` call and restores them in `finally`.
+- `fx_assign.py` (new): `View(root, entries, axes)`, `normalize`, `compose`, `region_shape`, `view_shape`, `assign_index`, `read_key`.
+- `fx_import.py`: `Context.views/storage/record_view/owns/last_use`; `lower_getitem` records views; `lower_inplace_binary/method` return `view_write`; `write_region` and `lower_setitem` (a special case in the graph walk, since `setitem` has no metadata); `Lowered.fresh` override used by `contiguous` (fresh when the source strides are not row-major); factories `arange`, `zeros/ones/full`, `zeros_like/ones_like/full_like`, `new_zeros/new_ones/new_full`; `meshgrid` (`ij`, `xy`); `repeat`, `repeat_interleave`; `where`; `torch.abs`, `torch.log`; integer `sum` without the f32 round trip.
+- `fx_scalar_ops.py`: integer `x ** 2` lowers to `N.mul(x, x)`; other integer exponents are refused by name.
+- `corpus.py` `eliminate_dead_code`: `operator.setitem` counts as in-place, and the observability test walks up through view ops (`getitem`, `view`, `permute`, …) so a write through a view of a live value is kept.
+- Tests: `index-values.mjs` (assign cases, repeat, integer abs, saturation) and `integrations/passnet/test_fx_factories.py` (7 tests: tracer nodes and patch restoration, factories/meshgrid/repeat numerics, setitem and in-place through views numerics, refusals through untracked aliases, contiguous alias, MPNet-style integer buckets).
+- Ticket script `scripts/06-import-census-and-reference.py`; output `sources/import-census-v1.json`.
+
+### Why
+
+- Re-deriving views from the root after each write keeps the importer functional: no Kiln value is ever mutated, and a later read of a view sees the root's current value.
+- Only views of fresh, unaliased roots are tracked; any other alias (a `permute`, a `view` of a tracked view) marks the root aliased, which refuses later writes — the same conservative rule the importer already applied to in-place calls.
+
+### What worked
+
+- Script 06: `20 / 20 imported`. Float32 references (max |Kiln − PyTorch|):
+
+```text
+beit-base-384   out0 f32 0.0 (exact)   out1 i64 [332929]  exact (frontend and loop)
+beit-large-512  out0 f32 0.0 (exact)   out1 i64 [1050625] exact
+convit_tiny     out0 f32 [1,196,196,3] exact   out1 (layer_norm) 9.5e-07 frontend / 3.3e-06 loop
+convit_small    out0 exact                     out1 (layer_norm) 9.5e-07 / 5.7e-06
+GAE             out0 i64 exact  out1 zeros exact  out2 exact
+all-mpnet-base  out0 (layer_norm) 9.5e-07 / 2.4e-06   out1 i64 [7,7] exact
+```
+
+- Compiling the imported BEiT and ConViT scripts to GPU kernels and simulating them (scratch `simscript.mjs`): BEiT `k_out1 thread ins [] out i64 332929 sim true integer values equal`; ConViT `k_out0 thread ins [] out f32 1x196x196x3 sim true`.
+- `npm test`: `all 49 passed`; `pytest -q`: `186 passed, 7 subtests passed`.
+
+### What didn't work
+
+- First BEiT import: `ValueError: sum_1: reduction requires a floating tensor, got torch.int64` — `lower_reduction` always cast to f32. Integer sums now stay int64.
+- `TypeError: the JSON object must be str, bytes or bytearray, not int` in `lower_setitem`: I decoded the raw encoded argument instead of the decoded one.
+- First census run: `14 / 20 imported`; all six ConViT variants blocked with `ValueError: pow: dtype-preserving floating tensor required` (`tmp_9 ** 2` on int64). Fixed by the integer-square lowering; second run 20/20.
+- `test_write_through_untracked_alias_is_refused` failed with `AssertionError: ValueError not raised`: dead-code elimination erased `p[0] = 1` on `p = t.permute(1, 0)` because `p` had no later users, silently dropping a write. The DCE observability walk now follows view ops up to the root.
+- A test-model typo produced `RuntimeError: The size of tensor a (6) must match the size of tensor b (4)` in eager PyTorch (my model, not Kiln); fixed the model.
+
+### What I learned
+
+- The `get_attr` refusal was hiding a second problem: the corpus DCE treats a write as observable only through the written node itself, so writes through views would have been dropped as soon as the factories were traced.
+- MPNet's buckets evaluate `log(0) = -inf` and convert it to int64 in a branch `where` discards; the reference must not throw there (`BigInt(-Infinity)` is a `RangeError`).
+
+### What was tricky to build
+
+- The importer has two alias notions: in-place chains of one storage (`ctx.roots`, same shape, rebinding every name) and basic views (`ctx.views`, a region of the root, re-derived). Rebinding must skip views (they have another shape), and aliasing an untracked view must mark the *storage root* (`ctx.storage`) aliased, not the view name.
+- `setitem` values: PyTorch broadcasts the value to the view's shape, which may contain inserted `None` axes that the assignment region does not have; `write_region` expands to the view shape and then reshapes to the region.
+
+### What warrants a second pair of eyes
+
+- `record_view` silently declines (no view recorded) for non-basic or unsupported indices; such a getitem then aliases its root like before. Confirm no write path relies on a view that was not recorded.
+- The factory patch is process-global during tracing; a concurrently tracing thread would see the wrappers.
+- The fused BEiT kernel carries redundant nested clamps (`min(max(min(max(…, 0), 575), 0), 575)`) and `(clamped / 576) % 2` terms that interval reasoning could fold. It is correct and has no loads; simplification is future work in `ix.js`.
+
+### What should be done in the future
+
+- Range-aware simplification of nested `min/max` clamps and of `/`, `%` by constants over clamped dividends.
+- Q1: PassBench pattern tracing (`fx_normalize.trace_pattern`) must see the same factory nodes.
+
+### Code review instructions
+
+- Start at `integrations/passnet/fx_assign.py`, then `fx_import.py` `write_region`, `lower_setitem`, `Context.record_view`; `tensor.js` `decompose("nn.assign", …)`.
+- Validate: `cd integrations/passnet && python3 -m pytest -q test_fx_factories.py`; `python3 <ticket>/scripts/06-import-census-and-reference.py $PWD <KILN-005 sources/upstream> out.json`.
+
+### Technical details
+
+- nn.assign index: one entry per axis, `{at: k}` or `{slice: [start, stop, step]}`; the decomposition clamps reads as `min(max(c - start, 0) / step, len - 1)`.
+- Script 06 needs the KILN-005 upstream graphs, which are untracked; they live under the passnet worktree's `ttmp/2026/10/30/KILN-005-…/sources/upstream`.
+
+## Step 9: Full census regression, bookkeeping, and the merge note for KILN-011
+
+This step re-runs the whole KILN-005 views-ops import census (2060 graph records, fake metadata, CPU) against the frozen statuses, to check the design guide's corpus-level criterion: "no previously imported record regresses". It also records a reconciliation note the coordinator asked for.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 6. Coordinator note during this step (relayed, not a user prompt): KILN-011 (branch `impl/kiln-011-floordiv-mod`, commit e1fad06, merging before this branch) already fixed `foldSplatView`/`foldSplatEw` dropping the dtype and exact i64 literals through folding; keep my change minimal and note it.
+
+**Assistant interpretation:** Run the regression census, and document the overlap with KILN-011 for the merge.
+
+**Inferred user intent:** A merge that does not silently fight over the same lines.
+
+**Commit (code):** see the commit following this entry (evidence and docs only).
+
+### What I did
+
+- `scripts/07-full-census-regression.py` → `sources/census-regression-v1.json`.
+- docmgr: checked Phase 0-5 tasks, added three follow-ups (GPU-host census of the driver-dependent records, range-aware IX simplification, WGSL index values), changelog entry, related files.
+
+### What worked
+
+```text
+records 2060   imported before 1931   imported now 1961
+blocked -> imported   30   (20 get_attr/new_zeros targets + 10 formerly "Found no NVIDIA driver")
+imported -> blocked    0
+blocked -> blocked with another error 36 (all formerly "Found no NVIDIA driver")
+```
+
+The 10 extra imports (GAE/RECT_L `start3_end6_1`, six `jhu-clsp_ettin-decoder-150m_start10_end12_3` variants, `openai_whisper-base_start0_end3_0`) previously failed because their factory calls with `device='cuda'` ran eagerly during symbolic tracing on this CPU-only machine; they are now nodes. Their numerics cannot be checked on CPU (the models allocate on CUDA).
+
+### What didn't work
+
+- N/A for this step; the 36 changed blockers (e.g. `ShapeProp error for: node=%le`, `to: device/layout conversion unsupported`, `fill_: unsupported tensor method fill_`, `triu: unsupported target torch.triu`) are still CPU-environment records and remain blocked.
+
+### What I learned
+
+- Factory-preserving tracing also moves device-dependent failures from trace time to ShapeProp time; the KILN-005 "no NVIDIA driver" bucket must be re-judged on the GPU host.
+
+### What was tricky to build
+
+- Comparing blockers across runs: the script compares the first 60 characters of each error, so a changed message counts as "other error" even when the cause is the same environment.
+
+### What warrants a second pair of eyes
+
+- **Merge with KILN-011:** this branch also changed `foldSplatView` (keeps `dtype`) and `foldSplatEw` (`splatFold`: i64 operands as BigInt, refuses unsafe results, keeps the result dtype) in `tensor.js`, in commit 50f9c3a. KILN-011 fixed the same two rules; at merge, keep one version (KILN-011's, if it covers the exact-int and dtype behavior) and drop the other. The `index-values.mjs` "typed splats keep their dtype" block checks the behavior either way. Related: my `E.ix` constant fold only folds constants within ±2^24 because literals go through f32 spellings in `compileSerial` (`Math.fround(o.num)`); if KILN-011's exact literal handling covers this, the bound can be lifted.
+
+### What should be done in the future
+
+- GPU host: re-run the census for the driver-dependent records; NVRTC and replays (see final report).
+
+### Code review instructions
+
+- `python3 <ticket>/scripts/07-full-census-regression.py $PWD <KILN-005 sources/upstream> out.json` (about 15 minutes on CPU).
+
+### Technical details
+
+- Output format `kiln-010-census-regression/1`: `records`, `imported_before`, `imported_now`, `changes` with the three lists.
