@@ -4628,3 +4628,142 @@ Following the user's mid-step instruction to refactor and tighten as I go, I mov
 
 ### Technical details
 - Slice-1 replay plan SHA256 `ea555f12…`; staged revision `bda0718`, snapshot `83b4129f…`; tasks 54, 92, 134, 169, 181 with `matmul_precision: "tf32"`.
+
+## Step 253: P3a slice 2, gathers as views with data-dependent index terms
+
+Slice 2 adds `embedding`, `index_select` and `x[ids]` to Kiln. Reading `inlineInto` changed the representation in design doc 23. Fusion substitutes a producer's coordinates with the consumer's `IX` index expressions, so a data-dependent index must live in `IX`, not in `E`. The new `IX` leaf `ld(i, idx)` means "the integer in kernel input `i` at `idx`". A gather is then a view whose map contains `ld` terms, and it reuses lifting, fusion, scheduling and emission almost unchanged.
+
+The test suite caught two real bugs before they reached the GPU. One was a double renumbering of `ld` inputs during fusion. The other was C's truncating `%` diverging from the algebra's floor semantics once an index can be negative. Measured result:
+
+- import census: 1,707 → 1,769 graphs import, with 0 regressions; complete-import families 137 → 143;
+- local compile: 5 of the 6 newly importable families compile completely (52 graphs);
+- a frozen GPU replay is queued.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 252 (refactor and tighten as you go) and Step 249 ("conyinure").
+**Assistant interpretation:** Implement slice 2 with the simplest representation the code admits, and refactor shared pieces instead of duplicating them.
+**Inferred user intent:** Broader coverage without growing a second compiler.
+**Commit (code):**
+- a739546 — design amendment
+- 56af6b2 — IX ld
+- 3170d09 — Kiln gathers
+- c4b5562 — importer
+- 4824693 — freeze and census
+- 9e3eee6 — queue
+- 22902c8 — named tensor-index refusal (before gathers)
+
+### What I did
+- `core/ix.js`:
+  - `LD(i, idx)`, with `keyOf`, `vars`, `subst`, `print`, `interval` (null), `bounded` and `evalIx` (via `env.__ld`).
+  - `emit(e, lang, name, load)` takes a spelling callback and refuses targets without one.
+  - `loadsOf`, and `mapLoads(e, f)` built on a new simplifying `op2(t, a, b)` that `subst` and `bounded` now share. `remapLoads` is one line over `mapLoads`.
+  - Floor-semantics `%` and `/` for C/JS when the dividend contains an `ld`.
+- `std/tensor.js`: `gatherSpec`, `gatherMap` (with `wrap` as `id + n·(id < 0)`), `gatherRef` (an out-of-range index is an `EvalError`); ops `nn.gather` and `tensor.gather`; decomposition; `N.gather`, `N.embedding`, `N.indexSelect`.
+- `std/loop.js`:
+  - `liftGather`.
+  - `substE` renumbers an expression's own `ld` inputs *before* substituting the caller's values.
+  - In `inlineInto`, `remapIdx` renumbers consumer `ld`s and turns an `ld` that reads the producer into the producer's load. `FusionIllegal` is raised when the producer is not a pure load, and the fusion rule converts it to `skip`.
+  - Shared `jsIndex` for `compileSerial`/`compilePoint`, with `Number()` for BigInt ids.
+- `std/emit.js`: `ld` → `(int)src_i[row-major flat]`.
+- `std/tile.js`: `coefOf` treats an `ld` that does not vary with the lane variable as constant.
+- `fx_import.py`: `tensor_index` (one int64 tensor after full slices → `N.gather(…, true)`; bool masks refused); `embedding` (`max_norm` refused, since it renormalizes the weight in place); `index_select`.
+- Tests: `test/ix-load.mjs`, `test/gather.mjs` (fused Loop IR reference equals the frontend reference for embedding+bias, index_select of a transpose, and `x[ids]` through two views with negative ids), and `test_fx_import.py::test_gathers`.
+- Census `sources/typed-slice2-import-v1.json`. Generic freeze script 673 (replaces per-slice freeze scripts). Replay `typed-slice2-replay-gpu-v1` queued behind the slice-1 replay.
+
+### Why
+- An `IX` leaf instead of an `E` index entry: inlining substitutes producer coordinates in `IX`, so an `E` entry would force `E` values into `IX` positions. The `IX` leaf keeps substitution in one algebra.
+- A separate `tensor.gather` instead of generalizing `tensor.view`: the view-composition and splat-folding rules stay unchanged and cannot mishandle `ld` terms.
+
+### What worked
+- `packages/kiln` 47/47; pytest 168 passed; the passnet `.mjs` tests pass.
+- CUDA for embedding+bias: `in1 = src1[((e % 4) + (4 * (int)src2[…]))]`, one fused kernel.
+- Census: +62 graphs, 0 regressions; newly complete-import tasks 3, 21, 61, 100, 140, 152.
+- Local compile: 21 (10/10), 61 (6/6), 100 (4/4), 140 (2/2), 152 (30/30). Task 3 is refused at `expected (1, 256) i64 from the source graph, Kiln inferred (1, 256) f32` (integer `sub` of bounding-box coordinates, slice 3).
+
+### What didn't work
+- First compile of `x[ids]` through two views read the table instead of the ids (`(int)src1[…]` where `src1` was the f32 table). Cause: `substE` applied the producer's renumbering to the whole substituted index, including the consumer's `ld`, which had already been renumbered. Fix: renumber the producer's own index first, then substitute.
+- The `wrap` term vanished from the emitted index. `mod(3·id + 24·[id<0], 24)` drops the multiple of 24, which is correct under floor modulo, but C's `%` truncates (`-3 % 24 = -3`). Fix: floor spellings in C/JS when the dividend contains an `ld`. Coordinates keep the plain `%`.
+- My first `remapIdx` rebuilt nodes with the raw `Ix` constructor and re-normalized through `subst(…, {})`. I replaced it with `IX.mapLoads` on the shared `op2`.
+- `fused.eval` on the final graph failed with `gpu.kernel (n7) has no eval`. The test evaluates `r.at("loop")` instead.
+- A wait loop `until … ! pgrep -f "typed-slice2-import"` matched its own command line and never ended. I stopped it (`TaskStop b10kqvzxw`) and ran the comparison directly.
+
+### What I learned
+- The algebra's floor semantics were safe only because coordinates are nonnegative. Data-dependent terms are the first source of negative dividends.
+- Integer arithmetic currently infers `f32` (`elementwiseDtype`), and the importer's `expect` catches it loudly. Slice 3 must give integer ops their PyTorch result types.
+
+### What was tricky to build
+- Renumbering order inside fusion. The consumer's index (consumer numbering → merged numbering via `mapC`) and the producer's expression (producer numbering → merged via `mapP`) meet in one substitution. Each must be renumbered exactly once, in its own numbering, before they are combined.
+
+### What warrants a second pair of eyes
+- `(int)src_i[...]` narrows int64 ids to int. Indices index tensors of fewer than 2^31 elements (export guard), so in-range ids fit. Out-of-range ids are undefined behavior, matching release CUDA.
+- `FusionIllegal` makes the whole producer unfusable if any consumer indexes by it through a non-view, even when other consumers could take it.
+
+### What should be done in the future
+- Collect the slice-1 and slice-2 replays.
+- Slice 3, typed integer arithmetic (tasks 3, 139, and the `ne`/`masked_fill`/`cumsum` families).
+
+### Code review instructions
+- `inlineInto`/`remapIdx`/`substE` in `loop.js`; `LD`, `mapLoads`, `op2` and the floor spellings in `ix.js`; `gatherMap` in `tensor.js`.
+- Validate with `node packages/kiln/test/gather.mjs` and `node packages/kiln/test/ix-load.mjs`.
+
+### Technical details
+- Slice-2 plan: tasks 21, 61, 100, 140, 152 (52 graphs); staged revision `4824693`, snapshot `94acbbc2…`; queued as tmux `kiln-typed-slice2-replay-v1`.
+
+## Step 254: The held-out cost-gate study, and what the GPU probes measured
+
+The three arms of `cost-gate-held-out-v1` completed: 20 families, 237 graphs, 60 task runs. On every speed endpoint and on the official score, the gate beat always-applying the fixed program. On the 91 graphs where it kept the baseline, always-applying was measured 11.8% slower. The pre-registered decision rule is nevertheless **not met**. The gated arm accepted 236 of 237 graphs, and the one failure is PassBench's timing-fluctuation guard rejecting an executable byte-identical to the baseline arm's accepted one. Reference 49 records this without reinterpreting the rule.
+
+The probes that ran right after the study gave two concrete corrections:
+
+- cuBLAS linear layers and cuDNN 1×1 convolutions round TF32 operands to nearest *even*, while Kiln uses nearest-away;
+- GB10's L2 delivers about 10.5 TB/s against about 240 GB/s from DRAM, roughly 40× where the cost model assumes 3×.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 249.
+**Assistant interpretation:** Collect and analyze against the frozen declaration as soon as the arms finish.
+**Inferred user intent:** A trustworthy measured answer on whether the gate is reusable.
+**Commit (code):**
+- be97047 — collection
+- 41a0d23 — reference 49
+
+### What I did
+- Script 669 collected each arm (plan and snapshot identity checks passed, 0 unexecuted graphs).
+- Script 670 ran unchanged (pre-registered in 489d1f2).
+- Traced the single gated failure through the audits and the benchmark log.
+- Collected `gpu-probes-v1/result.json` and wrote reference 49.
+
+### Why
+- The rule says what it says. A failure that is plausibly noise is resolved by replication, not by redefining the endpoint after the fact.
+
+### What worked
+- Every check in 670 passed: equal snapshots, image, node version and tasks; program hashes as declared; 0 gate inconsistencies.
+- Primary endpoint: gated 0.644 against always 0.679. Where the gate kept baseline: always 1.118, gated 0.999. Official score mean: 0.893 / 1.001 / 1.034.
+
+### What didn't work
+- Condition (3) of the rule failed. Task 31 `bfloat16/5/…coat_lite_medium_384_start189_end198_23` failed with `Compiled model execution failed: Environment fluctuation detected. IQR/median = 22.8% (threshold: 20%)` in the gated arm (`execution_status: eager_fail` in the parsed log), while baseline and always accepted it. `gated_matches_baseline: true`.
+
+### What I learned
+- The gate's value is concentrated in a few families where the program hurts (10, 31, 146, 174, 189). Its only remaining measured loss is task 120 (1.15, gate applied), the same kind of misprediction as task 106.
+- The probes measured more than what reference 48 assumed. RNA rounding was a guess. RNE is closer for products and 1×1 convolutions, so the P0 convolution regressions may come from the rounding mode rather than from cuDNN algorithm choice.
+
+### What was tricky to build
+- Telling noise from the gate's effect required the per-graph executable hashes. Without `gated_matches_baseline`, the failure would have looked like a gate-caused regression.
+
+### What warrants a second pair of eyes
+- Arms ran sequentially. The 0.999 ratio where the gate kept baseline bounds cross-arm drift at about 0.1% for identical executables, but drift was not randomized.
+
+### What should be done in the future
+- Replicate task 31 (or the gated arm).
+- Add a measured `l2GBs` to targets and recalibrate.
+- Implement RNE TF32 rounding and re-run the TF32 families.
+
+### Code review instructions
+- `sources/cost-gate-held-out-v1/comparison.json` (summary, families, graphs); reference 49.
+- Re-run with `python3 scripts/670-analyze-cost-gate-held-out-study.py`.
+
+### Technical details
+- Probe rounding mean abs errors (fp32 / rna / rne / rz):
+  - linear 7.5e-3 / 1.1e-4 / 6.1e-5 / 2.2e-2;
+  - conv1x1 3.7e-3 / 1.7e-5 / 8.0e-6 / 1.1e-2;
+  - conv3x3 5.4e-3 / 2.4e-5 / 4.3e-5 / 1.6e-2.
+- Bandwidth: 1 MB 8.4, 2 MB 10.3, 4 MB 10.8, 8 MB 5.3, 16 MB 2.0, 64 MB 0.30, 1 GB 0.236 TB/s.
