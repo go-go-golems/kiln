@@ -25,3 +25,4 @@
 - [ ] Collect cost-gate-held-out-v1 (3 arms, 20 families, 237 graphs) with script 669 and analyze against declaration.json; report gated vs always vs baseline. <!-- t:vxqa -->
 - [ ] GPU probe of cuDNN TF32 convolution operand rounding (RN vs RZ vs FP32) after the cost-gate study; explain families 72 and 133 and the remaining TF32 linear failures 88, 118, 157. <!-- t:rgkk -->
 - [ ] Re-qualify families 32, 75 and 107 (row-mapped launches past the 32-bit thread count; guard fixed in 88c2ad1) and the P0-repaired families on the next uniform snapshot. <!-- t:puyg -->
+- [ ] After the cost-gate study: measure GB10 L2 bandwidth (microbenchmark), set it in the gb10 spec, then re-test the per-slice working-set DRAM rule (tried in Step 250; alone it moved paired rho by less than 0.002 because the L2 term binds). <!-- t:ndyg -->

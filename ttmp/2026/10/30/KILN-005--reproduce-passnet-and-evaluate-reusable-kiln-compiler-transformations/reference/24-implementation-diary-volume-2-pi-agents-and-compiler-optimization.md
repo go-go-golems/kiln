@@ -4490,3 +4490,5 @@ The cause is the input's flat index, `221184 * (a1 / 96) + 221184 * a0 + 96 * a2
 
 ### Technical details
 - Task 106 measured compiled GPU medians (baseline / candidate, ms): 6.03 / 6.36, 2.61 / 3.99, 1.26 / 2.37, and 0.12 / 0.12 for the three small variants.
+
+**Addendum to Step 250: a working-set DRAM rule, tried and reverted.** I tested a per-outermost-slice reuse working set, with `dram = uniq + out` whenever the slice fits in L2 (scratch only; the evidence is in the session scratchpad `cal-v3/`). It moved paired a100 ρ from 0.6438 to 0.6441, gb10 from 0.607 to 0.608, and absolute a100 from 0.937 to 0.939 and gb10 from 0.902 to 0.907. Task 106 did not change, because its binding term becomes `l2 = traffic / (3 × bwGBs)`, at 18.8 ms on gb10 against the measured 6.03 ms. I reverted the rule (the file was restored from the index) because the gain does not justify the schedule churn. The binding unknown is GB10's L2 bandwidth: matching the measurement would need about 2.4 TB/s. That will be measured on bling once the study releases the GPU (task added).
