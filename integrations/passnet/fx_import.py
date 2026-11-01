@@ -147,7 +147,8 @@ def lower_activation(c):
 
 UNARY = {'torch.relu': 'relu', 'torch.nn.functional.relu': 'relu', 'aten.relu.default': 'relu', 'torch.relu_': 'relu', '_operator.neg': 'neg',
          'torch.exp': 'exp', 'aten.exp.default': 'exp', 'torch.sqrt': 'sqrt',
-         'torch.rsqrt': 'rsqrt', 'aten.rsqrt.default': 'rsqrt', 'torch.tanh': 'tanh', 'aten.tanh.default': 'tanh'}
+         'torch.rsqrt': 'rsqrt', 'aten.rsqrt.default': 'rsqrt', 'torch.tanh': 'tanh', 'aten.tanh.default': 'tanh',
+         'torch.floor': 'floor'}
 
 
 @op('unary', functions=UNARY)
@@ -182,13 +183,13 @@ def lower_binary(c):
 
 # Division with a rounding rule. a // b, floor_divide and div(rounding_mode="floor") round toward
 # negative infinity; a % b and remainder take the divisor's sign; fmod and div(rounding_mode="trunc")
-# round toward zero. Kiln lowers these over int32 and int64 results; true division (div without a
-# mode) is float division for every operand dtype.
+# round toward zero. Kiln lowers these over int32, int64 and float32 results (float16 and bfloat16
+# would round each intermediate step); true division (div without a mode) is float division.
 DIVISION_FUNCTIONS = {'_operator.floordiv': 'floordiv', 'torch.floor_divide': 'floordiv', '_operator.mod': 'remainder',
                       'torch.remainder': 'remainder', 'torch.fmod': 'fmod', 'torch.div': 'div'}
 DIVISION_METHODS = {'floor_divide': 'floordiv', '__floordiv__': 'floordiv', 'remainder': 'remainder', '__mod__': 'remainder',
                     'fmod': 'fmod', 'div': 'div'}
-INTEGER_RESULTS = ('torch.int32', 'torch.int64')
+ROUNDED_DIVISION_RESULTS = ('torch.int32', 'torch.int64', 'torch.float32')
 
 
 @op('division', functions=DIVISION_FUNCTIONS, methods=DIVISION_METHODS)
@@ -199,8 +200,8 @@ def lower_division(c):
     mode = c.ctx.literal(c.kwargs.get('rounding_mode', 'null'))
     if mode not in (None, 'floor', 'trunc'): raise ValueError(f'{c.name}: unsupported div rounding_mode {mode!r}')
     if not isinstance(c.meta, dict): raise ValueError(f'{c.name}: {fn} of non-tensor values is not lowered')
-    if (fn != 'div' or mode is not None) and c.meta['dtype'] not in INTEGER_RESULTS:
-        raise ValueError(f'{c.name}: {fn if fn != "div" else "div rounding_mode=" + mode} over {c.meta["dtype"]} is not lowered (integer operands only)')
+    if (fn != 'div' or mode is not None) and c.meta['dtype'] not in ROUNDED_DIVISION_RESULTS:
+        raise ValueError(f'{c.name}: {fn if fn != "div" else "div rounding_mode=" + mode} over {c.meta["dtype"]} is not lowered (int32, int64 and float32 only)')
     args = f'{operand(c, 0)}, {operand(c, 1)}'
     return Lowered(f'N.{fn}({args})' if mode is None else f'N.div({args}, {json.dumps(mode)})')
 

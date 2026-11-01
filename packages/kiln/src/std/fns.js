@@ -110,6 +110,31 @@ export const INTEGER_DIVISIONS = new Set(Object.keys(INTEGER_DIVISION.i64));
 const DIVISION_FLOPS = { i32: 20, i64: 60 };
 for (const [t, ops] of Object.entries(INTEGER_DIVISION)) for (const [name, js] of Object.entries(ops))
   FNS[`${name}_${t}`] = { n: 2, js, c: `kiln_${name}_${t}({0}, {1})`, w: null, flops: DIVISION_FLOPS[t], args: t, type: t, helper: `kiln_${name}_${t}` };
+// Float floor division and remainder, as PyTorch computes them (c10 div_floor_floating; the remainder
+// kernels): not floor(a / b), which rounds the quotient first (1 // 0.1 is 9, floor(1 / 0.1) is 10).
+// Every step rounds to f32 as the CUDA helper does; JS % is C fmod (exact). The remainder of an exact
+// division is fmod's zero, which has the dividend's sign (PyTorch CPU, -2.0 % 1.0 == -0.0).
+const signedZero = (x) => (x < 0 || Object.is(x, -0) ? -0 : 0);
+function floordivF32(a, b) {
+  a = f(a); b = f(b);
+  if (b === 0) return f(a / b);
+  const mod = a % b;
+  let div = f(f(a - mod) / b);
+  if (mod !== 0 && (b < 0) !== (mod < 0)) div = f(div - 1);
+  if (div === 0) return signedZero(a / b);
+  let floor = Math.floor(div);
+  if (f(div - floor) > 0.5) floor = f(floor + 1);
+  return floor;
+}
+function remainderF32(a, b) {
+  a = f(a); b = f(b);
+  const mod = a % b;
+  return mod !== 0 && (b < 0) !== (mod < 0) ? f(mod + b) : mod;
+}
+FNS.floordiv = { n: 2, js: floordivF32, c: "kiln_floordiv_f32({0}, {1})", w: null, flops: 12, helper: "kiln_floordiv_f32" };
+FNS.remainder = { n: 2, js: remainderF32, c: "kiln_remainder_f32({0}, {1})", w: null, flops: 10, helper: "kiln_remainder_f32" };
+FNS.fmod = { n: 2, js: (a, b) => f(a) % f(b), c: "fmodf({0}, {1})", w: null, flops: 8 };
+FNS.truncdiv = { n: 2, js: (a, b) => Math.trunc(f(f(a) / f(b))), c: "truncf(({0}) / ({1}))", w: null, flops: 5 };
 // comparisons yield bool; JS compares BigInt and number operands exactly
 const COMPARE = { eq: ["==", (a, b) => a == b], ne: ["!=", (a, b) => a != b], lt: ["<", (a, b) => a < b], le: ["<=", (a, b) => a <= b], gt: [">", (a, b) => a > b], ge: [">=", (a, b) => a >= b] };
 for (const t of ["f32", "i32", "i64", "bool"]) for (const [name, [op, js]] of Object.entries(COMPARE))
@@ -132,6 +157,8 @@ const cudaDivisionHelpers = (t, c, u) => ({
 });
 export const CUDA_HELPERS = Object.freeze({
   kiln_round_tf32: `__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned b = __float_as_uint(x); if ((b & 0x7f800000u) == 0x7f800000u) return x; return __uint_as_float((b + 0xfffu + ((b >> 13) & 1u)) & 0xffffe000u); }`,
+  kiln_floordiv_f32: `__device__ __forceinline__ float kiln_floordiv_f32(float a, float b) { if (b == 0.0f) return a / b; float mod = fmodf(a, b); float div = (a - mod) / b; if ((mod != 0.0f) && ((b < 0.0f) != (mod < 0.0f))) div -= 1.0f; if (div == 0.0f) return copysignf(0.0f, a / b); float fl = floorf(div); if (div - fl > 0.5f) fl += 1.0f; return fl; }`,
+  kiln_remainder_f32: `__device__ __forceinline__ float kiln_remainder_f32(float a, float b) { float mod = fmodf(a, b); if ((mod != 0.0f) && ((b < 0.0f) != (mod < 0.0f))) mod += b; return mod; }`,
   ...cudaDivisionHelpers("i32", "int", "unsigned int"),
   ...cudaDivisionHelpers("i64", "long long", "unsigned long long"),
 });

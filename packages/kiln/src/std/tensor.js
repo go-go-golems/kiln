@@ -219,9 +219,12 @@ export function resolveEw(fn, xs) {
   const t = promoteDtypes(xs);
   // true division of integers is float division (PyTorch: int / int is the default float dtype)
   if (fn === "div" && INTEGER_DTYPES.has(t)) return { fn, casts: xs.map((x) => (dtypeOf(x) === "f32" ? null : "f32")) };
+  // floor of an integer is the integer (PyTorch returns the input dtype unchanged)
+  if (fn === "floor" && (t === "i32" || t === "i64")) return { fn: "copy", casts: [null] };
   if (INTEGER_DIVISIONS.has(fn)) {
-    if (t !== "i32" && t !== "i64") throw new KilnError("TypeError", `${fn} over ${t} values is not lowered`);
-    if (isLiteralZero(xs[1])) throw new KilnError("ZeroDivisionError", "integer division by zero");
+    // f32 has untyped functions; f16 and bf16 would round every intermediate step in PyTorch
+    if (t !== "i32" && t !== "i64" && t !== "f32") throw new KilnError("TypeError", `${fn} over ${t} values is not lowered`);
+    if (t !== "f32" && isLiteralZero(xs[1])) throw new KilnError("ZeroDivisionError", "integer division by zero");
   }
   const compute = COMPARISONS.has(fn) ? (INTEGER_DTYPES.has(t) ? t : "f32") : t;
   let typed = fn;

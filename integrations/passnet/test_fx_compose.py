@@ -106,6 +106,19 @@ class ComposeNumericTests(unittest.TestCase):
         for dtype in (torch.int64, torch.int32):
             self.check(Division(), [torch.tensor(a, dtype=dtype), torch.tensor(b, dtype=dtype)], atol=0, rtol=0)
 
+    def test_float_division_matches_torch(self):
+        """KILN-011 Phase 3: float32 and mixed int/float floor division, remainder, fmod, trunc division."""
+        class Division(torch.nn.Module):
+            def forward(self, x, y, i):
+                return (x // y, x % y, torch.fmod(x, y), torch.div(x, y, rounding_mode='trunc'), x // 2, i // 2.5, i % 0.75,
+                        torch.floor(i), torch.div(i, y, rounding_mode='floor'))
+        torch.manual_seed(5)
+        x = torch.randn(64) * 10
+        y = torch.randn(64) * 3
+        y[:4] = torch.tensor([0.1, -0.1, 1.0, -2.0]); x[:4] = torch.tensor([1.0, 1.0, -2.0, 6.0])
+        i = torch.randint(-1000, 1000, (64,))
+        self.check(Division(), [x, y, i], atol=0, rtol=0)
+
 
 if __name__ == '__main__':
     unittest.main()

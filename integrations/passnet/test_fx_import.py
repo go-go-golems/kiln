@@ -249,12 +249,12 @@ class ImportTests(unittest.TestCase):
 
         class Floating(torch.nn.Module):
             def forward(self, x): return x // 2
-        with self.assertRaisesRegex(ValueError, 'floordiv over torch.float32 is not lowered'):
-            import_graph(export_graph(symbolic_trace(Floating()), (torch.randn(3),)))
+        self.assertIn('N.floordiv(v0, N.int(2)), [3], "f32"', import_graph(export_graph(symbolic_trace(Floating()), (torch.randn(3),)))['script'])
+        with self.assertRaisesRegex(ValueError, 'floordiv over torch.float16 is not lowered'):
+            import_graph(export_graph(symbolic_trace(Floating()), (torch.randn(3).half(),)))
         class Mixed(torch.nn.Module):
             def forward(self, a): return torch.div(a, 2.0, rounding_mode='floor')
-        with self.assertRaisesRegex(ValueError, 'rounding_mode=floor over torch.float32'):
-            import_graph(export_graph(symbolic_trace(Mixed()), (a,)))
+        self.assertIn('N.div(v0, 2.0, "floor"), [4], "f32"', import_graph(export_graph(symbolic_trace(Mixed()), (a,)))['script'])
         import copy
         graph = export_graph(symbolic_trace(Model()), (a, b))
         bad = copy.deepcopy(graph)
