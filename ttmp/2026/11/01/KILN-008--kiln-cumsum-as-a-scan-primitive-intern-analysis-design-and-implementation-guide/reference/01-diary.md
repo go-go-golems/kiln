@@ -361,3 +361,244 @@ The simulator half of Phase 0 (integer `toSim`) is owned by KILN-010 and is not 
 ### Technical details
 
 - CUDA declarations after the fix (8x1024 i64): `float tv1 = 0.0f, g1 = 0.0f, b0_0 = 0.0f;` and `long long g0 = 0, tv0 = 0, a0_0 = 0, v0_0_0 = 0, acc_0_0 = 0;`.
+
+## Step 5: Phases 1-3, `tensor.scan`, the `E.scan` expression, the carried loop and fusion legality
+
+This step put the scan into the front half of the pipeline. `nn.cumsum` now decomposes into one Tensor IR primitive, `tensor.scan(convert(x, d), { fn: typedReducer("add", d), axis })`, whose reference `scanRef` is the left-to-right recurrence (`cumsumRef` is now `scanRef(castRef(x, d), ...)`). Loop IR gained `E.scan(fn, r, end, n, body)`, the inclusive fold of `body` over `r = 0..end`, and the scheduler realizes it as an accumulator carried along an ordered loop. For a 2x4 cumsum the nest is exactly the one the design guide predicted (section 6.4): `acc0 = 0` above `for a1 # scan`, then `in0 = load x[a0, a1]`, `acc0 <~ add(acc0, in0)`, `out[a0, a1] = acc0`. Fusion inlines into and out of scans only where the result still schedules as one carried loop and holds no reduction.
+
+Phases 1-5 were written as one change and landed in one commit, because the pipeline cannot run any test past Loop IR until Tile IR knows the new kind (see "What didn't work"); Steps 5-7 describe the phases separately.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 4.
+
+**Assistant interpretation:** Implement design-guide Phases 1-3 (sections 6.2-6.5).
+
+**Inferred user intent:** cumsum costs O(n) per row and reuses the same mechanism for other scans.
+
+**Commit (code):** 79e2ebc — "KILN-008 Phases 1-5: cumsum as a scan primitive"
+
+### What I did
+
+- `packages/kiln/src/std/tensor.js`: `scanRef(x, fn, axis)`; `cumsumRef` defined through it; the op `tensor.scan` (attrs `fn`, `axis`; type: same shape, dtype `reducer(fn).type ?? x.dtype`); the `nn.cumsum` decomposition is the one line above. The masked `[1, 0]` table decomposition is deleted (no compatibility kept).
+- `packages/kiln/src/std/loop.js`:
+  - `E.scan(fn, r, end, n, body)` with `end` an index expression rather than a variable name, so substitution (size-1 dims, `inlineInto`) can move it. A constant `end` folds to `E.red(fn, r, end + 1, body)`. `akey` (with bound-variable renaming of `end`), `free` (`free(body) - r + vars(end)`), `substE`, `walkE`, `printE` (`scan add_{r<=a1} ...`) and `hasScan` cover it.
+  - `schedule`: collects scans; refuses (ScheduleError) an `end` that is not an output coordinate (a scan inside a reduction or inside another scan), two different scanned coordinates, and a body that depends on the scanned coordinate other than through `r`; moves the scanned dim to the innermost position; rewrites each scan into an internal `carry` node whose body is `body[r := v]`; marks that scope's loop `kind: "scan"`; emits `init {scan: true}` for every carry right before the scan loop and `step {name, fn, val}` at the carry's position inside it. The schedule result also records `source` (the expression before the carry rewrite), `scanV` and `carries`.
+  - `compileSerial`: `step` compiles like `acc`. `compilePoint`: a kernel with a scan is evaluated from `sched.source` by a new `pointExpr`, which turns every reduction and scan into an immediately invoked JS loop, so the sampled reference does not reuse the carried-accumulator code it checks. `printNest` prints `<~` for steps; `workOf` counts `step` like `acc`; `stampNames` appends `_scan`.
+  - `liftScan` (rule `lift_scan`) added to the lift pass.
+  - `inlineInto`: a `scan` case in its rewriter, then `scanFusionLegal(expr, c, p)` whenever the fused expression contains a scan: it refuses (FusionIllegal) a result that holds a reduction, and a result that `schedule` refuses (which catches a shifted read like `cs[i - 1]`, a read inside a reduction like `amax(cumsum(x))`, and two scanned coordinates).
+
+### Why
+
+- `end` as an index expression: `inlineInto` substitutes the producer's output coordinates by the consumer's load indices. With a plain variable name the scan could not record that it is now read at, say, `a1 - 1`; with an `Ix` it does, and the scheduler's "end must be an output coordinate" check turns that into the fusion refusal the guide's section 6.5 asks for, with no separate load-index analysis.
+- The internal `carry` node: the scheduler's placement rule (deepest scope of the free variables) then places the scan body's loads inside the scan loop and hoists what depends only on outer coordinates, with no new placement code.
+- "No reduction in a scan kernel" is stricter than the guide (which only forbade reductions over `r`). It keeps the block-scan mapping legal for every fused scan kernel, since that materializer has no row-reduction support, and it turns `cumsum(x / sum(x))` into a reduction kernel feeding a scan kernel.
+
+### What worked
+
+- The 2x4 nest printed as designed (Technical details). The position-id graph of `integer-arithmetic.mjs` became one kernel `k_pos(ids)` (mask, conversion, scan, `mul`/`add` epilogue), and `peak = amax(cumsum(ids))` became two kernels, a scan and a reduction reading it.
+- The bool cumsum (`8 512 bool`) is now one kernel: the `to_i64` conversion fuses into the scan body. The guide's open question 4 (why the masked lowering kept a separate `to_i64` kernel) has a likely answer: inlining the conversion into the masked n x n body multiplied its work by n, which the 2 % work guard refuses; the scan body evaluates it once per position.
+
+### What didn't work
+
+- The first run of the 2x4 cumsum after the Loop IR changes failed in Tile IR with `Cannot read properties of undefined (reading 'v')`: `analyze`/`estimate` did not know scan kernels. This is why Phases 1-5 landed together.
+- `compilePoint` first got a scan branch through a hoisted inner function (`walk0`); I rewrote it as a plain `if (sched.scanV) ... else walk(...)` before running anything.
+
+### What I learned
+
+- Fusing a scan producer into a consumer needs no index analysis of its own once the scan's range end is an index expression: the scheduler's own checks are the legality rule.
+
+### What was tricky to build
+
+- Where the `init` goes. A reduction's `init` sits before its own reduce loop, which `emitScope` emits as part of the item; a scan's `init` must sit in the parent scope before the free-loop child. `emitScope` now emits the inits for all carries just before it emits a child loop of kind `scan`. The materializers' `onReduce` hooks treat "init followed by a for" as a reduction, so the scan init carries `scan: true` and `emitNest` skips `onReduce` for it (Step 7).
+
+### What warrants a second pair of eyes
+
+- `scanFusionLegal` calls `schedule` on every candidate fused expression that contains a scan. `schedule` caches by expression, so the later real scheduling is free, but the fusion pass now schedules some expressions it will discard.
+- The `carry` rewrite substitutes `r := v` into the body with `substE`, which renames every reduction inside it. Reductions are excluded from scan kernels by fusion, but a hand-built `E.scan` with a body reduction would still schedule.
+
+### What should be done in the future
+
+- Exclusive and reverse scans (`exclusive`/`reverse` attributes, design section 6.10) fit this representation: the write before the step, and a descending loop.
+
+### Code review instructions
+
+- `packages/kiln/src/std/loop.js`: `E.scan`, the scan block at the top of `schedule`, `emitScope`, `pointExpr`, `scanFusionLegal`, `liftScan`.
+- `packages/kiln/src/std/tensor.js`: `scanRef`, `tensor.scan`, the `nn.cumsum` decomposition.
+- `node packages/kiln/test/scan.mjs` (sections "tensor.scan", "Loop IR", "scheduling restrictions", "fusion legality"); `node packages/kiln/test/integer-arithmetic.mjs`.
+
+### Technical details
+
+```text
+n2 = loop.kernel k_cumsum_scan(x)  -> (2, 4) f32
+    for a0 in 0..2:  # free
+        acc0 = 0
+        for a1 in 0..4:  # scan
+            in0 = load x[a0, a1]
+            acc0 <~ add(acc0, in0)
+            out[a0, a1] = acc0
+
+n33 = loop.kernel k_pos(ids)  -> (2, 6) i64
+    for a0 in 0..2:  # free
+        acc0 = 0
+        for a1 in 0..6:  # scan
+            in0 = load ids[a0, a1]
+            v0 = ne_i64(in0, 0)
+            v1 = to_i32(v0)
+            v2 = to_i64(v1)
+            acc0 <~ add_i64(acc0, v2)
+            v3 = to_i32(acc0)
+            v4 = mul_i32(v3, v1)
+            v5 = to_i64(v4)
+            v6 = add_i64(v5, 1)
+            out[a0, a1] = v6
+```
+
+## Step 6: Phase 4, Tile IR analysis, launch geometry and the scan cost model
+
+This step taught Tile IR the scan. `analyze` returns early for a scheduled scan with `an.scan = { v, n, dim, rowDims, rowVars, rows, carries, reductions }` and `an.rd = null`, so no reduction-row, staging or contraction analysis runs. `legalMaps` offers `thread` always and `row` when the kernel holds no reduction. `launch`, `printTile` and a new `estimateScan` cover both mappings. The first cost-model version ranked the mappings the wrong way round for the guide's two decisive shapes; the fixes and the remaining disagreement with the guide are recorded below.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 4.
+
+**Assistant interpretation:** Design-guide Phase 4 (sections 6.6 and 6.8).
+
+**Inferred user intent:** The cost model, and through `predictedCost` the PassNet cost gate, see the linear scan.
+
+**Commit (code):** 79e2ebc — "KILN-008 Phases 1-5: cumsum as a scan primitive"
+
+### What I did
+
+- `packages/kiln/src/std/tile.js`:
+  - `analyze`: the `an.scan` early return (above). `an.maxExtent = n`.
+  - `forkTree`: `MAP=thread` on a scan offers TPB from 32 up to `max(32, pow2(rows))`; `MAP=row` offers TPB up to `max(32, pow2(n))` (the reduction rule allows twice that).
+  - `launch`: thread map `grid = ceil(rows / (TPB * COARSEN))`; row map `grid = rows`, `smem = TPB * dtypeBytes(carry dtype)` per carried value.
+  - `estimateScan(an, kn, t)`, called first by `estimate`. Thread map: per warp of up to 32 rows, every statement in the scan loop is one warp instruction per position; load sectors follow the stride between adjacent rows, capped by the warp's L1 footprint (`lanes * n * 4` bytes) for a load that walks its row contiguously; stores are charged per access. Row map: per chunk of T positions, the body once per thread, and per step `4 + 3 log2 T` instructions, `2 + 2 log2 T` shared wavefronts and `2 log2 T + 2` barriers charged at `SYNC_INSTR = 8` warp instructions each.
+  - `printTile` prints `Tile(axes=(a0:2 → thread, 32/block); a1:4 serial scan)` or `ChunkLoop(...)`/`BlockScan(...)` for the row map.
+- New probe `scripts/02-scan-mapping-estimates.mjs <shape> [axis] [dtype] [--no-sim]`: the chosen option, every option's estimate, and simulator checks of the chosen and pinned row-map kernels.
+
+### Why
+
+- Restricting thread-map TPB to the row count: `timeModel` rewards more threads per block with more latency hiding, and cannot know that a 1024-thread block over one row has 1023 idle threads. Without the filter a single row of 32768 chose `MAP=thread, TPB=1024` (39.53 us) over the block scan.
+- The L1 footprint cap: without it, a last-axis thread-map scan with 16-element rows was charged 32 sectors per load per position (each lane in its own sector), as if no sector were reused across positions; consecutive positions of a lane read the same sector.
+
+### What worked
+
+- Probe after the change (A100 model, `01-inspect-cumsum-lowering.mjs`, `--no-sim`), against the masked lowering's numbers in the guide's section 4.3:
+
+  | shape, dtype | masked lowering | scan mapping | model estimate |
+  |---|---|---|---|
+  | 2x4 f32 | thread, 2.52 us | thread TPB=32 | 2.52 us |
+  | 8x512 f32 | row, 14.87 us | row TPB=512 | 3.38 us |
+  | 8x4096 f32 | tiled, 200.93 us | row TPB=1024 | 7.31 us |
+  | 64x2048 f32 | tiled, 136.85 us | row TPB=1024 | 4.91 us |
+  | 1x32768 f32 | row, 6334.09 us | row TPB=1024 | 40.99 us |
+  | 8x1024 i64 | (failed to compile) | row TPB=1024 | 3.70 us |
+  | 8x512 bool | two kernels | row TPB=512, one kernel | 3.38 us |
+
+- `16x65536` along axis 0 (adjacent rows at adjacent addresses) chooses `MAP=thread` (8.61 us, DRAM bound).
+- `predictedCost` of an 8x4096 i64 cumsum falls by more than 4x against the masked Tensor IR lowering of the same computation (asserted in `scan.mjs`).
+
+### What didn't work
+
+- First ranking, before the two fixes (`est.mjs` in my scratch directory, all options): `1x32768`: `thread TPB=1024` 39.53 us, `row TPB=1024` 40.99 us, so the pipeline picked the serial loop; `4096x16`: `row TPB=32` 3.48 us against `thread TPB=32` 7.13 us (L2 traffic 4.19e6 bytes for 256 KiB of input).
+- After the fixes, `4096x16` along the last axis still chooses `MAP=row, TPB=32` (3.48 us, launch bound) over `MAP=thread, TPB=32` (5.10 us). The guide's section 6.8 expected the sequential mapping to win here. I did not tune the model to match that expectation: one warp per 16-element row, coalesced, against strided per-thread loads and stores is a real trade-off, and only a measurement can settle it. The test asserts the robust cases instead (axis-0 many-row scan picks `thread`, one long row picks `row`).
+
+### What I learned
+
+- The analytic model has no latency term. The thread map's 32768-step dependency chain on one thread is visible to it only through issue counts at low occupancy.
+- The model counts every element as 4 bytes, so i64 scans get the f32 estimates (8x4096: 7.31 us for both). This is shared with the rest of `estimate`.
+
+### What was tricky to build
+
+- Counting warp instructions for a serial-per-thread loop: the existing thread-map walk divides trips by 32, which assumes 32 lanes do independent work; with one row per thread, a warp executes every position, so the count is `warps * positions`, not `rows * positions / 32`.
+
+### What warrants a second pair of eyes
+
+- `SYNC_INSTR = 8` and the L1-footprint assumption are uncalibrated priors.
+- The decisive ranking cases need Phase 6 measurements: `4096x16` last axis (model: row), `8x512` (model: row), `1x32768` (model: row).
+
+### What should be done in the future
+
+- Measure the two scan mappings on bling at the shapes of the table and at `4096x16`, and fit `SYNC_INSTR`.
+
+### Code review instructions
+
+- `packages/kiln/src/std/tile.js`: `analyze` (scan early return), `legalMaps`, the TPB level of `forkTree`, `launch`, `estimateScan`, `printTile`.
+- `node ttmp/2026/11/01/KILN-008--kiln-cumsum-as-a-scan-primitive-intern-analysis-design-and-implementation-guide/scripts/02-scan-mapping-estimates.mjs 4096x16 -1 f32 --no-sim`.
+
+### Technical details
+
+- Option table for `1x32768` before the TPB filter (us): thread 32: 95.07; thread 256: 54.57; thread 1024: 23.33; row 32: 80.19; row 256: 74.71; row 1024: 40.99. After the filter only thread 32 is offered for one row, and row 1024 wins.
+
+## Step 7: Phase 5, the two scan materializers and their CPU validation
+
+This step wrote the Kernel IR for both mappings, using only existing statements. `matScanThread` is `matThread` with the flat thread index decoded over the row dims and the scan loop emitted as a serial `for`. `matScanRow` turns the scan loop into a uniform loop over chunks of TPB positions, guards the body statements by `c0 + tid < n`, and replaces every `step` with a Hillis-Steele inclusive scan of the chunk in a shared array `s_scanq`, combined with a block-wide carry. A new test, `test/scan.mjs`, checks both mappings in the SIMT simulator against an f64 reference over the guide's shape grid, and a structural check finds shared-memory races that the lockstep simulator cannot see.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 4.
+
+**Assistant interpretation:** Design-guide Phase 5 (section 6.7) and the CPU half of section 10.
+
+**Inferred user intent:** Kernel IR correct enough that the GPU host only needs to compile and time it.
+
+**Commit (code):** 79e2ebc — "KILN-008 Phases 1-5: cumsum as a scan primitive"
+
+### What I did
+
+- `packages/kiln/src/std/kernel.js`:
+  - `emitNest`: a `for` of kind `scan` calls `ctx.onScan`, and throws `MaterializeError: this mapping does not materialize the scan loop over ...` when the mapping has none (so `matThread`/`matRow`/`matTiled` can never parallelize an ordered loop); `step` emits like `acc`; a scan `init` skips `onReduce`.
+  - `matScanThread(an, kn)` and `matScanRow(an, kn)`; `materialize` dispatches on `an.scan`.
+  - Row-map statement order per chunk and per step: `x := e`; `if p < n { segment; x := val }`; `s[tid] := x`; sync; for each `d = 1, 2, ..., T/2` (unrolled): `y := e`; `if tid >= d { y := s[tid - d] }`; sync; `if tid >= d { x := fn(y, x); s[tid] := x }`; sync; then `p_ := fn(carry, x)`, `t_ := s[T - 1]`, `carry := fn(carry, t_)`; the trailing segment (epilogue and write) under `if p < n`; a final sync before the next chunk.
+- `packages/kiln/test/scan.mjs` (new, 8.4 s): `tensor.scan` for add/mul/max/min and both axes; i64 wrap at 2^63 and bool widening; the printed 2x4 nest; dim reordering for axis 0 of a 3-D tensor; a size-1 axis is a reduction; for 6 shape/axis cases x {i64, i32, bool, f32}: pipeline Loop IR eval equals the frontend reference bit for bit, and `compileSerial` equals `compilePoint` at every element; the three ScheduleErrors; two scans of one coordinate share a loop; fusion cases; the simulator grid; a `max` scan through the block map (`__int_as_float(0xff800000)` identity); WGSL `var<workgroup> s_scan0` and `workgroupBarrier()`; cost-model cases.
+- `packages/kiln/test/integer-arithmetic.mjs`: the `s_red` int64 assertion now comes from a `MAP=row` pinned compile, plus `__shared__ long long s_scan0[`; the position-id kernel structure is asserted; the float-literal check covers the row-map CUDA too.
+- `integrations/passnet/test_fx_compose.py`: the position-id model at 2x2048 (exact against PyTorch), and a new f32 model `cumsum(x, 0) * 0.5 + cumsum(x, 1)` on 300x40 (two scans over different coordinates, which must not fuse into one kernel).
+
+### Why
+
+- `x := e` before the guarded segment: positions past the row end must contribute the identity to the chunk scan, and they must still execute every barrier.
+- f64 reference with a depth bound instead of `cumsumRef`: decision record 4 of the guide. The bound used is `|got - ref| <= 2 * depth * 2^-24 * sum_{j<=i} |x_j|` with depth `n` for the thread map and `ceil(n / T) + log2 T + 1` for the row map.
+
+### What worked
+
+- Simulator grid: 21 distinct (shape, mapping) kernels, covering `(1,1)`, `(3,31)`, `(4,256)`, `(2,257)`, `(1,32768)`, `(4096,16)`, `(5,300)` and `(300,5)` along axis 0, `(3,40,7)` along axis 1, with thread TPB 32 and row TPB 32/256/512/1024 where offered. All within the f64 bound, all with `simulateKernel` `check.ok` (no out-of-bounds access, no barrier in divergent code).
+- Mutation checks: making the Hillis-Steele loop stop at `T/2` fails the f64 check (`3,31 axis -1 MAP=row,TPB=32 at 16: 1.3152656555175781 vs 1.2024062797427177`). Removing the end-of-chunk barrier, or the barrier between the round's read and write, fails the race check (`3,31 MAP=row,TPB=32: shared-memory races`).
+- `npm test` → "all 50 passed" (exit 0); `python3 -m pytest -q` → "177 passed, 7 subtests passed" (exit 0); the two changed PassNet tests pass (`2 passed`).
+
+### What didn't work
+
+- `integer-arithmetic.mjs` failed after the switch: `expected: /__shared__ long long s_red\[/` — the int64 tree combine had come from the masked cumsum's `MAP=row`; at 2x6 nothing uses `MAP=row` now. Fixed with the pinned `MAP=row` compile.
+- My first replacement assertion counted kernels: `AssertionError: pos fuses into its scan; peak reads a separate scan kernel  6 !== 3` — the graph has five outputs. Then `TypeError: Cannot read properties of undefined (reading 'attrs')`: node `args` in a pipeline snapshot are ids (`[ 'n0' ]`), not nodes. The test now looks kernels up by output name and id.
+- `scan.mjs` first run: `TypeError: Cannot read properties of undefined (reading 'map')` for shape `[1, 1]`, which has no scan (a size-1 axis folds to a one-term sum); the grid now falls back to the shape's only kernel.
+- Removing the end-of-chunk barrier passed the first version of the test. The lockstep simulator executes each statement for every thread before the next, so a read of `s[T-1]` can never overlap the next chunk's stores there; it detects barriers in divergent code but not missing barriers. I added `sharedRaces(K)` to the test: it walks the chunk loop twice as a cycle (ifs flattened) and reports a shared store and a shared load of the same array within one barrier interval unless both index `tid`.
+- Integer Kernel IR cannot be simulated: `node .../01-inspect-cumsum-lowering.mjs 8 1024 i64` → `sim FAILED: ReferenceError: F_acc0 is not defined` (KILN-010 owns `toSim` integer support). Integer scans are checked through the Loop IR serial and point evaluators (exact), the frontend reference, and CUDA string assertions.
+
+### What I learned
+
+- The simulator's lockstep semantics hide races by construction; a barrier-placement bug in a cooperative kernel needs a separate check.
+- `inlineInto` refuses the second of two differently scanned cumsums in one consumer, and the 300x40 PassNet test shows the result stays numerically right.
+
+### What was tricky to build
+
+- The block carry. Every thread holds the same carry; the prefix for a position is `fn(carry, x)` and must be in a new name (`acc0_p`), because statements after the step read the prefix while `acc0` itself advances by the chunk total. The child context copies `vals` per chunk and maps the step's name to `acc0_p` for the rest of the iteration.
+- Multiple steps in one scan loop each get their own shared array, so an i64 and an f32 scan never share a typed array.
+
+### What warrants a second pair of eyes
+
+- `sharedRaces` is a heuristic for this kernel shape (one-dimensional `tid` indexing, one chunk loop), not a general race detector.
+- Hillis-Steele with two barriers per round: 20 barriers per chunk at T = 1024. A double-buffered variant would halve them; this is the first candidate if the Phase 6 timings show barrier cost.
+
+### What should be done in the future
+
+- After KILN-010 merges: simulate the integer scan kernels (both mappings) in `scan.mjs`, using the same grid with exact comparison.
+
+### Code review instructions
+
+- `packages/kiln/src/std/kernel.js`: `emitNest`, `matScanThread`, `matScanRow`, `materialize`.
+- `node packages/kiln/test/scan.mjs` (set `KILN_SCAN_VERBOSE=1` to list the simulated kernels); `cd integrations/passnet && python3 -m pytest -q test_fx_compose.py -k "cumsum or positions"`.
+
+### Technical details
+
+- Row-map CUDA for the position ids at 2x64, `MAP=row, TPB=32` (abridged): `__shared__ long long s_scan0[32];` `for (int c0 = 0; c0 < 64; c0 += 32) { p = (c0 + tid); acc0_x = 0LL; if ((p < 64)) { in0 = src0[((64 * bid) + p)]; ... acc0_x = v2; } s_scan0[tid] = acc0_x; __syncthreads(); ... acc0_p = (acc0 + acc0_x); acc0_t = s_scan0[31]; acc0 = (acc0 + acc0_t); if ((p < 64)) { ... dst[((64 * bid) + p)] = v6; } __syncthreads(); }`.
