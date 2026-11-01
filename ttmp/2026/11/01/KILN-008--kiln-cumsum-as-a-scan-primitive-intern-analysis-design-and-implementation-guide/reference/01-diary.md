@@ -10,13 +10,31 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: repo://packages/kiln/src/std/kernel.js
+      Note: matScanThread, matScanRow (Hillis-Steele block scan), tv per-operand fix in matTiled
+    - Path: repo://packages/kiln/src/std/loop.js
+      Note: E.scan, schedule carried loop (step), pointExpr, scanFusionLegal, liftScan
+    - Path: repo://packages/kiln/src/std/tensor.js
+      Note: scanRef, tensor.scan, CUMULATIVE ops and decomposition
+    - Path: repo://packages/kiln/src/std/tile.js
+      Note: an.scan, legalMaps/forkTree/launch, estimateScan
     - Path: repo://packages/kiln/test/integer-arithmetic.mjs
       Note: existing integer cumsum CPU test read in Step 2
+    - Path: repo://packages/kiln/test/scan.mjs
+      Note: 'scan test: references, nest, fusion, simulator grid, race check, cost ranking'
+    - Path: repo://packages/kiln/test/tiled-mixed-dtype.mjs
+      Note: Phase 0 regression for the tv temporary
     - Path: repo://ttmp/2026/11/01/KILN-008--kiln-cumsum-as-a-scan-primitive-intern-analysis-design-and-implementation-guide/scripts/01-inspect-cumsum-lowering.mjs
       Note: probe whose outputs Step 2 records
+    - Path: repo://ttmp/2026/11/01/KILN-008--kiln-cumsum-as-a-scan-primitive-intern-analysis-design-and-implementation-guide/scripts/02-scan-mapping-estimates.mjs
+      Note: probe of scan mapping estimates and simulator checks
+    - Path: repo://ttmp/2026/11/01/KILN-008--kiln-cumsum-as-a-scan-primitive-intern-analysis-design-and-implementation-guide/scripts/03-local-compile-gate-scan.py
+      Note: CPU local compile gate for the typed-slice3 families
+    - Path: repo://ttmp/2026/11/01/KILN-008--kiln-cumsum-as-a-scan-primitive-intern-analysis-design-and-implementation-guide/sources/local-compile-gate-scan-v1/gate.json
+      Note: CPU compile gate 51/51 over typed-slice3 families at a07d481
 ExternalSources: []
 Summary: Chronological investigation diary for the KILN-008 cumsum-as-scan design guide.
-LastUpdated: 2026-11-01T07:35:00-05:00
+LastUpdated: 2026-11-01T14:30:00-05:00
 WhatFor: Record how the KILN-008 design guide was researched, what evidence it rests on and what remains open.
 WhenToUse: Read before implementing the scan primitive or reviewing the design doc.
 ---
@@ -602,3 +620,67 @@ This step wrote the Kernel IR for both mappings, using only existing statements.
 ### Technical details
 
 - Row-map CUDA for the position ids at 2x64, `MAP=row, TPB=32` (abridged): `__shared__ long long s_scan0[32];` `for (int c0 = 0; c0 < 64; c0 += 32) { p = (c0 + tid); acc0_x = 0LL; if ((p < 64)) { in0 = src0[((64 * bid) + p)]; ... acc0_x = v2; } s_scan0[tid] = acc0_x; __syncthreads(); ... acc0_p = (acc0 + acc0_x); acc0_t = s_scan0[31]; acc0 = (acc0 + acc0_t); if ((p < 64)) { ... dst[((64 * bid) + p)] = v6; } __syncthreads(); }`.
+
+## Step 8: Phase 7 CPU slice, the CPU compile gate over the corpus families, and closing bookkeeping
+
+This step extended the scan to the other cumulative ops, ran KILN-005's local compile gate over the eleven typed-slice3 family tasks against this branch, recorded implementation notes in the design guide, and wrote the vault report. `nn.cumprod`, `nn.cummax` and `nn.cummin` (values) now share one table with `nn.cumsum`; the PassNet importer lowers them. The compile gate compiled 51 of 51 graphs with Kiln's internal reference check on, and every graph of the two cumsum families compiles its position ids into one fused scan kernel.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 4.
+
+**Assistant interpretation:** Do the CPU half of Phase 7 as far as quality allows, run every CPU check that stands in for the GPU replay, then the ticket hygiene and the vault report.
+
+**Inferred user intent:** Leave the coordinator with GPU work only, and a clear list of it.
+
+**Commit (code):** a07d481 — "KILN-008 Phase 7 (CPU slice): cumprod, cummax and cummin values as scans"
+
+### What I did
+
+- `packages/kiln/src/std/tensor.js`: `CUMULATIVE = { cumsum: add/widen, cumprod: mul/widen, cummax: max/keep, cummin: min/keep }`, `cumulativeDtype` (f32 stays f32; widening ops send every integer dtype to i64; max/min keep i32/i64 and refuse bool), the four nn ops registered in a loop after the `nn` dialect, `N.cumprod`/`N.cummax`/`N.cummin`, one decomposition per entry.
+- `packages/kiln/src/std/fns.js`: reducers `mul_i64` (identity `1n`, CUDA `1LL`) and `mul_i32`.
+- `integrations/passnet/fx_import.py`: `lower_cumulative(name, values_and_indices)` replaces `lower_cumsum`; cumsum/cumprod refuse a `dtype` argument as before; cummax/cummin return `[values, None]` like max/min over a dimension, so the indices refuse only where used (message now "argmax/argmin indices, or cummax/cummin indices").
+- Tests: `scan.mjs` (dtypes, bool refusal, Loop IR equals reference, an int64 product, f32 kernels in the simulator, the `1LL` identity); `test_fx_compose.py` `test_cumulative_ops_match_torch` (f32 and int64 cumprod/cummax/cummin against PyTorch) and `test_cummax_indices_refuse`.
+- `scripts/03-local-compile-gate-scan.py`: a copy of KILN-005 `scripts/674-local-compile-gate.py` taking `--upstream` (the PassBench checkout is an untracked directory of the `passnet` worktree). Ran it on tasks 28 64 91 104 126 175 199 3 139 162 38 into my scratch directory; copied `gate.json`, `run.log` and a list of the scan kernels to `sources/local-compile-gate-scan-v1/`.
+- Design guide: section 13 "Implementation notes" (deviations from sections 6-9).
+- docmgr: checked tasks mhb3, 9a7a, 3y3p, tz38, cpmx, mfwh; added and checked f7qt (Phase 7 slice); added ifd7 (integer simulation after KILN-010); related 8 implementation files to the diary.
+
+### Why
+
+- One table instead of four hand-written ops: the four ops differ only in reducer and widening rule, and the decomposition is the same.
+- `logcumsumexp` was left out: its reducer `logaddexp(a, b) = max + log1p(exp(-|a - b|))` produces NaN for `a = b = -inf`, and the block scan combines identities with identities past the row end, so it needs a guarded spelling and its own tests. Exclusive and reverse scans have no known corpus use.
+- The compile gate is the CPU stand-in for the GPU replay's first stage: it compiles exactly what the replay would stage and runs Kiln's end-to-end reference check.
+
+### What worked
+
+- `node packages/kiln/test/scan.mjs` → both sections pass; `npm test` → "all 50 passed" (exit 0); `python3 -m pytest -q` → "180 passed, 7 subtests passed" (exit 0).
+- Compile gate (`run.log`): `28 6/6`, `64 1/1`, `91 1/1`, `104 1/1`, `126 3/3`, `175 6/6`, `199 9/9`, `3 10/10`, `139 2/2`, `162 6/6`, `38 6/6` — the same counts as the frozen KILN-005 `typed-slice3-replay-v1/local-compile-gate.json`. Task 28's six graphs each compile to one kernel `k_ew_cast_cumsum_scan__*` (`MAP=row` with TPB 32 to 1024 by row length, e.g. `[2, 1024]` → `MAP=row,TPB=1024`); task 64 to `k_cumsum_ew_reshape_scan__*` (`[1, 13]`, `MAP=thread, TPB=32`). Compile log line: `: end-to-end check ok at loop`.
+
+### What didn't work
+
+- No failures in this step. The int64 `cumprod` comparison in the PassNet test goes through float64 (`check` converts results to float64), so it is tolerance-based, not bitwise; the bitwise int64 product check is in `scan.mjs`.
+
+### What I learned
+
+- The corpus's cumsum rows (19, 64, 256, 512, 1024 and 13 positions, 1-8 rows) are short; the block scan at TPB = row length is a single chunk there, so the carry path between chunks is exercised by the CPU grid and not by these families.
+
+### What was tricky to build
+
+- Registering nn ops after the dialect chain: `nn.op(...)` in a loop works, and the decompositions match them by name, but the ops must exist before `decompositions` is built, which the module order guarantees.
+
+### What warrants a second pair of eyes
+
+- `cummax`/`cummin` of f32 select a value, so they are exact in any order; the PassNet test still uses a tolerance because the harness compares in float64 for every output.
+
+### What should be done in the future
+
+- GPU (coordinator): see the receipt's list; first the NVRTC compile of a block-scan kernel and the typed-slice3 replay.
+
+### Code review instructions
+
+- `packages/kiln/src/std/tensor.js` (`CUMULATIVE`, `cumulativeDtype`, the op loop, the decomposition spread), `packages/kiln/src/std/fns.js` (`mul_i64`, `mul_i32`), `integrations/passnet/fx_import.py` (`lower_cumulative`).
+- `python3 ttmp/2026/11/01/KILN-008--kiln-cumsum-as-a-scan-primitive-intern-analysis-design-and-implementation-guide/scripts/03-local-compile-gate-scan.py --upstream <KILN-005 sources/upstream> --output <dir> 28 64` (about a minute per task on this machine).
+
+### Technical details
+
+- Evidence: `sources/local-compile-gate-scan-v1/gate.json` (format `kiln-local-compile-gate/1`), `run.log`, `scan-kernels.json` (7 scan kernels, tasks 28 and 64), compiled at a07d481.
