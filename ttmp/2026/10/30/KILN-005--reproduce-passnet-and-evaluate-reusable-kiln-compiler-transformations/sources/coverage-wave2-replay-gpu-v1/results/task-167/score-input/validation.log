@@ -1,0 +1,991 @@
+[kiln-task-runner/1] process receipts are not correctness claims
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/3] preserve explicit in-place operators, bound slice assignments and factory calls in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "dropout", "target": "torch.nn.functional.dropout"}]
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] model: ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0000 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0000.
+Compiled model execution failed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+Traceback (most recent call last):
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 266, in test_single_model
+    compiled_bench.warmup()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 169, in warmup
+    self.model_call()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 153, in model_call
+    return model(**input_dict)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 473, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 1055, in compile_wrapper
+    raise e.remove_dynamo_frames() from None  # see TORCHDYNAMO_VERBOSE=1
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2957, in _call_user_compiler
+    raise BackendCompilerFailed(
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2932, in _call_user_compiler
+    compiled_fn = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/repro/after_dynamo.py", line 156, in __call__
+    compiled_gm = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/__init__.py", line 2561, in __call__
+    return self.compiler_fn(model_, inputs_, **self.kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 237, in torch_compile_backend
+    raise RuntimeError("[PassMgrBackend] No passes modified the graph.")
+torch._dynamo.exc.BackendCompilerFailed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+
+--- Full Traceback ---
+debug-model-execution BackendCompilerFailed /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=1.18589 ms, gpu=1.13792 ms
+Trial 2: e2e=1.13773 ms, gpu=1.11990 ms
+Trial 3: e2e=1.12557 ms, gpu=1.11050 ms
+Trial 4: e2e=1.13010 ms, gpu=1.11526 ms
+Trial 5: e2e=1.12820 ms, gpu=1.11309 ms
+Trial 6: e2e=1.13416 ms, gpu=1.11866 ms
+Trial 7: e2e=1.13153 ms, gpu=1.11709 ms
+Trial 8: e2e=1.16229 ms, gpu=1.14861 ms
+Trial 9: e2e=1.13034 ms, gpu=1.11712 ms
+Trial 10: e2e=1.18160 ms, gpu=1.16762 ms
+Trial 11: e2e=1.13773 ms, gpu=1.12419 ms
+Trial 12: e2e=1.31249 ms, gpu=1.29654 ms
+Trial 13: e2e=1.14036 ms, gpu=1.12400 ms
+Trial 14: e2e=1.13487 ms, gpu=1.12032 ms
+Trial 15: e2e=1.14441 ms, gpu=1.13056 ms
+Trial 16: e2e=1.23191 ms, gpu=1.21482 ms
+Trial 17: e2e=1.15013 ms, gpu=1.13587 ms
+Trial 18: e2e=1.16158 ms, gpu=1.14650 ms
+Trial 19: e2e=1.12963 ms, gpu=1.11558 ms
+Trial 20: e2e=1.12462 ms, gpu=1.11059 ms
+Trial 21: e2e=1.12748 ms, gpu=1.11386 ms
+Trial 22: e2e=1.12629 ms, gpu=1.11264 ms
+Trial 23: e2e=1.13106 ms, gpu=1.11690 ms
+Trial 24: e2e=1.12343 ms, gpu=1.10963 ms
+Trial 25: e2e=1.12867 ms, gpu=1.11469 ms
+Trial 26: e2e=1.12224 ms, gpu=1.10842 ms
+Trial 27: e2e=1.12653 ms, gpu=1.11251 ms
+Trial 28: e2e=1.13344 ms, gpu=1.11965 ms
+Trial 29: e2e=1.13058 ms, gpu=1.11670 ms
+Trial 30: e2e=1.12343 ms, gpu=1.10954 ms
+Trial 31: e2e=1.12200 ms, gpu=1.10822 ms
+Trial 32: e2e=1.12414 ms, gpu=1.11014 ms
+Trial 33: e2e=1.12534 ms, gpu=1.11133 ms
+Trial 34: e2e=1.12224 ms, gpu=1.10835 ms
+Trial 35: e2e=1.12724 ms, gpu=1.11357 ms
+Trial 36: e2e=1.12176 ms, gpu=1.10778 ms
+Trial 37: e2e=1.12867 ms, gpu=1.11517 ms
+Trial 38: e2e=1.11818 ms, gpu=1.10448 ms
+Trial 39: e2e=1.12987 ms, gpu=1.11629 ms
+Trial 40: e2e=1.12486 ms, gpu=1.11069 ms
+Trial 41: e2e=1.12557 ms, gpu=1.11165 ms
+Trial 42: e2e=1.12748 ms, gpu=1.11405 ms
+Trial 43: e2e=1.12128 ms, gpu=1.10739 ms
+Trial 44: e2e=1.13106 ms, gpu=1.11750 ms
+Trial 45: e2e=1.12152 ms, gpu=1.10762 ms
+Trial 46: e2e=1.12629 ms, gpu=1.11264 ms
+Trial 47: e2e=1.12510 ms, gpu=1.11133 ms
+Trial 48: e2e=1.12724 ms, gpu=1.11299 ms
+Trial 49: e2e=1.12295 ms, gpu=1.10902 ms
+Trial 50: e2e=1.11866 ms, gpu=1.10509 ms
+Trial 51: e2e=1.12629 ms, gpu=1.11242 ms
+Trial 52: e2e=1.12081 ms, gpu=1.10698 ms
+Trial 53: e2e=1.13225 ms, gpu=1.11850 ms
+Trial 54: e2e=1.12963 ms, gpu=1.11594 ms
+Trial 55: e2e=1.12343 ms, gpu=1.10931 ms
+Trial 56: e2e=1.12391 ms, gpu=1.11024 ms
+Trial 57: e2e=1.12510 ms, gpu=1.11136 ms
+Trial 58: e2e=1.12104 ms, gpu=1.10726 ms
+Trial 59: e2e=1.12367 ms, gpu=1.10973 ms
+Trial 60: e2e=1.12915 ms, gpu=1.11526 ms
+Trial 61: e2e=1.12438 ms, gpu=1.11014 ms
+Trial 62: e2e=1.12128 ms, gpu=1.10755 ms
+Trial 63: e2e=1.12009 ms, gpu=1.10643 ms
+Trial 64: e2e=1.19615 ms, gpu=1.18195 ms
+Trial 65: e2e=1.13273 ms, gpu=1.11872 ms
+Trial 66: e2e=1.11675 ms, gpu=1.10278 ms
+Trial 67: e2e=1.12820 ms, gpu=1.11427 ms
+Trial 68: e2e=1.12581 ms, gpu=1.11187 ms
+Trial 69: e2e=1.12438 ms, gpu=1.11046 ms
+Trial 70: e2e=1.12200 ms, gpu=1.10835 ms
+Trial 71: e2e=1.13869 ms, gpu=1.12486 ms
+Trial 72: e2e=1.12534 ms, gpu=1.11162 ms
+Trial 73: e2e=1.12486 ms, gpu=1.11085 ms
+Trial 74: e2e=1.12486 ms, gpu=1.11075 ms
+Trial 75: e2e=1.13153 ms, gpu=1.11738 ms
+Trial 76: e2e=1.12391 ms, gpu=1.11014 ms
+Trial 77: e2e=1.12200 ms, gpu=1.10883 ms
+Trial 78: e2e=1.12724 ms, gpu=1.11418 ms
+Trial 79: e2e=1.12581 ms, gpu=1.11264 ms
+Trial 80: e2e=1.17350 ms, gpu=1.15955 ms
+Trial 81: e2e=1.14989 ms, gpu=1.13366 ms
+Trial 82: e2e=1.35231 ms, gpu=1.33469 ms
+Trial 83: e2e=1.13010 ms, gpu=1.11610 ms
+Trial 84: e2e=1.14036 ms, gpu=1.12637 ms
+Trial 85: e2e=1.29390 ms, gpu=1.27974 ms
+Trial 86: e2e=1.13106 ms, gpu=1.11606 ms
+Trial 87: e2e=1.18780 ms, gpu=1.17386 ms
+Trial 88: e2e=1.14202 ms, gpu=1.12829 ms
+Trial 89: e2e=1.12438 ms, gpu=1.11021 ms
+Trial 90: e2e=1.12534 ms, gpu=1.11152 ms
+Trial 91: e2e=1.12224 ms, gpu=1.10854 ms
+Trial 92: e2e=1.12200 ms, gpu=1.10774 ms
+Trial 93: e2e=1.12271 ms, gpu=1.10906 ms
+Trial 94: e2e=1.12724 ms, gpu=1.11306 ms
+Trial 95: e2e=1.12581 ms, gpu=1.11213 ms
+Trial 96: e2e=1.12319 ms, gpu=1.10909 ms
+Trial 97: e2e=1.12724 ms, gpu=1.11338 ms
+Trial 98: e2e=1.12724 ms, gpu=1.11370 ms
+Trial 99: e2e=1.12653 ms, gpu=1.11270 ms
+Trial 100: e2e=1.12391 ms, gpu=1.11002 ms
+graph-net-test-compiler-log [Result] status: failed
+graph-net-test-compiler-log [Fail due to compiled model execution error.]
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/3] preserve explicit in-place operators, bound slice assignments and factory calls in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "dropout", "target": "torch.nn.functional.dropout"}]
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] model: ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0000 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0000.
+Compiled model execution failed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+Traceback (most recent call last):
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 266, in test_single_model
+    compiled_bench.warmup()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 169, in warmup
+    self.model_call()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 153, in model_call
+    return model(**input_dict)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 473, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 1055, in compile_wrapper
+    raise e.remove_dynamo_frames() from None  # see TORCHDYNAMO_VERBOSE=1
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2957, in _call_user_compiler
+    raise BackendCompilerFailed(
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2932, in _call_user_compiler
+    compiled_fn = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/repro/after_dynamo.py", line 156, in __call__
+    compiled_gm = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/__init__.py", line 2561, in __call__
+    return self.compiler_fn(model_, inputs_, **self.kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 237, in torch_compile_backend
+    raise RuntimeError("[PassMgrBackend] No passes modified the graph.")
+torch._dynamo.exc.BackendCompilerFailed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+
+--- Full Traceback ---
+debug-model-execution BackendCompilerFailed /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.20552 ms, gpu=0.14902 ms
+Trial 2: e2e=0.15259 ms, gpu=0.13370 ms
+Trial 3: e2e=0.14186 ms, gpu=0.12653 ms
+Trial 4: e2e=0.14019 ms, gpu=0.12499 ms
+Trial 5: e2e=0.13995 ms, gpu=0.12451 ms
+Trial 6: e2e=0.14448 ms, gpu=0.12896 ms
+Trial 7: e2e=0.14567 ms, gpu=0.13059 ms
+Trial 8: e2e=0.13900 ms, gpu=0.12451 ms
+Trial 9: e2e=0.13566 ms, gpu=0.12109 ms
+Trial 10: e2e=0.13685 ms, gpu=0.12250 ms
+Trial 11: e2e=0.13709 ms, gpu=0.12218 ms
+Trial 12: e2e=0.13638 ms, gpu=0.12192 ms
+Trial 13: e2e=0.13566 ms, gpu=0.12160 ms
+Trial 14: e2e=0.13733 ms, gpu=0.12285 ms
+Trial 15: e2e=0.13518 ms, gpu=0.12125 ms
+Trial 16: e2e=0.13423 ms, gpu=0.12064 ms
+Trial 17: e2e=0.13542 ms, gpu=0.12102 ms
+Trial 18: e2e=0.13590 ms, gpu=0.12150 ms
+Trial 19: e2e=0.13566 ms, gpu=0.12112 ms
+Trial 20: e2e=0.13828 ms, gpu=0.12102 ms
+Trial 21: e2e=0.13590 ms, gpu=0.12160 ms
+Trial 22: e2e=0.13566 ms, gpu=0.12192 ms
+Trial 23: e2e=0.13375 ms, gpu=0.11974 ms
+Trial 24: e2e=0.13423 ms, gpu=0.11974 ms
+Trial 25: e2e=0.13638 ms, gpu=0.12224 ms
+Trial 26: e2e=0.13542 ms, gpu=0.12106 ms
+Trial 27: e2e=0.14186 ms, gpu=0.12758 ms
+Trial 28: e2e=0.13733 ms, gpu=0.12304 ms
+Trial 29: e2e=0.13542 ms, gpu=0.12109 ms
+Trial 30: e2e=0.13542 ms, gpu=0.12125 ms
+Trial 31: e2e=0.13781 ms, gpu=0.12342 ms
+Trial 32: e2e=0.13566 ms, gpu=0.12118 ms
+Trial 33: e2e=0.13924 ms, gpu=0.12541 ms
+Trial 34: e2e=0.14162 ms, gpu=0.12723 ms
+Trial 35: e2e=0.13638 ms, gpu=0.12186 ms
+Trial 36: e2e=0.13638 ms, gpu=0.12234 ms
+Trial 37: e2e=0.13471 ms, gpu=0.12045 ms
+Trial 38: e2e=0.13494 ms, gpu=0.12074 ms
+Trial 39: e2e=0.13733 ms, gpu=0.12349 ms
+Trial 40: e2e=0.13685 ms, gpu=0.12259 ms
+Trial 41: e2e=0.13924 ms, gpu=0.12534 ms
+Trial 42: e2e=0.13781 ms, gpu=0.12349 ms
+Trial 43: e2e=0.13733 ms, gpu=0.12266 ms
+Trial 44: e2e=0.13471 ms, gpu=0.12045 ms
+Trial 45: e2e=0.13447 ms, gpu=0.12003 ms
+Trial 46: e2e=0.13304 ms, gpu=0.11910 ms
+Trial 47: e2e=0.13566 ms, gpu=0.12150 ms
+Trial 48: e2e=0.13709 ms, gpu=0.12301 ms
+Trial 49: e2e=0.13494 ms, gpu=0.12067 ms
+Trial 50: e2e=0.13447 ms, gpu=0.12000 ms
+Trial 51: e2e=0.13351 ms, gpu=0.11914 ms
+Trial 52: e2e=0.13399 ms, gpu=0.12013 ms
+Trial 53: e2e=0.13447 ms, gpu=0.12048 ms
+Trial 54: e2e=0.13375 ms, gpu=0.11962 ms
+Trial 55: e2e=0.13900 ms, gpu=0.12490 ms
+Trial 56: e2e=0.13566 ms, gpu=0.12154 ms
+Trial 57: e2e=0.13447 ms, gpu=0.12032 ms
+Trial 58: e2e=0.13399 ms, gpu=0.11978 ms
+Trial 59: e2e=0.13518 ms, gpu=0.12080 ms
+Trial 60: e2e=0.13375 ms, gpu=0.11962 ms
+Trial 61: e2e=0.13423 ms, gpu=0.12010 ms
+Trial 62: e2e=0.13685 ms, gpu=0.12288 ms
+Trial 63: e2e=0.13447 ms, gpu=0.12013 ms
+Trial 64: e2e=0.13328 ms, gpu=0.11690 ms
+Trial 65: e2e=0.13518 ms, gpu=0.12086 ms
+Trial 66: e2e=0.13399 ms, gpu=0.11990 ms
+Trial 67: e2e=0.13399 ms, gpu=0.12035 ms
+Trial 68: e2e=0.13280 ms, gpu=0.11859 ms
+Trial 69: e2e=0.13781 ms, gpu=0.12339 ms
+Trial 70: e2e=0.13614 ms, gpu=0.12186 ms
+Trial 71: e2e=0.13518 ms, gpu=0.12118 ms
+Trial 72: e2e=0.13375 ms, gpu=0.11987 ms
+Trial 73: e2e=0.13661 ms, gpu=0.12259 ms
+Trial 74: e2e=0.13542 ms, gpu=0.12128 ms
+Trial 75: e2e=0.13661 ms, gpu=0.12259 ms
+Trial 76: e2e=0.13757 ms, gpu=0.12339 ms
+Trial 77: e2e=0.13304 ms, gpu=0.11885 ms
+Trial 78: e2e=0.13876 ms, gpu=0.12474 ms
+Trial 79: e2e=0.13447 ms, gpu=0.12038 ms
+Trial 80: e2e=0.13471 ms, gpu=0.12045 ms
+Trial 81: e2e=0.13375 ms, gpu=0.11997 ms
+Trial 82: e2e=0.13351 ms, gpu=0.11987 ms
+Trial 83: e2e=0.13900 ms, gpu=0.12467 ms
+Trial 84: e2e=0.13447 ms, gpu=0.12080 ms
+Trial 85: e2e=0.13518 ms, gpu=0.12093 ms
+Trial 86: e2e=0.13614 ms, gpu=0.12202 ms
+Trial 87: e2e=0.13447 ms, gpu=0.12016 ms
+Trial 88: e2e=0.13375 ms, gpu=0.11965 ms
+Trial 89: e2e=0.13351 ms, gpu=0.11923 ms
+Trial 90: e2e=0.13852 ms, gpu=0.12448 ms
+Trial 91: e2e=0.13590 ms, gpu=0.12182 ms
+Trial 92: e2e=0.13304 ms, gpu=0.11933 ms
+Trial 93: e2e=0.13447 ms, gpu=0.12054 ms
+Trial 94: e2e=0.13423 ms, gpu=0.11997 ms
+Trial 95: e2e=0.13375 ms, gpu=0.11930 ms
+Trial 96: e2e=0.13423 ms, gpu=0.11990 ms
+Trial 97: e2e=0.13995 ms, gpu=0.12592 ms
+Trial 98: e2e=0.13399 ms, gpu=0.11997 ms
+Trial 99: e2e=0.13399 ms, gpu=0.11968 ms
+Trial 100: e2e=0.13351 ms, gpu=0.11914 ms
+graph-net-test-compiler-log [Result] status: failed
+graph-net-test-compiler-log [Fail due to compiled model execution error.]
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/3] preserve explicit in-place operators, bound slice assignments and factory calls in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "dropout", "target": "torch.nn.functional.dropout"}]
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] model: ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0000 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0000.
+Compiled model execution failed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+Traceback (most recent call last):
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 266, in test_single_model
+    compiled_bench.warmup()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 169, in warmup
+    self.model_call()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 153, in model_call
+    return model(**input_dict)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 473, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 1055, in compile_wrapper
+    raise e.remove_dynamo_frames() from None  # see TORCHDYNAMO_VERBOSE=1
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2957, in _call_user_compiler
+    raise BackendCompilerFailed(
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2932, in _call_user_compiler
+    compiled_fn = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/repro/after_dynamo.py", line 156, in __call__
+    compiled_gm = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/__init__.py", line 2561, in __call__
+    return self.compiler_fn(model_, inputs_, **self.kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 237, in torch_compile_backend
+    raise RuntimeError("[PassMgrBackend] No passes modified the graph.")
+torch._dynamo.exc.BackendCompilerFailed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+
+--- Full Traceback ---
+debug-model-execution BackendCompilerFailed /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.21172 ms, gpu=0.16352 ms
+Trial 2: e2e=0.16975 ms, gpu=0.15219 ms
+Trial 3: e2e=0.16141 ms, gpu=0.14646 ms
+Trial 4: e2e=0.16665 ms, gpu=0.15222 ms
+Trial 5: e2e=0.16022 ms, gpu=0.14566 ms
+Trial 6: e2e=0.15926 ms, gpu=0.14470 ms
+Trial 7: e2e=0.15950 ms, gpu=0.14566 ms
+Trial 8: e2e=0.15950 ms, gpu=0.14563 ms
+Trial 9: e2e=0.15998 ms, gpu=0.14595 ms
+Trial 10: e2e=0.16475 ms, gpu=0.15053 ms
+Trial 11: e2e=0.15688 ms, gpu=0.14320 ms
+Trial 12: e2e=0.15593 ms, gpu=0.14198 ms
+Trial 13: e2e=0.15616 ms, gpu=0.14240 ms
+Trial 14: e2e=0.15807 ms, gpu=0.14406 ms
+Trial 15: e2e=0.15736 ms, gpu=0.14352 ms
+Trial 16: e2e=0.16236 ms, gpu=0.14851 ms
+Trial 17: e2e=0.15974 ms, gpu=0.14602 ms
+Trial 18: e2e=0.15855 ms, gpu=0.14515 ms
+Trial 19: e2e=0.15855 ms, gpu=0.14477 ms
+Trial 20: e2e=0.15783 ms, gpu=0.14445 ms
+Trial 21: e2e=0.15712 ms, gpu=0.14346 ms
+Trial 22: e2e=0.16499 ms, gpu=0.15162 ms
+Trial 23: e2e=0.15950 ms, gpu=0.14541 ms
+Trial 24: e2e=0.15688 ms, gpu=0.14310 ms
+Trial 25: e2e=0.15807 ms, gpu=0.14365 ms
+Trial 26: e2e=0.15950 ms, gpu=0.14566 ms
+Trial 27: e2e=0.15831 ms, gpu=0.14429 ms
+Trial 28: e2e=0.15998 ms, gpu=0.14624 ms
+Trial 29: e2e=0.15688 ms, gpu=0.14330 ms
+Trial 30: e2e=0.16093 ms, gpu=0.14694 ms
+Trial 31: e2e=0.15903 ms, gpu=0.14528 ms
+Trial 32: e2e=0.15807 ms, gpu=0.14458 ms
+Trial 33: e2e=0.15759 ms, gpu=0.14374 ms
+Trial 34: e2e=0.16117 ms, gpu=0.14733 ms
+Trial 35: e2e=0.16069 ms, gpu=0.14672 ms
+Trial 36: e2e=0.16069 ms, gpu=0.14685 ms
+Trial 37: e2e=0.15759 ms, gpu=0.14390 ms
+Trial 38: e2e=0.15736 ms, gpu=0.14368 ms
+Trial 39: e2e=0.15688 ms, gpu=0.14320 ms
+Trial 40: e2e=0.15926 ms, gpu=0.14512 ms
+Trial 41: e2e=0.15879 ms, gpu=0.14502 ms
+Trial 42: e2e=0.15378 ms, gpu=0.14013 ms
+Trial 43: e2e=0.15616 ms, gpu=0.14234 ms
+Trial 44: e2e=0.15712 ms, gpu=0.14358 ms
+Trial 45: e2e=0.15640 ms, gpu=0.14250 ms
+Trial 46: e2e=0.16236 ms, gpu=0.14854 ms
+Trial 47: e2e=0.15807 ms, gpu=0.14445 ms
+Trial 48: e2e=0.15855 ms, gpu=0.14515 ms
+Trial 49: e2e=0.15616 ms, gpu=0.14278 ms
+Trial 50: e2e=0.15903 ms, gpu=0.14512 ms
+Trial 51: e2e=0.15903 ms, gpu=0.14538 ms
+Trial 52: e2e=0.16379 ms, gpu=0.15024 ms
+Trial 53: e2e=0.15712 ms, gpu=0.14346 ms
+Trial 54: e2e=0.15545 ms, gpu=0.14170 ms
+Trial 55: e2e=0.15831 ms, gpu=0.14458 ms
+Trial 56: e2e=0.15593 ms, gpu=0.14214 ms
+Trial 57: e2e=0.15688 ms, gpu=0.14333 ms
+Trial 58: e2e=0.15759 ms, gpu=0.14368 ms
+Trial 59: e2e=0.15569 ms, gpu=0.14189 ms
+Trial 60: e2e=0.15831 ms, gpu=0.14416 ms
+Trial 61: e2e=0.15664 ms, gpu=0.14301 ms
+Trial 62: e2e=0.15759 ms, gpu=0.14365 ms
+Trial 63: e2e=0.15712 ms, gpu=0.14339 ms
+Trial 64: e2e=0.15974 ms, gpu=0.14589 ms
+Trial 65: e2e=0.15807 ms, gpu=0.14448 ms
+Trial 66: e2e=0.16356 ms, gpu=0.14947 ms
+Trial 67: e2e=0.15807 ms, gpu=0.14470 ms
+Trial 68: e2e=0.15759 ms, gpu=0.14381 ms
+Trial 69: e2e=0.15712 ms, gpu=0.14374 ms
+Trial 70: e2e=0.15879 ms, gpu=0.14499 ms
+Trial 71: e2e=0.15807 ms, gpu=0.14474 ms
+Trial 72: e2e=0.15640 ms, gpu=0.14275 ms
+Trial 73: e2e=0.15616 ms, gpu=0.14234 ms
+Trial 74: e2e=0.15736 ms, gpu=0.14384 ms
+Trial 75: e2e=0.15807 ms, gpu=0.14416 ms
+Trial 76: e2e=0.16308 ms, gpu=0.14931 ms
+Trial 77: e2e=0.15759 ms, gpu=0.14390 ms
+Trial 78: e2e=0.15473 ms, gpu=0.14102 ms
+Trial 79: e2e=0.15521 ms, gpu=0.14131 ms
+Trial 80: e2e=0.15831 ms, gpu=0.14467 ms
+Trial 81: e2e=0.15640 ms, gpu=0.14304 ms
+Trial 82: e2e=0.16141 ms, gpu=0.14746 ms
+Trial 83: e2e=0.15593 ms, gpu=0.14176 ms
+Trial 84: e2e=0.15688 ms, gpu=0.14339 ms
+Trial 85: e2e=0.15807 ms, gpu=0.14454 ms
+Trial 86: e2e=0.15545 ms, gpu=0.14195 ms
+Trial 87: e2e=0.15855 ms, gpu=0.14470 ms
+Trial 88: e2e=0.15926 ms, gpu=0.14563 ms
+Trial 89: e2e=0.15354 ms, gpu=0.14000 ms
+Trial 90: e2e=0.15712 ms, gpu=0.14326 ms
+Trial 91: e2e=0.15450 ms, gpu=0.14160 ms
+Trial 92: e2e=0.15736 ms, gpu=0.14355 ms
+Trial 93: e2e=0.15759 ms, gpu=0.14458 ms
+Trial 94: e2e=0.15807 ms, gpu=0.14464 ms
+Trial 95: e2e=0.15736 ms, gpu=0.14416 ms
+Trial 96: e2e=0.15759 ms, gpu=0.14371 ms
+Trial 97: e2e=0.15545 ms, gpu=0.14186 ms
+Trial 98: e2e=0.15640 ms, gpu=0.14285 ms
+Trial 99: e2e=0.15807 ms, gpu=0.14454 ms
+Trial 100: e2e=0.15736 ms, gpu=0.14387 ms
+graph-net-test-compiler-log [Result] status: failed
+graph-net-test-compiler-log [Fail due to compiled model execution error.]
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/3] preserve explicit in-place operators, bound slice assignments and factory calls in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "dropout", "target": "torch.nn.functional.dropout"}]
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] model: ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0000 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0000.
+Compiled model execution failed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+Traceback (most recent call last):
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 266, in test_single_model
+    compiled_bench.warmup()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 169, in warmup
+    self.model_call()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 153, in model_call
+    return model(**input_dict)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 473, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 1055, in compile_wrapper
+    raise e.remove_dynamo_frames() from None  # see TORCHDYNAMO_VERBOSE=1
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2957, in _call_user_compiler
+    raise BackendCompilerFailed(
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2932, in _call_user_compiler
+    compiled_fn = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/repro/after_dynamo.py", line 156, in __call__
+    compiled_gm = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/__init__.py", line 2561, in __call__
+    return self.compiler_fn(model_, inputs_, **self.kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 237, in torch_compile_backend
+    raise RuntimeError("[PassMgrBackend] No passes modified the graph.")
+torch._dynamo.exc.BackendCompilerFailed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+
+--- Full Traceback ---
+debug-model-execution BackendCompilerFailed /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.19693 ms, gpu=0.15050 ms
+Trial 2: e2e=0.15807 ms, gpu=0.13885 ms
+Trial 3: e2e=0.14663 ms, gpu=0.13066 ms
+Trial 4: e2e=0.15616 ms, gpu=0.13834 ms
+Trial 5: e2e=0.15092 ms, gpu=0.13504 ms
+Trial 6: e2e=0.29302 ms, gpu=0.16250 ms
+Trial 7: e2e=0.15712 ms, gpu=0.14141 ms
+Trial 8: e2e=0.14329 ms, gpu=0.12794 ms
+Trial 9: e2e=0.13924 ms, gpu=0.12406 ms
+Trial 10: e2e=0.13757 ms, gpu=0.12250 ms
+Trial 11: e2e=0.13876 ms, gpu=0.11987 ms
+Trial 12: e2e=0.13804 ms, gpu=0.12330 ms
+Trial 13: e2e=0.13900 ms, gpu=0.12422 ms
+Trial 14: e2e=0.14257 ms, gpu=0.12755 ms
+Trial 15: e2e=0.13757 ms, gpu=0.12317 ms
+Trial 16: e2e=0.14043 ms, gpu=0.12582 ms
+Trial 17: e2e=0.14305 ms, gpu=0.12803 ms
+Trial 18: e2e=0.14019 ms, gpu=0.12518 ms
+Trial 19: e2e=0.14043 ms, gpu=0.12531 ms
+Trial 20: e2e=0.14734 ms, gpu=0.13331 ms
+Trial 21: e2e=0.14663 ms, gpu=0.13200 ms
+Trial 22: e2e=0.13900 ms, gpu=0.12406 ms
+Trial 23: e2e=0.13757 ms, gpu=0.12278 ms
+Trial 24: e2e=0.14043 ms, gpu=0.12499 ms
+Trial 25: e2e=0.13876 ms, gpu=0.12394 ms
+Trial 26: e2e=0.13828 ms, gpu=0.12416 ms
+Trial 27: e2e=0.13900 ms, gpu=0.12442 ms
+Trial 28: e2e=0.14353 ms, gpu=0.12899 ms
+Trial 29: e2e=0.14043 ms, gpu=0.12598 ms
+Trial 30: e2e=0.13733 ms, gpu=0.12291 ms
+Trial 31: e2e=0.13804 ms, gpu=0.12349 ms
+Trial 32: e2e=0.13876 ms, gpu=0.12442 ms
+Trial 33: e2e=0.14138 ms, gpu=0.12698 ms
+Trial 34: e2e=0.14114 ms, gpu=0.12666 ms
+Trial 35: e2e=0.13876 ms, gpu=0.12454 ms
+Trial 36: e2e=0.13685 ms, gpu=0.12230 ms
+Trial 37: e2e=0.13733 ms, gpu=0.12272 ms
+Trial 38: e2e=0.13828 ms, gpu=0.12390 ms
+Trial 39: e2e=0.13852 ms, gpu=0.12435 ms
+Trial 40: e2e=0.13876 ms, gpu=0.12326 ms
+Trial 41: e2e=0.14067 ms, gpu=0.12650 ms
+Trial 42: e2e=0.13685 ms, gpu=0.12240 ms
+Trial 43: e2e=0.13900 ms, gpu=0.12451 ms
+Trial 44: e2e=0.13876 ms, gpu=0.12464 ms
+Trial 45: e2e=0.13781 ms, gpu=0.12390 ms
+Trial 46: e2e=0.13804 ms, gpu=0.12288 ms
+Trial 47: e2e=0.13709 ms, gpu=0.12288 ms
+Trial 48: e2e=0.14234 ms, gpu=0.12803 ms
+Trial 49: e2e=0.13638 ms, gpu=0.12243 ms
+Trial 50: e2e=0.13757 ms, gpu=0.12234 ms
+Trial 51: e2e=0.13900 ms, gpu=0.12365 ms
+Trial 52: e2e=0.13661 ms, gpu=0.12218 ms
+Trial 53: e2e=0.13828 ms, gpu=0.12394 ms
+Trial 54: e2e=0.13876 ms, gpu=0.12448 ms
+Trial 55: e2e=0.14234 ms, gpu=0.12803 ms
+Trial 56: e2e=0.13876 ms, gpu=0.12435 ms
+Trial 57: e2e=0.13661 ms, gpu=0.12205 ms
+Trial 58: e2e=0.13685 ms, gpu=0.12224 ms
+Trial 59: e2e=0.13709 ms, gpu=0.12214 ms
+Trial 60: e2e=0.13852 ms, gpu=0.12445 ms
+Trial 61: e2e=0.13852 ms, gpu=0.12381 ms
+Trial 62: e2e=0.14257 ms, gpu=0.12781 ms
+Trial 63: e2e=0.13828 ms, gpu=0.12358 ms
+Trial 64: e2e=0.13757 ms, gpu=0.12323 ms
+Trial 65: e2e=0.13733 ms, gpu=0.12285 ms
+Trial 66: e2e=0.13566 ms, gpu=0.12141 ms
+Trial 67: e2e=0.13709 ms, gpu=0.12253 ms
+Trial 68: e2e=0.14281 ms, gpu=0.12512 ms
+Trial 69: e2e=0.13947 ms, gpu=0.12506 ms
+Trial 70: e2e=0.13423 ms, gpu=0.11968 ms
+Trial 71: e2e=0.13661 ms, gpu=0.12269 ms
+Trial 72: e2e=0.13804 ms, gpu=0.12378 ms
+Trial 73: e2e=0.13781 ms, gpu=0.12352 ms
+Trial 74: e2e=0.14019 ms, gpu=0.12560 ms
+Trial 75: e2e=0.13924 ms, gpu=0.12464 ms
+Trial 76: e2e=0.13614 ms, gpu=0.12170 ms
+Trial 77: e2e=0.13781 ms, gpu=0.12358 ms
+Trial 78: e2e=0.13494 ms, gpu=0.12035 ms
+Trial 79: e2e=0.13614 ms, gpu=0.12189 ms
+Trial 80: e2e=0.13471 ms, gpu=0.12042 ms
+Trial 81: e2e=0.13471 ms, gpu=0.12006 ms
+Trial 82: e2e=0.14043 ms, gpu=0.12579 ms
+Trial 83: e2e=0.13590 ms, gpu=0.12147 ms
+Trial 84: e2e=0.13852 ms, gpu=0.12429 ms
+Trial 85: e2e=0.13661 ms, gpu=0.12224 ms
+Trial 86: e2e=0.13304 ms, gpu=0.11878 ms
+Trial 87: e2e=0.13399 ms, gpu=0.11968 ms
+Trial 88: e2e=0.13518 ms, gpu=0.12080 ms
+Trial 89: e2e=0.13852 ms, gpu=0.12394 ms
+Trial 90: e2e=0.13876 ms, gpu=0.12454 ms
+Trial 91: e2e=0.13423 ms, gpu=0.12026 ms
+Trial 92: e2e=0.13518 ms, gpu=0.12070 ms
+Trial 93: e2e=0.13518 ms, gpu=0.12077 ms
+Trial 94: e2e=0.13590 ms, gpu=0.12128 ms
+Trial 95: e2e=0.13518 ms, gpu=0.12067 ms
+Trial 96: e2e=0.13971 ms, gpu=0.12531 ms
+Trial 97: e2e=0.13852 ms, gpu=0.12394 ms
+Trial 98: e2e=0.13590 ms, gpu=0.12122 ms
+Trial 99: e2e=0.13804 ms, gpu=0.12371 ms
+Trial 100: e2e=0.13590 ms, gpu=0.12115 ms
+graph-net-test-compiler-log [Result] status: failed
+graph-net-test-compiler-log [Fail due to compiled model execution error.]
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/3] preserve explicit in-place operators, bound slice assignments and factory calls in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "dropout", "target": "torch.nn.functional.dropout"}]
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] model: ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0000 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0000.
+Compiled model execution failed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+Traceback (most recent call last):
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 266, in test_single_model
+    compiled_bench.warmup()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 169, in warmup
+    self.model_call()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 153, in model_call
+    return model(**input_dict)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 473, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 1055, in compile_wrapper
+    raise e.remove_dynamo_frames() from None  # see TORCHDYNAMO_VERBOSE=1
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2957, in _call_user_compiler
+    raise BackendCompilerFailed(
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2932, in _call_user_compiler
+    compiled_fn = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/repro/after_dynamo.py", line 156, in __call__
+    compiled_gm = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/__init__.py", line 2561, in __call__
+    return self.compiler_fn(model_, inputs_, **self.kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 237, in torch_compile_backend
+    raise RuntimeError("[PassMgrBackend] No passes modified the graph.")
+torch._dynamo.exc.BackendCompilerFailed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+
+--- Full Traceback ---
+debug-model-execution BackendCompilerFailed /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.70071 ms, gpu=0.65379 ms
+Trial 2: e2e=0.66066 ms, gpu=0.64304 ms
+Trial 3: e2e=0.65494 ms, gpu=0.64070 ms
+Trial 4: e2e=0.65112 ms, gpu=0.63674 ms
+Trial 5: e2e=0.65231 ms, gpu=0.63792 ms
+Trial 6: e2e=0.65136 ms, gpu=0.63766 ms
+Trial 7: e2e=0.65112 ms, gpu=0.63699 ms
+Trial 8: e2e=0.65041 ms, gpu=0.63674 ms
+Trial 9: e2e=0.64898 ms, gpu=0.63494 ms
+Trial 10: e2e=0.65446 ms, gpu=0.63779 ms
+Trial 11: e2e=0.64945 ms, gpu=0.63594 ms
+Trial 12: e2e=0.64635 ms, gpu=0.63274 ms
+Trial 13: e2e=0.65398 ms, gpu=0.63997 ms
+Trial 14: e2e=0.65613 ms, gpu=0.64186 ms
+Trial 15: e2e=0.65446 ms, gpu=0.64083 ms
+Trial 16: e2e=0.65207 ms, gpu=0.63885 ms
+Trial 17: e2e=0.65517 ms, gpu=0.64176 ms
+Trial 18: e2e=0.64945 ms, gpu=0.63581 ms
+Trial 19: e2e=0.64754 ms, gpu=0.63379 ms
+Trial 20: e2e=0.65112 ms, gpu=0.63718 ms
+Trial 21: e2e=0.65041 ms, gpu=0.63677 ms
+Trial 22: e2e=0.64802 ms, gpu=0.63456 ms
+Trial 23: e2e=0.65422 ms, gpu=0.64064 ms
+Trial 24: e2e=0.64683 ms, gpu=0.63302 ms
+Trial 25: e2e=0.65327 ms, gpu=0.63984 ms
+Trial 26: e2e=0.64969 ms, gpu=0.63610 ms
+Trial 27: e2e=0.65756 ms, gpu=0.64349 ms
+Trial 28: e2e=0.64731 ms, gpu=0.63334 ms
+Trial 29: e2e=0.64993 ms, gpu=0.63616 ms
+Trial 30: e2e=0.65112 ms, gpu=0.63738 ms
+Trial 31: e2e=0.64969 ms, gpu=0.63600 ms
+Trial 32: e2e=0.64588 ms, gpu=0.63229 ms
+Trial 33: e2e=0.64945 ms, gpu=0.63549 ms
+Trial 34: e2e=0.65255 ms, gpu=0.63875 ms
+Trial 35: e2e=0.64659 ms, gpu=0.63299 ms
+Trial 36: e2e=0.64850 ms, gpu=0.63430 ms
+Trial 37: e2e=0.64540 ms, gpu=0.63165 ms
+Trial 38: e2e=0.64993 ms, gpu=0.63619 ms
+Trial 39: e2e=0.65041 ms, gpu=0.63693 ms
+Trial 40: e2e=0.65255 ms, gpu=0.63878 ms
+Trial 41: e2e=0.64874 ms, gpu=0.63565 ms
+Trial 42: e2e=0.65136 ms, gpu=0.63821 ms
+Trial 43: e2e=0.65207 ms, gpu=0.63821 ms
+Trial 44: e2e=0.64707 ms, gpu=0.63306 ms
+Trial 45: e2e=0.65136 ms, gpu=0.63770 ms
+Trial 46: e2e=0.65422 ms, gpu=0.64144 ms
+Trial 47: e2e=0.65064 ms, gpu=0.63808 ms
+Trial 48: e2e=0.64588 ms, gpu=0.63318 ms
+Trial 49: e2e=0.64850 ms, gpu=0.63603 ms
+Trial 50: e2e=0.64683 ms, gpu=0.63318 ms
+Trial 51: e2e=0.69904 ms, gpu=0.68512 ms
+Trial 52: e2e=0.81038 ms, gpu=0.79770 ms
+Trial 53: e2e=0.78964 ms, gpu=0.77363 ms
+Trial 54: e2e=0.66113 ms, gpu=0.64730 ms
+Trial 55: e2e=0.64707 ms, gpu=0.63347 ms
+Trial 56: e2e=0.68426 ms, gpu=0.66979 ms
+Trial 57: e2e=0.72598 ms, gpu=0.70656 ms
+Trial 58: e2e=0.64898 ms, gpu=0.63469 ms
+Trial 59: e2e=0.71645 ms, gpu=0.70266 ms
+Trial 60: e2e=0.65041 ms, gpu=0.63654 ms
+Trial 61: e2e=0.65351 ms, gpu=0.63997 ms
+Trial 62: e2e=0.64993 ms, gpu=0.63616 ms
+Trial 63: e2e=0.64802 ms, gpu=0.63446 ms
+Trial 64: e2e=0.64754 ms, gpu=0.63366 ms
+Trial 65: e2e=0.64778 ms, gpu=0.63427 ms
+Trial 66: e2e=0.64540 ms, gpu=0.63178 ms
+Trial 67: e2e=0.64516 ms, gpu=0.63171 ms
+Trial 68: e2e=0.65279 ms, gpu=0.63888 ms
+Trial 69: e2e=0.64969 ms, gpu=0.63629 ms
+Trial 70: e2e=0.65160 ms, gpu=0.63773 ms
+Trial 71: e2e=0.64659 ms, gpu=0.63286 ms
+Trial 72: e2e=0.64778 ms, gpu=0.63402 ms
+Trial 73: e2e=0.65184 ms, gpu=0.63469 ms
+Trial 74: e2e=0.64826 ms, gpu=0.63456 ms
+Trial 75: e2e=0.64492 ms, gpu=0.63114 ms
+Trial 76: e2e=0.65231 ms, gpu=0.63843 ms
+Trial 77: e2e=0.65327 ms, gpu=0.63971 ms
+Trial 78: e2e=0.65827 ms, gpu=0.64429 ms
+Trial 79: e2e=0.64564 ms, gpu=0.63226 ms
+Trial 80: e2e=0.65374 ms, gpu=0.64006 ms
+Trial 81: e2e=0.64874 ms, gpu=0.63510 ms
+Trial 82: e2e=0.64540 ms, gpu=0.63155 ms
+Trial 83: e2e=0.64898 ms, gpu=0.63555 ms
+Trial 84: e2e=0.64945 ms, gpu=0.63594 ms
+Trial 85: e2e=0.65041 ms, gpu=0.63680 ms
+Trial 86: e2e=0.65231 ms, gpu=0.63862 ms
+Trial 87: e2e=0.65255 ms, gpu=0.63936 ms
+Trial 88: e2e=0.65064 ms, gpu=0.63696 ms
+Trial 89: e2e=0.64564 ms, gpu=0.63232 ms
+Trial 90: e2e=0.64659 ms, gpu=0.63306 ms
+Trial 91: e2e=0.65112 ms, gpu=0.63763 ms
+Trial 92: e2e=0.65613 ms, gpu=0.64272 ms
+Trial 93: e2e=0.64778 ms, gpu=0.63450 ms
+Trial 94: e2e=0.64993 ms, gpu=0.63610 ms
+Trial 95: e2e=0.64707 ms, gpu=0.63315 ms
+Trial 96: e2e=0.65041 ms, gpu=0.63690 ms
+Trial 97: e2e=0.64945 ms, gpu=0.63555 ms
+Trial 98: e2e=0.64683 ms, gpu=0.63328 ms
+Trial 99: e2e=0.65112 ms, gpu=0.63709 ms
+Trial 100: e2e=0.65064 ms, gpu=0.63773 ms
+graph-net-test-compiler-log [Result] status: failed
+graph-net-test-compiler-log [Fail due to compiled model execution error.]
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/3] preserve explicit in-place operators, bound slice assignments and factory calls in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization [{"node": "dropout", "target": "torch.nn.functional.dropout"}]
+[PassMgrBackend] Loaded 1 passes: ['KilnPattern0000']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] model: ese_vovnet19b_dw.ra_in1k_start103_end109_3
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 20
+graph-net-test-compiler-log [Config] trials: 100
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0000 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0000.
+Compiled model execution failed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+Traceback (most recent call last):
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 266, in test_single_model
+    compiled_bench.warmup()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 169, in warmup
+    self.model_call()
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 153, in model_call
+    return model(**input_dict)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 473, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/eval_frame.py", line 1055, in compile_wrapper
+    raise e.remove_dynamo_frames() from None  # see TORCHDYNAMO_VERBOSE=1
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2957, in _call_user_compiler
+    raise BackendCompilerFailed(
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/output_graph.py", line 2932, in _call_user_compiler
+    compiled_fn = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/_dynamo/repro/after_dynamo.py", line 156, in __call__
+    compiled_gm = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/__init__.py", line 2561, in __call__
+    return self.compiler_fn(model_, inputs_, **self.kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 237, in torch_compile_backend
+    raise RuntimeError("[PassMgrBackend] No passes modified the graph.")
+torch._dynamo.exc.BackendCompilerFailed: backend='torch_compile_backend' raised:
+RuntimeError: [PassMgrBackend] No passes modified the graph.
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+
+--- Full Traceback ---
+debug-model-execution BackendCompilerFailed /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/timm/ese_vovnet19b_dw.ra_in1k/_decomposed/ese_vovnet19b_dw.ra_in1k_start103_end109_3
+[Profiling] Using device: cuda NVIDIA GB10, warm up 20, trials 100
+Trial 1: e2e=0.41342 ms, gpu=0.36406 ms
+Trial 2: e2e=0.37527 ms, gpu=0.35766 ms
+Trial 3: e2e=0.36335 ms, gpu=0.34912 ms
+Trial 4: e2e=0.36359 ms, gpu=0.34880 ms
+Trial 5: e2e=0.36573 ms, gpu=0.35146 ms
+Trial 6: e2e=0.36120 ms, gpu=0.34723 ms
+Trial 7: e2e=0.36097 ms, gpu=0.34662 ms
+Trial 8: e2e=0.36097 ms, gpu=0.34778 ms
+Trial 9: e2e=0.35834 ms, gpu=0.34419 ms
+Trial 10: e2e=0.35930 ms, gpu=0.34496 ms
+Trial 11: e2e=0.35954 ms, gpu=0.34563 ms
+Trial 12: e2e=0.36001 ms, gpu=0.34586 ms
+Trial 13: e2e=0.36430 ms, gpu=0.35024 ms
+Trial 14: e2e=0.36216 ms, gpu=0.34838 ms
+Trial 15: e2e=0.36049 ms, gpu=0.34646 ms
+Trial 16: e2e=0.36097 ms, gpu=0.34678 ms
+Trial 17: e2e=0.36216 ms, gpu=0.34861 ms
+Trial 18: e2e=0.36693 ms, gpu=0.35296 ms
+Trial 19: e2e=0.36240 ms, gpu=0.34822 ms
+Trial 20: e2e=0.36192 ms, gpu=0.34813 ms
+Trial 21: e2e=0.36335 ms, gpu=0.34970 ms
+Trial 22: e2e=0.36025 ms, gpu=0.34662 ms
+Trial 23: e2e=0.35787 ms, gpu=0.34381 ms
+Trial 24: e2e=0.36025 ms, gpu=0.34598 ms
+Trial 25: e2e=0.35906 ms, gpu=0.34544 ms
+Trial 26: e2e=0.35763 ms, gpu=0.34358 ms
+Trial 27: e2e=0.36120 ms, gpu=0.34717 ms
+Trial 28: e2e=0.36025 ms, gpu=0.34614 ms
+Trial 29: e2e=0.36263 ms, gpu=0.34842 ms
+Trial 30: e2e=0.36120 ms, gpu=0.34730 ms
+Trial 31: e2e=0.36263 ms, gpu=0.34554 ms
+Trial 32: e2e=0.36192 ms, gpu=0.34771 ms
+Trial 33: e2e=0.35787 ms, gpu=0.34426 ms
+Trial 34: e2e=0.35930 ms, gpu=0.34499 ms
+Trial 35: e2e=0.35834 ms, gpu=0.34477 ms
+Trial 36: e2e=0.35763 ms, gpu=0.34378 ms
+Trial 37: e2e=0.36025 ms, gpu=0.34618 ms
+Trial 38: e2e=0.36097 ms, gpu=0.34742 ms
+Trial 39: e2e=0.35810 ms, gpu=0.34429 ms
+Trial 40: e2e=0.36526 ms, gpu=0.35149 ms
+Trial 41: e2e=0.35667 ms, gpu=0.34307 ms
+Trial 42: e2e=0.36240 ms, gpu=0.34858 ms
+Trial 43: e2e=0.36073 ms, gpu=0.34698 ms
+Trial 44: e2e=0.35882 ms, gpu=0.34512 ms
+Trial 45: e2e=0.35810 ms, gpu=0.34410 ms
+Trial 46: e2e=0.35954 ms, gpu=0.34582 ms
+Trial 47: e2e=0.35787 ms, gpu=0.34432 ms
+Trial 48: e2e=0.36144 ms, gpu=0.34739 ms
+Trial 49: e2e=0.36049 ms, gpu=0.34694 ms
+Trial 50: e2e=0.40436 ms, gpu=0.38566 ms
+Trial 51: e2e=0.36025 ms, gpu=0.33808 ms
+Trial 52: e2e=0.36597 ms, gpu=0.35245 ms
+Trial 53: e2e=0.35977 ms, gpu=0.34650 ms
+Trial 54: e2e=0.36001 ms, gpu=0.34650 ms
+Trial 55: e2e=0.35787 ms, gpu=0.34419 ms
+Trial 56: e2e=0.35763 ms, gpu=0.34410 ms
+Trial 57: e2e=0.35954 ms, gpu=0.34573 ms
+Trial 58: e2e=0.35787 ms, gpu=0.34419 ms
+Trial 59: e2e=0.35834 ms, gpu=0.34480 ms
+Trial 60: e2e=0.35906 ms, gpu=0.34534 ms
+Trial 61: e2e=0.36144 ms, gpu=0.34675 ms
+Trial 62: e2e=0.36001 ms, gpu=0.34602 ms
+Trial 63: e2e=0.35763 ms, gpu=0.34467 ms
+Trial 64: e2e=0.35810 ms, gpu=0.34496 ms
+Trial 65: e2e=0.35715 ms, gpu=0.34307 ms
+Trial 66: e2e=0.35858 ms, gpu=0.34509 ms
+Trial 67: e2e=0.36025 ms, gpu=0.34730 ms
+Trial 68: e2e=0.35954 ms, gpu=0.34573 ms
+Trial 69: e2e=0.35763 ms, gpu=0.34410 ms
+Trial 70: e2e=0.35739 ms, gpu=0.34317 ms
+Trial 71: e2e=0.35691 ms, gpu=0.34387 ms
+Trial 72: e2e=0.35954 ms, gpu=0.34643 ms
+Trial 73: e2e=0.35810 ms, gpu=0.34512 ms
+Trial 74: e2e=0.35429 ms, gpu=0.34170 ms
+Trial 75: e2e=0.35787 ms, gpu=0.34522 ms
+Trial 76: e2e=0.35548 ms, gpu=0.34230 ms
+Trial 77: e2e=0.35810 ms, gpu=0.34486 ms
+Trial 78: e2e=0.36263 ms, gpu=0.34925 ms
+Trial 79: e2e=0.35906 ms, gpu=0.34595 ms
+Trial 80: e2e=0.35810 ms, gpu=0.34451 ms
+Trial 81: e2e=0.37932 ms, gpu=0.34870 ms
+Trial 82: e2e=0.38075 ms, gpu=0.36816 ms
+Trial 83: e2e=0.45013 ms, gpu=0.42346 ms
+Trial 84: e2e=0.44513 ms, gpu=0.42944 ms
+Trial 85: e2e=0.36097 ms, gpu=0.34746 ms
+Trial 86: e2e=0.36359 ms, gpu=0.34989 ms
+Trial 87: e2e=0.35977 ms, gpu=0.34586 ms
+Trial 88: e2e=0.50855 ms, gpu=0.49482 ms
+Trial 89: e2e=0.36335 ms, gpu=0.34739 ms
+Trial 90: e2e=0.35906 ms, gpu=0.34522 ms
+Trial 91: e2e=0.40269 ms, gpu=0.38397 ms
+Trial 92: e2e=0.35810 ms, gpu=0.34461 ms
+Trial 93: e2e=0.35906 ms, gpu=0.34515 ms
+Trial 94: e2e=0.35787 ms, gpu=0.34454 ms
+Trial 95: e2e=0.35667 ms, gpu=0.34304 ms
+Trial 96: e2e=0.36240 ms, gpu=0.34614 ms
+Trial 97: e2e=0.35620 ms, gpu=0.34275 ms
+Trial 98: e2e=0.35882 ms, gpu=0.34525 ms
+Trial 99: e2e=0.36097 ms, gpu=0.34694 ms
+Trial 100: e2e=0.35954 ms, gpu=0.34570 ms
+graph-net-test-compiler-log [Result] status: failed
+graph-net-test-compiler-log [Fail due to compiled model execution error.]

@@ -1,0 +1,304 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-125/corpus/002.kiln.js",
+  "sha256": "6bf6ceedaf32b966f45325ff71b7a770ea0ec2c3a16f739758fcd7e5d6250e4c",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    1024,
+    249
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1024,
+    64,
+    128
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    1024
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    1,
+    249,
+    1024
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    1024
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    1024
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 8,
+   "shape": [
+    1,
+    249,
+    1024
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 9,
+   "shape": [
+    1,
+    249,
+    1024
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 254976,
+   "bytes": 1019904
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 8388608,
+   "bytes": 33554432
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 1024,
+   "bytes": 4096
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 254976,
+   "bytes": 1019904
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 1024,
+   "bytes": 4096
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 1024,
+   "bytes": 4096
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 377,
+   "bytes": 1508,
+   "name": null,
+   "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 386048,
+   "bytes": 1544192
+  },
+  {
+   "id": 8,
+   "dtype": "f32",
+   "elements": 254976,
+   "bytes": 1019904
+  },
+  {
+   "id": 9,
+   "dtype": "f32",
+   "elements": 254976,
+   "bytes": 1019904
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_conv2d__1he06pgmd8y",
+   "identity": "1he06pgmd8y",
+   "row": "TPB=128",
+   "reads": [
+    0,
+    6
+   ],
+   "writes": 7,
+   "grid": 3016,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    3016,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1024,
+    1,
+    377
+   ],
+   "inShapes": [
+    [
+     1,
+     1024,
+     249
+    ],
+    [
+     1,
+     1,
+     1,
+     377
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": "@group(0) @binding(0) var<storage, read> b0: array<f32>;\n@group(0) @binding(1) var<storage, read> b1: array<f32>;\n@group(0) @binding(2) var<storage, read_write> bout: array<f32>;\n\n@compute @workgroup_size(128)\nfn main(@builtin(local_invocation_index) lid: u32, @builtin(workgroup_id) wid: vec3<u32>, @builtin(num_workgroups) nwg: vec3<u32>) {\n    let tid: i32 = i32(lid);\n    let bid: i32 = i32(wid.x) + i32(wid.y) * i32(nwg.x);\n    if (bid >= 3016i) { return; }\n    var v_in0: f32 = 0.0;\n    var v_in1: f32 = 0.0;\n    var v_v0: f32 = 0.0;\n    var n_e: i32 = 0i;\n    n_e = ((128i * bid) + tid);\n    if (n_e < 386048i) {\n        v_in0 = b1[(n_e % 377i)];\n        v_in1 = b0[(min(max(((n_e % 377i) + -64i), 0i), 248i) + (249i * (n_e / 377i)))];\n        v_v0 = select(0.0, v_in1, (v_in0) > 0.0);\n        bout[((n_e % 377i) + (377i * (n_e / 377i)))] = v_v0;\n    }\n}",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_conv2d__1he06pgmd8y(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 386048)) {\n        in0 = src1[(e % 377)];\n        in1 = src0[(min(max(((e % 377) + (-64)), 0), 248) + (249 * (e / 377)))];\n        v0 = ((in0) > 0.0f ? (in1) : (0.0f));\n        dst[((e % 377) + (377 * (e / 377)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_out0__1ak0i2qigiu",
+   "identity": "1ak0i2qigiu",
+   "row": "MAP=row,TPB=64",
+   "reads": [
+    3,
+    2,
+    1,
+    7
+   ],
+   "writes": 8,
+   "grid": 254976,
+   "block": 64,
+   "smemBytes": 256,
+   "dispatch": [
+    65535,
+    4,
+    1
+   ],
+   "shape": [
+    1,
+    249,
+    1024
+   ],
+   "inShapes": [
+    [
+     1,
+     249,
+     1024
+    ],
+    [
+     1024
+    ],
+    [
+     1024,
+     64,
+     128
+    ],
+    [
+     1,
+     1024,
+     1,
+     377
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: mul_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_out0__1ak0i2qigiu(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[64];\n    float in0 = 0.0f, acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in1 = 0.0f, in2 = 0.0f, v0 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, in3 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    in0 = src0[((bid % 1024) + (1024 * (bid / 1024)))];\n    acc2 = 0.0f;\n    for (int r0 = tid; r0 < 64; r0 += 64) {\n        acc1 = 0.0f;\n        for (int r1 = 0; r1 < 1; r1 += 1) {\n            acc0 = 0.0f;\n            for (int r2 = 0; r2 < 128; r2 += 1) {\n                in1 = src3[(((((24128 * ((bid % 1024) / 64)) + (bid / 1024)) + (377 * r0)) + (377 * r1)) + r2)];\n                in2 = src2[(((8192 * (bid % 1024)) + (128 * r0)) + r2)];\n                v0 = __fmul_rn(in1, in2);\n                acc0 = (acc0 + v0);\n            }\n            acc1 = (acc1 + acc0);\n        }\n        acc2 = (acc2 + acc1);\n    }\n    __syncthreads();\n    s_red[tid] = acc2;\n    __syncthreads();\n    if ((tid < 32)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 32)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 16)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 8)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 4)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 2)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 1)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    acc2 = s_red[0];\n    in3 = src1[(bid % 1024)];\n    v1 = __fadd_rn(acc2, in3);\n    v2 = ((v1 * 0.5f) * (1.0f + erff(v1 * 0.7071067811865476f)));\n    v3 = __fadd_rn(in0, v2);\n    if ((tid == 0)) {\n        dst[((bid % 1024) + (1024 * (bid / 1024)))] = v3;\n    }\n}"
+  },
+  {
+   "name": "k_out1__wo25ck4du9",
+   "identity": "wo25ck4du9",
+   "row": "MAP=row,TPB=512",
+   "reads": [
+    5,
+    4,
+    8
+   ],
+   "writes": 9,
+   "grid": 249,
+   "block": 512,
+   "smemBytes": 2048,
+   "dispatch": [
+    249,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    249,
+    1024
+   ],
+   "inShapes": [
+    [
+     1024
+    ],
+    [
+     1024
+    ],
+    [
+     1,
+     249,
+     1024
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: sub_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(512) k_out1__wo25ck4du9(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[512];\n    float acc0 = 0.0f, in1 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, sv14 = 0.0f, sv15 = 0.0f, sv16 = 0.0f, sv17 = 0.0f, v0 = 0.0f, acc1 = 0.0f, in2 = 0.0f, v2 = 0.0f, v3 = 0.0f, sv18 = 0.0f, sv19 = 0.0f, sv20 = 0.0f, sv21 = 0.0f, sv22 = 0.0f, sv23 = 0.0f, sv24 = 0.0f, sv25 = 0.0f, sv26 = 0.0f, sv27 = 0.0f, sv28 = 0.0f, sv29 = 0.0f, sv30 = 0.0f, sv31 = 0.0f, sv32 = 0.0f, sv33 = 0.0f, sv34 = 0.0f, sv35 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f, in0 = 0.0f, v1 = 0.0f, v7 = 0.0f, in3 = 0.0f, v8 = 0.0f, in4 = 0.0f, v9 = 0.0f;\n    acc0 = 0.0f;\n    for (int r0 = tid; r0 < 1024; r0 += 512) {\n        in1 = src2[((1024 * bid) + r0)];\n        acc0 = (acc0 + in1);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 256)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 256)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 128)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 128)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 64)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 64)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 32)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 16)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 8)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 4)];\n        s_red[tid] = (sv12 + sv13);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv14 = s_red[tid];\n        sv15 = s_red[(tid + 2)];\n        s_red[tid] = (sv14 + sv15);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv16 = s_red[tid];\n        sv17 = s_red[(tid + 1)];\n        s_red[tid] = (sv16 + sv17);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    v0 = (acc0 / 1024.0f);\n    acc1 = 0.0f;\n    for (int r1 = tid; r1 < 1024; r1 += 512) {\n        in2 = src2[((1024 * bid) + r1)];\n        v2 = __fsub_rn(in2, v0);\n        v3 = __fmul_rn(v2, v2);\n        acc1 = (acc1 + v3);\n    }\n    __syncthreads();\n    s_red[tid] = acc1;\n    __syncthreads();\n    if ((tid < 256)) {\n        sv18 = s_red[tid];\n        sv19 = s_red[(tid + 256)];\n        s_red[tid] = (sv18 + sv19);\n    }\n    __syncthreads();\n    if ((tid < 128)) {\n        sv20 = s_red[tid];\n        sv21 = s_red[(tid + 128)];\n        s_red[tid] = (sv20 + sv21);\n    }\n    __syncthreads();\n    if ((tid < 64)) {\n        sv22 = s_red[tid];\n        sv23 = s_red[(tid + 64)];\n        s_red[tid] = (sv22 + sv23);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv24 = s_red[tid];\n        sv25 = s_red[(tid + 32)];\n        s_red[tid] = (sv24 + sv25);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv26 = s_red[tid];\n        sv27 = s_red[(tid + 16)];\n        s_red[tid] = (sv26 + sv27);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv28 = s_red[tid];\n        sv29 = s_red[(tid + 8)];\n        s_red[tid] = (sv28 + sv29);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv30 = s_red[tid];\n        sv31 = s_red[(tid + 4)];\n        s_red[tid] = (sv30 + sv31);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv32 = s_red[tid];\n        sv33 = s_red[(tid + 2)];\n        s_red[tid] = (sv32 + sv33);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv34 = s_red[tid];\n        sv35 = s_red[(tid + 1)];\n        s_red[tid] = (sv34 + sv35);\n    }\n    __syncthreads();\n    acc1 = s_red[0];\n    v4 = (acc1 / 1024.0f);\n    v5 = __fadd_rn(v4, 0.00001f);\n    v6 = rsqrtf(v5);\n    for (int q = tid; q < 1024; q += 512) {\n        in0 = src2[((1024 * bid) + q)];\n        v1 = __fsub_rn(in0, v0);\n        v7 = __fmul_rn(v1, v6);\n        in3 = src1[q];\n        v8 = __fmul_rn(v7, in3);\n        in4 = src0[q];\n        v9 = __fadd_rn(v8, in4);\n        dst[((1024 * bid) + q)] = v9;\n    }\n}"
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+project("passnet").program(({v0, v1, v2}) => {
+const v3 = N.expect(N.cast(N.reshape(N.layer_norm(N.reshape(N.cast(v0, "f32"), [196, 192]), N.reshape(N.cast(v1, "f32"), [192]), N.reshape(N.cast(v2, "f32"), [192]), {"eps": 1e-06}), [1, 196, 192]), "bf16"), [1, 196, 192], "bf16");
+const v4 = N.expect(N.full([1, 196, 196, 3], 0, "f32"), [1, 196, 196, 3], "f32");
+const v5 = N.expect(N.arange(0, 14, 1, "i64"), [14], "i64");
+const v6 = N.expect(N.reshape(v5, [1, 14]), [1, 14], "i64");
+const v7 = N.expect(N.arange(0, 14, 1, "i64"), [14], "i64");
+const v8 = N.expect(N.reshape(v7, [14, 1]), [14, 1], "i64");
+const v9 = N.expect(N.sub(v6, v8), [14, 14], "i64");
+const v10 = N.expect(N.repeat(v9, [14, 14]), [196, 196], "i64");
+const v11 = N.expect(N.repeatInterleave(v9, 14, 0), [196, 14], "i64");
+const v12 = N.expect(N.repeatInterleave(v11, 14, 1), [196, 196], "i64");
+const v13 = N.expect(N.mul(v10, v10), [196, 196], "i64");
+const v14 = N.expect(N.mul(v12, v12), [196, 196], "i64");
+const v15 = N.expect(N.add(v13, v14), [196, 196], "i64");
+const v16 = N.expect(N.reshape(v15, [1, 196, 196]), [1, 196, 196], "i64");
+const v17 = N.expect(N.assign(v4, [{"slice": [0, 1, 1]}, {"slice": [0, 196, 1]}, {"slice": [0, 196, 1]}, {"at": 2}], v16), [1, 196, 196, 3], "f32");
+const v18 = N.expect(N.reshape(v12, [1, 196, 196]), [1, 196, 196], "i64");
+const v19 = N.expect(N.assign(v17, [{"slice": [0, 1, 1]}, {"slice": [0, 196, 1]}, {"slice": [0, 196, 1]}, {"at": 1}], v18), [1, 196, 196, 3], "f32");
+const v20 = N.expect(N.reshape(v10, [1, 196, 196]), [1, 196, 196], "i64");
+const v21 = N.expect(N.assign(v19, [{"slice": [0, 1, 1]}, {"slice": [0, 196, 1]}, {"slice": [0, 196, 1]}, {"at": 0}], v20), [1, 196, 196, 3], "f32");
+return {out0: v21, out1: v3};
+}, {v0: k.tensor([1, 196, 192], "bf16"), v1: k.tensor([192], "bf16"), v2: k.tensor([192], "bf16")});

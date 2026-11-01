@@ -1,0 +1,92 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-085/corpus/005.kiln.js",
+  "sha256": "d465b85aee3997fb79841ba597ddcd2415f3aeef62cbe24ebbd51c4fef4ec0dd",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    32,
+    17,
+    17
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    32,
+    17,
+    17
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 9248,
+   "bytes": 18496
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 9248,
+   "bytes": 18496
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_cast__fv8zzm2s3x",
+   "identity": "fv8zzm2s3x",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 73,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    73,
+    1,
+    1
+   ],
+   "shape": [
+    32,
+    17,
+    17
+   ],
+   "inShapes": [
+    [
+     32,
+     17,
+     17
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_ew_cast__fv8zzm2s3x(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 9248)) {\n        in0 = __bfloat162float(src0[(((17 * ((e / 17) % 17)) + (e % 17)) + (289 * (e / 289)))]);\n        v0 = (in0 / 11.313708498984761f);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        v2 = fmaxf(v1, 0.0f);\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        v4 = v3;\n        v5 = (v4 * v4);\n        v6 = __bfloat162float(__float2bfloat16_rn(v5));\n        v7 = __bfloat162float(__float2bfloat16_rn(v6));\n        dst[(((17 * ((e / 17) % 17)) + (e % 17)) + (289 * (e / 289)))] = __float2bfloat16_rn(v7);\n    }\n}"
+  }
+ ]
+}

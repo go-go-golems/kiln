@@ -1,0 +1,146 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-062/corpus/002.kiln.js",
+  "sha256": "adeee2d4c4ae4e0d98697e5d805c41b211f4ca41307c386abee5c862498bfa97",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    729,
+    12
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    3,
+    12
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    732,
+    12
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "out1",
+   "buffer": 3,
+   "shape": [
+    38809
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 8748,
+   "bytes": 17496
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 36,
+   "bytes": 72
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 8784,
+   "bytes": 17568
+  },
+  {
+   "id": 3,
+   "dtype": "i64",
+   "elements": 38809,
+   "bytes": 310472
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__j8waycvnwn",
+   "identity": "j8waycvnwn",
+   "row": "TPB=128",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 69,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    69,
+    1,
+    1
+   ],
+   "shape": [
+    732,
+    12
+   ],
+   "inShapes": [
+    [
+     729,
+     12
+    ],
+    [
+     3,
+     12
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_out0__j8waycvnwn(const __nv_bfloat16* __restrict__ src0, const __nv_bfloat16* __restrict__ src1, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    bool x0 = 0;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 8784)) {\n        x0 = ((((729 <= (e / 12)) && ((e / 12) < 732))) != 0);\n        in0 = __bfloat162float(src1[((12 * min(max(((e / 12) + (-729)), 0), 2)) + (e % 12))]);\n        in1 = __bfloat162float(src0[((12 * min(max((e / 12), 0), 728)) + (e % 12))]);\n        v0 = ((x0) > 0.0f ? (in0) : (in1));\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        dst[((e % 12) + (12 * (e / 12)))] = __float2bfloat16_rn(v1);\n    }\n}"
+  },
+  {
+   "name": "k_out1__1nxagonblsf",
+   "identity": "1nxagonblsf",
+   "row": "TPB=128",
+   "reads": [],
+   "writes": 3,
+   "grid": 304,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    304,
+    1,
+    1
+   ],
+   "shape": [
+    38809
+   ],
+   "inShapes": [],
+   "inDtypes": [],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (out)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out1__1nxagonblsf(long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    bool x0 = 0, x1 = 0, x2 = 0, x3 = 0, x5 = 0, x8 = 0, x11 = 0, x14 = 0, x17 = 0, x19 = 0, x21 = 0, x24 = 0, x28 = 0, x30 = 0, x4 = 0, x27 = 0, x32 = 0, x35 = 0;\n    long long x6 = 0, x7 = 0, v0 = 0, x9 = 0, x10 = 0, v1 = 0, v2 = 0, v3 = 0, x12 = 0, x13 = 0, v4 = 0, x15 = 0, x16 = 0, v5 = 0, v6 = 0, v7 = 0, v8 = 0, v9 = 0, x18 = 0, v10 = 0, x20 = 0, v11 = 0, v12 = 0, v13 = 0, x22 = 0, x23 = 0, v14 = 0, x25 = 0, x26 = 0, v15 = 0, v16 = 0, v17 = 0, v18 = 0, v19 = 0, v20 = 0, v21 = 0, x29 = 0, v22 = 0, x31 = 0, v23 = 0, v24 = 0, v25 = 0, v26 = 0, v27 = 0, v28 = 0, x33 = 0, x36 = 0, x34 = 0, v29 = 0, x37 = 0, v30 = 0, v31 = 0, v32 = 0, v33 = 0, v34 = 0, v35 = 0, v36 = 0, v37 = 0, acc0 = 0, v38 = 0, v39 = 0, v40 = 0, v41 = 0;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 38809)) {\n        x0 = ((((((e / 197) % 197) == 0) && ((e % 197) == 0))) != 0);\n        x1 = ((((e % 197) == 0)) != 0);\n        x2 = (((((e / 197) % 197) == 0)) != 0);\n        x3 = ((((1 <= ((e / 197) % 197)) && (1 <= (e % 197)))) != 0);\n        x5 = ((((1 <= ((min(max(min(max(min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195), 0), 195), 0), 195) / 196) % 2)) && (((min(max(min(max(min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195), 0), 195), 0), 195) / 196) % 2) < 2))) != 0);\n        x6 = ((long long)((min(max(min(max(min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195), 0), 195), 0), 195) % 14)));\n        x7 = ((long long)(((min(max(min(max(min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195), 0), 195), 0), 195) / 14) % 14)));\n        v0 = ((x5) > 0.0f ? (x6) : (x7));\n        x8 = ((((1 <= ((min(max(min(max(min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195), 0), 195), 0), 195) / 196) % 2)) && (((min(max(min(max(min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195), 0), 195), 0), 195) / 196) % 2) < 2))) != 0);\n        x9 = ((long long)((min(max(min(max(min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195), 0), 195), 0), 195) % 14)));\n        x10 = ((long long)(((min(max(min(max(min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195), 0), 195), 0), 195) / 14) % 14)));\n        v1 = ((x8) > 0.0f ? (x9) : (x10));\n        v2 = (v0 - v1);\n        v3 = (v2 + 13LL);\n        x11 = ((((1 <= (((min(max(min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195), 0), 195) + 196) / 196) % 2)) && ((((min(max(min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195), 0), 195) + 196) / 196) % 2) < 2))) != 0);\n        x12 = ((long long)((min(max(min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195), 0), 195) % 14)));\n        x13 = ((long long)((((min(max(min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195), 0), 195) + 196) / 14) % 14)));\n        v4 = ((x11) > 0.0f ? (x12) : (x13));\n        x14 = ((((1 <= (((min(max(min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195), 0), 195) + 196) / 196) % 2)) && ((((min(max(min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195), 0), 195) + 196) / 196) % 2) < 2))) != 0);\n        x15 = ((long long)((min(max(min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195), 0), 195) % 14)));\n        x16 = ((long long)((((min(max(min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195), 0), 195) + 196) / 14) % 14)));\n        v5 = ((x14) > 0.0f ? (x15) : (x16));\n        v6 = (v4 - v5);\n        v7 = ((0.0f) > 0.0f ? (v3) : (v6));\n        v8 = ((0.0f) > 0.0f ? (v3) : (v7));\n        v9 = (v8 + 13LL);\n        x17 = ((((1 <= ((min(max(min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195), 0), 195) / 196) % 2)) && (((min(max(min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195), 0), 195) / 196) % 2) < 2))) != 0);\n        x18 = ((long long)(((min(max(min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195), 0), 195) / 14) % 14)));\n        v10 = ((x17) > 0.0f ? (x12) : (x18));\n        x19 = ((((1 <= ((min(max(min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195), 0), 195) / 196) % 2)) && (((min(max(min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195), 0), 195) / 196) % 2) < 2))) != 0);\n        x20 = ((long long)(((min(max(min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195), 0), 195) / 14) % 14)));\n        v11 = ((x19) > 0.0f ? (x15) : (x20));\n        v12 = (v10 - v11);\n        v13 = (v12 + 13LL);\n        x21 = ((((1 <= ((min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195) / 196) % 2)) && (((min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195) / 196) % 2) < 2))) != 0);\n        x22 = ((long long)((min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195) % 14)));\n        x23 = ((long long)(((min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195) / 14) % 14)));\n        v14 = ((x21) > 0.0f ? (x22) : (x23));\n        x24 = ((((1 <= ((min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195) / 196) % 2)) && (((min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195) / 196) % 2) < 2))) != 0);\n        x25 = ((long long)((min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195) % 14)));\n        x26 = ((long long)(((min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195) / 14) % 14)));\n        v15 = ((x24) > 0.0f ? (x25) : (x26));\n        v16 = (v14 - v15);\n        v17 = ((1.0f) > 0.0f ? (v13) : (v16));\n        v18 = ((1.0f) > 0.0f ? (v13) : (v17));\n        v19 = ((0.0f) > 0.0f ? (v9) : (v18));\n        v20 = ((0.0f) > 0.0f ? (v9) : (v19));\n        v21 = (v20 * 27LL);\n        x28 = ((((1 <= (((min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195) + 196) / 196) % 2)) && ((((min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195) + 196) / 196) % 2) < 2))) != 0);\n        x29 = ((long long)((((min(max(min(max((((e / 197) % 197) + (-1)), 0), 195), 0), 195) + 196) / 14) % 14)));\n        v22 = ((x28) > 0.0f ? (x22) : (x29));\n        x30 = ((((1 <= (((min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195) + 196) / 196) % 2)) && ((((min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195) + 196) / 196) % 2) < 2))) != 0);\n        x31 = ((long long)((((min(max(min(max(((e % 197) + (-1)), 0), 195), 0), 195) + 196) / 14) % 14)));\n        v23 = ((x30) > 0.0f ? (x25) : (x31));\n        v24 = (v22 - v23);\n        v25 = ((0.0f) > 0.0f ? (v13) : (v24));\n        v26 = ((0.0f) > 0.0f ? (v13) : (v25));\n        v27 = (v26 + 13LL);\n        v28 = (v16 + 13LL);\n        x33 = ((long long)((min(max((((e / 197) % 197) + (-1)), 0), 195) % 14)));\n        x36 = ((long long)((min(max(((e % 197) + (-1)), 0), 195) % 14)));\n        acc0 = 0LL;\n        for (int r0 = 0; r0 < 2; r0 += 1) {\n            x4 = (((r0 == 0)) != 0);\n            x27 = (((r0 == 1)) != 0);\n            x32 = ((((1 <= (((min(max((((e / 197) % 197) + (-1)), 0), 195) + (196 * r0)) / 196) % 2)) && ((((min(max((((e / 197) % 197) + (-1)), 0), 195) + (196 * r0)) / 196) % 2) < 2))) != 0);\n            x34 = ((long long)((((min(max((((e / 197) % 197) + (-1)), 0), 195) + (196 * r0)) / 14) % 14)));\n            v29 = ((x32) > 0.0f ? (x33) : (x34));\n            x35 = ((((1 <= (((min(max(((e % 197) + (-1)), 0), 195) + (196 * r0)) / 196) % 2)) && ((((min(max(((e % 197) + (-1)), 0), 195) + (196 * r0)) / 196) % 2) < 2))) != 0);\n            x37 = ((long long)((((min(max(((e % 197) + (-1)), 0), 195) + (196 * r0)) / 14) % 14)));\n            v30 = ((x35) > 0.0f ? (x36) : (x37));\n            v31 = (v29 - v30);\n            v32 = ((x4) > 0.0f ? (v28) : (v31));\n            v33 = ((x4) > 0.0f ? (v28) : (v32));\n            v34 = ((x27) > 0.0f ? (v27) : (v33));\n            v35 = ((x27) > 0.0f ? (v27) : (v34));\n            v36 = ((x4) > 0.0f ? (v21) : (v35));\n            v37 = ((x4) > 0.0f ? (v21) : (v36));\n            acc0 = (acc0 + v37);\n        }\n        v38 = ((x3) > 0.0f ? (acc0) : (0LL));\n        v39 = ((x2) > 0.0f ? (729LL) : (v38));\n        v40 = ((x1) > 0.0f ? (730LL) : (v39));\n        v41 = ((x0) > 0.0f ? (731LL) : (v40));\n        dst[e] = v41;\n    }\n}"
+  }
+ ]
+}

@@ -1,0 +1,57 @@
+[kiln-task-runner/1] process receipts are not correctness claims
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/3] preserve explicit in-place operators, bound slice assignments and factory calls in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+Traceback (most recent call last):
+  File "<string>", line 4, in <module>
+  File "<frozen runpy>", line 286, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/work/kiln/integrations/passnet/evaluate_normalized.py", line 45, in <module>
+    runpy.run_module('pass_bench.torch.test_compiler',run_name='__main__')
+  File "<frozen runpy>", line 229, in run_module
+  File "<frozen runpy>", line 88, in _run_code
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 592, in <module>
+    main(args=args)
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 529, in main
+    test_single_model(args)
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 241, in test_single_model
+    compiler = get_compiler_backend(args)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 106, in get_compiler_backend
+    return backend_class(config)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 168, in __init__
+    self.pass_manager = self.make_pass_manager()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 241, in make_pass_manager
+    return PassManager(passes=self.get_passes())
+                              ^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 249, in get_passes
+    for pass_name, pass_rule in self._get_named_pass_rules()
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 260, in _get_named_pass_rules
+    for rule in self._get_output_pass_rules()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 289, in _get_output_pass_rules
+    if (rule := self._find_rule(dir_path=output_pass_rule_dir, name=name))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 345, in _find_rule
+    return load_py_module(os.path.join(dir_path, f"{name}.py"), name=name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 543, in load_py_module
+    if not is_pass_source_valid(path):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/backend/pass_mgr_backend.py", line 493, in is_pass_source_valid
+    violations = validate_pass_source(source)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/ast_util/validate_pass_source.py", line 41, in validate_pass_source
+    tree = ast.parse(source)
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ast.py", line 52, in parse
+    return compile(source, filename, mode, flags,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<unknown>", line 12
+    return (, 0)
+            ^
+SyntaxError: invalid syntax

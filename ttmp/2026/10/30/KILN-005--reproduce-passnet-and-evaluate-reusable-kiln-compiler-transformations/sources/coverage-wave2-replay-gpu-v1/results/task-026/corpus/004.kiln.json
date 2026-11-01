@@ -1,0 +1,61 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-026/corpus/004.kiln.js",
+  "sha256": "d05ef0763b405b4f51784970fd3982c28768d752add3aa78bca41b423fd1b609",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 0,
+   "shape": [
+    1
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 1,
+   "bytes": 8
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_arange__2b61n2gi9jr",
+   "identity": "2b61n2gi9jr",
+   "row": "TPB=1024",
+   "reads": [],
+   "writes": 0,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1
+   ],
+   "inShapes": [],
+   "inDtypes": [],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (out)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_arange__2b61n2gi9jr(long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 1)) {\n        dst[0] = 0LL;\n    }\n}"
+  }
+ ]
+}

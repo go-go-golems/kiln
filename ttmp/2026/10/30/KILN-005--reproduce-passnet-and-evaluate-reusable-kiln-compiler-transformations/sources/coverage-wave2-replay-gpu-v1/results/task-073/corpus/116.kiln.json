@@ -1,0 +1,295 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-073/corpus/116.kiln.js",
+  "sha256": "c3d69b98a54cee86078a467783f6b3d2c9f88938a2cd16227a43ad7be1f4bae7",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    32,
+    512,
+    8,
+    8
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    512,
+    1,
+    1,
+    1
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    512
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    32,
+    512,
+    8,
+    8
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    512
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    512
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v6",
+   "buffer": 6,
+   "shape": [
+    512
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v7",
+   "buffer": 7,
+   "shape": [
+    512
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 8,
+   "shape": [
+    32,
+    512,
+    8,
+    8
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "out1",
+   "buffer": 9,
+   "shape": [
+    32,
+    512,
+    1,
+    1
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 1048576,
+   "bytes": 2097152
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 512,
+   "bytes": 1024
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 512,
+   "bytes": 1024
+  },
+  {
+   "id": 3,
+   "dtype": "f16",
+   "elements": 1048576,
+   "bytes": 2097152
+  },
+  {
+   "id": 4,
+   "dtype": "f16",
+   "elements": 512,
+   "bytes": 1024
+  },
+  {
+   "id": 5,
+   "dtype": "f16",
+   "elements": 512,
+   "bytes": 1024
+  },
+  {
+   "id": 6,
+   "dtype": "f16",
+   "elements": 512,
+   "bytes": 1024
+  },
+  {
+   "id": 7,
+   "dtype": "f16",
+   "elements": 512,
+   "bytes": 1024
+  },
+  {
+   "id": 8,
+   "dtype": "f16",
+   "elements": 1048576,
+   "bytes": 2097152
+  },
+  {
+   "id": 9,
+   "dtype": "f16",
+   "elements": 16384,
+   "bytes": 32768
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__1xwmgwwwf04",
+   "identity": "1xwmgwwwf04",
+   "row": "TPB=128",
+   "reads": [
+    7,
+    6,
+    5,
+    4,
+    0,
+    3,
+    2,
+    1
+   ],
+   "writes": 8,
+   "grid": 8192,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    8192,
+    1,
+    1
+   ],
+   "shape": [
+    32,
+    512,
+    8,
+    8
+   ],
+   "inShapes": [
+    [
+     512
+    ],
+    [
+     512
+    ],
+    [
+     512
+    ],
+    [
+     512
+    ],
+    [
+     32,
+     512,
+     8,
+     8
+    ],
+    [
+     32,
+     512,
+     8,
+     8
+    ],
+    [
+     512
+    ],
+    [
+     512,
+     1,
+     1,
+     1
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "f16",
+    "f16",
+    "f16",
+    "f16",
+    "f16",
+    "f16",
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_out0__1xwmgwwwf04(const __half* __restrict__ src0, const __half* __restrict__ src1, const __half* __restrict__ src2, const __half* __restrict__ src3, const __half* __restrict__ src4, const __half* __restrict__ src5, const __half* __restrict__ src6, const __half* __restrict__ src7, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in3 = 0.0f, in5 = 0.0f, v13 = 0.0f, in6 = 0.0f, v15 = 0.0f, v16 = 0.0f, v17 = 0.0f, in7 = 0.0f, v19 = 0.0f, in8 = 0.0f, v21 = 0.0f, in0 = 0.0f, acc2 = 0.0f, acc1 = 0.0f, acc0 = 0.0f, in1 = 0.0f, v0 = 0.0f, in2 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f, v7 = 0.0f, v8 = 0.0f, v9 = 0.0f, in4 = 0.0f, v10 = 0.0f, v11 = 0.0f, v12 = 0.0f, v14 = 0.0f, v18 = 0.0f, v20 = 0.0f, v22 = 0.0f, v23 = 0.0f, v24 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 1048576)) {\n        in3 = __half2float(src6[((e / 64) % 512)]);\n        in5 = __half2float(src3[((e / 64) % 512)]);\n        v13 = in5;\n        in6 = __half2float(src2[((e / 64) % 512)]);\n        v15 = in6;\n        v16 = __fadd_rn(v15, 0.00001f);\n        v17 = sqrtf(v16);\n        in7 = __half2float(src1[((e / 64) % 512)]);\n        v19 = in7;\n        in8 = __half2float(src0[((e / 64) % 512)]);\n        v21 = in8;\n        in0 = __half2float(src5[((((64 * ((e / 64) % 512)) + (8 * ((e / 8) % 8))) + (e % 8)) + (32768 * (e / 32768)))]);\n        acc2 = 0.0f;\n        for (int r0 = 0; r0 < 1; r0 += 1) {\n            acc1 = 0.0f;\n            for (int r1 = 0; r1 < 1; r1 += 1) {\n                acc0 = 0.0f;\n                for (int r2 = 0; r2 < 1; r2 += 1) {\n                    in1 = __half2float(src4[(((((((64 * ((e / 64) % 512)) + (8 * ((e / 8) % 8))) + (e % 8)) + (32768 * (e / 32768))) + (64 * r0)) + (8 * r1)) + r2)]);\n                    v0 = in1;\n                    in2 = __half2float(src7[(((((e / 64) % 512) + r0) + r1) + r2)]);\n                    v1 = in2;\n                    v2 = __fmul_rn(v0, v1);\n                    acc0 = (acc0 + v2);\n                }\n                acc1 = (acc1 + acc0);\n            }\n            acc2 = (acc2 + acc1);\n        }\n        v3 = __fadd_rn(acc2, 0.0f);\n        v4 = __half2float(__float2half_rn(v3));\n        v5 = __half2float(__float2half_rn(v4));\n        v6 = __fadd_rn(v5, in3);\n        v7 = __half2float(__float2half_rn(v6));\n        v8 = __fadd_rn(in0, v7);\n        v9 = __half2float(__float2half_rn(v8));\n        in4 = __half2float(src4[((((64 * ((e / 64) % 512)) + (8 * ((e / 8) % 8))) + (e % 8)) + (32768 * (e / 32768)))]);\n        v10 = __fadd_rn(v9, in4);\n        v11 = __half2float(__float2half_rn(v10));\n        v12 = v11;\n        v14 = __fsub_rn(v12, v13);\n        v18 = (v14 / v17);\n        v20 = __fmul_rn(v18, v19);\n        v22 = __fadd_rn(v20, v21);\n        v23 = __half2float(__float2half_rn(v22));\n        v24 = __half2float(__float2half_rn(v23));\n        dst[((((64 * ((e / 64) % 512)) + (8 * ((e / 8) % 8))) + (e % 8)) + (32768 * (e / 32768)))] = __float2half_rn(v24);\n    }\n}"
+  },
+  {
+   "name": "k_out1__aj826acf5i",
+   "identity": "aj826acf5i",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    8
+   ],
+   "writes": 9,
+   "grid": 16384,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    16384,
+    1,
+    1
+   ],
+   "shape": [
+    32,
+    512,
+    1,
+    1
+   ],
+   "inShapes": [
+    [
+     32,
+     512,
+     8,
+     8
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(32) k_out1__aj826acf5i(const __half* __restrict__ src0, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[32];\n    float acc1 = 0.0f, acc0 = 0.0f, in0 = 0.0f, v0 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    acc1 = 0.0f;\n    for (int r0 = tid; r0 < 8; r0 += 32) {\n        acc0 = 0.0f;\n        for (int r1 = 0; r1 < 8; r1 += 1) {\n            in0 = __half2float(src0[((((64 * (bid % 512)) + (32768 * (bid / 512))) + r0) + (8 * r1))]);\n            v0 = in0;\n            acc0 = (acc0 + v0);\n        }\n        acc1 = (acc1 + acc0);\n    }\n    __syncthreads();\n    s_red[tid] = acc1;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 16)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 8)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 4)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 2)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 1)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    acc1 = s_red[0];\n    v1 = __fmul_rn(acc1, 0.015625f);\n    v2 = __half2float(__float2half_rn(v1));\n    v3 = __half2float(__float2half_rn(v2));\n    if ((tid == 0)) {\n        dst[((bid % 512) + (512 * (bid / 512)))] = __float2half_rn(v3);\n    }\n}"
+  }
+ ]
+}

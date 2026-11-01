@@ -1,0 +1,207 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-160/corpus/016.kiln.js",
+  "sha256": "e42099d6a26ee662101293603b9348510adf0b25e668657af3b04ccf1ca4a60a",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    64,
+    4,
+    64,
+    400
+   ],
+   "dtype": "f16"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    64,
+    4,
+    400,
+    400
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 4,
+   "shape": [
+    64,
+    256,
+    20,
+    20
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 6553600,
+   "bytes": 13107200
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 40960000,
+   "bytes": 81920000
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 40960000,
+   "bytes": 163840000
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 6553600,
+   "bytes": 26214400
+  },
+  {
+   "id": 4,
+   "dtype": "f16",
+   "elements": 6553600,
+   "bytes": 13107200
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_ew__12g1i1svb8y",
+   "identity": "12g1i1svb8y",
+   "row": "TPB=64,COARSEN=2",
+   "reads": [
+    1
+   ],
+   "writes": 2,
+   "grid": 320000,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65535,
+    5,
+    1
+   ],
+   "shape": [
+    64,
+    4,
+    400,
+    400
+   ],
+   "inShapes": [
+    [
+     64,
+     4,
+     400,
+     400
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\n__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned b = __float_as_uint(x); if ((b & 0x7f800000u) == 0x7f800000u) return x; return __uint_as_float((b + 0xfffu + ((b >> 13) & 1u)) & 0xffffe000u); }\nextern \"C\" __global__ void __launch_bounds__(64) k_cast_ew__12g1i1svb8y(const __half* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((128 * bid) + (64 * j)) + tid);\n        if ((e < 40960000)) {\n            in0 = __half2float(src0[((((160000 * ((e / 160000) % 4)) + (400 * ((e / 400) % 400))) + (e % 400)) + (640000 * (e / 640000)))]);\n            v0 = in0;\n            v1 = kiln_round_tf32(v0);\n            dst[((((160000 * ((e / 160000) % 4)) + (400 * ((e / 400) % 400))) + (e % 400)) + (640000 * (e / 640000)))] = v1;\n        }\n    }\n}"
+  },
+  {
+   "name": "k_cast_ew_2__auv78499yd",
+   "identity": "auv78499yd",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 3,
+   "grid": 102400,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65535,
+    2,
+    1
+   ],
+   "shape": [
+    64,
+    4,
+    64,
+    400
+   ],
+   "inShapes": [
+    [
+     64,
+     4,
+     64,
+     400
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\n__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned b = __float_as_uint(x); if ((b & 0x7f800000u) == 0x7f800000u) return x; return __uint_as_float((b + 0xfffu + ((b >> 13) & 1u)) & 0xffffe000u); }\nextern \"C\" __global__ void __launch_bounds__(64) k_cast_ew_2__auv78499yd(const __half* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 6553600)) {\n        in0 = __half2float(src0[((((25600 * ((e / 25600) % 4)) + (400 * ((e / 400) % 64))) + (e % 400)) + (102400 * (e / 102400)))]);\n        v0 = in0;\n        v1 = kiln_round_tf32(v0);\n        dst[((((25600 * ((e / 25600) % 4)) + (400 * ((e / 400) % 64))) + (e % 400)) + (102400 * (e / 102400)))] = v1;\n    }\n}"
+  },
+  {
+   "name": "k_matmul_cast_reshape_reduce__17z5821pz3u",
+   "identity": "17z5821pz3u",
+   "row": "MAP=row,TPB=128",
+   "reads": [
+    2,
+    3
+   ],
+   "writes": 4,
+   "grid": 6553600,
+   "block": 128,
+   "smemBytes": 512,
+   "dispatch": [
+    65535,
+    101,
+    1
+   ],
+   "shape": [
+    64,
+    256,
+    20,
+    20
+   ],
+   "inShapes": [
+    [
+     64,
+     4,
+     400,
+     400
+    ],
+    [
+     64,
+     4,
+     64,
+     400
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (out)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_matmul_cast_reshape_reduce__17z5821pz3u(const float* __restrict__ src0, const float* __restrict__ src1, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_red[128];\n    float acc0 = 0.0f, in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, v1 = 0.0f, v2 = 0.0f;\n    acc0 = 0.0f;\n    for (int r0 = tid; r0 < 400; r0 += 128) {\n        in0 = src1[((((102400 * ((((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400))) / 102400) % 64)) + (25600 * ((((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400))) / 25600) % 4))) + (400 * ((((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400))) / 400) % 64))) + r0)];\n        in1 = src0[((((640000 * ((((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400))) / 102400) % 64)) + (160000 * ((((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400))) / 25600) % 4))) + (((20 * ((bid / 20) % 20)) + (bid % 20)) % 400)) + (400 * r0))];\n        v0 = __fmul_rn(in0, in1);\n        acc0 = (acc0 + v0);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 64)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 64)];\n        s_red[tid] = (sv0 + sv1);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 32)];\n        s_red[tid] = (sv2 + sv3);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 16)];\n        s_red[tid] = (sv4 + sv5);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 8)];\n        s_red[tid] = (sv6 + sv7);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 4)];\n        s_red[tid] = (sv8 + sv9);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 2)];\n        s_red[tid] = (sv10 + sv11);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 1)];\n        s_red[tid] = (sv12 + sv13);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    v1 = __half2float(__float2half_rn(acc0));\n    v2 = __half2float(__float2half_rn(v1));\n    if ((tid == 0)) {\n        dst[((((20 * ((bid / 20) % 20)) + (400 * ((bid / 400) % 256))) + (bid % 20)) + (102400 * (bid / 102400)))] = __float2half_rn(v2);\n    }\n}"
+  }
+ ]
+}
