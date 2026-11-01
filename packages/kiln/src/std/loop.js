@@ -25,7 +25,8 @@ function intern(o) {
 function akey(o, bound) {
   const name = (v) => { const i = bound.lastIndexOf(v); return i < 0 ? v : "$" + (bound.length - 1 - i); };
   switch (o.k) {
-    case "num": return "#" + o.v;
+    // an exact (BigInt) literal keys by its decimal digits: two i64 literals that share a double differ
+    case "num": return o.exact != null ? "#" + o.exact + "n" : "#" + o.v;
     case "in": {
       if (!bound.length) return `in${o.i}[${o.idx.map(IX.keyOf).join(",")}]`;
       const env = {}; for (const v of bound) env[v] = IX.V(name(v));
@@ -47,15 +48,19 @@ export function free(x) {
   FREE.set(x, f);
   return f;
 }
+// a literal's exact value: the BigInt it was built from, else its number
+const litValue = (x) => (x.exact != null ? BigInt(x.exact) : x.v);
 export const E = {
-  num: (v) => intern({ k: "num", v: +v }),
+  // a BigInt literal (an i64 value) keeps its exact decimal digits beside the nearest double
+  num: (v) => (typeof v === "bigint" ? intern({ k: "num", v: Number(v), exact: String(v) }) : intern({ k: "num", v: +v })),
   load: (i, idx) => intern({ k: "in", i, idx: idx.map(IX.lift) }),
   op: (fnName, ...a) => {
-    F(fnName);
+    const spec = F(fnName);
     if (a.every((x) => x.k === "num")) {
-      // folding: a typed integer result is exact (literals are integral numbers); a float one rounds to f32
-      if (INTEGER_DTYPES.has(F(fnName).type)) return E.num(Number(F(fnName).js(...a.map((x) => x.v))));
-      return E.num(Math.fround(F(fnName).js(...a.map((x) => (F(fnName).args === "*" ? x.v : Math.fround(x.v))))));
+      // folding: a typed integer result is exact (i64 results are BigInts, kept exact by E.num); a
+      // reference that raises (an integer division by zero) is a compile error, a KilnError
+      if (INTEGER_DTYPES.has(spec.type)) return E.num(spec.js(...a.map(litValue)));
+      return E.num(Math.fround(spec.js(...a.map((x) => (spec.args === "*" ? litValue(x) : Math.fround(x.v))))));
     }
     if (COMM.has(fnName) && a.length === 2 && a[0].__key > a[1].__key) a = [a[1], a[0]];
     return intern({ k: "op", fn: fnName, a });
@@ -82,7 +87,7 @@ export function walkE(x, fnv, seen = new Set()) {
 }
 export function printE(x, names = (i) => "in" + i) {
   switch (x.k) {
-    case "num": return String(+x.v.toPrecision(6));
+    case "num": return x.exact ?? String(+x.v.toPrecision(6));
     case "in": return `${names(x.i)}[${x.idx.map((e) => IX.print(e)).join(", ")}]`;
     case "op": return `${x.fn}(${x.a.map((a) => printE(a, names)).join(", ")})`;
     case "red": return `${x.fn}_{${x.r}<${x.n}} ${printE(x.body, names)}`;
@@ -132,7 +137,7 @@ export function schedule(expr, shape) {
   const names = new Map();
   let ni = 0, nv = 0, na = 0;
   for (const n of order) names.set(n, n.k === "in" ? "in" + ni++ : n.k === "op" ? "v" + nv++ : "acc" + na++);
-  const opnd = (n) => (n.k === "num" ? { num: n.v } : { ref: names.get(n) });
+  const opnd = (n) => (n.k === "num" ? (n.exact != null ? { num: n.v, exact: n.exact } : { num: n.v }) : { ref: names.get(n) });
   const loopOf = new Map(scopes.filter((s) => s.red).map((s) => [s.red, s]));
   // emission
   const emitScope = (s) => {
@@ -169,7 +174,7 @@ export function displayNames(sched) {
 export function printNest(sched, bufName = (i) => "in" + i, outName = "out") {
   const R = displayNames(sched);
   const ix = (e) => IX.print(IX.subst(e, R));
-  const op = (o) => (o.ref ?? String(+o.num.toPrecision(6)));
+  const op = (o) => (o.ref ?? o.exact ?? String(+o.num.toPrecision(6)));
   const lines = [];
   const walk = (ss, d) => {
     const pad = "    ".repeat(d);
@@ -208,6 +213,13 @@ const jsIndex = (inShapes) => {
   const js = (e) => IX.emit(e, "js", (v) => v, (i, idx, r) => `Number(I${i}[${r(flat(idx, strides(inShapes[i])))}])`);
   return { js, flat };
 };
+// JS spelling of an operand. A literal is an f32 register value (rounded) unless it is exact (an i64
+// BigInt literal) or an operand of a typed integer function, where it is the integer it spells
+const jsLiteral = (o, spec = null) => {
+  if (o.ref != null) return o.ref;
+  if (o.exact != null) return `(${o.exact}n)`;
+  return INTEGER_DTYPES.has(spec?.args) ? `(${o.num})` : `(${Math.fround(o.num)})`;
+};
 // compiles the nest to a JS function: the reference every GPU schedule is checked against
 const EVAL = new WeakMap();
 export function compileSerial(sched, inShapes) {
@@ -217,13 +229,13 @@ export function compileSerial(sched, inShapes) {
   const outSt = strides(sched.shape);
   const { js, flat } = jsIndex(inShapes);
   const body = [];
-  const op = (o) => (o.ref ?? `(${Math.fround(o.num)})`);
+  const op = jsLiteral;
   const walk = (ss, pad) => {
     for (const s of ss) {
       if (s.s === "for") { body.push(`${pad}for (let ${s.v} = 0; ${s.v} < ${s.n}; ${s.v}++) {`); walk(s.body, pad + "  "); body.push(`${pad}}`); }
       else if (s.s === "let") {
         if (s.e.k === "in") body.push(`${pad}const ${s.name} = I${s.e.i}[${js(flat(s.e.idx, strides(inShapes[s.e.i])))}];`);
-        else { const f = FNS[s.e.fn]; body.push(`${pad}const ${s.name} = F.${s.e.fn}(${s.e.a.map(op).join(", ")});`); if (!f) throw new KilnError("EvalError", "unknown fn " + s.e.fn); }
+        else { const f = FNS[s.e.fn]; if (!f) throw new KilnError("EvalError", "unknown fn " + s.e.fn); body.push(`${pad}const ${s.name} = F.${s.e.fn}(${s.e.a.map((o) => op(o, f)).join(", ")});`); }
       } else if (s.s === "init") body.push(`${pad}let ${s.name} = ${jsInit(s.fn)};`);
       else if (s.s === "acc") body.push(`${pad}${s.name} = R.${s.fn}(${s.name}, ${op(s.val)});`);
       else if (s.s === "write") body.push(`${pad}O[${js(flat(s.idx, outSt))}] = W(${op(s.val)});`);
@@ -245,14 +257,14 @@ export function compilePoint(sched, inShapes) {
   if (ck && ck.key === key) return ck.fn;
   const outSt = strides(sched.shape);
   const { js, flat } = jsIndex(inShapes);
-  const op = (o) => (o.ref ?? `(${Math.fround(o.num)})`);
+  const op = jsLiteral;
   const body = [];
   for (const d of sched.dims) body.push(`  const ${d.v} = Math.floor(e / ${outSt[d.dim]}) % ${d.n};`);
   const walk = (ss, pad) => {
     for (const s of ss) {
       if (s.s === "for" && s.kind === "free") walk(s.body, pad);
       else if (s.s === "for") { body.push(`${pad}for (let ${s.v} = 0; ${s.v} < ${s.n}; ${s.v}++) {`); walk(s.body, pad + "  "); body.push(`${pad}}`); }
-      else if (s.s === "let") body.push(s.e.k === "in" ? `${pad}const ${s.name} = I${s.e.i}[${js(flat(s.e.idx, strides(inShapes[s.e.i])))}];` : `${pad}const ${s.name} = F.${s.e.fn}(${s.e.a.map(op).join(", ")});`);
+      else if (s.s === "let") body.push(s.e.k === "in" ? `${pad}const ${s.name} = I${s.e.i}[${js(flat(s.e.idx, strides(inShapes[s.e.i])))}];` : `${pad}const ${s.name} = F.${s.e.fn}(${s.e.a.map((o) => op(o, FNS[s.e.fn])).join(", ")});`);
       else if (s.s === "init") body.push(`${pad}let ${s.name} = ${jsInit(s.fn)};`);
       else if (s.s === "acc") body.push(`${pad}${s.name} = R.${s.fn}(${s.name}, ${op(s.val)});`);
       else if (s.s === "write") body.push(`${pad}return ${op(s.val)};`);
@@ -287,13 +299,18 @@ export const loop = k.dialect("loop").describe("Loop IR: one kernel per node, an
 
 // ----------------------------------------------------------------------------- l: lift
 const isSplat = (v) => v.is("tensor.const") && !v.attrs.data;
+// an int64 splat's value is exact (a BigInt literal, as folded int64 splats already are); others are numbers
+const splatLiteral = (v) => {
+  const x = v.attrs.value;
+  return v.type.dtype === "i64" && Number.isInteger(x) ? E.num(BigInt(x)) : E.num(x);
+};
 const coords = (n) => IX.coordVars(n);
 const mkKernel = (args, expr, shape, origin, outDtype = "f32") => loop.kernel(args, { expr, shape, outDtype, origin: origin ? [origin] : [] });
 export const liftEw = k.rule("lift_elementwise").match(P.op("tensor.ew").as("n")).rewrite(({ n }) => {
   const ins = [];
   const shape = n.type.shape;
   const ops = n.args.map((a) => {
-    if (isSplat(a)) return E.num(a.attrs.value);
+    if (isSplat(a)) return splatLiteral(a);
     let i = ins.findIndex((x) => x.id === a.id);
     if (i < 0) { ins.push(a); i = ins.length - 1; }
     return E.load(i, coords(shape.length).slice(shape.length - a.type.shape.length));
@@ -312,7 +329,7 @@ export const liftView = k.rule("lift_indexmap").match(P.op("tensor.view").as("n"
 // a gather is a view whose map reads its index argument through data-dependent terms LD(1, …)
 export const liftGather = k.rule("lift_gather").match(P.op("tensor.gather").as("n")).rewrite(({ n }) => mkKernel([n.arg("x"), n.arg("ids")], E.load(0, n.attrs.map.exprs), n.attrs.shape, n.attrs.origin, n.type.dtype));
 export const liftSplatOut = k.rule("lift_constant_output").match(P.op("tensor.const").as("n").where(({ n, graph }) => !n.attrs.data && graph.isOutput(n.id)))
-  .rewrite(({ n }) => mkKernel([], E.num(n.attrs.value), n.type.shape, "constant", n.type.dtype));
+  .rewrite(({ n }) => mkKernel([], splatLiteral(n), n.type.shape, "constant", n.type.dtype));
 export const lift = k.pass("loop/lowering").short("l").rules(liftEw, liftReduce, liftView, liftGather, liftSplatOut)
   .describe("each Tensor IR primitive becomes a one-op loop kernel");
 

@@ -11,7 +11,7 @@ import { roundToDtype } from "../core/dtypes.js";
 import { k, P, Value, KilnError, Node } from "../core/kiln.js";
 import { Tensor, numel, strides, rng } from "../core/util.js";
 import * as IX from "../core/ix.js";
-import { fn as F, reducer, FNS, INTEGER_DTYPES, resultType, typedReducer } from "./fns.js";
+import { fn as F, reducer, FNS, INTEGER_DTYPES, INTEGER_DIVISIONS, resultType, typedReducer } from "./fns.js";
 
 // ----------------------------------------------------------------------------- reference helpers
 const asT = (x) => (x instanceof Tensor ? x : typeof x === "number" ? new Tensor([], Float32Array.of(x)) : Array.isArray(x) ? new Tensor([x.length], Float32Array.from(x)) : x);
@@ -209,6 +209,7 @@ function elementwiseDtype(fn, xs, casts = []) {
 }
 export const COMPARISONS = new Set(["eq", "ne", "lt", "le", "gt", "ge"]);
 const needsCast = (from, to) => from !== to && (INTEGER_DTYPES.has(from) || INTEGER_DTYPES.has(to));
+const isLiteralZero = (x) => x.is("tensor.const") && !x.attrs.data && x.attrs.value == 0;
 // a frontend elementwise op resolved to one typed function and the conversions its operands need
 export function resolveEw(fn, xs) {
   if (fn === "select") {
@@ -216,6 +217,15 @@ export function resolveEw(fn, xs) {
     return { fn, casts: xs.map((x, i) => (i > 0 && needsCast(dtypeOf(x), t) ? t : null)) };
   }
   const t = promoteDtypes(xs);
+  // true division of integers is float division (PyTorch: int / int is the default float dtype)
+  if (fn === "div" && INTEGER_DTYPES.has(t)) return { fn, casts: xs.map((x) => (dtypeOf(x) === "f32" ? null : "f32")) };
+  // floor of an integer is the integer (PyTorch returns the input dtype unchanged)
+  if (fn === "floor" && (t === "i32" || t === "i64")) return { fn: "copy", casts: [null] };
+  if (INTEGER_DIVISIONS.has(fn)) {
+    // f32 has untyped functions; f16 and bf16 would round every intermediate step in PyTorch
+    if (t !== "i32" && t !== "i64" && t !== "f32") throw new KilnError("TypeError", `${fn} over ${t} values is not lowered`);
+    if (t !== "f32" && isLiteralZero(xs[1])) throw new KilnError("ZeroDivisionError", "integer division by zero");
+  }
   const compute = COMPARISONS.has(fn) ? (INTEGER_DTYPES.has(t) ? t : "f32") : t;
   let typed = fn;
   if (COMPARISONS.has(fn)) typed = `${fn}_${compute}`;
@@ -362,10 +372,12 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
   // elements start, start + step, … below end along one axis (step > 0)
   .op("slice", { args: ["x"], attrs: { axis: 0, start: 0, end: 1, step: 1 }, infer: ({ x, axis, start, end, step }) => { const s = x.type.shape.slice(); const a = axis < 0 ? s.length + axis : axis; if (!(step >= 1)) throw new KilnError("ShapeError", "slice step must be positive"); s[a] = Math.ceil((end - start) / step); return T_(s, x.type.dtype); }, eval: ({ x, axis, start, step, type }) => { const n = asT(x).shape.length; const a = axis < 0 ? n + axis : axis; return viewRef(x, type.shape, IX.map(n, (c) => c.map((v, i) => (i === a ? v.mul(step).add(start) : v)))); }, print: "{x}[{axis}: {start}..{end}:{step}]" });
 
+// a splat's printed value: an int64 BigInt prints exactly
+const constText = (v) => (typeof v === "bigint" ? String(v) : String(+(+v).toPrecision(6)));
 export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, reduction and index-map primitives")
   .op("const", { attrs: { value: 0, shape: [], data: null, dtype: "f32" }, traits: ["pure", "any-ir"], infer: ({ shape, data, dtype }) => T_(data ? data.shape : shape, data?.dtype || dtype),
     eval: ({ value, shape, data, dtype }) => (data ? data : Tensor.fill(shape, value, dtype)),
-    print: ({ value, shape, data, name }) => (data ? `${name ? name + " " : ""}data(${data.shape.join("×")})` : shape.length ? `splat ${+(+value).toPrecision(6)} (${shape.join("×")})` : String(+(+value).toPrecision(6))) })
+    print: ({ value, shape, data, name }) => (data ? `${name ? name + " " : ""}data(${data.shape.join("×")})` : shape.length ? `splat ${constText(value)} (${shape.join("×")})` : constText(value)) })
   .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add", dtype: null }, traits: ["pure"], infer: ({ xs, fn, dtype }) => T_(xs[0].type.shape, dtype || elementwiseDtype(fn, xs)), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs, type.dtype), type),
     validate: ({ args }) => args.every((a) => a.type.shape.join() === args[0].type.shape.join()) || "elementwise inputs must share a shape (insert views)", print: "{fn}({xs})" })
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1 }, traits: ["pure"], infer: ({ x, fn, axis }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(s.map((d, i) => (i === a ? 1 : d)), reducer(fn).type ?? "f32"); }, eval: ({ x, fn, axis }) => reduceRef(fn, x, axis), print: "{fn}({x}, axis={axis})" })
@@ -438,7 +450,16 @@ export const N = {
   embedding: (ids, weight) => N.gather(weight, ids, 0),
   indexSelect: (x, axis, ids) => N.gather(x, ids, axis),
   ew: (f, ...xs) => { xs = xs.map(nv); return nn.ew(xs, resolveEw(f, xs)); },
-  add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b), div: (a, b) => N.ew("div", a, b),
+  add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b),
+  // torch.div: rounding null is true division (integers divide as floats), "floor" is a // b, "trunc" rounds toward zero
+  div: (a, b, rounding = null) => {
+    if (rounding === null || rounding === undefined) return N.ew("div", a, b);
+    if (rounding === "floor") return N.floordiv(a, b);
+    if (rounding === "trunc") return N.ew("truncdiv", a, b);
+    throw new KilnError("TypeError", `div rounding mode must be null, "floor" or "trunc", got ${JSON.stringify(rounding)}`);
+  },
+  // a // b and a % b round toward negative infinity (the remainder has b's sign); fmod has a's sign
+  floordiv: (a, b) => N.ew("floordiv", a, b), remainder: (a, b) => N.ew("remainder", a, b), fmod: (a, b) => N.ew("fmod", a, b),
   max: (a, b) => N.ew("max", a, b), min: (a, b) => N.ew("min", a, b), pow: (a, b) => N.ew("pow", a, b),
   exp: (x) => N.ew("exp", x), log: (x) => N.ew("log", x), sqrt: (x) => N.ew("sqrt", x), rsqrt: (x) => N.ew("rsqrt", x), tanh: (x) => N.ew("tanh", x),
   sigmoid: (x) => N.ew("sigmoid", x), relu: (x) => N.ew("relu", x), abs: (x) => N.ew("abs", x), floor: (x) => N.ew("floor", x), neg: (x) => N.ew("neg", x), square: (x) => N.ew("square", x),
@@ -465,7 +486,8 @@ export const N = {
   weight, const: (v, shape = []) => tensor.const({ value: v, shape }),
 };
 nn.methods({
-  add: (a, b) => N.add(a, b), sub: (a, b) => N.sub(a, b), mul: (a, b) => N.mul(a, b), div: (a, b) => N.div(a, b), pow: (a, b) => N.pow(a, b),
+  add: (a, b) => N.add(a, b), sub: (a, b) => N.sub(a, b), mul: (a, b) => N.mul(a, b), div: (a, b, rounding) => N.div(a, b, rounding), pow: (a, b) => N.pow(a, b),
+  floordiv: (a, b) => N.floordiv(a, b), remainder: (a, b) => N.remainder(a, b), fmod: (a, b) => N.fmod(a, b),
   exp: (a) => N.exp(a), log: (a) => N.log(a), tanh: (a) => N.tanh(a), relu: (a) => N.relu(a), sigmoid: (a) => N.sigmoid(a), sqrt: (a) => N.sqrt(a), neg: (a) => N.neg(a), square: (a) => N.square(a),
   sum: (a, ax, kd) => N.sum(a, ax, kd), mean: (a, ax, kd) => N.mean(a, ax, kd), amax: (a, ax, kd) => N.amax(a, ax, kd),
   matmul: (a, b) => N.matmul(a, b), linear: (a, w, b) => N.linear(a, w, b), softmax: (a, d) => N.softmax(a, d), t: (a) => N.transpose(a), reshape: (a, s) => N.reshape(a, s),
@@ -493,10 +515,12 @@ export function decompose(opName, build, name = "decompose:" + opName) {
 const lastAxis = (x, a) => (a < 0 ? x.type.shape.length + a : a);
 // x converted to dtype in Tensor IR. Floats among themselves narrow by rounding (f32 widening is exact);
 // a scalar constant converts at compile time.
+// a scalar constant's value in dtype; an int64 value may be a BigInt (a folded int64 splat)
+const convertScalar = (v, dtype) => dtype === "bool" ? +(v != 0) : dtype === "i64" ? (typeof v === "bigint" ? v : Math.trunc(v)) : dtype === "i32" ? FNS.to_i32.js(v) : Number(v);
 function convert(x, dtype) {
   const from = dtypeOf(x);
   if (!dtype || from === dtype) return x;
-  if (x.is("tensor.const") && !x.attrs.data) return tensor.const({ value: dtype === "bool" ? +(x.attrs.value != 0) : INTEGER_DTYPES.has(dtype) ? Math.trunc(x.attrs.value) : x.attrs.value, shape: x.attrs.shape, dtype });
+  if (x.is("tensor.const") && !x.attrs.data) return tensor.const({ value: convertScalar(x.attrs.value, dtype), shape: x.attrs.shape, dtype });
   if (INTEGER_DTYPES.has(dtype)) return tensor.ew([x], { fn: "to_" + dtype, dtype });
   const wide = INTEGER_DTYPES.has(from) ? tensor.ew([x], { fn: "to_f32", dtype: "f32" }) : x;
   return dtype === "f32" ? (wide === x ? tensor.ew([x], { fn: "copy", dtype }) : wide) : tensor.ew([wide], { fn: "round_" + dtype, dtype });
@@ -567,13 +591,13 @@ export const composeViews = k.rule("compose_views")
   .rewrite(({ p, c }) => tensor.view(p.arg("x"), { shape: c.attrs.shape, map: IX.compose(p.attrs.map, c.attrs.map), origin: c.attrs.origin }));
 export const foldSplatView = k.rule("fold_splat_view")
   .match(P.op("tensor.view").as("v").where(({ v }) => isSplat(v.arg("x"))))
-  .rewrite(({ v }) => tensor.const({ value: v.arg("x").attrs.value, shape: v.attrs.shape }));
+  .rewrite(({ v }) => tensor.const({ value: v.arg("x").attrs.value, shape: v.attrs.shape, dtype: dtypeOf(v.arg("x")) }));
 export const dropIdentityView = k.rule("drop_identity_view")
   .match(P.op("tensor.view").as("v").where(({ v }) => v.attrs.map.isIdentity(v.arg("x").type.shape.length) && v.arg("x").type.shape.join() === v.attrs.shape.join()))
   .rewrite(({ v }) => v.arg("x"));
 export const foldSplatEw = k.rule("fold_splat_ew")
   .match(P.op("tensor.ew").as("e").where(({ e }) => e.args.every(isSplat)))
-  .rewrite(({ e }) => tensor.const({ value: F(e.attrs.fn).js(...e.args.map((a) => a.attrs.value)), shape: e.type.shape }));
+  .rewrite(({ e }) => tensor.const({ value: F(e.attrs.fn).js(...e.args.map((a) => a.attrs.value)), shape: e.type.shape, dtype: dtypeOf(e) }));
 // a·b + c → fma(a, b, c): one instruction, one rounding (what nvcc does by default with -fmad=true).
 // FP32 only: an f16/bf16 multiply rounds its result to storage precision, and contracting it would
 // drop that source-visible rounding (eager PyTorch rounds after each low-precision operation).

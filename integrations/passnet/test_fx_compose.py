@@ -94,6 +94,31 @@ class ComposeNumericTests(unittest.TestCase):
         ids = torch.tensor([[5, 1, 1, 7, 2, 1], [1, 3, 3, 1, 1, 9]])
         self.check(Positions(), [ids], atol=0, rtol=0)
 
+    def test_integer_division_matches_torch(self):
+        """KILN-011: //, %, trunc div, fmod, floor div and true division agree exactly on every sign."""
+        class Division(torch.nn.Module):
+            def forward(self, a, b):
+                return (a // b, a % b, torch.div(a, b, rounding_mode='trunc'), torch.fmod(a, b),
+                        torch.div(a, b, rounding_mode='floor'), a.remainder(b), a // 80, a % 16, -7 // b, a / b)
+        # INT_MIN by -1 is excluded: PyTorch CPU's trunc division executes x86 idiv, which traps (SIGFPE)
+        a = [7, -7, 7, -7, 0, 6, -6, 179, -1, 23999, -2**31, 2**31 - 1]
+        b = [2, 2, -2, -2, 3, -3, 3, 80, 80, -7, 1, -1]
+        for dtype in (torch.int64, torch.int32):
+            self.check(Division(), [torch.tensor(a, dtype=dtype), torch.tensor(b, dtype=dtype)], atol=0, rtol=0)
+
+    def test_float_division_matches_torch(self):
+        """KILN-011 Phase 3: float32 and mixed int/float floor division, remainder, fmod, trunc division."""
+        class Division(torch.nn.Module):
+            def forward(self, x, y, i):
+                return (x // y, x % y, torch.fmod(x, y), torch.div(x, y, rounding_mode='trunc'), x // 2, i // 2.5, i % 0.75,
+                        torch.floor(i), torch.div(i, y, rounding_mode='floor'))
+        torch.manual_seed(5)
+        x = torch.randn(64) * 10
+        y = torch.randn(64) * 3
+        y[:4] = torch.tensor([0.1, -0.1, 1.0, -2.0]); x[:4] = torch.tensor([1.0, 1.0, -2.0, 6.0])
+        i = torch.randint(-1000, 1000, (64,))
+        self.check(Division(), [x, y, i], atol=0, rtol=0)
+
 
 if __name__ == '__main__':
     unittest.main()

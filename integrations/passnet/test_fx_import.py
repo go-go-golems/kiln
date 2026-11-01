@@ -217,6 +217,52 @@ class ImportTests(unittest.TestCase):
                 def forward(self, ids): return ids.to(torch.int16)
             import_graph(export_graph(symbolic_trace(Narrow()), (torch.ones(2, dtype=torch.int64),)))
 
+    def test_integer_division(self):
+        """KILN-011: each FX spelling of //, %, fmod and torch.div with a rounding mode."""
+        class Model(torch.nn.Module):
+            def forward(self, a, b):
+                return (a // b, a % 80, torch.div(a, 14, rounding_mode='trunc'), torch.fmod(a, b), a.floor_divide(b),
+                        torch.remainder(a, b), torch.div(a, b), a.div(b, rounding_mode='floor'), 7 // b, torch.floor_divide(a, 3),
+                        a.fmod(b), a.__mod__(b), a.__floordiv__(b), torch.div(a, b, rounding_mode=None))
+        a, b = torch.tensor([7, -7, 0, 100]), torch.tensor([2, -2, 3, -9])
+        script = import_graph(export_graph(symbolic_trace(Model()), (a, b)))['script']
+        for text in ['N.floordiv(v0, v1), [4], "i64"', 'N.remainder(v0, N.int(80))', 'N.div(v0, N.int(14), "trunc")', 'N.fmod(v0, v1)',
+                     'N.remainder(v0, v1)', 'N.div(v0, v1), [4], "f32"', 'N.div(v0, v1, "floor")', 'N.floordiv(N.int(7), v1)',
+                     'N.floordiv(v0, N.int(3))']:
+            self.assertIn(text, script)
+        self.assertEqual(script.count('N.floordiv(v0, v1)'), 3)
+        self.assertEqual(script.count('N.div(v0, v1), [4], "f32"'), 2)
+        int32 = import_graph(export_graph(symbolic_trace(Model()), (a.int(), b.int())))['script']
+        self.assertIn('N.remainder(v0, N.int(80)), [4], "i32"', int32)
+
+        class InPlace(torch.nn.Module):
+            def forward(self, a, b):
+                q = a + 0
+                q //= b
+                r = a + 1
+                r %= 16
+                return q, r
+        from fx_trace import trace_module
+        script = import_graph(export_graph(trace_module(InPlace()), (a, b)))['script']
+        self.assertIn('N.floordiv(', script)
+        self.assertIn('N.remainder(', script)
+
+        class Floating(torch.nn.Module):
+            def forward(self, x): return x // 2
+        self.assertIn('N.floordiv(v0, N.int(2)), [3], "f32"', import_graph(export_graph(symbolic_trace(Floating()), (torch.randn(3),)))['script'])
+        with self.assertRaisesRegex(ValueError, 'floordiv over torch.float16 is not lowered'):
+            import_graph(export_graph(symbolic_trace(Floating()), (torch.randn(3).half(),)))
+        class Mixed(torch.nn.Module):
+            def forward(self, a): return torch.div(a, 2.0, rounding_mode='floor')
+        self.assertIn('N.div(v0, 2.0, "floor"), [4], "f32"', import_graph(export_graph(symbolic_trace(Mixed()), (a,)))['script'])
+        import copy
+        graph = export_graph(symbolic_trace(Model()), (a, b))
+        bad = copy.deepcopy(graph)
+        node = next(n for n in bad['nodes'] if n['target'] == 'torch.div' and n['kwargs']['dict'])
+        node['kwargs']['dict']['rounding_mode'] = '"round"'
+        with self.assertRaisesRegex(ValueError, 'unsupported div rounding_mode'):
+            import_graph(bad)
+
     def test_integer_arithmetic(self):
         """P3a slice 3: integer scalars keep their category; comparisons, masks, cumsum, max values."""
         class Positions(torch.nn.Module):

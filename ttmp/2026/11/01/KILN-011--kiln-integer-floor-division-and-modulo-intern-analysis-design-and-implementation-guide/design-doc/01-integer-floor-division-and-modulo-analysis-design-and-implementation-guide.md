@@ -493,3 +493,14 @@ The host check validates the C logic, not NVRTC's code generation; Phase 4 still
 - `scripts/01-census-div-mod.py` and `sources/01-census-div-mod.out` — corpus counts: 399 `model.py` files match; 374 are symbolic-shape arithmetic (`torch.sym_*`), 30 of which are in the census and imported; 25 are tensor operations, none in the census, all in `hf_sole_op_subgraphs*.txt`.
 - `scripts/04-probe-kiln-current.mjs` — the probe behind the table in Section 4.2.
 - `reference/01-diary.md` — the investigation diary with all probe commands and results.
+
+## 13. Implementation notes (2026-11-01)
+
+Phases 0 to 3 and the CPU preparation of Phase 4 are implemented on branch `impl/kiln-011-floordiv-mod`; the diary (Steps 7-11) records each step. The implementation differs from the plan above in these points:
+
+- Phase 0 fixed two more defects than Section 6.6 names: the serial loop evaluator rounded every literal operand through `Math.fround` (so `N.add(i64, N.int(16777217))` evaluated to `16777216`), and `foldSplatView`/`foldSplatEw` dropped the dtype of the constants they produced, which crashed the printer on any folded int64 scalar.
+- `toCuda` collects device helpers from a `helper` field on `FNS` entries; `kiln_round_tf32` moved into the same table (`CUDA_HELPERS` in `fns.js`).
+- Phase 3 follows PyTorch CPU, not the `div_mod` header, for the sign of a zero remainder (fmod's zero, signed like the dividend). PyTorch CPU's vectorized `fmod` and `%` return NaN when `|a / b|` overflows float32; Kiln returns C `fmodf`'s exact value.
+- Float floor division and remainder are lowered for float32 only; float16 and bfloat16 are refused in `resolveEw` and in the importer.
+- `floor` of an int32 or int64 tensor resolves to `copy`; `ceil`, `round` and `trunc` have no Kiln function and were not added.
+- The 25 upstream tensor-division graphs import and agree exactly with PyTorch CPU (`sources/03-corpus-tensor-division-cpu-phase3.json`).
