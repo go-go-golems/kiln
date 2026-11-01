@@ -17,7 +17,8 @@
 // m'_k; every lane computes α_k from it, and sums
 // l_k over the same sP row in the same order, so all copies agree bit for bit. A row whose scores are all
 // −inf keeps p = 0 and α = 1 (a guard on m' > −inf) and ends in 0 / 0 = NaN, which is what the three-pass
-// reference computes. Both products are FP32 SIMT in the expression's own spelling (dotFn, pvFn: mul or
+// reference of a plain softmax computes; under N.safeSoftmax (the importer's SDPA) m starts at the floor
+// −FLT_MAX and the sum is floored at FLT_MIN, so that row is 0, as in PyTorch. Both products are FP32 SIMT in the expression's own spelling (dotFn, pvFn: mul or
 // mul_rn); `products` is the seam where a tensor-core implementation (KILN-006) can replace the score tile
 // and the P·V update.
 import { KilnError } from "../core/kiln.js";
@@ -137,7 +138,9 @@ export function matFlash(an, kn) {
     kb.sstore("sQ", rr.mul(lay.QS).add(ee), kx.v(val));
   });
   kb.sync();
-  const m = rows.map((_, k) => kb.let(NEG_INF, `m${k}`)), l = rows.map((_, k) => kb.let(kx.num(0), `l${k}`));
+  // a floored maximum starts at its floor: max over the tiles is then max(M, floor), as the expression says
+  const m0 = att.mFloor != null ? kx.num(att.mFloor) : NEG_INF;
+  const m = rows.map((_, k) => kb.let(m0, `m${k}`)), l = rows.map((_, k) => kb.let(kx.num(0), `l${k}`));
   const acc = rows.map((_, k) => cols.map((_, q) => kb.let(kx.num(0), `acc${k}_${q}`)));
   kb.for("j0", 0, S, BC, (j0) => {
     // stage the key tile and the value tile
@@ -194,7 +197,8 @@ export function matFlash(an, kn) {
   // the output: post(acc / l) at every (row, column) this thread owns
   const outSt = strides(att.shape);
   rows.forEach((_, k) => cols.forEach((d, q) => guarded(kb, [raggedL && qi[k].lt(L), colOk(q)], () => {
-    const o = kb.let(kx.op("div", kx.v(acc[k][q]), kx.v(l[k])), `o${k}_${q}`);
+    const den = att.lFloor != null ? kx.v(kb.let(kx.op("max", kx.v(l[k]), kx.num(att.lFloor)), `lf${k}_${q}`)) : kx.v(l[k]);
+    const o = kb.let(kx.op("div", kx.v(acc[k][q]), den), `o${k}_${q}`);
     const env = { ...benv, [att.iVar]: qi[k], [att.dVar]: d };
     const val = emitFrag(kb, an, att.post, env, new Map([[att.core, kx.v(o)]]));
     kb.store("out", att.shape.reduce((a, _, j) => a.add(IX.lift(env["a" + j] ?? C(0)).mul(outSt[j])), C(0)), val);

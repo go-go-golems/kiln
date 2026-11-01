@@ -24,7 +24,7 @@ function graph({ B = 1, H = 2, L, S, D, mask = "add", maskShape = null, dtype = 
     let s = N.mul(N.matmul(c(q), N.transpose(c(kk), -2, -1), "highest"), 1 / Math.sqrt(D));
     if (mask === "add") s = N.add(s, c(m));
     if (mask === "bool") s = N.select(m, s, -Infinity);
-    return { out: N.cast(N.matmul(N.softmax(s, -1), c(v), "highest"), dtype) };
+    return { out: N.cast(N.matmul(N.safeSoftmax(s, -1), c(v), "highest"), dtype) };
   }, shapes);
 }
 const cases = [

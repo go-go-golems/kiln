@@ -28,7 +28,8 @@ function graph({B = 1, H = 2, L = 5, S = 7, D = 4, E = D, mask = 'add', maskShap
     if (mask === 'add') s = N.add(s, c(m));
     if (mask === 'bool') s = N.select(m, s, -Infinity);
     let out;
-    if (variant === 'sdpa') out = N.matmul(N.softmax(s, -1), c(v), 'highest');
+    if (variant === 'sdpa') out = N.matmul(N.safeSoftmax(s, -1), c(v), 'highest');
+    else if (variant === 'plain') out = N.matmul(N.softmax(s, -1), c(v), 'highest');
     else if (variant === 'unnormalized') { const e = N.exp(N.sub(s, N.amax(s, -1))); out = N.div(N.matmul(e, c(v), 'highest'), N.sum(e, -1)); }
     else if (variant === 'softmax-only') out = N.softmax(s, -1);
     else if (variant === 'no-softmax') out = N.matmul(s, c(v), 'highest');
@@ -78,6 +79,7 @@ const forcedKernels = (g, contraction = 'separate') => { const r = pipeline({tar
   for (const c of [
     {L: 9, S: 11, D: 16}, {L: 1, S: 13, D: 8}, {L: 6, S: 6, D: 12, E: 8}, {mask: 'none'}, {mask: 'bool'},
     {maskShape: [1, 2, 5, 7]}, {maskShape: [1, 1, 1, 7]}, {dtype: 'f16'}, {dtype: 'bf16', mask: 'bool'}, {variant: 'unnormalized'}, {B: 2, H: 3},
+    {variant: 'plain'}, {variant: 'plain', mask: 'bool', L: 9, S: 11, D: 16},
   ]) {
     const ks = loopKernels(compile(graph(c)));
     const ms = ks.map(matchOf).filter(Boolean);
@@ -85,6 +87,8 @@ const forcedKernels = (g, contraction = 'separate') => { const r = pipeline({tar
     const m = ms[0];
     assert.equal(m.E, c.E ?? c.D ?? 4); assert.equal(m.D, c.D ?? 4);
     assert.equal(m.normalized, c.variant !== 'unnormalized');
+    assert.equal(m.mFloor, c.variant ? null : -3.4028234663852886e38, 'N.safeSoftmax floors the maximum');
+    assert.equal(m.lFloor, c.variant ? null : Math.fround(1.1754943508222875e-38), 'and the sum');
   }
   // refusals: softmax without the product, a product without the softmax, a softmax over the other axis,
   // log-softmax, and a score matrix that is also an output
@@ -182,11 +186,12 @@ simulated += simulateAll({L: 5, S: 7, D: 4, mask: 'none', B: 2});
 simulated += simulateAll({L: 9, S: 40, D: 12, E: 8, maskShape: [1, 2, 9, 40]});
 simulated += simulateAll({L: 3, S: 17, D: 6, maskShape: [1, 1, 1, 17], dtype: 'f16'});
 simulated += simulateAll({L: 16, S: 32, D: 16, mask: 'none'}, web);
-// every element against the serial reference, with data that masks whole rows: NaN where PyTorch's
-// math reference and Kiln's three-pass reference produce NaN, equal values elsewhere
-{
+simulated += simulateAll({L: 13, S: 21, D: 24, variant: 'plain'});
+// every element against the serial reference, with data that masks a whole row: 0 under N.safeSoftmax (the
+// importer's SDPA; PyTorch returns 0), NaN under a plain softmax, equal values elsewhere
+for (const variant of ['sdpa', 'plain']) {
   const L = 6, S = 10, D = 8;
-  const g = graph({L, S, D});
+  const g = graph({L, S, D, variant});
   const x = inputsFor(g);
   for (let h = 0; h < L * S; h++) if (Math.floor(h / S) === 2 || (Math.floor(h / S) === 4 && h % S > 2)) x.mask.data[h] = -Infinity;
   for (const o of flashOptions(matchOf(loopKernels(compile(g))[0]), gb10).slice(0, 4)) {
@@ -198,7 +203,8 @@ simulated += simulateAll({L: 16, S: 32, D: 16, mask: 'none'}, web);
     for (let i = 0; i < want.length; i++) {
       const row = Math.floor(i / D) % L;
       assert.equal(Number.isNaN(got[i]), Number.isNaN(want[i]), `NaN pattern at ${i} (${kk.row})`);
-      assert.equal(Number.isNaN(want[i]), row === 2, 'the fully masked row is NaN');
+      assert.equal(Number.isNaN(want[i]), variant === 'plain' && row === 2, 'a plain softmax makes the fully masked row NaN');
+      if (variant === 'sdpa' && row === 2) assert.equal(got[i], 0, 'the safe softmax makes it 0');
       if (!Number.isNaN(want[i])) assert.ok(Math.abs(got[i] - want[i]) < 1e-5, `${i}: ${got[i]} vs ${want[i]}`);
     }
   }

@@ -41,7 +41,7 @@ def classify(result, spec):
         if sum(matrices)>spec['max_matrix_products']:
             return None,'matrix_work_excluded'
         category='matrix'
-    elif any(operator in result['script'] for operator in ['N.sum(','N.layer_norm(','N.rms_norm(','N.softmax(']):
+    elif any(operator in result['script'] for operator in ['N.sum(','N.layer_norm(','N.rms_norm(','N.softmax(','N.safeSoftmax(']):
         category='reduction'
     else:
         return None,'required_structure_absent'

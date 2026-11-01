@@ -15,8 +15,11 @@ const STORAGE = { f32: Float32Array, f16: Float32Array, bf16: Float32Array, i64:
 const request = JSON.parse(readFileSync(0, "utf8"));
 const res = runScript(request.script);
 if (!res.ok) { process.stdout.write(JSON.stringify({ error: res.diags.map((d) => d.message).join("; ") })); process.exit(0); }
-const inputs = Object.fromEntries(Object.entries(request.inputs).map(([name, t]) => {
+const inputs = Object.fromEntries(Object.entries(request.inputs).map(([name, t0]) => {
+  let t = t0;
   const Storage = STORAGE[t.dtype];
+  // JSON has no infinities: the caller spells them "Infinity", "-Infinity", "NaN"
+  t = { ...t, data: t.data.map((x) => (typeof x === "string" ? Number(x) : x)) };
   return [name, new Tensor(t.shape, Storage === BigInt64Array ? BigInt64Array.from(t.data.map(BigInt)) : Storage.from(t.data), t.dtype)];
 }));
 const plain = (outs) => Object.fromEntries(Object.entries(outs).map(([n, t]) => [n, [...t.data].map(Number)]));

@@ -49,19 +49,32 @@ function withHoles(x, holes) {
   return rw(x);
 }
 
-// P(j) = exp(sub(s(j), M)) with M = max_j s(j): → { sJ, M, expJ, subFn } or null
+// a reduction, or the reduction floored by a constant (max(red, c)): N.safeSoftmax floors the row maximum at
+// -FLT_MAX and the row sum at FLT_MIN so that a fully masked row is 0 → { red, floor } or null
+function floored(x, fn) {
+  if (isRed(x, fn)) return { red: x, floor: null };
+  if (x && x.k === "op" && x.fn === "max" && x.a.length === 2) {
+    const [a, b] = x.a[0].k === "num" ? [x.a[1], x.a[0]] : x.a;
+    if (isRed(a, fn) && b.k === "num" && Number.isFinite(b.v)) return { red: a, floor: b.v };
+  }
+  return null;
+}
+// P(j) = exp(sub(s(j), M)) with M = max_j s(j), possibly floored: → { sJ, M, mFloor, expJ, subFn } or null
 function matchExp(x, S) {
   if (!x || x.k !== "op" || x.fn !== "exp") return null;
   const d = x.a[0];
   if (d.k !== "op" || !SUB.has(d.fn)) return null;
-  const [sJ, M] = d.a;
-  if (!isRed(M, "max") || M.n !== S || free(M).has(J)) return null;
+  const [sJ, Mx] = d.a;
+  const mf = floored(Mx, "max");
+  if (!mf) return null;
+  const M = mf.red;
+  if (M.n !== S || free(M).has(J)) return null;
   if (!free(sJ).has(J)) return null;
   if (bindVar(M, J).__key !== sJ.__key) return null;
-  return { sJ, M, expJ: x, subFn: d.fn };
+  return { sJ, M, mFloor: mf.floor, expJ: x, subFn: d.fn };
 }
-// Λ = Σ_j exp(s(j) − M): the same exp term
-const isLsum = (L, expJ, S) => isRed(L, "add") && L.n === S && !free(L).has(J) && bindVar(L, J).__key === expJ.__key;
+// Λ = Σ_j exp(s(j) − M), possibly floored: the same exp term → { red, floor } or null
+const lsumOf = (Lx, expJ, S) => { const lf = floored(Lx, "add"); return lf && lf.red.n === S && !free(lf.red).has(J) && bindVar(lf.red, J).__key === expJ.__key ? lf : null; };
 
 // the P·V reduction X: → partial description or null
 function matchPV(X) {
@@ -72,11 +85,11 @@ function matchPV(X) {
   for (const [p, v] of [[body.a[0], body.a[1]], [body.a[1], body.a[0]]]) {
     if (!free(v).has(J) || redsIn(v).length) continue;
     if (p.k === "op" && DIV.has(p.fn)) {
-      const ex = matchExp(p.a[0], S);
-      if (ex && isLsum(p.a[1], ex.expJ, S)) return { X, S, ...ex, Lsum: p.a[1], V: v, pvFn: body.fn, normalized: true, divFn: p.fn };
+      const ex = matchExp(p.a[0], S), lf = ex && lsumOf(p.a[1], ex.expJ, S);
+      if (lf) return { X, S, ...ex, Lsum: lf.red, lFloor: lf.floor, V: v, pvFn: body.fn, normalized: true, divFn: p.fn };
     }
     const ex = matchExp(p, S);
-    if (ex) return { X, S, ...ex, Lsum: null, V: v, pvFn: body.fn, normalized: false };
+    if (ex) return { X, S, ...ex, Lsum: null, lFloor: null, V: v, pvFn: body.fn, normalized: false };
   }
   return null;
 }
@@ -109,12 +122,12 @@ export function matchSoftmaxContraction(expr, shape, inShapes) {
 function complete(expr, shape, inShapes, pv) {
   const { X, S, sJ, M, V } = pv;
   // the core: the normalized contraction, X itself or X / Λ found in the post expression
-  let core = X, Lsum = pv.Lsum;
+  let core = X, Lsum = pv.Lsum, lFloor = pv.lFloor;
   if (!pv.normalized) {
-    let found = null;
-    walkE(expr, (n) => { if (!found && n.k === "op" && DIV.has(n.fn) && n.a[0] === X && isLsum(n.a[1], pv.expJ, S)) found = n; });
+    let found = null, lf = null;
+    walkE(expr, (n) => { if (!found && n.k === "op" && DIV.has(n.fn) && n.a[0] === X && (lf = lsumOf(n.a[1], pv.expJ, S))) found = n; });
     if (!found) return null;
-    core = found; Lsum = found.a[1];
+    core = found; Lsum = lf.red; lFloor = lf.floor;
   }
   const CORE = E.load(-1, []);
   const post = withHoles(expr, new Map([[core, CORE]]));
@@ -156,6 +169,8 @@ function complete(expr, shape, inShapes, pv) {
   return {
     L, S, D, E: dot.n, iVar, dVar, rowVars, batchVars: rowVars.filter((v) => v !== iVar), shape: shape.slice(), inShapes: inShapes.map((s) => s.slice()),
     A, B, V, epi, post, core: CORE, dot: DOT, M, Lsum,
+    // floors of the row maximum and sum (N.safeSoftmax: a fully masked row is 0), or null
+    mFloor: pv.mFloor, lFloor,
     dotFn: dbody.fn, accFn: dot.fn, pvFn: pv.pvFn, subFn: pv.subFn, normalized: pv.normalized,
     // FP32 spelling of the online-softmax updates: separate rounding when the expression asks for it
     addFn: pv.pvFn === "mul_rn" ? "add_rn" : "add", mulFn: pv.pvFn === "mul_rn" ? "mul_rn" : "mul",
