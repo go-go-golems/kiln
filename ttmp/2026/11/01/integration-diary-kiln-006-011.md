@@ -32,7 +32,7 @@ KILN-011 went first because it touches the shared typed-arithmetic core (exact i
 **User prompt (verbatim):** "yes, still free" (in reply to the coordinator proposing: merge in the order 011, 009 → 010 → 008, 006 → 007 with tests at every step on an integration branch, then GPU jobs on bling serially).
 **Assistant interpretation:** The coordinator delegated the merges to this agent: merge the six branches in the stated order, resolve conflicts preserving both sides, keep tests green after each merge, keep a diary, local commits only, no GPU work.
 **Inferred user intent:** Get one branch carrying all six features, with confidence that no feature was lost in conflict resolution, so the GPU validation jobs can run against a single integrated tree.
-**Commit (code):** see the merge commit "Merge KILN-011: integer floordiv/mod" (hash recorded in Step 7).
+**Commit (code):** `704cf8f` — "Merge KILN-011: integer floordiv/mod".
 
 ### What I did
 - Read the KILN-011 design-doc Section 13 (implementation notes) and the diary step index (Steps 7-12).
@@ -74,7 +74,7 @@ KILN-009 adds `inplace.js` (the same-index and store-injectivity proofs, `planMu
 **User prompt (verbatim):** see Step 1.
 **Assistant interpretation:** Merge the second branch, keep KILN-011's helper collection and KILN-009's alias signature.
 **Inferred user intent:** No feature lost in the merge.
-**Commit (code):** merge commit "Merge KILN-009: direct writes of mutated inputs".
+**Commit (code):** `36c1a20` — "Merge KILN-009: direct writes of mutated inputs".
 
 ### What I did
 - Read KILN-009 diary Steps 7-10 (there is no design-doc Section 13 change on this branch; the implementation notes are in the diary).
@@ -116,7 +116,7 @@ KILN-010 is the largest overlap with KILN-011 and KILN-009: it adds `E.ix` throu
 **User prompt (verbatim):** see Step 1.
 **Assistant interpretation:** Merge the third branch; for the duplicated splat-fold fix keep one coherent implementation and make both branches' tests pass.
 **Inferred user intent:** No feature lost, no duplicate implementations of the same rule.
-**Commit (code):** merge commit "Merge KILN-010: index values, factories and slice assignment".
+**Commit (code):** `62ca4cb` — "Merge KILN-010: index values, factories and slice assignment".
 
 ### What I did
 - Read KILN-010 diary Steps 6-10, in particular the Step 9 merge note for KILN-011.
@@ -172,7 +172,7 @@ KILN-008 replaces the masked n×n cumsum lowering with `tensor.scan` / `E.scan`,
 **User prompt (verbatim):** see Step 1.
 **Assistant interpretation:** At this merge the scan lowering wins over KILN-010's index-value-mask cumsum; KILN-010's index-value concat mask stays.
 **Inferred user intent:** One cumsum lowering (the scan), with every other KILN-010 lowering kept.
-**Commit (code):** merge commit "Merge KILN-008: cumsum as a scan primitive"; follow-up "Integrate KILN-008: index values and exact literals in scan kernels".
+**Commit (code):** `1dc2762` — "Merge KILN-008: cumsum as a scan primitive"; follow-up `47b1472` — "Integrate KILN-008: index values and exact literals in scan kernels".
 
 ### What I did
 - Read KILN-008 design-doc Section 13 and diary Steps 5-8.
@@ -230,7 +230,7 @@ KILN-006 adds `mma.js` (atom table, fragment layouts, warp emulator), the warp-c
 **User prompt (verbatim):** see Step 1.
 **Assistant interpretation:** Merge the fifth branch keeping MAP=mma beside the scan maps and the integer simulator.
 **Inferred user intent:** No feature lost.
-**Commit (code):** merge commit "Merge KILN-006: tensor-core matrix products".
+**Commit (code):** `62a2b68` — "Merge KILN-006: tensor-core matrix products".
 
 ### What I did
 - Read KILN-006 design-doc Section 13 and diary Steps 7-11.
@@ -281,7 +281,7 @@ KILN-007 adds the attention recognizer (`attention.js`), the `loop/attention` pa
 **User prompt (verbatim):** see Step 1.
 **Assistant interpretation:** Merge the last branch; MAP=flash beside MAP=mma and the scan maps; one encoding for non-finite inputs.
 **Inferred user intent:** No feature lost.
-**Commit (code):** merge commit "Merge KILN-007: fused attention"; follow-up "Integrate KILN-007: index-value masks in flash kernels".
+**Commit (code):** `c732046` — "Merge KILN-007: fused attention"; follow-up `f31a317` — "Integrate KILN-007: index-value masks in flash kernels".
 
 ### What I did
 - Read KILN-007 design-doc Section 13 and diary Steps 7-11.
@@ -325,7 +325,68 @@ KILN-007 adds the attention recognizer (`attention.js`), the `loop/attention` pa
 ## Step 6b: Follow-up, index-value masks in flash kernels
 
 - `packages/kiln/src/std/flash-kernel.js` `emitFrag`: `else if (n.k === "ix") v = kx.v(kb.let(kx.ix(IX.subst(n.e, env), n.dtype)));` (the spelling `kernel.js` `emitNest` uses), and literals keep KILN-011's exact digits (`kx.num(n.exact != null ? BigInt(n.exact) : n.v)`).
-- `packages/kiln/test/attention.mjs`: `graph()` gains `mask: 'causal'`; new `simulateAll` cases: bool mask (sdpa and plain) at L=9, S=11, D=16, and causal at (L, S) = (7, 7), (5, 9), (9, 5) in f32 and (9, 5) in bf16. The test's simulated-option count went from the merge's value to 160.
+- `packages/kiln/test/attention.mjs`: `graph()` gains `mask: 'causal'`; new `simulateAll` cases: bool mask (sdpa and plain) at L=9, S=11, D=16, and causal at (L, S) = (7, 7), (5, 9), (9, 5) in f32 and (9, 5) in bf16. The test's simulated-option count went from 118 (the merge's test file) to 160.
 - `integrations/passnet/test_fx_compose.py` `test_causal_attention`: also checks `attention='fused'` with `attention_kernels=1` (recognition through the importer; not a guard for the materializer, see Step 6).
 - Probe after the fix: every case `simulated ok` on all options (`causal 7/7: 3 of 3`, `5/9: 3 of 3`, `9/5 bf16: 9 of 9`). The flash CUDA spells the mask as `bool f0 = 0; … f0 = ((((c0 + j0) <= (r0 + (8 * rb)))) != 0);` (`probes/causal-cuda.mjs`).
 - Verified the guard: with KILN-007's original `flash-kernel.js`, `node test/attention.mjs` fails with `AssertionError [ERR_ASSERTION]: lowering/kernel/materialize at n76: a reduction inside a flash fragment`.
+
+## Step 7: Cross-feature follow-ups and the CPU compile gates
+
+With all six branches merged, I checked the cross-feature items the coordinator named, made the one small change that was safe, and ran the KILN-005 / KILN-008 CPU local compile gate on a representative sample. Two follow-ups had already been made in Steps 4b and 6b; this step adds a third (the KILN-010 constant index-value bound) and verifies that two simulator gaps recorded by other tickets are closed by the merge without code changes.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 1.
+**Assistant interpretation:** Look for cheap follow-ups the merge makes possible; verify the named simulator gaps; run the CPU gates with outputs in the scratch dir only; record the rest.
+**Inferred user intent:** The integration branch should be ready for the serial GPU jobs, with every CPU-checkable interaction checked first.
+**Commit (code):** `1164b8b` — "Integrate KILN-010: exact int64 constant index values past 2^24"; this diary in the commit after it.
+
+### What I did
+- **KILN-010 ±2^24 bound (diary Step 9).** `loop.js` `E.ix`: a constant int64 index value past 2^24 is now `E.num(BigInt(v))`, an exact KILN-011 literal; constants within ±2^24 fold to the same number literal as before (unchanged intern keys and kernel identities); int32 constants past 2^24 stay index values, because a number literal that is an operand of an untyped function (`select`, args `"*"`) is still spelled through `Math.fround` by `jsLiteral`. Test block in `test/index-values.mjs` (`x + arange(2^30 + 3, 2^30 + 4)` broadcast: Loop IR equals the frontend, CUDA has `1073741827LL`, the simulator agrees).
+- **KILN-009 task-45 bool gap.** Ran KILN-009 `scripts/05-mutation-plan-table.py` (task 45; `45 10/10 {'direct': 10}`) and `scripts/06-oracle-over-corpus.mjs` on it: `{"programs":10,"ok":10,"hazard":0,"differs":0,"skipped":0,"errors":0}`. At KILN-009's commit the same 10 programs were the 10 oracle errors (`F_v1 is not defined`). Closed by KILN-010's typed `toSim`; no change needed.
+- **KILN-007 bool-mask gap.** Closed by KILN-010's bool storage (Step 6, "What I learned"); now covered by `test/attention.mjs` (Step 6b).
+- **KILN-008 integer-scan simulation follow-up.** Closed (Step 4b); `test/scan.mjs` now simulates integer scan kernels.
+- **KILN-009 × KILN-010 exposed view write** (Step 3, second pair of eyes). Probe `probes/view_inplace_exposed.py`: `t = zeros(4, 4); t[:, 0].add_(1); return x * t` → `expose_inplace_results` exposes `add_`, the importer returns `{out0: v4, out1: v3}` where `v3` is the view's new value (`N.add(view, 1)`) and `v4` reads the assigned root. That is what PyTorch's `add_` returns (the view), so it is consistent; no change.
+- **CPU compile gates** (KILN-008 `scripts/03-local-compile-gate-scan.py`, which is KILN-005 `scripts/674-local-compile-gate.py` with an explicit `--upstream`; the original 674 resolves `sources/upstream` next to itself, which is an untracked directory present only in the `passnet` worktree, so it cannot run from this worktree without adding files to it). Upstream: the `passnet` worktree's KILN-005 `sources/upstream`. Outputs: `gate-scan/` and `gate-674/` in the scratch dir (`gate.json`, per-task programs and compile logs), logs `gate-scan.log`, `gate-674.log`.
+  - Scan gate, the typed-slice3 families (KILN-008's set): `28 6/6, 64 1/1, 91 1/1, 104 1/1, 126 3/3, 175 6/6, 199 9/9, 3 10/10, 139 2/2, 162 6/6, 38 6/6` — identical to the frozen KILN-005 `typed-slice3-replay-v1/local-compile-gate.json` and to KILN-008's own run; 7 scan kernels (task 28's six graphs and task 64), as KILN-008 recorded.
+  - Representative 674 sample: views-ops `9 6/6, 35 2/2, 56 3/3, 125 3/3, 132 5/5` and composed-ops `5 23/23, 23 6/6, 55 3/3, 57 6/6, 63 2/2, 78 6/6, 99 6/6, 119 6/6, 156 6/6` — identical to the frozen `views-ops-replay-v1` and `composed-ops-replay-v1` gates; plus the KILN-009 mutation families `45 10/10, 49 6/6, 111 12/12` (no frozen gate). Mutations across both gates: 33 direct, 13 write-back; the write-backs are task 57 `000` (`more than 67108864 (thread, iteration) pairs to enumerate`, as KILN-009 recorded) and tasks 156/175 (`output outN also holds the value`, a deliberate refusal).
+  - Family 5 with `--attention fused` (`attn-005/`): 23/23 compile, 92 kernels, no `MAP=flash` kernel on the a100 spec. The same compile with the unmerged KILN-007 worktree (`attn-005-b007/`, read-only use of that worktree) gives the same 92 kernels and no flash kernel, so this is KILN-007's cost gate on a100, not an integration regression.
+
+### Why
+- The E.ix change is one line and only affects constants that previously stayed unfolded index values; everything else was either already closed by the merge or needs the GPU.
+
+### What worked
+- After the follow-up: `npm test` all 60 passed; `pytest` 195 passed, 7 subtests passed (logs `f1-*`).
+- Every gate count equals its frozen value.
+
+### What didn't work
+- First version of the new `index-values.mjs` block: `ReferenceError: t is not defined` (the file names its target `hw`); fixed.
+- KILN-005 script 674 cannot be run as-is from this worktree (see above); the KILN-008 copy was used.
+
+### What I learned
+- The three cross-feature defects found by the integration (Steps 4b, 6b) share one shape: a branch that adds an expression kind (KILN-010's `ix`, KILN-011's `exact` literals) audits the switches that exist on its base, and a sibling branch (KILN-008, KILN-007) adds new switches over expression kinds that the first branch never saw. The remaining such switches in the merged tree that I did not audit exhaustively: `attention.js` (the recognizer matches score/softmax structure; it accepted the causal `ix` mask, as the probe shows) and `inplace.js` (operates on Kernel IR loads/stores, not on expression kinds).
+
+### What was tricky to build
+- Deciding the int32 half of the ±2^24 bound: lifting it for int32 too would look symmetric but is wrong, because `jsLiteral` rounds number literals in untyped-function contexts.
+
+### What warrants a second pair of eyes
+- Everything GPU-side the merge touches and no CPU test can check:
+  1. NVRTC of a TF32 `MAP=mma` kernel (the helper table and the mma includes meet there; Step 5).
+  2. NVRTC of a causal `MAP=flash` kernel (a `bool` temporary from an index value; Step 6b).
+  3. NVRTC of in-place (aliased) kernels that also need a KILN-011 division helper.
+- `bestEstimate` ignores `MAP=mma` (Step 6): harmless until a target gets measured `mma` rates.
+- Rerere is enabled in this repository; the resolutions of Steps 2-6 are recorded in `.git/rr-cache` and will be replayed by any later merge of the same branches.
+
+### What should be done in the future
+- GPU (bling, serial, not done here): the per-ticket GPU hand-offs (KILN-006 `scripts/02-mma-gpu-fixtures.mjs`; KILN-007 probe 676, ptxas of `nvrtc-flash-v1`, family-5 replay fused vs composed; KILN-008 Phase 6 scan measurements; KILN-009 NVRTC of in-place kernels and the A/B replay; KILN-010 GPU-host census of driver-dependent records; KILN-011 `check_integer_division_cuda.py`), now all against this branch.
+- Pass the mma plan through `bestEstimate` when a target has measured tensor rates.
+- WGSL spellings for index values (KILN-010) — cumsum is now a scan, so this affects the concat masks, assignment, argmax and causal masks.
+
+### Code review instructions
+- `git log --first-parent 373766b..HEAD`; for each merge `git show <merge>` (combined diff shows only the conflict resolutions); each "Integrate" commit is a normal diff.
+- Validate: `(cd packages/kiln && npm test) ; (cd integrations/passnet && python3 -m pytest -q)`.
+- Gates: `python3 ttmp/2026/11/01/KILN-008--kiln-cumsum-as-a-scan-primitive-intern-analysis-design-and-implementation-guide/scripts/03-local-compile-gate-scan.py --upstream <passnet worktree>/ttmp/2026/10/30/KILN-005--reproduce-passnet-and-evaluate-reusable-kiln-compiler-transformations/sources/upstream --output <dir> 28 64 91 104 126 175 199 3 139 162 38` (about 1 minute per task).
+
+### Technical details
+- Commits on `integration/kiln-006-011` (first parent, oldest first): `704cf8f` Merge KILN-011, `36c1a20` Merge KILN-009, `62ca4cb` Merge KILN-010, `1dc2762` Merge KILN-008, `47b1472` Integrate KILN-008, `62a2b68` Merge KILN-006, `c732046` Merge KILN-007, `f31a317` Integrate KILN-007, `1164b8b` Integrate KILN-010, then this diary commit.
+- Test counts after each step: base 48 / 177; KILN-011 51 / 180; KILN-009 52 / 183; KILN-010 53 / 192; KILN-008 55 / 195 (and after 4b); KILN-006 59 / 195; KILN-007 60 / 195 (and after 6b and Step 7). Every pytest run also reported 7 subtests passed.
+- Scratch evidence (`/tmp/claude-1000/-home-manuel-code-wesen-kiln-worktrees-passnet/cd5f3680-095d-4dc0-be9b-3833056c7f6a/scratchpad/integration/`): `runtests.sh`, `<tag>-npm.log`/`<tag>-py.log`, `bin/resolve.py` and `bin/r0NN-*.py` (the exact hunk resolutions), `probes/` (`scan-ix.mjs`, `stack.mjs`, `mma-tf32-helper.mjs`, `attention-masks.mjs`, `causal-cuda.mjs`, `ixconst.mjs`, `view_inplace_exposed.py`), `k009/` (task-45 plan and oracle), `gate-scan/`, `gate-674/`, `attn-005/`, `attn-005-b007/`.
