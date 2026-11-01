@@ -65,7 +65,7 @@ function emitNest(kb, stmts, ctx) {
     else if (st.s === "write") ctx.write(st, ctx);
   }
 }
-const opnd = (o, ctx) => (o.ref != null ? ctx.vals.get(o.ref) ?? (() => { throw new KilnError("MaterializeError", `value ${o.ref} used before it is computed`); })() : kx.num(o.num));
+const opnd = (o, ctx) => (o.ref != null ? ctx.vals.get(o.ref) ?? (() => { throw new KilnError("MaterializeError", `value ${o.ref} used before it is computed`); })() : kx.num(o.exact != null ? BigInt(o.exact) : o.num));
 
 function baseCtx(an, kb, P) {
   const ctx = {

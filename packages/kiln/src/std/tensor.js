@@ -362,10 +362,12 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
   // elements start, start + step, … below end along one axis (step > 0)
   .op("slice", { args: ["x"], attrs: { axis: 0, start: 0, end: 1, step: 1 }, infer: ({ x, axis, start, end, step }) => { const s = x.type.shape.slice(); const a = axis < 0 ? s.length + axis : axis; if (!(step >= 1)) throw new KilnError("ShapeError", "slice step must be positive"); s[a] = Math.ceil((end - start) / step); return T_(s, x.type.dtype); }, eval: ({ x, axis, start, step, type }) => { const n = asT(x).shape.length; const a = axis < 0 ? n + axis : axis; return viewRef(x, type.shape, IX.map(n, (c) => c.map((v, i) => (i === a ? v.mul(step).add(start) : v)))); }, print: "{x}[{axis}: {start}..{end}:{step}]" });
 
+// a splat's printed value: an int64 BigInt prints exactly
+const constText = (v) => (typeof v === "bigint" ? String(v) : String(+(+v).toPrecision(6)));
 export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, reduction and index-map primitives")
   .op("const", { attrs: { value: 0, shape: [], data: null, dtype: "f32" }, traits: ["pure", "any-ir"], infer: ({ shape, data, dtype }) => T_(data ? data.shape : shape, data?.dtype || dtype),
     eval: ({ value, shape, data, dtype }) => (data ? data : Tensor.fill(shape, value, dtype)),
-    print: ({ value, shape, data, name }) => (data ? `${name ? name + " " : ""}data(${data.shape.join("×")})` : shape.length ? `splat ${+(+value).toPrecision(6)} (${shape.join("×")})` : String(+(+value).toPrecision(6))) })
+    print: ({ value, shape, data, name }) => (data ? `${name ? name + " " : ""}data(${data.shape.join("×")})` : shape.length ? `splat ${constText(value)} (${shape.join("×")})` : constText(value)) })
   .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add", dtype: null }, traits: ["pure"], infer: ({ xs, fn, dtype }) => T_(xs[0].type.shape, dtype || elementwiseDtype(fn, xs)), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs, type.dtype), type),
     validate: ({ args }) => args.every((a) => a.type.shape.join() === args[0].type.shape.join()) || "elementwise inputs must share a shape (insert views)", print: "{fn}({xs})" })
   .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1 }, traits: ["pure"], infer: ({ x, fn, axis }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(s.map((d, i) => (i === a ? 1 : d)), reducer(fn).type ?? "f32"); }, eval: ({ x, fn, axis }) => reduceRef(fn, x, axis), print: "{fn}({x}, axis={axis})" })
@@ -493,10 +495,12 @@ export function decompose(opName, build, name = "decompose:" + opName) {
 const lastAxis = (x, a) => (a < 0 ? x.type.shape.length + a : a);
 // x converted to dtype in Tensor IR. Floats among themselves narrow by rounding (f32 widening is exact);
 // a scalar constant converts at compile time.
+// a scalar constant's value in dtype; an int64 value may be a BigInt (a folded int64 splat)
+const convertScalar = (v, dtype) => dtype === "bool" ? +(v != 0) : dtype === "i64" ? (typeof v === "bigint" ? v : Math.trunc(v)) : dtype === "i32" ? FNS.to_i32.js(v) : Number(v);
 function convert(x, dtype) {
   const from = dtypeOf(x);
   if (!dtype || from === dtype) return x;
-  if (x.is("tensor.const") && !x.attrs.data) return tensor.const({ value: dtype === "bool" ? +(x.attrs.value != 0) : INTEGER_DTYPES.has(dtype) ? Math.trunc(x.attrs.value) : x.attrs.value, shape: x.attrs.shape, dtype });
+  if (x.is("tensor.const") && !x.attrs.data) return tensor.const({ value: convertScalar(x.attrs.value, dtype), shape: x.attrs.shape, dtype });
   if (INTEGER_DTYPES.has(dtype)) return tensor.ew([x], { fn: "to_" + dtype, dtype });
   const wide = INTEGER_DTYPES.has(from) ? tensor.ew([x], { fn: "to_f32", dtype: "f32" }) : x;
   return dtype === "f32" ? (wide === x ? tensor.ew([x], { fn: "copy", dtype }) : wide) : tensor.ew([wide], { fn: "round_" + dtype, dtype });
@@ -567,13 +571,13 @@ export const composeViews = k.rule("compose_views")
   .rewrite(({ p, c }) => tensor.view(p.arg("x"), { shape: c.attrs.shape, map: IX.compose(p.attrs.map, c.attrs.map), origin: c.attrs.origin }));
 export const foldSplatView = k.rule("fold_splat_view")
   .match(P.op("tensor.view").as("v").where(({ v }) => isSplat(v.arg("x"))))
-  .rewrite(({ v }) => tensor.const({ value: v.arg("x").attrs.value, shape: v.attrs.shape }));
+  .rewrite(({ v }) => tensor.const({ value: v.arg("x").attrs.value, shape: v.attrs.shape, dtype: dtypeOf(v.arg("x")) }));
 export const dropIdentityView = k.rule("drop_identity_view")
   .match(P.op("tensor.view").as("v").where(({ v }) => v.attrs.map.isIdentity(v.arg("x").type.shape.length) && v.arg("x").type.shape.join() === v.attrs.shape.join()))
   .rewrite(({ v }) => v.arg("x"));
 export const foldSplatEw = k.rule("fold_splat_ew")
   .match(P.op("tensor.ew").as("e").where(({ e }) => e.args.every(isSplat)))
-  .rewrite(({ e }) => tensor.const({ value: F(e.attrs.fn).js(...e.args.map((a) => a.attrs.value)), shape: e.type.shape }));
+  .rewrite(({ e }) => tensor.const({ value: F(e.attrs.fn).js(...e.args.map((a) => a.attrs.value)), shape: e.type.shape, dtype: dtypeOf(e) }));
 // a·b + c → fma(a, b, c): one instruction, one rounding (what nvcc does by default with -fmad=true).
 // FP32 only: an f16/bf16 multiply rounds its result to storage precision, and contracting it would
 // drop that source-visible rounding (eager PyTorch rounds after each low-precision operation).
