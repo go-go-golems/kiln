@@ -183,11 +183,26 @@ class ImportTests(unittest.TestCase):
         # integer arithmetic imports faithfully; the compiler refuses it by name (integer-storage.mjs)
         self.assertIn('N.relu(v0)', import_graph(export_graph(symbolic_trace(Model()), (torch.ones(2,3,dtype=torch.int64),)))['script'])
 
-    def test_tensor_index_names_the_gather(self):
+    def test_gathers(self):
         class Model(torch.nn.Module):
-            def forward(self, table, ids): return table.view(-1, 3)[ids.view(-1)]
-        with self.assertRaisesRegex(ValueError, 'tensor-valued index requires a gather'):
-            import_graph(export_graph(symbolic_trace(Model()), (torch.randn(4, 3), torch.zeros(5, dtype=torch.int64))))
+            def forward(self, table, ids, w, x, sel):
+                return (table.view(-1, 3)[ids.view(-1)], torch.nn.functional.embedding(ids, w, None, None, 2.0, False, False),
+                        x.index_select(-2, sel), x[:, sel])
+        ids, sel = torch.zeros(2, 5, dtype=torch.int64), torch.zeros(4, dtype=torch.int64)
+        script = import_graph(export_graph(symbolic_trace(Model()), (torch.randn(4, 3), ids, torch.randn(7, 6), torch.randn(3, 9, 2), sel)))['script']
+        self.assertIn('N.gather(', script)
+        self.assertIn(', 0, true)', script)
+        self.assertIn('N.embedding(v1, v2)', script)
+        self.assertIn('N.indexSelect(v3, -2, v4)', script)
+        self.assertIn('N.gather(v3, v4, 1, true)', script)
+        class Masked(torch.nn.Module):
+            def forward(self, x, m): return x[m]
+        with self.assertRaisesRegex(ValueError, 'torch.bool tensor index unsupported'):
+            import_graph(export_graph(symbolic_trace(Masked()), (torch.randn(4), torch.ones(4, dtype=torch.bool))))
+        class Renorm(torch.nn.Module):
+            def forward(self, ids, w): return torch.nn.functional.embedding(ids, w, None, 1.0)
+        with self.assertRaisesRegex(ValueError, 'max_norm mutates'):
+            import_graph(export_graph(symbolic_trace(Renorm()), (ids, torch.randn(7, 6))))
 
     def test_integer_storage_passes_through(self):
         class Model(torch.nn.Module):

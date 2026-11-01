@@ -179,13 +179,48 @@ def lower_getitem(c):
         if c.meta != metadata[source][item]: raise ValueError(f'{c.name}: partition result metadata mismatch')
         return Lowered(c.ctx.values[source][item])
     if not isinstance(metadata[source], dict): raise ValueError(f'{c.name}: basic tensor indexing requires tensor source')
+    gather = tensor_index(c, c.args[1])
+    if gather: return gather
     def index_literal(value):
         if isinstance(value, tuple): return tuple(index_literal(x) for x in value)
         if isinstance(value, slice) or value is Ellipsis: return value
         if isinstance(value, str) and c.ctx.source_of(value) is not None:
-            raise ValueError(f'{c.name}: tensor-valued index requires a gather (P3a slice 2)')
+            raise ValueError(f'{c.name}: a tensor index mixed with other indices is not supported')
         return c.ctx.literal(value)
     return Lowered(lower_index(c.args[0], index_literal(c.args[1]), metadata[source]['shape'], c.meta['shape']))
+
+
+def tensor_index(c, index):
+    """x[ids] and x[:, …, ids]: one int64 tensor after full slices is a gather with Python's negative
+    index wrapping. Boolean masks have data-dependent shapes and are refused."""
+    entries = index if isinstance(index, tuple) else (index,)
+    refs = [j for j, x in enumerate(entries) if isinstance(x, str) and c.ctx.source_of(x) is not None]
+    if not refs: return None
+    axis = refs[0]
+    if len(refs) != 1 or any(x != slice(None) for x in entries[:axis]) or entries[axis + 1:]:
+        raise ValueError(f'{c.name}: only one tensor index after full slices is supported')
+    ids = c.ctx.resolve(entries[axis])
+    if ids['dtype'] != 'torch.int64': raise ValueError(f'{c.name}: {ids["dtype"]} tensor index unsupported (int64 gathers only)')
+    return Lowered(f'N.gather({c.args[0]}, {entries[axis]}, {axis}, true)')
+
+
+@op('embedding', functions=('torch.nn.functional.embedding',))
+def lower_embedding(c):
+    bound = bind(c.name, 'embedding', c.args, c.kwargs, ['input', 'weight', 'padding_idx', 'max_norm', 'norm_type', 'scale_grad_by_freq', 'sparse'])
+    # padding_idx, scale_grad_by_freq and sparse affect gradients only; max_norm renormalizes the weight in place
+    if c.ctx.literal(bound.get('max_norm', 'null')) is not None: raise ValueError(f'{c.name}: embedding max_norm mutates the weight')
+    if c.ctx.resolve(bound['input'])['dtype'] != 'torch.int64': raise ValueError(f'{c.name}: int64 embedding indices required')
+    return Lowered(f'N.embedding({bound["input"]}, {bound["weight"]})')
+
+
+@op('index_select', functions=('torch.index_select',), methods=('index_select',))
+def lower_index_select(c):
+    bound = bind(c.name, 'index_select', c.args, c.kwargs, ['input', 'dim', 'index'])
+    index = c.ctx.resolve(bound['index'])
+    if index['dtype'] != 'torch.int64' or len(index['shape']) != 1: raise ValueError(f'{c.name}: one-dimensional int64 index required')
+    dim = c.ctx.literal(bound['dim'])
+    if type(dim) is not int: raise ValueError(f'{c.name}: static dimension required')
+    return Lowered(f'N.indexSelect({bound["input"]}, {dim}, {bound["index"]})')
 
 
 @op('reduction', functions=('torch.sum', 'torch.mean', 'aten.sum.dim_IntList', 'aten.mean.dim'), methods=('sum', 'mean'))
