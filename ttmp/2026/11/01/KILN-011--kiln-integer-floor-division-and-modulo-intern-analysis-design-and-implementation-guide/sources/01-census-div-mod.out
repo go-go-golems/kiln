@@ -1,0 +1,48 @@
+graphs with any match: 399
+graphs per op: {'floordiv': 384, 'mod': 11, 'rounding_mode': 4}
+operand dtypes: {('floordiv', 'intermediate'): 381, ('mod', 'torch.int64'): 4, ('floordiv', 'torch.int64'): 3, ('rounding_mode', 'torch.int32'): 4, ('mod', 'intermediate'): 7}
+dividend signs: {('mod', 'dividend nonnegative'): 4, ('floordiv', 'dividend nonnegative'): 3, ('rounding_mode', 'dividend nonnegative'): 4}
+divisors: {('floordiv', '16'): 101, ('floordiv', '4'): 100, ('floordiv', '32'): 90, ('floordiv', '8'): 88, ('mod', '80'): 4, ('rounding_mode', '14'): 4, ('mod', '16'): 4, ('floordiv', '80'): 3, ('mod', '16384'): 3, ('floordiv', '2'): 1, ('floordiv', '2560'): 1}
+census status of matching graphs: {None: 369, 'imported': 30}
+graphs with a possibly negative input: 0
+distinct source families (framework/model): 11
+   100 ['timm', 'eca_resnet33ts.ra2_in1k']
+   95 ['timm', 'resnest50d_1s4x24d.in1k']
+   91 ['timm', 'skresnet18.ra_in1k']
+   81 ['timm', 'ecaresnet101d.miil_in1k']
+   12 ['timm', 'skresnext50_32x4d.ra_in1k']
+   7 ['ultralytics', 'yolov10l']
+   4 ['nemo', 'stt_en_fastconformer_hybrid_large_streaming_multi']
+   4 ['transformers-auto-model', 'PeterBanning71_long-t5-tfg']
+   3 ['transformers-auto-model', 'hf-tiny-model-private_tiny-random-CanineForSequenceClassification']
+   1 ['mmseg', 'Mask2Former_R50']
+   1 ['transformers-auto-model', 'hf-tiny-model-private_tiny-random-EfficientNetForImageClassification']
+
+== refinement: symbolic vs tensor ==
+symbolic-int graphs: 374 census: {None: 344, 'imported': 30}
+tensor graphs: 25 census: {None: 25}
+   mmseg/Mask2Former_R50/_decomposed/Mask2Former_R50_start111_end112_111 | hf_subgraphs | [('floordiv', ('in_0', '2'))] | {'in_0': ('torch.float32', '[128]', None)} | census: None
+   timm/eca_resnet33ts.ra2_in1k/_decomposed/eca_resnet33ts.ra2_in1k_start110_end111_110 | hf_subgraphs | [('floordiv', ('in_0', '16'))] | {'in_0': ('torch.int64', '[]', 3.0)} | census: None
+   ultralytics/yolov10l/_decomposed/yolov10l_start688_end689_688 | hf_subgraphs | [('mod', ('in_0', '80'))] | {'in_0': ('torch.int64', '[1, 300]', 59.0)} | census: None
+   ultralytics/yolov10l/_decomposed/yolov10l_start685_end686_685 | hf_subgraphs | [('floordiv', ('in_0', '80'))] | {'in_0': ('torch.int64', '[1, 300]', 59.0)} | census: None
+   nemo/stt_en_fastconformer_hybrid_large_streaming_multi/_decomposed/stt_en_fastconformer_hy | hf_subgraphs | [('rounding_mode', ('in_0', '14', 'trunc'))] | {'in_0': ('torch.int32', '[66]', 0.0)} | census: None
+   transformers-auto-model/PeterBanning71_long-t5-tfg/_decomposed/PeterBanning71_long-t5-tfg_ | hf_subgraphs | [('mod', ('in_0', '16'))] | {'in_0': ('torch.int64', '[12]', 0.0)} | census: None
+   timm/eca_resnet33ts.ra2_in1k/_decomposed/eca_resnet33ts.ra2_in1k_start55_end56_55 | hf_subgraphs_v2 | [('floordiv', ('in_0', '8'))] | {'in_0': ('torch.int64', '[]', 3.0)} | census: None
+   timm/eca_resnet33ts.ra2_in1k/_decomposed/eca_resnet33ts.ra2_in1k_start110_end111_110 | hf_subgraphs_v2 | [('floordiv', ('in_0', '16'))] | {'in_0': ('torch.int64', '[]', 3.0)} | census: None
+   ultralytics/yolov10l/_decomposed/yolov10l_start688_end689_688 | hf_subgraphs_v2 | [('mod', ('in_0', '80'))] | {'in_0': ('torch.int64', '[1, 300]', 34.0)} | census: None
+   ultralytics/yolov10l/_decomposed/yolov10l_start685_end686_685 | hf_subgraphs_v2 | [('floordiv', ('in_0', '80'))] | {'in_0': ('torch.int64', '[1, 300]', 34.0)} | census: None
+   nemo/stt_en_fastconformer_hybrid_large_streaming_multi/_decomposed/stt_en_fastconformer_hy | hf_subgraphs_v2 | [('rounding_mode', ('in_0', '14', 'trunc'))] | {'in_0': ('torch.int32', '[66]', 0.0)} | census: None
+   transformers-auto-model/PeterBanning71_long-t5-tfg/_decomposed/PeterBanning71_long-t5-tfg_ | hf_subgraphs_v2 | [('mod', ('in_0', '16'))] | {'in_0': ('torch.int64', '[12]', 0.0)} | census: None
+   transformers-auto-model/hf-tiny-model-private_tiny-random-CanineForSequenceClassification/ | hf_subgraphs_v2 | [('mod', ('in_0', '16384'))] | {'in_0': ('torch.int64', '[1, 51]', 1023.0)} | census: None
+   timm/eca_resnet33ts.ra2_in1k/_decomposed/eca_resnet33ts.ra2_in1k_start17_end18_17 | hf_subgraphs_v2 | [('floordiv', ('in_0', '4'))] | {'in_0': ('torch.int64', '[]', 3.0)} | census: None
+   ultralytics/yolov10l/_decomposed/yolov10l_start688_end689_688 | hf_subgraphs_v2 | [('mod', ('in_0', '80'))] | {'in_0': ('torch.int64', '[1, 300]', 34.0)} | census: None
+   nemo/stt_en_fastconformer_hybrid_large_streaming_multi/_decomposed/stt_en_fastconformer_hy | hf_subgraphs_v2 | [('rounding_mode', ('in_0', '14', 'trunc'))] | {'in_0': ('torch.int32', '[66]', 0.0)} | census: None
+   transformers-auto-model/PeterBanning71_long-t5-tfg/_decomposed/PeterBanning71_long-t5-tfg_ | hf_subgraphs_v2 | [('mod', ('in_0', '16'))] | {'in_0': ('torch.int64', '[12]', 0.0)} | census: None
+   transformers-auto-model/hf-tiny-model-private_tiny-random-CanineForSequenceClassification/ | hf_subgraphs_v2 | [('mod', ('in_0', '16384'))] | {'in_0': ('torch.int64', '[1, 51]', 1023.0)} | census: None
+   timm/eca_resnet33ts.ra2_in1k/_decomposed/eca_resnet33ts.ra2_in1k_start110_end111_110 | hf_subgraphs_v2 | [('floordiv', ('in_0', '16'))] | {'in_0': ('torch.int64', '[]', 3.0)} | census: None
+   ultralytics/yolov10l/_decomposed/yolov10l_start688_end689_688 | hf_subgraphs_v2 | [('mod', ('in_0', '80'))] | {'in_0': ('torch.int64', '[1, 300]', 34.0)} | census: None
+   ultralytics/yolov10l/_decomposed/yolov10l_start685_end686_685 | hf_subgraphs_v2 | [('floordiv', ('in_0', '80'))] | {'in_0': ('torch.int64', '[1, 300]', 34.0)} | census: None
+   nemo/stt_en_fastconformer_hybrid_large_streaming_multi/_decomposed/stt_en_fastconformer_hy | hf_subgraphs_v2 | [('rounding_mode', ('in_0', '14', 'trunc'))] | {'in_0': ('torch.int32', '[66]', 0.0)} | census: None
+   transformers-auto-model/hf-tiny-model-private_tiny-random-EfficientNetForImageClassificati | hf_subgraphs_v2 | [('floordiv', ('in_0', '2560'))] | {'in_0': ('torch.int64', '[]', 0.0)} | census: None
+   transformers-auto-model/PeterBanning71_long-t5-tfg/_decomposed/PeterBanning71_long-t5-tfg_ | hf_subgraphs_v2 | [('mod', ('in_0', '16'))] | {'in_0': ('torch.int64', '[12]', 0.0)} | census: None
+   transformers-auto-model/hf-tiny-model-private_tiny-random-CanineForSequenceClassification/ | hf_subgraphs_v2 | [('mod', ('in_0', '16384'))] | {'in_0': ('torch.int64', '[1, 51]', 1023.0)} | census: None
