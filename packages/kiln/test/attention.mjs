@@ -20,13 +20,14 @@ function graph({B = 1, H = 2, L = 5, S = 7, D = 4, E = D, mask = 'add', maskShap
   const ms = maskShape || [B, 1, L, S];
   const shapes = {q: k.tensor(proj ? [B, H, L, 8] : [B, H, L, E], dtype), kk: k.tensor([B, H, S, E], dtype), v: k.tensor([B, H, S, D], dtype)};
   if (proj) shapes.wq = k.tensor([E, 8], dtype);
-  if (mask !== 'none') shapes.mask = k.tensor(ms, mask === 'bool' ? 'bool' : dtype);
+  if (mask !== 'none' && mask !== 'causal') shapes.mask = k.tensor(ms, mask === 'bool' ? 'bool' : dtype);
   return k.trace('attention', ({q, kk, v, mask: m, wq}) => {
     const c = (x) => N.cast(x, 'f32');
     const qq = proj ? N.linear(c(q), c(wq)) : c(q);
     let s = N.mul(N.matmul(qq, N.transpose(c(kk), -2, -1), 'highest'), 1 / Math.sqrt(E));
     if (mask === 'add') s = N.add(s, c(m));
     if (mask === 'bool') s = N.select(m, s, -Infinity);
+    if (mask === 'causal') s = N.select(N.causalMask(L, S), s, -Infinity);   // KILN-010: an index-value mask
     let out;
     if (variant === 'sdpa') out = N.matmul(N.safeSoftmax(s, -1), c(v), 'highest');
     else if (variant === 'plain') out = N.matmul(N.softmax(s, -1), c(v), 'highest');
@@ -187,6 +188,12 @@ simulated += simulateAll({L: 9, S: 40, D: 12, E: 8, maskShape: [1, 2, 9, 40]});
 simulated += simulateAll({L: 3, S: 17, D: 6, maskShape: [1, 1, 1, 17], dtype: 'f16'});
 simulated += simulateAll({L: 16, S: 32, D: 16, mask: 'none'}, web);
 simulated += simulateAll({L: 13, S: 21, D: 24, variant: 'plain'});
+// integration (KILN-010): bool masks simulate now that toSim has bool storage; a causal mask is an index value
+// inside the score fragment (flash-kernel.js emitFrag), with L < S, L = S and L > S (top-left aligned)
+simulated += simulateAll({L: 9, S: 11, D: 16, mask: 'bool'});
+simulated += simulateAll({L: 9, S: 11, D: 16, mask: 'bool', variant: 'plain'});
+for (const [L, S] of [[7, 7], [5, 9], [9, 5]]) simulated += simulateAll({L, S, D: 8, mask: 'causal'});
+simulated += simulateAll({L: 9, S: 5, D: 8, mask: 'causal', dtype: 'bf16'});
 // every element against the serial reference, with data that masks a whole row: 0 under N.safeSoftmax (the
 // importer's SDPA; PyTorch returns 0), NaN under a plain softmax, equal values elsewhere
 for (const variant of ['sdpa', 'plain']) {

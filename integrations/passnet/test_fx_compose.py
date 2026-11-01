@@ -78,8 +78,11 @@ class ComposeNumericTests(unittest.TestCase):
                 return torch.nn.functional.scaled_dot_product_attention(q, k, v, is_causal=True)
         torch.manual_seed(4)
         for L, S in [(3, 5), (4, 4), (5, 3)]:
-            imported = self.check(Model(), [torch.randn(2, 2, L, 8), torch.randn(2, 2, S, 8), torch.randn(2, 2, S, 8)], atol=1e-5)
+            inputs = [torch.randn(2, 2, L, 8), torch.randn(2, 2, S, 8), torch.randn(2, 2, S, 8)]
+            imported = self.check(Model(), inputs, atol=1e-5)
             self.assertIn(f'N.causalMask({L}, {S})', imported['script'])
+            # KILN-007 x KILN-010: the causal mask is an index value inside the recognized attention kernel
+            self.check(Model(), inputs, atol=1e-5, attention='fused', attention_kernels=1)
 
     def test_argmax_indices_match_torch(self):
         class Model(torch.nn.Module):

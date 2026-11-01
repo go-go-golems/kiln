@@ -39,7 +39,10 @@ function emitFrag(kb, an, x, env, leaves = new Map()) {
     if (leaves.has(n)) return leaves.get(n);
     if (memo.has(n)) return memo.get(n);
     let v;
-    if (n.k === "num") v = kx.num(n.v);
+    // a literal keeps KILN-011's exact int64 digits; an index value (KILN-010: a causal mask j <= i) is the
+    // integer expression under this fragment's coordinates, as kernel.js emitNest spells it
+    if (n.k === "num") v = kx.num(n.exact != null ? BigInt(n.exact) : n.v);
+    else if (n.k === "ix") v = kx.v(kb.let(kx.ix(IX.subst(n.e, env), n.dtype)));
     else if (n.k === "in") {
       if (n.i < 0) throw new KilnError("MaterializeError", "an unbound marker in a flash fragment");
       v = kx.v(kb.load(n.i, an.flat(n.i, n.idx.map((e) => IX.subst(e, env)))));
