@@ -4546,3 +4546,85 @@ The P3a reading changed the plan's first step. The 119 typed-frontier graphs do 
 
 ### Technical details
 - Probe output: `/home/manuel/passnet-kiln/KILN-005/sources/gpu-probes-v1/result.json` on bling, collected into the ticket after it runs.
+
+## Step 252: P3a slice 1, integer storage through Kiln, with one dtype table
+
+Slice 1 of design doc 23 lets `int64` and `bool` tensors flow through Kiln as storage. They can be loaded, viewed, copied, stored and converted to float, but not computed with. A probe showed that integer dtypes already survive the tensor, loop and tile IRs; only CUDA emission refused them. The work was therefore narrower than the plan assumed. The kernel IR now records each integer temporary's storage type once, the emitters declare what it records, and any integer arithmetic is refused by name.
+
+Following the user's mid-step instruction to refactor and tighten as I go, I moved the typing out of `toCuda`, where I first wrote it, into `materialize`, so all emitters share one record. I also replaced three Python dtype tables with one module. Measured result:
+
+- import census: 1,668 → 1,707 graphs import, with 0 regressions; complete-import families 131 → 137;
+- local compile: 5 of the 6 newly importable families compile completely (tasks 54, 92, 134, 169, 181; 37 graphs);
+- a frozen GPU replay of those 5 is queued.
+
+### Prompt Context
+**User prompt (verbatim):** "Be sure t refactor and tighten and clean up things as you go, especially if it makes sense to switch to a different approach that would simplify things overall. we don't hvave backwards compatibility to support so can do sweeping changes if needed."
+**Assistant interpretation:** Prefer the structurally simpler design over local patches, and remove duplication while implementing.
+**Inferred user intent:** Leave the codebase simpler after each feature, not just larger.
+**Commit (code):**
+- 5faacca — "P3a slice 1: integer storage passes through Kiln exactly"
+- b8f9972 — "P3a slice 1: admit integer-to-float conversion"
+- bda0718 — freeze and census
+- 7099287 — queue receipt
+
+### What I did
+- `kernel.js`:
+  - `INTEGER_DTYPES` and `integerValues(body, params, name)` walk the kernel body in program order. A load from an `i64`/`bool` parameter defines an integer temporary, and a `let` of an integer var propagates the type.
+  - Any `op` with an integer operand is refused, except the conversion `copy(intvar)`. A store must match the output's integer dtype, and shared-memory staging of an integer is refused.
+  - `materialize` returns `values: {name: dtype}`, and `floats` excludes those names.
+- `emit.js`: storage `i64 → long long`, `bool → bool`. Integer temporaries are declared from `K.values` (defaulting to `{}` for hand-built kernels in tests). WGSL already reports `WGSL storage dtype unsupported: i64`.
+- `tensor.js`: `N.cast(x, d)` returns `x` when `d` is already x's dtype.
+- `integrations/passnet/dtypes.py`: `FLOATING`, `IMPORTED` (= floating + int64 + bool), `STORAGE` (+ uint8) and `KILN_TO_TORCH`.
+  - `fx_ops.DTYPES` is removed. The fx_* modules use `FLOATING`.
+  - `runtime.DTYPES` is derived from the table, and `dispatch.py` names input dtypes through `STORAGE`.
+  - `check_corpus_cuda.py` reuses `runtime.DTYPES`.
+- `fx_import.py`:
+  - Placeholders, result metadata, `expect()`, `.to`, `type_as` and concat use `IMPORTED`.
+  - `CONVERSION_METHODS` adds `.long()`/`.bool()` to the float conversions.
+  - `floating_dtype(c, what)` refuses integer values at float-only ops (activations, reductions, batch norm) by name.
+- Tests: `packages/kiln/test/integer-storage.mjs`; `test_fx_import.py` gains `test_integer_storage_passes_through`, and its rejection test now expects the int64 relu to import (the compiler refuses it).
+- Census: `corpus.py inspect` over all 200 tasks writes `sources/typed-slice1-import-v1.json`. A local `corpus.py export/compile` of the 6 newly importable families went to the session scratchpad.
+- Scripts 672 (freeze), 641 (stage) and 651 (queue) set up `typed-slice1-replay-gpu-v1`.
+
+### Why
+- Typing in `materialize` instead of `toCuda`: the CUDA, WGSL and simulator emitters, the printer and the cost model all read `K`. Deriving types inside one emitter would have to be repeated in each, and they could disagree.
+- The importer stays faithful and the compiler decides legality. Integer `relu` imports as `N.relu(v0)` and fails at compile with `integer arithmetic is not lowered (P3a slice 3): relu`. A single refusal point keeps the census honest: the import census measures import, and the compile measures compile.
+- Conversion is the only integer operation admitted, because its C++ semantics equal PyTorch's for every admitted pair (int64 → float rounds to nearest; bool → 0/1).
+
+### What worked
+- `packages/kiln` 45/45; pytest 167 passed; the passnet `.mjs` tests pass.
+- CUDA for an int64 view: `const long long* __restrict__ src0`, `long long in0 = 0;`, `in0 = src0[e]; dst[e] = in0;`, with no float temporary.
+- Census: +39 graphs, 0 regressions; newly complete-import families: 5502b068, 6744e9b4, 2f622ee9, 2b842c6d, 66e7239d, 0d135bc0.
+- Local compile:
+  - 6744e9b4 (15/15), 2f622ee9 (15/15) and 0d135bc0 (3/3) compiled with pass-through alone;
+  - 5502b068 and 66e7239d compiled after the conversion change;
+  - 2b842c6d stays refused: `integer arithmetic is not lowered (P3a slice 3): mul_rn in k_out0`.
+
+### What didn't work
+- The first emitter-only version reported refusals well. After the move into `materialize`, a refusal surfaced at export as `output out is tile.kernel: an exported output must be a kernel's or an input's buffer`, because the rule error is recorded on `run.error` rather than thrown. The diagnostics path (`run.error.message` = `lowering/kernel/materialize at n2: integer arithmetic is not lowered (P3a slice 3): add in k_ew`) is what `kiln-export` prints. The test helper reads `run.error` first.
+- `cuda-dtypes.mjs` and `rounding-expressions.mjs` failed with `TypeError: Cannot convert undefined or null to object` (hand-built `K` without `values`). Fixed with `K.values ?? {}`.
+- Two `sed` edits used line numbers that had shifted by one, so `type_as` was left unchanged. I redid them as exact-text replacements.
+- `test_dtype_and_layout_rejected` failed (`ValueError not raised`) after admitting int64. That was the intended behavior change, so I updated the test to assert the import and point to the compiler-side refusal.
+
+### What I learned
+- The only float-only assumption on the integer path was in emission and at the importer's guard. The tensor IR's `elementwiseDtype` already carried `i64` through `relu` (which slice 3 must decide on: PyTorch keeps int64 for relu).
+
+### What was tricky to build
+- A conversion nested inside float arithmetic (`mul(copy(in0), y)`) must be admitted while `add(copy(in0), in0)` is refused. The checker therefore returns early at an admitted `copy(intvar)` and otherwise refuses any op with a direct integer operand while recursing.
+
+### What warrants a second pair of eyes
+- `long long → float` relies on C++ implicit conversion (round to nearest under CUDA's default mode). PyTorch's `.float()` on int64 is `static_cast<float>`, the same conversion. The slice-1 GPU replay is the check.
+- The `INTEGER_DTYPES` check covers `i64` and `bool`. `u8` keeps its existing widening load into float, which is correct for its arithmetic use.
+
+### What should be done in the future
+- Collect the slice-1 replay.
+- Slice 2 (embedding: 56 graphs are the top remaining typed blocker; index_select: 2).
+- Slice 3 (integer mul/ne/masked_fill/cumsum).
+- Look at the 4 `JSONDecodeError` import failures in the census.
+
+### Code review instructions
+- `integerValues` and `materialize` in `packages/kiln/src/std/kernel.js`; declarations in `toCuda`; `integrations/passnet/dtypes.py`; `floating_dtype` and `CONVERSION_METHODS` in `fx_import.py`.
+- Validate with `node packages/kiln/test/integer-storage.mjs`, `cd integrations/passnet && python3 -m pytest -q`, and the census command in script 646 with a new output path.
+
+### Technical details
+- Slice-1 replay plan SHA256 `ea555f12…`; staged revision `bda0718`, snapshot `83b4129f…`; tasks 54, 92, 134, 169, 181 with `matmul_precision: "tf32"`.
