@@ -9,7 +9,7 @@ import { exportProgram } from "../src/std/export.js";
 import { SPECS, target } from "../src/std/targets.js";
 
 const pipe = pipeline({ target: target(SPECS.a100) });
-const compile = (fn, inputs) => { const r = pipe.run(k.trace("t", fn, inputs)); if (r.error) return r.error.message; return exportProgram(r, programOf(r.graph)); };
+const compile = (fn, inputs) => { try { const r = pipe.run(k.trace("t", fn, inputs)); if (r.error) return r.error.message; return exportProgram(r, programOf(r.graph)); } catch (e) { return e.message; } };
 
 for (const [dtype, ctype] of [["i64", "long long"], ["bool", "bool"]]) {
   const p = compile(({ x }) => ({ out: N.transpose(N.reshape(x, [2, 4])) }), { x: k.tensor([8], dtype) });
@@ -27,5 +27,11 @@ assert.equal(compile(({ x }) => ({ out: N.cast(x, "i64") }), { x: k.tensor([8], 
 assert.equal(compile(({ x, ids }) => ({ a: N.relu(x), b: N.reshape(ids, [4, 1]) }), { x: k.tensor([4]), ids: k.tensor([4], "i64") }).kernels.length, 2);
 // refused by name
 assert.match(compile(({ x }) => ({ out: N.add(x, x) }), { x: k.tensor([8], "i64") }), /integer arithmetic is not lowered \(P3a slice 3\): add/);
-assert.match(compile(({ x }) => ({ out: N.cast(x, "f32") }), { x: k.tensor([8], "i64") }), /integer arithmetic is not lowered/);
+// integer to float conversion is admitted (C++ conversion = PyTorch cast); float to integer is not
+for (const dtype of ["i64", "bool"]) {
+  const cuda = compile(({ x, y }) => ({ out: N.mul(N.cast(x, "f32"), y) }), { x: k.tensor([8], dtype), y: k.tensor([8]) }).kernels[0].cuda;
+  assert.ok(/long long in0|bool in0/.test(cuda) && /float /.test(cuda), cuda);
+}
+assert.match(compile(({ x }) => ({ out: N.add(N.cast(x, "f32"), x) }), { x: k.tensor([8], "i64") }), /integer arithmetic is not lowered \(P3a slice 3\): add/);
+assert.match(compile(({ y }) => ({ out: N.cast(y, "i64") }), { y: k.tensor([8]) }), /unsupported floating cast: i64/);
 console.log("integer storage passes through views exactly and refuses arithmetic by name");

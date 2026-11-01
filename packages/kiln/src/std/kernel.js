@@ -248,14 +248,19 @@ function matTiled(an, kn) {
 
 // ----------------------------------------------------------------------------- materialize
 // Integer storage (P3a slice 1): an integer value may only be copied from a load to a store of the
-// same dtype. Arithmetic, comparisons, conversions and shared-memory staging of integers are refused
+// same dtype, or converted to float. Arithmetic, comparisons, conversions and shared-memory staging of integers are refused
 // by name, here, rather than computed in float temporaries, which would corrupt int64 values above 2^24.
 export const INTEGER_DTYPES = new Set(["i64", "bool"]);
 function integerValues(body, params, name) {
   const types = new Map(), ins = params.filter((p) => p.role === "in"), out = params.find((p) => p.role === "out");
   const typeOf = (e) => (e.k === "var" ? types.get(e.n) : undefined);
   const refuse = (what) => { throw new TypeError(`integer arithmetic is not lowered (P3a slice 3): ${what} in ${name}`); };
-  const check = (e) => { if (e.k === "op" && e.a.some((a) => typeOf(a) || (a.k === "op" && check(a)))) refuse(e.fn); return false; };
+  // the one admitted operation: converting an integer value to float (the cast op `copy`), which
+  // C++ performs exactly as PyTorch does (round to nearest; bool to 0/1)
+  const check = (e) => {
+    if (e.k !== "op" || (e.fn === "copy" && e.a.length === 1 && typeOf(e.a[0]))) return;
+    for (const a of e.a) { if (typeOf(a)) refuse(e.fn); check(a); }
+  };
   const walk = (ss) => {
     for (const s of ss) {
       if (s.s === "load") { const d = ins[s.buf]?.dtype; if (INTEGER_DTYPES.has(d)) types.set(s.n, d); }
