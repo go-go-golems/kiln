@@ -5154,3 +5154,84 @@ The user may need bling for other work, so this step did everything that runs on
 
 ### Technical details
 - The plan is `sources/composed-ops-replay-v1/plan.json`, with `local-compile-gate.json` and `dynamo-simulation.json` beside it. The census is `sources/composed-ops-import-v1.json`.
+
+## Step 261: Six GPU runs on a freed bling: slice 3 complete, TF32 settled, the cost-gate condition met
+
+With bling freed (two vLLM containers stopped by the user's instruction), the queued work ran back to back on the GPU, never overlapping. Six results came out of it:
+- Slice 3 is complete on the GPU: 10 of 10 families and 45 of 45 graphs.
+- Composed ops passed 7 of 10 families.
+- Probe 675 settled three numerics questions: f32 attention is pure FP32, low-precision cuBLAS products use reduced-precision reductions, and 1×1 convolutions round TF32 operands to nearest-even.
+- The TF32 re-qualification on top of that passed 8 of 15 families and fixed every f32 failure it targeted.
+- The replicate of the held-out gated arm accepted 237 of 237 graphs, meeting reference 49's unmet condition.
+- A views-ops replay passed 4 of 5 families, including a measured 42.6× speedup.
+
+### Prompt Context
+**User prompt (verbatim):** "ok, bling is free", then "ok kill the vllms". Also: "what else can we d o in the meantime, anything?" and "what other design sized pieces of work are there?"
+**Assistant interpretation:** Run the frozen GPU queue serially; use the GPU time to settle open numerics questions; keep CPU work going in parallel.
+**Inferred user intent:** Turn the CPU-gated backlog into GPU evidence in one sitting.
+**Commit (code):**
+- 6634f0c — collections and probe 675
+- fe45148 — TF32 1×1 conv and FP32 attention
+- 67678fd — re-qualification
+- 4762824, a001c3c — view operations
+- cbf6866 — replicate and views-ops
+
+### What I did
+- **Stopped the containers.** `docker stop bookocr-olmocr bookocr-dots` on bling (restart policy `unless-stopped`, so they stay stopped; `docker start` restores them). The GPU then showed no compute processes.
+- **Staged and ran the queued replays.** Staged `typed-slice3-replay-gpu-v1` and `composed-ops-replay-gpu-v1` with script 641 at 53a56b0, then ran them through tmux and the 651 queue.
+- **Wrote and ran probe 675** (`scripts/675-attention-and-low-precision-probes.py`, in the evaluator image).
+- **Changed Kiln from the probe results.** 1×1-convolution TF32 rounding (`tf32Conv1x1`), and `nn.matmul` `precision: "highest"` used by `lower_sdpa` to pin attention products to FP32.
+- **Ran the re-qualification.** Froze, gated (674: 174/174; 658: 165/174, with the 9 graphs of 52 failing only at CUDA capture) and ran `tf32-rne-requal-v1` (15 families).
+- **Ran the gated replicate.** It reruns the frozen gated arm of `cost-gate-held-out-v1` from the original staged snapshot on bling into `gated-replicate/`, via an inline `replicate.sh`.
+- **Added view operations.** Strided slices, `conv1d`, nearest resize and `F.unfold` raised the census to 1,931 graphs and 168 complete families. Froze `views-ops-replay-v1` (5 families, 19 graphs; gates 19/19 and 19/19) and ran it.
+
+### Why
+- Probe 675 decided the TF32 boundary by measurement instead of by guessing; Step 248's RNA guess was the cause of the conv regressions.
+- I ran the replicate on the original staged directory so that its code snapshot (`c0d8027c…`) is identical to the arm being replicated. The collector checks that.
+
+### What worked
+| Run | Families | Graphs | Notes |
+|---|---|---|---|
+| typed-slice3 | 10/10 | 45/45 | 3 scores 1.51, 28 scores 1.05 |
+| composed-ops | 7/10 | 75/101 | 57 is the shared-input limit (`einsum` result `+=` into an input); 5 and 119 were TF32 |
+| tf32-rne-requal | 8/15 | 155/183 | 72 6→9/9; 88 and 157 now 3/3; 5 8→15/23 (all f32 pass); 119 1→3/6; 32 6/6; 107 18/18; 75 47/48; 55 3/3 |
+| gated replicate | 20/20 | 237/237 | score mean 1.037 vs 1.034; largest per-family difference 0.067 |
+| views-ops | 4/5 | 17/19 | 35: 22.2 ms eager vs 0.52 ms (42.6×); 125 1/3 |
+
+- Probe 675 results:
+  - f32 SDPA picks the efficient backend, with max error 1.2e-6 against FP32 and 7.4e-4 against TF32-RNE.
+  - f16/bf16 linear differs from round-once in 29% of elements with the reduced-precision flag on and 0.08% with it off; 1×1 conv differs in 0.15%, independent of the flag.
+  - f32 1×1 conv: RNE 9e-6, RNA 3.3e-4, FP32 1.5e-3.
+
+### What didn't work
+- My first slice-3 launch called `run.sh` without its argument (`run.sh: line 3: 1: Provide the staged study directory`). The session exited at once, which released the queue, so composed-ops ran first. Nothing ran incorrectly; the log was kept as `owner.false-start.log`, and slice 3 was requeued behind composed-ops.
+- Family 162 is 0/6 with `SubgraphMatcher cannot be initialized with an pattern with dead code`. Step 259's kept dead `masked_fill_` statement is a pattern node without users. The fix is designed in KILN-009.
+- I committed 4762824 with one failing Python test, because `tail` in the command chain hid pytest's exit code. That test asserted the old refusal of strided slices; fixed in a001c3c.
+- `get_attr` (17 graphs) turned out to be BEiT's in-place relative-position index construction, not constants. It is designed in KILN-010.
+
+### What I learned
+- Matching PyTorch's numerics is per kernel, not per operation type. The same `allow_tf32` setting gives FP32 attention, RNE products and RNE 1×1 convolutions, while 3×3 convolutions are closer to RNA.
+- Speed is now the binding constraint. Accepted families often score 0.01–0.3: 32 at 0.01, 52 at 0.026, 72 at 0.059. The remaining work is the design-sized items, now ticketed as KILN-006 to KILN-011.
+
+### What was tricky to build
+- Serializing GPU work across tmux sessions. Each queue waits on the previous session name; a session that exits early releases the queue immediately, which is what reordered slice 3 and composed-ops.
+
+### What warrants a second pair of eyes
+- Family 35's 42.6× is eager `F.unfold` with 384×384 windows against a fused view copy. It is real in this harness but not representative.
+- The replicate supports reference 49's conclusion but is a second run of the same design, not a new population.
+
+### What should be done in the future
+- Restart the OCR containers when bling is next free for other work.
+- Implement KILN-006 to KILN-011 in parallel worktrees (guides in progress); fix family 162 via KILN-009.
+- Update reference 49 with the replicate result.
+
+### Code review instructions
+- Audits: `sources/{typed-slice3,composed-ops,tf32-rne-requal,views-ops}-replay-gpu-v1/results-audit.json` and `sources/cost-gate-held-out-v1/gated-replicate-audit.json`; probe `sources/gpu-probes-v2/result.json`.
+- Code: `packages/kiln/src/std/tensor.js` (`tf32Conv1x1`, `nn.matmul` precision, `nn.nearest`, `nn.slice` step) and `integrations/passnet/fx_compose.py`.
+
+### Technical details
+- Snapshots:
+  - 53a56b0 → `51274e3f…` (slice 3, composed-ops);
+  - requal `69e4d20d…`;
+  - views-ops `580d5e3e…`;
+  - replicate `c0d8027c…` (original).
