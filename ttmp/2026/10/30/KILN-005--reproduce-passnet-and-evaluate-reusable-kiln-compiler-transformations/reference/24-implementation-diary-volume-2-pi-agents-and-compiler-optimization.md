@@ -4767,3 +4767,48 @@ The probes that ran right after the study gave two concrete corrections:
   - conv1x1 3.7e-3 / 1.7e-5 / 8.0e-6 / 1.1e-2;
   - conv3x3 5.4e-3 / 2.4e-5 / 4.3e-5 / 1.6e-2.
 - Bandwidth: 1 MB 8.4, 2 MB 10.3, 4 MB 10.8, 8 MB 5.3, 16 MB 2.0, 64 MB 0.30, 1 GB 0.236 TB/s.
+
+## Step 255: Put the measured GB10 L2 bandwidth into the cost model
+
+Probe 671 measured GB10's L2 at about 10.5 TB/s, where the cost model assumed 3× DRAM (777 GB/s). I added a per-target `l2GBs` used by the `l2` time term. Only gb10 has a measured value; every other target keeps the 3× prior, so a100-scheduled executables are unchanged. The gb10 model's paired correlation with measured effects rose from 0.61 to 0.71.
+
+I then re-tested Step 250's reverted working-set DRAM rule on top of it. The L2 term no longer masks it, and the gb10 paired ρ reached 0.82. The rule is still not adopted, because it changes a100 estimates and therefore schedules without improving the a100 paired ranking.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 249.
+**Assistant interpretation:** Apply the probe's measurement where it is evidence, and leave behavior changes for declared experiments.
+**Inferred user intent:** Better predictions without unmeasured churn.
+**Commit (code):** 7468794 — "Cost model: measured GB10 L2 bandwidth (l2GBs); tasks updated"
+
+### What I did
+- `targets.js`: `gb10.l2GBs = 10500`, with a header note naming probe 671. `tile.js`: `l2: c.traffic / perUs(t.l2GBs ?? 3 * t.bwGBs)`.
+- Recalibrated with scripts 665 and 664 into scratch (`cal-l2`), then again with the working-set rule (`cal-l2ws`).
+
+### Why
+- The L2 bandwidth is a property of the hardware that has now been measured. The DRAM-factor rule is a modeling heuristic whose adoption changes executables, so it belongs in an experiment.
+
+### What worked
+- L2 only, gb10: paired ρ 0.607 → 0.711 (sign 15 → 16/20); absolute 0.902 → 0.914; within-family 0.913 → 0.931. a100: unchanged (paired 0.644, absolute 0.937).
+- With the working-set rule: gb10 paired 0.823 (sign 17/20); task 106 is predicted at 1.89–2.06 (measured 1.00–1.88), the correct direction for the first time. Absolute gb10 is 0.910 and within-family 0.936.
+
+### What didn't work
+- The absolute scale got worse: median measured/predicted on gb10 went 1.10 → 1.49 (L2 only) → 2.77 (with the working-set rule). The model now over-credits reuse and fast L2, which matters for absolute estimates but not for ranking or gating.
+- The background command that added tasks ended with `git commit -qam`. It ran after I had edited `tile.js` and `targets.js`, so it committed the L2 change under a "Tasks" message. The content was the intended L2-only version (the working-set experiment had been reverted from a saved copy first). I amended that local HEAD's message to describe its content. Lesson: never end a backgroundable command with `commit -a`.
+
+### What I learned
+- Task 106's error was two compounding model defects: a non-affine index (Step 250) and an L2 assumed about 13× too slow (this step). Either alone left the predicted sign wrong.
+
+### What was tricky to build
+- Keeping a100 identical. `l2GBs` is consulted only when present, and only gb10 has it.
+
+### What warrants a second pair of eyes
+- The gate in reference 49 uses the a100 model (the scheduling target). A gate on the gb10 model (the hardware that runs) with the working-set rule is the natural next declared experiment.
+
+### What should be done in the future
+- Declare and run "gate on gb10 model + working-set rule" against reference 49's always/gated arms on the same population.
+
+### Code review instructions
+- `targets.js` (gb10 and header) and the `l2` line in `timeModel` (`tile.js`).
+
+### Technical details
+- Working-set rule (not committed): `sliceBytes` = Σ inputs (numel·4 / extent(v0) if indexed by the outermost output variable, else numel·4) + out/extent(v0); `dram = uniq + out` when `sliceBytes ≤ l2MB`.
