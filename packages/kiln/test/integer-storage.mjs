@@ -1,5 +1,5 @@
 // P3a slice 1: i64 and bool tensors are copied through views exactly (integer temporaries, no
-// float round trip); arithmetic and conversions on them are refused by name until slice 3.
+// float round trip).
 import assert from "node:assert/strict";
 import { k } from "../src/core/kiln.js";
 import { N } from "../src/std/tensor.js";
@@ -25,13 +25,9 @@ for (const [dtype, ctype] of [["i64", "long long"], ["bool", "bool"]]) {
 assert.equal(compile(({ x }) => ({ out: N.cast(x, "i64") }), { x: k.tensor([8], "i64") }).kernels.length, 0);
 // integer and float outputs coexist in one program
 assert.equal(compile(({ x, ids }) => ({ a: N.relu(x), b: N.reshape(ids, [4, 1]) }), { x: k.tensor([4]), ids: k.tensor([4], "i64") }).kernels.length, 2);
-// refused by name
-assert.match(compile(({ x }) => ({ out: N.add(x, x) }), { x: k.tensor([8], "i64") }), /integer arithmetic is not lowered \(P3a slice 3\): add/);
-// integer to float conversion is admitted (C++ conversion = PyTorch cast); float to integer is not
+// arithmetic is typed (P3a slice 3, test/integer-arithmetic.mjs); an untyped float function never sees an integer
 for (const dtype of ["i64", "bool"]) {
   const cuda = compile(({ x, y }) => ({ out: N.mul(N.cast(x, "f32"), y) }), { x: k.tensor([8], dtype), y: k.tensor([8]) }).kernels[0].cuda;
-  assert.ok(/long long in0|bool in0/.test(cuda) && /float /.test(cuda), cuda);
+  assert.ok(/(long long|bool) in\d/.test(cuda) && /\(float\)\(in\d\)/.test(cuda), cuda);
 }
-assert.match(compile(({ x }) => ({ out: N.add(N.cast(x, "f32"), x) }), { x: k.tensor([8], "i64") }), /integer arithmetic is not lowered \(P3a slice 3\): add/);
-assert.match(compile(({ y }) => ({ out: N.cast(y, "i64") }), { y: k.tensor([8]) }), /unsupported floating cast: i64/);
-console.log("integer storage passes through views exactly and refuses arithmetic by name");
+console.log("integer storage passes through views exactly");

@@ -271,8 +271,9 @@ export function emit(e, lang, name = (v) => v, load = null) {
     case "min": return lang === "js" ? `Math.min(${r(e.a)}, ${r(e.b)})` : lang === "wgsl" ? `min(${r(e.a)}, ${r(e.b)})` : `min(${r(e.a)}, ${r(e.b)})`;
     case "max": return lang === "js" ? `Math.max(${r(e.a)}, ${r(e.b)})` : `max(${r(e.a)}, ${r(e.b)})`;
     case "&&": case "||": return `(${r(e.a)} ${e.t} ${r(e.b)})`;
-    case "==": return `(${r(e.a)} ${lang === "js" ? "===" : "=="} ${r(e.b)})`;
-    default: return `(${r(e.a)} ${e.t} ${r(e.b)})`;
+    // comparisons are 0/1 integers, as in C: JS spells the number (a boolean indexes nothing)
+    case "==": return lang === "js" ? `(+(${r(e.a)} === ${r(e.b)}))` : `(${r(e.a)} == ${r(e.b)})`;
+    default: return lang === "js" ? `(+(${r(e.a)} ${e.t} ${r(e.b)}))` : `(${r(e.a)} ${e.t} ${r(e.b)})`;
   }
 }
 

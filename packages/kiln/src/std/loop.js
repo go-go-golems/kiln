@@ -6,7 +6,7 @@
 import { k, P, KilnError } from "../core/kiln.js";
 import { Tensor, numel, strides, hash } from "../core/util.js";
 import * as IX from "../core/ix.js";
-import { FNS, FLOAT32_FUNCTIONS, FLOAT32_REDUCERS, fn as F, reducer } from "./fns.js";
+import { FNS, FLOAT32_FUNCTIONS, FLOAT32_REDUCERS, fn as F, reducer, jsInit, INTEGER_DTYPES } from "./fns.js";
 
 // ----------------------------------------------------------------------------- expressions
 const INTERN = new Map();
@@ -52,7 +52,11 @@ export const E = {
   load: (i, idx) => intern({ k: "in", i, idx: idx.map(IX.lift) }),
   op: (fnName, ...a) => {
     F(fnName);
-    if (a.every((x) => x.k === "num")) return E.num(Math.fround(F(fnName).js(...a.map((x) => Math.fround(x.v)))));
+    if (a.every((x) => x.k === "num")) {
+      // folding: a typed integer result is exact (literals are integral numbers); a float one rounds to f32
+      if (INTEGER_DTYPES.has(F(fnName).type)) return E.num(Number(F(fnName).js(...a.map((x) => x.v))));
+      return E.num(Math.fround(F(fnName).js(...a.map((x) => (F(fnName).args === "*" ? x.v : Math.fround(x.v))))));
+    }
     if (COMM.has(fnName) && a.length === 2 && a[0].__key > a[1].__key) a = [a[1], a[0]];
     return intern({ k: "op", fn: fnName, a });
   },
@@ -172,7 +176,7 @@ export function printNest(sched, bufName = (i) => "in" + i, outName = "out") {
     for (const s of ss) {
       if (s.s === "for") { lines.push(`${pad}for ${s.kind === "reduce" ? R[s.v].v : s.v} in 0..${s.n}:  # ${s.kind}`); walk(s.body, d + 1); }
       else if (s.s === "let") lines.push(`${pad}${s.name} = ${s.e.k === "in" ? `load ${bufName(s.e.i)}[${s.e.idx.map(ix).join(", ")}]` : `${s.e.fn}(${s.e.a.map(op).join(", ")})`}`);
-      else if (s.s === "init") lines.push(`${pad}${s.name} = ${reducer(s.fn).init === 0 ? "0" : reducer(s.fn).init === 1 ? "1" : s.fn === "max" ? "-inf" : "+inf"}`);
+      else if (s.s === "init") lines.push(`${pad}${s.name} = ${((v) => (v == 0 ? "0" : v == 1 ? "1" : typeof v === "bigint" ? String(v) : s.fn === "max" ? "-inf" : "+inf"))(reducer(s.fn).init)}`);
       else if (s.s === "acc") lines.push(`${pad}${s.name} <- ${s.fn}(${s.name}, ${op(s.val)})`);
       else if (s.s === "write") lines.push(`${pad}${outName}[${s.idx.map(ix).join(", ")}] = ${op(s.val)}`);
     }
@@ -220,13 +224,14 @@ export function compileSerial(sched, inShapes) {
       else if (s.s === "let") {
         if (s.e.k === "in") body.push(`${pad}const ${s.name} = I${s.e.i}[${js(flat(s.e.idx, strides(inShapes[s.e.i])))}];`);
         else { const f = FNS[s.e.fn]; body.push(`${pad}const ${s.name} = F.${s.e.fn}(${s.e.a.map(op).join(", ")});`); if (!f) throw new KilnError("EvalError", "unknown fn " + s.e.fn); }
-      } else if (s.s === "init") body.push(`${pad}let ${s.name} = ${reducer(s.fn).init};`);
+      } else if (s.s === "init") body.push(`${pad}let ${s.name} = ${jsInit(s.fn)};`);
       else if (s.s === "acc") body.push(`${pad}${s.name} = R.${s.fn}(${s.name}, ${op(s.val)});`);
-      else if (s.s === "write") body.push(`${pad}O[${js(flat(s.idx, outSt))}] = ${op(s.val)};`);
+      else if (s.s === "write") body.push(`${pad}O[${js(flat(s.idx, outSt))}] = W(${op(s.val)});`);
     }
   };
   walk(sched.stmts, "  ");
-  const src = `return function kernel(I, O) {\n${inShapes.map((_, i) => `  const I${i} = I[${i}];`).join("\n")}\n${body.join("\n")}\n};`;
+  // int64 storage takes BigInts; a literal operand of a polymorphic select is a number
+  const src = `return function kernel(I, O) {\n  const W = O instanceof BigInt64Array ? BigInt : (x) => x;\n${inShapes.map((_, i) => `  const I${i} = I[${i}];`).join("\n")}\n${body.join("\n")}\n};`;
   const fnc = new Function("F", "R", src)(FLOAT32_FUNCTIONS, FLOAT32_REDUCERS);
   fnc.source = src;
   EVAL.set(sched, { key, fn: fnc });
@@ -248,7 +253,7 @@ export function compilePoint(sched, inShapes) {
       if (s.s === "for" && s.kind === "free") walk(s.body, pad);
       else if (s.s === "for") { body.push(`${pad}for (let ${s.v} = 0; ${s.v} < ${s.n}; ${s.v}++) {`); walk(s.body, pad + "  "); body.push(`${pad}}`); }
       else if (s.s === "let") body.push(s.e.k === "in" ? `${pad}const ${s.name} = I${s.e.i}[${js(flat(s.e.idx, strides(inShapes[s.e.i])))}];` : `${pad}const ${s.name} = F.${s.e.fn}(${s.e.a.map(op).join(", ")});`);
-      else if (s.s === "init") body.push(`${pad}let ${s.name} = ${reducer(s.fn).init};`);
+      else if (s.s === "init") body.push(`${pad}let ${s.name} = ${jsInit(s.fn)};`);
       else if (s.s === "acc") body.push(`${pad}${s.name} = R.${s.fn}(${s.name}, ${op(s.val)});`);
       else if (s.s === "write") body.push(`${pad}return ${op(s.val)};`);
     }
@@ -259,10 +264,10 @@ export function compilePoint(sched, inShapes) {
   POINT.set(sched, { key, fn: fnc });
   return fnc;
 }
-export function runSerial(expr, shape, inputs) {
+export function runSerial(expr, shape, inputs, dtype = "f32") {
   const sched = schedule(expr, shape);
   const f = compileSerial(sched, inputs.map((t) => t.shape));
-  const out = new Tensor(shape);
+  const out = new Tensor(shape, null, dtype);
   f(inputs.map((t) => t.data), out.data);
   return out;
 }
@@ -273,7 +278,7 @@ export const loop = k.dialect("loop").describe("Loop IR: one kernel per node, an
     args: { variadic: "ins" },
     attrs: { expr: null, shape: [], outDtype: "f32", name: null, origin: [] },
     infer: ({ shape, outDtype }) => k.tensor(shape, outDtype),
-    eval: ({ args, expr, shape }) => runSerial(expr, shape, args.map((a) => (a instanceof Tensor ? a : new Tensor([], Float32Array.of(a))))),
+    eval: ({ args, expr, shape, outDtype }) => runSerial(expr, shape, args.map((a) => (a instanceof Tensor ? a : new Tensor([], Float32Array.of(a)))), outDtype),
     print: ({ name, ins }) => `loop.kernel ${name || "·"}(${ins})`,
     body: ({ expr, shape, args }) => printNest(schedule(expr, shape), (i) => args[i] ?? "in" + i),
     identity: ({ expr, shape, args }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => a.type.shape.join("x")).join(",")}`),
@@ -307,7 +312,7 @@ export const liftView = k.rule("lift_indexmap").match(P.op("tensor.view").as("n"
 // a gather is a view whose map reads its index argument through data-dependent terms LD(1, …)
 export const liftGather = k.rule("lift_gather").match(P.op("tensor.gather").as("n")).rewrite(({ n }) => mkKernel([n.arg("x"), n.arg("ids")], E.load(0, n.attrs.map.exprs), n.attrs.shape, n.attrs.origin, n.type.dtype));
 export const liftSplatOut = k.rule("lift_constant_output").match(P.op("tensor.const").as("n").where(({ n, graph }) => !n.attrs.data && graph.isOutput(n.id)))
-  .rewrite(({ n }) => mkKernel([], E.num(n.attrs.value), n.type.shape, "constant"));
+  .rewrite(({ n }) => mkKernel([], E.num(n.attrs.value), n.type.shape, "constant", n.type.dtype));
 export const lift = k.pass("loop/lowering").short("l").rules(liftEw, liftReduce, liftView, liftGather, liftSplatOut)
   .describe("each Tensor IR primitive becomes a one-op loop kernel");
 

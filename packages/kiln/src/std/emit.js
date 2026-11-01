@@ -12,9 +12,18 @@ const flit = (v, lang) => {
   return lang === "c" ? s + "f" : s;
 };
 
+// a literal in an integer context (a typed function's operand, an integer variable): exact, never a float
+const ilit = ({ v, exact }, dtype) => {
+  if (dtype === "bool") return v != 0 ? "true" : "false";
+  const b = exact != null ? BigInt(exact) : Number.isInteger(v) ? BigInt(v) : null;
+  if (b === null) throw new TypeError(`non-integral literal ${v} in a ${dtype} context`);
+  if (dtype === "i32") return String(b);
+  return b === -(2n ** 63n) ? "(-9223372036854775807LL - 1)" : `${b}LL`;
+};
+
 // ----------------------------------------------------------------------------- CUDA
 // CUDA spelling of each storage dtype
-export const CUDA_STORAGE = Object.freeze({ f32: "float", u8: "unsigned char", f16: "__half", bf16: "__nv_bfloat16", i64: "long long", bool: "bool" });
+export const CUDA_STORAGE = Object.freeze({ f32: "float", u8: "unsigned char", f16: "__half", bf16: "__nv_bfloat16", i32: "int", i64: "long long", bool: "bool" });
 
 export function toCuda(K) {
   // buffers are src0…srcN and dst: kernel temporaries are named in0, in1… after the Loop IR's loads
@@ -27,7 +36,16 @@ export function toCuda(K) {
     return `(int)${bufName(i)}[${r(flat)}]`;
   };
   const ix = (e) => IX.emit(e, "c", (v) => v, ldSpell);
-  const fx = (e) => (e.k === "num" ? flit(e.v, "c") : e.k === "var" ? e.n : fill(FNS[e.fn].c, e.a.map(fx)));
+  const values = K.values ?? {};
+  // ctx: the dtype a literal here must have (a typed function's operand dtype, or the target's)
+  const fx = (e, ctx = "f32") => {
+    if (e.k === "num") return ctx === "f32" ? flit(e.v, "c") : ilit(e, ctx);
+    if (e.k === "var") return e.n;
+    const spec = FNS[e.fn];
+    const argCtx = (i) => (spec.args && spec.args !== "*" ? spec.args : !spec.args && (e.fn === "copy" || (e.fn === "select" && i > 0)) ? ctx : "f32");
+    return fill(spec.c, e.a.map((a, i) => fx(a, argCtx(i))));
+  };
+  const typeOf = (n) => values[n] ?? "f32";
   const ins = K.params.filter((p) => p.role === "in");
   const lines = [];
   const storage = CUDA_STORAGE;
@@ -45,20 +63,20 @@ export function toCuda(K) {
   const store = (expr) => out.dtype === "f16" ? `__float2half_rn(${expr})` : out.dtype === "bf16" ? `__float2bfloat16_rn(${expr})` : expr;
   lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `const ${ctype(p)}* __restrict__ src${i}`), `${ctype(out)}* __restrict__ dst`].join(", ")}) {`);
   lines.push(`    const int tid = threadIdx.x;`, `    const int bid = blockIdx.x;`);
-  for (const s of K.smem) lines.push(`    __shared__ float ${s.name}[${s.size}];`);
+  for (const s of K.smem) lines.push(`    __shared__ ${storage[s.dtype ?? "f32"]} ${s.name}[${s.size}];`);
   if (K.floats.length) lines.push(`    float ${K.floats.map((f) => `${f} = 0.0f`).join(", ")};`);
-  const values = K.values ?? {};
+  const smemType = Object.fromEntries(K.smem.map((s) => [s.name, s.dtype ?? "f32"]));
   for (const dtype of new Set(Object.values(values))) lines.push(`    ${storage[dtype]} ${Object.keys(values).filter((n) => values[n] === dtype).map((n) => `${n} = 0`).join(", ")};`);
   if (K.ints.length) lines.push(`    int ${K.ints.map((v) => `${v} = 0`).join(", ")};`);
   const walk = (ss, pad) => {
     for (const s of ss) {
       switch (s.s) {
-        case "let": lines.push(`${pad}${s.n} = ${fx(s.e)};`); break;
+        case "let": lines.push(`${pad}${s.n} = ${fx(s.e, typeOf(s.n))};`); break;
         case "iset": lines.push(`${pad}${s.n} = ${ix(s.e)};`); break;
         case "load": lines.push(`${pad}${s.n} = ${load(ins[s.buf]?.dtype, `${bufName(s.buf)}[${ix(s.idx)}]`)};`); break;
-        case "store": lines.push(`${pad}${bufName(s.buf)}[${ix(s.idx)}] = ${store(fx(s.e))};`); break;
+        case "store": lines.push(`${pad}${bufName(s.buf)}[${ix(s.idx)}] = ${store(fx(s.e, ["i32", "i64", "bool"].includes(out.dtype) ? out.dtype : "f32"))};`); break;
         case "sload": lines.push(`${pad}${s.n} = ${s.arr}[${ix(s.idx)}];`); break;
-        case "sstore": lines.push(`${pad}${s.arr}[${ix(s.idx)}] = ${fx(s.e)};`); break;
+        case "sstore": lines.push(`${pad}${s.arr}[${ix(s.idx)}] = ${fx(s.e, smemType[s.arr])};`); break;
         case "sync": lines.push(`${pad}__syncthreads();`); break;
         case "note": lines.push(`${pad}// ${s.text}`); break;
         case "for": lines.push(`${pad}for (int ${s.v} = ${ix(s.from)}; ${s.v} < ${ix(s.to)}; ${s.v} += ${ix(s.step)}) {`); walk(s.body, pad + "    "); lines.push(`${pad}}`); break;

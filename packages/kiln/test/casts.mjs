@@ -8,5 +8,5 @@ for(const dtype of ['f16','bf16']){
  const midpoint=1+2**(dtype==='f16'?-11:-8);
  assert.equal(g.eval({x:new Tensor([1],Float32Array.of(midpoint))}).out.data[0],1);
 }
-assert.throws(()=>k.trace('bad',({x})=>N.cast(x,'typo'),{x:k.tensor([1])}),/unsupported floating cast/);
+assert.throws(()=>k.trace('bad',({x})=>N.cast(x,'typo'),{x:k.tensor([1])}),/unsupported cast/);
 console.log('explicit floating casts passed');

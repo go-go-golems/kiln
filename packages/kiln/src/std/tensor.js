@@ -11,7 +11,7 @@ import { roundToDtype } from "../core/dtypes.js";
 import { k, P, Value, KilnError, Node } from "../core/kiln.js";
 import { Tensor, numel, strides, rng } from "../core/util.js";
 import * as IX from "../core/ix.js";
-import { fn as F, reducer } from "./fns.js";
+import { fn as F, reducer, FNS, INTEGER_DTYPES, resultType, typedReducer } from "./fns.js";
 
 // ----------------------------------------------------------------------------- reference helpers
 const asT = (x) => (x instanceof Tensor ? x : typeof x === "number" ? new Tensor([], Float32Array.of(x)) : Array.isArray(x) ? new Tensor([x.length], Float32Array.from(x)) : x);
@@ -29,11 +29,11 @@ export function bshape(...shapes) {
   }
   return out;
 }
-function ewRef(name, xs) {
+function ewRef(name, xs, dtype = resultType(name)) {
   xs = xs.map(asT);
   const f = F(name).js;
   const shape = bshape(...xs.map((x) => x.shape));
-  const out = new Tensor(shape);
+  const out = new Tensor(shape, null, dtype);
   const n = out.data.length, D = shape.length, m = xs.length, o = out.data;
   // per input, per output dim: the stride to step (0 where the input broadcasts)
   const st = xs.map((x) => { const s = strides(x.shape); const off = D - x.shape.length; return shape.map((d, i) => (i < off || x.shape[i - off] === 1 ? 0 : s[i - off])); });
@@ -76,7 +76,7 @@ function reduceRef(name, x, axis, keep = true) {
   axis = axis < 0 ? x.shape.length + axis : axis;
   const R = reducer(name);
   const oshape = x.shape.map((d, i) => (i === axis ? 1 : d));
-  const out = new Tensor(oshape);
+  const out = new Tensor(oshape, null, R.type ?? "f32");
   const st = strides(x.shape), os = strides(oshape);
   for (let e = 0; e < out.data.length; e++) {
     let r = e, base = 0;
@@ -86,6 +86,24 @@ function reduceRef(name, x, axis, keep = true) {
     out.data[e] = acc;
   }
   return keep ? out : new Tensor(oshape.filter((_, i) => i !== axis), out.data);
+}
+// a dtype conversion with C++'s semantics (truncation toward zero; nonzero is true); floats narrow by rounding
+function castRef(x, dtype) {
+  x = asT(x);
+  const from = x.dtype, convert = FNS["to_" + (INTEGER_DTYPES.has(dtype) ? dtype : "f32")].js;
+  const out = new Tensor(x.shape, null, dtype);
+  for (let i = 0; i < out.data.length; i++) out.data[i] = INTEGER_DTYPES.has(from) || INTEGER_DTYPES.has(dtype) ? convert(x.data[i]) : x.data[i];
+  return roundedReference(out, { dtype });
+}
+function cumsumRef(x, axis, dtype) {
+  x = castRef(x, dtype);
+  const st = strides(x.shape), n = x.shape[axis], out = new Tensor(x.shape, null, dtype);
+  const add = reducer(typedReducer("add", dtype)).js;
+  for (let e = 0; e < out.data.length; e++) {
+    const i = Math.floor(e / st[axis]) % n;
+    out.data[e] = i === 0 ? x.data[e] : add(out.data[e - st[axis]], x.data[e]);
+  }
+  return out;
 }
 // a view gathers through an index map; the map is compiled to a JS loop nest once per (map, shapes)
 const VIEW_FNS = new Map();
@@ -158,14 +176,57 @@ function weakScalar(value) {
   if (value.is?.("tensor.view")) return weakScalar(value.arg("x"));
   return false;
 }
-function elementwiseDtype(xs) {
-  // PyTorch promotion within the floating category: dimensioned tensors dominate 0-dim tensors,
-  // which dominate Python scalars (splat constants). Only the highest-priority group decides.
-  const tensors = xs.filter((x) => !weakScalar(x));
-  const dimensioned = tensors.filter((x) => x.type.shape.length > 0);
-  const dtypes = [...new Set((dimensioned.length ? dimensioned : tensors).map((x) => x.type.dtype || "f32"))];
-  if (dtypes.length === 1 && ["f16", "bf16"].includes(dtypes[0])) return dtypes[0];
-  return "f32";
+// PyTorch type promotion. Categories order bool < integer < floating. Dimensioned tensors dominate
+// 0-dim tensors, which dominate Python scalars (splat constants): a lower-priority group changes the
+// result only when its category is higher, and then a scalar contributes its category's default dtype.
+const CATEGORY = { bool: 0, u8: 1, i32: 1, i64: 1, f16: 2, bf16: 2, f32: 2 };
+const CATEGORY_DEFAULT = ["bool", "i64", "f32"];
+function joinDtypes(ds) {
+  const cat = Math.max(...ds.map((d) => CATEGORY[d]));
+  const top = [...new Set(ds.filter((d) => CATEGORY[d] === cat))];
+  if (top.length === 1) return top[0];
+  return cat === 2 ? "f32" : top.includes("i64") ? "i64" : "i32";
+}
+const dtypeOf = (x) => x.type.dtype || "f32";
+export function promoteDtypes(xs, casts = []) {
+  const ops = xs.map((x, i) => ({ dtype: casts[i] ?? dtypeOf(x), weak: weakScalar(x), rank: x.type.shape.length }));
+  const groups = [ops.filter((o) => !o.weak && o.rank > 0), ops.filter((o) => !o.weak && o.rank === 0), ops.filter((o) => o.weak)].filter((g) => g.length);
+  let result = joinDtypes(groups[0].map((o) => o.dtype));
+  for (const g of groups.slice(1)) {
+    const d = joinDtypes(g.map((o) => o.dtype));
+    if (CATEGORY[d] > CATEGORY[result]) result = g[0].weak ? CATEGORY_DEFAULT[CATEGORY[d]] : d;
+  }
+  return result;
+}
+// the result dtype of an elementwise function over (already converted) operands
+function elementwiseDtype(fn, xs, casts = []) {
+  if (FNS[fn]?.type) return FNS[fn].type;
+  return fn === "select" ? promoteDtypes(xs.slice(1), casts.slice(1)) : promoteDtypes(xs, casts);
+}
+export const COMPARISONS = new Set(["eq", "ne", "lt", "le", "gt", "ge"]);
+const needsCast = (from, to) => from !== to && (INTEGER_DTYPES.has(from) || INTEGER_DTYPES.has(to));
+// a frontend elementwise op resolved to one typed function and the conversions its operands need
+export function resolveEw(fn, xs) {
+  if (fn === "select") {
+    const t = promoteDtypes(xs.slice(1));
+    return { fn, casts: xs.map((x, i) => (i > 0 && needsCast(dtypeOf(x), t) ? t : null)) };
+  }
+  const t = promoteDtypes(xs);
+  const compute = COMPARISONS.has(fn) ? (INTEGER_DTYPES.has(t) ? t : "f32") : t;
+  let typed = fn;
+  if (COMPARISONS.has(fn)) typed = `${fn}_${compute}`;
+  else if (INTEGER_DTYPES.has(compute)) {
+    typed = `${fn}_${compute}`;
+    if (compute === "bool" || !FNS[typed]) throw new KilnError("TypeError", `${fn} over ${compute} values is not lowered`);
+  }
+  return { fn: typed, casts: xs.map((x) => (needsCast(dtypeOf(x), compute) ? compute : null)) };
+}
+// the dtype of a reduction's result and the typed reducer computing it: integer sums widen to int64
+function reduction(fn, dtype) {
+  if (!INTEGER_DTYPES.has(dtype)) return { fn, dtype: "f32", cast: null };
+  if (fn === "add") return { fn: "add_i64", dtype: "i64", cast: dtype === "i64" ? null : "i64" };
+  if (dtype === "bool" || !["max", "min"].includes(fn)) throw new KilnError("TypeError", `${fn} reduction over ${dtype} values is not lowered`);
+  return { fn: typedReducer(fn, dtype), dtype, cast: null };
 }
 function roundedReference(value, type) {
   if (["f16", "bf16"].includes(type?.dtype)) {
@@ -257,10 +318,12 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
     return x.type;
   }, eval: ({ x }) => x, print: "expect({x}, {dtype})" })
   .op("cast", { args: ["x"], attrs: { dtype: "f32" }, traits: ["pure"], infer: ({ x, dtype }) => {
-    if (!["f32", "f16", "bf16"].includes(dtype)) throw new KilnError("TypeError", `unsupported floating cast: ${dtype}`);
+    if (!Object.hasOwn(CATEGORY, dtype) || dtype === "u8") throw new KilnError("TypeError", `unsupported cast: ${dtype}`);
     return k.tensor(x.type.shape, dtype);
-  }, eval: ({ x, type }) => roundedReference(new Tensor(x.shape, x.data.slice()), type), print: "cast({x}, {dtype})" })
-  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add" }, traits: ["pure"], infer: ({ xs, fn }) => (F(fn), T_(bshape(...xs.map((x) => x.type.shape)), elementwiseDtype(xs))), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs), type), print: "{fn}({xs})" })
+  }, eval: ({ x, dtype }) => castRef(x, dtype), print: "cast({x}, {dtype})" })
+  // fn is resolved (resolveEw): a typed function, and per operand the dtype it converts to first (null: none)
+  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add", casts: null }, traits: ["pure"], infer: ({ xs, fn, casts }) => (F(fn), T_(bshape(...xs.map((x) => x.type.shape)), elementwiseDtype(fn, xs, casts || []))),
+    eval: ({ xs, fn, casts, type }) => roundedReference(ewRef(fn, xs.map((x, i) => (casts?.[i] ? castRef(x, casts[i]) : x)), type.dtype), type), print: "{fn}({xs})" })
   .op("linear", { args: ["x", "w"], infer: ({x,w}) => {
     if(x.type.dtype!=="f32"||w.type.dtype!=="f32")throw new KilnError("TypeError","linear arithmetic requires FP32; widen operands and narrow the source operation result explicitly");
     return T_(linearSpec(x.type.shape,w.type.shape).shape);
@@ -274,7 +337,14 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
   .op("softmax", { args: ["x"], attrs: { dim: -1 }, infer: sameAs, eval: ({ x, dim }) => softmaxRef(x, dim), print: "softmax({x}, dim={dim})" })
   .op("gelu", { args: ["x"], attrs: { approximate: "tanh" }, infer: ({ x, approximate }) => { if (!["none", "tanh"].includes(approximate)) throw new KilnError("TypeError", "gelu approximate must be none or tanh"); return x.type; }, eval: ({ x, approximate, type }) => approximate === "none" ? roundedReference(ewRef("gelu_erf", [x]), type) : ewRef("mul", [ewRef("mul", [x, 0.5]), ewRef("add", [1, ewRef("tanh", [ewRef("mul", [0.7978845608, ewRef("add", [x, ewRef("mul", [0.044715, ewRef("mul", [x, ewRef("mul", [x, x])])])])])])])]), print: "gelu({x})" })
   .op("silu", { args: ["x"], infer: sameAs, eval: ({ x }) => ewRef("mul", [x, ewRef("sigmoid", [x])]), print: "silu({x})" })
-  .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1, keepdim: true }, infer: ({ x, axis, keepdim }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(keepdim ? s.map((d, i) => (i === a ? 1 : d)) : s.filter((_, i) => i !== a)); }, eval: ({ x, fn, axis, keepdim }) => reduceRef(fn, x, axis, keepdim), print: "{fn}({x}, axis={axis})" })
+  .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1, keepdim: true }, infer: ({ x, fn, axis, keepdim }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(keepdim ? s.map((d, i) => (i === a ? 1 : d)) : s.filter((_, i) => i !== a), reduction(fn, dtypeOf(x)).dtype); },
+    eval: ({ x, fn, axis, keepdim }) => { const r = reduction(fn, asT(x).dtype); return reduceRef(r.fn, r.cast ? castRef(x, r.cast) : x, axis, keepdim); }, print: "{fn}({x}, axis={axis})" })
+  // inclusive prefix sum along an axis; integer sums widen to int64 as PyTorch's do
+  .op("cumsum", { args: ["x"], attrs: { axis: -1 }, traits: ["pure"], infer: ({ x }) => {
+    const d = dtypeOf(x);
+    if (!INTEGER_DTYPES.has(d) && d !== "f32") throw new KilnError("TypeError", `cumsum over ${d} values is not lowered`);
+    return T_(x.type.shape, INTEGER_DTYPES.has(d) ? "i64" : "f32");
+  }, eval: ({ x, axis, type }) => cumsumRef(x, axis < 0 ? asT(x).shape.length + axis : axis, type.dtype), print: "cumsum({x}, axis={axis})" })
   .op("transpose", { args: ["x"], attrs: { d0: -2, d1: -1 }, infer: ({ x, d0, d1 }) => { const s = x.type.shape.slice(); const n = s.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; [s[i], s[j]] = [s[j], s[i]]; return T_(s, x.type.dtype); }, eval: ({ x, d0, d1, type }) => { const n = asT(x).shape.length; const i = d0 < 0 ? n + d0 : d0, j = d1 < 0 ? n + d1 : d1; return viewRef(x, type.shape, IX.map(n, (a) => { const b = a.slice(); [b[i], b[j]] = [b[j], b[i]]; return b; })); }, print: "transpose({x}, {d0}, {d1})" })
   .op("reshape", { args: ["x"], attrs: { shape: [] }, infer: ({ x, shape }) => { if (numel(shape) !== numel(x.type.shape)) throw new KilnError("ShapeError", `reshape (${x.type.shape}) → (${shape}): sizes differ`); return T_(shape, x.type.dtype); }, eval: ({ x, shape }) => new Tensor(shape, asT(x).data.slice()), print: "reshape({x}, {shape})" })
   .op("gather", { args: ["x", "ids"], attrs: { axis: 0, wrap: false }, infer: ({ x, ids, axis }) => { gatherIndices(ids); return T_(gatherSpec(x.type.shape, ids.type.shape, axis).shape, x.type.dtype); },
@@ -282,12 +352,12 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
   .op("slice", { args: ["x"], attrs: { axis: 0, start: 0, end: 1 }, infer: ({ x, axis, start, end }) => { const s = x.type.shape.slice(); const a = axis < 0 ? s.length + axis : axis; s[a] = end - start; return T_(s, x.type.dtype); }, eval: ({ x, axis, start, type }) => { const n = asT(x).shape.length; const a = axis < 0 ? n + axis : axis; return viewRef(x, type.shape, IX.map(n, (c) => c.map((v, i) => (i === a ? v.add(start) : v)))); }, print: "{x}[{axis}: {start}..{end}]" });
 
 export const tensor = k.dialect("tensor").describe("Tensor IR: elementwise, reduction and index-map primitives")
-  .op("const", { attrs: { value: 0, shape: [], data: null }, traits: ["pure", "any-ir"], infer: ({ shape, data }) => T_(data ? data.shape : shape, data?.dtype || "f32"),
-    eval: ({ value, shape, data }) => (data ? data : Tensor.fill(shape, value)),
+  .op("const", { attrs: { value: 0, shape: [], data: null, dtype: "f32" }, traits: ["pure", "any-ir"], infer: ({ shape, data, dtype }) => T_(data ? data.shape : shape, data?.dtype || dtype),
+    eval: ({ value, shape, data, dtype }) => (data ? data : Tensor.fill(shape, value, dtype)),
     print: ({ value, shape, data, name }) => (data ? `${name ? name + " " : ""}data(${data.shape.join("×")})` : shape.length ? `splat ${+(+value).toPrecision(6)} (${shape.join("×")})` : String(+(+value).toPrecision(6))) })
-  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add", dtype: null }, traits: ["pure"], infer: ({ xs, dtype }) => T_(xs[0].type.shape, dtype || elementwiseDtype(xs)), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs), type),
+  .op("ew", { args: { variadic: "xs" }, attrs: { fn: "add", dtype: null }, traits: ["pure"], infer: ({ xs, fn, dtype }) => T_(xs[0].type.shape, dtype || elementwiseDtype(fn, xs)), eval: ({ xs, fn, type }) => roundedReference(ewRef(fn, xs, type.dtype), type),
     validate: ({ args }) => args.every((a) => a.type.shape.join() === args[0].type.shape.join()) || "elementwise inputs must share a shape (insert views)", print: "{fn}({xs})" })
-  .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1 }, traits: ["pure"], infer: ({ x, axis }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(s.map((d, i) => (i === a ? 1 : d))); }, eval: ({ x, fn, axis }) => reduceRef(fn, x, axis), print: "{fn}({x}, axis={axis})" })
+  .op("reduce", { args: ["x"], attrs: { fn: "add", axis: -1 }, traits: ["pure"], infer: ({ x, fn, axis }) => { const s = x.type.shape; const a = axis < 0 ? s.length + axis : axis; return T_(s.map((d, i) => (i === a ? 1 : d)), reducer(fn).type ?? "f32"); }, eval: ({ x, fn, axis }) => reduceRef(fn, x, axis), print: "{fn}({x}, axis={axis})" })
   .op("gather", { args: ["x", "ids"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, ids, shape }) => { gatherIndices(ids); return T_(shape, x.type.dtype); },
     eval: ({ x, ids, shape, map }) => gatherRef(x, ids, shape, map), print: ({ x, map }) => `${x}[${map.exprs.map((e) => IX.print(e)).join(", ")}]` })
   .op("view", { args: ["x"], attrs: { shape: [], map: null }, traits: ["pure"], infer: ({ x, shape }) => T_(shape, x.type.dtype), eval: ({ x, shape, map }) => viewRef(x, shape, map),
@@ -349,16 +419,28 @@ export const N = {
   },
   // a cast to the value's own dtype is the value (PyTorch .long() on int64, .float() on f32)
   cast: (x, dtype) => ((x.type?.dtype || "f32") === dtype ? x : nn.cast(x, { dtype })),
+  // a Python int or bool scalar: integer category in type promotion, unlike a bare JS number (float)
+  int: (v) => tensor.const({ value: v, shape: [], dtype: "i64" }),
+  bool: (v) => tensor.const({ value: v ? 1 : 0, shape: [], dtype: "bool" }),
   expect: (x, shape, dtype) => nn.expect(x, { shape, dtype }),
   gather: (x, ids, axis = 0, wrap = false) => nn.gather(x, ids, { axis, wrap }),
   embedding: (ids, weight) => N.gather(weight, ids, 0),
   indexSelect: (x, axis, ids) => N.gather(x, ids, axis),
-  ew: (f, ...xs) => nn.ew(xs.map(nv), { fn: f }),
+  ew: (f, ...xs) => { xs = xs.map(nv); return nn.ew(xs, resolveEw(f, xs)); },
   add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b), div: (a, b) => N.ew("div", a, b),
   max: (a, b) => N.ew("max", a, b), min: (a, b) => N.ew("min", a, b), pow: (a, b) => N.ew("pow", a, b),
   exp: (x) => N.ew("exp", x), log: (x) => N.ew("log", x), sqrt: (x) => N.ew("sqrt", x), rsqrt: (x) => N.ew("rsqrt", x), tanh: (x) => N.ew("tanh", x),
   sigmoid: (x) => N.ew("sigmoid", x), relu: (x) => N.ew("relu", x), abs: (x) => N.ew("abs", x), floor: (x) => N.ew("floor", x), neg: (x) => N.ew("neg", x), square: (x) => N.ew("square", x),
   sin: (x) => N.ew("sin", x), cos: (x) => N.ew("cos", x), select: (c, a, b) => N.ew("select", c, a, b), gt: (a, b) => N.ew("gt", a, b), lt: (a, b) => N.ew("lt", a, b),
+  ge: (a, b) => N.ew("ge", a, b), le: (a, b) => N.ew("le", a, b), eq: (a, b) => N.ew("eq", a, b), ne: (a, b) => N.ew("ne", a, b),
+  // x where mask is false, value where it is true; the result keeps x's dtype (value converts to it)
+  maskedFill: (x, mask, value) => {
+    if (mask.type.dtype !== "bool") throw new KilnError("TypeError", `masked_fill requires a bool mask, got ${mask.type.dtype || "f32"}`);
+    const v = nv(value), d = dtypeOf(x);
+    return nn.ew([mask, v, x], { fn: "select", casts: [null, dtypeOf(v) === d ? null : d, null] });
+  },
+  cumsum: (x, axis = -1) => nn.cumsum(x, { axis }),
+  amin: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "min", axis, keepdim }),
   sum: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "add", axis, keepdim }),
   amax: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "max", axis, keepdim }),
   mean: (x, axis = -1, keepdim = true) => N.mul(N.sum(x, axis, keepdim), 1 / x.type.shape.at(axis < 0 ? axis : axis)),
@@ -397,6 +479,16 @@ export function decompose(opName, build, name = "decompose:" + opName) {
   });
 }
 const lastAxis = (x, a) => (a < 0 ? x.type.shape.length + a : a);
+// x converted to dtype in Tensor IR. Floats among themselves narrow by rounding (f32 widening is exact);
+// a scalar constant converts at compile time.
+function convert(x, dtype) {
+  const from = dtypeOf(x);
+  if (!dtype || from === dtype) return x;
+  if (x.is("tensor.const") && !x.attrs.data) return tensor.const({ value: dtype === "bool" ? +(x.attrs.value != 0) : INTEGER_DTYPES.has(dtype) ? Math.trunc(x.attrs.value) : x.attrs.value, shape: x.attrs.shape, dtype });
+  if (INTEGER_DTYPES.has(dtype)) return tensor.ew([x], { fn: "to_" + dtype, dtype });
+  const wide = INTEGER_DTYPES.has(from) ? tensor.ew([x], { fn: "to_f32", dtype: "f32" }) : x;
+  return dtype === "f32" ? (wide === x ? tensor.ew([x], { fn: "copy", dtype }) : wide) : tensor.ew([wide], { fn: "round_" + dtype, dtype });
+}
 export const decompositions = [
   decompose("nn.adaptive_avg_pool2d", ({x,output_size}) => lowerAdaptiveAvgPool2d(T,x,output_size)),
   decompose("nn.avg_pool2d", ({x,...options}) => lowerAvgPool2d(T,x,options)),
@@ -410,12 +502,22 @@ export const decompositions = [
   decompose("nn.conv2d", ({x,w,b,stride,padding,dilation,groups}) => lowerConv2d(T,x,w,b,{stride,padding,dilation,groups})),
   decompose("nn.expect", ({ x }) => x),
   decompose("nn.gather", ({ x, ids, axis, wrap }) => tensor.gather(x, ids, { shape: gatherSpec(x.type.shape, ids.type.shape, axis).shape, map: gatherMap(x.type.shape, ids.type.shape, axis, wrap) })),
-  decompose("nn.cast", ({ x, dtype }) => tensor.ew([x], { fn: dtype === "f32" ? "copy" : "round_" + dtype, dtype })),
+  decompose("nn.cast", ({ x, dtype }) => convert(x, dtype)),
   // Broadcasting turns a 0-dim operand into a dimensioned view, so tensor.ew would re-infer its
   // dtype without the nn-level 0-dim rule. Keep the frontend's dtype when the two disagree.
-  decompose("nn.ew", ({ xs, fn, out }) => {
-    const e = T.ew(fn, ...xs);
+  decompose("nn.ew", ({ xs, fn, casts, out }) => {
+    const e = T.ew(fn, ...xs.map((x, i) => convert(x, casts?.[i])));
     return e.type.dtype === out.type.dtype ? e : tensor.ew(e.args, { ...e.attrs, dtype: out.type.dtype });
+  }),
+  // out[..i..] = sum_j [j <= i] x[..j..]: a reduction over a new last axis, masked through a view of
+  // the table [1, 0] indexed by (i - j < 0), which needs no data proportional to the axis
+  decompose("nn.cumsum", ({ x, axis, out }) => {
+    const a = lastAxis(x, axis), s = x.type.shape, n = s[a], d = out.type.dtype;
+    const xs = convert(x, d), wide = [...s, n];
+    const spread = T.view(xs, wide, (c) => c.slice(0, -1).map((v, i) => (i === a ? c.at(-1) : v)));
+    const mask = T.view(tensor.const({ data: new Tensor([2], Float32Array.of(1, 0)), shape: [2] }), wide, (c) => [c[a].sub(c.at(-1)).lt(0)]);
+    const masked = tensor.ew([mask, spread, T.bc(tensor.const({ value: 0, shape: [], dtype: d }), wide)], { fn: "select", dtype: d });
+    return T.squeeze(T.reduce(masked, typedReducer("add", d), -1), -1);
   }),
   decompose("nn.linear", ({x,w}) => lowerLinear(T,x,w)),
   decompose("nn.matmul", ({a,b}) => lowerMatmul(T,a,b)),
@@ -437,7 +539,7 @@ export const decompositions = [
   }),
   decompose("nn.gelu", ({ x, approximate }) => approximate === "none" ? T.ew("gelu_erf", x) : T.mul(T.mul(x, 0.5), T.add(1, T.tanh(T.mul(0.7978845608, T.add(x, T.mul(0.044715, T.mul(x, T.mul(x, x))))))))),
   decompose("nn.silu", ({ x }) => T.mul(x, T.sigmoid(x))),
-  decompose("nn.reduce", ({ x, fn, axis, keepdim }) => { const r = T.reduce(x, fn, lastAxis(x, axis)); return keepdim ? r : T.squeeze(r, lastAxis(x, axis)); }),
+  decompose("nn.reduce", ({ x, fn, axis, keepdim }) => { const t = reduction(fn, dtypeOf(x)); const r = T.reduce(convert(x, t.cast), t.fn, lastAxis(x, axis)); return keepdim ? r : T.squeeze(r, lastAxis(x, axis)); }),
   decompose("nn.transpose", ({ x, d0, d1, out }) => { const n = x.type.shape.length; const i = lastAxis(x, d0), j = lastAxis(x, d1); return T.view(x, out.type.shape, (c) => { const b = c.slice(); [b[i], b[j]] = [b[j], b[i]]; return b; }); }),
   decompose("nn.reshape", ({ x, shape }) => T.reshape(x, shape)),
   decompose("nn.slice", ({ x, axis, start, out }) => { const a = lastAxis(x, axis); return T.view(x, out.type.shape, (c) => c.map((v, i) => (i === a ? v.add(start) : v))); }),

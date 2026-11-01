@@ -65,7 +65,7 @@ export class Tensor {
     }
   }
   get size() { return this.data.length; }
-  static fill(shape, f, dtype = "f32") { const t = new Tensor(shape, null, dtype); const n = t.data.length; if (typeof f !== "function") t.data.fill(f); else for (let i = 0; i < n; i++) t.data[i] = f(i); return t; }
+  static fill(shape, f, dtype = "f32") { const t = new Tensor(shape, null, dtype); const n = t.data.length; const v = t.dtype === "i64" ? (x) => BigInt(x) : (x) => x; if (typeof f !== "function") t.data.fill(v(f)); else for (let i = 0; i < n; i++) t.data[i] = v(f(i)); return t; }
   static random(shape, { seed = 1, scale = 1, dist = "normal" } = {}) { const r = rng(seed); return Tensor.fill(shape, () => (dist === "uniform" ? (r() * 2 - 1) * scale : r.normal() * scale)); }
   at(...idx) { const s = strides(this.shape); let o = 0; idx.forEach((v, i) => { o += v * s[i]; }); return this.data[o]; }
   preview(n = 6) { return Array.from(this.data.slice(0, n)).map((x) => typeof x === "bigint" ? x.toString() : +x.toPrecision(4)); }

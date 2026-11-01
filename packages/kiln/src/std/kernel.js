@@ -7,13 +7,14 @@
 //              if {c:Ix, body} · note {text}
 // float expressions: {k:"num", v} · {k:"var", n} · {k:"op", fn, a:[…]}
 import { k, P, KilnError } from "../core/kiln.js";
-import { numel, strides, hash, inKey } from "../core/util.js";
+import { numel, strides, hash, inKey, dtypeBytes } from "../core/util.js";
 import * as IX from "../core/ix.js";
-import { reducer, FNS } from "./fns.js";
+import { reducer, FNS, INTEGER_DTYPES } from "./fns.js";
 import { analyze, launch, stagedOf, canonRow } from "./tile.js";
 import { displayNames } from "./loop.js";
 
-export const kx = { num: (v) => ({ k: "num", v: +v }), v: (n) => ({ k: "var", n }), op: (fn, ...a) => ({ k: "op", fn, a }) };
+// an int64 literal past 2^53 keeps its exact decimal spelling beside the (JSON-safe) number
+export const kx = { num: (v) => (typeof v === "bigint" ? { k: "num", v: Number(v), exact: String(v) } : { k: "num", v: +v }), v: (n) => ({ k: "var", n }), op: (fn, ...a) => ({ k: "op", fn, a }) };
 const V = IX.V, C = IX.C;
 
 export class KB {
@@ -250,31 +251,55 @@ function matTiled(an, kn) {
 // Integer storage (P3a slice 1): an integer value may only be copied from a load to a store of the
 // same dtype, or converted to float. Arithmetic, comparisons, conversions and shared-memory staging of integers are refused
 // by name, here, rather than computed in float temporaries, which would corrupt int64 values above 2^24.
-export const INTEGER_DTYPES = new Set(["i64", "bool"]);
-function integerValues(body, params, name) {
-  const types = new Map(), ins = params.filter((p) => p.role === "in"), out = params.find((p) => p.role === "out");
-  const typeOf = (e) => (e.k === "var" ? types.get(e.n) : undefined);
-  const refuse = (what) => { throw new TypeError(`integer arithmetic is not lowered (P3a slice 3): ${what} in ${name}`); };
-  // the one admitted operation: converting an integer value to float (the cast op `copy`), which
-  // C++ performs exactly as PyTorch does (round to nearest; bool to 0/1)
-  const check = (e) => {
-    if (e.k !== "op" || (e.fn === "copy" && e.a.length === 1 && typeOf(e.a[0]))) return;
-    for (const a of e.a) { if (typeOf(a)) refuse(e.fn); check(a); }
+// Static value types (P3a slice 3). A load takes its buffer's dtype (floating storage loads as f32), a
+// shared array the dtype stored into it, a typed function (fns.js) declares its operand and result
+// dtypes, and an untyped function computes in f32: an integer operand there is a missing conversion.
+// A literal takes the dtype its context requires. → { values: integer-typed names → dtype, smem: array → dtype }
+function valueTypes(body, params, name) {
+  // literal: names holding only literals so far (a reduction's initial value), typed by their later use
+  const types = new Map(), literal = new Set(), smem = new Map(), ins = params.filter((p) => p.role === "in"), out = params.find((p) => p.role === "out");
+  const value = (d) => (INTEGER_DTYPES.has(d) ? d : "f32");
+  const refuse = (what) => { throw new TypeError(`${what} in ${name}`); };
+  const typeOf = (e) => {
+    if (e.k === "num") return null;
+    if (e.k === "var") return types.get(e.n) ?? (literal.has(e.n) ? null : "f32");
+    const spec = FNS[e.fn], ts = e.a.map(typeOf);
+    if (spec.args) {
+      ts.forEach((t) => { if (spec.args !== "*" && t !== null && t !== spec.args) refuse(`${e.fn} applied to a ${t} value`); });
+      return spec.type;
+    }
+    if (e.fn === "select" || e.fn === "copy") {
+      const vs = [...new Set((e.fn === "select" ? ts.slice(1) : ts).filter((t) => t !== null))];
+      if (vs.length > 1) refuse(`${e.fn} over ${vs.join(" and ")} values`);
+      return vs[0] ?? null;
+    }
+    ts.forEach((t) => { if (t !== null && t !== "f32") refuse(`${e.fn} applied to a ${t} value (integer arithmetic needs a typed function)`); });
+    return "f32";
+  };
+  const assign = (n, t) => {
+    if (t === null) { if (!types.has(n)) literal.add(n); return; }
+    const prev = types.get(n);
+    if (prev && prev !== t) refuse(`${n} holds both ${prev} and ${t} values`);
+    types.set(n, t);
   };
   const walk = (ss) => {
     for (const s of ss) {
-      if (s.s === "load") { const d = ins[s.buf]?.dtype; if (INTEGER_DTYPES.has(d)) types.set(s.n, d); }
-      else if (s.s === "let") { check(s.e); const d = typeOf(s.e); if (d) types.set(s.n, d); }
-      else if (s.s === "store") {
-        check(s.e);
-        const d = typeOf(s.e), o = out.dtype || "f32";
-        if (INTEGER_DTYPES.has(o) ? d !== o : d) refuse(`store of ${d || "float"} into ${o}`);
-      } else if (s.s === "sstore" && typeOf(s.e)) refuse("shared-memory staging");
+      if (s.s === "load") assign(s.n, value(ins[s.buf]?.dtype));
+      else if (s.s === "let") assign(s.n, typeOf(s.e));
+      else if (s.s === "sload") assign(s.n, smem.get(s.arr) ?? "f32");
+      else if (s.s === "sstore") {
+        const t = typeOf(s.e) ?? "f32", prev = smem.get(s.arr);
+        if (prev && prev !== t) refuse(`shared array ${s.arr} holds both ${prev} and ${t} values`);
+        smem.set(s.arr, t);
+      } else if (s.s === "store") {
+        const t = typeOf(s.e), o = value(out.dtype || "f32");
+        if (t !== null && t !== o) refuse(`store of a ${t} value into ${out.dtype || "f32"} storage`);
+      }
       if (s.body) walk(s.body);
     }
   };
   walk(body);
-  return types;
+  return { values: new Map([...types].filter(([, t]) => t !== "f32")), smem };
 }
 
 export function materialize(node) {
@@ -287,11 +312,12 @@ export function materialize(node) {
   const kn = a.map;
   const L = launch(an, kn);
   const kb = kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : matThread(an, kn);
-  const smemBytes = kb.smem.reduce((s, x) => s + x.size * 4, 0);
   const params = [...a.inShapes.map((s, i) => ({ name: "in" + i, size: numel(s), shape: s, role: "in", dtype: a.inDtypes?.[i] || "f32" })), { name: "out", size: numel(a.shape), shape: a.shape, role: "out", dtype: a.outDtype || "f32" }];
-  const values = integerValues(kb.body, params, a.name || "kernel");
+  const { values, smem: smemTypes } = valueTypes(kb.body, params, a.name || "kernel");
+  const smem = kb.smem.map((x) => ({ ...x, dtype: smemTypes.get(x.name) ?? "f32" }));
+  const smemBytes = smem.reduce((s, x) => s + x.size * dtypeBytes(x.dtype), 0);
   return {
-    name: a.name || "kernel", grid: L.grid, block: L.block, smem: kb.smem, smemBytes, body: kb.body,
+    name: a.name || "kernel", grid: L.grid, block: L.block, smem, smemBytes, body: kb.body,
     // temporaries by storage type: integer values (P3a slice 1) are never float temporaries
     floats: [...kb.floats].filter((f) => !values.has(f)), values: Object.fromEntries(values),
     ints: [...kb.ints].filter((v) => v !== "tid" && v !== "bid"),
@@ -303,10 +329,10 @@ export function materialize(node) {
 // ----------------------------------------------------------------------------- printing
 export function printKernelBody(K, args = []) {
   const bn = (b) => (b === "out" ? "out" : args[b] ?? "in" + b);
-  const fx = (e) => (e.k === "num" ? String(+e.v.toPrecision(7)) : e.k === "var" ? e.n : `${e.fn}(${e.a.map(fx).join(", ")})`);
+  const fx = (e) => (e.k === "num" ? (e.exact ?? String(+e.v.toPrecision(7))) : e.k === "var" ? e.n : `${e.fn}(${e.a.map(fx).join(", ")})`);
   const ix = (e) => IX.print(e);
   const lines = [`grid=${K.grid} block=${K.block}${K.smemBytes ? ` smem=${K.smemBytes} B` : ""}  [${K.row}]`];
-  for (const s of K.smem) lines.push(`Smem ${s.name}[${s.size}] (float)`);
+  for (const s of K.smem) lines.push(`Smem ${s.name}[${s.size}] (${s.dtype ?? "f32"})`);
   const walk = (ss, pad) => {
     for (const s of ss) {
       switch (s.s) {
