@@ -38,9 +38,11 @@ def drop_dead_statements(function):
 
     A source GraphModule may compute values it never returns. The matcher refuses
     patterns with dead code, and TorchDynamo captures only live nodes, so the pattern
-    must be the live computation. A dead in-place operation is observable and refused.
+    must be the live computation. An in-place call with an unused result is kept when it
+    updates an argument or a value read later (as corpus.eliminate_dead_code keeps it).
     """
     *body,ret=function.body
+    arguments={a.arg for a in function.args.args}
     live={n.id for n in ast.walk(ret) if isinstance(n,ast.Name)};kept=[]
     for statement in reversed(body):
         if isinstance(statement,ast.Assign) and isinstance(statement.value,ast.Constant) and statement.value.value is None:
@@ -51,7 +53,12 @@ def drop_dead_statements(function):
             live=(live-targets)|{n.id for n in ast.walk(statement.value) if isinstance(n,ast.Name)}
             kept.append(statement)
         elif inplace_call(statement.value):
-            raise ValueError('Dead in-place source statement has an observable effect')
+            call=statement.value
+            receiver=call.func.value if isinstance(call.func,ast.Attribute) and call.func.attr.endswith('_') else call.args[0] if call.args else None
+            if not isinstance(receiver,ast.Name):raise ValueError('In-place source statement without a named target')
+            if receiver.id in live or receiver.id in arguments:
+                live|={n.id for n in ast.walk(call) if isinstance(n,ast.Name)}
+                kept.append(statement)
     function.body=[*reversed(kept),ret]
 
 

@@ -34,7 +34,10 @@ class PatternExtractionTests(unittest.TestCase):
         self.assertNotIn('relu',pattern.text);self.assertNotIn('None',pattern.text)
         self.assertEqual(pattern.key,extract_pattern(self.source('u=x+x\n  return (u,)').replace('x+x','x+y').replace('forward(self,x)','forward(self,x,y)'),2).key)
         effect='import torch\nclass GraphModule(torch.nn.Module):\n def forward(self,x,y):\n  u=x+y\n  y+=x\n  return (u,)\n'
-        with self.assertRaisesRegex(ValueError,'observable'):extract_pattern(effect,2)
+        # an in-place update of an argument is observable: kept although its result is unused
+        self.assertIn('kiln_iadd(y',extract_pattern(effect,2).text)
+        unread='import torch\nclass GraphModule(torch.nn.Module):\n def forward(self,x,y):\n  u=x+y\n  w=x*2\n  w+=x\n  return (u,)\n'
+        self.assertNotIn('kiln_iadd(w',extract_pattern(unread,2).text)
 
     def test_dead_source_code_and_arguments_leave_the_program(self):
         import tempfile
