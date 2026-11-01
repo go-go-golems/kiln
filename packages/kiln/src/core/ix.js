@@ -22,6 +22,19 @@ export class Ix {
 }
 export const C = (v) => new Ix("c", null, null, Math.trunc(v));
 export const V = (name) => new Ix("v", null, null, name);
+// a data-dependent index term (P3a slice 2): the integer stored in kernel input i at index idx.
+// Opaque to the affine algebra; substitution, variables and keys recurse into idx.
+export const LD = (i, idx) => new Ix("ld", null, null, Object.freeze({ i, idx: Object.freeze(idx.map(lift)) }));
+const mapLd = (e, f) => LD(e.v.i, e.v.idx.map(f));
+// renumber the inputs that data-dependent terms read (kernel fusion merges argument lists)
+export function remapLoads(e, f) {
+  switch (e.t) {
+    case "c": case "v": return e;
+    case "ld": return LD(f(e.v.i), e.v.idx.map((x) => remapLoads(x, f)));
+    default: return new Ix(e.t, remapLoads(e.a, f), remapLoads(e.b, f), e.v);
+  }
+}
+export const loadsOf = (e, out = []) => { if (e.t === "ld") { out.push(e); e.v.idx.forEach((x) => loadsOf(x, out)); } else if (e.t !== "c" && e.t !== "v") { loadsOf(e.a, out); loadsOf(e.b, out); } return out; };
 export const isIx = (x) => x instanceof Ix;
 export function lift(x) {
   if (x instanceof Ix) return x;
@@ -122,11 +135,13 @@ export function keyOf(e) {
   switch (e.t) {
     case "c": return String(e.v);
     case "v": return e.v;
+    case "ld": return `ld${e.v.i}[${e.v.idx.map(keyOf).join(",")}]`;
     default: return `(${keyOf(e.a)}${e.t}${keyOf(e.b)})`;
   }
 }
 export function vars(e, out = new Set()) {
   if (e.t === "v") out.add(e.v);
+  else if (e.t === "ld") e.v.idx.forEach((x) => vars(x, out));
   else if (e.t !== "c") { vars(e.a, out); vars(e.b, out); }
   return out;
 }
@@ -134,6 +149,7 @@ export function subst(e, env) {
   switch (e.t) {
     case "c": return e;
     case "v": return env[e.v] !== undefined ? lift(env[e.v]) : e;
+    case "ld": return mapLd(e, (x) => subst(x, env));
     case "+": return add(subst(e.a, env), subst(e.b, env));
     case "*": return mul(subst(e.a, env), subst(e.b, env));
     case "/": return div(subst(e.a, env), subst(e.b, env));
@@ -146,6 +162,7 @@ export function evalIx(e, env) {
   switch (e.t) {
     case "c": return e.v;
     case "v": { const x = env[e.v]; if (x === undefined) throw new Error(`index variable ${e.v} is not bound`); return x; }
+    case "ld": { if (!env.__ld) throw new Error(`data-dependent index ld${e.v.i} needs input values`); return env.__ld(e.v.i, e.v.idx.map((x) => evalIx(x, env))); }
     case "+": return evalIx(e.a, env) + evalIx(e.b, env);
     case "*": return evalIx(e.a, env) * evalIx(e.b, env);
     case "/": return Math.floor(evalIx(e.a, env) / evalIx(e.b, env));
@@ -165,6 +182,7 @@ export function interval(e, extent) {
   switch (e.t) {
     case "c": return [e.v, e.v];
     case "v": { const n = extent(e.v); return n > 0 ? [0, n - 1] : null; }
+    case "ld": return null;
     case "+": { const a = interval(e.a, extent), b = interval(e.b, extent); return a && b ? [a[0] + b[0], a[1] + b[1]] : null; }
     case "*": {
       const a = interval(e.a, extent), b = interval(e.b, extent);
@@ -192,6 +210,7 @@ export function interval(e, extent) {
 // multiple of the divisor is constant, and a remainder of an in-range dividend is the dividend.
 export function bounded(e, extent) {
   if (e.t === "c" || e.t === "v") return e;
+  if (e.t === "ld") return mapLd(e, (x) => bounded(x, extent));
   const a = bounded(e.a, extent), b = bounded(e.b, extent);
   if ((e.t === "/" || e.t === "%") && isC(b) && b.v > 0) {
     const r = interval(a, extent);
@@ -222,6 +241,7 @@ export function print(e, parent = 0) {
   switch (e.t) {
     case "c": return e.v < 0 && parent > 0 ? `(${e.v})` : String(e.v);
     case "v": return e.v;
+    case "ld": return `in${e.v.i}[${e.v.idx.map((x) => print(x)).join(", ")}]`;
     case "min": case "max": return `${e.t}(${print(e.a)}, ${print(e.b)})`;
   }
   const p = PREC[e.t];
@@ -233,11 +253,13 @@ export function print(e, parent = 0) {
 }
 
 // target spellings. `name` maps a variable to its spelling in the target.
-export function emit(e, lang, name = (v) => v) {
-  const r = (x) => emit(x, lang, name);
+// `load(i, idx)` spells a data-dependent term; emitters without integer buffers leave it unset.
+export function emit(e, lang, name = (v) => v, load = null) {
+  const r = (x) => emit(x, lang, name, load);
   switch (e.t) {
     case "c": return lang === "wgsl" ? `${e.v}i` : e.v < 0 ? `(${e.v})` : String(e.v);
     case "v": return name(e.v);
+    case "ld": if (!load) throw new Error(`no ${lang} spelling for data-dependent index ld${e.v.i}`); return load(e.v.i, e.v.idx, r);
     case "+": return `(${r(e.a)} + ${r(e.b)})`;
     case "*": return `(${r(e.a)} * ${r(e.b)})`;
     case "/": return lang === "js" ? `Math.floor(${r(e.a)} / ${r(e.b)})` : `(${r(e.a)} / ${r(e.b)})`;
@@ -256,6 +278,7 @@ export function toJs(e) {
   switch (e.t) {
     case "c": return e.v < 0 ? `(${e.v})` : String(e.v);
     case "v": return e.v;
+    case "ld": return `__ld(${e.v.i}, [${e.v.idx.map(r).join(", ")}])`;
     case "+": return `(${r(e.a)} + ${r(e.b)})`;
     case "*": return `(${r(e.a)} * ${r(e.b)})`;
     case "/": return `Math.floor(${r(e.a)} / ${r(e.b)})`;
