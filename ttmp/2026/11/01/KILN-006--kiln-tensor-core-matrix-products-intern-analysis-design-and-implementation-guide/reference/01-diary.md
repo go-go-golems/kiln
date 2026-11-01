@@ -379,3 +379,62 @@ __device__ __forceinline__ unsigned kiln_pack_bf16(float lo, float hi) { __nv_bf
     a0 = __bfloat162float(src0[((2 * (lane % 4)) + (16 * (lane / 4)))]);
     asm volatile("mma.sync.aligned.m16n8k16.row.col.f32.bf16.bf16.f32 {%0,%1,%2,%3}, {%4,%5,%6,%7}, {%8,%9}, {%0,%1,%2,%3};\n" : "+f"(c0), "+f"(c1), "+f"(c2), "+f"(c3) : "r"(kiln_pack_bf16(a0, a1)), "r"(kiln_pack_bf16(a2, a3)), "r"(kiln_pack_bf16(a4, a5)), "r"(kiln_pack_bf16(a6, a7)), "r"(kiln_pack_bf16(b0, b1)), "r"(kiln_pack_bf16(b2, b3)));
 ```
+
+## Step 8: Phase 3 — `MAP=mma` in Tile IR and the `matMma` materializer
+
+The tensor-core mapping now exists end to end on CPU. `scheduleRule` computes `operandPrecision` for every kernel and asks `mmaPlan` whether the contraction can run on tensor cores; if so the fork tree offers `MAP=mma` with `BM`, `BN`, `BK`, `WM`, `WN` levels. `matMma` (kernel.js) writes the warp-tiled GEMM from three exported building blocks (`mmaAccumulators`, `mmaWarpStep`, `mmaAccElements`) that KILN-007 can reuse. Pinned `MAP=mma` kernels for TF32, f16 and bf16 linear layers, a batched matmul, tile tails and fused epilogues all pass `simulateKernel` against the Loop IR reference, under every accumulation order. The default compile is byte-identical to the base revision for 36 program/target/precision combinations.
+
+One design change against the guide came from the first run of the tail test: at small sizes fusion *does* inline the `round_tf32` producers into the contraction, so the body is `mul(round_tf32(in0[..]), round_tf32(in1[..]))`. The guide's `isProductOf` would refuse it. I generalized the operand rule to "a load under a chain of format functions" (`copy`, `round_tf32`, `round_f16`, `round_bf16`) and made the tile loader apply the chain once per staged element. That is the guide's deferred "rounding during staging" (Section 11.2), obtained for free where fusion already made the decision.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 6.
+**Assistant interpretation:** Phase 3: `operandPrecision`, `mmaPlan`, `MAP=mma` with `WM`/`WN`, fork tree, launch, print, `inPrecisions`, `matMma`, `materialize` dispatch, tests with `MAP=mma` pinned.
+**Inferred user intent:** A correct, CPU-validated tensor-core schedule that changes nothing until chosen.
+**Commit (code):** the commit following this entry — "KILN-006 Phase 3: MAP=mma mapping, mmaPlan legality and the matMma materializer".
+
+### What I did
+- core/kiln.js `expandFork`: a level value `undefined` leaves the knob unset. `WM`/`WN` levels return `[undefined]` off `MAP=mma`, so no existing option gains keys (Step 6 finding: `k.knobs.canonical` keys evidence records by every key).
+- tile.js: `MAP` gains `"mma"`; knobs `WM ∈ {16,32,64}`, `WN ∈ {8,16,32,64}`; `operandPrecision(n)`; `operandChain` + `mmaPlan(an, prec, t)` → `{ op, operand, a, b, aFns, bFns, roundsA, roundsB }` or `{ reason }`; `legalMaps(an, plan)`; `forkTree(an, t, plan)` (BK multiple of the atom's k, padded shared tiles within `smemPerBlock`, `warps·32 ≤ maxThreadsPerBlock`); `launch(an, kn, plan)`; `regsEstimate(kn, values, op)`; `estimateMma` (also Phase 4 material, see Step 9); `printTile` mma branch; `planOf(node)`; `tile.kernel` attr `inPrecisions` (in `keyIgnore`); `scheduleRule` passes the plan; `costPrior` and `predictedCost` pass the plan to `estimate`.
+- kernel.js: `mmaAccumulators`, `mmaWarpStep(kb, op, lane, acc, a, b)`, `mmaAccElements(op, acc, lane)`; `matMma(an, kn, plan)`; `materialize` refuses an illegal pinned plan by name and records `K.mma = { op, operand, a, b }` (`a`/`b` null when the operand is rounded in-kernel, so `operandInputs` leaves that input alone).
+- test/mma-kernel.mjs (new): the cases of guide Section 10.1 (see Technical details).
+- Comparison script (scratch, `KILN-006-impl/cmp/dump.mjs`): compiles attention, swiglu, linear+relu, a 1024³ matmul, an f16 linear and a 1x1 conv for gb10, a100 and rtx5090 under `highest` and `tf32`, and prints every kernel's name, identity, row, knobs, CUDA and WGSL hashes and the program's `predictedCost`. Run against `git archive 373766b` and against the working tree: `IDENTICAL` (123 lines, 87 kernels).
+
+### Why
+- Legality per operand chain rather than per body shape: the values are what matter. `round_tf32(load)` is exactly as TF32-representable as a load from a `round_tf32` producer, and rounding at staging is the same RNE function (`fns.js roundTf32` / `kiln_round_tf32`), as the TF32 decision record requires.
+- Tile loads write the `mv` temporary, not `tv`: KILN-008 owns the reuse problem of `matTiled`'s `tv`; a distinct name keeps this path independent of that fix.
+- `costPrior` returns `Infinity` for an `mma` option when the target's tensor rate is unknown and other maps compete; with `MAP=mma` pinned it ranks the remaining knobs with the FP32 peak as prior. Reason: the guide's claim that the pessimistic prior alone keeps `mma` from winning does not hold in the issue term (one warp instruction per 1024 multiply-adds), so an explicit gate is the only guarantee that defaults do not change. Step 9 records the numbers.
+
+### What worked
+- `node test/mma-kernel.mjs` → "MAP=mma: TF32/f16/bf16 products, batches, tails and fused epilogues simulate correctly; refusals are exact". The 512×256×384 TF32 kernel matched the reference with `maxAbs 0` under the sequential order.
+- `npm test` → "all 51 passed"; `python3 -m pytest -q` → "177 passed, 7 subtests passed".
+
+### What didn't work
+- Tail test, first run: `TypeError: Cannot read properties of undefined (reading 'K')` at `kt.K.grid` — no `MAP=mma` kernel; the warning was `pins MAP=mma,BM=32,BN=16,BK=16 are not offered by schedule at n17`. The printed expression was `add_{r7<19} mul(round_tf32(in0[a1, r7]), round_tf32(in1[a0, r7]))`: fused rounding. Fixed by the operand-chain rule above.
+- Tail test, second run: `f32 tails: every output written and right (512)`: my assertion expected `n === 561`, but `simulateKernel` caps the compared sample at 512 of the covered outputs. Fixed the assertion.
+- Refusal test: `Cannot read properties of undefined (reading 'attrs')` — the 32×16×32 case also fused its rounding, so no tile kernel had a `tf32` input precision. I moved that case to 256×128×192.
+- Operational mistake (no code effect): building the base-revision tree for the comparison, `ln -s …/node_modules $S/base/node_modules` succeeded silently (stderr discarded), so my next `ln -sfn $S/base/packages/evidence $S/base/node_modules/@kiln/evidence` rewrote the *worktree's* `node_modules/@kiln/evidence` symlink to point into the scratch copy. I noticed it in the `ls` output, restored `node_modules/@kiln/evidence -> ../../packages/evidence` (same form as the `kiln` link beside it), replaced the scratch symlink with a real directory, and re-ran both dumps. The full test run of this step happened before the mistake; the evidence package is byte-identical between the two trees.
+
+### What I learned
+- Whether rounding stays a separate kernel depends on size (the fusion work guard), so any legality rule must handle both forms; the guide's probe used one size.
+- The pin mechanism (`core/kiln.js:999-1004`) ignores a pin where it is not offered and warns, which is exactly the right behaviour for `MAP=mma` pins on whole programs (rounding kernels keep their maps).
+
+### What was tricky to build
+- Keeping the fork tree's knob keys stable. Without the `undefined` level value, every existing option would gain `WM=0,WN=0`, `canonRow` would still print the same row (it drops off-values), and the only symptom would be evidence lookups silently returning nothing. The comparison dump includes `knobs=` JSON so this cannot regress unnoticed.
+- The warp-collective contract: atoms are emitted outside every `if`; tails rely on zero fill of the shared tiles (A rows ≥ M, B columns ≥ N, and k ≥ K are zero), and only the epilogue is guarded.
+
+### What warrants a second pair of eyes
+- `mmaPlan`'s format-chain rule: `round_f16(round_tf32(x))` is classified by the outermost rounding (f16). Correct for values, but worth a reviewer's check.
+- `matMma` with `WM=64, WN=64` holds 128 accumulators per lane; register pressure on hardware is unmeasured.
+- Whether `__launch_bounds__(1024)` kernels with large warp tiles compile without spills (GPU-side check).
+
+### What should be done in the future
+- Phase 4 (Step 9): target rates and ranking tests.
+- KILN-007 should build on `mmaWarpStep`/`mmaAccElements`; the accumulator layout differs from the A-fragment layout, so P·V after softmax needs either a shared-memory round trip or a register re-layout (a new helper in this section).
+
+### Code review instructions
+- tile.js `operandChain`, `mmaPlan`, `forkTree`, `launch`, `costPrior`; kernel.js section "warp-level tensor-core tiles" and `matMma`; core/kiln.js `expandFork`.
+- `node packages/kiln/test/mma-kernel.mjs`; `cd packages/kiln && npm test`; the comparison: `node <scratch>/cmp/dump.mjs <kiln root>` for both trees, then `diff`.
+
+### Technical details
+- Cases in `test/mma-kernel.mjs`: TF32 linear+bias+relu 512×256×384 (CUDA has inline PTX, no packing; WGSL null with reason; four accumulation orders pass; a check with `K.mma` removed fails with "not representable in tf32"); three explicit knob sets (`64/64/16/32/32`, `32/64/8/16/64`, `128/16/32/64/8`); f16 and bf16 linear 64×48×40 (packing helpers, includes, `__float2half_rn`/`__float2bfloat16_rn` stores); batched matmul `[4,96,80]@[4,80,72]`; tails `M=33, K=19, N=17` for TF32 (fused rounding, `K.mma.a/b = null`, `kiln_round_tf32(` in the mma kernel) and f16; bias+GELU; scale+residual; refusals (FP32 highest, `matmul(..., "highest")` under tf32, mixed f16/bf16, WebGPU `sm 0`, `sm 70`, f32 precisions, `max` reduction, `mul(sub(a, c), b)`, a second multiply, `add(a, b)` body); default gb10 compile has no `mma` and no `WM`/`WN` keys.
+- First pinned compile on GB10 (model-ranked knobs under the FP32-peak prior): `k_linear_ew_reduce MAP=mma,BM=128,BN=32,BK=16,WM=16,WN=8`, grid 48, block 1024, 12800 B shared memory; simulated 145 ms.

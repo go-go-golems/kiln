@@ -543,7 +543,9 @@ function expandFork(f, rctx) {
       if (i === f.meta.tree.length) { const k = { ...kn }; out.push({ knobs: k, label: canon(k), build: () => f.meta.leaf(k) }); return; }
       const { p, valuesFn } = f.meta.tree[i];
       const vals = valuesFn ? valuesFn(kn, rctx) : p.values(rctx);
-      for (const v of vals) rec(i + 1, { ...kn, [p.name]: v });
+      // undefined: this knob does not apply to the option (it stays unset, so canonical labels and evidence keys
+      // of options that never had it are unchanged)
+      for (const v of vals) rec(i + 1, v === undefined ? kn : { ...kn, [p.name]: v });
     };
     rec(0, {});
     return out.concat(f.options);
