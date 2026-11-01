@@ -160,11 +160,11 @@ class ImportTests(unittest.TestCase):
         result=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3,4),)))
         self.assertIn('[2, 3, 1]',result['script'])
 
-    def test_strided_indexing_rejected(self):
+    def test_strided_indexing(self):
         class Model(torch.nn.Module):
-            def forward(self,x): return x[:,::2]
-        with self.assertRaisesRegex(ValueError,'Strided'):
-            import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,6),)))
+            def forward(self,x): return x[:,1::2]
+        result=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,7),)))
+        self.assertIn('N.slice(v0, 1, 1, 7, 2)',result['script'])
 
     def test_concatenation_promotion(self):
         class Model(torch.nn.Module):
