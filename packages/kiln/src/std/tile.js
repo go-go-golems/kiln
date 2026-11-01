@@ -5,14 +5,18 @@
 //               and on the row's elementwise sweep; STAGE puts the row's inputs in shared memory
 //   MAP=tiled   a contraction tiled into BM×BN output tiles with BK-deep shared-memory slabs and a
 //               TM×TN register tile per thread (generalized matmul: any body, any epilogue)
+//   MAP=flash   a recognized softmax contraction (attention.js): BR query rows per block, K and V streamed
+//               BC keys at a time through shared memory, online softmax in registers (flash.js)
 import { k, P, KilnError } from "../core/kiln.js";
 import { numel, strides, hash, inKey } from "../core/util.js";
 import * as IX from "../core/ix.js";
 import { schedule, free, printNest, displayNames, workOf } from "./loop.js";
 import { FNS } from "./fns.js";
+import { matchSoftmaxContraction } from "./attention.js";
+import { flashBR, flashBC, flashTPB, flashLaunch, flashCounts, printFlash } from "./flash.js";
 
 // ----------------------------------------------------------------------------- knobs
-export const MAP = k.param.enum("MAP", ["thread", "row", "tiled"], { off: "thread" }).group("schedule").help("how the kernel maps onto the GPU");
+export const MAP = k.param.enum("MAP", ["thread", "row", "tiled", "flash"], { off: "thread" }).group("schedule").help("how the kernel maps onto the GPU");
 export const TPB = k.param.enum("TPB", [32, 64, 128, 256, 512, 1024], { off: 0, default: 256 }).group("schedule").help("threads per block");
 export const COARSEN = k.param.enum("COARSEN", [1, 2, 4], { off: 1 }).group("schedule").help("outputs per thread (thread map)");
 export const STAGE = k.param.enum("STAGE", ["none", "reused", "all"], { off: "none" }).group("schedule").help("stage row inputs in shared memory (row map)");
@@ -21,7 +25,9 @@ export const BN = k.param.enum("BN", [16, 32, 64, 128], { off: 0 }).group("tile"
 export const BK = k.param.enum("BK", [8, 16, 32], { off: 0 }).group("tile").help("reduction slab depth");
 export const TM = k.param.enum("TM", [1, 2, 4, 8], { off: 1 }).group("tile").help("register tile rows per thread");
 export const TN = k.param.enum("TN", [1, 2, 4, 8], { off: 1 }).group("tile").help("register tile columns per thread");
-export const KNOBS = [MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN];
+export const BR = k.param.enum("BR", [8, 16, 32, 64], { off: 0 }).group("tile").help("query rows per block (flash map)");
+export const BC = k.param.enum("BC", [16, 32, 64], { off: 0 }).group("tile").help("keys per shared-memory tile (flash map)");
+export const KNOBS = [MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, BR, BC];
 export const canonRow = (kn) => KNOBS.filter((p) => kn[p.name] !== undefined && kn[p.name] !== p.off).map((p) => `${p.name}=${kn[p.name]}`).join(",") || "MAP=thread";
 
 // ----------------------------------------------------------------------------- analysis
@@ -94,6 +100,8 @@ export function analyze(expr, shape, inShapes) {
       if (ok && (A.length || B.length)) an.contraction = { C, loopScope, inC, A, B, mVar, nVar, M: s.dims[n - 2].n, N: s.dims[n - 1].n, K: C.n, batch: s.dims.slice(0, n - 2) };
     }
   }
+  // a softmax contraction (attention) the flash map can run; null otherwise
+  an.attention = matchSoftmaxContraction(expr, shape, inShapes);
   AN.set(expr, { key, an });
   return an;
 }
@@ -102,6 +110,7 @@ export function legalMaps(an) {
   const out = ["thread"];
   if (an.rd != null) out.push("row");
   if (an.contraction) out.push("tiled");
+  if (an.attention) out.push("flash");
   return out;
 }
 export function forkTree(an, t) {
@@ -109,9 +118,12 @@ export function forkTree(an, t) {
   const smemMax = t.smemPerBlock;
   const ct = an.contraction;
   const nA = ct ? ct.A.length : 0, nB = ct ? ct.B.length : 0;
+  const att = an.attention;
   return k.fork.tree()
     .level(MAP, () => legalMaps(an))
-    .level(TPB, (kn) => (kn.MAP === "thread" ? [64, 128, 256, 512, 1024].filter((v) => v <= maxT) : kn.MAP === "row" ? [32, 64, 128, 256, 512, 1024].filter((v) => v <= maxT && v <= Math.max(32, pow2(an.maxExtent) * 2)) : [0]))
+    .level(BR, (kn) => (kn.MAP === "flash" ? flashBR(att) : [0]))
+    .level(BC, (kn) => (kn.MAP === "flash" ? flashBC(att, kn.BR, t) : [0]))
+    .level(TPB, (kn) => (kn.MAP === "flash" ? flashTPB(att, kn.BR, kn.BC, t) : kn.MAP === "thread" ? [64, 128, 256, 512, 1024].filter((v) => v <= maxT) : kn.MAP === "row" ? [32, 64, 128, 256, 512, 1024].filter((v) => v <= maxT && v <= Math.max(32, pow2(an.maxExtent) * 2)) : [0]))
     .level(COARSEN, (kn) => (kn.MAP === "thread" ? [1, 2, 4] : [1]))
     .level(STAGE, (kn) => {
       if (kn.MAP !== "row" || !an.stage.length) return ["none"];
@@ -131,6 +143,7 @@ export function forkTree(an, t) {
 
 // ----------------------------------------------------------------------------- launch geometry
 export function launch(an, kn) {
+  if (kn.MAP === "flash") return flashLaunch(an.attention, kn);
   if (kn.MAP === "row") {
     const st = stagedOf(an, kn);
     return { grid: an.rows, block: kn.TPB, smem: (st.reduce((a, s) => a + s.len, 0) + (an.rowReds.length ? kn.TPB : 0)) * 4, staged: st };
@@ -216,6 +229,12 @@ export function estimate(an, kn, t) {
     const stride = fvar ? coefOf(f, fvar) : 0;
     traffic += (trips / 32) * sectorsFor(stride) * 32;
   };
+  if (kn.MAP === "flash") {
+    const c = flashCounts(an.attention, kn);
+    const dram = Math.min(c.traffic, Math.max(uniq + outBytes, c.traffic * (uniq > t.l2MB * 1048576 ? 0.6 : 0.12)));
+    const counts = { ...c, dram };
+    return { ...counts, ...timeModel(counts, t) };
+  }
   if (kn.MAP === "thread") {
     const walk = (ss, trips) => {
       for (const st of ss) {
@@ -286,6 +305,7 @@ export function estimate(an, kn, t) {
 
 // ----------------------------------------------------------------------------- the dialect
 export function printTile(an, kn, args, name) {
+  if (kn.MAP === "flash") return printFlash(an.attention, kn, (i) => args[i] ?? "in" + i);
   const L = launch(an, kn);
   const s = an.sched;
   const R = displayNames(s);
@@ -355,7 +375,7 @@ export const scheduleRule = k.rule("schedule").match(P.op("loop.kernel").as("n")
   const inShapes = n.args.map((a) => a.type.shape), inDtypes = n.args.map((a) => a.type.dtype || "f32");
   const an = analyze(n.attrs.expr, n.attrs.shape, inShapes);
   return forkTree(an, ctx.target).leaf((kn) => n.lower(tile.kernel, { ...n.attrs, map: { ...kn }, inShapes, inDtypes }));
-}).describe("fork over GPU mappings (thread, row, tiled) and their knobs; legality only");
+}).describe("fork over GPU mappings (thread, row, tiled, flash) and their knobs; legality only");
 
 // the prior: rank options with the analytic model on the pipeline's target
 export const costPrior = k.decide.cost(({ knobs, node, ctx }) => {

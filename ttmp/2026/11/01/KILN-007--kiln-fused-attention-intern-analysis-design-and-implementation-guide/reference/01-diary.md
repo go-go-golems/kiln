@@ -496,3 +496,130 @@ before finishing. I wrote no drafts to the shared scratchpad; every file went di
 - All eight `task add` calls succeeded (ids uia9, rivl, pmjy, 0iwj, tg1m, 9aq2, mhxb, l33y);
   `docmgr changelog update` succeeded; `docmgr doctor --ticket KILN-007 --stale-after 30`:
   "✅ All checks passed". No reMarkable upload (owned by the parent agent).
+
+## Step 6: Implementation kickoff: reading the guide against the code, and a first vertical slice
+
+This step starts the implementation of the guide in the worktree `worktrees/kiln-007-fused-attention`
+(branch `impl/kiln-007-fused-attention`). I re-read the design doc, the common implementation rules
+and the code it cites (`loop.js`, `tile.js`, `kernel.js`, `emit.js`, `program.js`, `fns.js`,
+`targets.js`, the fixpoint loop in `core/kiln.js`), and then built the thinnest end-to-end slice:
+recognizer, region fusion pass, `MAP=flash` knobs and cost branch, and the `matFlash` materializer. The
+slice compiled the composed SDPA at a toy shape and at the BERT shape into one kernel whose simulated
+outputs match the Loop IR reference on the first run (max abs 5.96e-8 and 7.45e-8).
+
+### Prompt Context
+
+**User prompt (verbatim):** "then, can we work on them in parallel (in separate worktrees maybe?)"
+and "tell each agent to use their own diary and to folow the diary format as they go, and to write a full report for the go-go-parc vault once they are done ( write a detailed project report for the obsidian vault as a deep dive technical analysis blog post using a textbook writing style (no analogies, see skill). Commit and push the bsidian vault when done (go-go-parc vault). )"
+
+**Coordinator instruction (not a user prompt):** implement KILN-007 in this worktree; build the fused
+kernel on FP32 SIMT products first (probe 675: PyTorch f32 SDPA runs the memory-efficient kernel in
+FP32), with a clean seam for tensor-core products (KILN-006 is built in parallel; do not implement
+tensor-core code); no GPU host use; follow the common rules file (tests before each commit, local
+commits only, diary in investigation format, vault report at the end).
+
+**Assistant interpretation:** Implement the CPU-buildable phases (0 design, 1-4 code and CPU
+validation) of the guide, in order, with quality; list the GPU validations that remain.
+
+**Inferred user intent:** Several tickets progress at once without stepping on each other; each one
+leaves a reviewable diary and a vault article.
+
+**Commit (code):** none yet (first commit at the end of Step 7).
+
+### What I did
+
+- Read `design-doc/01-...md` end to end and the impl brief.
+- Read `loop.js` (expressions, `inlineInto`, `createFusionRule`), `tile.js` (`analyze`, `forkTree`,
+  `launch`, `estimate`, `printTile`), `kernel.js` (`KB`, `matTiled`, `materialize`, `valueTypes`),
+  `emit.js` (`toCuda`, `toSim`), `program.js` (`simulateKernel`), `fns.js`, `targets.js`, and
+  `core/kiln.js:850-890` (the fixpoint scan).
+- Ran `NEST=1 node scripts/03-forced-fusion-single-kernel.mjs` to see the fused nest in the
+  `contraction: "separate"` spelling (`mul_rn`, `add_rn`, `sub_rn`, `exp`, `div`).
+- Wrote three new modules and small hooks in existing ones:
+  - `packages/kiln/src/std/attention.js`: `matchSoftmaxContraction`, `createAttentionRule`,
+    `fuseAttention`, `attentionPass` (`loop/attention`, short `a`).
+  - `packages/kiln/src/std/flash.js`: smem layout, option legality (`flashBR`, `flashBC`,
+    `flashTPB`, `flashOptions`, `flashLegal`), `flashLaunch`, `flashCounts`, `printFlash`.
+  - `packages/kiln/src/std/flash-kernel.js`: `matFlash` and the `products` seam.
+  - `tile.js`: `MAP` gains `flash`; knobs `BR`, `BC`; `an.attention`; fork levels; launch,
+    estimate and print branches. `kernel.js`: one dispatch line. `export.js`: the thread-id regex
+    knows `flash`. `emmy.js`: `pipeline({ attention: "composed" | "fused" })`. `apps/workbench/src/compile.js`:
+    `attention` threads through `pipelineFor`/`compileScript`.
+- Scratch driver: `.../scratchpad/KILN-007-impl/try.mjs [B H L S D]` (compile with `attention:
+  "fused"`, print maps and model times, `simulateKernel` every kernel; `PIN='{"MAP":"flash"}'`).
+
+### Why
+
+- **Deviation from the guide (Section 6.3), deliberate:** the guide puts `fuse_attention` before
+  `merge_loop_ops` in the same pass. The fixpoint loop (`core/kiln.js:866-880`) interleaves rules per
+  node, so "before" is not a well-defined order there. I run the attention rule as its own pass after
+  ordinary fusion instead. Inlining is substitution, so the fully inlined expression of a region does
+  not depend on how ordinary fusion partitioned it first; running afterwards only shrinks the region
+  search to the two or three kernels ordinary fusion leaves.
+- **Region search instead of "inline all producers":** inlining every dominated producer would also
+  pull a Q/K/V projection (a matmul, which is a reduction) into the operand fragments and the
+  recognizer would then refuse the whole region. The rule does a breadth-first search over producer
+  sets (at most 6 kernels, 48 states) and stops at the smallest set the recognizer accepts.
+- **One lane per row computes nothing alone:** the guide's pseudocode (Section 8.2) has lane 0 publish
+  `m'` and `alpha` through shared memory. I let every lane of a row compute them from the same shared
+  values in the same order instead; the copies agree bit for bit and two barriers disappear (the guide
+  names this as a tuning choice). Probabilities are recomputed per lane rather than written back to
+  `sS`, which removes another barrier and a store pass.
+- **Default `attention: "composed"`:** a lockstep simulator cannot see intra-block races (guide 11.1),
+  so the fused path stays opt-in until the GPU replay (Phase 5).
+
+### What worked
+
+- `node try.mjs` (B=1 H=2 L=5 S=7 D=4, separate contraction): one kernel; with `MAP=flash` pinned,
+  `simulateKernel` reports `max abs diff 5.96e-8` over 40 outputs.
+- `node try.mjs 2 12 128 128 64` (BERT shape): one kernel, the cost model chooses
+  `MAP=flash,TPB=256,BR=16,BC=16` at 27.2 µs predicted (composed path: 44.1 µs, guide 4.2);
+  `simulateKernel` `max abs diff 7.45e-8` over 512 sampled outputs.
+- `cd packages/kiln && npm test`: `all 48 passed` (the default pipeline is unchanged).
+
+### What didn't work
+
+- First run: `ReferenceError: Cannot access 'kx' before initialization` at
+  `flash-kernel.js:27` (`const NEG_INF = kx.num(-Infinity)`). Cause: `kernel.js` imports
+  `flash-kernel.js`, which imports `KB`/`kx` back from `kernel.js`; in that cycle `flash-kernel.js`
+  evaluates first, so a top-level use of `kx` hits the temporal dead zone. Fix: a frozen literal
+  `{ k: "num", v: -Infinity }` and a comment that nothing at module level may touch `KB`/`kx`.
+- At the toy shape the cost model prefers `MAP=row` (2.5 µs) over `MAP=flash` (2.7 µs): both are
+  launch-bound there, so this is expected, not a defect; tests pin `MAP=flash`.
+
+### What I learned
+
+- `toSim` evaluates each `let` in double and stores it into a `Float32Array`, so one FNS op per `let`
+  reproduces the reference's per-op FP32 rounding; nesting ops in one `let` would not.
+- Floats are declared once at function scope by `toCuda`, so a `let` inside an `if` assigns a
+  function-level variable; that is what makes the "default value, then guarded overwrite" idiom work.
+
+### What was tricky to build
+
+- Marker nodes: the recognizer returns fragments with holes (the raw inner product inside `epi`, the
+  normalized core inside `post`). I represent each hole as a load of a negative input index
+  (`E.load(-2, [])`, `E.load(-1, [])`), which hash-conses like any node, and the materializer binds
+  them by identity through a `leaves` map. A negative input can never be emitted by accident: the
+  fragment emitter throws on an unbound marker.
+
+### What warrants a second pair of eyes
+
+- Barrier placement in `matFlash` (three `sync` per key tile: after staging K/V, after the score
+  tile, at the end of the tile). The simulator cannot detect a missing one.
+
+### What should be done in the future
+
+- Tests for every phase (Step 7 onwards), NVRTC compile, the probe 676 script.
+
+### Code review instructions
+
+- Start at `attention.js` `matchSoftmaxContraction`/`complete`, then `flash-kernel.js` `matFlash`.
+- `node /tmp/claude-1000/-home-manuel-code-wesen-kiln-worktrees-passnet/cd5f3680-095d-4dc0-be9b-3833056c7f6a/scratchpad/KILN-007-impl/try.mjs 2 12 128 128 64`.
+
+### Technical details
+
+- Shared memory (floats): `sQ = BR·(E+1)`, `sK = BC·(E+1)`, `sV = BC·D`, `sS = BR·(BC+1)`. The +1
+  row padding makes the inner-product reads of different rows (sQ) and different keys (sK) fall in
+  different banks; the guide's table (Section 6.4) assumed unpadded tiles plus two per-row arrays.
+- Option legality: `BR ≤ max(8, pow2(L))`, `BC ≤ max(16, pow2(S))`, smem ≤ `smemPerBlock`,
+  `TPB ∈ {64,128,256}`, `TPB % BR = 0`, `TPR = TPB/BR ≤ min(32, BC)`, `DPT = ceil(D/TPR) ≤ 32`.

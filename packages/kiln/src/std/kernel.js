@@ -12,6 +12,7 @@ import * as IX from "../core/ix.js";
 import { reducer, FNS, INTEGER_DTYPES } from "./fns.js";
 import { analyze, launch, stagedOf, canonRow } from "./tile.js";
 import { displayNames } from "./loop.js";
+import { matFlash } from "./flash-kernel.js";
 
 // an int64 literal past 2^53 keeps its exact decimal spelling beside the (JSON-safe) number
 export const kx = { num: (v) => (typeof v === "bigint" ? { k: "num", v: Number(v), exact: String(v) } : { k: "num", v: +v }), v: (n) => ({ k: "var", n }), op: (fn, ...a) => ({ k: "op", fn, a }) };
@@ -311,7 +312,7 @@ export function materialize(node) {
   const an = {...analysis,reductionNames:displayNames(analysis.sched)};
   const kn = a.map;
   const L = launch(an, kn);
-  const kb = kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : matThread(an, kn);
+  const kb = kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : kn.MAP === "flash" ? matFlash(an, kn) : matThread(an, kn);
   const params = [...a.inShapes.map((s, i) => ({ name: "in" + i, size: numel(s), shape: s, role: "in", dtype: a.inDtypes?.[i] || "f32" })), { name: "out", size: numel(a.shape), shape: a.shape, role: "out", dtype: a.outDtype || "f32" }];
   const { values, smem: smemTypes } = valueTypes(kb.body, params, a.name || "kernel");
   const smem = kb.smem.map((x) => ({ ...x, dtype: smemTypes.get(x.name) ?? "f32" }));
