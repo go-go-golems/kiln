@@ -1,0 +1,934 @@
+{
+  "format": "kiln-pattern-identity-simulation/1",
+  "plan": "/tmp/claude-1000/-home-manuel-code-wesen-kiln-worktrees-passnet/cd5f3680-095d-4dc0-be9b-3833056c7f6a/scratchpad/coverage-impl/candidate-plan.json",
+  "trace": "dynamo",
+  "tasks": [
+    {
+      "index": 8,
+      "graphs": 3,
+      "rules": 1,
+      "identity_ok": 3,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/convit_base/_decomposed/convit_base_start106_end110_16",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/convit_base/_decomposed/convit_base_start106_end110_16",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/timm/convit_base/_decomposed/convit_base_start106_end110_16",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0
+          ],
+          "rule_errors": {},
+          "ok": true
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "graphs": 4,
+      "rules": 2,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/Mahmoud8_ernie-m-base_pytorch/_decomposed/Mahmoud8_ernie-m-base_pytorch_start0_end14_0",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(1, 15), dtype=torch.int64), FakeTensor(..., device='meta', size=(514, 768), dtype=torch.bfloat16), 1, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your code ",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-ErnieMForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-ErnieMForSequenceClassification_start0_end14_0",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(1, 15), dtype=torch.int64), FakeTensor(..., device='meta', size=(512, 32), dtype=torch.float16), 1, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your code ma",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-ErnieMForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-ErnieMForSequenceClassification_start0_end14_0",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(1, 15), dtype=torch.int64), FakeTensor(..., device='meta', size=(512, 32), dtype=torch.bfloat16), 1, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your code m",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/Mahmoud8_ernie-m-base_pytorch/_decomposed/Mahmoud8_ernie-m-base_pytorch_start0_end14_0",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(1, 15), dtype=torch.int64), FakeTensor(..., device='meta', size=(514, 768), dtype=torch.float16), 1, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your code m",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 22,
+      "graphs": 2,
+      "rules": 1,
+      "identity_ok": 2,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/JackWong0911_vivit-b-16x2-kinetics400-finetuned-kinectic/_decomposed/JackWong0911_vivit-b-16x2-kinetics400-finetuned-kinectic_start1_end9_0",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/JackWong0911_vivit-b-16x2-kinetics400-finetuned-kinectic/_decomposed/JackWong0911_vivit-b-16x2-kinetics400-finetuned-kinectic_start1_end9_0",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        }
+      ]
+    },
+    {
+      "index": 29,
+      "graphs": 11,
+      "rules": 6,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/TinyLlama/TinyLlama-1.1B-Chat-v0.4/_decomposed/TinyLlama-1.1B-Chat-v0.4_start3_end24_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function le>(*(FakeTensor(..., device='cuda:0', size=(3,), dtype=torch.int64), FakeTensor(..., device='meta', size=(3, 1), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.le.Tensor, found two different devices cuda:0, meta')\n  Hint: Your code may result in an error when running in eager. Please double ch",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/8/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start3_end24_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function le>(*(FakeTensor(..., device='cuda:0', size=(64,), dtype=torch.int64), FakeTensor(..., device='meta', size=(64, 1), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.le.Tensor, found two different devices cuda:0, meta')\n  Hint: Your code may result in an error when running in eager. Please double ",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start3_end24_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function le>(*(FakeTensor(..., device='cuda:0', size=(128,), dtype=torch.int64), FakeTensor(..., device='meta', size=(128, 1), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.le.Tensor, found two different devices cuda:0, meta')\n  Hint: Your code may result in an error when running in eager. Please doubl",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/3/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start3_end24_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function le>(*(FakeTensor(..., device='cuda:0', size=(64,), dtype=torch.int64), FakeTensor(..., device='meta', size=(64, 1), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.le.Tensor, found two different devices cuda:0, meta')\n  Hint: Your code may result in an error when running in eager. Please double ",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start3_end24_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function le>(*(FakeTensor(..., device='cuda:0', size=(512,), dtype=torch.int64), FakeTensor(..., device='meta', size=(512, 1), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.le.Tensor, found two different devices cuda:0, meta')\n  Hint: Your code may result in an error when running in eager. Please doubl",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start3_end24_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function le>(*(FakeTensor(..., device='cuda:0', size=(256,), dtype=torch.int64), FakeTensor(..., device='meta', size=(256, 1), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.le.Tensor, found two different devices cuda:0, meta')\n  Hint: Your code may result in an error when running in eager. Please doubl",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/0/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start3_end24_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function le>(*(FakeTensor(..., device='cuda:0', size=(64,), dtype=torch.int64), FakeTensor(..., device='meta', size=(64, 1), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.le.Tensor, found two different devices cuda:0, meta')\n  Hint: Your code may result in an error when running in eager. Please double ",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/0/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start3_end24_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function le>(*(FakeTensor(..., device='cuda:0', size=(64,), dtype=torch.int64), FakeTensor(..., device='meta', size=(64, 1), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.le.Tensor, found two different devices cuda:0, meta')\n  Hint: Your code may result in an error when running in eager. Please double ",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start3_end24_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function le>(*(FakeTensor(..., device='cuda:0', size=(256,), dtype=torch.int64), FakeTensor(..., device='meta', size=(256, 1), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.le.Tensor, found two different devices cuda:0, meta')\n  Hint: Your code may result in an error when running in eager. Please doubl",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start3_end24_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function le>(*(FakeTensor(..., device='cuda:0', size=(2,), dtype=torch.int64), FakeTensor(..., device='meta', size=(2, 1), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.le.Tensor, found two different devices cuda:0, meta')\n  Hint: Your code may result in an error when running in eager. Please double ch",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/HuggingFaceTB/SmolLM3-3B/_decomposed/SmolLM3-3B_start3_end24_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function le>(*(FakeTensor(..., device='cuda:0', size=(2,), dtype=torch.int64), FakeTensor(..., device='meta', size=(2, 1), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.le.Tensor, found two different devices cuda:0, meta')\n  Hint: Your code may result in an error when running in eager. Please double ch",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 30,
+      "graphs": 3,
+      "rules": 1,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/transformers-auto-model/microsoft_trocr-small-printed/_decomposed/microsoft_trocr-small-printed_start325_end334_7",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(1, 1), dtype=torch.int64), FakeTensor(..., device='meta', size=(514, 256), dtype=torch.bfloat16), None, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your cod",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/microsoft_trocr-small-printed/_decomposed/microsoft_trocr-small-printed_start325_end334_7",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(1, 1), dtype=torch.int64), FakeTensor(..., device='meta', size=(514, 256), dtype=torch.bfloat16), None, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your cod",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/microsoft_trocr-small-printed/_decomposed/microsoft_trocr-small-printed_start325_end334_7",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(1, 1), dtype=torch.int64), FakeTensor(..., device='meta', size=(514, 256), dtype=torch.float16), None, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your code",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 34,
+      "graphs": 5,
+      "rules": 1,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/transformers-auto-model/MCG-NJU_videomae-base-finetuned-kinetics/_decomposed/MCG-NJU_videomae-base-finetuned-kinetics_start1_end8_0",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function add>(*(FakeTensor(..., device='meta', size=(1, 1568, 768), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=(1, 1568, 768), dtype=torch.bfloat16)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running ",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/transformers-auto-model/MCG-NJU_videomae-base-finetuned-kinetics/_decomposed/MCG-NJU_videomae-base-finetuned-kinetics_start1_end8_0",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function add>(*(FakeTensor(..., device='meta', size=(1, 1568, 768), dtype=torch.float16), FakeTensor(..., device='cuda:0', size=(1, 1568, 768), dtype=torch.float16)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/transformers-auto-model/MCG-NJU_videomae-base-finetuned-kinetics/_decomposed/MCG-NJU_videomae-base-finetuned-kinetics_start1_end8_0",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function add>(*(FakeTensor(..., device='meta', size=(1, 1568, 768), dtype=torch.float16), FakeTensor(..., device='cuda:0', size=(1, 1568, 768), dtype=torch.float16)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/MCG-NJU_videomae-base-finetuned-kinetics/_decomposed/MCG-NJU_videomae-base-finetuned-kinetics_start1_end8_0",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function add>(*(FakeTensor(..., device='meta', size=(1, 1568, 768)), FakeTensor(..., device='cuda:0', size=(1, 1568, 768))), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please double check that your code",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/6/samples/transformers-auto-model/MCG-NJU_videomae-base-finetuned-kinetics/_decomposed/MCG-NJU_videomae-base-finetuned-kinetics_start1_end8_0",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function add>(*(FakeTensor(..., device='meta', size=(1, 1568, 768), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=(1, 1568, 768), dtype=torch.bfloat16)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running ",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 40,
+      "graphs": 6,
+      "rules": 1,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function itruediv>(*(FakeTensor(..., device='meta', size=(12, 4096, 4096)), FakeTensor(..., device='cuda:0', size=())), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.div_.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please double check that your code doe",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function itruediv>(*(FakeTensor(..., device='meta', size=(12, 4096, 4096), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=())), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.div_.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please double ch",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function itruediv>(*(FakeTensor(..., device='meta', size=(2, 4096, 4096), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=())), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.div_.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please double che",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function itruediv>(*(FakeTensor(..., device='meta', size=(12, 4096, 4096), dtype=torch.float16), FakeTensor(..., device='cuda:0', size=())), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.div_.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please double che",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function itruediv>(*(FakeTensor(..., device='meta', size=(16, 4096, 4096), dtype=torch.float16), FakeTensor(..., device='cuda:0', size=())), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.div_.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please double che",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function itruediv>(*(FakeTensor(..., device='meta', size=(64, 4096, 4096)), FakeTensor(..., device='cuda:0', size=())), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.div_.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please double check that your code doe",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 43,
+      "graphs": 5,
+      "rules": 3,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/facebook_xglm-564M/_decomposed/facebook_xglm-564M_start46_end52_4",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in method max of type object at 0x717947b45000>(*(FakeTensor(..., device='meta', size=(1, 16, 13, 13), dtype=torch.float16), FakeTensor(..., device='cuda:0', size=())), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.maximum.default, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when runnin",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/KoboldAI_fairseq-dense-125M/_decomposed/KoboldAI_fairseq-dense-125M_start46_end52_4",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in method max of type object at 0x717947b45000>(*(FakeTensor(..., device='meta', size=(1, 12, 9, 9), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=())), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.maximum.default, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/KoboldAI_fairseq-dense-355M/_decomposed/KoboldAI_fairseq-dense-355M_start46_end52_4",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in method max of type object at 0x717947b45000>(*(FakeTensor(..., device='meta', size=(1, 16, 9, 9), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=())), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.maximum.default, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/KoboldAI_fairseq-dense-125M/_decomposed/KoboldAI_fairseq-dense-125M_start46_end52_4",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in method max of type object at 0x717947b45000>(*(FakeTensor(..., device='meta', size=(1, 12, 9, 9), dtype=torch.float16), FakeTensor(..., device='cuda:0', size=())), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.maximum.default, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running ",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/KoboldAI_fairseq-dense-355M/_decomposed/KoboldAI_fairseq-dense-355M_start46_end52_4",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in method max of type object at 0x717947b45000>(*(FakeTensor(..., device='meta', size=(1, 16, 9, 9)), FakeTensor(..., device='cuda:0', size=())), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.maximum.default, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please doub",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 44,
+      "graphs": 2,
+      "rules": 1,
+      "identity_ok": 2,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/anton-l_sew-mid-100k-ft-common-language/_decomposed/anton-l_sew-mid-100k-ft-common-language_start34_end44_3",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/anton-l_sew-mid-100k-ft-common-language/_decomposed/anton-l_sew-mid-100k-ft-common-language_start34_end44_3",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0
+          ],
+          "rule_errors": {},
+          "ok": true
+        }
+      ]
+    },
+    {
+      "index": 50,
+      "graphs": 2,
+      "rules": 1,
+      "identity_ok": 2,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start635_end640_76",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/mmpose/pose_hrformer_small/_decomposed/pose_hrformer_small_start635_end640_76",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        }
+      ]
+    },
+    {
+      "index": 53,
+      "graphs": 3,
+      "rules": 2,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/KoboldAI_fairseq-dense-355M/_decomposed/KoboldAI_fairseq-dense-355M_start19_end30_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_method index_select(*(FakeTensor(..., device='meta', size=(2050, 1024)), 0, FakeTensor(..., device='cuda:0', size=(9,), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.index_select.default, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please double check that yo",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/KoboldAI_fairseq-dense-1.3B/_decomposed/KoboldAI_fairseq-dense-1.3B_start19_end30_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_method index_select(*(FakeTensor(..., device='meta', size=(2050, 2048), dtype=torch.float16), 0, FakeTensor(..., device='cuda:0', size=(9,), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.index_select.default, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/KoboldAI_fairseq-dense-355M/_decomposed/KoboldAI_fairseq-dense-355M_start19_end30_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_method index_select(*(FakeTensor(..., device='meta', size=(2050, 1024), dtype=torch.bfloat16), 0, FakeTensor(..., device='cuda:0', size=(9,), dtype=torch.int64)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.index_select.default, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Pleas",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 68,
+      "graphs": 3,
+      "rules": 2,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/KoboldAI_fairseq-dense-1.3B/_decomposed/KoboldAI_fairseq-dense-1.3B_start0_end19_0",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/KoboldAI_fairseq-dense-1.3B/_decomposed/KoboldAI_fairseq-dense-1.3B_start0_end19_0",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/facebook_xglm-564M/_decomposed/facebook_xglm-564M_start0_end19_0",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 70,
+      "graphs": 2,
+      "rules": 1,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/torchaudio/squim_subjective/_decomposed/squim_subjective_start620_end625_15",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function mul>(*(FakeTensor(..., device='meta', size=(1, 5), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=(5,))), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.mul.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please double check that your ",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchaudio/squim_subjective/_decomposed/squim_subjective_start620_end625_15",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function mul>(*(FakeTensor(..., device='meta', size=(1, 5), dtype=torch.float16), FakeTensor(..., device='cuda:0', size=(5,))), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.mul.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager. Please double check that your c",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 71,
+      "graphs": 6,
+      "rules": 4,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/5/samples/transformers-auto-model/jinaai_jina-reranker-m0/_decomposed/jinaai_jina-reranker-m0_start15_end17_2",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/6/samples/transformers-auto-model/jinaai_jina-reranker-m0/_decomposed/jinaai_jina-reranker-m0_start15_end17_2",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/transformers-auto-model/jinaai_jina-reranker-m0/_decomposed/jinaai_jina-reranker-m0_start15_end17_2",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/transformers-auto-model/jinaai_jina-reranker-m0/_decomposed/jinaai_jina-reranker-m0_start15_end17_2",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/transformers-auto-model/jinaai_jina-reranker-m0/_decomposed/jinaai_jina-reranker-m0_start15_end17_2",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/transformers-auto-model/jinaai_jina-reranker-m0/_decomposed/jinaai_jina-reranker-m0_start15_end17_2",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 84,
+      "graphs": 2,
+      "rules": 1,
+      "identity_ok": 2,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/microsoft_xclip-base-patch16-zero-shot/_decomposed/microsoft_xclip-base-patch16-zero-shot_start1234_end1240_8",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1,
+            2
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/microsoft_xclip-base-patch16-zero-shot/_decomposed/microsoft_xclip-base-patch16-zero-shot_start1234_end1240_8",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1,
+            2
+          ],
+          "rule_errors": {},
+          "ok": true
+        }
+      ]
+    },
+    {
+      "index": 90,
+      "graphs": 3,
+      "rules": 1,
+      "identity_ok": 3,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/transformers-auto-model/kaveh_rclip/_decomposed/kaveh_rclip_start949_end952_3",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/kaveh_rclip/_decomposed/kaveh_rclip_start949_end952_3",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/kaveh_rclip/_decomposed/kaveh_rclip_start949_end952_3",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        }
+      ]
+    },
+    {
+      "index": 117,
+      "graphs": 3,
+      "rules": 2,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmseg/Twins_svt-b_fpn/_decomposed/Twins_svt-b_fpn_start8_end25_1",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmseg/Twins_svt-b_fpn/_decomposed/Twins_svt-b_fpn_start8_end25_1",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/mmseg/Twins_svt-l_fpn/_decomposed/Twins_svt-l_fpn_start8_end25_1",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 124,
+      "graphs": 4,
+      "rules": 1,
+      "identity_ok": 4,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/torchgeometric/GAE/_decomposed/GAE_start23_end31_4",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1,
+            2
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchgeometric/RECT_L/_decomposed/RECT_L_start23_end31_4",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1,
+            2
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/torchgeometric/RECT_L/_decomposed/RECT_L_start23_end31_4",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1,
+            2
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/torchgeometric/GAE/_decomposed/GAE_start23_end31_4",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1,
+            2
+          ],
+          "rule_errors": {},
+          "ok": true
+        }
+      ]
+    },
+    {
+      "index": 129,
+      "graphs": 5,
+      "rules": 3,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MPNetForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-MPNetForSequenceClassification_start39_end45_3",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(45, 45), dtype=torch.int64), FakeTensor(..., device='meta', size=(32, 4), dtype=torch.float16), None, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your code ",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/microsoft_mpnet-base/_decomposed/microsoft_mpnet-base_start39_end45_3",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(11, 11), dtype=torch.int64), FakeTensor(..., device='meta', size=(32, 12), dtype=torch.bfloat16), None, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your cod",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/microsoft_mpnet-base/_decomposed/microsoft_mpnet-base_start39_end45_3",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(11, 11), dtype=torch.int64), FakeTensor(..., device='meta', size=(32, 12), dtype=torch.float16), None, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your code",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/all-mpnet-base-v2/_decomposed/all-mpnet-base-v2_start39_end45_3",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(7, 7), dtype=torch.int64), FakeTensor(..., device='meta', size=(32, 12)), None, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-MPNetForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-MPNetForSequenceClassification_start39_end45_3",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <function embedding at 0x717901e3af20>(*(FakeTensor(..., device='cuda:0', size=(45, 45), dtype=torch.int64), FakeTensor(..., device='meta', size=(32, 4), dtype=torch.bfloat16), None, None, 2.0, False, False), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices meta, cuda:0')\n  Hint: Your code",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 155,
+      "graphs": 6,
+      "rules": 3,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/ELiRF_NASCA/_decomposed/ELiRF_NASCA_start11_end23_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function add>(*(FakeTensor(..., device='meta', size=(1, 17, 1024), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=(1, 17, 1024), dtype=torch.bfloat16)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/echarlaix_bart-base-cnn-r2-18.7-d23-hybrid/_decomposed/echarlaix_bart-base-cnn-r2-18.7-d23-hybrid_start11_end23_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function add>(*(FakeTensor(..., device='meta', size=(1, 11, 768), dtype=torch.float16), FakeTensor(..., device='cuda:0', size=(1, 11, 768), dtype=torch.float16)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eag",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/ELiRF_NASCA/_decomposed/ELiRF_NASCA_start11_end23_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function add>(*(FakeTensor(..., device='meta', size=(1, 17, 1024), dtype=torch.float16), FakeTensor(..., device='cuda:0', size=(1, 17, 1024), dtype=torch.float16)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in e",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-BartForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-BartForSequenceClassification_start11_end23_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function add>(*(FakeTensor(..., device='meta', size=(1, 22, 16), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=(1, 22, 16), dtype=torch.bfloat16)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eag",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-BartForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-BartForSequenceClassification_start11_end23_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function add>(*(FakeTensor(..., device='meta', size=(1, 22, 16), dtype=torch.float16), FakeTensor(..., device='cuda:0', size=(1, 22, 16), dtype=torch.float16)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in eager",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/echarlaix_bart-base-cnn-r2-18.7-d23-hybrid/_decomposed/echarlaix_bart-base-cnn-r2-18.7-d23-hybrid_start11_end23_1",
+          "capture_error": "TorchRuntimeError: RuntimeError when making fake tensor call\n  Explanation: Dynamo failed to run FX node with fake tensors: call_function <built-in function add>(*(FakeTensor(..., device='meta', size=(1, 11, 768), dtype=torch.bfloat16), FakeTensor(..., device='cuda:0', size=(1, 11, 768), dtype=torch.bfloat16)), **{}): got RuntimeError('Unhandled FakeTensor Device Propagation for aten.add.Tensor, found two different devices meta, cuda:0')\n  Hint: Your code may result in an error when running in e",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 158,
+      "graphs": 2,
+      "rules": 1,
+      "identity_ok": 2,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-YolosModel/_decomposed/hf-tiny-model-private_tiny-random-YolosModel_start0_end29_0",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-YolosModel/_decomposed/hf-tiny-model-private_tiny-random-YolosModel_start0_end29_0",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rule_errors": {},
+          "ok": true
+        }
+      ]
+    },
+    {
+      "index": 170,
+      "graphs": 3,
+      "rules": 3,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-OPTForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-OPTForSequenceClassification_start0_end22_0",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/noamr_bert-finetuned-ner/_decomposed/noamr_bert-finetuned-ner_start0_end22_0",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/DatologyAI_cls-opt-vit-b-32/_decomposed/DatologyAI_cls-opt-vit-b-32_start0_end22_0",
+          "capture_error": "RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "index": 179,
+      "graphs": 9,
+      "rules": 4,
+      "identity_ok": 9,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/timm/eva02_small_patch14_224.mim_in22k/_decomposed/eva02_small_patch14_224.mim_in22k_start21_end46_2",
+          "compiled": 0,
+          "applied": 0,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/eva02_base_patch16_clip_224.merged2b/_decomposed/eva02_base_patch16_clip_224.merged2b_start22_end47_4",
+          "compiled": 1,
+          "applied": 1,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/eva02_base_patch14_224.mim_in22k/_decomposed/eva02_base_patch14_224.mim_in22k_start22_end47_4",
+          "compiled": 2,
+          "applied": 2,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/eva02_base_patch16_clip_224.merged2b/_decomposed/eva02_base_patch16_clip_224.merged2b_start22_end47_4",
+          "compiled": 1,
+          "applied": 1,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/timm/eva02_base_patch14_224.mim_in22k/_decomposed/eva02_base_patch14_224.mim_in22k_start22_end47_4",
+          "compiled": 2,
+          "applied": 2,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/timm/eva02_base_patch16_clip_224.merged2b/_decomposed/eva02_base_patch16_clip_224.merged2b_start22_end47_4",
+          "compiled": 1,
+          "applied": 1,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/2/samples/timm/eva02_large_patch14_224.mim_in22k/_decomposed/eva02_large_patch14_224.mim_in22k_start22_end47_4",
+          "compiled": 3,
+          "applied": 3,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/eva02_large_patch14_224.mim_in22k/_decomposed/eva02_large_patch14_224.mim_in22k_start22_end47_4",
+          "compiled": 3,
+          "applied": 3,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/eva02_large_patch14_224.mim_in22k/_decomposed/eva02_large_patch14_224.mim_in22k_start22_end47_4",
+          "compiled": 3,
+          "applied": 3,
+          "matches": 1,
+          "output_permutation": [
+            0,
+            1
+          ],
+          "rule_errors": {},
+          "ok": true
+        }
+      ]
+    },
+    {
+      "index": 194,
+      "graphs": 3,
+      "rules": 1,
+      "identity_ok": 0,
+      "permuted": 0,
+      "records": [
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/7/samples/mmseg/K-Net_fcn/_decomposed/K-Net_fcn_start227_end231_6",
+          "compiled": 0,
+          "applied": null,
+          "matches": 0,
+          "output_permutation": [
+            0
+          ],
+          "rule_errors": {},
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/7/samples/mmseg/K-Net_fcn/_decomposed/K-Net_fcn_start227_end231_6",
+          "compiled": 0,
+          "applied": null,
+          "matches": 0,
+          "output_permutation": [
+            0
+          ],
+          "rule_errors": {},
+          "ok": false
+        },
+        {
+          "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/7/samples/mmseg/K-Net_fcn/_decomposed/K-Net_fcn_start227_end231_6",
+          "compiled": 0,
+          "applied": null,
+          "matches": 0,
+          "output_permutation": [
+            0
+          ],
+          "rule_errors": {},
+          "ok": false
+        }
+      ]
+    }
+  ]
+}

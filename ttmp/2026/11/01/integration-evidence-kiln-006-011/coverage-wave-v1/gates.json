@@ -1,0 +1,623 @@
+{
+ "format": "kiln-coverage-gates/1",
+ "families": [
+  {
+   "task": 8,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a1/97/a197e09cf465b6cf27c9d52f3f115a6655d9aba6925d3b6b736d5c268833015f",
+   "graphs": 3,
+   "numerics": {
+    "within": 1,
+    "exact": 2
+   },
+   "numerics_sources": [
+    "numerics-rand-convit.json"
+   ],
+   "worst_relative": 8.381903171539307e-09,
+   "compile_gate": {
+    "compiled": 3,
+    "graphs": 3
+   },
+   "simulation": {
+    "identity_ok": 3,
+    "graphs": 3,
+    "cpu_blocked": 0,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation identity ok"
+  },
+  {
+   "task": 13,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/34/be/34be6c42e650774acf5cce266450605002532df1f0f8355962e964207d746493",
+   "graphs": 4,
+   "numerics": {
+    "within": 2,
+    "exact": 2
+   },
+   "numerics_sources": [
+    "numerics-ernie-1024.json",
+    "numerics-rerun.json"
+   ],
+   "worst_relative": 6.335529650278763e-05,
+   "compile_gate": {
+    "compiled": 0,
+    "graphs": 4,
+    "manual": {
+     "note": "graphs 001/002 (tiny-random, 8M input elements) compiled with the internal check on: end-to-end check ok at loop; graphs 000/003 (ernie-m-base, embedding 250002 x 768) compile with --no-check (rc 0) and fail the check with a JS allocation failure (invalid array length) in the CPU evaluator",
+     "with_check_ok": [
+      "001",
+      "002"
+     ],
+     "no_check_ok": [
+      "000",
+      "003"
+     ]
+    }
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 4,
+    "cpu_blocked": 4,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 4/4 graphs (cuda capture)"
+  },
+  {
+   "task": 22,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/16/24/1624f1b6ecb38d4b4a8267d70c8bc3db5e9ecc5210ac2a45ffa3f8985111144e",
+   "graphs": 2,
+   "numerics": {
+    "within": 2
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.007894736842105263,
+   "compile_gate": {
+    "compiled": 2,
+    "graphs": 2
+   },
+   "simulation": {
+    "identity_ok": 2,
+    "graphs": 2,
+    "cpu_blocked": 0,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation identity ok"
+  },
+  {
+   "task": 29,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/1f/75/1f7548aa16b311294bebeead3d892799f81056abdc94a464c08cb845661d4e2c",
+   "graphs": 11,
+   "numerics": {
+    "exact": 11
+   },
+   "numerics_sources": [
+    "numerics-rerun.json"
+   ],
+   "worst_relative": 0.0,
+   "compile_gate": {
+    "compiled": 11,
+    "graphs": 11
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 11,
+    "cpu_blocked": 11,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 11/11 graphs (cuda capture)"
+  },
+  {
+   "task": 30,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/53/50/53502e44949b74a416018880d6c4b5179c9bfd9582af6da9ccb6e86ddaf6f7b1",
+   "graphs": 3,
+   "numerics": {
+    "exact": 3
+   },
+   "numerics_sources": [
+    "numerics-rerun.json"
+   ],
+   "worst_relative": 0.0,
+   "compile_gate": {
+    "compiled": 3,
+    "graphs": 3
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 3,
+    "cpu_blocked": 3,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 3/3 graphs (cuda capture)"
+  },
+  {
+   "task": 34,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ce/5e/ce5e72b2c972228b5579dcd4dc76f2a9c0041ba192dc2daad08bdfeb405a40a2",
+   "graphs": 5,
+   "numerics": {
+    "within": 5
+   },
+   "numerics_sources": [
+    "numerics-rerun.json"
+   ],
+   "worst_relative": 0.010256410256410256,
+   "compile_gate": {
+    "compiled": 5,
+    "graphs": 5
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 5,
+    "cpu_blocked": 5,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 5/5 graphs (cuda capture)"
+  },
+  {
+   "task": 40,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/7e/23/7e239f09d33d09349e638749346c9e943c78a48910917c0efc365199f657302e",
+   "graphs": 6,
+   "numerics": {
+    "within": 6
+   },
+   "numerics_sources": [
+    "numerics-dnlnet-256.json"
+   ],
+   "worst_relative": 6.103515625e-05,
+   "compile_gate": {
+    "compiled": 6,
+    "graphs": 6
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 6,
+    "cpu_blocked": 6,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 6/6 graphs (cuda capture)"
+  },
+  {
+   "task": 43,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/28/84/28845e7a6627a7a94579cf1360c47cddd667537a398779e1b4b297435ff293dc",
+   "graphs": 5,
+   "numerics": {
+    "within": 2,
+    "exact": 3
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 7.62939453125e-06,
+   "compile_gate": {
+    "compiled": 5,
+    "graphs": 5
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 5,
+    "cpu_blocked": 5,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 5/5 graphs (cuda capture)"
+  },
+  {
+   "task": 44,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/5e/7d/5e7de9bf9d5afec54a235dff91e00201cc62674bc28b9c8b0158e14c8f2bf4bf",
+   "graphs": 2,
+   "numerics": {
+    "within": 2
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.007905138339920948,
+   "compile_gate": {
+    "compiled": 2,
+    "graphs": 2
+   },
+   "simulation": {
+    "identity_ok": 2,
+    "graphs": 2,
+    "cpu_blocked": 0,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation identity ok"
+  },
+  {
+   "task": 50,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/f9/d7/f9d7372452a6ba77a24a5c303987e2f38903c8c56fb26560f16311cf2803122f",
+   "graphs": 2,
+   "numerics": {
+    "exact": 2
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.0,
+   "compile_gate": {
+    "compiled": 2,
+    "graphs": 2
+   },
+   "simulation": {
+    "identity_ok": 2,
+    "graphs": 2,
+    "cpu_blocked": 0,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation identity ok"
+  },
+  {
+   "task": 53,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d6/23/d62375ccc08852199b88c8426386e6193b0f9a6376a8338b155353c0c199f0d6",
+   "graphs": 3,
+   "numerics": {
+    "within": 3
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.000257201646090535,
+   "compile_gate": {
+    "compiled": 3,
+    "graphs": 3
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 3,
+    "cpu_blocked": 3,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 3/3 graphs (cuda capture)"
+  },
+  {
+   "task": 68,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/38/b4/38b4edfc66ead61681893574e6f485996d6cc9bded0ed371585bfeaf50a5b5fa",
+   "graphs": 3,
+   "numerics": {
+    "exact": 3
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.0,
+   "compile_gate": {
+    "compiled": 3,
+    "graphs": 3
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 3,
+    "cpu_blocked": 3,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 3/3 graphs (cuda capture)"
+  },
+  {
+   "task": 70,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/38/70/38707a42c78db990ac8edd8da3da54a3b657164da8a225f1fa18045b980d4b88",
+   "graphs": 2,
+   "numerics": {
+    "exact": 2
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.0,
+   "compile_gate": {
+    "compiled": 2,
+    "graphs": 2
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 2,
+    "cpu_blocked": 2,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 2/2 graphs (cuda capture)"
+  },
+  {
+   "task": 71,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/94/8a/948ae36fd4dd2a67bf3b9330fbb8b3264b80325d1dc43716a9ab8793137dc233",
+   "graphs": 6,
+   "numerics": {
+    "exact": 6
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.0,
+   "compile_gate": {
+    "compiled": 6,
+    "graphs": 6
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 6,
+    "cpu_blocked": 6,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 6/6 graphs (cuda capture)"
+  },
+  {
+   "task": 84,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/0f/9e/0f9e72a160cfe1fc3ff14abafc1ad98f3ba2375bf3374780ae61644ff3f9ec10",
+   "graphs": 2,
+   "numerics": {
+    "exact": 2
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.0,
+   "compile_gate": {
+    "compiled": 2,
+    "graphs": 2
+   },
+   "simulation": {
+    "identity_ok": 2,
+    "graphs": 2,
+    "cpu_blocked": 0,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation identity ok"
+  },
+  {
+   "task": 90,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/05/de/05de06c889c9d8a4c2d54d0fc586f3b88758c5f0f1fe940d0715cda3c540f054",
+   "graphs": 3,
+   "numerics": {
+    "exact": 2,
+    "within": 1
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 8.636821152335042e-08,
+   "compile_gate": {
+    "compiled": 3,
+    "graphs": 3
+   },
+   "simulation": {
+    "identity_ok": 3,
+    "graphs": 3,
+    "cpu_blocked": 0,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation identity ok"
+  },
+  {
+   "task": 117,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/d7/95/d795cf3e3430b57103ad2a1e0254c029fa2409f7c46ac37e6e2d28b6fbcd3cb4",
+   "graphs": 3,
+   "numerics": {
+    "exact": 3
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.0,
+   "compile_gate": {
+    "compiled": 3,
+    "graphs": 3
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 3,
+    "cpu_blocked": 3,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 3/3 graphs (cuda capture)"
+  },
+  {
+   "task": 124,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/63/ac/63ac5faf78e3a159d80fcfdfc4f6d97d0bebe40aec265826692f07897b2491b0",
+   "graphs": 4,
+   "numerics": {
+    "within": 3,
+    "exact": 1
+   },
+   "numerics_sources": [
+    "numerics-rerun.json"
+   ],
+   "worst_relative": 0.00016983695652173913,
+   "compile_gate": {
+    "compiled": 4,
+    "graphs": 4
+   },
+   "simulation": {
+    "identity_ok": 4,
+    "graphs": 4,
+    "cpu_blocked": 0,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation identity ok"
+  },
+  {
+   "task": 129,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/ff/0d/ff0df23e9b5e94f3889a9aa3a24b19cc731e30a67b7e5a8443a4ef50c6b068f7",
+   "graphs": 5,
+   "numerics": {
+    "exact": 5
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.0,
+   "compile_gate": {
+    "compiled": 5,
+    "graphs": 5
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 5,
+    "cpu_blocked": 5,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 5/5 graphs (cuda capture)"
+  },
+  {
+   "task": 155,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/8a/de/8ade1192ebb052356aaf0839fb253a054c642fe5b540cd7902428fd6b1c300dd",
+   "graphs": 6,
+   "numerics": {
+    "within": 3,
+    "exact": 3
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.00013297872340425532,
+   "compile_gate": {
+    "compiled": 6,
+    "graphs": 6
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 6,
+    "cpu_blocked": 6,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 6/6 graphs (cuda capture)"
+  },
+  {
+   "task": 158,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/db/0f/db0fd889e5cc6d513c80a6da5571467674e16e82400ddec08a0ad88799ab79fa",
+   "graphs": 2,
+   "numerics": {
+    "within": 2
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.006097560975609756,
+   "compile_gate": {
+    "compiled": 2,
+    "graphs": 2
+   },
+   "simulation": {
+    "identity_ok": 2,
+    "graphs": 2,
+    "cpu_blocked": 0,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation identity ok"
+  },
+  {
+   "task": 170,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/46/3a/463aa6d19f787acb2f6e59ac1c02516e19b00d34684d958ac50d1d92b2547cc2",
+   "graphs": 3,
+   "numerics": {
+    "exact": 3
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.0,
+   "compile_gate": {
+    "compiled": 3,
+    "graphs": 3
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 3,
+    "cpu_blocked": 3,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation CPU-blocked for 3/3 graphs (cuda capture)"
+  },
+  {
+   "task": 179,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/2c/d6/2cd6e47877c59d77e9219eaafd30b2b1c81ab2851c10871af684b3e21ff1ac87",
+   "graphs": 9,
+   "numerics": {
+    "exact": 9
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.0,
+   "compile_gate": {
+    "compiled": 9,
+    "graphs": 9
+   },
+   "simulation": {
+    "identity_ok": 9,
+    "graphs": 9,
+    "cpu_blocked": 0,
+    "mismatched": 0,
+    "error": null
+   },
+   "replay": true,
+   "reason": "numerics and compile gate pass; simulation identity ok"
+  },
+  {
+   "task": 194,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/e4/62/e4622cc9aeabd812c1ea88a334d6d214c5e487295eb36d30f14106227f32b197",
+   "graphs": 3,
+   "numerics": {
+    "within": 3
+   },
+   "numerics_sources": [
+    "numerics-randn.json"
+   ],
+   "worst_relative": 0.0016339869281045752,
+   "compile_gate": {
+    "compiled": 3,
+    "graphs": 3
+   },
+   "simulation": {
+    "identity_ok": 0,
+    "graphs": 3,
+    "cpu_blocked": 0,
+    "mismatched": 3,
+    "error": null
+   },
+   "replay": false,
+   "reason": "excluded: matcher simulation finds no match (TorchDynamo inlines the pattern call)"
+  }
+ ]
+}

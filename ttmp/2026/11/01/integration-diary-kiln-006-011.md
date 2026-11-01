@@ -496,3 +496,270 @@ The coordinator ran every GPU hand-off that the six tickets and Step 7 listed, s
   - missing lowerings: `tensor_split`, `multi_head_attention_forward`, `triu`, `fill_`, `getattr`, a `get_attr` constant, `inf`, tensor-method `exp`, `conv3d`, `avg_pool1d`, interpolate modes;
   - a data-dependent `if`;
   - two in-place refusals (`itruediv`, `iadd` on an aliased value).
+
+## Step 9: Coverage wave, part 1: device-agnostic shape propagation, in-place rebinding and the small lowerings
+
+The 25 blocked families of the Step 8 census were all-or-nothing: every graph of each family failed at the same point. I started with the device bug the GB10 census exposed (FakeTensor propagation mixing cpu inputs with `cuda:0` factory results). Fixing it in the propagation step unblocked 2 families at once, and exposed the next blocker in the others: `torch.tensor` constants, `.to(device=, dtype=)`, in-place updates of casts, views and input chains. Then I added the one-family lowerings. After commit `13449a1`, 24 of the 25 families import completely on the CPU host. The 25th is RECT_L's data-dependent boolean-mask shape, which I skipped as instructed.
+
+The in-place rule changed in substance. It no longer asks "is the source single-use". It now asks "does any alias outside the in-place chain read the storage later". Five older tests pinned the old refusals; they now pin the refined rule (a live alias is refused, a dead one accepted).
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok do it" (in reply to the coordinator's plan: fix the importer's device-agnostic shape propagation first, then the small lowerings, then replay every newly complete family)
+
+**Assistant interpretation:** Make metadata propagation independent of the device the source graph names, then lower every operation that is the sole blocker of a PassBench family. Check each newly complete family numerically on CPU. Re-run the census and the local gates. Freeze (not launch) a replay plan for the families that pass.
+
+**Inferred user intent:** Turn the 25 fully blocked families of `hf_fusible_eval_samples_v2` into replayable tasks, so the next GPU round measures more of PassBench.
+
+**Commit (code):** `13449a1` — "Importer coverage wave: device-agnostic shape propagation, in-place rebinding, small lowerings"
+
+### What I did
+- Reproduced each blocked family's first error with a scratch driver (`scratchpad/coverage-impl/try.py ROOT [SUFFIX...]`: translate every graph of every blocked family, print per-family counts and distinct errors).
+- `fx_export.propagate` / `propagation_copy`: ShapeProp runs on a copy of the traced graph. In the copy, every device argument (a `torch.device` or a `cuda[:n]`/`cpu[:n]` string) names the example inputs' device, and `.cuda()`/`.cpu()` become `.to(device)`. Each original node then receives its copy's `tensor_meta` by name. The exported graph keeps `cuda:0`, so the generated match pattern and the importer still see the source devices. Real (non-fake) examples are cloned before propagation.
+- `fx_trace.FACTORIES` gained `torch.tensor` and `torch.linspace`. They now trace as `call_function` nodes. Before, they executed eagerly at trace time: `torch.tensor(..., device=cuda)` raised "Found no NVIDIA driver" on the CPU host, and a CPU `torch.tensor(1.0)` became a `get_attr _tensor_constant0`.
+- `fx_import`:
+  - New lowerings: `tensor_literal` (0-d `N.full`), `linspace` (float32, PyTorch's symmetric two-half formula with the step rounded in float), `device_method` (`.cuda()`/`.cpu()`).
+  - `to` rewritten: optional device, dtype, `copy=`, `non_blocking=`. A dtype change or `copy=True` is fresh storage.
+  - `dtype_conversion`/`type_as`: fresh when the dtype changes.
+  - New `fill_` op: a recorded view gives slice assignment through `view_write`; a fresh value or an input gives an in-place update.
+  - `interpolate`: resampling to the input's own size (bilinear/bicubic/linear/trilinear, half-pixel) is the input.
+- `Context.require_mutation_source` rewritten around `owners()` (the storage owners a value may alias, through the new `alias_sources` map) and `live_aliases()` (aliases outside the chain read after the current node). Input mutations now set `roots[name] = input` and rebind every name of the chain, so a second in-place call on the result (`in_3 += in_0; in_4 = in_3; in_4 += in_2; relu_(...)`) is a further update of the same input.
+- `fx_scalar_ops`: pow with a tensor exponent (`N.pow` in f32), scalar exponents 0.5/-0.5/-1 as sqrt/rsqrt/reciprocal (PyTorch's tensor-scalar pow specializations), and `pow_`.
+- New `fx_coverage.py`:
+  - tensor methods `exp`/`log`/`sqrt`/`rsqrt`/`tanh`/`abs`/`floor`;
+  - `builtins.getattr` for `.T`/`.mT`; `clone`; `tile`; `fill_value`;
+  - `triu`/`tril` (`N.select` over an `N.indexValue` bool mask, KILN-010); `torch.all`/`torch.any` (`amin`/`amax` over i32); `~` on bool;
+  - `tensor_split` (sections or indices, slice views);
+  - `conv3d` when stride equals kernel (patch linear);
+  - `avg_pool1d` (`avg_pool2d` over a unit height axis);
+  - `multi_head_attention_forward` (eval-mode packed self-attention, no masks).
+- Tests:
+  - New `test_fx_coverage.py`: 18 tests, eager (the CPU propagation copy) vs frontend and Loop IR, mutated inputs included.
+  - Updated `test_fx_factories.test_contiguous_of_contiguous_is_an_alias`, `test_fx_import.test_input_mutation_*` (now two tests) and `test_potentially_aliasing_view_not_owned`, `test_fx_singleton_views.test_views_do_not_grant_mutation_ownership`, `test_fx_trace.test_alias_observer_rejected_and_read_before_mutation_accepted`, and one rejection case in `test_fx_scalar_ops` (`pow(x, 0.5)` is now lowered; the case uses 0.25).
+
+### Why
+- **Copy instead of rewriting the graph.** The importer already treats a device move as shape and dtype only. Propagating on a single-device copy is the same model, and it leaves the exported graph exactly as traced. Normalizing devices in the exported graph would also have worked, but it would hide the source's devices from everything downstream.
+- **Inputs on the CPU on every host.** `translate_graph` builds them without a device on both CPU and CUDA hosts. All device arguments then name `cpu`, so propagation is identical on both.
+- **The single-use rule was a scope choice, not a correctness rule** (`5df0172`, "Functionalize single-use input mutations"). Earlier reads of a mutated input read the old value in either mutation strategy. KILN-009's direct-write proof checks launch order itself (`packages/kiln/src/std/inplace.js`). The real hazard is an alias that rebinding does not update: that is what `live_aliases` refuses.
+
+### What worked
+- After the propagation fix alone, ernie-m positions (e86ddaf6f7b1, 3/3) and ef50c6b068f7 (5/5) imported.
+- After the follow-ons, per family (`try.py`): 5c268833015f 3/3, 64207d746493 4/4, b845661d4e2c 11/11, e86ddaf6f7b1 3/3, 5199f657302e 6/6, 97435ff293dc 5/5, 11cf2803122f 2/2, 53c0c199f0d6 3/3, feaf50a5b5fa 3/3, 045b980d4b88 2/2, 8793137dc233 6/6, ef50c6b068f7 5/5, 8fd6b1c300dd 6/6, then f8985111144e, dfeb405a40a2, e14c8f2bf4bf, 644ff3f9ec10, cda3c540f054, 28b6fbcd3cb4, 07897b2491b0, d88799ab79fa, 1d92b2547cc2, b3e21ff1ac87, 06227f32b197 all complete. 262222d765f0 stays blocked (`TypeError: cond must be a bool, but got <class 'fx_trace.MutationProxy'>`).
+- `pytest -q`: 214 passed, 7 subtests passed. `npm test` exit 0.
+
+### What didn't work
+- **First FakeTensor diagnostic (ernie-m, CPU):** `RuntimeError: Unhandled FakeTensor Device Propagation for aten.embedding.default, found two different devices cpu, cuda:0` at `%embedding_1 = torch.nn.functional.embedding(%iadd, %in_3)`. `tmp_11 = torch.ones((1, 15), dtype=torch.int64, device=device(type='cuda', index=0))` is a cuda fake tensor while `in_3` is cpu.
+- **Next blockers revealed by the fix:**
+  - `imul: in-place operation requires a fresh unaliased producer or a single-use input`: `tmp_6 = tmp_5.to(torch.float32); tmp_6 *= -3.4e38`; the cast was `fresh=False`.
+  - `to: device/layout conversion unsupported`: `.to(device=cuda, dtype=torch.bool)`.
+  - `pow: finite scalar exponent required`: `torch.tensor(256.) ** torch.tensor(0.5)`.
+  - `iadd: in-place ...`: `arange(...).unsqueeze(0); tmp_5 += 2`.
+- **A Python string-surgery mistake cost one rebuild.** My first edit of `require_mutation_source` sliced from the method to the first `def references(value):`. That name also occurs earlier, nested in `Context.__init__`, so the slice was empty, and `s.replace('', new)` inserted the new text between every character (a 129 MB file; `IndentationError: unexpected indent (fx_import.py, line 1)`). I recovered by deleting every occurrence of the inserted block (the earlier, intact edits came back exactly; checked against `git show HEAD:` with diff), then redid the edit anchored on `"\ndef references(value):"` after the method.
+- **Fragile test inputs:** `test_chained_input_mutations_and_earlier_reads` failed intermittently. Cause: `export_graph` on real inputs ran ShapeProp, which executed `x /= s` on the caller's tensor. Eager then saw a mutated x, whose zero rows gave `0/0 = NaN`. Fix: `propagate` clones real examples. This also affects `numerics.py`, whose request inputs had been mutated by the export. After the fix, a 1-ulp row-sum difference remained (`frontend __mut0: max diff 5.96e-08`); the test is seeded and uses `atol=1e-6`.
+- In that failure, Kiln's frontend gave `relu(NaN) = 0` where PyTorch gives NaN (pre-existing Kiln relu semantics, not changed here).
+- **A test-harness bug:** a single-tensor output structure (`{'output': 'out0'}`) was walked with a one-element list (`AttributeError: 'list' object has no attribute 'shape'`). Fixed in the test and in `numerics.py`.
+
+### What I learned
+- FX symbolic tracing executes `torch.tensor(...)` and `torch.linspace(...)` eagerly. That is the origin of both the "no NVIDIA driver" records (the tensor is created on cuda at trace time) and the remaining `_tensor_constantN` get_attr records (a CPU tensor folded into a constant). It is not shape propagation. Proxying them like KILN-010's factories removes both.
+- PyTorch's tensor-scalar pow specializes 0.5, -0.5 and -1, so `deg.pow_(-0.5)` (GAE) has a well-defined rsqrt lowering.
+- With `need_weights=True` (K-Net), `multi_head_attention_forward` takes the explicit bmm + softmax path. That makes its rounding points the source dtype after each step.
+
+### What was tricky to build
+- **Ownership across views.** `owners()` follows `alias_sources` back to the values that own storage. In-place chains collapse to their root through `roots`, so `owners(iadd_of_unsqueeze_of_arange) = {arange}`. Recorded basic-index views (`ctx.views`) also get `alias_sources`. As a result the plain fresh path now refuses an update while a recorded view is still read later. Before, such a view kept its stale value (a latent bug, refused now rather than fixed).
+- **Input chains.** Rebinding has to happen in both places. The placeholder's name and the in-place result's name both map to the new variable, and `input_mutations[index]` is overwritten so the last update is the one written back.
+
+### What warrants a second pair of eyes
+- **The relaxed in-place rule** (`fx_import.Context.require_mutation_source`), especially input mutations where the input was read earlier (ConViT `in_0 /= in_0.sum(...)`). The writeback strategy is correct by construction. The `auto` strategy relies on KILN-009's launch-order proof.
+- **conv3d bias rounding.** The bias is added in the source dtype after narrowing the product, following `N.conv2d` and ATen's separate cuDNN bias add.
+- **Same-size bicubic as identity:** exact for finite inputs. With an inf input, PyTorch's 0 * inf taps would give NaN.
+- **Kiln's `relu(NaN) = 0`** versus PyTorch's NaN.
+
+### What should be done in the future
+- Data constants (`torch.tensor([..])` with a list) are refused. No family needs them yet.
+- General conv3d (overlapping windows, padding) and general bicubic resampling.
+
+### Code review instructions
+- Start at `integrations/passnet/fx_export.py` (`propagation_copy`, `propagate`). Then read `fx_import.py`: `Context.owners`, `live_aliases`, `require_mutation_source`, the input-mutation branch of `import_graph`, `lower_to`, `lower_tensor_literal`, `lower_linspace`, `lower_fill_`. Then `fx_coverage.py`.
+- Run `(cd integrations/passnet && python3 -m pytest -q test_fx_coverage.py)`, then the full suites.
+
+### Technical details
+- Remaining blocker: `262222d765f0` (RECT_L/GAE torchgeometric) uses `in_0[:, mask]`, then `sym_size` and `torch.ones((128 + u0,))`, a data-dependent shape.
+- `linspace`: `step = f32(f32(f32(end) - f32(start)) / (steps - 1))`; element i is `start + step*i` for `i < steps // 2`, else `end - step*(steps - 1 - i)`.
+
+## Step 10: Coverage wave, part 2: the census, the CPU compile gate and the Dynamo matcher simulation
+
+With 24 of the 25 families importing, I ran three checks over them. The full import census (`coverage-census-v1/census.py`) at `13449a1` reports 2058/2060 graphs and 199/200 complete families, with 0 regressions against `census.json.gz`. The CPU local compile gate (KILN-008 `03-local-compile-gate-scan.py`) and the Dynamo matcher simulation (KILN-005 `658-simulate-pattern-dispatch-identity.py`) on all 24 tasks found five more defects, each fixed in commit `e0c2caf`. Four are in the importer and pass generator:
+- the pattern tracer turned factories into constants;
+- the pass generator only knew `+=`;
+- it dropped `fill_` through a view;
+- the importer emitted `bool * bool`.
+
+The fifth is in Kiln: the exporter cannot export a splat feeding a scan, and the end-to-end comparison counts NaN against NaN as a difference. The simulation itself cannot run on this CPU host for the 13 families that move tensors to cuda, as anticipated.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 9.
+
+**Assistant interpretation:** Validate the newly complete families with every CPU gate before freezing a plan, and fix what the gates find when the fix is in scope.
+
+**Inferred user intent:** The frozen plan should contain only families that have a real chance of being accepted on the GPU.
+
+**Commit (code):** `e0c2caf` — "Coverage wave gates: pattern autowrap/2, bool products, typed export constants, non-finite compare"
+
+### What I did
+- **Census:** `python3 coverage-census-v1/census.py . UPSTREAM scratchpad/coverage-impl/census-v2.json`. Compared with `census.json.gz` record by record.
+- **Gate:** `03-local-compile-gate-scan.py --upstream UPSTREAM --output scratchpad/coverage-impl/gate 8 13 22 29 30 34 40 43 44 50 53 68 70 71 84 90 117 124 129 155 158 170 179 194`. Re-runs: `gate2` (29 124 13), `gate3` (124 13).
+- **Simulation:** `658-simulate-pattern-dispatch-identity.py --plan scratchpad/coverage-impl/candidate-plan.json` (all 24 tasks, scratch-only plan) into `sim`, then `sim2`, `sim3` (117) and `sim4` after the fixes.
+- **Fixes:**
+  - `fx_normalize.trace_pattern`: `fx_trace.MutationTracer` (factory proxies) plus autowrap of every `operator.i<op>`. `evaluate_normalized.py`'s banner is now `kiln-pattern-autowrap/2`.
+  - `generate_pass.extract_pattern`: `PreserveInPlace` maps every augmented assignment to `kiln_i<op>`. `drop_dead_statements` keeps an in-place call when its receiver, or anything the receiver views, is live.
+  - `fx_import.lower_binary`: bool `mul`/`add` become `N.cast(N.<op>(N.cast(a,"i32"), N.cast(b,"i32")), "bool")`.
+  - `export.js`: `constantBytes` and typed export of a `tensor.const` argument (splat or data).
+  - `util.compare`: equal non-finite values and NaN/NaN agree; differing infinities fail.
+- **Tests:** `test_fx_normalize.test_other_inplace_operators_and_factories_retained`, `test_pass_generation.test_other_inplace_operators_and_factories_preserved` and `test_inplace_write_through_a_view_kept`, `test_fx_coverage.test_bool_products_and_sums`, and the npm tests `compare-nonfinite.mjs` and `export-typed-constants.mjs`. `npm test`: all 62 passed. `pytest`: 218 passed, 7 subtests passed.
+
+### Why
+- **`trace_pattern` is the evaluator's pattern tracer.** The replay runs PassBench through `integrations/passnet/evaluate_normalized.py`, which replaces each rule's pattern with `trace_pattern(self.pattern)`. Fixing factories there fixes them for the GPU replay too. It also answers KILN-010's open question ("can PassBench's pattern tracer match the factory graphs"): with `/1` it could not. A factory in a pattern executed into a `get_attr` constant, or raised "no NVIDIA driver" for `device=cuda`, while TorchDynamo captures `call_function torch.ones`.
+- **Typed constants in the exporter, not the importer.** `torch.ones((1, 15), dtype=torch.int64)` is the natural lowering. A scan that does not absorb a splat input is a general exporter gap, so the fix belongs there.
+
+### What worked
+- **Census:** 2058/2060 graphs import (1961 before), 199/200 families complete (175 before), 97 graphs gained, 0 regressions. The two remaining records are RECT_L and GAE `_start6_end17_2` (family 262222d765f0): `cond must be a bool, but got <class 'fx_trace.MutationProxy'>`.
+- **Gate, final:** 24/24 tasks compile with the internal check on, after the fixes. First pass: 21/24 (8, 22, 30, 34, 40, 43, 44, 50, 53, 68, 70, 71, 84, 90, 117, 129, 155, 158, 170, 179, 194). After the fixes: 29 11/11 (`gate2`); 124 and 13 in `gate3`, see Step 11.
+- **Simulation:** sim2, before the protocol fix, had identity ok on 8, 22, 44, 50, 84, 90, 124, 158 and 179; sim4 is the final run (Step 11).
+
+### What didn't work
+- **Gate 13 (ernie-m):**
+  - `FATAL ERROR: invalid array length Allocation failed - JavaScript heap out of memory`, also with `NODE_OPTIONS=--max-old-space-size=24000`.
+  - `--no-check` exposed the real failure: `KilnError [ExportError]: kernel k_cumsum_ew_scan argument 0 is tensor.const: an exported argument must be a program input, a data constant, or an earlier kernel's output` (fixed by typed constant export).
+- **Gate 29 (TinyLlama/SmolLM3):** `error line 13: tracing the program: mul over bool values is not lowered` (`causal_mask * padding_mask`, both bool; fixed).
+- **Gate 124 (GAE):** `end-to-end check FAILED`. A scratch `e2e.mjs` showed `__mut3: 507 of 1000 values differ (first at 1: NaN vs NaN)`: `rsqrt` of the negative random inputs gives NaN at the same positions in both levels. The first fix still failed, because `d <= atol + rtol*|NaN|` is false. Guarded with `d === 0 ||`.
+- **Writing the compare test** showed a pre-existing laxity: `compare([inf], [-inf])` passed, because `rtol * inf = inf`. It now requires a finite difference.
+- **Simulation errors, first run:**
+  - `ValueError Automatic match tracing currently supports explicit in-place addition only` (8, 13, 40, 170);
+  - `RuntimeError Found no NVIDIA driver on your system` while tracing patterns with factories (29, 30, 43, 53, 68, 70, 71, 117);
+  - capture errors for `.to(cuda)` graphs (34, 129, 155): `Dynamo failed to run FX node with fake tensors: ... FakeTensor(..., device='meta', ...), FakeTensor(..., device='cuda:0', ...)`;
+  - 194 (K-Net `multi_head_attention_forward`): `applied None, matches 0`.
+- **Simulation 117 (Twins):** `generation error: ValueError Output permutation must cover every returned value`. The pattern dropped `tmp_2 = tmp_1.fill_(1)` because the receiver `tmp_1` (a view) is not read later. Its base `tmp_0` is, which is why the importer kept the fill. Fixed.
+- **Capture with fake cuda inputs** (`FakeTensorMode(allow_non_fake_inputs=True)`, `torch.empty(..., device='cuda')`): the inputs construct, but `torch.compile(..., fullgraph=True)` raises `RuntimeError: Found no NVIDIA driver`. The simulation is genuinely CPU-blocked for these graphs.
+
+### What I learned
+- The modified matching protocol's pattern tracer lives in this repository (`fx_normalize.trace_pattern`). A change there is an evaluator protocol change, and it must be visible in the replay logs, hence the banner bump.
+- TorchDynamo inlines `F.multi_head_attention_forward` (a Python function), while FX records it as one call through `__torch_function__`. A source pattern containing it can never match the captured graph. Family 194 imports and compiles, but it is not replayable without a different pattern strategy.
+
+### What was tricky to build
+- **The gate hid the ernie-m exporter error behind an OOM.** The internal reference check allocates for the 250002 x 768 embedding before the exporter runs, so the first diagnostic was the allocation failure. Only `--no-check` reached the exporter error.
+
+### What warrants a second pair of eyes
+- **`kiln-pattern-autowrap/2`** changes what every rule's pattern looks like in the replay. Patterns without factories or non-`+=` in-place calls trace identically. Patterns with them change from unmatched to matched. The CPU simulation could only verify the families that do not move tensors to cuda.
+- **The `compare` change** affects every end-to-end check. It is stricter for infinities of opposite sign and against finite values, and looser for NaN/NaN and equal infinities.
+
+### What should be done in the future
+- Run `658` with `--trace dynamo` on a CUDA host for the CPU-blocked families. Task list in Step 11.
+- A pattern strategy for Dynamo-inlined Python functionals (MHA).
+
+### Code review instructions
+- Read `integrations/passnet/fx_normalize.py` `trace_pattern`, `generate_pass.py` (`AUGMENTED`, `PreserveInPlace`, `drop_dead_statements` view chain), `packages/kiln/src/std/export.js` (`constantBytes` and the `tensor.const` branch), and `packages/kiln/src/core/util.js` `compare`.
+- Run `node packages/kiln/test/export-typed-constants.mjs`, `node packages/kiln/test/compare-nonfinite.mjs`, `python3 -m pytest -q test_pass_generation.py test_fx_normalize.py`.
+
+### Technical details
+- The gate compiles with `--matmul-precision highest` and the internal check on. The replay compiles with tf32 and `--skip-internal-reference-check`.
+- The simulation's capture uses meta inputs (`dynamo_graph`). Graphs whose factories or `.to` name cuda cannot be captured on a CPU host, whatever the pattern.
+
+## Step 11: Coverage wave, part 3: numerical checks, the final gates and the frozen replay plan
+
+This step closes the wave. Every graph of the 24 newly complete families was compared with eager PyTorch on CPU at the frontend and Loop IR levels. The compile gate re-ran on the final tree, and the gate results are combined per family in `coverage-wave-v1/gates.json`. The frozen replay plan, `sources/coverage-wave-replay-v1/plan.json`, holds 23 tasks and 94 graphs. It is not staged or launched.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 9.
+
+**Assistant interpretation:** Check numerics for every newly complete family, freeze a plan of the families that pass both CPU gates, and record what the matcher simulation could and could not verify.
+
+**Inferred user intent:** A GPU round that spends time only on families with a realistic chance of acceptance.
+
+**Commit (code):** `d823fe8` — "kiln_eval: non-finite outputs travel as "NaN"/"Infinity"/"-Infinity" strings". This step's commit holds the evidence, the plan and this entry.
+
+### What I did
+- **`coverage-wave-v1/numerics.py`.** One process per graph, J at a time, S seconds each. Eager PyTorch runs the CPU propagation copy. Inputs are seeded randn, with randint(0, 2) for integer and bool inputs. Graphs above an input-element limit are recorded as `skipped`. Verdicts: `exact`, `within` (max |diff| <= tol x max(1, max |ref|), with tol 1e-4 for f32, 1e-2 for f16, 4e-2 for bf16), `outside`, `error`.
+- **Runs:**
+  - `numerics-randn.json`: all 97 graphs, 6 jobs, 900 s.
+  - `numerics-rerun.json`: tasks 13, 29, 30, 34, 40, 124, with `KILN_NUMERICS_LIMIT=40000000`, `NODE_OPTIONS=--max-old-space-size=12000`, 3 jobs, 3600 s.
+  - `numerics-rand-convit.json`: task 8 with `--dist rand`.
+- **Gates:** final compile gate on `e0c2caf` (`gate-final`, 23 tasks; task 13 checked manually per graph). Combined everything with `coverage-wave-v1/summarize_gates.py` into `gates.json`.
+- **Plan:** frozen with `coverage-wave-v1/freeze_plan.py` (header copied from `mutation-inplace-replay-v1/plan.json`, `import_census_sha256` = sha256 of `coverage-wave-v1/census-v2.json.gz`).
+
+### Why
+- **ConViT ran with uniform inputs.** Its input is an attention map, a nonnegative row-stochastic matrix. With randn, row sums of 196 standard normals approach zero, and `x / sum` turns a one-ulp difference in summation order into a large absolute error (f32 0.566 at max |ref| 718, relative 7.9e-4). With rand the f32 variant differs by 8.4e-9 at max |ref| 0.012, and both low-precision variants are exact.
+- **194 (K-Net MHA) is excluded** even though numerics and the compile gate pass. The simulation's failure (`applied None, matches 0` on all three graphs) is not a CPU artifact. TorchDynamo inlines `F.multi_head_attention_forward`, so the source pattern's single call cannot match.
+
+### What worked
+- Per-family numerical results:
+
+| task | graphs | numerics | worst rel. diff | compile gate | Dynamo sim (CPU) | plan |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8 | 3 | exact 2, within 1 (rand) | 8.4e-09 | 3/3 | identity ok | yes |
+| 13 | 4 | exact 2, within 2 (base variants at max dim 1024) | 6.3e-05 | 2 with check + 2 --no-check | CPU-blocked | yes |
+| 22 | 2 | within 2 | 7.9e-03 (bf16) | 2/2 | identity ok | yes |
+| 29 | 11 | exact 11 | 0 | 11/11 | CPU-blocked | yes |
+| 30 | 3 | exact 3 | 0 | 3/3 | CPU-blocked | yes |
+| 34 | 5 | within 5 | 1.0e-02 (bf16) | 5/5 | CPU-blocked | yes |
+| 40 | 6 | within 6 (at max dim 256) | 6.1e-05 | 6/6 | CPU-blocked | yes |
+| 43 | 5 | exact 3, within 2 | 7.6e-06 | 5/5 | CPU-blocked | yes |
+| 44 | 2 | within 2 | 7.9e-03 (bf16) | 2/2 | identity ok | yes |
+| 50 | 2 | exact 2 | 0 | 2/2 | identity ok | yes |
+| 53 | 3 | within 3 | 2.6e-04 | 3/3 | CPU-blocked | yes |
+| 68 | 3 | exact 3 | 0 | 3/3 | CPU-blocked | yes |
+| 70 | 2 | exact 2 | 0 | 2/2 | CPU-blocked | yes |
+| 71 | 6 | exact 6 | 0 | 6/6 | CPU-blocked | yes |
+| 84 | 2 | exact 2 | 0 | 2/2 | identity ok | yes |
+| 90 | 3 | exact 2, within 1 | 8.6e-08 | 3/3 | identity ok | yes |
+| 117 | 3 | exact 3 | 0 | 3/3 | CPU-blocked | yes |
+| 124 | 4 | exact 1, within 3 | 1.7e-04 | 4/4 | identity ok | yes |
+| 129 | 5 | exact 5 | 0 | 5/5 | CPU-blocked | yes |
+| 155 | 6 | exact 3, within 3 | 1.3e-04 | 6/6 | CPU-blocked | yes |
+| 158 | 2 | within 2 | 6.1e-03 (bf16) | 2/2 | identity ok | yes |
+| 170 | 3 | exact 3 | 0 | 3/3 | CPU-blocked | yes |
+| 179 | 9 | exact 9 | 0 | 9/9 | identity ok | yes |
+| 194 | 3 | within 3 | 1.6e-03 | 3/3 | no match 3/3 | no |
+
+  Over the 94 plan graphs: 62 exact, 32 within (worst: about one ulp of bf16 relative to the output magnitude).
+- **Final compile gate (`e0c2caf`):** 23/23 tasks compile every graph with the internal check on. Task 13: the two tiny-random variants pass with the check on (`end-to-end check ok at loop`). The two ernie-m-base variants (embedding 250002 x 768) compile with `--no-check`; with the check on, the CPU evaluator fails to allocate.
+- **Simulation (`sim4`, CPU, TorchDynamo on meta inputs):**
+  - identity ok on every graph of 8, 22, 44, 50, 84, 90, 124, 158 and 179;
+  - CPU-blocked capture for every graph of 13, 29, 30, 34, 40, 43, 53, 68, 70, 71, 117, 129, 155 and 170;
+  - genuine mismatch on 194.
+
+### What didn't work
+- **`kiln_eval produced no output`** for all 11 graphs of task 29 in the first run: the bool `mul` refusal (Step 10). Exact after the fix.
+- **`TypeError: float() argument must be a string or a real number, not 'NoneType'`** for task 124: `kiln_eval` serialized NaN and infinities as JSON `null`. Fixed in `d823fe8`: non-finite outputs are strings, as inputs already were.
+- **`timeout after 900 s`** for every VideoMAE graph (task 34): conv3d over [1, 3, 16, 224, 224] is about 3 GMAC in the JS evaluator, at both levels. With 3 jobs and 3600 s each, all five graphs finish in 670–870 s and are within tolerance (bf16 worst 1.0e-2 relative).
+- **The size limit:**
+  - `skipped: 192397839 input elements exceed the CPU evaluator limit`: ernie-m-base, whose JSON request alone would be several GB;
+  - 8016527: ernie tiny-random; 16527361: TrOCR; and the DNLNet graphs.
+  - The rerun with a 40M limit covered TrOCR and the ernie tiny-random variants.
+  - Two shape-generic families were too large even then. DNLNet ([2, 4096, 4096] to [8, 8192, 16384]; the one 33.5M-element variant crashed `kiln_eval` with no output, since its JSON request exceeds V8's string limit) ran with `KILN_NUMERICS_MAX_DIM=256`. ERNIE-M base (embedding 250002 x 768) ran with `KILN_NUMERICS_MAX_DIM=1024`: the vocabulary is capped, and the ids drawn from randint(0, 2) stay valid. Both graphs have no fixed shapes in their code, so the capped graph is the same program at a smaller size. Results: `numerics-dnlnet-256.json`, `numerics-ernie-1024.json`.
+
+### What I learned
+- The CPU numerical check is bounded by the JS evaluator, not by PyTorch. About 3 GMAC per graph is the practical limit at a 1 h timeout. Above it, the same lowering at a smaller shape (the ViViT variants, the unit tests) is the evidence.
+
+### What was tricky to build
+- **Ordering the evidence.** Several gate and numerics runs straddled commits `e0c2caf` and `d823fe8`. The final compile gate was therefore re-run at `e0c2caf`, after the last compiler-affecting commit. `d823fe8` touches only the CPU test bridge. `summarize_gates.py` lets a later numerics file replace an earlier record graph by graph, so every verdict in `gates.json` comes from code at or after the fix it depends on.
+
+### What warrants a second pair of eyes
+- **Replaying the 13 CPU-blocked families depends on `kiln-pattern-autowrap/2`.** That is the only part of the match the CPU could not exercise, and a GPU-host run of `658` is the cheap way to check it before the replay.
+- **Reduced-size checks:** DNLNet (all 6 graphs) and the two ernie-m-base graphs were checked at capped dimensions, not at their benchmark sizes.
+- **The tolerance verdict is mine, not PassBench's.** PassBench's own curve decides acceptance.
+
+### What should be done in the future
+- Stage `coverage-wave-replay-v1` on bling (coordinator). Before it, run `658 --trace dynamo` on the GPU host for the CPU-blocked tasks.
+- **194:** a pattern strategy for Dynamo-inlined functionals (for example, generate the pattern from a Dynamo capture of the source).
+- **262222d765f0 (RECT_L/GAE):** the data-dependent mask shape stays out of scope.
+
+### Code review instructions
+- Evidence lives under `ttmp/2026/11/01/integration-evidence-kiln-006-011/coverage-wave-v1/`. Read `gates.json` first, then `compile-gate.json`, `simulation-dynamo-cpu.json`, the `numerics-*.json` files and `census-v2.json.gz`. Check them against `SHA256SUMS`.
+- The plan is `ttmp/2026/10/30/KILN-005-*/sources/coverage-wave-replay-v1/plan.json`. Recompute each task's `graph_list_sha256` from `upstream/<sample>/graph_list.txt`.
+
+### Technical details
+- Plan tasks (index: graphs): 8:3, 13:4, 22:2, 29:11, 30:3, 34:5, 40:6, 43:5, 44:2, 50:2, 53:3, 68:3, 70:2, 71:6, 84:2, 90:3, 117:3, 124:4, 129:5, 155:6, 158:2, 170:3, 179:9 (plan.json sha256 `9f6b0a273174cbab51ac1b99c5acd1a937c46fd286d2d2fcb3a0a7920d8ae4e0`).
+- Plan selection: `summarize_gates.py` replay = numerics with no outside/error verdict, a compile gate pass, and no genuine simulation mismatch; a CPU-blocked capture does not exclude a family.
+- Census: 2058/2060 graphs (1961 before), 199/200 complete families (175 before), 0 regressions, 97 gained.
