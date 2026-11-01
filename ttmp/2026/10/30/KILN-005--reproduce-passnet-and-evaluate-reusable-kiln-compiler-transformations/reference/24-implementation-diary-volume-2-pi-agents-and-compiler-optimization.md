@@ -4492,3 +4492,57 @@ The cause is the input's flat index, `221184 * (a1 / 96) + 221184 * a0 + 96 * a2
 - Task 106 measured compiled GPU medians (baseline / candidate, ms): 6.03 / 6.36, 2.61 / 3.99, 1.26 / 2.37, and 0.12 / 0.12 for the three small variants.
 
 **Addendum to Step 250: a working-set DRAM rule, tried and reverted.** I tested a per-outermost-slice reuse working set, with `dram = uniq + out` whenever the slice fits in L2 (scratch only; the evidence is in the session scratchpad `cal-v3/`). It moved paired a100 ρ from 0.6438 to 0.6441, gb10 from 0.607 to 0.608, and absolute a100 from 0.937 to 0.939 and gb10 from 0.902 to 0.907. Task 106 did not change, because its binding term becomes `l2 = traffic / (3 × bwGBs)`, at 18.8 ms on gb10 against the measured 6.03 ms. I reverted the rule (the file was restored from the index) because the gain does not justify the schedule churn. The binding unknown is GB10's L2 bandwidth: matching the measurement would need about 2.4 TB/s. That will be measured on bling once the study releases the GPU (task added).
+
+## Step 251: Queue the GPU probes, decide task 128, and plan P3a in slices
+
+While the held-out study's baseline arm finished, I prepared the two GPU questions it was blocking and queued them behind it: which TF32 rounding cuDNN convolutions and cuBLAS products actually use, and GB10's L2 bandwidth. I closed the task-128 decision and turned P3a into a sliced plan grounded in the code (design doc 23).
+
+The P3a reading changed the plan's first step. The 119 typed-frontier graphs do not need gathers first. Several only pass an int64 tensor through a view or an identity cast, and some only compute dead integer arithmetic. Integer storage cannot start in the importer, though, because every Loop IR value is an untyped double and every kernel temporary a `float`. An int64 index above 2^24 would be corrupted silently.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 249 ("conyinure").
+**Assistant interpretation:** Keep advancing the plan while the GPU is busy; do not start GPU work that overlaps the study.
+**Inferred user intent:** Steady progress without collisions on bling.
+**Commit (code):**
+- 68ca548 — probe script
+- 08aa9b9 — design doc 23
+- task 128 decision recorded in tasks.md
+
+### What I did
+- Script 671 (`671-gpu-numerics-and-bandwidth-probes.py`):
+  - For linear, 1×1, 3×3 and wide 3×3 convolutions under `allow_tf32`, it compares against float64 references computed from operands rounded four ways: FP32, RNA, RNE and RZ.
+  - A Triton streaming kernel measures read bandwidth from 1 MB to 1 GB buffers.
+  - I checked the RNA, RNE and RZ bit helpers on the CPU at TF32 tie points (`1+2^-11`, `1+3·2^-11`, negative ties, below-half values).
+- Copied it to bling as `sources/gpu-probes-v1/probe.py`. Tmux `kiln-gpu-probes-v1` waits for `kiln-cost-gate-held-out-v1` to end, checks the GPU is idle, then runs the evaluator image.
+- Task 128 decided: unsupported, with its named cause. The 1,514-graph census showed no second family with the dead-branch duplicate.
+- Read the typed-frontier audit (`sources/typed-frontier-source-ops-v1.json`) and samples, then wrote design doc 23.
+
+### Why
+- Queuing the probes behind the study session uses the GPU the moment it is free, without risking overlap.
+- Slicing P3a by what the integer value is used for gives each slice a measurable census yield and keeps semantics small.
+
+### What worked
+- Probe queued: `tmux ls` shows `kiln-gpu-probes-v1` alongside the study session.
+- Study progress: baseline arm complete (20/20 tasks) at the end of this step.
+
+### What didn't work
+- One survey command printed a sample's full `weight_meta.py`, including thousands of embedded data values. No harm was done beyond log size. Later surveys print only shapes and dtypes.
+- A `docmgr task add` whose text contained `^` and `>` spun at full CPU for more than two minutes. I killed it (pid 1651441) and re-ran it with plain wording; it completed at once. Task texts for docmgr should avoid shell-like metacharacters.
+
+### What I learned
+- The typed frontier is three capabilities, not one: pass-through, gathers, and integer arithmetic/masks. At least two families (0d135bc0, 2f622ee9) are likely complete after slice 1 alone, if no later blocker appears. That is a hypothesis for the slice-1 census.
+
+### What was tricky to build
+- The probe's references must round the operands and then compute in float64. Rounding the result instead would measure a different thing. Each emulation is a full reference product, not a perturbation estimate.
+
+### What warrants a second pair of eyes
+- The `rne` helper uses `b + 0xFFF + ((b >> 13) & 1)` on a signed int32 view. For negative floats the sign bit is outside the rounding bits, so magnitude rounding is symmetric. A reviewer should confirm this for NaN and Inf payloads (they are not present in the probe's data).
+
+### What should be done in the future
+- After the study: collect the probes and update the gb10 spec and `tf32Pass` from the evidence. Then implement P3a slice 1 per design doc 23.
+
+### Code review instructions
+- `scripts/671-gpu-numerics-and-bandwidth-probes.py`; `design-doc/23-p3a-typed-values-and-data-dependent-indexing-implementation-plan.md`.
+
+### Technical details
+- Probe output: `/home/manuel/passnet-kiln/KILN-005/sources/gpu-probes-v1/result.json` on bling, collected into the ticket after it runs.
