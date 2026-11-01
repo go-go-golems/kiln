@@ -217,15 +217,17 @@ def lower_max_min(c):
         if 'keepdim' in bound: raise ValueError(f'{c.name}: elementwise {fn} takes two tensors')
         return Lowered(f'N.{fn}({x}, {dim})')
     reduce = 'amax' if fn == 'max' else 'amin'
-    shape = c.ctx.resolve(x)['shape']
+    source = c.ctx.resolve(x); shape = source['shape']
+    # floating reductions compute in f32; max/min select a value, so narrowing back is exact
+    narrow = (lambda e: f'N.cast({e}, {json.dumps(FLOATING[source["dtype"]])})') if source['dtype'] in FLOATING else (lambda e: e)
     if dim is None:
         if c.kwargs: raise ValueError(f'{c.name}: unsupported {fn} arguments')
         expr = x
         for axis in range(len(shape)): expr = f'N.{reduce}({expr}, {axis}, true)'
-        return Lowered(f'N.reshape({expr}, [])')
+        return Lowered(narrow(f'N.reshape({expr}, [])'))
     dim, keep = c.ctx.literal(dim), c.ctx.literal(bound.get('keepdim', 'false'))
     if type(dim) is not int or type(keep) is not bool: raise ValueError(f'{c.name}: static dim and keepdim required')
-    return Lowered([f'N.{reduce}({x}, {dim}, {json.dumps(keep)})', None])
+    return Lowered([narrow(f'N.{reduce}({x}, {dim}, {json.dumps(keep)})'), None])
 
 
 # ------------------------------------------------------------------------------ structure and layout
