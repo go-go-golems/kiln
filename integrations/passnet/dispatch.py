@@ -16,12 +16,15 @@ def freeze_constants(values):
 
 
 def count_outputs(structure):
+    if 'none' in structure: return 0
     if 'output' in structure or 'input_alias' in structure: return 1
     kind, children = next(iter(structure.items()))
     return sum(count_outputs(child) for child in (children.values() if kind == 'dict' else children))
 
 
 def restore_outputs(structure, outputs, inputs):
+    if 'none' in structure:
+        return None  # the result of a returned slice assignment (corpus.expose_inplace_results)
     if 'output' in structure:
         return outputs[structure['output']]
     if 'input_alias' in structure:

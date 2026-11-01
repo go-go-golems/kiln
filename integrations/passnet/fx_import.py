@@ -1045,6 +1045,10 @@ def lower_setitem(ctx, name, var, args, node, lines):
         write_region(ctx, view, number, None, var, lines)
 
 
+# the value of a slice assignment node (operator.setitem returns None): an output of it is {'none': True}
+NO_RESULT = object()
+
+
 def import_graph(graph):
     if graph.get('format') != 'kiln-fx/1':
         raise ValueError('Expected kiln-fx/1')
@@ -1077,6 +1081,8 @@ def import_graph(graph):
         target = node['target']
         if node['kind'] == 'call_function' and target == '_operator.setitem':
             lower_setitem(ctx, name, var, args, node, lines)
+            # the write's own result is None; corpus.expose_inplace_results may return it
+            ctx.bind_value(name, NO_RESULT)
             continue
         spec = REGISTRY.lookup(node['kind'], target)
         if spec is None:
@@ -1132,6 +1138,7 @@ def import_graph(graph):
     def flatten(v):
         if isinstance(v, (list, tuple)): return {'tuple' if isinstance(v, tuple) else 'list': [flatten(x) for x in v]}
         if isinstance(v, dict): return {'dict': {k: flatten(x) for k, x in v.items()}}
+        if v is NO_RESULT: return {'none': True}
         if v not in ctx.values.values(): raise ValueError('Only tensor node outputs supported')
         if v in output_alias_values: return {'input_alias': output_alias_values[v]}
         key = f'out{len(flat)}'; flat.append((key, v)); return {'output': key}

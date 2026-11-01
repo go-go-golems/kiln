@@ -111,14 +111,17 @@ def trace_pattern(pattern):
 
     Ordinary Proxy += falls back to add; autowrapping a directly imported operator.iadd
     (or isub, imul, itruediv, ...) retains the in-place target identity without executing or
-    rewriting the operation. Factory calls (torch.arange/zeros/ones/full/tensor/linspace,
+    rewriting the operation. A directly imported operator.setitem (generate_pass binds every
+    x[index] = value of a pattern to a name) is autowrapped the same way, so the write is a node
+    with a result the pattern can return; TorchDynamo records the same operator.setitem target.
+    Factory calls (torch.arange/zeros/ones/full/tensor/linspace,
     fx_trace.FACTORIES) are recorded as call_function nodes, as TorchDynamo captures them,
     instead of being executed into get_attr constants (which would also create CUDA tensors for
     device=cuda arguments). No target graph nodes or evaluator predicates change.
-    Protocol identity: kiln-pattern-autowrap/2.
+    Protocol identity: kiln-pattern-autowrap/3.
     """
     import operator
     from fx_trace import MutationTracer
-    tracer = MutationTracer(autowrap_functions=tuple(getattr(operator, 'i' + name) for name in INPLACE_OPERATORS))
+    tracer = MutationTracer(autowrap_functions=tuple(getattr(operator, 'i' + name) for name in INPLACE_OPERATORS) + (operator.setitem,))
     graph = tracer.trace(pattern)
     return torch.fx.GraphModule(tracer.root, graph)

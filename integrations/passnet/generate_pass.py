@@ -31,11 +31,14 @@ class Pattern:
 AUGMENTED={ast.Add:'add',ast.Sub:'sub',ast.Mult:'mul',ast.Div:'truediv',ast.FloorDiv:'floordiv',ast.Mod:'mod',ast.Pow:'pow',
            ast.MatMult:'matmul',ast.BitAnd:'and',ast.BitOr:'or',ast.BitXor:'xor',ast.LShift:'lshift',ast.RShift:'rshift'}
 INPLACE_NAMES={name:'kiln_i'+name for name in AUGMENTED.values()}
+# x[index] = value -> a bound call of the directly imported operator.setitem, so that the write is a
+# pattern node the pattern returns (see drop_dead_statements); fx_normalize.trace_pattern autowraps it
+SETITEM='kiln_setitem'
 
 
 def inplace_call(value):
     if not isinstance(value,ast.Call):return False
-    if isinstance(value.func,ast.Name) and value.func.id in INPLACE_NAMES.values():return True
+    if isinstance(value.func,ast.Name) and (value.func.id in INPLACE_NAMES.values() or value.func.id==SETITEM):return True
     if isinstance(value.func,ast.Attribute) and value.func.attr.endswith('_') and not value.func.attr.startswith('_'):return True
     return any(k.arg=='inplace' and isinstance(k.value,ast.Constant) and k.value.value is True for k in value.keywords)
 
@@ -121,6 +124,18 @@ def extract_pattern(source,arity):
                 raise ValueError('Automatic match tracing supports augmented assignment to a name only')
             name=INPLACE_NAMES[AUGMENTED[type(node.op)]];used.add(name)
             return ast.copy_location(ast.Assign(targets=[node.target],value=ast.Call(func=ast.Name(id=name,ctx=ast.Load()),args=[ast.Name(id=node.target.id,ctx=ast.Load()),self.visit(node.value)],keywords=[])),node)
+        def visit_Assign(self,node):
+            # x[index] = value (one subscript target): operator.setitem has no result and no users, so
+            # the matcher's backward search from the returned values never reaches it (nor any argument
+            # only it reads: KeyError in_0, coverage family 170). Bind it to a fresh name; it is then a
+            # kept in-place statement whose (None) result the pattern returns, like an unused in-place call.
+            if len(node.targets)!=1 or not isinstance(node.targets[0],ast.Subscript):return node
+            target=node.targets[0]
+            if not isinstance(target.value,ast.Name):raise ValueError('Slice assignment to a named tensor required')
+            name=f'kiln_setitem_{len(writes)}';writes.append(name);used.add(SETITEM)
+            index=target.slice
+            return ast.copy_location(ast.Assign(targets=[ast.Name(id=name,ctx=ast.Store())],value=ast.Call(func=ast.Name(id=SETITEM,ctx=ast.Load()),args=[ast.Name(id=target.value.id,ctx=ast.Load()),index,node.value],keywords=[])),node)
+    writes=[]
     function=PreserveInPlace().visit(function)
     unused=drop_dead_statements(function)
     if unused:

@@ -839,3 +839,87 @@ The coordinator ran the coverage wave's GPU hand-offs on bling, one job at a tim
 ### Technical details
 - Source revision `4dd38bac3928fb461dd7bdd9c5f208741df94beb` for all three studies; evaluator image `sha256:222d8b18…f2ba`.
 - Run times on GB10: coverage 14:34–14:41, typed-slice3 14:41–14:44, mutation set 14:44–14:52.
+
+## Step 13: Coverage fix, part 1: family 29's second match is a Dynamo recompile, family 170's slice assignment was unreachable for the matcher
+
+This step starts the repair of the seven coverage-wave families that the Step 12 replay did not accept. The two match failures came first, because neither is numerical. Family 29 (TinyLlama/SmolLM3 masks, 0/11) is not a pattern problem. The source graph calls `torch.set_grad_enabled(False)`, so the first compiled call leaves grad mode off. The next call fails Dynamo's `GLOBAL_STATE changed: grad_mode` guard and recompiles the frame, and the backend applies the same rule, with the same specialization, a second time. Each compilation has exactly one match. Family 170 (OPT causal mask, 0/3) was a generator bug. A slice assignment `x[...] = v` traces to an `operator.setitem` node with no users. `SubgraphMatcher` searches backwards from the returned values, so it never reached that node, nor the argument `in_0` that only the write reads. The generator now binds each slice assignment to a name and returns it, as it already did for unused in-place results (`kiln-pattern-autowrap/3`). The program side records that slot as `{'none': True}`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, bling is free" (in reply to the coordinator's recommended next steps: fix 29's double match, fix 170's rule bug, localize the rounding point for 22/44/124/34, check DNLNet (40) at full size on the GPU)
+
+**Assistant interpretation:** Diagnose and, where possible, fix each of the seven failing coverage families on the integration branch. Use bling for short single-graph diagnostic runs only (no full replays). Then freeze a re-replay plan of the fixed families, after the CPU compile gate and the CUDA-capture 658.
+
+**Inferred user intent:** Turn the 16/23 coverage-wave result into as many accepted families as the defects allow, and separate Kiln defects from evaluator artifacts with exact evidence.
+
+**Commit (code):** see the commit that adds this entry — "Coverage fix: return slice assignments from match patterns (kiln-pattern-autowrap/3)"
+
+### What I did
+- **Read the evidence.** I unpacked `coverage-wave-replay-gpu-v1/results-raw.tar.gz` into `scratchpad/coverage-fix/raw`. Then I counted `[Processing]` and `Applied` lines per task: every task had one `Applied` per graph, except task 29 (11 graphs, 22 `Applied`) and task 170 (3 graphs, 0).
+- **Family 29 on bling.** I set up `~/passnet-kiln/coverage-fix/` with copies of the staged study's `upstream/`, `kiln/` and `results/task-029`, `results/task-170` (the generated runtime has the absolute path `/work/results/task-NNN/corpus` baked in, so the copies had to sit at `results/`). I wrote `run1.sh`, which runs one manifest graph through `evaluate_normalized.py` exactly as `run_task.py` does (warmup 2, trials 3). Then I ran graph 0 of task 29 with `TORCH_LOGS=recompiles,graph_breaks` in the evaluator image.
+- **Family 170 on CPU.** I reproduced the matcher failure with `scratchpad/coverage-fix/t170old.py`: the replay's own `KilnPattern0000.py` and the source `model.py`, with `device(type='cuda', index=0)` replaced by `device(type='cpu')`, captured by TorchDynamo on CPU.
+- **Fix (170):**
+  - `generate_pass.extract_pattern`: `PreserveInPlace.visit_Assign` rewrites `x[index] = value` to `kiln_setitem_K = kiln_setitem(x, index, value)` (`from operator import setitem as kiln_setitem`). `inplace_call` recognizes it, so `drop_dead_statements` keeps it when the receiver chain is live and returns its name after the source's returns.
+  - `fx_normalize.trace_pattern` autowraps `operator.setitem`, so the call is a node with a result. The banner is now `[kiln-pattern-autowrap/3]` in `evaluate_normalized.py`.
+  - `corpus.expose_inplace_results` also returns `operator.setitem` nodes without users.
+  - `fx_import.import_graph` binds a setitem node to the sentinel `NO_RESULT`. `flatten` records it as `{'none': True}`.
+  - `dispatch.count_outputs` counts it as 0, and `restore_outputs` returns `None` for it.
+- **Checks:** `scratchpad/coverage-fix/t170.py` runs the new pattern, the Dynamo capture (CPU), the matcher, and then upstream `_replace_pattern` with `FixedPatternReplacementPass._make_multi_output_replacement` and `replacement_core_decorator`. The KILN-008 compile gate ran on task 170 (`scratchpad/coverage-fix/gate170`). The numerics check against eager CPU used a copy of `numerics.py` (`coverage-fix-v1/numerics.py`) that skips `{'none': True}` slots.
+- **Tests:** `test_pass_generation.test_slice_assignment_is_returned_and_matches` (Dynamo capture on CPU, one match, two returning nodes, one placeholder) and `test_slice_assignment_is_a_valueless_program_output` (`translate_graph` structure, `count_outputs`, `restore_outputs`).
+
+### Why
+- **29 cannot be fixed in the generator.** The recompile is caused by a global side effect of the source program that lies outside the matched subgraph. Both compilations see the same computation and apply the same rule. The only generator-side way to avoid the recompile is to drop the source's `set_grad_enabled(False)`, which would change the program's observable global state. I did not do that.
+- **Returning the write, not computing it.** FX codegen binds a setitem node to its receiver (`clone[...] = 0; setitem = clone`), but at run time `operator.setitem` returns `None`, and in the captured graph the node has no users. Returning the receiver from the Kiln program would add a tensor write for a value nobody reads. A valueless slot `{'none': True}` costs nothing. Upstream's replacement code then binds the (unused) target setitem to a dead `getitem`.
+- **A new protocol banner.** Only patterns that call `kiln_setitem` by name are traced differently. Every older rule spells slice assignment as `x[i] = v` or not at all, and traces exactly as under `/2`. The replay log should still say which tracer produced the match.
+
+### What worked
+- **29, recompile confirmed** (`coverage-fix-v1/family29-recompile.log`):
+  ```
+  [PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+  ... [0/1] [__recompiles] Recompiling function forward in .../TinyLlama-1.1B-Chat-v0.4_start3_end24_1/model.py:6
+  ... [0/1] [__recompiles]     triggered by the following guard failure(s):
+  ... [0/1] [__recompiles]     - 0/0: GLOBAL_STATE changed: grad_mode
+  [PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+  ```
+  `pass_bench/torch/test_compiler.py` `test_single_model` runs the compiled model first: `compiled_bench.warmup()` (grad on at the first call), then the trials. The source's `_set_grad_enabled = torch.set_grad_enabled(False)` turns grad off for every later call.
+- **The discrepancy with 658 is explained.** `658-cuda-capture.py` calls the compiled model once (`torch.compile(...)(*inputs)`), so it sees one compilation and one match.
+- **170, fixed pattern:** one match with 2 returning nodes on the Dynamo graph. The upstream replacement applies (`replaced 1`), and the rewritten graph runs and returns one `[1, 1, 21, 21]` tensor.
+- **170 gate and numerics:**
+  - compile gate `170 3/3` (internal reference check on);
+  - every manifest structure is `{'tuple': [{'output': 'out0'}, {'none': True}]}`;
+  - numerics against eager CPU: exact on all 3 graphs (`coverage-fix-v1/numerics-170.json`).
+- **Suites:** `npm test`: all 62 passed (exit 0). `pytest -q`: 220 passed, 7 subtests passed (exit 0).
+
+### What didn't work
+- **The first bling run failed before evaluation.** `FileNotFoundError: [Errno 2] No such file or directory: '/work/results/task-029/corpus/manifest.json'` from `_kiln_generated_runtime.py` line 2 (`DISPATCH=CorpusDispatch('/work/results/task-029/corpus',...)`). The generated runtime has the staged absolute path; I renamed `orig/` to `results/`.
+- **The diagnostic run itself ends in `Compiled model execution failed: Environment fluctuation detected. IQR/median = 55.1% (threshold: 20%)`.** That is with 3 trials, where the first trial includes warm caches (0.39 ms vs 0.17 ms). It is an artifact of my reduced trial count, not of the graph. The same check is what family 34's single `Eager model execution failed` reports (Step 14).
+- **The old 170 rule, reproduced on CPU** (`t170old.py`):
+  ```
+  File ".../torch/fx/passes/utils/matcher_utils.py", line 376, in <listcomp>
+    match.nodes_map[pn] for pn in self.pattern_placeholder_nodes
+  KeyError: in_0
+  ```
+- **The first `numerics.py` copy asserted that the eager value of the setitem slot is `None`.** It failed on all three graphs (`AssertionError: a returned slice assignment is None in eager PyTorch`): FX codegen binds the node to its receiver tensor. The slot is now skipped, not compared.
+- **A first harness for the replacement used `torch.fx.wrap('fake')` on a script-level function.** The tracer traced into it, and the rewritten graph failed with `AttributeError: 'GraphModule' object has no attribute '_tensor_constant0'`. Using upstream's own `set_g_replacement_func` and `replacement_core_decorator` fixed the harness.
+
+### What I learned
+- **A pattern node that no returned value depends on is invisible to `SubgraphMatcher`.** `match.placeholder_nodes` is built from `nodes_map` after the backward search, so an argument read only by such a node raises `KeyError`, not "no match". `operator.setitem` is impure, so the matcher's dead-code assertion does not catch it.
+- **Kiln's audit counts `Applied 1 replacements` per graph block, across compilations** (`summarize_task_run.py`: `matches=blocks[index].count('Applied 1 replacements')`, accepted only if `matches==1`). PassBench's own scorer gave 29 a score of 1.018. The `matches==1` rule is Kiln's own audit.
+
+### What was tricky to build
+- **The pattern AST and the importer must agree on the order of the extra returns.** `drop_dead_statements` appends unused in-place names in statement order, and `expose_inplace_results` appends nodes in graph order. Setitem statements now join both lists in the same way, so `output_permutation` lines them up. The importer emits a valueless leaf rather than a Kiln output, so `count_outputs` must not count it. Otherwise `CorpusDispatch`'s conflict check between variants would compare unequal output counts.
+
+### What warrants a second pair of eyes
+- **Family 29's acceptance.** Every graph is correct at −5, with one match per compilation and two compilations, caused by the source's `set_grad_enabled(False)`. Whether the audit should count matches per compilation (it would accept 29, 11/11) is a protocol decision for the coordinator. I did not change `summarize_task_run.py`.
+- **`{'none': True}`** is a new output-structure leaf. `check_corpus_cuda.check_structure` and other checkers compare against the source model's outputs, which do not include exposed in-place results anyway. That is an existing limitation, and it is unchanged here.
+
+### What should be done in the future
+- If the protocol keeps `matches==1` per graph, family 29 stays unaccepted for a reason outside Kiln. Otherwise, count matches per backend invocation in `summarize_task_run.py`.
+
+### Code review instructions
+- `integrations/passnet/generate_pass.py`: `SETITEM`, `inplace_call`, `PreserveInPlace.visit_Assign`. `fx_normalize.trace_pattern` (autowrap list). `corpus.expose_inplace_results`. `fx_import.NO_RESULT` and `flatten`. `dispatch.count_outputs` / `restore_outputs`.
+- Run `(cd integrations/passnet && python3 -m pytest -q test_pass_generation.py)`.
+
+### Technical details
+- Evidence: `ttmp/2026/11/01/integration-evidence-kiln-006-011/coverage-fix-v1/`: `family29-recompile.log` (bling, evaluator image, `TORCH_LOGS=recompiles,graph_breaks`), `run1.sh`, `numerics.py`, `numerics-170.json`.
+- The new 170 pattern ends `kiln_setitem_0 = kiln_setitem(tmp_10, (slice(None, None, None), slice(None, None, None), slice(None, None, None), slice(None, 21, None)), tmp_17)` ... `return (tmp_22, kiln_setitem_0)`.

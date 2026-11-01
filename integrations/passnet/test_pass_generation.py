@@ -102,6 +102,54 @@ class PatternExtractionTests(unittest.TestCase):
             self.assertEqual(kind,'tuple');self.assertEqual(len(leaves),len(extract_pattern(self.FAMILY_162,2).returns))
             self.assertEqual(result['input_mutations'],[])
 
+    # coverage family 170 (OPT causal mask): a slice assignment whose value is the only path from an argument
+    # (in_0) to the write; the write itself has no users. Before kiln-pattern-autowrap/3 the matcher's backward
+    # search from the returned value never reached in_0 (KeyError: in_0 in SubgraphMatcher.match).
+    FAMILY_170=('import torch\nclass GraphModule(torch.nn.Module):\n def forward(self,in_0):\n'
+                '  tmp_1 = torch.full((4, 4), fill_value = -1.0, dtype = torch.float32)\n'
+                '  tmp_2 = tmp_1[(None, None, slice(None, None, None), slice(None, None, None))]\n'
+                '  tmp_3 = tmp_2.clone();  tmp_2 = None\n'
+                '  tmp_4 = in_0[(slice(None, None, None), None, None, slice(None, None, None))];  in_0 = None\n'
+                '  tmp_5 = tmp_3[(slice(None, None, None), slice(None, None, None), slice(None, None, None), slice(None, 4, None))]\n'
+                '  tmp_6 = tmp_5.masked_fill(tmp_4 == 0, -2.0);  tmp_5 = None\n'
+                '  tmp_3[(slice(None, None, None), slice(None, None, None), slice(None, None, None), slice(None, 4, None))] = tmp_6;  setitem = tmp_3;  tmp_6 = setitem = None\n'
+                '  tmp_7 = tmp_3.mul(2.0);  tmp_3 = None\n'
+                '  return (tmp_7,)\n')
+
+    def test_slice_assignment_is_returned_and_matches(self):
+        from torch.fx.passes.utils.matcher_utils import SubgraphMatcher
+        from fx_normalize import trace_pattern,normalize_arguments
+        pattern=extract_pattern(self.FAMILY_170,1)
+        self.assertIn('kiln_setitem_0 = kiln_setitem(tmp_3, ',pattern.text);self.assertIn('return (tmp_7, kiln_setitem_0)',pattern.text)
+        self.assertIn('from operator import iadd as kiln_iadd, setitem as kiln_setitem',pattern.text)
+        self.assertEqual(pattern.args,['in_0']);self.assertEqual(len(pattern.returns),2);self.assertIn('_operator.setitem',pattern.key)
+        namespace={};exec(compile(pattern.text,'<pattern>','exec'),namespace)
+        traced=trace_pattern(namespace['pattern']);normalize_arguments(traced)
+        matcher=SubgraphMatcher(traced.graph,match_output=False,match_placeholder=False,remove_overlapping_matches=True,ignore_literals=False)
+        namespace={};exec(compile(self.FAMILY_170,'<model>','exec'),namespace);graphs=[]
+        torch._dynamo.reset()
+        torch.compile(namespace['GraphModule'](),backend=lambda gm,example:(graphs.append(gm),gm.forward)[1],dynamic=False,fullgraph=True)(torch.zeros(1,4,dtype=torch.int64))
+        target=graphs[0];normalize_arguments(target)
+        self.assertTrue(any(n.target is __import__('operator').setitem and not n.users for n in target.graph.nodes))
+        matches=matcher.match(target.graph)
+        self.assertEqual(len(matches),1);self.assertEqual(len(matches[0].returning_nodes),2)
+        self.assertEqual(len(matches[0].placeholder_nodes),1)
+
+    def test_slice_assignment_is_a_valueless_program_output(self):
+        import tempfile
+        from pathlib import Path
+        from corpus import translate_graph
+        from dispatch import count_outputs,restore_outputs
+        with tempfile.TemporaryDirectory() as temporary:
+            graph=Path(temporary)/'g';graph.mkdir()
+            (graph/'model.py').write_text(self.FAMILY_170)
+            (graph/'input_meta.py').write_text('class Meta0:\n name="in_0"\n shape=[1,4]\n dtype="torch.int64"\n')
+            (graph/'weight_meta.py').write_text('')
+            result=translate_graph(Path(temporary),'g','fake')
+            self.assertEqual(result['output_structure'],{'tuple':[{'output':'out0'},{'none':True}]})
+            self.assertEqual(count_outputs(result['output_structure']),1)
+            self.assertEqual(restore_outputs(result['output_structure'],{'out0':'value'},()),('value',None))
+
     def test_rebound_unused_inplace_result_is_refused(self):
         source='import torch\nclass GraphModule(torch.nn.Module):\n def forward(self,x):\n  t = x * 2\n  r = t.relu_()\n  r = t + 1\n  return (r,)\n'
         with self.assertRaisesRegex(ValueError,'rebound later'):extract_pattern(source,1)

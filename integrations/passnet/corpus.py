@@ -104,7 +104,7 @@ def eliminate_dead_code(graph):
     """
     import operator
     # operator.setitem (x[i] = v, traced by KILN-010's MutationProxy) is a write with no result: it is kept
-    # here like an in-place call, but it is not inplace_node, so expose_inplace_results never returns it.
+    # here like an in-place call, and expose_inplace_results returns its (None) result.
     order={node:i for i,node in enumerate(graph.nodes)}
     views={'view','reshape','permute','transpose','expand','expand_as','view_as','unsqueeze','squeeze','flatten','t',
            'contiguous','narrow','select','unfold','detach','as_strided','movedim','swapaxes','unflatten','split','chunk'}
@@ -142,9 +142,12 @@ def expose_inplace_results(graph):
     eliminate_dead_code keeps such a call for its effect. The generated match pattern returns
     the same values (generate_pass.drop_dead_statements), because the matcher rejects a
     pattern node without users, so the compiled program must return them too, in graph order.
+    A slice assignment (operator.setitem) is returned the same way: the pattern returns it so
+    that the matcher reaches it; its value is None, which the importer records as {'none': True}.
     -> the exposed nodes
     """
-    exposed=[node for node in graph.nodes if inplace_node(node) and not node.users]
+    import operator
+    exposed=[node for node in graph.nodes if (inplace_node(node) or node.op=='call_function' and node.target is operator.setitem) and not node.users]
     if exposed:
         output=next(node for node in graph.nodes if node.op=='output')
         value=output.args[0]
