@@ -1103,3 +1103,64 @@ With both fixed, every bf16 and f32 graph matches eager bit for bit, in a single
 ### Technical details
 - Evidence: `coverage-fix-v1/probe-zero-dim.{py,log,json}`, `probe-dnlnet.py`, `probe-dnlnet-4dd38ba.log` (replay corpus, source `4dd38ba`), `probe-dnlnet-fixed.log` (fixed tree, all 6 graphs), `zero-dim-cast-scan.json`, `low-precision-constant-scan.json`, `scan-*.py`, `stage-task.sh`.
 - Protocol constant: `CALLS = 20 + 100 + 1` (warmup, trials, final output call), as in `PerformanceMeasurer.warmup/exec`.
+
+## Step 16: Coverage fix, part 4: gates, single-graph evaluator checks and the frozen re-replay plan
+
+I froze the fixed families into a re-replay plan after the two required gates, both on the committed tree `26243a3`: the CPU compile gate and the CUDA-capture 658 on bling. Two families qualify: 170 (3 graphs) and 40 (6 graphs). The plan is 2 tasks and 9 graphs, frozen but not launched. Before freezing, I ran the original evaluator (the `run_task.py` command line) on single graphs. All three 170 graphs pass with one replacement each. A bf16 DNLNet graph is bit-exact under the full warmup-20/trials-100 protocol. An f16 DNLNet graph fails at every tolerance, as Step 15 predicted.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 13.
+
+**Assistant interpretation:** Freeze a re-replay plan of the fixed families, with the coverage-wave plan's header, only after the CPU compile gate and the CUDA-capture 658 pass; do not launch it.
+
+**Inferred user intent:** The coordinator stages one small, pre-qualified replay.
+
+**Commit (code):** none (plan, evidence and diary). Code at `26243a3`.
+
+### What I did
+- **CPU compile gate:** `ttmp/2026/11/01/KILN-008-*/scripts/03-local-compile-gate-scan.py --upstream UPSTREAM --output scratchpad/coverage-fix/gate-final 170 40` (internal reference check on, `--matmul-precision highest`). Result: `coverage-fix-v1/compile-gate.json`.
+- **CUDA-capture 658:**
+  - rsynced the committed tree to `~/passnet-kiln/coverage-fix/kiln-fix` and copied `coverage-sim658-gpu-v1/658-cuda-capture.py` to its repository path there (the script resolves the repository as `parents[6]`);
+  - ran it once per task (`--task 40`, `--task 170`) in the evaluator image against the candidate plan. Results: `coverage-fix-v1/sim-fix-040-simulation.json`, `sim-fix-170-simulation.json`.
+- **Evaluator checks:**
+  - `stage-task.sh 170 …` (fixed tree: export, generate, compile with the plan's settings);
+  - `run1.sh` (now taking `KILN`, `WARMUP`, `TRIALS`) on all three 170 graphs (warmup 5, trials 20);
+  - DNLNet graphs 2 (bf16 [2, 4096, 4096]) and 3 (f16 [12, 4096, 4096]) with warmup 20 / trials 100, the replay's protocol.
+
+  Logs: `e2e-170-{0,1,2}.log`, `e2e-040-{2,3}.log`.
+- **Plan:** `ttmp/2026/10/30/KILN-005-*/sources/coverage-fix-replay-v1/plan.json`. The header is copied from `coverage-wave-replay-v1/plan.json` (format, nominal tolerance −5, target, hardware, contraction separate, skip internal check, tf32, `import_census_sha256`, mutation strategy auto), with a new `band`/`selection`. Tasks are copied from the old plan after recomputing each `graph_list_sha256` from `upstream/<sample>/graph_list.txt`.
+- **Evidence:** `coverage-fix-v1/SHA256SUMS` (30 files).
+
+### Why
+- **40 is in the plan although the family cannot be accepted.** Its four bf16/f32 graphs are the measurement of the Step 15 fix in the real evaluator. The plan's `selection` says that the two f16 graphs fail for every compiler.
+- **29, 22, 44, 124 and 34 are not in the plan.** No code changed their outcome; replaying them would measure the same thing again (Steps 13–14).
+- **`import_census_sha256` is unchanged.** The fixes change scripts, not import coverage: the zero-dim scan imports all 2058 importable census graphs, the same count as `census-v2`.
+
+### What worked
+- **Compile gate:** `170 3/3`, `40 6/6` (8.1 s wall, 748 MB maximum RSS).
+- **658 (CUDA capture, GB10):** `40 6/6 identity ok; 1 rules`, `170 3/3 identity ok; 3 rules`. Every record has `matches: 1` and `rule_errors: {}`; 170's graphs apply their own specializations 0, 1 and 2. Step 12's run had `170 0/3` with `KeyError: in_0`.
+- **Evaluator, 170:** every graph prints `[kiln-pattern-autowrap/3] ...`, `Applied 1 replacements with KilnPattern000{0,1,2}`, `[Correctness][equal]: 1`, and `[Result] status: success`.
+- **Evaluator, DNLNet bf16 [2, 4096, 4096]** (full protocol): `[Correctness][equal]: 1` and every allclose 1. **DNLNet f16 [12, 4096, 4096]:** `[equal]: 0` and every allclose 0, including `all_close_atol_1.00E+01_rtol_3.98E+00`.
+- **Plan:** 2 tasks (40: 6 graphs, `08e69568…`; 170: 3 graphs, `11f07040…`), 9 graphs. `plan.json` sha256 `39a00cbf72419ce56f1374500f3695d6ded442752ad6cbaa60b9b6075b92f3a8`.
+
+### What didn't work
+- No failures in this step.
+
+### What I learned
+- **A single-graph evaluator run is the fastest whole-protocol check of a fix.** It runs the real pattern tracer banner, replacement, dispatch and PassBench comparison, at the cost of one graph's evaluation, and with no replay accounting.
+
+### What was tricky to build
+- **Two Kiln trees on bling.** The staged study's `kiln/` (source `4dd38ba`) reproduces the replay's artifacts. `kiln-fix/` is the fixed tree. The generated runtime bakes its corpus path into `_kiln_generated_runtime.py`, so each tree's corpora live where they were generated (`results/…` and `fix/…`).
+
+### What warrants a second pair of eyes
+- **The expected replay outcome:** 170 3/3 (accepted); 40 4/6 graphs (the bf16/f32 graphs), family not accepted. A different 40 result would mean the evaluator's input draws matter more than the probe showed.
+
+### What should be done in the future
+- The coordinator stages and runs `coverage-fix-replay-v1`, then decides on 29's match counting (Step 13) and on the evaluator's low-precision contraction tolerance (Step 14).
+
+### Code review instructions
+- Recompute: `sha256sum ttmp/2026/10/30/KILN-005-*/sources/coverage-fix-replay-v1/plan.json`; `(cd ttmp/2026/11/01/integration-evidence-kiln-006-011/coverage-fix-v1 && sha256sum -c SHA256SUMS)`.
+
+### Technical details
+- Bling working directory: `~/passnet-kiln/coverage-fix/` (`upstream/`, `kiln/` from the staged study, `kiln-fix/`, `results/` replay copies, `fix/` fixed corpora). Container outputs were chowned in the container after each run.

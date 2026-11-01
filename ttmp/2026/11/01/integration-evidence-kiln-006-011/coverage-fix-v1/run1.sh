@@ -1,12 +1,12 @@
 #!/bin/bash
-# usage: run1.sh TASKDIR GRAPHINDEX LOG  (inside container, cwd /work)
+# usage: run1.sh TASKDIR GRAPHINDEX LOG  (inside container, cwd /work; KILN=/work/kiln by default, WARMUP/TRIALS 2/3)
 set -u
-T=$1; I=$2; LOG=$3
+T=$1; I=$2; LOG=$3; export KILN=${KILN:-/work/kiln} WARMUP=${WARMUP:-2} TRIALS=${TRIALS:-3}
 python3 - "$T" "$I" "$LOG" <<'PY'
-import sys,json,base64,subprocess
+import sys,json,base64,subprocess,os
 from pathlib import Path
 T=Path(sys.argv[1]).resolve();I=int(sys.argv[2]);log=Path(sys.argv[3])
-sys.path.insert(0,'/work/kiln/integrations/passnet')
+K=os.environ['KILN'];sys.path.insert(0,K+'/integrations/passnet')
 from corpus import read_manifest
 m=read_manifest(T/'corpus');rec=m['variants'][I]
 empty=T/'empty-passes';empty.mkdir(exist_ok=True)
@@ -17,8 +17,8 @@ sys.path[:0]=sys.argv[1:5]
 sys.argv=sys.argv[5:]
 runpy.run_path(sys.argv[0],run_name="__main__")
 '''
-up=Path('/work/upstream');integ=Path('/work/kiln/integrations/passnet')
-cmd=[sys.executable,'-c',BOOT,'/work/kiln/runtime/python',str(integ),str(up),str(T/'passes'),str(integ/'evaluate_normalized.py'),'--model-path',str(up/rec['graph']),'--compiler','pass_mgr','--device','cuda','--warmup','2','--trials','3','--config',enc]
+up=Path('/work/upstream');integ=Path(K+'/integrations/passnet')
+cmd=[sys.executable,'-c',BOOT,K+'/runtime/python',str(integ),str(up),str(T/'passes'),str(integ/'evaluate_normalized.py'),'--model-path',str(up/rec['graph']),'--compiler','pass_mgr','--device','cuda','--warmup',os.environ['WARMUP'],'--trials',os.environ['TRIALS'],'--config',enc]
 with log.open('w') as f: r=subprocess.run(cmd,stdout=f,stderr=subprocess.STDOUT,cwd=up)
 print(rec['graph'],r.returncode)
 PY

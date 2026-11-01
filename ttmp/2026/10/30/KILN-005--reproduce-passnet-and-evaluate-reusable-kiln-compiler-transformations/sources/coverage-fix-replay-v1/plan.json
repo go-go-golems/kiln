@@ -1,0 +1,27 @@
+{
+  "format": "kiln-task-plan/1",
+  "band": "coverage-fix-replay",
+  "selection": "Integration Steps 13-15 coverage fix (integration/kiln-006-011): the coverage-wave families whose replay failure had a Kiln cause that is now fixed. 170: slice assignments are returned from match patterns (kiln-pattern-autowrap/3). 40 (DNLNet): 0-d CUDA operands convert to the common dtype and float16/bfloat16 constants hold rounded values; its two float16 graphs stay unacceptable (the shared input overflows to inf during the compiled phase; eager is all-NaN too), so the family is replayed for its four bf16/f32 graphs. Not included: 29 (one match per compilation; a grad_mode recompile gives two), 22/44/124/34 (vendor contraction rounding; Step 14). Passed the CPU compile gate (internal reference check on) and the CUDA-capture matcher simulation (658-cuda-capture.py) on GB10.",
+  "nominal_tolerance": -5,
+  "target": "a100",
+  "hardware": "NVIDIA GB10; modified FX matching integration protocol",
+  "contraction": "separate",
+  "skip_internal_reference_check": true,
+  "matmul_precision": "tf32",
+  "import_census_sha256": "90d4444129a6a0b1e74679c7342a08156bb2578e0fa3b678bee1a452a9b4c33a",
+  "mutation_strategy": "auto",
+  "tasks": [
+    {
+      "index": 40,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/7e/23/7e239f09d33d09349e638749346c9e943c78a48910917c0efc365199f657302e",
+      "graphs": 6,
+      "graph_list_sha256": "08e695681c770360db528a2104257f15143413843870ec151e725fb70346e8b9"
+    },
+    {
+      "index": 170,
+      "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/46/3a/463aa6d19f787acb2f6e59ac1c02516e19b00d34684d958ac50d1d92b2547cc2",
+      "graphs": 3,
+      "graph_list_sha256": "11f07040c187462432a8115cabac62a60083827e90704142133f1f73c5deda94"
+    }
+  ]
+}
