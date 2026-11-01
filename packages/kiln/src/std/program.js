@@ -8,6 +8,7 @@ import { toCuda, toWgsl, wgslUnavailableReason, toSim, SimMetrics } from "./emit
 import { printKernelBody } from "./kernel.js";
 import { schedule, compilePoint, workOf } from "./loop.js";
 import { timeModel, regsEstimate } from "./tile.js";
+import { roundOperand } from "./mma.js";
 
 export const gpu = k.dialect("gpu").describe("the final IR: kernels with their rendered sources")
   .op("kernel", {
@@ -54,6 +55,14 @@ export function kernelInputs(kern, seed = 1) {
     return d;
   });
 }
+// A tensor-core kernel (K.mma, KILN-006) is legal only because its A and B inputs arrive in the operand format: from a
+// round_tf32 producer, or from f16/bf16 storage. Seeded inputs are uniform FP32 values, so a check of the kernel in
+// isolation rounds those two inputs to the format the graph delivers them in; the reference sees the same values.
+export function operandInputs(kern, ins) {
+  const mm = kern.K?.mma;
+  if (!mm) return ins;
+  return ins.map((d, j) => (j === mm.a || j === mm.b ? Float32Array.from(d, (x) => roundOperand(x, mm.operand)) : d));
+}
 // reference values at chosen output indices, from the Loop IR semantics
 export function referenceAt(kern, inputs, idx) {
   const f = compilePoint(schedule(kern.expr, kern.shape), kern.inShapes);
@@ -68,11 +77,11 @@ export function sampleIndices(n, count = 384, seed = 3) {
 
 // ----------------------------------------------------------------------------- the simulator
 const SIMS = new WeakMap();
-function simFor(K, instrument) {
+function simFor(K, instrument, mmaOrder = "sequential") {
   let c = SIMS.get(K);
   if (!c) { c = {}; SIMS.set(K, c); }
-  const key = instrument ? "i" : "p";
-  return (c[key] ||= toSim(K, { instrument }));
+  const key = (instrument ? "i" : "p") + "|" + mmaOrder;
+  return (c[key] ||= toSim(K, { instrument, mmaOrder }));
 }
 export function sampleBlocks(G, count = 12) {
   if (G <= count) return Array.from({ length: G }, (_, i) => i);
@@ -80,7 +89,8 @@ export function sampleBlocks(G, count = 12) {
   for (let i = 1; out.size < count; i++) out.add(Math.floor((i * G) / count));
   return [...out].sort((a, b) => a - b);
 }
-export function simulateKernel(kern, target, { seed = 1, blocks = null } = {}) {
+// mmaOrder: the FP32 accumulation order the emulated tensor-core atoms use (mma.js ORDERS)
+export function simulateKernel(kern, target, { seed = 1, blocks = null, mmaOrder = "sequential" } = {}) {
   // sample enough blocks to see the pattern, but bound the simulated work (~6M ops) so heavy kernels stay interactive
   if (blocks == null) {
     let per = 0;
@@ -89,10 +99,10 @@ export function simulateKernel(kern, target, { seed = 1, blocks = null } = {}) {
     blocks = Math.max(per > 2.5e7 ? 1 : 2, Math.min(12, Math.ceil(4096 / kern.K.block), byWork));
   }
   const K = kern.K;
-  const ins = kernelInputs(kern, seed);
+  const ins = operandInputs(kern, kernelInputs(kern, seed));
   const out = new Float32Array(numel(kern.shape)).fill(NaN);
   const M = new SimMetrics(K.block, out.length);
-  const run = simFor(K, true);
+  const run = simFor(K, true, mmaOrder);
   const list = sampleBlocks(K.grid, blocks);
   const t0 = performance.now();
   run([...ins, out], list, M);
@@ -107,15 +117,17 @@ export function simulateKernel(kern, target, { seed = 1, blocks = null } = {}) {
   check.n = pick.length;
   if (M.oobs.length) check.ok = false, check.message = `out-of-bounds ${M.oobs[0].what} (address ${M.oobs[0].a}); ` + check.message;
   if (M.badSyncs.length) check.ok = false, check.message = "a barrier runs in divergent code; " + check.message;
+  if (M.badMmas.length) check.ok = false, check.message = `${M.badMmas[0].message}; ` + check.message;
   return { metrics: metricsOf(kern, M, target, list.length), check, simMs };
 }
-export function regsOf(K) { return Math.min(255, regsEstimate(K.map, K.floats.length / 2)); }
+export function regsOf(K) { return Math.min(255, regsEstimate(K.map, K.floats.length / 2, K.mma?.op)); }
 export function metricsOf(kern, M, t, nb) {
   const K = kern.K, scale = K.grid / Math.max(1, nb);
   const traffic = (M.ldSect + M.stSect) * 32 * scale;
   const uniq = kern.bytes;
   const dram = Math.min(traffic, Math.max(uniq, traffic * (uniq > t.l2MB * 1048576 ? 0.6 : 0.12)));
   const counts = { flops: M.flops * scale, traffic, dram, smemWavefronts: M.shWave * scale, warpInstr: M.warpInstr * scale, threads: K.block, blocks: K.grid, smem: K.smemBytes, regs: regsOf(K) };
+  if (M.tensorFlops) Object.assign(counts, { tensorFlops: M.tensorFlops * scale, tensorTflops: t.mma?.[K.mma?.operand] ?? t.peakTflops });
   const tm = timeModel(counts, t);
   return {
     ...counts, ...tm,

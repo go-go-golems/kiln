@@ -5,6 +5,8 @@
 // statements:  let {n, e} · iset {n, e:Ix} · load {n, buf, idx} · store {buf, idx, e}
 //              sload {n, arr, idx} · sstore {arr, idx, e} · sync · for {v, from, to, step, body}
 //              if {c:Ix, body} · note {text}
+//              mma {op, acc:[4 names], a:[aElems names], b:[bElems names]}   acc ← A·B + acc, warp-collective
+//                  (KILN-006; op is a key of mma.js MMA_OPS; every name is an f32 temporary holding one element)
 // float expressions: {k:"num", v} · {k:"var", n} · {k:"op", fn, a:[…]}
 import { k, P, KilnError } from "../core/kiln.js";
 import { numel, strides, hash, inKey, dtypeBytes } from "../core/util.js";
@@ -30,6 +32,8 @@ export class KB {
   sstore(arr, idx, e) { this.push({ s: "sstore", arr, idx: IX.lift(idx), e }); }
   sync() { const last = this.cur[this.cur.length - 1]; if (last?.s !== "sync") this.push({ s: "sync" }); }
   note(text) { this.push({ s: "note", text }); }
+  // warp-collective: all 32 lanes of every warp that reaches it must be active (the simulator checks)
+  mma(op, acc, a, b) { for (const n of acc) this.floats.add(n); this.push({ s: "mma", op, acc: [...acc], a: [...a], b: [...b] }); }
   for(v, from, to, step, fn) {
     const st = this.push({ s: "for", v, from: IX.lift(from), to: IX.lift(to), step: IX.lift(step), body: [] });
     const prev = this.cur; this.cur = st.body; fn(V(v)); this.cur = prev;
@@ -291,6 +295,10 @@ function valueTypes(body, params, name) {
         const t = typeOf(s.e) ?? "f32", prev = smem.get(s.arr);
         if (prev && prev !== t) refuse(`shared array ${s.arr} holds both ${prev} and ${t} values`);
         smem.set(s.arr, t);
+      } else if (s.s === "mma") {
+        // fragments and accumulators are f32 temporaries: an integer value in an mma is a materializer bug
+        for (const n of [...s.a, ...s.b]) { const t = types.get(n); if (t && t !== "f32") refuse(`mma operand ${n} is a ${t} value`); }
+        for (const n of s.acc) assign(n, "f32");
       } else if (s.s === "store") {
         const t = typeOf(s.e), o = value(out.dtype || "f32");
         if (t !== null && t !== o) refuse(`store of a ${t} value into ${out.dtype || "f32"} storage`);
@@ -346,6 +354,7 @@ export function printKernelBody(K, args = []) {
         case "note": lines.push(`${pad}# ${s.text}`); break;
         case "for": lines.push(`${pad}for ${s.v} = ${ix(s.from)}; ${s.v} < ${ix(s.to)}; ${s.v} += ${ix(s.step)}:`); walk(s.body, pad + "    "); break;
         case "if": lines.push(`${pad}if ${ix(s.c)}:`); walk(s.body, pad + "    "); break;
+        case "mma": lines.push(`${pad}mma.${s.op} {${s.acc.join(", ")}} += {${s.a.join(", ")}}·{${s.b.join(", ")}}`); break;
       }
     }
   };

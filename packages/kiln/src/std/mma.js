@@ -22,6 +22,7 @@
 // element 2j in the low half and 2j+1 in the high half (the emitter packs them).
 import { roundTf32 } from "./fns.js";
 import { roundToDtype } from "../core/dtypes.js";
+import * as IX from "../core/ix.js";
 
 const lanes = (fn) => (lane, i) => fn(lane >> 2, lane & 3, i);
 const f16Layout = {
@@ -127,6 +128,20 @@ function tablesOf(opName) {
   t = { op, a, b, c, A: new Float64Array(op.m * op.k), B: new Float64Array(op.k * op.n), C: new Float64Array(op.m * op.n) };
   TABLES.set(opName, t);
   return t;
+}
+
+/**
+ * A fragment coordinate as Kernel IR index arithmetic on a lane expression: which ∈ "a" | "b" | "c", slot e →
+ * [row, col] as Ix over g = lane / 4 and t = lane % 4. Derived from the numeric layout above (each coordinate is
+ * affine in g and t for a fixed slot; checked over all 32 lanes), so the table stays the only definition.
+ */
+export function fragmentIx(opName, which, e, lane) {
+  const fn = which === "c" ? accLayout : mmaOp(opName)[which];
+  const at = (g, t) => fn(g * 4 + t, e);
+  const c0 = at(0, 0), cg = at(1, 0).map((v, j) => v - c0[j]), ct = at(0, 1).map((v, j) => v - c0[j]);
+  for (let l = 0; l < 32; l++) at(l >> 2, l & 3).forEach((v, j) => { if (v !== c0[j] + cg[j] * (l >> 2) + ct[j] * (l & 3)) throw new TypeError(`${opName} ${which} slot ${e} is not affine in (g, t)`); });
+  const L = IX.lift(lane), g = L.div(4), t = L.mod(4);
+  return c0.map((c, j) => IX.C(c).add(g.mul(cg[j])).add(t.mul(ct[j])));
 }
 export const layoutTables = (opName) => { const { a, b, c } = tablesOf(opName); return { a, b, c }; };
 

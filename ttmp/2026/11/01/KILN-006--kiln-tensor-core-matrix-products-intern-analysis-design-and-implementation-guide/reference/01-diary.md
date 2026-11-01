@@ -326,3 +326,56 @@ Coordinator brief (relayed, not user-authored): implement KILN-006 (tensor-core 
 ### Technical details
 - `runAtom` returns `null` or the first violation `{ lane, operand: "A"|"B", slot, value }`; NaN counts as representable.
 - `mmaSmemLayout` picks `pad ∈ {0, 4, 8}` minimizing the summed per-slot bank-conflict degree of one k-step's fragment reads; ties go to the smaller pad. TF32 `BK=8` → `padA = 4` (stride 12, conflict-free; stride 8 is 2-way).
+
+## Step 7: Phase 2 — the warp-collective `mma` statement through Kernel IR, CUDA, WGSL and the simulator
+
+I added the one new Kernel IR statement, `mma {op, acc, a, b}`, and taught every consumer of Kernel IR about it: `KB.mma`, `valueTypes`, `printKernelBody` (kernel.js); `toCuda`, `wgslUnavailableReason`, `toSim` and `SimMetrics` (emit.js); and the checking path in program.js (`simulateKernel`, `metricsOf`, `regsOf`, a new `operandInputs`). A handwritten two-warp kernel per op (`test/mma-kernel-ir.mjs`) runs through the simulator and matches `atomReference` bit for bit, its CUDA text has the expected PTX and constraint list, WGSL refuses it, and a partial warp and an unrepresentable operand are both reported. The full suite passed (50 files).
+
+### Prompt Context
+**User prompt (verbatim):** see Step 6.
+**Assistant interpretation:** Phase 2 of the guide: statement and emitters, tested on a handwritten body.
+**Inferred user intent:** A simulable, emit-able tensor-core primitive that the materializer (Phase 3) and later KILN-007 can target.
+**Commit (code):** the commit following this entry — "KILN-006 Phase 2: warp-collective mma statement in Kernel IR, CUDA, WGSL and the simulator".
+
+### What I did
+- kernel.js: statement documented in the header; `KB.mma(op, acc, a, b)` registers the accumulators as floats; `valueTypes` refuses a non-f32 fragment and types accumulators f32; printer line `mma.<op> {acc…} += {a…}·{b…}`.
+- emit.js: `mmaOpsOf(body)`, `cudaMma(s)` (exported, the single CUDA spelling), `CUDA_PACK` helpers `kiln_pack_f16`/`kiln_pack_bf16` emitted once per kernel when an op needs them, `cuda_fp16.h`/`cuda_bf16.h` included on the same condition; WGSL refusal `tensor-core mma (<op>) has no WGSL lowering`; simulator case that counts active lanes per warp, skips an inactive warp, reports a partial warp, calls `runAtom` (bound into the generated function as `MMA`, with the order as `ORDER`), reports a violation; `toSim(K, { mmaOrder })`; `SimMetrics.mma(flops)` (one warp instruction, `tensorFlops`), `badMma`, `badMmas`.
+- mma.js: `fragmentIx(op, "a"|"b"|"c", slot, lane)` returns the coordinates as `Ix` over `lane/4`, `lane%4`, derived from the numeric table by sampling and verified affine over all 32 lanes, so the materializer never re-states a layout.
+- program.js: `operandInputs(kern, ins)` rounds the kernel's A and B inputs to the operand format when `K.mma` is set; `simulateKernel(…, { mmaOrder })`; the simulator cache key includes the order; a reported `mma` problem fails the check; `metricsOf` passes `tensorFlops` and the target's tensor rate to `timeModel`.
+
+### Why
+- One emulated atom per warp is possible because the simulator already runs a statement for all threads of the block before the next (emit.js:171-173): all 32 lanes' fragments are in the per-thread arrays when the `mma` statement runs.
+- A non-instrumented run (`simulateFull`) has no metrics object, so a violation throws there rather than being silently ignored (`MMAFAIL`).
+- `operandInputs` is the answer to the problem found in Step 6: the kernel is only legal because its producer delivers operand-format values, and an isolated check must model that. Seeded inputs themselves (`kernelInputs`, used for content ids and the workbench job protocol) are unchanged, so no existing record identity moves.
+
+### What worked
+- `node test/mma-kernel-ir.mjs` → "the mma statement simulates as one emulated atom per warp, renders inline PTX, and is refused by WGSL" on the first run. `npm test` → "all 50 passed".
+
+### What didn't work
+- No failures in this step.
+
+### What I learned
+- The C string in `asm volatile` must contain the two characters `\n`; in the JS template that is `\\\\n` inside a Python-written source (escaping twice). The test asserts the exact emitted text, so a wrong escape would be caught.
+
+### What was tricky to build
+- Packing order: `kiln_pack_*(lo, hi)` puts `lo` in `.x`, the low 16 bits, which is where the PTX ISA puts the lower-indexed element of an `.f16x2` register. The materializer's slot order (`e = 2j` low, `2j+1` high) and `MMA_OPS` both follow that convention; the emitter is the only place that knows registers exist.
+
+### What warrants a second pair of eyes
+- Whether NVRTC for `sm_121` accepts the inline asm verbatim (deferred to the coordinator). A sample of the emitted bf16 source is in Technical details.
+- Using `__float_as_uint` for TF32 operands relies on the legality rule (low 13 bits zero). If a future change feeds unrounded values, hardware behavior is unspecified; the simulator would report it.
+
+### What should be done in the future
+- The handwritten kernels of `test/mma-kernel-ir.mjs` are a ready-made Phase 0 layout probe: compile them with NVRTC on GB10, run them on coordinate-encoding inputs and compare with `atomReference`.
+
+### Code review instructions
+- emit.js `cudaMma`, the `case "mma"` of `toSim`; kernel.js `KB.mma`, `valueTypes`; program.js `operandInputs`.
+- `node packages/kiln/test/mma-kernel-ir.mjs`; `cd packages/kiln && npm test`.
+
+### Technical details
+Emitted CUDA for the handwritten bf16 atom (excerpt):
+```cuda
+#include <cuda_bf16.h>
+__device__ __forceinline__ unsigned kiln_pack_bf16(float lo, float hi) { __nv_bfloat162 h = __floats2bfloat162_rn(lo, hi); return *reinterpret_cast<unsigned*>(&h); }
+    a0 = __bfloat162float(src0[((2 * (lane % 4)) + (16 * (lane / 4)))]);
+    asm volatile("mma.sync.aligned.m16n8k16.row.col.f32.bf16.bf16.f32 {%0,%1,%2,%3}, {%4,%5,%6,%7}, {%8,%9}, {%0,%1,%2,%3};\n" : "+f"(c0), "+f"(c1), "+f"(c2), "+f"(c3) : "r"(kiln_pack_bf16(a0, a1)), "r"(kiln_pack_bf16(a2, a3)), "r"(kiln_pack_bf16(a4, a5)), "r"(kiln_pack_bf16(a6, a7)), "r"(kiln_pack_bf16(b0, b1)), "r"(kiln_pack_bf16(b2, b3)));
+```
