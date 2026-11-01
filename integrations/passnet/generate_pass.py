@@ -40,10 +40,15 @@ def drop_dead_statements(function):
     patterns with dead code, and TorchDynamo captures only live nodes, so the pattern
     must be the live computation. An in-place call with an unused result is kept when it
     updates an argument or a value read later (as corpus.eliminate_dead_code keeps it).
+
+    Returns the names bound by those kept in-place statements whose results nothing reads,
+    in statement order. The matcher rejects a pattern node without users as dead code
+    (an in-place call_method is not impure to torch.fx), so extract_pattern returns them,
+    and corpus.expose_inplace_results returns the same nodes from the compiled graph.
     """
     *body,ret=function.body
     arguments={a.arg for a in function.args.args}
-    live={n.id for n in ast.walk(ret) if isinstance(n,ast.Name)};kept=[]
+    live={n.id for n in ast.walk(ret) if isinstance(n,ast.Name)};kept=[];unused=[];bound=set()
     for statement in reversed(body):
         if isinstance(statement,ast.Assign) and isinstance(statement.value,ast.Constant) and statement.value.value is None:
             continue
@@ -51,15 +56,18 @@ def drop_dead_statements(function):
         targets={n.id for t in statement.targets for n in ast.walk(t) if isinstance(n,ast.Name)}
         if targets&live:
             live=(live-targets)|{n.id for n in ast.walk(statement.value) if isinstance(n,ast.Name)}
-            kept.append(statement)
+            kept.append(statement);bound|=targets
         elif inplace_call(statement.value):
             call=statement.value
             receiver=call.func.value if isinstance(call.func,ast.Attribute) and call.func.attr.endswith('_') else call.args[0] if call.args else None
             if not isinstance(receiver,ast.Name):raise ValueError('In-place source statement without a named target')
             if receiver.id in live or receiver.id in arguments:
+                if len(statement.targets)!=1 or not isinstance(statement.targets[0],ast.Name):raise ValueError('In-place source statement must bind one name')
+                if statement.targets[0].id in bound:raise ValueError(f'{statement.targets[0].id}: an unused in-place result is rebound later')
                 live|={n.id for n in ast.walk(call) if isinstance(n,ast.Name)}
-                kept.append(statement)
+                kept.append(statement);unused.append(statement.targets[0].id);bound|=targets
     function.body=[*reversed(kept),ret]
+    return unused[::-1]
 
 
 def extract_pattern(source,arity):
@@ -90,7 +98,13 @@ def extract_pattern(source,arity):
                 raise ValueError('Automatic match tracing currently supports explicit in-place addition only')
             return ast.copy_location(ast.Assign(targets=[node.target],value=ast.Call(func=ast.Name(id='kiln_iadd',ctx=ast.Load()),args=[ast.Name(id=node.target.id,ctx=ast.Load()),self.visit(node.value)],keywords=[])),node)
     function=PreserveAdd().visit(function)
-    drop_dead_statements(function)
+    unused=drop_dead_statements(function)
+    if unused:
+        # return kept in-place results too, after the source's own returns (Decision 7.7 of KILN-009)
+        returned=returns[0].value
+        elements=list(returned.elts) if isinstance(returned,ast.Tuple) else [returned]
+        returns[0].value=ast.Tuple(elts=elements+[ast.Name(id=name,ctx=ast.Load()) for name in unused],ctx=ast.Load())
+        singleton=False
     imports=[ast.ImportFrom(module='operator',names=[ast.alias(name='iadd',asname='kiln_iadd')],level=0)]+[copy.deepcopy(n) for n in tree.body if isinstance(n,(ast.Import,ast.ImportFrom))]
     module=ast.fix_missing_locations(ast.Module(body=imports+[function],type_ignores=[]))
     text=ast.unparse(module)+'\n';namespace={};exec(compile(module,'<trusted-passnet-pattern>','exec'),namespace)

@@ -56,6 +56,7 @@ def translate_graph(upstream, graph, metadata_mode, *, input_order=None):
         raise ValueError(f'{graph}: duplicate input metadata')
     traced = trace_module(model)
     eliminate_dead_code(traced.graph)
+    expose_inplace_results(traced.graph)
     if input_order is not None:
         from torch.fx import Graph,GraphModule
         placeholders=[n for n in traced.graph.nodes if n.op=='placeholder']
@@ -101,17 +102,38 @@ def eliminate_dead_code(graph):
     capture it). An in-place call with an unused result is kept when its effect is observable:
     it updates an input, or a value read after it.
     """
-    import operator
-    inplace={getattr(operator,'i'+n) for n in ['add','sub','mul','truediv','floordiv','mod','pow','matmul','and','or','xor','lshift','rshift']}
     order={node:i for i,node in enumerate(graph.nodes)}
     for node in reversed(list(graph.nodes)):
         if node.op in ('call_function','call_method') and not node.users:
-            name=node.target if isinstance(node.target,str) else getattr(node.target,'__name__','')
-            if node.target in inplace or (name.endswith('_') and not name.startswith('_')) or node.kwargs.get('inplace') is True:
+            if inplace_node(node):
                 target=node.args[0] if node.args else None
                 if not hasattr(target,'users'):raise ValueError(f'{node.name}: in-place operation without a tensor target')
                 if target.op=='placeholder' or any(order[user]>order[node] for user in target.users):continue
             graph.erase_node(node)
+
+
+def inplace_node(node):
+    """An FX call that updates its first argument in place (the rule eliminate_dead_code keeps)."""
+    import operator
+    inplace={getattr(operator,'i'+n) for n in ['add','sub','mul','truediv','floordiv','mod','pow','matmul','and','or','xor','lshift','rshift']}
+    name=node.target if isinstance(node.target,str) else getattr(node.target,'__name__','')
+    return node.op in ('call_function','call_method') and (node.target in inplace or (name.endswith('_') and not name.startswith('_')) or node.kwargs.get('inplace') is True)
+
+
+def expose_inplace_results(graph):
+    """Return every kept in-place call whose result nothing reads, after the graph's own outputs.
+
+    eliminate_dead_code keeps such a call for its effect. The generated match pattern returns
+    the same values (generate_pass.drop_dead_statements), because the matcher rejects a
+    pattern node without users, so the compiled program must return them too, in graph order.
+    -> the exposed nodes
+    """
+    exposed=[node for node in graph.nodes if inplace_node(node) and not node.users]
+    if exposed:
+        output=next(node for node in graph.nodes if node.op=='output')
+        value=output.args[0]
+        output.args=(tuple(value if isinstance(value,(tuple,list)) else (value,))+tuple(exposed),)
+    return exposed
 
 
 def canonical_order_inputs(record,inputs):
@@ -160,7 +182,7 @@ def inspect_corpus(upstream, sample_list, output):
         print(task_index+1, sample, flush=True)
 
 
-def compile_task(directory, kiln, target, contraction=None, optimization_program=None, skip_internal_reference_check=False, matmul_precision=None):
+def compile_task(directory, kiln, target, contraction=None, optimization_program=None, skip_internal_reference_check=False, matmul_precision=None, mutation_strategy=None):
     directory = directory.resolve()
     manifest = read_manifest(directory)
     results = []
@@ -176,6 +198,7 @@ def compile_task(directory, kiln, target, contraction=None, optimization_program
         # the program writes mutated inputs itself (PassBench's dispatch admits no tensor operation)
         names=list(record['inputs'])
         for mutation in record['input_mutations']:command.extend(['--mutation',f"{mutation['output']}={names[mutation['input_index']]}"])
+        if mutation_strategy is not None and record['input_mutations']:command.extend(['--mutation-strategy',mutation_strategy])
         with source.with_suffix('.compile.log').open('w') as log:
             result = subprocess.run(command, cwd=kiln, stdout=log, stderr=subprocess.STDOUT)
         results.append({'graph': record['graph'], 'command': command,
@@ -203,6 +226,8 @@ def main():
     compile.add_argument('--optimization-program',type=Path)
     compile.add_argument('--skip-internal-reference-check',action='store_true',
                          help='Diagnostic export bypass; external benchmark correctness is still required')
+    compile.add_argument('--mutation-strategy',choices=['auto','writeback'],
+                         help='auto (Kiln default): the producing kernel writes a mutated input when provably safe; writeback: always a final copy kernel')
     audit = commands.add_parser('inspect')
     audit.add_argument('--upstream', type=Path, required=True)
     audit.add_argument('--sample-list', type=Path, required=True)
@@ -212,7 +237,7 @@ def main():
         export_task(args.upstream, args.sample, args.output, args.metadata_mode)
     elif args.command == 'compile':
         compile_task(args.directory, args.kiln, args.target, args.contraction,
-                     args.optimization_program,args.skip_internal_reference_check,args.matmul_precision)
+                     args.optimization_program,args.skip_internal_reference_check,args.matmul_precision,args.mutation_strategy)
     else:
         inspect_corpus(args.upstream, args.sample_list, args.output)
 

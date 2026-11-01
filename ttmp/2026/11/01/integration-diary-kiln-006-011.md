@@ -65,3 +65,45 @@ KILN-011 went first because it touches the shared typed-arithmetic core (exact i
 
 ### Technical details
 - Logs: `m011-npm.log`, `m011-py.log`.
+
+## Step 2: Merge KILN-009 (direct writes of mutated inputs)
+
+KILN-009 adds `inplace.js` (the same-index and store-injectivity proofs, `planMutation`, `retargetProducer`, `compactBuffers`), `program-sim.js` (the launch-order program oracle and `AliasWatch`), the `toCuda(K, { alias })` signature, a third argument to the simulator's `M.gmem`, the `mutationStrategy` export option, and the family-162 importer fixes (`fx_normalize` dunder aliases, kept in-place results in `generate_pass`/`corpus`). One textual conflict, in `emit.js` around the `toCuda` header, where KILN-011 had inserted its `cudaHelpers` collector right above the line KILN-009 rewrote.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 1.
+**Assistant interpretation:** Merge the second branch, keep KILN-011's helper collection and KILN-009's alias signature.
+**Inferred user intent:** No feature lost in the merge.
+**Commit (code):** merge commit "Merge KILN-009: direct writes of mutated inputs".
+
+### What I did
+- Read KILN-009 diary Steps 7-10 (there is no design-doc Section 13 change on this branch; the implementation notes are in the diary).
+- `git merge --no-ff --no-commit impl/kiln-009-mutated-inputs` → `CONFLICT (content): Merge conflict in packages/kiln/src/std/emit.js`.
+- Resolution: kept KILN-011's `cudaHelpers` arrow function verbatim and replaced the base `export function toCuda(K) {` with KILN-009's commented `export function toCuda(K, { alias = [] } = {}) {`. The rest of the hunk auto-merged: KILN-011's `for (const h of cudaHelpers(K.body)) lines.push(CUDA_HELPERS[h]);` and KILN-009's `shared`/`restrict` parameter-list spelling are on different lines.
+
+### Why
+- The two sides were adjacent insertions, not competing changes: one adds a module-level helper, the other changes the signature of the function after it.
+
+### What worked
+- `npm test`: all 52 passed (adds `inplace.mjs`). `pytest`: 183 passed, 7 subtests passed.
+
+### What didn't work
+- No test failures observed.
+
+### What I learned
+- KILN-009's task-45 oracle errors (`F_v1 is not defined`) come from `toSim` not declaring a `bool` value; that is a candidate to re-check after KILN-010 (Step 7).
+
+### What was tricky to build
+- Nothing beyond the adjacent-insertion conflict.
+
+### What warrants a second pair of eyes
+- With aliases, a kernel that also needs a CUDA helper (e.g. an in-place `floordiv` producer) now gets both: the helper lines come before the `extern "C"` line, the alias spelling only touches the parameter list. Not covered by a dedicated test.
+
+### What should be done in the future
+- N/A beyond Step 7.
+
+### Code review instructions
+- `git show <merge> -- packages/kiln/src/std/emit.js` (combined diff).
+
+### Technical details
+- Logs: `m009-npm.log`, `m009-py.log`.
