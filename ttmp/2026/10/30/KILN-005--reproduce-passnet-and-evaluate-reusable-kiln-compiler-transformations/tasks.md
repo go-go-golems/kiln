@@ -20,7 +20,7 @@
 - [x] P2: OpSpec importer registry plus per-node dtype/shape postcondition (A4), gated by a byte-identical import census hash — 4141da1, ed6eaab; Step 245. <!-- t:p2rg -->
 - [x] P3b: calibrate workOf against GPU-only timings, add structural policy features and a GB10 target spec before further agent policy search. <!-- t:p3cm -->
 - [x] Collect and audit kiln-p0-replay-v1 (15 families, 181 graphs) when bling's queue reaches it; report per group (identity, matcher, tf32, control). <!-- t:p0rp -->
-- [ ] Task 128: decide between compiling every match instance of a rule (two replacements, declared protocol change) and leaving the family unsupported. <!-- t:t128 -->
+- [x] Task 128: decide between compiling every match instance of a rule (two replacements, declared protocol change) and leaving the family unsupported. Decided 2026-10-31: unsupported with named cause (dead Dynamo branch duplicates the live pattern); the 1,514-graph census shows no second family with this structure, so no protocol change. <!-- t:t128 -->
 - [ ] Fuse round_tf32 into tiled matmul operand loads (two extra elementwise launches today). <!-- t:tf32f -->
 - [ ] Collect cost-gate-held-out-v1 (3 arms, 20 families, 237 graphs) with script 669 and analyze against declaration.json; report gated vs always vs baseline. <!-- t:vxqa -->
 - [ ] GPU probe of cuDNN TF32 convolution operand rounding (RN vs RZ vs FP32) after the cost-gate study; explain families 72 and 133 and the remaining TF32 linear failures 88, 118, 157. <!-- t:rgkk -->
