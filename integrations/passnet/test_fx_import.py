@@ -377,7 +377,8 @@ class ExpectBindingTests(unittest.TestCase):
                 a, b = (x * s).chunk(2, dim=1)
                 return a + 1, b
         script = import_graph(export_graph(trace_module(M()), [torch.randn(2, 4).half(), torch.tensor(2.0)]))['script']
-        self.assertIn('const v2 = N.expect(N.mul(v0, v1), [2, 4], "f16");', script)
+        # s is a 0-d input, a CUDA tensor in the evaluator: CUDA converts it to x's dtype first
+        self.assertIn('const v2 = N.expect(N.mul(v0, N.cast(v1, "f16")), [2, 4], "f16");', script)
         self.assertIn('N.expect(N.slice(v2, 1, 0, 2), [2, 2], "f16")', script)
 
 

@@ -43,12 +43,37 @@ def first_ref(c):
 
 def operand(c, j, value=None):
     """Positional argument j as a Kiln operand. A Python int or bool scalar is spelled N.int/N.bool:
-    PyTorch promotion gives it the integer or bool category, which a bare JS number (float) loses."""
+    PyTorch promotion gives it the integer or bool category, which a bare JS number (float) loses.
+    A 0-d CUDA tensor beside a dimensioned float16/bfloat16 operand is converted to that dtype first
+    (cuda_scalar_operand)."""
     raw = c.raw_args['tuple'][j] if value is None else value
     text = c.args[j] if value is None else json.dumps(value)
     if type(raw) is bool: return f'N.bool({json.dumps(raw)})'
     if type(raw) is int: return f'N.int({raw})'
-    return text
+    return cuda_scalar_operand(c, j, text) if value is None else text
+
+
+LOW_PRECISION = ('torch.float16', 'torch.bfloat16')
+
+
+def cuda_scalar_operand(c, j, text):
+    """Operand j of a binary elementwise op, converted as CUDA PyTorch converts it.
+
+    The dimensioned operand's dtype is the common dtype; a 0-d tensor operand does not promote it. On
+    CUDA, TensorIterator then converts a 0-d *CUDA* tensor operand to the common dtype before the
+    arithmetic (x_bf16 / torch.tensor(0.05, device='cuda') divides by bf16(0.05) = 0.050048828125),
+    while a CPU 0-d tensor or a Python number enters the opmath (float32) computation unrounded.
+    Kiln's elementwise semantics are the latter, so a 0-d CUDA operand is narrowed explicitly here.
+    Measured on GB10 (integration Step 14, probe-zero-dim.py) for add/sub/mul/div, reversed and in place."""
+    raw = c.raw_args['tuple']
+    if len(raw) != 2: return text
+    this, other = raw[j], raw[1 - j]
+    if not (isinstance(this, dict) and 'ref' in this and isinstance(other, dict) and 'ref' in other): return text
+    mine, theirs = c.ctx.metadata.get(this['ref']), c.ctx.metadata.get(other['ref'])
+    if not (isinstance(mine, dict) and isinstance(theirs, dict)): return text
+    if mine['shape'] != [] or theirs['shape'] == [] or theirs['dtype'] not in LOW_PRECISION or mine['dtype'] == theirs['dtype']: return text
+    if c.ctx.devices.get(this['ref']) != 'cuda': return text
+    return f'N.cast({text}, {json.dumps(IMPORTED[theirs["dtype"]])})'
 
 
 # ------------------------------------------------------------------------------ in-place arithmetic
@@ -886,6 +911,7 @@ class Context:
         self.uses = {}
         self.last_use = {}        # FX value -> index of the last node reading it
         self.at = 0               # index of the node being lowered
+        self.devices = {}         # FX value -> 'cuda' or 'cpu', the device the source program places it on
         def references(value):
             if isinstance(value, dict):
                 if set(value) == {'ref'}:
@@ -1049,6 +1075,41 @@ def lower_setitem(ctx, name, var, args, node, lines):
 NO_RESULT = object()
 
 
+FACTORY_TARGETS = ('torch.tensor', 'torch.arange', 'torch.zeros', 'torch.ones', 'torch.full', 'torch.linspace', 'torch.empty',
+                   'torch.functional.meshgrid', 'torch.meshgrid')
+
+
+def source_device(ctx, node):
+    """The device the source program gives a node's value (the exported metadata is propagated on CPU).
+
+    Inputs are CUDA tensors in the evaluator. A factory is on its device argument (CPU without one);
+    .to(device)/.cuda()/.cpu() move; any other result is on CUDA when a tensor argument is."""
+    if node['kind'] == 'placeholder': return 'cuda'
+    def devices(value):
+        if isinstance(value, dict):
+            if set(value) == {'device'} and isinstance(value['device'], str): yield 'cuda' if value['device'].startswith('cuda') else 'cpu'
+            else:
+                for item in value.values(): yield from devices(item)
+        elif isinstance(value, list):
+            for item in value: yield from devices(item)
+    def refs(value):
+        if isinstance(value, dict):
+            if set(value) == {'ref'}: yield value['ref']
+            else:
+                for item in value.values(): yield from refs(item)
+        elif isinstance(value, list):
+            for item in value: yield from refs(item)
+    named = list(devices(node['args'])) + list(devices(node['kwargs']))
+    if node['kind'] == 'call_method' and node['target'] in ('cuda', 'cpu'): return node['target']
+    if node['kind'] == 'call_method' and node['target'] == 'to':
+        # .to('cuda') / .to(device='cpu:0'): a device spelled as a string
+        spelled = [v for v in list(node['args']['tuple'][1:]) + [node['kwargs']['dict'].get('device')] if isinstance(v, str) and v.split(':')[0] in ('cuda', 'cpu')]
+        named += ['cuda' if v.startswith('cuda') else 'cpu' for v in spelled]
+    if named: return named[-1]
+    if node['kind'] == 'call_function' and node['target'] in FACTORY_TARGETS: return 'cpu'
+    return 'cuda' if any(ctx.devices.get(r) == 'cuda' for r in refs(node['args'])) or any(ctx.devices.get(r) == 'cuda' for r in refs(node['kwargs'])) else 'cpu'
+
+
 def import_graph(graph):
     if graph.get('format') != 'kiln-fx/1':
         raise ValueError('Expected kiln-fx/1')
@@ -1060,6 +1121,7 @@ def import_graph(graph):
         ctx.at = i
         if name in ctx.values: raise ValueError(f'Duplicate node: {name}')
         var = f'v{i}'
+        ctx.devices[name] = source_device(ctx, node)
         meta = node.get('tensor_meta')
         if node['kind'] == 'placeholder':
             if not isinstance(meta, dict) or meta.get('dtype') not in IMPORTED:

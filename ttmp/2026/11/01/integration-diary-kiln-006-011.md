@@ -923,3 +923,183 @@ This step starts the repair of the seven coverage-wave families that the Step 12
 ### Technical details
 - Evidence: `ttmp/2026/11/01/integration-evidence-kiln-006-011/coverage-fix-v1/`: `family29-recompile.log` (bling, evaluator image, `TORCH_LOGS=recompiles,graph_breaks`), `run1.sh`, `numerics.py`, `numerics-170.json`.
 - The new 170 pattern ends `kiln_setitem_0 = kiln_setitem(tmp_10, (slice(None, None, None), slice(None, None, None), slice(None, None, None), slice(None, 21, None)), tmp_17)` ... `return (tmp_22, kiln_setitem_0)`.
+
+## Step 14: Coverage fix, part 2: the rounding point of 22, 44, 124 and 34 is the vendor library's, not Kiln's
+
+For each graph of the four tolerance-limited families I compared, on GB10, Kiln's compiled output with eager PyTorch in the graph's dtype and with a float64 reference. I then ran "hybrids": eager interpretation of the source graph in which one node at a time is computed from its eager arguments in float64 (or float32) and rounded to its dtype. The result is the same in all four families. Kiln's contraction (patch conv3d, grouped conv1d, linear) is the correctly rounded value, or within a few elements of it. The eager reference's cuDNN/cuBLAS contraction is not. PassBench's −5 tolerance has `atol = 1e-5`, which turns those 1-ulp disagreements into failures where the output cancels toward zero (34: conv + position embedding) or where LayerNorm amplifies them (22, 44). Even the exactly computed graph (`all@f64`) fails against eager at −5. Family 124 is the clearest case. Eager `linear` for GAE's [1000, 32] × [32, 16] equals, bit for bit, a split-K reduction: K in four chunks of 8, each chunk sum rounded to bf16/f16, then summed. That is cuBLAS under PyTorch's default `allow_{bf16,fp16}_reduced_precision_reduction=True`. None of this is a Kiln rounding-policy defect, so I changed no code for these families. Family 34's extra failure is PyTorch's own eager timing check.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 13.
+
+**Assistant interpretation:** Localize, per graph and output, where Kiln's result departs from eager CUDA PyTorch, and fix Kiln if its rounding policy is the cause.
+
+**Inferred user intent:** Either recover four families or know precisely why they cannot be recovered.
+
+**Commit (code):** none in this step (diagnostics and evidence only; committed with Step 15).
+
+### What I did
+- **`coverage-fix-v1/localize.py`** (runs in the evaluator image). For each manifest variant of a compiled corpus:
+  - evaluator inputs (`get_input_dict`, device cuda) and runtime seed 1024;
+  - Kiln through `CorpusDispatch` (with the record's specialization, outputs mapped back with `output_permutation`);
+  - eager on clones of the same inputs, and the same model on float64 copies;
+  - per output: max |kiln − eager|, |kiln − f64|, |eager − f64|, the number of differing elements, how many elements of each are the float64 value rounded to the dtype, PassBench's allclose failures at −5/−4/−3 (`pass_bench.datatype_tolerance_config.get_precision`), and the worst elements;
+  - hybrids `node@f64` / `node@f32` / `all@f64` / `all@f32` via an `fx.Interpreter` subclass (in-place nodes are never replaced), each compared with Kiln and with eager.
+
+  I ran it on the replay's own compiled corpora (`results/task-0{22,44,124,34}/corpus`, source `4dd38ba`) on bling.
+- **`coverage-fix-v1/probe-reductions.py`**: for every linear/conv1d/conv3d call of these graphs, I counted elements equal to eager for the candidates correct (f64 rounded once), f32 accumulation, reduced-precision reduction off, split-K with c ∈ {2, …, 64} (two reduction orders) and sequential dtype accumulation, plus three bias variants.
+- **Family 34's eager failure:** read `results/task-034/benchmark.log` lines 216–224.
+
+### Why
+- **Hybrids answer "which node's rounding would make eager agree with Kiln".** A graph-level max diff cannot tell a conv-accumulation difference from a LayerNorm or bias-placement difference. Replacing one node with its correctly rounded value and counting the remaining disagreements does.
+- **The probe tests a concrete hypothesis per contraction.** If eager equals a reproducible formula, Kiln could adopt it as a policy. If eager equals none, the difference is an algorithm choice inside the vendor library.
+
+### What worked
+- **22 (ViViT; conv3d patch embedding → cat → + pos → LayerNorm):**
+  - f16: Kiln vs eager differ in 5571 elements, 175 fail at −5, all in the LayerNorm output (worst `kiln 3.1484375, eager 3.15234375, f64 3.150110053058976`).
+  - With only the conv computed exactly (`conv3d@f64`), the disagreement with Kiln drops to 1493 / 45, while eager's own disagreement with that hybrid is 5415 / 161.
+  - bf16: 216 differ, 1 fails at −5.
+  - `localize-022.json`.
+- **44 (SEW; grouped conv1d → GELU → + avg-pool → LayerNorm):**
+  - f16: 154 differ, 11 fail; `conv1d@f64` vs Kiln 48 / 0, vs eager 141 / 11.
+  - bf16 (this draw): 33 differ, 0 fail; `conv1d@f64` vs Kiln 2.
+  - `localize-044.json`.
+- **124 (GAE/RECT_L; linear without bias):**
+  - GAE bf16: 6428 / 16000 differ, 672 fail at −5 (36 at −4). Kiln equals the rounded f64 value in 16000 / 16000 elements, eager in 9572. GAE f16: 6239 differ, 273 fail; Kiln rounded in 15996, eager in 9761. `linear@f64` vs Kiln: 0 differ (bf16), 4 (f16).
+  - The two RECT_L graphs ([128, 128] output) agree; their cuBLAS kernel is not split-K.
+  - Probe, GAE linear ([1000, 16], 16000 elements):
+
+    | candidate | bf16 equal to eager | f16 equal to eager |
+    |---|---|---|
+    | correct (f64 rounded once) | 9560 | 9556 |
+    | f32 accumulation | 9560 | 9556 |
+    | reduced-precision reduction off | 9560 | 9558 |
+    | splitK-2 / -4 / -16 | 8092 / 8137 / 8661 | 8005 / 8210 / 8645 |
+    | **splitK-8** (chunk sums rounded to dtype, summed in f32) | **16000** | **15998** |
+    | splitK-8, sequential in dtype | 10799 | 10663 |
+    | sequential dtype accumulation | 4336 | 4327 |
+- **34 (VideoMAE; conv3d tubelet → + position embedding):**
+  - f16: 237 / 23 and 240 / 27 (differ / fail at −5); `conv3d@f64` vs Kiln 47 / 5 and 46 / 2, vs eager 236 / 26 and 242 / 25.
+  - bf16: 5 / 0 and 11 / 1. f32: 0 fail.
+  - `localize-034.json`.
+- **Bias placement is right:** for every conv in the four families, `eager-nobias + bias (rounded in the dtype)` equals eager on every element (e.g. 1204224 / 1204224 for VideoMAE f16). cuDNN adds the bias in a separate dtype-rounded step, which is Kiln's policy (Step 9's open question is settled).
+- **No reproducible formula for cuDNN's unbiased conv:** the best candidate, the correctly rounded value, matches 1200990 / 1204224 (VideoMAE f16), 749947 / 752640 (ViViT f16) and 95576 / 96000 (SEW f16). Every split-K order matches fewer elements than that. Kiln's conv output equals the correctly rounded value at nearly every element (`kiln_is_rounded_f64`).
+- **34's `Eager model execution failed: Environment fluctuation detected. IQR/median = 22.3% (threshold: 20%)`** is in the eager phase, after Kiln's compiled phase finished. The raw trial times rise from ~0.88 ms to ~1.1–1.19 ms over the last ~25 trials. It is timing noise in PyTorch's own measurement.
+
+### What didn't work
+- **The f32 hybrids (`node@f32`) do not model "f32 accumulation"** for convs: cuDNN's float32 conv uses TF32 by default (`torch.backends.cudnn.allow_tf32=True`). `conv3d@f32` is therefore *further* from Kiln than plain eager (ViViT f16: 23211 differ). I used the f64 hybrids and the explicit probe instead.
+- **Inputs are not deterministic between runs.** `get_input_dict` replays random tensors without a fixed seed. The SEW bf16 graph failed at −4 in the replay but has 0 failures in my draw. The counts are per draw; the pattern (Kiln ≈ correctly rounded, eager not) holds in every draw.
+
+### What I learned
+- **At −5 PassBench needs bit-level agreement wherever the output is small or amplified.** For f16 the bound is `1e-5 + 1e-3·|ref|`, for bf16 `1e-5 + 1.58e-2·|ref|`. A 1-ulp disagreement in a conv output becomes several ulps after LayerNorm's `1/σ` (22, 44). A sum that cancels toward zero meets the `1e-5` absolute floor (34).
+- **cuBLAS's split-K kernel for GAE's shape is exactly "chunks of 8 rounded to the storage dtype".** PyTorch allows this through `allow_bf16_reduced_precision_reduction` / `allow_fp16_reduced_precision_reduction` (default True). With the flags off, eager is correctly rounded, like Kiln.
+
+### What was tricky to build
+- **Mapping Kiln outputs back to source order.** `CorpusDispatch` returns rule-ordered outputs (`output_permutation`), plus exposed in-place results after them. The localizer inverts the permutation and drops the extra results before comparing.
+
+### What warrants a second pair of eyes
+- **Whether Kiln should emulate vendor reduction orders.** Matching GAE would mean a "split-K 8 in the storage dtype" policy for low-precision GEMMs of exactly the shapes for which cuBLAS on GB10 picks that kernel. That is a heuristic of one library version on one GPU, not PyTorch semantics, and it makes Kiln less accurate. I did not implement it. For the convs, no formula reproduces cuDNN at all.
+
+### What should be done in the future
+- If the protocol owner wants these families, the honest options are evaluator-side: compare at −4 for bf16/f16 contractions, or run eager with reduced-precision reductions off. The latter is a protocol change; it is not mine to make.
+
+### Code review instructions
+- `ttmp/2026/11/01/integration-evidence-kiln-006-011/coverage-fix-v1/localize.py`, `probe-reductions.py`, and the outputs `localize-0{22,34,44}.json`, `localize-124.json`, `probe-reductions.log`.
+
+### Technical details
+- Run command (bling, one job at a time, GPU idle checked): `sg docker -c 'docker run --rm --gpus all -v $PWD:/work -w /work --entrypoint bash localhost:5000/playback-redaction:base-26.05 -c "python3 localize.py --kiln /work/kiln --upstream /work/upstream --corpus /work/results/task-022/corpus --output /work/loc-022.json; chown -R 1000:1000 /work"'`.
+- `get_precision(t, dtype)`: f16 `(10^(t·3/5), 10^t)`, bf16 `(10^(t·1.796/5), 10^t)` as (rtol, atol).
+
+## Step 15: Coverage fix, part 3: DNLNet at full size, two rounding defects and an evaluator protocol limit
+
+At full size on GB10, a single DNLNet call already agreed with eager at −5. Its output is a softmax, which hides the defect. The mutated input (`in_0 /= 16; in_0 /= 0.05`) differed from eager in 12% (bf16) and 33% (f16) of the elements. The evaluator calls the model 121 times on the same tensors, so the difference compounded. I found two Kiln defects that together caused it:
+- the importer used the float32 value of a 0-d CUDA tensor operand, where CUDA PyTorch first converts it to the other operand's dtype (bf16(0.05) = 0.050048828125);
+- Kiln's constant folding dropped the rounding of a float16/bfloat16 constant, so even the explicit cast compiled to `/ 0.05f`.
+
+With both fixed, every bf16 and f32 graph matches eager bit for bit, in a single call and under the evaluator's exact call protocol. The two f16 graphs remain unacceptable for every compiler. Each call scales the shared input by 1.25, the input overflows f16 to `inf` during the compiled phase, and both Kiln and eager then return all-NaN outputs, which PassBench's allclose rejects.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 13.
+
+**Assistant interpretation:** Run family 40 at its benchmark sizes on the GPU, find the large error and fix it.
+
+**Inferred user intent:** Recover DNLNet or know exactly why not; the CPU check at reduced dimensions (Step 11) could not see this.
+
+**Commit (code):** see the commit that adds this entry — "Coverage fix: 0-d CUDA operands convert to the common dtype; float16/bfloat16 constants hold rounded values"
+
+### What I did
+- **`coverage-fix-v1/probe-dnlnet.py`** reports four comparisons per graph:
+  - semantics of `x /= torch.tensor(0.05, device='cuda')`;
+  - a single Kiln call and a single eager call on clones (output and mutated input);
+  - **protocol**: the evaluator's order on one shared tensor (121 Kiln calls, then 121 eager calls, last outputs compared);
+  - **aligned**: 121 eager calls from a fresh copy.
+- **`coverage-fix-v1/probe-zero-dim.py`**: for add/sub/mul/div, reversed and in place, on CPU and CUDA, with a Python number, a CPU 0-d tensor or a CUDA 0-d tensor beside a bf16/f16 tensor. It counts elements equal to the float32-value result and to the dtype-value result.
+- **Importer fix (`fx_import.py`):**
+  - `source_device(ctx, node)` infers the device the source gives each value: placeholders are CUDA (the evaluator's inputs); a factory is on its `device` argument (CPU without one); `.to(...)`/`.cuda()`/`.cpu()` move it; anything else is on CUDA if a tensor argument is. The importer records it per node in `Context.devices`.
+  - `cuda_scalar_operand(c, j, text)`, called from `operand()`, narrows a 0-d CUDA operand beside a dimensioned f16/bf16 operand: `N.cast(v, "bf16")`. This covers binary arithmetic, in-place arithmetic, true division and comparisons.
+- **Kiln fix (`packages/kiln/src/std/tensor.js`):** `lowPrecisionValue(v, dtype)` rounds a finite value to f16/bf16 when `N.full` creates a constant and when `convert` folds a cast of a splat constant (`convertScalar`).
+- **Staging on bling:** `coverage-fix-v1/stage-task.sh` rsyncs the worktree to `~/passnet-kiln/coverage-fix/kiln-fix`. It exports and generates in the evaluator image, then compiles on the host with the plan's settings (a100, separate contraction, tf32, mutation strategy auto, no internal check).
+- **Tests:**
+  - `test_fx_devices.py` (3 tests): DNLNet's two in-place divisions are narrowed; CPU 0-d tensors, Python numbers and f32 results are not; `.cuda()`, `.to('cuda')`, comparisons, reversed operands and a 0-d input.
+  - `packages/kiln/test/low-precision-constants.mjs`: the kernel divides by `0.050048828125f` and holds f16's 0.3. Run against the old `tensor.js` it fails with `AssertionError [ERR_ASSERTION]: the kernel divides by bfloat16's 0.05`.
+  - `test_fx_import.ExpectBindingTests` now expects `N.mul(v0, N.cast(v1, "f16"))` for a 0-d input.
+- **Blast radius:** `scan-zero-dim-casts.py` (2060 census graphs: the rule changes 4 graphs, all DNLNet) and `scan-low-precision-constants.py` (inexact f16/bf16 splats or casts of f32 constants: the same 4 graphs, no others).
+
+### Why
+- **The importer is the layer that knows devices.** Kiln's elementwise semantics are device-agnostic, and they match PyTorch for Python numbers and CPU scalars (opmath float32 value). Only the importer sees `device=cuda` in the source. Putting the device rule in Kiln core would need a device notion on every value.
+- **Constant rounding belongs in Kiln.** A tensor of dtype bf16 must hold a bf16 value; the importer cannot fix what the folding discards. PyTorch's `torch.full(..., dtype=bf16)` and `.to(bf16)` both round.
+
+### What worked
+- **CUDA semantics** (`probe-zero-dim.log`, GB10):
+  - a CUDA 0-d operand is converted to the dtype in 42/42 cases (6 ops × 3 values × 2 dtypes, plus in place);
+  - Python numbers and CPU 0-d tensors enter as float32 values (add, sub, mul and rsub match exactly; division by them is not plain float32 division, see below).
+  - `probe-dnlnet-4dd38ba.log`: `x /= torch.tensor(0.05, device='cuda')` matches the dtype divisor in 1048576/1048576 elements (bf16 and f16), and the f32 divisor in only 906118 (bf16) and 675732 (f16).
+- **Before vs after, at full size** (`probe-dnlnet-4dd38ba.log`, `probe-dnlnet-fixed.log`):
+
+  | graph | single output (−5) | mutated input differ | protocol (−5) | aligned (−5) |
+  |---|---|---|---|---|
+  | bf16 [12,4096,4096], 4dd38ba | pass | 24928675 | **fail** (4169 differ, max 0.833) | fail |
+  | bf16 [12,4096,4096], fixed | pass | **0** | **pass** (0 differ) | pass (0) |
+  | bf16 [2,4096,4096], fixed | pass | 0 | pass (0) | pass (0) |
+  | f32 [12,…], [64,…], fixed | pass | 0 | pass (0) | pass (0) |
+  | f16 [12,…], [16,…], both | pass | 0 after the fix | fail: all NaN in both | fail: all NaN |
+
+- `input_absmax_after_kiln_phase` for f16 is `Infinity`. For bf16 it is 5.26e10 (start 0.115).
+- **Generated kernel after the fix:** `v0 = (in0 / 16.0f); ... v2 = (v1 / 0.050048828125f);` (it was `v2 = (v1 / 0.05f);`).
+- **Suites:** `npm test`: all 63 passed (exit 0). `pytest -q`: 223 passed, 7 subtests passed (exit 0).
+
+### What didn't work
+- **The importer fix alone changed nothing on the GPU.** The re-probe still showed `mutated_input differ 24922534`. The kernel dump showed the cause: `N.cast(v5, "bf16")` of the splat `N.full([], 0.05, "f32")` folds in `convert` (`tensor.js`) through `convertScalar`, which returned `Number(v)` for float targets. That is the second defect.
+- **First device inference bug:** `torch.tensor(0.05, device=cuda)` exports its kwargs as `{'dict': {'device': {'device': 'cuda:0'}}}`. My recursive search treated the outer `{'device': {...}}` as a device spelling and decoded `"{'device': 'cuda:0'}"` as CPU. Only the constant with two kwargs (`dtype` and `device`) came out right. I fixed this by requiring a string value.
+- **`.to('cuda')` with a string device was not recognized** (the test caught it); added.
+- **Staging script errors:**
+  - a redirect inside `sg docker -c "..."` ran on the host (`sh: 1: cannot create /work/fix/task-040/export.log: Directory nonexistent`);
+  - the container's python lacked the module path (`ModuleNotFoundError: No module named 'corpus'`).
+
+  Both were fixed in `stage-task.sh`.
+
+### What I learned
+- **TensorIterator treats a CPU scalar and a 0-d CUDA tensor differently.** The first is passed as an opmath scalar; the second is a regular operand converted to the common dtype. Because the importer propagates metadata on a CPU copy (Step 9), Kiln had silently adopted CPU semantics for constants the source puts on CUDA.
+- **The f16 DNLNet graphs cannot pass under PassBench's protocol for any correct compiler.** The compiled and eager phases share one input dict, and each call multiplies the input by 1.25 in place. Only a compiler that does not perform the source's input mutation could keep the input finite.
+- **Found in passing:** on CUDA, `x / 0.3` (Python number) matches neither the float32 division nor the dtype divisor (bf16: 258984/262144 vs 132037/262144), which suggests multiplication by a float32 reciprocal. Kiln divides. No current family needs a non-power-of-two Python divisor at low precision, so I did not change it.
+
+### What was tricky to build
+- **Two independent defects with one symptom.** Each fix alone leaves the kernel wrong: the importer cast is folded away, and the constant rounding never applies without the cast. Only the GPU kernel dump separated them.
+
+### What warrants a second pair of eyes
+- **`source_device` defaults:** a factory without `device=` is CPU, and a placeholder is CUDA. A future integration that runs graphs on CPU would need the evaluator's device passed in.
+- **`lowPrecisionValue` changes every f16/bf16 splat.** The census scan finds no other affected graph, but hand-written Kiln programs using `N.full(..., "bf16")` with an inexact value now compute with the rounded value (PyTorch's semantics).
+
+### What should be done in the future
+- Python-number division on CUDA (reciprocal multiplication) as a separate, measured rule.
+- Family 40 can reach at most 4/6. Family-level acceptance needs a protocol where the compiled and eager phases do not share mutated inputs.
+
+### Code review instructions
+- `integrations/passnet/fx_import.py`: `cuda_scalar_operand`, `operand`, `source_device`, `Context.devices`, the `ctx.devices[name] = ...` line in `import_graph`.
+- `packages/kiln/src/std/tensor.js`: `lowPrecisionValue`, `N.full`, `convertScalar`.
+- Run `node packages/kiln/test/low-precision-constants.mjs` and `(cd integrations/passnet && python3 -m pytest -q test_fx_devices.py test_fx_import.py)`.
+
+### Technical details
+- Evidence: `coverage-fix-v1/probe-zero-dim.{py,log,json}`, `probe-dnlnet.py`, `probe-dnlnet-4dd38ba.log` (replay corpus, source `4dd38ba`), `probe-dnlnet-fixed.log` (fixed tree, all 6 graphs), `zero-dim-cast-scan.json`, `low-precision-constant-scan.json`, `scan-*.py`, `stage-task.sh`.
+- Protocol constant: `CALLS = 20 + 100 + 1` (warmup, trials, final output call), as in `PerformanceMeasurer.warmup/exec`.

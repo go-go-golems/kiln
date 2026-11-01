@@ -641,7 +641,7 @@ export const N = {
   resizeNearest: (x, size) => nn.nearest(x, { size }),
   weight, const: (v, shape = [], dtype = "f32") => tensor.const({ value: v, shape, dtype }),
   // factories: a typed splat (PyTorch zeros/ones/full); the value converts to dtype as PyTorch's fill does
-  full: (shape, value, dtype = "f32") => tensor.const({ value: dtype === "bool" ? +(value != 0) : INTEGER_DTYPES.has(dtype) ? Math.trunc(value) : value, shape, dtype }),
+  full: (shape, value, dtype = "f32") => tensor.const({ value: dtype === "bool" ? +(value != 0) : INTEGER_DTYPES.has(dtype) ? Math.trunc(value) : lowPrecisionValue(value, dtype), shape, dtype }),
   zeros: (shape, dtype = "f32") => N.full(shape, 0, dtype),
   ones: (shape, dtype = "f32") => N.full(shape, 1, dtype),
   arange: (start, end, step = 1, dtype = "i64") => nn.arange({ start, end, step, dtype }),
@@ -681,7 +681,11 @@ const lastAxis = (x, a) => (a < 0 ? x.type.shape.length + a : a);
 // x converted to dtype in Tensor IR. Floats among themselves narrow by rounding (f32 widening is exact);
 // a scalar constant converts at compile time.
 // a scalar constant's value in dtype; an int64 value may be a BigInt (a folded int64 splat)
-const convertScalar = (v, dtype) => dtype === "bool" ? +(v != 0) : dtype === "i64" ? (typeof v === "bigint" ? v : Math.trunc(v)) : dtype === "i32" ? FNS.to_i32.js(v) : Number(v);
+// a float16/bfloat16 constant holds its value rounded to the dtype (PyTorch's fill and cast round it):
+// code generation prints the value as a float literal, so an unrounded value would compute with
+// float32's 0.05 where PyTorch computes with bfloat16's 0.050048828125 (coverage family 40, DNLNet)
+const lowPrecisionValue = (v, dtype) => (dtype === "f16" || dtype === "bf16") && Number.isFinite(Number(v)) ? roundToDtype(Number(v), dtype) : v;
+const convertScalar = (v, dtype) => dtype === "bool" ? +(v != 0) : dtype === "i64" ? (typeof v === "bigint" ? v : Math.trunc(v)) : dtype === "i32" ? FNS.to_i32.js(v) : lowPrecisionValue(Number(v), dtype);
 function convert(x, dtype) {
   const from = dtypeOf(x);
   if (!dtype || from === dtype) return x;
