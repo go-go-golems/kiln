@@ -183,6 +183,12 @@ class ImportTests(unittest.TestCase):
         # integer arithmetic imports faithfully; the compiler refuses it by name (integer-storage.mjs)
         self.assertIn('N.relu(v0)', import_graph(export_graph(symbolic_trace(Model()), (torch.ones(2,3,dtype=torch.int64),)))['script'])
 
+    def test_tensor_index_names_the_gather(self):
+        class Model(torch.nn.Module):
+            def forward(self, table, ids): return table.view(-1, 3)[ids.view(-1)]
+        with self.assertRaisesRegex(ValueError, 'tensor-valued index requires a gather'):
+            import_graph(export_graph(symbolic_trace(Model()), (torch.randn(4, 3), torch.zeros(5, dtype=torch.int64))))
+
     def test_integer_storage_passes_through(self):
         class Model(torch.nn.Module):
             def forward(self, ids, mask, x):

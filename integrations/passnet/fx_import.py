@@ -182,6 +182,8 @@ def lower_getitem(c):
     def index_literal(value):
         if isinstance(value, tuple): return tuple(index_literal(x) for x in value)
         if isinstance(value, slice) or value is Ellipsis: return value
+        if isinstance(value, str) and c.ctx.source_of(value) is not None:
+            raise ValueError(f'{c.name}: tensor-valued index requires a gather (P3a slice 2)')
         return c.ctx.literal(value)
     return Lowered(lower_index(c.args[0], index_literal(c.args[1]), metadata[source]['shape'], c.meta['shape']))
 
