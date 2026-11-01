@@ -9,9 +9,27 @@ Topics:
 DocType: reference
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://integrations/passnet/corpus.py
+      Note: expose_inplace_results, --mutation-strategy passthrough
+    - Path: repo://integrations/passnet/fx_normalize.py
+      Note: DUNDER_ALIASES
+    - Path: repo://integrations/passnet/generate_pass.py
+      Note: drop_dead_statements returns kept unused in-place results
+    - Path: repo://packages/kiln/src/std/export.js
+      Note: mutation loop, loopIrOf, mutationStrategy
+    - Path: repo://packages/kiln/src/std/inplace.js
+      Note: planMutation, sameIndexSlots, storeInjective, retargetProducer, compactBuffers
+    - Path: repo://packages/kiln/src/std/program-sim.js
+      Note: simulateProgram and AliasWatch
+    - Path: repo://packages/kiln/test/inplace.mjs
+      Note: unit and oracle tests
+    - Path: repo://ttmp/2026/11/01/KILN-009--kiln-direct-writes-of-mutated-inputs-intern-analysis-design-and-implementation-guide/sources/mutation-oracle.json
+      Note: corpus oracle results
+    - Path: repo://ttmp/2026/11/01/KILN-009--kiln-direct-writes-of-mutated-inputs-intern-analysis-design-and-implementation-guide/sources/mutation-plan-table.json
+      Note: corpus strategy table (113/114 direct)
 ExternalSources: []
-Summary: "Chronological investigation diary for the KILN-009 direct-writes-of-mutated-inputs research and guide."
+Summary: Chronological investigation diary for the KILN-009 direct-writes-of-mutated-inputs research and guide.
 LastUpdated: 2026-11-01T07:31:56.997578195-05:00
 WhatFor: ""
 WhenToUse: ""
@@ -347,3 +365,268 @@ The coordinator reported that my design doc contained another agent's material. 
 ### Technical details
 
 - Recovery artifacts: `/tmp/claude-1000/-home-manuel-code-wesen-kiln-worktrees-passnet/cd5f3680-095d-4dc0-be9b-3833056c7f6a/scratchpad/kiln009/design-doc.corrupted.md` and `.../kiln009/sections-4-5.md`.
+
+## Step 6: Implementation start: orientation, rules and baseline
+
+This step opens the implementation phase of KILN-009 in its own worktree. I read the common rules file the coordinator wrote for all implementation agents, the design guide (all 678 lines), the earlier diary steps, the diary skill and its investigation-entry reference, and the code the guide names. Both test suites passed before any change, which fixes the baseline.
+
+### Prompt Context
+
+**User prompt (verbatim):** "then, can we work on them in parallel (in separate worktrees maybe?)"
+
+**User prompt (verbatim):** "tell each agent to use their own diary and to folow the diary format as they go, and to write a full report for the go-go-parc vault once they are done ( write a detailed project report for the obsidian vault as a deep dive technical analysis blog post using a textbook writing style (no analogies, see skill). Commit and push the bsidian vault when done (go-go-parc vault). )"
+
+**Coordinator instruction (not user-authored, summary):** implement KILN-009 (direct writes of mutated inputs, plus the two family-162 matcher blockers) in worktree `/home/manuel/code/wesen/kiln/worktrees/kiln-009-mutated-inputs`, branch `impl/kiln-009-mutated-inputs`; CPU only, no GPU host; KILN-005 scripts 674 and 658 may run locally; never modify KILN-005 frozen evidence; do not implement fixes owned by KILN-008/010/011.
+
+**Assistant interpretation:** Build Phases 1-4 of the guide on CPU, validate each with tests and corpus-scale CPU evidence, keep this diary current, and hand the GPU validations to the coordinator as a list.
+
+**Inferred user intent:** Several tickets progress at once without stepping on each other, and each leaves a reviewable trail and a vault report.
+
+**Commit (code):** none in this step.
+
+### What I did
+
+- `git rev-parse --show-toplevel` → the KILN-009 worktree; `git branch --show-current` → `impl/kiln-009-mutated-inputs`; base commit `373766b`.
+- Read `packages/kiln/src/std/export.js`, `emit.js` (toCuda, toSim, SimMetrics), `program.js`, `core/ix.js`, `test/export.mjs`, `scripts/kiln-export.mjs`, `integrations/passnet/{corpus,generate_pass,fx_normalize}.py`, KILN-005 scripts 658 and 674.
+- Baseline: `cd packages/kiln && npm test` → `all 48 passed`, exit 0; `cd integrations/passnet && python3 -m pytest -q` → `177 passed, 7 subtests passed`, exit 0.
+
+### Why
+
+- The guide fixes the plan; reading the emitters and the simulator first showed where a new option and a new file could carry the change without rewriting code that the KILN-008/010/011 agents edit concurrently.
+
+### What worked
+
+- The guide's file:line references matched the tree.
+
+### What didn't work
+
+- No failures in this step.
+
+### What I learned
+
+- Exported kernel records carry no Loop IR (`K`), so any CPU oracle over an exported program needs the IR from the export process itself.
+- The worktree's `node_modules/@kiln/kiln` links to its own `packages/kiln`, so `apps/workbench/src/compile.js` and the relative imports in `scripts/kiln-export.mjs` load one module instance.
+
+### What was tricky to build
+
+- Nothing yet.
+
+### What warrants a second pair of eyes
+
+- N/A.
+
+### What should be done in the future
+
+- Phases 1-4 (Steps 7-9).
+
+### Code review instructions
+
+- N/A for this step.
+
+### Technical details
+
+- Scratch directory: `/tmp/claude-1000/-home-manuel-code-wesen-kiln-worktrees-passnet/cd5f3680-095d-4dc0-be9b-3833056c7f6a/scratchpad/KILN-009-impl/`.
+
+## Step 7: First slice: launch-order and same-index proofs, the rewrite, the program oracle
+
+I implemented Phases 1-3 of the guide as one slice, because the report-only mode of Phase 1 is the same analysis with the rewrite switched off: `mutationStrategy: "writeback"` keeps the old program and records what `auto` would have done. The four measured cases of guide Section 4.6 came out exactly as the guide predicted (three direct, the fused mean-subtract refused), and a first corpus table over the 16 input-mutation tasks found 89 of 114 mutations direct.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 6.
+
+**Assistant interpretation:** Implement `planMutation`, `sameIndexSlots`, `retargetProducer`, `compactBuffers`, `toCuda(K, { alias })`, the strategy option and the CPU program oracle, with tests.
+
+**Inferred user intent:** Remove one launch, one copy and one scratch buffer per mutation wherever this is provably safe, and make every decision visible in the artifact.
+
+**Commit (code):** `15d3344` — "KILN-009: direct writes of mutated inputs"
+
+### What I did
+
+- New `packages/kiln/src/std/inplace.js`: `sameIndexSlots(K, slots)`, `planMutation({kernels, irs, inputs, outputs, buffers}, {outName, inName})`, `retargetProducer(...)`, `compactBuffers(program)`, `MUTATION_STRATEGIES`.
+- `emit.js`: `toCuda(K, { alias = [] } = {})`. Aliased sources are declared `T* srcN` (no `const`, no `__restrict__`), and `dst` drops `__restrict__` when any source aliases it. With `alias = []` the output is byte-identical (tested over 12 kernels, including the attention chain).
+- `emit.js` toSim (instrumented only): `M.gmem(A, "ld", <slot>)` and `M.gmem(A, "st", "out")`, so a metrics object can tell which parameter a warp access touched. `SimMetrics.gmem` ignores the new argument.
+- `export.js`: an `irs` array parallel to `kernels`; the mutation loop calls `planMutation`, then `retargetProducer` or the existing `writebackKernel`; `program.mutations[]` records `{output, input, strategy, producer|reason, slots, planned}`; the result goes through `compactBuffers`. `loopIrOf(record)` (a module WeakMap) exposes each record's Loop IR to in-process consumers; a write-back maps to `{ copy: true }`.
+- New `packages/kiln/src/std/program-sim.js`: `simulateProgram(program, inputs, { instrument })` runs the exported kernels in launch order over one buffer table, so a kernel bound to the same buffer twice really shares it. `AliasWatch` (a `SimMetrics` subclass) records per-thread loads from aliased slots and stores, and reports a cross-thread read of a stored element or a read after the thread's own store.
+- `scripts/kiln-export.mjs --mutation-strategy auto|writeback`; `corpus.py compile --mutation-strategy` passes it through when a record has mutations.
+- New test `packages/kiln/test/inplace.mjs`; `test/export.mjs`'s write-back case now checks both strategies.
+- `scripts/05-mutation-plan-table.py` (this ticket): export and compile tasks with script 674's settings and tabulate `program.mutations[]`.
+
+### Why
+
+- A separate `inplace.js` and `program-sim.js` keep the change out of `kernel.js`, `tile.js` and `loop.js`, which other tickets edit. The two edits to `emit.js` are one signature line and two instrumentation arguments.
+- `program.mutations[]` makes every refusal reviewable from the JSON alone (guide Section 6.2).
+
+### What worked
+
+- Script 04 after the change: `relu_ then mean` → `k___mut0 reads [*0] writes *0`, no write-back; `x += y` cases → producer `reads [*0,1] writes *0`, consumer re-pointed to buffer 0; `x - mean(x)` → write-back kept.
+- The oracle matched `g.eval` for both strategies on every case, and the hazard watcher flagged a deliberately forced in-place mean-subtract (`thread 1 reads element 0, which thread 0 stores`), which is the intra-block race guide Section 4.7 says lockstep simulation hides.
+- Two mutations in one program (`relu_` of x and of y) both went direct, and the oracle agreed.
+- First corpus table (`sources/mutation-plan-table-first-slice.json`): 89 direct, 25 write-back. Reasons: `the store is inside a loop` (22), `a load from slot 0 is in a different loop or branch than the store` (3).
+
+### What didn't work
+
+- `node test/export.mjs` → `FAIL a final write-back kernel stores into the input`: the old test assumed the write-back always exists. Rewrote it to check `inPlace` under `auto` and the copy kernel under `writeback`.
+- `node test/inplace.mjs` → `FAIL x <- x - mean(x): writeback (producer 0: a load from slot 0 is in a different loop or branch than the store)`: my expected reason was "reads index"; the reduction's load sits in a `for`, so the branch check fires first. Adjusted the expectation (later reordered, Step 8).
+
+### What I learned
+
+- The guide's same-index rule is exact for the 1024-thread elementwise kernels of the unit tests, but most corpus producers are coarsened (`TPB=64,COARSEN=4`: a `for j` loop of 4 elements per thread) or row kernels (`MAP=row`), which the first-slice rule refuses.
+
+### What was tricky to build
+
+- Structural index equality is not enough on its own: `iset e = ...; load x[e]; iset e = e + 1; store dst[e]` has equal keys and different addresses. The rule therefore also refuses any statement between the load and the store that assigns a variable of the store's index.
+
+### What warrants a second pair of eyes
+
+- `toCuda`'s alias spelling: aliased sources lose `const` as well as `__restrict__` (Decision 7.3). NVRTC has not compiled it yet (GPU).
+- `compactBuffers` renumbers buffer ids; launchers index pointers by id.
+
+### What should be done in the future
+
+- Extend the proof to coarsened and row kernels (Step 8).
+
+### Code review instructions
+
+- Start at `packages/kiln/src/std/inplace.js` (`planMutation`, then `sameIndexSlots`), then the mutation loop in `export.js`, then `program-sim.js`.
+- `cd packages/kiln && node test/inplace.mjs && node test/export.mjs`.
+
+### Technical details
+
+- In-place identity: `hash(identity + "|inplace:" + slots.join(","))`; record field `inPlace: { input, slots, of: <original identity> }`; `wgsl: null`, `wgslUnavailable: "in-place input write is emitted for CUDA only"`.
+
+## Step 8: Coarsened and row kernels: enumerated store addresses and the barrier rule
+
+The first-slice refusals were dominated by two kernel shapes, so I extended `sameIndexSlots` with a proof that covers both without guessing. The new rule enumerates every address the producer's single store writes over the whole launch and requires them distinct and in range; a second clause admits row kernels in which every thread of a block reads the block's element, a `__syncthreads()` follows, and one thread stores it. The corpus went to 113 of 114 mutations direct, and the program oracle found no hazard and no difference between the strategies on the 84 programs it could run.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 6.
+
+**Assistant interpretation:** Widen the proof to the producers the corpus actually has, and only as far as a sound argument allows.
+
+**Inferred user intent:** The optimization should apply to real PassBench graphs, not only to toy kernels.
+
+**Commit (code):** `78f5f1b` — "KILN-009: coarsened/row in-place proofs, family 162 matcher fixes, CPU evidence"
+
+### What I did
+
+- Inspected a refused producer, task 49 `000.kiln.js`: `for (int j = 0; j < 4; j += 1) { e = 256*bid + 64*j + tid; if (e < 2457600) { in0 = src0[f(e)]; ...; dst[f(e)] = v0; } }`.
+- Inspected the branch refusals, task 111 `007` and task 57 `002`: `in0 = src0[g(bid)]` at top level, a reduction loop, a shared-memory tree with `__syncthreads()`, then `if (tid == 0) dst[g(bid)] = ...`.
+- `storeInjective(K, frames, { limit })` in `inplace.js`: generates a JavaScript function that walks bid × tid and the loops and branches on the path to the store, evaluates the path's `iset`s and conditions with `IX.emit(e, "js")`, and marks each address in a `Uint8Array`. It returns the first duplicate or out-of-range address, or gives up past `ENUMERATION_LIMIT = 2^26` (thread, iteration) pairs. Statements beside the path that assign a variable the path reads are refused.
+- `sameIndexSlots` now: one store; no gather through an aliased slot; for each aliased load, equal `IX.keyOf`, then either (same list) before the store with no reassignment between, or (barrier) at top level, index depending on `bid` only, a top-level `sync` between it and the branch holding the store, the branch made of `if`s only; and finally `storeInjective`.
+- `AliasWatch` in `program-sim.js` now counts barrier epochs per block (`sync` override), and accepts a cross-thread read when it is in the same block and in an earlier epoch than the store.
+- Tests added: barrier ok / no barrier / every thread storing; coarsened distinct / loop storing one element per iteration / limit / out of range; and three end-to-end oracle cases: `x += a @ w` (row kernel, rtx5090), `x += sum(a*w)` (staged row kernel), `relu_` on `[24,256,20,20]` with a100 (`TPB=64,COARSEN=4`).
+- `scripts/06-oracle-over-corpus.mjs`: compiles each corpus graph in process (a100, contraction separate, FP32 products), exports both strategies, runs both on the oracle (auto instrumented), and requires no hazard and bitwise-equal outputs and final inputs.
+
+### Why
+
+- Distinct store addresses plus same-index loads imply that an element is read only by the (block, thread, iteration) that stores it, before it stores it. Enumeration proves distinctness exactly for constant launch geometry; the original kernel's race freedom is no longer assumed.
+- The barrier clause is the guide's deferred "row-level proof" (Section 11.3) in the narrowest form the corpus needs.
+
+### What worked
+
+- `sources/mutation-plan-table.json`: 113 direct, 1 write-back (task 57 `000`: `more than 67108864 (thread, iteration) pairs to enumerate`). Every task compiled (internal reference check ON).
+- `sources/mutation-oracle.json`: 114 programs; 84 ok, 0 hazard, 0 differs, 20 skipped (over the 2^24-thread simulation budget), 10 errors.
+- `node test/inplace.mjs`: 80 checks ok; the coarsened a100 case runs in about 2.6 s.
+
+### What didn't work
+
+- `node test/inplace.mjs` → `TypeError: Cannot read properties of undefined (reading 'find')` at `storeInjective`: the hand-written Loop IR in the tests had no `params`/`grid`/`block`. Gave the helper a minimal kernel shape.
+- `node test/inplace.mjs` → `SyntaxError: missing ) after argument list` at line 118: a malformed check I wrote; replaced it.
+- The probe `x += a @ w` was refused with `a for before the store assigns index variables`: the reduction loop's counter `r0` tripped the first, too coarse refusal. Narrowed it to variables the path reads.
+- The oracle then failed the row cases: `thread 1 reads element 0, which thread 0 stores`. The watcher did not model barriers; added epochs.
+- The 10 oracle errors are all task 45 (`F_v1 is not defined`): its producer has a `bool` typed value (`bool v1 = 0`), which `toSim` does not declare. Typed and integer values in the simulator belong to KILN-010, so I left it.
+
+### What I learned
+
+- Every corpus producer is one of three shapes: thread-mapped, coarsened thread-mapped, or a row reduction with a one-thread store.
+
+### What was tricky to build
+
+- The barrier clause needs three facts at once: every thread of the block reads before a block-wide barrier (top level, so uniform), the store follows the barrier, and no other block stores that element (enumeration over bid). Missing any one admits a race; the unit tests cover each omission.
+
+### What warrants a second pair of eyes
+
+- `storeInjective` evaluates indices with JavaScript `%`/floor `/`, which match CUDA only for nonnegative operands. It refuses negative addresses, but a negative intermediate that becomes a valid address would be evaluated differently from CUDA. Loop IR coordinates are nonnegative by construction.
+- The barrier clause relies on the top-level `sync` being executed by every thread (it is in `K.body`, outside any branch).
+
+### What should be done in the future
+
+- Integer/bool support in `toSim` (KILN-010) would let the oracle run task 45.
+- A sampled-block oracle mode would cover the 20 programs over budget.
+
+### Code review instructions
+
+- `packages/kiln/src/std/inplace.js` `storeInjective` and the barrier branch of `sameIndexSlots`; `program-sim.js` `AliasWatch.sync`.
+- `node ttmp/.../scripts/06-oracle-over-corpus.mjs --output /tmp/x.json <task dirs from script 05>`.
+
+### Technical details
+
+- Plan table totals: first slice `{'direct': 89, 'writeback': 25}`, extended `{'direct': 113, 'writeback': 1}`; task 147 and 162 have no input mutations.
+
+## Step 9: Family 162: kept in-place results and the `__eq__` spelling
+
+I implemented both matcher fixes of guide Section 4.9. The pattern now returns kept in-place results that nothing reads, the compiled program returns the same nodes, and target graphs spell `x.__eq__(0)` as `operator.eq`, like the symbolically traced pattern. A census scan showed the AST and FX sides agree on all 1984 graphs where both sides parse, and the generated family-162 rule now selects its own specialization exactly once in all six graphs on meta tensors.
+
+### Prompt Context
+
+**User prompt (verbatim):** see Step 6.
+
+**Assistant interpretation:** Phase 4: `drop_dead_statements`, `expose_inplace_results`, `canonicalize_spellings`, tests, script 658.
+
+**Inferred user intent:** Unblock family 162, which PassBench never evaluated.
+
+**Commit (code):** `78f5f1b` (same commit as Step 8).
+
+### What I did
+
+- `generate_pass.drop_dead_statements` returns the names bound by kept in-place statements whose results are unused, in statement order, and refuses a name that a later kept statement rebinds. `extract_pattern` appends them to the return tuple and clears `singleton`.
+- `corpus.inplace_node(node)` (the in-place rule, shared now by `eliminate_dead_code`) and `corpus.expose_inplace_results(graph)`, called in `translate_graph` right after dead-code elimination.
+- `fx_normalize.DUNDER_ALIASES` for `__eq__ __ne__ __lt__ __le__ __gt__ __ge__`, applied in `canonicalize_spellings` to two-argument `call_method` nodes.
+- Tests in `test_pass_generation.py`: a reduced 162 source (no device literal) whose pattern returns `(tmp_5, tmp_4)`, constructs a `SubgraphMatcher`, and matches a TorchDynamo capture exactly once after normalization; its program output structure has two leaves; a rebound unused result is refused.
+- `scripts/07-census-inplace-agreement.py`: AST vs FX agreement over all 2060 graphs of the 200 eval samples, plus the list of graphs that call a comparison dunder; writes a 658 plan of the affected samples.
+- Ran KILN-005 script 658 (unchanged, from this worktree) on that plan, then `scripts/08-match-generated-rules-meta-device.py` on its 162 output.
+
+### Why
+
+- Returning a real output (Decision 7.7) keeps the rule and the program describing the same computation; `output_permutation` stays the identity.
+
+### What worked
+
+- `sources/census-inplace-agreement.json`: 2060 graphs, 1984 on both sides, 1984 agree; 10 graphs with unused in-place results (families 124 and 162, all `masked_fill_`); 17 with a comparison dunder; affected samples 13, 124, 162, 170.
+- Script 658 (`sources/phase4-658-simulation.json`): 162 now generates (`6 variants; 1 source-derived patterns`), output structures `{'tuple': [out0, out1, out2]}`, permutation `[0, 1, 2]`; capture fails on CPU (`Found no NVIDIA driver`) because the graphs call `.to(device('cuda'))`.
+- Script 08 (`sources/family162-meta-match.json`): `6/6 identity ok`, returning nodes `['tmp_13', 'tmp_7', 'tmp_4']`.
+- 162 compiles (`end-to-end check ok at loop`, 6/6) with three outputs.
+
+### What didn't work
+
+- Script 07's first run: `AttributeError: 'BinOp' object has no attribute 'func'` on 1016 graphs: my recorder classified every kept statement, not only the unused in-place ones. Fixed the filter; the rerun has no such errors.
+- Script 08's first run: `ModuleNotFoundError: No module named 'corpus'`: `parents[5]` is `ttmp/`, not the repository root. Fixed to `parents[6]`.
+- Samples 13 and 170 cannot be generated on CPU (`Found no NVIDIA driver`, during export), and 124 fails import with `TypeError Unsupported FX value: float: inf` (an existing importer limitation). Their rule selection after the `__eq__` change is a GPU-host check.
+- 6 graphs of sample 67 raise `NameError: name 'tmp_3' is not defined` in `extract_pattern`; the base worktree (`passnet`, `373766b`) raises the same, so it predates this change.
+
+### What I learned
+
+- The in-place-result fix also applies to family 124 (`masked_fill_`, 4 graphs), which 658 could not reach on CPU.
+
+### What was tricky to build
+
+- The AST rule and the FX rule must pick the same statements in the same order, or `output_permutation` raises `Rule and variant return different values`. Both now derive from one keep condition, and the census scan checks agreement by operation name and order.
+
+### What warrants a second pair of eyes
+
+- The dunder canonicalization can create matches that did not exist before (Decision 7.8). On CPU only 162 could be checked; 13, 124 and 170 need the CUDA host.
+
+### What should be done in the future
+
+- Rerun script 658 for samples 13, 124, 162 and 170 on the CUDA host.
+
+### Code review instructions
+
+- `integrations/passnet/generate_pass.py` `drop_dead_statements`/`extract_pattern`; `corpus.py` `expose_inplace_results`; `fx_normalize.py` `DUNDER_ALIASES`.
+- `cd integrations/passnet && python3 -m pytest -q test_pass_generation.py`.
+
+### Technical details
+
+- Validation at commit `78f5f1b`: `npm test` → `all 49 passed`; `pytest -q` → `180 passed, 7 subtests passed`.
