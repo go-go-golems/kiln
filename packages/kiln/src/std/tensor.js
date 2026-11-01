@@ -164,6 +164,40 @@ export function argRef(x, axis, fn, keepdim) {
   }
   return out;
 }
+// slice assignment x[index] = y (KILN-010). index has one entry per axis of x: {slice: [start, stop,
+// step]} (step >= 1, bounds clamped to [0, d]) or {at: k}. The region's shape drops `at` axes; y
+// broadcasts to it and converts to x's dtype (PyTorch copy_: truncation toward zero, nonzero is true).
+export function assignSpec(xShape, index) {
+  if (!Array.isArray(index) || index.length !== xShape.length) throw new KilnError("ShapeError", `assignment index needs one entry per axis of (${xShape})`);
+  const axes = index.map((e, a) => {
+    const d = xShape[a];
+    if (e && Number.isSafeInteger(e.at)) {
+      const k = e.at < 0 ? e.at + d : e.at;
+      if (k < 0 || k >= d) throw new KilnError("ShapeError", `assignment index ${e.at} out of range for axis ${a} of size ${d}`);
+      return { a, at: k };
+    }
+    if (!e || !Array.isArray(e.slice) || e.slice.length !== 3 || !e.slice.every(Number.isSafeInteger) || e.slice[2] < 1) throw new KilnError("ShapeError", `assignment index entry ${JSON.stringify(e)} is neither {at} nor {slice: [start, stop, step >= 1]}`);
+    const clamp = (v) => Math.min(d, Math.max(0, v < 0 ? v + d : v));
+    const start = clamp(e.slice[0]), stop = clamp(e.slice[1]), step = e.slice[2];
+    return { a, start, stop, step, len: Math.max(0, Math.ceil((stop - start) / step)) };
+  });
+  return { axes, region: axes.filter((x) => x.at === undefined).map((x) => x.len) };
+}
+function assignRef(x, y, index) {
+  x = asT(x); y = castRef(asT(y), x.dtype);
+  const { axes, region } = assignSpec(x.shape, index);
+  const out = new Tensor(x.shape, x.data.slice(), x.dtype);
+  const yr = viewRef(y, region, broadcastMap(y.shape, region)), xs = strides(x.shape), rs = strides(region);
+  for (let o = 0; o < yr.data.length; o++) {
+    let flat = 0, j = 0;
+    for (const ax of axes) {
+      const c = ax.at !== undefined ? ax.at : ax.start + ax.step * (Math.floor(o / rs[j]) % region[j++]);
+      flat += c * xs[ax.a];
+    }
+    out.data[flat] = yr.data[o];
+  }
+  return out;
+}
 const rows = (x) => { const D = x.shape.at(-1); return [x.data.length / D, D]; };
 function rmsRef(x, w, eps) { x = asT(x); w = asT(w); const [R, D] = rows(x); const o = new Tensor(x.shape); for (let r = 0; r < R; r++) { let s = 0; for (let j = 0; j < D; j++) s += x.data[r * D + j] ** 2; const inv = 1 / Math.sqrt(s / D + eps); for (let j = 0; j < D; j++) o.data[r * D + j] = x.data[r * D + j] * inv * w.data[j]; } return o; }
 function lnRef(x, w, b, eps) { x = asT(x); w = asT(w); b = asT(b); const [R, D] = rows(x); const o = new Tensor(x.shape); for (let r = 0; r < R; r++) { let m = 0; for (let j = 0; j < D; j++) m += x.data[r * D + j]; m /= D; let v = 0; for (let j = 0; j < D; j++) v += (x.data[r * D + j] - m) ** 2; const inv = 1 / Math.sqrt(v / D + eps); for (let j = 0; j < D; j++) o.data[r * D + j] = (x.data[r * D + j] - m) * inv * w.data[j] + b.data[j]; } return o; }
@@ -199,6 +233,24 @@ function expandShape(from, requested) {
     if(size<=0 || (input!==1 && size!==input))throw new KilnError("ShapeError","invalid expand dimension");
     return size;
   });
+}
+function repeatShape(from, repeats) {
+  if (!Array.isArray(repeats) || repeats.length < from.length || !repeats.every((r) => Number.isSafeInteger(r) && r >= 1)) throw new KilnError("ShapeError", "repeat requires positive static repeats, at least one per axis");
+  const off = repeats.length - from.length;
+  return repeats.map((r, i) => r * (i < off ? 1 : from[i - off]));
+}
+function repeatMap(from, repeats) {
+  const off = repeats.length - from.length;
+  return IX.map(repeats.length, (c) => from.map((d, j) => (d === 1 ? IX.C(0) : c[j + off].mod(d))));
+}
+function interleaveSpec(from, repeats, axis) {
+  const a = axis < 0 ? from.length + axis : axis;
+  if (!Number.isSafeInteger(repeats) || repeats < 1 || !(a >= 0 && a < from.length)) throw new KilnError("ShapeError", "repeat_interleave requires a positive static repeat count and a valid axis");
+  return { a, shape: from.map((d, i) => (i === a ? d * repeats : d)) };
+}
+function interleaveMap(from, repeats, axis) {
+  const { a } = interleaveSpec(from, repeats, axis);
+  return IX.map(from.length, (c) => c.map((v, i) => (i === a ? v.div(repeats) : v)));
 }
 function unfoldShape(from, axis, size, step) {
   if (!Number.isSafeInteger(axis) || !Number.isSafeInteger(size) || !Number.isSafeInteger(step) || size<=0 || step<=0 || axis < -from.length || axis >= from.length)
@@ -381,6 +433,19 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
     if (!(a >= 0 && a < s.length)) throw new KilnError("ShapeError", `arg${fn} axis ${axis} out of range`);
     return T_(keepdim ? s.map((d, i) => (i === a ? 1 : d)) : s.filter((_, i) => i !== a), "i64");
   }, eval: ({ x, axis, keepdim, fn }) => argRef(x, axis, fn, keepdim), print: "arg{fn}({x}, axis={axis})" })
+  .op("assign", { args: ["x", "y"], attrs: { index: [] }, traits: ["pure"], infer: ({ x, y, index }) => {
+    const { region } = assignSpec(x.type.shape, index);
+    bshape(y.type.shape, region);
+    if (bshape(y.type.shape, region).join() !== region.join()) throw new KilnError("ShapeError", `assigned value (${y.type.shape}) does not broadcast to the region (${region})`);
+    if (dtypeOf(y) === "u8" || dtypeOf(x) === "u8") throw new KilnError("TypeError", "u8 assignment is not lowered");
+    return x.type;
+  }, eval: ({ x, y, index }) => assignRef(x, y, index), print: "assign({x}, {y})" })
+  // x.repeat(r0, r1, …): tile every axis (new leading axes for extra repeats); a view reading c % d
+  .op("repeat", { args: ["x"], attrs: { repeats: [] }, traits: ["pure"], infer: ({ x, repeats }) => T_(repeatShape(x.type.shape, repeats), x.type.dtype),
+    eval: ({ x, repeats, type }) => viewRef(x, type.shape, repeatMap(asT(x).shape, repeats)), print: "repeat({x}, {repeats})" })
+  // x.repeat_interleave(r, dim): each element r times in a row along axis; a view reading c / r
+  .op("repeat_interleave", { args: ["x"], attrs: { repeats: 1, axis: 0 }, traits: ["pure"], infer: ({ x, repeats, axis }) => T_(interleaveSpec(x.type.shape, repeats, axis).shape, x.type.dtype),
+    eval: ({ x, repeats, axis, type }) => viewRef(x, type.shape, interleaveMap(asT(x).shape, repeats, axis)), print: "repeat_interleave({x}, {repeats}, {axis})" })
   .op("cast", { args: ["x"], attrs: { dtype: "f32" }, traits: ["pure"], infer: ({ x, dtype }) => {
     if (!Object.hasOwn(CATEGORY, dtype) || dtype === "u8") throw new KilnError("TypeError", `unsupported cast: ${dtype}`);
     return k.tensor(x.type.shape, dtype);
@@ -515,6 +580,9 @@ export const N = {
   },
   cumsum: (x, axis = -1) => nn.cumsum(x, { axis }),
   argmax: (x, axis = -1, keepdim = false) => nn.argmax(x, { axis, keepdim, fn: "max" }),
+  assign: (x, index, y) => nn.assign(x, nv(y), { index }),
+  repeat: (x, repeats) => nn.repeat(x, { repeats }),
+  repeatInterleave: (x, repeats, axis) => nn.repeat_interleave(x, { repeats, axis }),
   argmin: (x, axis = -1, keepdim = false) => nn.argmax(x, { axis, keepdim, fn: "min" }),
   amin: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "min", axis, keepdim }),
   sum: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "add", axis, keepdim }),
@@ -627,6 +695,29 @@ export const decompositions = [
     const idx = tensor.ew([tensor.ew([k, i64(n, ks)], { fn: "lt_i64" }), k, tensor.ew([k, i64(n, ks)], { fn: "sub_i64" })], { fn: "select", dtype: "i64" });
     return keepdim ? idx : T.squeeze(idx, a);
   }),
+  // x[region] = y as select(in_region(c), y[clamp(c - start) / step], x[c]): select evaluates both
+  // operands, so every read of y is clamped into range (concat.js's rule); clamping before the
+  // division keeps the dividend nonnegative, where truncating and floor division agree
+  decompose("nn.assign", ({ x, y, index }) => {
+    const s = x.type.shape, { axes, region } = assignSpec(s, index);
+    if (region.some((d) => d === 0)) return x;
+    const yr = T.bc(convert(y, dtypeOf(x)), region);
+    const inRegion = (c) => axes.reduce((p, ax) => {
+      const v = c[ax.a];
+      if (ax.at !== undefined) return p.and(v.eq(ax.at));
+      let q = p;
+      if (ax.start > 0) q = q.and(v.ge(ax.start));
+      if (ax.start + ax.step * (ax.len - 1) < s[ax.a] - 1) q = q.and(v.le(ax.start + ax.step * (ax.len - 1)));
+      if (ax.step > 1) q = q.and(v.sub(ax.start).mod(ax.step).eq(0));
+      return q;
+    }, IX.C(1));
+    const read = T.view(yr, s, (c) => axes.filter((ax) => ax.at === undefined).map((ax) => (ax.len === 1 ? IX.C(0) : c[ax.a].sub(ax.start).max(0).div(ax.step).min(ax.len - 1))));
+    const mask = IX.map(s.length, (c) => [inRegion(c)]);
+    if (mask.exprs[0].t === "c") return mask.exprs[0].v ? read : x;
+    return tensor.ew([tensor.ixval({ shape: s, map: mask, dtype: "bool" }), read, x], { fn: "select", dtype: dtypeOf(x) });
+  }),
+  decompose("nn.repeat", ({ x, repeats, out }) => tensor.view(x, { shape: out.type.shape, map: repeatMap(x.type.shape, repeats) })),
+  decompose("nn.repeat_interleave", ({ x, repeats, axis, out }) => tensor.view(x, { shape: out.type.shape, map: interleaveMap(x.type.shape, repeats, axis) })),
   decompose("nn.linear", ({x,w}) => lowerLinear(T,x,w)),
   decompose("nn.matmul", ({a,b}) => lowerMatmul(T,a,b)),
   decompose("nn.rms_norm", ({ x, w, eps }) => {

@@ -103,14 +103,28 @@ def eliminate_dead_code(graph):
     """
     import operator
     inplace={getattr(operator,'i'+n) for n in ['add','sub','mul','truediv','floordiv','mod','pow','matmul','and','or','xor','lshift','rshift']}
+    inplace.add(operator.setitem)
     order={node:i for i,node in enumerate(graph.nodes)}
+    views={'view','reshape','permute','transpose','expand','expand_as','view_as','unsqueeze','squeeze','flatten','t',
+           'contiguous','narrow','select','unfold','detach','as_strided','movedim','swapaxes','unflatten','split','chunk'}
+    def is_view(node):
+        if node.op=='call_method':return node.target in views
+        return node.op=='call_function' and (node.target is operator.getitem or getattr(node.target,'__name__',None) in views)
+    def storage(target):
+        """target and every value it may be a view of: a write through a view (x[:, 0] += 1,
+        x.permute(1, 0)[0] = 1) is observable through its source. Over-approximate: keeping a
+        node can only cause an explicit import refusal, erasing it would drop a write."""
+        out=[target]
+        while is_view(target) and target.args and hasattr(target.args[0],'users'):
+            target=target.args[0];out.append(target)
+        return out
     for node in reversed(list(graph.nodes)):
         if node.op in ('call_function','call_method') and not node.users:
             name=node.target if isinstance(node.target,str) else getattr(node.target,'__name__','')
             if node.target in inplace or (name.endswith('_') and not name.startswith('_')) or node.kwargs.get('inplace') is True:
                 target=node.args[0] if node.args else None
                 if not hasattr(target,'users'):raise ValueError(f'{node.name}: in-place operation without a tensor target')
-                if target.op=='placeholder' or any(order[user]>order[node] for user in target.users):continue
+                if any(t.op=='placeholder' or any(order[user]>order[node] for user in t.users) for t in storage(target)):continue
             graph.erase_node(node)
 
 

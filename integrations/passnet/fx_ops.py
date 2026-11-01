@@ -26,6 +26,8 @@ class Call:
 class Lowered:
     expr: object                 # Kiln expression text, or a list of them for multi-output views
     mutates: str | None = None   # FX node whose storage this in-place call updates
+    fresh: bool | None = None    # overrides Op.fresh for this call (contiguous copies only when strided)
+    view_write: str | None = None  # FX view (fx_assign.View) whose region this in-place call updates
 
 
 @dataclass(frozen=True)

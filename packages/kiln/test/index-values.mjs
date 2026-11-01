@@ -180,6 +180,52 @@ for (const MAP of ["thread", "row"]) {
   assert.deepEqual([...g.eval({ x: xi }).out.data], [1n, 0n]);
   same(r.at("loop").eval({ x: xi }).out, g.eval({ x: xi }).out, "integer argmax");
 }
+// slice assignment: strided slices, integer indices, broadcast values, dtype conversion, clamped reads
+{
+  const S = (start, stop, step = 1) => ({ slice: [start, stop, step] }), all = S(0, 1 << 30);
+  const fn = ({ x, y, z }) => ({
+    strided: N.assign(x, [S(1, 6, 2), all], y),                    // rows 1, 3, 5 ← y [3, 4]
+    at: N.assign(x, [{ at: -1 }, S(1, 3)], N.int(7)),               // x[-1, 1:3] = 7 (f32 receives an int)
+    bcast: N.assign(x, [all, { at: 2 }], z),                        // x[:, 2] = z [6]
+    trunc: N.assign(N.zeros([3, 2], "i64"), [S(0, 3), { at: 1 }], N.mul(N.slice(z, 0, 0, 3), 1.5)),   // float → int64 truncates
+    chain: N.assign(N.assign(N.zeros([4, 4], "i32"), [{ at: 0 }, all], N.int(1)), [all, { at: 0 }], N.int(2)),
+  });
+  const types = { x: k.tensor([6, 4]), y: k.tensor([3, 4]), z: k.tensor([6]) };
+  const { g, r, prog } = run("assign", fn, types);
+  const x = f32([6, 4]), y = new Tensor([3, 4], Float32Array.from({ length: 12 }, (_, i) => 100 + i)), z = new Tensor([6], Float32Array.of(-2.5, -1.2, 0.5, 1.9, 3, 4.4));
+  const want = g.eval({ x, y, z });
+  assert.deepEqual([...want.strided.data.slice(4, 8)], [100, 101, 102, 103]);
+  assert.deepEqual([...want.strided.data.slice(0, 4)], [...x.data.slice(0, 4)]);
+  assert.deepEqual([...want.at.data.slice(20)], [x.data[20], 7, 7, x.data[23]]);
+  assert.deepEqual([...want.trunc.data], [0n, -3n, 0n, -1n, 0n, 0n]);
+  assert.deepEqual([...want.chain.data].slice(0, 8), [2, 1, 1, 1, 2, 0, 0, 0]);
+  const got = r.at("loop").eval({ x, y, z });
+  for (const name of Object.keys(want)) same(got[name], want[name], `assign ${name}`);
+  // every kernel simulates with no out-of-bounds read of the (smaller) assigned value
+  for (const kn of prog.kernels) { const sim = simulateKernel(kn, hw); assert.ok(sim.check.ok, `${kn.name}: ${sim.check.message}`); }
+  assert.throws(() => k.trace("bad", ({ x }) => ({ o: N.assign(x, [{ at: 6 }, all], 1) }), { x: k.tensor([6, 4]) }), /out of range/);
+  assert.throws(() => k.trace("bad", ({ x, y }) => ({ o: N.assign(x, [S(0, 2), all], y) }), { x: k.tensor([6, 4]), y: k.tensor([3, 4]) }), /broadcast/);
+}
+// repeat and repeat_interleave (ConViT) are views
+{
+  const { g, r } = run("repeat", () => { const t = N.sub(N.reshape(N.arange(0, 3), [1, 3]), N.reshape(N.arange(0, 3), [3, 1])); return { a: N.repeat(t, [2, 2]), b: N.repeatInterleave(t, 2, 0), c: N.repeat(t, [2, 1, 1]) }; }, {});
+  const want = g.eval({});
+  assert.deepEqual(want.a.shape, [6, 6]); assert.deepEqual(want.b.shape, [6, 3]); assert.deepEqual(want.c.shape, [2, 3, 3]);
+  assert.deepEqual([...want.a.data.slice(0, 6)], [0n, 1n, 2n, 0n, 1n, 2n]);
+  assert.deepEqual([...want.b.data.slice(0, 6)], [0n, 1n, 2n, 0n, 1n, 2n]);
+  const got = r.at("loop").eval({});
+  for (const name of ["a", "b", "c"]) same(got[name], want[name], name);
+}
+// integer abs, saturating float → int conversion (MPNet's log(0) branch)
+{
+  const { g, r, prog } = run("abs", ({ x }) => ({ a: N.abs(N.cast(x, "i64")), s: N.cast(N.log(N.mul(x, 0)), "i64") }), { x: k.tensor([4]) });
+  const x = new Tensor([4], Float32Array.of(-3.5, 2, -0.5, 7));
+  const want = g.eval({ x });
+  assert.deepEqual([...want.a.data], [3n, 2n, 0n, 7n]);
+  assert.equal(want.s.data[0], -(2n ** 63n), "log(0) = -inf saturates");
+  for (const name of ["a", "s"]) same(r.at("loop").eval({ x })[name], want[name], name);
+  assert.ok(prog.kernels.some((kn) => /< 0 \? -\(/.test(kn.cuda)), "abs_i64 spelling");
+}
 // causal mask: j <= i, top-left aligned
 assert.deepEqual([...k.trace("cm", () => ({ m: N.causalMask(2, 3) }), {}).eval({}).m.data], [1, 0, 0, 1, 1, 0]);
 console.log("index values: Loop IR invariants, fusion, schedules (thread/row/tiled), floor spellings, integer simulation, factories");

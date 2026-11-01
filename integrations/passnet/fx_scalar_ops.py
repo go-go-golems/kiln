@@ -44,6 +44,12 @@ def lower_scalar(target, kind, args, kwargs, meta, resolve, literal):
     if first not in bound: raise ValueError(f'{op}: input required')
     value = bound[first]
     source = resolve(value)
+    if op == 'pow' and source['dtype'] in ('torch.int64', 'torch.int32') and meta['dtype'] == source['dtype'] and not op.endswith('_'):
+        # an integer square (ConViT's relative distances) is an exact integer product; other integer
+        # exponents would need integer pow
+        if literal(bound.get('exponent', 'null')) != 2 or type(literal(bound.get('exponent', 'null'))) is not int:
+            raise ValueError(f'{op}: integer pow is lowered for the exponent 2 only')
+        return f'N.mul({value}, {value})', value, False
     if source['dtype'] not in FLOATING or meta['dtype'] != source['dtype'] or meta['shape'] != source['shape']:
         raise ValueError(f'{op}: dtype-preserving floating tensor required')
     dtype = json.dumps(FLOATING[source['dtype']])

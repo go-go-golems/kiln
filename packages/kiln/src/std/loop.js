@@ -75,6 +75,9 @@ export const E = {
     if (!IX_DTYPES.has(dtype)) throw new KilnError("TypeError", `index value dtype must be i64, i32 or bool, got ${dtype}`);
     e = IX.lift(e);
     if (dtype === "bool" && !PREDICATES.has(e.t) && !(e.t === "c" && (e.v === 0 || e.v === 1))) throw new KilnError("TypeError", `a bool index value must be a predicate, got ${IX.print(e)}`);
+    // a constant index value is a literal (a region predicate that substitution decided); literals
+    // pass through f32 spellings, so only constants exact in f32 fold
+    if (e.t === "c" && Math.abs(e.v) <= 2 ** 24) return E.num(e.v);
     return intern({ k: "ix", e, dtype });
   },
 };
