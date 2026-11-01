@@ -274,3 +274,55 @@ I related the key files to the design doc, added one task per implementation pha
 
 ### Technical details
 - Doctor output: "## Doctor Report (1 findings) / ### KILN-006 / - ✅ All checks passed".
+
+## Step 6: Implementation begins — Phase 1, the atom table and warp emulator (`mma.js`)
+
+This is the first implementation step, in the worktree `worktrees/kiln-006-tensor-cores` on branch `impl/kiln-006-tensor-cores`. I re-read the design guide, then the code it cites at the current revision (`tile.js`, `kernel.js`, `emit.js`, `program.js`, `targets.js`, `loop.js` schedule, `core/kiln.js` fork tree and pins, `store.js` evidence keying), and wrote `packages/kiln/src/std/mma.js` with its test `packages/kiln/test/mma-layout.mjs`. The module is the single source of truth the guide asks for: atom shapes, operand formats, per-lane fragment layouts, the PTX strings, a pure atom reference with four explicit accumulation orders, the warp-collective emulation `runAtom` that the simulator will call, a representability check, and the shared-memory padding chooser that the materializer and the cost model will both call.
+
+The baseline suite passed before any change (`npm test`: "all 48 passed", 10.9 s). The new test passes on its own.
+
+### Prompt Context
+**User prompt (verbatim):** "then, can we work on them in parallel (in separate worktrees maybe?)" and "tell each agent to use their own diary and to folow the diary format as they go, and to write a full report for the go-go-parc vault once they are done ( write a detailed project report for the obsidian vault as a deep dive technical analysis blog post using a textbook writing style (no analogies, see skill). Commit and push the bsidian vault when done (go-go-parc vault). )"
+
+Coordinator brief (relayed, not user-authored): implement KILN-006 (tensor-core matrix products) in this worktree; give the CUDA emission a faithful simulator/JS-reference model of the fragment semantics (operand rounding, accumulation order as far as the guide specifies) and test codegen structurally; NVRTC compile and numeric GPU validation are deferred to the coordinator; KILN-007 (fused attention) will build on the matrix-product tiles, so keep the tile/kernel-layer API clean and documented. Common rules: no GPU host, no backward-compatibility shims, tests pass before each commit, local commits only, own diary in investigation format.
+**Assistant interpretation:** Implement Phases 1-4 of the guide (CPU-buildable), in order, with tests; list Phase 0/5 GPU validations for the coordinator; write the vault report at the end.
+**Inferred user intent:** Several Kiln tickets progress in parallel without stepping on each other; each leaves an auditable record.
+**Commit (code):** see Step 7 (Phase 1 is committed together with its diary entry).
+
+### What I did
+- Re-derived every fragment layout of the guide (Section 6.3) from my reading of the PTX ISA fragment figures and compared formula by formula: `m16n8k8.tf32` A `[g + 8(i&1), t + 4(i>>1)]`, B `[t + 4i, g]`; `m16n8k16` A `[g + 8(r&1), 2t + (e&1) + 8(r>>1)]` with `r = e>>1`, B `[2t + (e&1) + 8(e>>1), g]`; C/D `[g + 8(i>>1), 2t + (i&1)]`. They agree with the guide.
+- `mma.js`: `MMA_OPS` (frozen; `aElems`/`bElems` added beside `aRegs`/`perReg`), `accLayout`, `OP_FOR_PRECISION`, `roundOperand`, `representable`, `dot(c, a, b, order)`, `atomReference`, `runAtom(op, w, acc, a, b, order)`, `layoutTables`, `bankDegree`, `mmaSmemLayout(op, {BM, BN, BK})`, `mmaSmemBytes`.
+- `test/mma-layout.mjs`: bijection of every A, B and C/D layout; PTX string shape; spot checks at lane 5; a full-warp scatter → `runAtom` → gather equals the sequential FP32 sum computed independently (bit-exact) and is within 1e-5 of the exact sum; every order within an FP32 bound; a constructed order-sensitive dot product; truncation semantics of `chunk-rz`; representability for TF32/f16/bf16; an unrepresentable operand is reported with lane, operand and slot; padding makes TF32 A fragment reads conflict-free.
+
+### Why
+- One table consumed by materializer, emitter, simulator and cost model means a transcription error is at least consistent everywhere and fixable in one place (guide Risk 11.1).
+- Accumulation order is unspecified by the PTX ISA. The guide specifies "exact products, `Math.fround` after each addition in ascending k" as the default and asks for `reverse`/`pairwise` alternatives. I added a fourth, `chunk-rz`, that models the truncating multi-term adder measured by Fasi et al. (2021) on V100/T4/A100, clearly labelled a model, so a test can bound the effect of a hardware-like adder rather than only of reordering.
+
+### What worked
+- `node test/mma-layout.mjs` → "mma layouts are bijections; the emulated atom computes A·B + C with exact products; unrepresentable operands are reported".
+
+### What didn't work
+- My first expectation for the order-sensitivity case was wrong: `assert.equal(dot(0, a, b, "reverse"), 1 + 2 ** -23)` failed with `actual 1.000000238418579, expected 1.0000001192092896`. Three products of `2^-24` sum exactly to `3·2^-24 = 1.5 ulp(1)`; adding 1 gives a tie that rounds to even, `1 + 2^-22`. The emulator was right; I fixed the expectation and its message.
+
+### What I learned
+- The simulator stores every per-thread value in a `Float32Array`, so any value an `mma` reads has already been rounded to FP32; the emulator only needs the operand-format check, not an FP32 one.
+- `kernelInputs` (program.js) seeds every input with unrounded `r()*2-1` FP32 values, including inputs that in the real graph come from a `round_tf32` producer or from f16 storage. An isolated kernel check of a tensor-core kernel would therefore trip the representability check on every operand. This shapes Phase 2/3 (Step 7).
+- `k.knobs.canonical` (core/kiln.js:510) includes every key of a knob object, and `EvidenceStore.statsFor` matches records by it. Adding `WM`/`WN` levels that set `0` on every existing option would silently orphan every stored measurement. This shapes Phase 3.
+
+### What was tricky to build
+- Round toward zero in `chunk-rz`: `Math.fround` rounds to nearest, so the RZ result is `fround(x)` when that does not exceed `|x|`, and otherwise the float one ulp closer to zero, obtained by decrementing the bit pattern (valid for either sign because IEEE floats are sign-magnitude, and `r ≠ 0` whenever `|r| > |x|`).
+
+### What warrants a second pair of eyes
+- The layout formulas. They are now cross-checked twice from the same documentation (guide, and my reading), and are bijections, but only the Phase 0 GPU probe can confirm them.
+- `chunk-rz`'s chunk size 4 is an assumption; it does not decide anything by default.
+
+### What should be done in the future
+- Phase 0 probe should also measure which accumulation order (if any) of `ORDERS` reproduces GB10 bit-exactly; that would let the simulator default to it.
+
+### Code review instructions
+- `packages/kiln/src/std/mma.js` top comment, `MMA_OPS`, `runAtom`, `mmaSmemLayout`.
+- `node packages/kiln/test/mma-layout.mjs`.
+
+### Technical details
+- `runAtom` returns `null` or the first violation `{ lane, operand: "A"|"B", slot, value }`; NaN counts as representable.
+- `mmaSmemLayout` picks `pad ∈ {0, 4, 8}` minimizing the summed per-slot bank-conflict degree of one k-step's fragment reads; ties go to the smaller pad. TF32 `BK=8` → `padA = 4` (stride 12, conflict-free; stride 8 is 2-way).
