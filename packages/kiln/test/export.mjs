@@ -16,7 +16,7 @@ const exp = (g, opts) => { const r = pipe.run(g); return exportProgram(r, progra
 {
   const g = k.trace("attention", ({ q, kk, v }) => N.matmul(N.softmax(N.mul(N.matmul(q, N.transpose(kk)), 0.125)), v), { q: k.tensor([2, 32, 16]), kk: k.tensor([2, 32, 16]), v: k.tensor([2, 32, 16]) });
   const r = pipe.run(g), prog = programOf(r.graph), p = exportProgram(r, prog, { params: { seq: 32 } });
-  check(p.format === PROGRAM_FORMAT && p.codegen === "kiln-codegen/3", `format ${p.format}, codegen ${p.codegen}`);
+  check(p.format === PROGRAM_FORMAT && p.codegen === "kiln-codegen/4", `format ${p.format}, codegen ${p.codegen}`);
   check(p.inputs.map((t) => `${t.name}:${t.buffer}`).join(" ") === "q:0 kk:1 v:2", `inputs take the first buffers: ${p.inputs.map((t) => `${t.name}:${t.buffer}`).join(" ")}`);
   check(p.kernels.length === 3 && p.buffers.length === 6, `${p.kernels.length} kernels, ${p.buffers.length} buffers`);
   const written = new Set(p.inputs.map((t) => t.buffer));

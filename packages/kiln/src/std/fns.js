@@ -3,13 +3,15 @@
 import { roundToDtype } from "../core/dtypes.js";
 import { erf } from "./special.js";
 const f = Math.fround;
-// TF32: FP32 storage with a 10-bit explicit mantissa. cuBLAS/cuDNN tensor-core paths round
-// FP32 operands to nearest (ties away, PTX cvt.rna.tf32.f32) when TF32 is enabled.
+// TF32: FP32 storage with a 10-bit explicit mantissa. Under allow_tf32, cuBLAS products and 1x1
+// convolutions on GB10 round FP32 operands to nearest, ties to even (probe 671: RNE max error 3.8e-4
+// against RNA's 6.9e-3 for linear). cuDNN's 3x3 convolutions round ties away instead; Kiln applies
+// TF32 to matrix products only (tensor.js tf32Pass).
 const TF32_BITS = new Uint32Array(1), TF32_VALUE = new Float32Array(TF32_BITS.buffer);
 export function roundTf32(x) {
   TF32_VALUE[0] = x;
   if ((TF32_BITS[0] & 0x7f800000) === 0x7f800000) return TF32_VALUE[0];  // inf, nan
-  TF32_BITS[0] = ((TF32_BITS[0] + 0x1000) & 0xffffe000) >>> 0;
+  TF32_BITS[0] = ((TF32_BITS[0] + 0xfff + ((TF32_BITS[0] >>> 13) & 1)) & 0xffffe000) >>> 0;
   return TF32_VALUE[0];
 }
 export const FNS = {

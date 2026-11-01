@@ -58,7 +58,7 @@ export function toCuda(K) {
   const types = [...ins, out].map((p) => p.dtype || "f32");
   if (types.includes("f16") || JSON.stringify(K.body).includes('"round_f16"')) lines.push("#include <cuda_fp16.h>");
   if (types.includes("bf16") || JSON.stringify(K.body).includes('"round_bf16"')) lines.push("#include <cuda_bf16.h>");
-  if (JSON.stringify(K.body).includes('"round_tf32"')) lines.push(`__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned r; asm("cvt.rna.tf32.f32 %0, %1;" : "=r"(r) : "f"(x)); return __uint_as_float(r); }`);
+  if (JSON.stringify(K.body).includes('"round_tf32"')) lines.push(`__device__ __forceinline__ float kiln_round_tf32(float x) { unsigned b = __float_as_uint(x); if ((b & 0x7f800000u) == 0x7f800000u) return x; return __uint_as_float((b + 0xfffu + ((b >> 13) & 1u)) & 0xffffe000u); }`);
   const load = (dtype, expr) => dtype === "f16" ? `__half2float(${expr})` : dtype === "bf16" ? `__bfloat162float(${expr})` : dtype === "u8" ? `(float)${expr}` : expr;
   const store = (expr) => out.dtype === "f16" ? `__float2half_rn(${expr})` : out.dtype === "bf16" ? `__float2bfloat16_rn(${expr})` : expr;
   lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `const ${ctype(p)}* __restrict__ src${i}`), `${ctype(out)}* __restrict__ dst`].join(", ")}) {`);
@@ -126,7 +126,7 @@ export function toWgsl(K) {
   if (JSON.stringify(K.body).includes('"round_tf32"')) lines.push(`fn kiln_round_tf32(x: f32) -> f32 {
   let bits = bitcast<u32>(x);
   if ((bits & 0x7f800000u) == 0x7f800000u) { return x; }
-  return bitcast<f32>((bits + 0x1000u) & 0xffffe000u);
+  return bitcast<f32>((bits + 0xfffu + ((bits >> 13u) & 1u)) & 0xffffe000u);
 }`);
   if (JSON.stringify(K.body).includes('"round_bf16"')) lines.push(`fn kiln_round_bf16(x: f32) -> f32 {
     let bits = bitcast<u32>(x);

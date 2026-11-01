@@ -8,7 +8,7 @@ import { seedOf } from "./program.js";
 import { canonRow } from "./tile.js";
 
 /** Bumped whenever emit.js or kernel.js change the code they generate for the same kernel. */
-export const CODEGEN_VERSION = "kiln-codegen/3"; // 3: deterministic reduction binders in Kernel IR and all emitted sources
+export const CODEGEN_VERSION = "kiln-codegen/4"; // 3: deterministic reduction binders; 4: typed integer values and literals, RNE TF32 rounding
 export const APP = "kiln-workbench/0.1";
 /** The seed every measurement generates kernel inputs from (kernelInputs(kern, INPUT_SEED)). */
 export const INPUT_SEED = 1;

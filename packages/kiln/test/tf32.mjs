@@ -1,4 +1,4 @@
-// matmulPrecision "tf32": FP32 contraction operands are rounded to TF32 (round to nearest, ties away)
+// matmulPrecision "tf32": FP32 contraction operands are rounded to TF32 (round to nearest, ties to even: probe 671)
 // to match a reference backend with PyTorch allow_tf32 for matrix products; bias, convolutions and
 // the default "highest" policy are unchanged.
 import assert from "node:assert/strict";
@@ -10,13 +10,14 @@ import { programOf } from "../src/std/program.js";
 import { SPECS, target } from "../src/std/targets.js";
 import { roundTf32 } from "../src/std/fns.js";
 
-assert.equal(roundTf32(1 + 2 ** -11), 1 + 2 ** -10, "a tie rounds away from zero");
-assert.equal(roundTf32(-(1 + 2 ** -11)), -(1 + 2 ** -10));
+assert.equal(roundTf32(1 + 2 ** -11), 1, "a tie rounds to the even neighbour");
+assert.equal(roundTf32(-(1 + 2 ** -11)), -1);
+assert.equal(roundTf32(1 + 3 * 2 ** -11), 1 + 4 * 2 ** -11, "a tie with an odd neighbour rounds up");
 assert.equal(roundTf32(1 + 2 ** -12), 1, "below half an ulp rounds down");
 assert.equal(roundTf32(1 + 3 * 2 ** -12), 1 + 2 ** -10);
 assert.equal(roundTf32(Infinity), Infinity);
 assert.ok(Number.isNaN(roundTf32(NaN)));
-assert.equal(roundTf32(3.4028234663852886e38), Infinity, "rounding past the largest TF32 value overflows like cvt.rna");
+assert.equal(roundTf32(3.4028234663852886e38), Infinity, "rounding past the largest TF32 value overflows");
 
 const hardware = target(SPECS.a100);
 const g = k.trace("tf32-linear", ({ x, w, b }) => ({ out: N.linear(x, w, b) }), { x: k.tensor([2, 3]), w: k.tensor([4, 3]), b: k.tensor([4]) });
@@ -41,7 +42,7 @@ assert.ok(close(tf32.at("loop").eval(inputs).out.data, expected(roundTf32)), "lo
 assert.ok(close(highest.at("loop").eval(inputs).out.data, expected((v) => v)), "highest keeps FP32 operands");
 assert.ok(!close(tf32.at("loop").eval(inputs).out.data, expected((v) => v)), "the fixture distinguishes the policies");
 const tfKernels = programOf(tf32.graph).kernels, fpKernels = programOf(highest.graph).kernels;
-assert.ok(tfKernels.some((kn) => kn.cuda.includes("cvt.rna.tf32.f32")), "CUDA rounds with cvt.rna.tf32.f32");
+assert.ok(tfKernels.some((kn) => kn.cuda.includes("kiln_round_tf32") && kn.cuda.includes("((b >> 13) & 1u)")), "CUDA rounds ties to even");
 assert.ok(fpKernels.every((kn) => !kn.cuda.includes("tf32")), "highest emits no TF32 rounding");
 // separate contraction has no WGSL guarantee; check WGSL under the default contraction policy
 const wgslKernels = programOf(pipeline({ target: hardware, matmulPrecision: "tf32" }).run(g).graph).kernels;
