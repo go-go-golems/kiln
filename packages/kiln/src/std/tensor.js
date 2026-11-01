@@ -311,7 +311,8 @@ export const N = {
     }
     return nn.conv2d(x,w,b || tensor.const({value:0,shape:[w.type.shape[0]]}),options);
   },
-  cast: (x, dtype) => nn.cast(x, { dtype }),
+  // a cast to the value's own dtype is the value (PyTorch .long() on int64, .float() on f32)
+  cast: (x, dtype) => ((x.type?.dtype || "f32") === dtype ? x : nn.cast(x, { dtype })),
   expect: (x, shape, dtype) => nn.expect(x, { shape, dtype }),
   ew: (f, ...xs) => nn.ew(xs.map(nv), { fn: f }),
   add: (a, b) => N.ew("add", a, b), sub: (a, b) => N.ew("sub", a, b), mul: (a, b) => N.ew("mul", a, b), div: (a, b) => N.ew("div", a, b),

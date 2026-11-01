@@ -5,7 +5,8 @@ Every supported operation is one fx_ops.Op in REGISTRY; import_graph only walks 
 looks operations up and applies the shared postconditions.
 """
 import json
-from fx_ops import DTYPES, Call, Lowered, Op, Registry, bind
+from dtypes import FLOATING, IMPORTED
+from fx_ops import Call, Lowered, Op, Registry, bind
 from fx_pooling import AVG_POOL2D, lower_avg_pool2d, ADAPTIVE_AVG_POOL2D, lower_adaptive_avg_pool2d
 from fx_indexing import lower_index,lower_transpose,lower_reshape,lower_singleton_view,SINGLETON_FUNCTIONS,SINGLETON_METHODS,lower_flatten,FLATTEN_FUNCTIONS
 from fx_linalg import FUNCTIONS as LINALG_FUNCTIONS, METHODS as LINALG_METHODS, lower_linalg
@@ -110,7 +111,7 @@ def lower_activation(c):
         raise ValueError(f'{c.name}: {activation} requires a dtype-preserving floating tensor')
     # PyTorch pointwise activation arithmetic uses opmath FP32 for low
     # precision inputs. Narrow once at this source operation boundary.
-    dtype = DTYPES[c.meta['dtype']]
+    dtype = floating_dtype(c, activation)
     option = ''
     if activation == 'gelu':
         approximate = c.ctx.literal(bound.get('approximate', '"none"'))
@@ -159,7 +160,7 @@ def lower_cat(c):
         raise ValueError(f'{c.name}: static nonempty tensor sequence required')
     axis = c.ctx.literal(bound.get('dim', '0'))
     if type(axis) is not int: raise ValueError(f'{c.name}: static concatenation dimension required')
-    dtype = DTYPES[c.meta['dtype']]
+    dtype = IMPORTED[c.meta['dtype']]
     casted = [value if c.ctx.metadata[c.ctx.source_of(value)]['dtype'] == c.meta['dtype'] else f'N.cast({value}, {json.dumps(dtype)})' for value in tensors]
     return Lowered(f'N.concat([{", ".join(casted)}], {axis})')
 
@@ -206,7 +207,7 @@ def lower_reduction(c):
         expr = f'N.mul({expr}, {1 / count!r})'
     if not keep:
         expr = f'N.reshape({expr}, {json.dumps([dim for axis, dim in enumerate(shape) if axis not in axes])})'
-    return Lowered(f'N.cast({expr}, {json.dumps(DTYPES[c.meta["dtype"]])})')
+    return Lowered(f'N.cast({expr}, {json.dumps(floating_dtype(c, "reduction"))})')
 
 
 @op('transpose', functions=('torch.transpose', 'aten.transpose.int'), methods=('transpose',), fresh=False)
@@ -313,9 +314,9 @@ def lower_permute(c):
 def lower_type_as(c):
     if len(c.args) != 2 or c.kwargs: raise ValueError(f'{c.name}: type_as requires self and tensor')
     source = c.ctx.resolve(c.args[0]); other = c.ctx.resolve(c.args[1])
-    if c.meta['shape'] != source['shape'] or c.meta['dtype'] != other['dtype'] or other['dtype'] not in DTYPES:
+    if c.meta['shape'] != source['shape'] or c.meta['dtype'] != other['dtype'] or other['dtype'] not in IMPORTED:
         raise ValueError(f'{c.name}: type_as result metadata mismatch')
-    return Lowered(f'N.cast({c.args[0]}, {json.dumps(DTYPES[other["dtype"]])})')
+    return Lowered(f'N.cast({c.args[0]}, {json.dumps(IMPORTED[other["dtype"]])})')
 
 
 @op('to', methods=('to',), fresh=False)
@@ -329,14 +330,26 @@ def lower_to(c):
     if (len(c.args) == 2) == ('dtype' in c.kwargs):
         raise ValueError(f'{c.name}: exactly one explicit dtype required')
     dtype = c.ctx.literal(c.args[1] if len(c.args) == 2 else c.kwargs['dtype'])
-    if dtype not in DTYPES: raise ValueError(f'{c.name}: unsupported cast dtype {dtype}')
-    return Lowered(f'N.cast({c.args[0]}, {json.dumps(DTYPES[dtype])})')
+    if dtype not in IMPORTED: raise ValueError(f'{c.name}: unsupported cast dtype {dtype}')
+    return Lowered(f'N.cast({c.args[0]}, {json.dumps(IMPORTED[dtype])})')
 
 
-@op('float_conversion', methods=('float', 'half', 'bfloat16'), fresh=False)
-def lower_float_conversion(c):
-    if len(c.args) != 1 or c.kwargs: raise ValueError(f'{c.name}: invalid floating conversion')
-    return Lowered(f'N.cast({c.args[0]}, {json.dumps({"float": "f32", "half": "f16", "bfloat16": "bf16"}[c.target])})')
+def floating_dtype(c, what):
+    """The Kiln dtype of a floating operation's result; integer values are refused by name."""
+    dtype = c.meta.get('dtype') if isinstance(c.meta, dict) else None
+    if dtype not in FLOATING: raise ValueError(f'{c.name}: {what} requires a floating tensor, got {dtype}')
+    return FLOATING[dtype]
+
+
+# Kiln decides legality: a cast to the value's own dtype is the value; integer conversions are
+# refused by the compiler until typed arithmetic exists (P3a slice 3)
+CONVERSION_METHODS = {'float': 'f32', 'half': 'f16', 'bfloat16': 'bf16', 'long': 'i64', 'bool': 'bool'}
+
+
+@op('dtype_conversion', methods=tuple(CONVERSION_METHODS), fresh=False)
+def lower_dtype_conversion(c):
+    if len(c.args) != 1 or c.kwargs: raise ValueError(f'{c.name}: invalid dtype conversion')
+    return Lowered(f'N.cast({c.args[0]}, {json.dumps(CONVERSION_METHODS[c.target])})')
 
 
 # ------------------------------------------------------------------------------ neural-network operations
@@ -350,7 +363,7 @@ def lower_conv2d(c):
 @op('interpolate', functions=('torch.nn.functional.interpolate',))
 def lower_interpolate(c):
     kwargs = c.kwargs
-    if c.meta.get('dtype') not in DTYPES or len(c.args) != 1:
+    if c.meta.get('dtype') not in FLOATING or len(c.args) != 1:
         raise ValueError(f'{c.name}: interpolation requires supported floating dtype and explicit keyword options')
     if set(kwargs) - {'size', 'scale_factor', 'mode', 'align_corners', 'recompute_scale_factor', 'antialias'}:
         raise ValueError(f'{c.name}: unsupported interpolation arguments')
@@ -388,7 +401,7 @@ def lower_batch_norm(c):
     expr = f'N.div(N.sub(N.cast({bound["input"]}, "f32"), {mean}), N.sqrt(N.add({variance}, {eps})))'
     if weight: expr = f'N.mul({expr}, {weight})'
     if bias: expr = f'N.add({expr}, {bias})'
-    return Lowered(f'N.cast({expr}, {json.dumps(DTYPES[c.meta["dtype"]])})')
+    return Lowered(f'N.cast({expr}, {json.dumps(floating_dtype(c, "batch_norm"))})')
 
 
 @op('dropout', functions=('torch.nn.functional.dropout',), fresh=False)
@@ -462,7 +475,7 @@ class Context:
 
 def expect(expr, meta):
     """Bind a value to the source graph's recorded type; Kiln checks it while tracing (nn.expect)."""
-    return f'N.expect({expr}, {json.dumps(meta["shape"])}, {json.dumps(DTYPES[meta["dtype"]])})'
+    return f'N.expect({expr}, {json.dumps(meta["shape"])}, {json.dumps(IMPORTED[meta["dtype"]])})'
 
 
 def import_graph(graph):
@@ -477,14 +490,14 @@ def import_graph(graph):
         var = f'v{i}'
         meta = node.get('tensor_meta')
         if node['kind'] == 'placeholder':
-            if not isinstance(meta, dict) or meta.get('dtype') not in DTYPES:
-                raise ValueError(f'{name}: only supported floating tensor inputs accepted')
+            if not isinstance(meta, dict) or meta.get('dtype') not in IMPORTED:
+                raise ValueError(f'{name}: only floating, int64 and bool tensor inputs accepted')
             shape = meta['shape']
             if any(type(d) is not int or d <= 0 for d in shape): raise ValueError(f'{name}: positive static dimensions required')
             expected, size = [], 1
             for d in reversed(shape): expected.insert(0, size); size *= d
             if meta['strides'] != expected: raise ValueError(f'{name}: noncontiguous input requires layout lowering')
-            specs[var] = shape; input_dtypes[var] = DTYPES[meta['dtype']]
+            specs[var] = shape; input_dtypes[var] = IMPORTED[meta['dtype']]
             ctx.bind_value(name, var); ctx.inputs[name] = len(ctx.inputs)
             continue
         args, kwargs = ctx.decode(node['args']), ctx.decode(node['kwargs'])
@@ -501,13 +514,13 @@ def import_graph(graph):
         lowered = spec.lower(Call(name, node['kind'], target, args, kwargs, node['args'], meta, ctx))
         expr = lowered.expr
         if isinstance(expr, list):
-            if not isinstance(meta, (list, tuple)) or len(meta) != len(expr) or any(not isinstance(m, dict) or m.get('dtype') not in DTYPES for m in meta):
-                raise ValueError(f'{name}: supported floating result metadata required for every output')
+            if not isinstance(meta, (list, tuple)) or len(meta) != len(expr) or any(not isinstance(m, dict) or m.get('dtype') not in IMPORTED for m in meta):
+                raise ValueError(f'{name}: supported result metadata required for every output')
             ctx.bind_value(name, [f'{var}_{j}' for j in range(len(expr))])
             lines.extend(f'const {var}_{j} = {expect(item, meta[j])};' for j, item in enumerate(expr))
             continue
-        if not isinstance(meta, dict) or meta.get('dtype') not in DTYPES:
-            raise ValueError(f'{name}: supported floating result metadata required')
+        if not isinstance(meta, dict) or meta.get('dtype') not in IMPORTED:
+            raise ValueError(f'{name}: supported result metadata required')
         lines.append(f'const {var} = {expect(expr, meta)};')
         ctx.bind_value(name, var)
         if lowered.mutates in ctx.inputs:

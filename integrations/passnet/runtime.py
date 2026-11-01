@@ -1,9 +1,10 @@
 """PyTorch storage/stream bridge to existing Kiln CUDA launcher (no copies)."""
 import torch
+from dtypes import KILN_TO_TORCH
 from kiln_launch import load, open_program
 
 
-DTYPES = {"f32": torch.float32, "f16": torch.float16, "bf16": torch.bfloat16, "u8": torch.uint8}
+DTYPES = {kiln: getattr(torch, name.removeprefix("torch.")) for kiln, name in KILN_TO_TORCH.items()}
 
 
 class TorchProgram:

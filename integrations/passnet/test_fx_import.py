@@ -178,9 +178,23 @@ class ImportTests(unittest.TestCase):
         class Model(torch.nn.Module):
             def forward(self, x):
                 return torch.relu(x)
-        for x in [torch.ones(2,3,dtype=torch.int64), torch.randn(2,3).t()]:
-            with self.assertRaises(ValueError):
-                import_graph(export_graph(symbolic_trace(Model()), (x,)))
+        with self.assertRaisesRegex(ValueError, 'noncontiguous'):
+            import_graph(export_graph(symbolic_trace(Model()), (torch.randn(2,3).t(),)))
+        # integer arithmetic imports faithfully; the compiler refuses it by name (integer-storage.mjs)
+        self.assertIn('N.relu(v0)', import_graph(export_graph(symbolic_trace(Model()), (torch.ones(2,3,dtype=torch.int64),)))['script'])
+
+    def test_integer_storage_passes_through(self):
+        class Model(torch.nn.Module):
+            def forward(self, ids, mask, x):
+                return ids.view(-1, 1), ids.long(), mask.view(2, 3), x * 2
+        imported = import_graph(export_graph(symbolic_trace(Model()), (torch.ones(2, 3, dtype=torch.int64), torch.ones(2, 3, dtype=torch.bool), torch.randn(2, 3))))
+        self.assertEqual(imported['input_dtypes'], {'v0': 'i64', 'v1': 'bool', 'v2': 'f32'})
+        self.assertIn('N.expect(N.reshape(v0, [6, 1]), [6, 1], "i64")', imported['script'])
+        self.assertIn('N.cast(v0, "i64")', imported['script'])
+        with self.assertRaisesRegex(ValueError, 'unsupported cast dtype'):
+            class Narrow(torch.nn.Module):
+                def forward(self, ids): return ids.to(torch.int32)
+            import_graph(export_graph(symbolic_trace(Narrow()), (torch.ones(2, dtype=torch.int64),)))
 
 
 

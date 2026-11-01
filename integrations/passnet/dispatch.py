@@ -6,6 +6,7 @@ There is no eager tensor computation or fallback implementation.
 import math
 from pathlib import Path
 from corpus import read_manifest
+from dtypes import STORAGE
 
 
 def freeze_constants(values):
@@ -71,8 +72,7 @@ class CorpusDispatch:
             raise
 
     def __call__(self, *inputs, specialization=()):
-        names={'torch.float32':'f32','torch.float16':'f16','torch.bfloat16':'bf16','torch.uint8':'u8'}
-        descriptor=tuple((tuple(value.shape),names[str(value.dtype)]) for value in inputs)
+        descriptor=tuple((tuple(value.shape),STORAGE[str(value.dtype)]) for value in inputs)
         key=(descriptor,freeze_constants(specialization))
         if key not in self.programs:
             raise ValueError(f'No compiled program for input metadata and constants: {key}')

@@ -7,8 +7,6 @@ A spelling may belong to exactly one operation; registering it twice is an error
 from dataclasses import dataclass, field
 from typing import Callable
 
-# FX dtype spelling -> Kiln storage dtype. The only floating storage the importer accepts.
-DTYPES = {'torch.float32': 'f32', 'torch.float16': 'f16', 'torch.bfloat16': 'bf16'}
 
 
 @dataclass(frozen=True)

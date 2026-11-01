@@ -247,6 +247,31 @@ function matTiled(an, kn) {
 }
 
 // ----------------------------------------------------------------------------- materialize
+// Integer storage (P3a slice 1): an integer value may only be copied from a load to a store of the
+// same dtype. Arithmetic, comparisons, conversions and shared-memory staging of integers are refused
+// by name, here, rather than computed in float temporaries, which would corrupt int64 values above 2^24.
+export const INTEGER_DTYPES = new Set(["i64", "bool"]);
+function integerValues(body, params, name) {
+  const types = new Map(), ins = params.filter((p) => p.role === "in"), out = params.find((p) => p.role === "out");
+  const typeOf = (e) => (e.k === "var" ? types.get(e.n) : undefined);
+  const refuse = (what) => { throw new TypeError(`integer arithmetic is not lowered (P3a slice 3): ${what} in ${name}`); };
+  const check = (e) => { if (e.k === "op" && e.a.some((a) => typeOf(a) || (a.k === "op" && check(a)))) refuse(e.fn); return false; };
+  const walk = (ss) => {
+    for (const s of ss) {
+      if (s.s === "load") { const d = ins[s.buf]?.dtype; if (INTEGER_DTYPES.has(d)) types.set(s.n, d); }
+      else if (s.s === "let") { check(s.e); const d = typeOf(s.e); if (d) types.set(s.n, d); }
+      else if (s.s === "store") {
+        check(s.e);
+        const d = typeOf(s.e), o = out.dtype || "f32";
+        if (INTEGER_DTYPES.has(o) ? d !== o : d) refuse(`store of ${d || "float"} into ${o}`);
+      } else if (s.s === "sstore" && typeOf(s.e)) refuse("shared-memory staging");
+      if (s.body) walk(s.body);
+    }
+  };
+  walk(body);
+  return types;
+}
+
 export function materialize(node) {
   const a = node.attrs;
   const analysis = analyze(a.expr, a.shape, a.inShapes);
@@ -258,10 +283,14 @@ export function materialize(node) {
   const L = launch(an, kn);
   const kb = kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : matThread(an, kn);
   const smemBytes = kb.smem.reduce((s, x) => s + x.size * 4, 0);
+  const params = [...a.inShapes.map((s, i) => ({ name: "in" + i, size: numel(s), shape: s, role: "in", dtype: a.inDtypes?.[i] || "f32" })), { name: "out", size: numel(a.shape), shape: a.shape, role: "out", dtype: a.outDtype || "f32" }];
+  const values = integerValues(kb.body, params, a.name || "kernel");
   return {
     name: a.name || "kernel", grid: L.grid, block: L.block, smem: kb.smem, smemBytes, body: kb.body,
-    floats: [...kb.floats], ints: [...kb.ints].filter((v) => v !== "tid" && v !== "bid"),
-    params: [...a.inShapes.map((s, i) => ({ name: "in" + i, size: numel(s), shape: s, role: "in", dtype: a.inDtypes?.[i] || "f32" })), { name: "out", size: numel(a.shape), shape: a.shape, role: "out", dtype: a.outDtype || "f32" }],
+    // temporaries by storage type: integer values (P3a slice 1) are never float temporaries
+    floats: [...kb.floats].filter((f) => !values.has(f)), values: Object.fromEntries(values),
+    ints: [...kb.ints].filter((v) => v !== "tid" && v !== "bid"),
+    params,
     map: kn, row: canonRow(kn),
   };
 }

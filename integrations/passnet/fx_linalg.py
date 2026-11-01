@@ -5,7 +5,7 @@ FUNCTIONS={'torch._C._nn.linear':'linear','torch.nn.functional.linear':'linear',
            'torch.matmul':'matmul','_operator.matmul':'matmul','aten.matmul.default':'matmul',
            'torch.mm':'mm','aten.mm.default':'mm','torch.bmm':'bmm','aten.bmm.default':'bmm'}
 METHODS={'matmul','mm','bmm'}
-from fx_ops import DTYPES
+from dtypes import FLOATING
 
 
 def matmul_shape(a,b):
@@ -27,7 +27,7 @@ def lower_linalg(kind,args,kwargs,meta,resolve):
     bound.update(kwargs)
     if any(key not in bound for key in fields[:2]):raise ValueError(f'{kind}: two tensor operands required')
     x,w=bound[fields[0]],bound[fields[1]];xs,ws=resolve(x),resolve(w)
-    if xs['dtype'] not in DTYPES or xs['dtype']!=ws['dtype']:raise ValueError(f'{kind}: matching floating operand dtypes required')
+    if xs['dtype'] not in FLOATING or xs['dtype']!=ws['dtype']:raise ValueError(f'{kind}: matching floating operand dtypes required')
     a,b=xs['shape'],ws['shape']
     bias=bound.get('bias','null')
     if kind=='linear':
@@ -46,4 +46,4 @@ def lower_linalg(kind,args,kwargs,meta,resolve):
         shape=matmul_shape(a,b)
         expression=f'N.matmul(N.cast({x}, "f32"), N.cast({w}, "f32"))'
     if meta['dtype']!=xs['dtype'] or meta['shape']!=shape:raise ValueError(f'{kind}: result metadata differs from source semantics')
-    return f'N.cast({expression}, {json.dumps(DTYPES[xs["dtype"]])})'
+    return f'N.cast({expression}, {json.dumps(FLOATING[xs["dtype"]])})'

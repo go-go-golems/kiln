@@ -3,7 +3,7 @@ import json
 import math
 
 LAYER_NORM={'torch.nn.functional.layer_norm','torch.layer_norm','aten.layer_norm.default'}
-from fx_ops import DTYPES
+from dtypes import FLOATING
 
 
 def lower_layer_norm(target,args,kwargs,meta,resolve,literal):
@@ -20,7 +20,7 @@ def lower_layer_norm(target,args,kwargs,meta,resolve,literal):
         raise ValueError('layer_norm: positive static normalized_shape required')
     if len(normalized)>len(shape) or shape[-len(normalized):]!=normalized:
         raise ValueError('layer_norm: normalized_shape must equal trailing input dimensions')
-    if source['dtype'] not in DTYPES or meta['dtype']!=source['dtype'] or meta['shape']!=shape:
+    if source['dtype'] not in FLOATING or meta['dtype']!=source['dtype'] or meta['shape']!=shape:
         raise ValueError('layer_norm: result shape/dtype differs from input')
     eps=literal(bound.get('eps','1e-5'))
     if type(eps) not in (int,float) or not math.isfinite(eps) or eps<0:raise ValueError('layer_norm: finite nonnegative epsilon required')
@@ -35,7 +35,7 @@ def lower_layer_norm(target,args,kwargs,meta,resolve,literal):
         return f'N.reshape(N.cast({value}, "f32"), [{width}])'
     value=f'N.reshape(N.cast({bound["input"]}, "f32"), [{rows}, {width}])'
     expression=f'N.layer_norm({value}, {affine("weight",1)}, {affine("bias",0)}, '+json.dumps({'eps':eps})+')'
-    return f'N.cast(N.reshape({expression}, {json.dumps(shape)}), {json.dumps(DTYPES[source["dtype"]])})'
+    return f'N.cast(N.reshape({expression}, {json.dumps(shape)}), {json.dumps(FLOATING[source["dtype"]])})'
 
 
 SOFTMAX={'torch.nn.functional.softmax','torch.softmax','aten.softmax.int','aten._softmax.default'}
@@ -53,7 +53,7 @@ def lower_softmax(target,args,kwargs,meta,resolve,literal):
     bound.update(kwargs)
     if first not in bound:raise ValueError('softmax: input required')
     value=bound[first];source=resolve(value);shape=source['shape'];rank=len(shape)
-    if source['dtype'] not in DTYPES:raise ValueError('softmax: supported floating input required')
+    if source['dtype'] not in FLOATING:raise ValueError('softmax: supported floating input required')
     axis=literal(bound.get('dim','null'))
     if axis is None:
         if not functional:raise ValueError('softmax: explicit dimension required')
@@ -75,15 +75,15 @@ def lower_softmax(target,args,kwargs,meta,resolve,literal):
     else:
         requested=literal(bound.get('dtype','null'))
         if requested is not None:
-            if requested not in DTYPES:raise ValueError('softmax: supported floating dtype required')
+            if requested not in FLOATING:raise ValueError('softmax: supported floating dtype required')
             dtype=requested
     if not isinstance(meta,dict) or meta.get('shape')!=shape or meta.get('dtype')!=dtype:
         raise ValueError('softmax: result shape/dtype disagrees with source semantics')
     # Explicit dtype converts the INPUT before softmax, including narrowing.
     # Low precision then accumulates in FP32 and narrows once at the boundary.
-    converted=f'N.cast({value}, {json.dumps(DTYPES[dtype])})' if dtype!=source['dtype'] else value
+    converted=f'N.cast({value}, {json.dumps(FLOATING[dtype])})' if dtype!=source['dtype'] else value
     fp32=f'N.cast({converted}, "f32")'
     if not rank:fp32=f'N.reshape({fp32}, [1])'
     result=f'N.softmax({fp32}, {axis})'
     if not rank:result=f'N.reshape({result}, [])'
-    return f'N.cast({result}, {json.dumps(DTYPES[dtype])})'
+    return f'N.cast({result}, {json.dumps(FLOATING[dtype])})'

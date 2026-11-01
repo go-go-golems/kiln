@@ -7,9 +7,8 @@ import json
 from pathlib import Path
 import torch
 from corpus import read_manifest, load_module,canonical_order_inputs
-from runtime import TorchProgram
+from runtime import DTYPES, TorchProgram
 
-DTYPES = {'f32': torch.float32, 'f16': torch.float16, 'bf16': torch.bfloat16}
 RTOL = {torch.float32: 1.3e-6, torch.float16: 1e-3, torch.bfloat16: 1.6e-2}
 
 

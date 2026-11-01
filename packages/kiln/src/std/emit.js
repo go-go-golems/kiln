@@ -20,7 +20,7 @@ export function toCuda(K) {
   const fx = (e) => (e.k === "num" ? flit(e.v, "c") : e.k === "var" ? e.n : fill(FNS[e.fn].c, e.a.map(fx)));
   const ins = K.params.filter((p) => p.role === "in");
   const lines = [];
-  const storage = { f32: "float", u8: "unsigned char", f16: "__half", bf16: "__nv_bfloat16" };
+  const storage = { f32: "float", u8: "unsigned char", f16: "__half", bf16: "__nv_bfloat16", i64: "long long", bool: "bool" };
   const ctype = (p) => {
     const dtype = p.dtype || "f32";
     if (!Object.hasOwn(storage, dtype)) throw new TypeError(`CUDA storage dtype unsupported: ${dtype}`);
@@ -37,6 +37,8 @@ export function toCuda(K) {
   lines.push(`    const int tid = threadIdx.x;`, `    const int bid = blockIdx.x;`);
   for (const s of K.smem) lines.push(`    __shared__ float ${s.name}[${s.size}];`);
   if (K.floats.length) lines.push(`    float ${K.floats.map((f) => `${f} = 0.0f`).join(", ")};`);
+  const values = K.values ?? {};
+  for (const dtype of new Set(Object.values(values))) lines.push(`    ${storage[dtype]} ${Object.keys(values).filter((n) => values[n] === dtype).map((n) => `${n} = 0`).join(", ")};`);
   if (K.ints.length) lines.push(`    int ${K.ints.map((v) => `${v} = 0`).join(", ")};`);
   const walk = (ss, pad) => {
     for (const s of ss) {

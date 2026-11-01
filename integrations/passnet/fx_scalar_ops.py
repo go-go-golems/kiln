@@ -17,7 +17,7 @@ FUNCTIONS = {
 }
 METHODS = {'clamp': 'clamp', 'clamp_': 'clamp_', 'clip': 'clamp', 'clip_': 'clamp_',
            'pow': 'pow', 'cos': 'cos', 'sin': 'sin', 'square': 'square'}
-from fx_ops import DTYPES
+from dtypes import FLOATING
 
 
 def lower_scalar(target, kind, args, kwargs, meta, resolve, literal):
@@ -44,9 +44,9 @@ def lower_scalar(target, kind, args, kwargs, meta, resolve, literal):
     if first not in bound: raise ValueError(f'{op}: input required')
     value = bound[first]
     source = resolve(value)
-    if source['dtype'] not in DTYPES or meta['dtype'] != source['dtype'] or meta['shape'] != source['shape']:
+    if source['dtype'] not in FLOATING or meta['dtype'] != source['dtype'] or meta['shape'] != source['shape']:
         raise ValueError(f'{op}: dtype-preserving floating tensor required')
-    dtype = json.dumps(DTYPES[source['dtype']])
+    dtype = json.dumps(FLOATING[source['dtype']])
     inplace = literal(bound.get('inplace', 'false'))
     if type(inplace) is not bool: raise ValueError(f'{op}: static Boolean inplace required')
     inplace = inplace or op.endswith('_')
