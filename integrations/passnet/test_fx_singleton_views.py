@@ -74,7 +74,7 @@ class SingletonTests(unittest.TestCase):
                 def forward(self,x):
                     fresh=x+1
                     view=fresh.unsqueeze(0) if operation=='unsqueeze' else fresh.squeeze(0)
-                    return torch.nn.functional.relu(view,inplace=True)
+                    return torch.nn.functional.relu(view,inplace=True),fresh
             graph=export_graph(symbolic_trace(Model()),(torch.randn(1,3),))
             with self.assertRaisesRegex(ValueError,'fresh unaliased'):import_graph(graph)
 

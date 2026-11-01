@@ -25,7 +25,7 @@ class MutationTraceTests(unittest.TestCase):
         self.assertEqual(result['output_structure'],{'input_alias':0})
         self.assertEqual(result['input_mutations'],[{'input_index':0,'output':'__mut0'}])
 
-    def test_alias_observer_and_read_before_mutation_rejected(self):
+    def test_alias_observer_rejected_and_read_before_mutation_accepted(self):
         class Alias(torch.nn.Module):
             def forward(self,x,y):
                 value=x+y;observer=value.view(2,3)
@@ -36,9 +36,11 @@ class MutationTraceTests(unittest.TestCase):
                 z=x*2
                 x+=y
                 return x,z
-        for cls in [Alias,ReadAfter]:
-            with self.assertRaisesRegex(ValueError,'fresh unaliased'):
-                import_graph(export_graph(trace_module(cls()),[torch.randn(2,3),torch.randn(2,3)]))
+        with self.assertRaisesRegex(ValueError,'fresh unaliased'):
+            import_graph(export_graph(trace_module(Alias()),[torch.randn(2,3),torch.randn(2,3)]))
+        # z read x before the update; x's later uses read the new value (an input mutation)
+        result=import_graph(export_graph(trace_module(ReadAfter()),[torch.randn(2,3),torch.randn(2,3)]))
+        self.assertEqual(result['input_mutations'],[{'input_index':0,'output':'__mut0'}])
 
     def test_unimplemented_inplace_operator_not_silently_lowered(self):
         class Model(torch.nn.Module):

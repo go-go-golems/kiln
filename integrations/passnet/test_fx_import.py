@@ -101,14 +101,24 @@ class ImportTests(unittest.TestCase):
         self.assertEqual(result['output_structure'],{'input_alias':0})
         self.assertIn('__mut0:',result['script'])
 
-    def test_input_mutation_with_another_source_use_rejected(self):
+    def test_input_mutation_rebinds_every_name_of_the_chain(self):
         class Model(torch.nn.Module):
             def forward(self,x):
                 y=x.add_(1)
                 return x+y
-        graph=export_graph(symbolic_trace(Model()),(torch.randn(2,3),))
-        with self.assertRaisesRegex(ValueError,'single-use input'):
-            import_graph(graph)
+        # x and y both name the updated input: x + y reads the new value twice
+        result=import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
+        self.assertIn('N.add(v1, v1)',result['script'])
+        self.assertEqual(result['input_mutations'],[{'input_index':0,'output':'__mut0'}])
+
+    def test_input_mutation_with_a_live_view_rejected(self):
+        class Model(torch.nn.Module):
+            def forward(self,x):
+                v=x.view(6)
+                x.add_(1)
+                return v*2
+        with self.assertRaisesRegex(ValueError,'view of it is read later'):
+            import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
 
     def test_reduction_axes_and_dtype(self):
         class Model(torch.nn.Module):
@@ -345,10 +355,16 @@ class OwnedActivationTests(unittest.TestCase):
             import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
 
     def test_potentially_aliasing_view_not_owned(self):
-        class Model(torch.nn.Module):
-            def forward(self,x):return torch.nn.functional.silu(torch.relu(x).view(2,3),inplace=True)
+        class Live(torch.nn.Module):
+            def forward(self,x):
+                r=torch.relu(x)
+                return torch.nn.functional.silu(r.view(2,3),inplace=True),r
         with self.assertRaisesRegex(ValueError,'fresh unaliased'):
-            import_graph(export_graph(symbolic_trace(Model()),(torch.randn(2,3),)))
+            import_graph(export_graph(symbolic_trace(Live()),(torch.randn(2,3),)))
+        class Dead(torch.nn.Module):
+            def forward(self,x):return torch.nn.functional.silu(torch.relu(x).view(2,3),inplace=True)
+        # the view's source is never read again: the in-place update is a rebinding of the view
+        self.assertIn('N.silu',import_graph(export_graph(symbolic_trace(Dead()),(torch.randn(2,3),)))['script'])
 
 
 class ExpectBindingTests(unittest.TestCase):

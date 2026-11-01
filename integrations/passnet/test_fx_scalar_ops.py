@@ -13,7 +13,10 @@ NODE = '/home/manuel/.nvm/versions/node/v26.13.0/bin/node'
 class ScalarTests(unittest.TestCase):
     def lower(self, target, args, kwargs=None, dtype='torch.float32', kind='call_function'):
         meta = {'shape': [9], 'dtype': dtype}
-        return lower_scalar(target, kind, args, kwargs or {}, meta, lambda _: meta, json.loads)
+        def resolve(value):
+            if value != 'x': raise ValueError('operand must reference a tensor')
+            return meta
+        return lower_scalar(target, kind, args, kwargs or {}, meta, resolve, json.loads)
 
     def test_binding_and_rejections(self):
         self.assertTrue(self.lower('clamp_', ['x', '-1', '1'], kind='call_method')[2])
@@ -22,7 +25,7 @@ class ScalarTests(unittest.TestCase):
         self.assertTrue(self.lower('torch.nn.functional.hardswish', ['x', 'true'])[2])
         for target,args,kw in [
             ('torch.clamp',['x'],{}), ('torch.pow',['x','y'],{}),
-            ('torch.pow',['x','true'],{}), ('torch.pow',['x','0.5'],{}), ('torch.cos',['x'],{'out':'x'}),
+            ('torch.pow',['x','true'],{}), ('torch.pow',['x','0.25'],{}), ('torch.cos',['x'],{'out':'x'}),
             ('torch.nn.functional.hardtanh',['x','2','1'],{}),
             ('torch.nn.functional.hardtanh',['x'],{'inplace':'1'}),
             ('torch.clamp',['x','0'],{'min':'1'}),

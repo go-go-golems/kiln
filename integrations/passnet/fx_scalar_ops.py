@@ -16,8 +16,15 @@ FUNCTIONS = {
     'torch.nn.functional.hardswish': 'hardswish',
 }
 METHODS = {'clamp': 'clamp', 'clamp_': 'clamp_', 'clip': 'clamp', 'clip_': 'clamp_',
-           'pow': 'pow', 'cos': 'cos', 'sin': 'sin', 'square': 'square'}
+           'pow': 'pow', 'pow_': 'pow_', 'cos': 'cos', 'sin': 'sin', 'square': 'square'}
 from dtypes import FLOATING
+
+
+def exponent_tensor(value, resolve):
+    """The tensor metadata of a pow exponent that references a tensor, else None (a scalar literal)."""
+    if value is None: return None
+    try: return resolve(value)
+    except ValueError: return None
 
 
 def lower_scalar(target, kind, args, kwargs, meta, resolve, literal):
@@ -33,7 +40,7 @@ def lower_scalar(target, kind, args, kwargs, meta, resolve, literal):
         fields += ['min_val', 'max_val']
         if target == 'torch.nn.functional.hardtanh': fields += ['inplace']
     elif op.startswith('clamp'): fields += ['min', 'max']
-    elif op == 'pow': fields += ['exponent']
+    elif op in ('pow', 'pow_'): fields += ['exponent']
     elif op == 'leaky_relu': fields += ['negative_slope', 'inplace']
     elif op in ('hardsigmoid', 'hardswish'): fields += ['inplace']
     if len(args) > len(fields) or set(kwargs) - set(fields):
@@ -44,7 +51,7 @@ def lower_scalar(target, kind, args, kwargs, meta, resolve, literal):
     if first not in bound: raise ValueError(f'{op}: input required')
     value = bound[first]
     source = resolve(value)
-    if op == 'pow' and source['dtype'] in ('torch.int64', 'torch.int32') and meta['dtype'] == source['dtype'] and not op.endswith('_'):
+    if op in ('pow', 'pow_') and source['dtype'] in ('torch.int64', 'torch.int32') and meta['dtype'] == source['dtype'] and not op.endswith('_'):
         # an integer square (ConViT's relative distances) is an exact integer product; other integer
         # exponents would need integer pow
         if literal(bound.get('exponent', 'null')) != 2 or type(literal(bound.get('exponent', 'null'))) is not int:
@@ -78,14 +85,23 @@ def lower_scalar(target, kind, args, kwargs, meta, resolve, literal):
             if number is not None:
                 b = f'N.cast(N.cast(N.const({json.dumps(number)}, []), {dtype}), "f32")'
                 x = f'N.select(N.{comparison}({x}, {b}), {b}, {x})'
-    elif op == 'pow':
+    elif op in ('pow', 'pow_') and exponent_tensor(bound.get('exponent'), resolve) is not None:
+        # a tensor exponent: elementwise pow in f32 (PyTorch's tensor-tensor kernel has no special cases)
+        e = exponent_tensor(bound['exponent'], resolve)
+        if e['dtype'] != source['dtype']: raise ValueError('pow: tensor exponent must have the base dtype')
+        x = f'N.pow({x}, N.cast({bound["exponent"]}, "f32"))'
+    elif op in ('pow', 'pow_'):
         exponent = scalar('exponent', 'null')
-        if exponent is None or exponent != int(exponent) or abs(exponent) > 2**24:
+        # PyTorch's tensor-scalar pow kernel specializes 0.5 (sqrt), -0.5 (rsqrt) and -1 (reciprocal)
+        roots = {0.5: f'N.sqrt({x})', -0.5: f'N.rsqrt({x})', -1: f'N.div(1, {x})'}
+        if exponent in roots and exponent is not True: x = roots[exponent]
+        elif exponent is None or exponent != int(exponent) or abs(exponent) > 2**24:
             raise ValueError('pow: exactly representable integer scalar exponent required')
-        # PyTorch specializes square; multiplication also defines negative bases
-        # on WGSL, whose builtin pow otherwise has a nonnegative-base domain.
-        special = {2: 'square'}
-        x = f'N.{special[exponent]}({x})' if exponent in special else f'N.pow({x}, {json.dumps(exponent)})'
+        else:
+            # PyTorch specializes square; multiplication also defines negative bases
+            # on WGSL, whose builtin pow otherwise has a nonnegative-base domain.
+            special = {2: 'square'}
+            x = f'N.{special[exponent]}({x})' if exponent in special else f'N.pow({x}, {json.dumps(exponent)})'
     elif op == 'leaky_relu':
         slope = scalar('negative_slope', '0.01')
         if slope is None: raise ValueError('leaky_relu: finite negative_slope required')

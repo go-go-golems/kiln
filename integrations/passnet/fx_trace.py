@@ -32,7 +32,7 @@ for name in ['add','sub','mul','truediv','floordiv','mod','pow','matmul','and','
     setattr(MutationProxy,'__i'+name+'__',inplace_method(getattr(operator,'i'+name)))
 
 
-FACTORIES=[(torch,'arange'),(torch,'zeros'),(torch,'ones'),(torch,'full'),(torch,'meshgrid'),(torch.functional,'meshgrid')]
+FACTORIES=[(torch,'arange'),(torch,'zeros'),(torch,'ones'),(torch,'full'),(torch,'tensor'),(torch,'linspace'),(torch,'meshgrid'),(torch.functional,'meshgrid')]
 
 
 @contextlib.contextmanager

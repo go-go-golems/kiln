@@ -16,6 +16,7 @@ from fx_layout import PAD,ROLL,PARTITION,PARTITION_METHODS,STACK,UNBIND,UNBIND_M
 from fx_scalar_ops import FUNCTIONS as SCALAR_FUNCTIONS,METHODS as SCALAR_METHODS,lower_scalar
 import fx_compose
 import fx_assign
+import fx_coverage
 from fx_indexing import lower_index as _lower_index
 
 REGISTRY = Registry()
@@ -372,6 +373,39 @@ def lower_fill_like(c):
     return Lowered(f'N.full({json.dumps(c.meta["shape"])}, {json.dumps(value)}, {json.dumps(factory_dtype(c, name))})')
 
 
+@op('tensor_literal', functions=('torch.tensor',))
+def lower_tensor_literal(c):
+    """torch.tensor(number, dtype=, device=): a 0-d typed constant of the recorded dtype (PyTorch infers
+    f32 for a Python float, i64 for an int, bool for a bool). Nested data lists are not lowered."""
+    bound = bind(c.name, 'tensor', c.args, c.kwargs, ['data', 'dtype', 'device', 'requires_grad', 'pin_memory'], require_first=True)
+    factory_device(c, bound)
+    value = c.ctx.literal(bound['data'])
+    if type(value) not in (int, float, bool): raise ValueError(f'{c.name}: torch.tensor of a static number required (data lists are not lowered)')
+    return Lowered(f'N.full([], {json.dumps(value)}, {json.dumps(factory_dtype(c, "tensor"))})')
+
+
+@op('linspace', functions=('torch.linspace',))
+def lower_linspace(c):
+    """torch.linspace(start, end, steps): with step = (end - start) / (steps - 1), element i is
+    start + step * i in the first half (i < steps // 2) and end - step * (steps - 1 - i) in the second,
+    PyTorch's symmetric formula, in the result's dtype (f32 here) with the step rounded once."""
+    bound = bind(c.name, 'linspace', c.args, c.kwargs, ['start', 'end', 'steps', 'out', *[k for k in FACTORY_KEYWORDS if k != 'out']], require_first=True)
+    factory_device(c, bound)
+    start, end, steps = (c.ctx.literal(bound.get(k, 'null')) for k in ('start', 'end', 'steps'))
+    if any(type(v) not in (int, float) for v in (start, end)) or type(steps) is not int or steps < 1 or 'out' in bound:
+        raise ValueError(f'{c.name}: linspace requires static numeric start/end and integer steps')
+    if factory_dtype(c, 'linspace') != 'f32': raise ValueError(f'{c.name}: only float32 linspace is lowered')
+    if steps == 1: return Lowered(f'N.full([1], {json.dumps(float(start))}, "f32")')
+    import struct
+    f32 = lambda v: struct.unpack('f', struct.pack('f', v))[0]
+    step = f32(f32(f32(end) - f32(start)) / (steps - 1))  # float arithmetic, as PyTorch's float kernel
+    i = f'N.cast(N.arange(0, {steps}, 1, "i64"), "f32")'
+    low = f'N.add(N.mul({i}, {json.dumps(step)}), {json.dumps(float(start))})'
+    high = f'N.sub({json.dumps(float(end))}, N.mul(N.sub({json.dumps(float(steps - 1))}, {i}), {json.dumps(step)}))'
+    half = f'N.lt(N.arange(0, {steps}, 1, "i64"), N.int({steps // 2}))'
+    return Lowered(f'N.select({half}, {low}, {high})')
+
+
 @op('meshgrid', functions=('torch.functional.meshgrid', 'torch.meshgrid'), fresh=False)
 def lower_meshgrid(c):
     """meshgrid of 1-D tensors: tensor k broadcast along its own axis of the full grid. indexing='xy'
@@ -653,24 +687,39 @@ def lower_type_as(c):
     source = c.ctx.resolve(c.args[0]); other = c.ctx.resolve(c.args[1])
     if c.meta['shape'] != source['shape'] or c.meta['dtype'] != other['dtype'] or other['dtype'] not in IMPORTED:
         raise ValueError(f'{c.name}: type_as result metadata mismatch')
-    return Lowered(f'N.cast({c.args[0]}, {json.dumps(IMPORTED[other["dtype"]])})')
+    return Lowered(f'N.cast({c.args[0]}, {json.dumps(IMPORTED[other["dtype"]])})', fresh=True if source['dtype'] != other['dtype'] else None)
+
+
+DEVICES = ('"cuda"', '"cuda:0"', '"cpu"')
 
 
 @op('to', methods=('to',), fresh=False)
 def lower_to(c):
-    if len(c.args) == 2 and not c.kwargs and c.args[1] in ('"cuda"', '"cuda:0"'):
-        # the value is the source's: an alias on the same device, or a contiguous copy (strides may differ)
-        source = c.ctx.source_of(c.args[0])
+    """x.to(device?, dtype?, non_blocking=, copy=): one device holds every Kiln value, so a device
+    move is shape and dtype only. A dtype change is a cast with fresh storage; copy=True copies;
+    otherwise the result is the source (an alias, or a contiguous copy whose strides differ)."""
+    if c.kwargs.get('memory_format', 'null') not in ('null', '"torch.preserve_format"'):
+        raise ValueError(f'{c.name}: to memory_format unsupported')
+    positional = list(c.args[1:])
+    device = c.kwargs.get('device', 'null'); dtype = c.kwargs.get('dtype', 'null')
+    if positional and positional[0] in DEVICES: device = positional.pop(0)
+    elif positional and positional[0] in ('null',): positional.pop(0)
+    if positional and positional[0].startswith('"torch.'): dtype = positional.pop(0)
+    if positional or set(c.kwargs) - {'device', 'dtype', 'non_blocking', 'copy', 'memory_format'} or device not in ('null', *DEVICES):
+        raise ValueError(f'{c.name}: device/layout conversion unsupported')
+    copy = c.ctx.literal(c.kwargs.get('copy', 'false')); blocking = c.ctx.literal(c.kwargs.get('non_blocking', 'false'))
+    if type(copy) is not bool or type(blocking) is not bool: raise ValueError(f'{c.name}: static copy/non_blocking flags required')
+    source = c.ctx.source_of(c.args[0])
+    if source is None or not isinstance(c.ctx.metadata[source], dict): raise ValueError(f'{c.name}: to requires a tensor')
+    smeta = c.ctx.metadata[source]
+    if dtype == 'null':
+        if device == 'null': raise ValueError(f'{c.name}: to requires an explicit dtype or device')
         same = lambda m: {k: v for k, v in m.items() if k != 'strides'}
-        if source is None or same(c.ctx.metadata[source]) != same(c.meta):
-            raise ValueError(f'{c.name}: device-only conversion must preserve shape and dtype')
-        return Lowered(c.args[0])
-    if len(c.args) > 2 or set(c.kwargs) - {'dtype'}: raise ValueError(f'{c.name}: device/layout conversion unsupported')
-    if (len(c.args) == 2) == ('dtype' in c.kwargs):
-        raise ValueError(f'{c.name}: exactly one explicit dtype required')
-    dtype = c.ctx.literal(c.args[1] if len(c.args) == 2 else c.kwargs['dtype'])
+        if same(smeta) != same(c.meta): raise ValueError(f'{c.name}: device-only conversion must preserve shape and dtype')
+        return Lowered(c.args[0], fresh=True if copy else None)
+    dtype = c.ctx.literal(dtype)
     if dtype not in IMPORTED: raise ValueError(f'{c.name}: unsupported cast dtype {dtype}')
-    return Lowered(f'N.cast({c.args[0]}, {json.dumps(IMPORTED[dtype])})')
+    return Lowered(f'N.cast({c.args[0]}, {json.dumps(IMPORTED[dtype])})', fresh=True if copy or dtype != smeta['dtype'] else None)
 
 
 def floating_dtype(c, what):
@@ -680,6 +729,14 @@ def floating_dtype(c, what):
     return FLOATING[dtype]
 
 
+@op('device_method', methods=('cuda', 'cpu'), fresh=False)
+def lower_device_method(c):
+    """x.cuda() / x.cpu(): a device move, shape and dtype only (one device holds every Kiln value)."""
+    if len(c.args) != 1 or set(c.kwargs) - {'non_blocking', 'device', 'memory_format'} or c.kwargs.get('memory_format', 'null') not in ('null', '"torch.preserve_format"'):
+        raise ValueError(f'{c.name}: unsupported {c.target} arguments')
+    return Lowered(c.args[0])
+
+
 # Kiln decides legality: a cast to the value's own dtype is the value
 CONVERSION_METHODS = {'float': 'f32', 'half': 'f16', 'bfloat16': 'bf16', 'long': 'i64', 'int': 'i32', 'bool': 'bool'}
 
@@ -687,7 +744,9 @@ CONVERSION_METHODS = {'float': 'f32', 'half': 'f16', 'bfloat16': 'bf16', 'long':
 @op('dtype_conversion', methods=tuple(CONVERSION_METHODS), fresh=False)
 def lower_dtype_conversion(c):
     if len(c.args) != 1 or c.kwargs: raise ValueError(f'{c.name}: invalid dtype conversion')
-    return Lowered(f'N.cast({c.args[0]}, {json.dumps(CONVERSION_METHODS[c.target])})')
+    # a conversion to another dtype allocates (fresh storage an in-place call may update); to its own dtype it is the value
+    changes = IMPORTED.get(c.ctx.resolve(c.args[0])['dtype']) != CONVERSION_METHODS[c.target]
+    return Lowered(f'N.cast({c.args[0]}, {json.dumps(CONVERSION_METHODS[c.target])})', fresh=True if changes else None)
 
 
 # ------------------------------------------------------------------------------ neural-network operations
@@ -724,6 +783,12 @@ def lower_interpolate(c):
     size = c.ctx.literal(kwargs['size']) if 'size' in kwargs else None
     if explicit and kwargs.get('mode') == '"nearest"' and kwargs.get('align_corners', 'null') == 'null':
         return Lowered(f'N.resizeNearest({c.args[0]}, {json.dumps(size)})')
+    source = c.ctx.resolve(c.args[0])
+    same = isinstance(size, list) and source['shape'][2:] == size or type(size) is int and all(d == size for d in source['shape'][2:])
+    if explicit and same and kwargs.get('mode') in ('"bilinear"', '"bicubic"', '"linear"', '"trilinear"') and kwargs.get('align_corners', 'null') in ('null', 'false'):
+        # resampling to the input's own size with half-pixel centers reads source coordinate i at output i:
+        # every interpolation weight is 0 except the centre tap's 1, so the result is the input (finite inputs)
+        return Lowered(f'N.reshape({c.args[0]}, {json.dumps(c.meta["shape"])})')
     if not explicit or kwargs.get('mode') != '"bilinear"' or kwargs.get('align_corners') != 'false':
         raise ValueError(f'{c.name}: only explicit-size nearest and bilinear align_corners=False supported')
     return Lowered(f'N.resizeBilinear({c.args[0]}, {json.dumps(size)})')
@@ -774,6 +839,35 @@ def lower_dropout(c):
     return Lowered(bound['input'])
 
 
+# ------------------------------------------------------------------------------ coverage wave (fx_coverage)
+for _name, _lower, _functions, _methods, _fresh in [
+        ('unary_method', fx_coverage.lower_unary_method, (), fx_coverage.UNARY_METHODS, True),
+        ('getattr', fx_coverage.lower_getattr, ('builtins.getattr',), (), False),
+        ('clone', fx_coverage.lower_clone, (), ('clone',), True),
+        ('tile', fx_coverage.lower_tile, (), ('tile',), True),
+        ('triu', lambda c: fx_coverage.triangle(c, True), ('torch.triu',), (), True),
+        ('tril', lambda c: fx_coverage.triangle(c, False), ('torch.tril',), (), True),
+        ('all_any', fx_coverage.lower_all_any, ('torch.all', 'torch.any'), (), True),
+        ('invert', fx_coverage.lower_invert, ('_operator.invert',), (), True),
+        ('tensor_split', fx_coverage.lower_tensor_split, ('torch.tensor_split',), ('tensor_split',), False),
+        ('conv3d', fx_coverage.lower_conv3d, ('torch.conv3d', 'torch.nn.functional.conv3d'), (), True),
+        ('avg_pool1d', fx_coverage.lower_avg_pool1d, ('torch.avg_pool1d', 'torch.nn.functional.avg_pool1d'), (), True),
+        ('multi_head_attention', fx_coverage.lower_multi_head_attention, ('torch.nn.functional.multi_head_attention_forward',), (), True)]:
+    op(_name, functions=_functions, methods=_methods, fresh=_fresh)(lambda c, _lower=_lower: Lowered(_lower(c)))
+
+
+@op('fill_', methods=('fill_',), fresh=False)
+def lower_fill_(c):
+    """x.fill_(v): every element of x becomes v converted to x's dtype. On a recorded basic view of a fresh
+    value it is slice assignment of the view's region; on a fresh value or an input an in-place update."""
+    source = first_ref(c)
+    if len(c.args) != 2 or c.kwargs or source is None: raise ValueError(f'{c.name}: unsupported fill_ arguments')
+    if c.ctx.source_of(c.args[1]) is not None: raise ValueError(f'{c.name}: a tensor fill value is not lowered')
+    expr = fx_coverage.fill_value(c, c.args[1], c.ctx.metadata[source]['dtype'])
+    if source in c.ctx.views: return Lowered(expr, view_write=source)
+    return Lowered(expr, c.ctx.require_mutation_source(source, c.name))
+
+
 # ------------------------------------------------------------------------------ the graph walk
 class Context:
     def __init__(self, graph):
@@ -785,6 +879,7 @@ class Context:
         self.aliased = set()      # storage roots a view, cast or partition result may share
         self.roots = {}           # FX value -> the value whose storage an in-place chain updates
         self.views = {}           # FX value -> fx_assign.View: a basic-index region of a fresh root
+        self.alias_sources = {}   # FX value that may share storage (fresh=False) -> the FX values it reads
         self.uses = {}
         self.last_use = {}        # FX value -> index of the last node reading it
         self.at = 0               # index of the node being lowered
@@ -859,12 +954,33 @@ class Context:
         if source is None or not isinstance(self.metadata[source], dict): raise ValueError('operand must reference a tensor')
         return self.metadata[source]
 
+    def owners(self, name):
+        """The storage owners (fresh values or inputs) a value may alias; an in-place chain is its root."""
+        name = self.root(name)
+        if name not in self.alias_sources: return {name}
+        return set().union(*(self.owners(r) for r in self.alias_sources[name]))
+
+    def live_aliases(self, owner, chain):
+        """Values outside the in-place chain rooted at `chain` that share owner's storage and are read
+        after the node being lowered: they would observe an in-place update that rebinding cannot give them."""
+        return [n for n in self.values if self.root(n) != chain and owner in self.owners(n) and self.last_use.get(n, -1) > self.at]
+
     def require_mutation_source(self, source, name):
-        """An in-place call may update a single-use input (recorded as an input mutation) or a fresh
-        value nothing aliases yet: later uses of that value's name read the updated value (rebinding),
-        earlier uses already read the old one."""
-        if source in self.inputs and self.uses.get(source) == 1: return source
-        if source is not None and source in self.fresh and self.root(source) not in self.aliased: return source
+        """An in-place call may update an input (or an in-place chain from one), recorded as an input
+        mutation, or a value with fresh storage, when no alias outside the chain reads the storage later.
+        Later uses of the chain's names read the updated value (rebinding); earlier uses read the old one.
+        A fresh value nothing aliases yet, or an untracked view of a fresh value whose other aliases are
+        dead, qualifies."""
+        if source is None: raise ValueError(f'{name}: in-place operation requires a fresh unaliased producer or an input')
+        chain = self.root(source)
+        if chain in self.inputs:
+            if not self.live_aliases(chain, chain): return chain
+            raise ValueError(f'{name}: in-place update of input {chain} while a view of it is read later')
+        if source in self.fresh and chain not in self.aliased and not self.live_aliases(chain, chain): return source
+        owners = self.owners(source)
+        if len(owners) == 1:
+            (owner,) = owners
+            if owner in self.fresh and owner not in self.inputs and not self.live_aliases(owner, chain): return source
         raise ValueError(f'{name}: in-place operation requires a fresh unaliased producer or a single-use input')
 
 
@@ -970,7 +1086,9 @@ def import_graph(graph):
                 raise ValueError(f'{name}: supported result metadata required for every output')
             ctx.bind_value(name, [None if item is None else f'{var}_{j}' for j, item in enumerate(expr)])
             lines.extend(f'const {var}_{j} = {expect(item, meta[j])};' for j, item in enumerate(expr) if item is not None)
-            if not spec.fresh: ctx.aliased.update(ctx.storage(r) for r in references(node['args']))
+            if not spec.fresh:
+                ctx.aliased.update(ctx.storage(r) for r in references(node['args']))
+                ctx.alias_sources[name] = references(node['args'])
             continue
         if not isinstance(meta, dict) or meta.get('dtype') not in IMPORTED:
             raise ValueError(f'{name}: supported result metadata required')
@@ -985,9 +1103,12 @@ def import_graph(graph):
             ctx.views[name] = view
             continue
         if lowered.mutates in ctx.inputs:
+            # the input's final value is the last update; every name of the chain reads the new value
             index = ctx.inputs[lowered.mutates]
             input_mutations[index] = var
             output_alias_values[var] = index
+            ctx.roots[name] = lowered.mutates
+            for other in [n for n in ctx.values if ctx.root(n) == lowered.mutates]: ctx.values[other] = var
         elif lowered.mutates is not None:
             # every name of the updated storage reads the new value from here on
             root = ctx.root(lowered.mutates)
@@ -996,6 +1117,7 @@ def import_graph(graph):
             ctx.fresh.add(name)
         elif not fresh:
             # a recorded basic-index view does not alias its root: writes through it are tracked
+            ctx.alias_sources[name] = references(node['args'])
             if name not in ctx.views: ctx.aliased.update(ctx.storage(r) for r in references(node['args']))
         # Views, casts and disabled dropout may alias: their Op declares fresh=False, so they
         # never transfer ownership. Accepted in-place calls only consume an already owned value

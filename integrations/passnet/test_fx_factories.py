@@ -112,14 +112,22 @@ class FactoryTests(unittest.TestCase):
             imported(AliasedView(), [torch.randn(2)])
 
     def test_contiguous_of_contiguous_is_an_alias(self):
-        class Model(torch.nn.Module):
+        class Live(torch.nn.Module):
+            def forward(self, x):
+                s = x + 1
+                t = s.contiguous()
+                t += 1
+                return t, s
+        # contiguous of a row-major tensor aliases it; s is read after the write, so the write is refused
+        with self.assertRaisesRegex(ValueError, 'fresh unaliased'):
+            imported(Live(), [torch.randn(2, 3)])
+        class Dead(torch.nn.Module):
             def forward(self, x):
                 t = (x + 1).contiguous()
                 t += 1
                 return t
-        # (x + 1) is fresh, contiguous of a row-major tensor aliases it, and the alias makes the write illegal
-        with self.assertRaisesRegex(ValueError, 'fresh unaliased'):
-            imported(Model(), [torch.randn(2, 3)])
+        # nothing reads (x + 1) after the write: updating its alias in place is a rebinding
+        self.check(Dead(), [torch.randn(2, 3)])
 
     def test_integer_relative_buckets(self):
         class Model(torch.nn.Module):
