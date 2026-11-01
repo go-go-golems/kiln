@@ -1,0 +1,111 @@
+{
+  "format": "kiln-passnet-corpus/1",
+  "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/0f/9e/0f9e72a160cfe1fc3ff14abafc1ad98f3ba2375bf3374780ae61644ff3f9ec10",
+  "metadata_mode": "fake",
+  "variants": [
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/microsoft_xclip-base-patch16-zero-shot/_decomposed/microsoft_xclip-base-patch16-zero-shot_start1234_end1240_8",
+      "script": "000.kiln.js",
+      "inputs": {
+        "v0": [
+          1,
+          512
+        ],
+        "v1": [
+          1,
+          1,
+          512
+        ],
+        "v2": []
+      },
+      "input_dtypes": {
+        "v0": "f16",
+        "v1": "f16",
+        "v2": "f16"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          },
+          {
+            "output": "out2"
+          }
+        ]
+      },
+      "input_mutations": [],
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "source_input_order": [
+        1,
+        2,
+        0
+      ],
+      "source_arity": 3,
+      "source_sha256": "bb6d207bfe8a834d38dacba09c2a88ced5d7c80da8f8e3dfb1eb04cab2a038ae",
+      "output_permutation": [
+        0,
+        1,
+        2
+      ],
+      "specialization": [
+        0
+      ]
+    },
+    {
+      "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/microsoft_xclip-base-patch16-zero-shot/_decomposed/microsoft_xclip-base-patch16-zero-shot_start1234_end1240_8",
+      "script": "001.kiln.js",
+      "inputs": {
+        "v0": [
+          1,
+          512
+        ],
+        "v1": [
+          1,
+          1,
+          512
+        ],
+        "v2": []
+      },
+      "input_dtypes": {
+        "v0": "bf16",
+        "v1": "bf16",
+        "v2": "bf16"
+      },
+      "output_structure": {
+        "tuple": [
+          {
+            "output": "out0"
+          },
+          {
+            "output": "out1"
+          },
+          {
+            "output": "out2"
+          }
+        ]
+      },
+      "input_mutations": [],
+      "reference_constraints": [],
+      "reference_domain_diagnostic": null,
+      "source_input_order": [
+        1,
+        2,
+        0
+      ],
+      "source_arity": 3,
+      "source_sha256": "a2093d1c907956565c0b2405b5d52ce6f347f51d177678358da73daeaf0c6b63",
+      "output_permutation": [
+        0,
+        1,
+        2
+      ],
+      "specialization": [
+        0
+      ]
+    }
+  ]
+}

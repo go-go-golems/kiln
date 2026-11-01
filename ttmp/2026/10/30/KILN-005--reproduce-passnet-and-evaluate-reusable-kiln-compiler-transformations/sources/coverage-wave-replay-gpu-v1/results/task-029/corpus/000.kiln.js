@@ -1,0 +1,23 @@
+project("passnet").program(({v0, v1, v2, v3}) => {
+const v4 = N.expect(N.cast(v0, "bool"), [1, 3], "bool");
+const v5 = N.expect(N.arange(0, 3, 1, "i64"), [3], "i64");
+const v6 = N.expect(N.add(v5, N.int(0)), [3], "i64");
+const v7 = N.expect(N.gather(v4, v6, 1, true), [1, 3], "bool");
+const v8 = N.expect(N.arange(0, 3, 1, "i64"), [3], "i64");
+const v9 = N.expect(N.add(v8, N.int(0)), [3], "i64");
+const v10 = N.expect(N.reshape(v1, [3, 1]), [3, 1], "i64");
+const v11 = N.expect(N.le(v9, v10), [3, 3], "bool");
+const v12 = N.expect(N.reshape(v11, [1, 1, 3, 3]), [1, 1, 3, 3], "bool");
+const v13 = N.expect(N.expand(v12, [1, -1, -1, -1]), [1, 1, 3, 3], "bool");
+const v14 = N.expect(N.reshape(v7, [1, 1, 1, 3]), [1, 1, 1, 3], "bool");
+const v15 = N.expect(N.cast(N.mul(N.cast(v13, "i32"), N.cast(v14, "i32")), "bool"), [1, 1, 3, 3], "bool");
+const v16 = N.expect(N.reshape(v2, [1, 32, 1]), [1, 32, 1], "bf16");
+const v17 = N.expect(N.cast(v16, "f32"), [1, 32, 1], "f32");
+const v18 = N.expect(N.expand(v17, [1, -1, 1]), [1, 32, 1], "f32");
+const v19 = N.expect(v18, [1, 32, 1], "f32");
+const v20 = N.expect(N.reshape(v3, [1, 1, 3]), [1, 1, 3], "i64");
+const v21 = N.expect(N.cast(v20, "f32"), [1, 1, 3], "f32");
+const v22 = N.expect(N.cast(v19, "f32"), [1, 32, 1], "f32");
+const v23 = N.expect(N.cast(v21, "f32"), [1, 1, 3], "f32");
+return {out0: v15, out1: v22, out2: v23};
+}, {v0: k.tensor([1, 3], "i64"), v1: k.tensor([3], "i64"), v2: k.tensor([32], "bf16"), v3: k.tensor([1, 3], "i64")});

@@ -1,0 +1,113 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-129/corpus/002.kiln.js",
+  "sha256": "c245efc6ddc9cb62122348e767f4538b61ee1ab1c79d75e0ceaa5bf8b65e1033",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    11,
+    11
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    32,
+    12
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    1,
+    12,
+    11,
+    11
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 121,
+   "bytes": 968
+  },
+  {
+   "id": 1,
+   "dtype": "f16",
+   "elements": 384,
+   "bytes": 768
+  },
+  {
+   "id": 2,
+   "dtype": "f16",
+   "elements": 1452,
+   "bytes": 2904
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_gather_reshape__1fuvuti6mda",
+   "identity": "1fuvuti6mda",
+   "row": "TPB=64",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 23,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    23,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    12,
+    11,
+    11
+   ],
+   "inShapes": [
+    [
+     32,
+     12
+    ],
+    [
+     11,
+     11
+    ]
+   ],
+   "inDtypes": [
+    "f16",
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k_gather_reshape__1fuvuti6mda(const __half* __restrict__ src0, const long long* __restrict__ src1, __half* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 1452)) {\n        in0 = __half2float(src0[((e / 121) + (12 * (int)src1[((11 * ((e / 11) % 11)) + (e % 11))]))]);\n        dst[(((11 * ((e / 11) % 11)) + (e % 11)) + (121 * (e / 121)))] = __float2half_rn(in0);\n    }\n}"
+  }
+ ]
+}

@@ -1,0 +1,86 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-070/corpus/001.kiln.js",
+  "sha256": "a005f68cc267fb7f3ee1f87e1e2f71244d2fcada7387fc4ece98eb1737ab41e9",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    5
+   ],
+   "dtype": "f16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    1
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f16",
+   "elements": 5,
+   "bytes": 12
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 1,
+   "bytes": 4
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cast_softmax_arange_reduce__xticpb1uux",
+   "identity": "xticpb1uux",
+   "row": "TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1
+   ],
+   "inShapes": [
+    [
+     1,
+     5
+    ]
+   ],
+   "inDtypes": [
+    "f16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: f16 (in)",
+   "cuda": "#include <cuda_fp16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_cast_softmax_arange_reduce__xticpb1uux(const __half* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float acc0 = 0.0f, in1 = 0.0f, v1 = 0.0f, acc1 = 0.0f, in2 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f, acc2 = 0.0f, in0 = 0.0f, v0 = 0.0f, v2 = 0.0f, v3 = 0.0f, v7 = 0.0f, v8 = 0.0f, v9 = 0.0f, v11 = 0.0f, v12 = 0.0f, v13 = 0.0f, v14 = 0.0f, v15 = 0.0f, v16 = 0.0f, v17 = 0.0f, v18 = 0.0f, v19 = 0.0f;\n    long long x0 = 0;\n    bool v10 = 0;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 1)) {\n        acc0 = __int_as_float(0xff800000);\n        for (int r0 = 0; r0 < 5; r0 += 1) {\n            in1 = __half2float(src0[r0]);\n            v1 = in1;\n            acc0 = fmaxf(acc0, v1);\n        }\n        acc1 = 0.0f;\n        for (int r1 = 0; r1 < 5; r1 += 1) {\n            in2 = __half2float(src0[r1]);\n            v4 = in2;\n            v5 = __fsub_rn(v4, acc0);\n            v6 = expf(v5);\n            acc1 = (acc1 + v6);\n        }\n        acc2 = 0.0f;\n        for (int r2 = 0; r2 < 5; r2 += 1) {\n            in0 = __half2float(src0[r2]);\n            v0 = in0;\n            v2 = __fsub_rn(v0, acc0);\n            v3 = expf(v2);\n            v7 = (v3 / acc1);\n            v8 = __half2float(__float2half_rn(v7));\n            v9 = __half2float(__float2half_rn(v8));\n            x0 = ((long long)(r2));\n            v10 = ((x0) < (2LL));\n            v11 = ((float)(x0));\n            v12 = __fmul_rn(v11, 1.0f);\n            v13 = __fadd_rn(v12, 0.0f);\n            v14 = __fsub_rn(4.0f, v11);\n            v15 = __fmul_rn(v14, 1.0f);\n            v16 = __fsub_rn(4.0f, v15);\n            v17 = ((v10) > 0.0f ? (v13) : (v16));\n            v18 = __fmul_rn(v9, v17);\n            acc2 = (acc2 + v18);\n        }\n        v19 = __fsub_rn(5.0f, acc2);\n        dst[0] = v19;\n    }\n}"
+  }
+ ]
+}

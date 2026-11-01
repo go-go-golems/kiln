@@ -1,0 +1,272 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-179/corpus/008.kiln.js",
+  "sha256": "58a86290c4ad241c20bde2c411fa3250556bd0fd45c41d001dab106a52ed5c57",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    16,
+    256,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    256,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    256,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    1,
+    16,
+    1,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    1,
+    16,
+    257,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    1,
+    16,
+    257,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v6",
+   "buffer": 6,
+   "shape": [
+    256,
+    128
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 7,
+   "shape": [
+    1,
+    16,
+    257,
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 8,
+   "shape": [
+    1,
+    16,
+    257,
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 262144,
+   "bytes": 1048576
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 16384,
+   "bytes": 65536
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 16384,
+   "bytes": 65536
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 1024,
+   "bytes": 4096
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 263168,
+   "bytes": 1052672
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 263168,
+   "bytes": 1052672
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 32768,
+   "bytes": 131072
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 263168,
+   "bytes": 1052672
+  },
+  {
+   "id": 8,
+   "dtype": "f32",
+   "elements": 263168,
+   "bytes": 1052672
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__jnnb8aiirx",
+   "identity": "jnnb8aiirx",
+   "row": "TPB=128,COARSEN=2",
+   "reads": [
+    5,
+    6
+   ],
+   "writes": 7,
+   "grid": 1028,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1028,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    16,
+    257,
+    64
+   ],
+   "inShapes": [
+    [
+     1,
+     16,
+     257,
+     64
+    ],
+    [
+     256,
+     128
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL index values not implemented",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out0__jnnb8aiirx(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, in2 = 0.0f, in3 = 0.0f, v1 = 0.0f, v2 = 0.0f, in4 = 0.0f, v3 = 0.0f, v4 = 0.0f, in5 = 0.0f, v5 = 0.0f;\n    bool x0 = 0, x1 = 0;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((256 * bid) + (128 * j)) + tid);\n        if ((e < 263168)) {\n            x0 = ((((1 <= ((e / 64) % 257)) && (((e / 64) % 257) < 257))) != 0);\n            in0 = src0[((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16448 * (e / 16448))) + 64)];\n            in1 = src1[(((128 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + 64)];\n            v0 = __fmul_rn(in0, in1);\n            x1 = ((((1 <= ((e % 64) % 2)) && (((e % 64) % 2) < 2))) != 0);\n            in2 = src0[((((16448 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 16384) % 16)) + (2 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 2) % 32))) + (64 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 64) % 256))) + 64)];\n            in3 = src0[((((16448 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 16384) % 16)) + (2 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 2) % 32))) + (64 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 64) % 256))) + 65)];\n            v1 = (-in3);\n            v2 = ((x1) > 0.0f ? (in2) : (v1));\n            in4 = src1[((128 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64))];\n            v3 = __fmul_rn(v2, in4);\n            v4 = __fadd_rn(v0, v3);\n            in5 = src0[((e % 64) + (16448 * (e / 16448)))];\n            v5 = ((x0) > 0.0f ? (v4) : (in5));\n            dst[(((64 * ((e / 64) % 257)) + (e % 64)) + (16448 * (e / 16448)))] = v5;\n        }\n    }\n}"
+  },
+  {
+   "name": "k_out1__1s1fo85saih",
+   "identity": "1s1fo85saih",
+   "row": "TPB=128,COARSEN=2",
+   "reads": [
+    3,
+    2,
+    0,
+    1
+   ],
+   "writes": 8,
+   "grid": 1028,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1028,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    16,
+    257,
+    64
+   ],
+   "inShapes": [
+    [
+     1,
+     16,
+     1,
+     64
+    ],
+    [
+     256,
+     64
+    ],
+    [
+     1,
+     16,
+     256,
+     64
+    ],
+    [
+     256,
+     64
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL index values not implemented",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out1__1s1fo85saih(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f, in2 = 0.0f, in3 = 0.0f, v1 = 0.0f, v2 = 0.0f, in4 = 0.0f, v3 = 0.0f, v4 = 0.0f, in5 = 0.0f, v5 = 0.0f;\n    bool x0 = 0, x1 = 0;\n    int e = 0;\n    for (int j = 0; j < 2; j += 1) {\n        e = (((256 * bid) + (128 * j)) + tid);\n        if ((e < 263168)) {\n            x0 = ((((1 <= ((e / 64) % 257)) && (((e / 64) % 257) < 257))) != 0);\n            in0 = src2[(((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448)))];\n            in1 = src3[((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64))];\n            v0 = __fmul_rn(in0, in1);\n            x1 = ((((1 <= ((e % 64) % 2)) && (((e % 64) % 2) < 2))) != 0);\n            in2 = src2[(((16384 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 16384) % 16)) + (2 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 2) % 32))) + (64 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 64) % 256)))];\n            in3 = src2[((((16384 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 16384) % 16)) + (2 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 2) % 32))) + (64 * (((((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64)) + (16384 * (e / 16448))) / 64) % 256))) + 1)];\n            v1 = (-in3);\n            v2 = ((x1) > 0.0f ? (in2) : (v1));\n            in4 = src1[((64 * min(max((((e / 64) % 257) + (-1)), 0), 255)) + (e % 64))];\n            v3 = __fmul_rn(v2, in4);\n            v4 = __fadd_rn(v0, v3);\n            in5 = src0[(((64 * min(max(((e / 64) % 257), 0), 0)) + (e % 64)) + (64 * (e / 16448)))];\n            v5 = ((x0) > 0.0f ? (v4) : (in5));\n            dst[(((64 * ((e / 64) % 257)) + (e % 64)) + (16448 * (e / 16448)))] = v5;\n        }\n    }\n}"
+  }
+ ]
+}

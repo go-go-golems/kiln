@@ -1,0 +1,113 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-129/corpus/004.kiln.js",
+  "sha256": "a218902bdd82959b9229b2b5fbef6f1e1932a1dd54c43ea227f4c00cddd6b9e6",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    45,
+    45
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    32,
+    4
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    1,
+    4,
+    45,
+    45
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 2025,
+   "bytes": 16200
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 128,
+   "bytes": 256
+  },
+  {
+   "id": 2,
+   "dtype": "bf16",
+   "elements": 8100,
+   "bytes": 16200
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_gather_reshape__4u3ebf8lo9",
+   "identity": "4u3ebf8lo9",
+   "row": "TPB=128",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 64,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    4,
+    45,
+    45
+   ],
+   "inShapes": [
+    [
+     32,
+     4
+    ],
+    [
+     45,
+     45
+    ]
+   ],
+   "inDtypes": [
+    "bf16",
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(128) k_gather_reshape__4u3ebf8lo9(const __nv_bfloat16* __restrict__ src0, const long long* __restrict__ src1, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 8100)) {\n        in0 = __bfloat162float(src0[((e / 2025) + (4 * (int)src1[((45 * ((e / 45) % 45)) + (e % 45))]))]);\n        dst[(((45 * ((e / 45) % 45)) + (e % 45)) + (2025 * (e / 2025)))] = __float2bfloat16_rn(in0);\n    }\n}"
+  }
+ ]
+}

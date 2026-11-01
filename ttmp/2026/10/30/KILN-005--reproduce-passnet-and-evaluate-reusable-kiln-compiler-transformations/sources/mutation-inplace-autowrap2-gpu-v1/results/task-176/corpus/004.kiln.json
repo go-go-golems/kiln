@@ -1,0 +1,317 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-176/corpus/004.kiln.js",
+  "sha256": "1b6e912eb1a11cb43268ed2ebde3b6d9ea75f71c18bf75fe90f5c1d449f70d15",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    64,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    1,
+    64,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v2",
+   "buffer": 2,
+   "shape": [
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v3",
+   "buffer": 3,
+   "shape": [
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v4",
+   "buffer": 4,
+   "shape": [
+    64
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "v5",
+   "buffer": 5,
+   "shape": [
+    64
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 6,
+   "shape": [
+    1,
+    64,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 7,
+   "shape": [
+    1,
+    64,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    1,
+    64,
+    56,
+    56
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 200704,
+   "bytes": 802816
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 200704,
+   "bytes": 802816
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 64,
+   "bytes": 256
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 64,
+   "bytes": 256
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 64,
+   "bytes": 256
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 64,
+   "bytes": 256
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 200704,
+   "bytes": 802816
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 200704,
+   "bytes": 802816
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k___mut0__25ri7hvoelh",
+   "identity": "25ri7hvoelh",
+   "row": "TPB=128",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 0,
+   "grid": 1568,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1568,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    64,
+    56,
+    56
+   ],
+   "inShapes": [
+    [
+     1,
+     64,
+     56,
+     56
+    ],
+    [
+     1,
+     64,
+     56,
+     56
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "in-place input write is emitted for CUDA only",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k___mut0__25ri7hvoelh(float* src0, const float* __restrict__ src1, float* dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 200704)) {\n        in0 = src0[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))];\n        in1 = src1[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))];\n        v0 = __fadd_rn(in0, in1);\n        dst[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))] = v0;\n    }\n}",
+   "inPlace": {
+    "input": "v0",
+    "slots": [
+     0
+    ],
+    "of": "1fq3o00cic5"
+   }
+  },
+  {
+   "name": "k_out0__i9ku3xqs9e",
+   "identity": "i9ku3xqs9e",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 6,
+   "grid": 1568,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1568,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    64,
+    56,
+    56
+   ],
+   "inShapes": [
+    [
+     1,
+     64,
+     56,
+     56
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: gelu_erf",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out0__i9ku3xqs9e(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 200704)) {\n        in0 = src0[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))];\n        v0 = ((in0 * 0.5f) * (1.0f + erff(in0 * 0.7071067811865476f)));\n        dst[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_out1__1z6zdruln1k",
+   "identity": "1z6zdruln1k",
+   "row": "TPB=128",
+   "reads": [
+    5,
+    4,
+    3,
+    6,
+    2
+   ],
+   "writes": 7,
+   "grid": 1568,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    1568,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    64,
+    56,
+    56
+   ],
+   "inShapes": [
+    [
+     64
+    ],
+    [
+     64
+    ],
+    [
+     64
+    ],
+    [
+     1,
+     64,
+     56,
+     56
+    ],
+    [
+     64
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32",
+    "f32",
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: add_rn",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out1__1z6zdruln1k(const float* __restrict__ src0, const float* __restrict__ src1, const float* __restrict__ src2, const float* __restrict__ src3, const float* __restrict__ src4, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in1 = 0.0f, in2 = 0.0f, v1 = 0.0f, v2 = 0.0f, in3 = 0.0f, in4 = 0.0f, in0 = 0.0f, v0 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 200704)) {\n        in1 = src4[(e / 3136)];\n        in2 = src2[(e / 3136)];\n        v1 = __fadd_rn(in2, 0.00001f);\n        v2 = sqrtf(v1);\n        in3 = src1[(e / 3136)];\n        in4 = src0[(e / 3136)];\n        in0 = src3[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))];\n        v0 = __fsub_rn(in0, in1);\n        v3 = (v0 / v2);\n        v4 = __fmul_rn(v3, in3);\n        v5 = __fadd_rn(v4, in4);\n        v6 = __fadd_rn(0.0f, v5);\n        dst[(((56 * ((e / 56) % 56)) + (e % 56)) + (3136 * (e / 3136)))] = v6;\n    }\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "direct",
+   "producer": "k___mut0__25ri7hvoelh",
+   "slots": [
+    0
+   ]
+  }
+ ]
+}

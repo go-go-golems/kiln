@@ -1,0 +1,155 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-040/corpus/002.kiln.js",
+  "sha256": "2787b798350a44406dc4717eb5cdd75e68784675bbea67d6571c0f9ac38a2163",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    4096,
+    4096
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    2,
+    4096,
+    4096
+   ],
+   "dtype": "bf16"
+  },
+  {
+   "name": "__mut0",
+   "buffer": 0,
+   "shape": [
+    2,
+    4096,
+    4096
+   ],
+   "dtype": "bf16"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "bf16",
+   "elements": 33554432,
+   "bytes": 67108864
+  },
+  {
+   "id": 1,
+   "dtype": "bf16",
+   "elements": 33554432,
+   "bytes": 67108864
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k___mut0__2irs4ajfpf",
+   "identity": "2irs4ajfpf",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 0,
+   "grid": 524288,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    65535,
+    9,
+    1
+   ],
+   "shape": [
+    2,
+    4096,
+    4096
+   ],
+   "inShapes": [
+    [
+     2,
+     4096,
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "in-place input write is emitted for CUDA only",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(64) k___mut0__2irs4ajfpf(__nv_bfloat16* src0, __nv_bfloat16* dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f, v1 = 0.0f, v2 = 0.0f, v3 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 33554432)) {\n        in0 = __bfloat162float(src0[(((4096 * ((e / 4096) % 4096)) + (e % 4096)) + (16777216 * (e / 16777216)))]);\n        v0 = (in0 / 16.0f);\n        v1 = __bfloat162float(__float2bfloat16_rn(v0));\n        v2 = (v1 / 0.05f);\n        v3 = __bfloat162float(__float2bfloat16_rn(v2));\n        dst[(((4096 * ((e / 4096) % 4096)) + (e % 4096)) + (16777216 * (e / 16777216)))] = __float2bfloat16_rn(v3);\n    }\n}",
+   "inPlace": {
+    "input": "v0",
+    "slots": [
+     0
+    ],
+    "of": "26wgbjjrryz"
+   }
+  },
+  {
+   "name": "k_out0__231gom4gv98",
+   "identity": "231gom4gv98",
+   "row": "MAP=row,TPB=1024,STAGE=reused",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 8192,
+   "block": 1024,
+   "smemBytes": 20480,
+   "dispatch": [
+    8192,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    4096,
+    4096
+   ],
+   "inShapes": [
+    [
+     2,
+     4096,
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "bf16"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: bf16 (in)",
+   "cuda": "#include <cuda_bf16.h>\nextern \"C\" __global__ void __launch_bounds__(1024) k_out0__231gom4gv98(const __nv_bfloat16* __restrict__ src0, __nv_bfloat16* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ float s_in0[4096];\n    __shared__ float s_red[1024];\n    float g0 = 0.0f, acc0 = 0.0f, in1 = 0.0f, v1 = 0.0f, sv0 = 0.0f, sv1 = 0.0f, sv2 = 0.0f, sv3 = 0.0f, sv4 = 0.0f, sv5 = 0.0f, sv6 = 0.0f, sv7 = 0.0f, sv8 = 0.0f, sv9 = 0.0f, sv10 = 0.0f, sv11 = 0.0f, sv12 = 0.0f, sv13 = 0.0f, sv14 = 0.0f, sv15 = 0.0f, sv16 = 0.0f, sv17 = 0.0f, sv18 = 0.0f, sv19 = 0.0f, acc1 = 0.0f, in2 = 0.0f, v4 = 0.0f, v5 = 0.0f, v6 = 0.0f, sv20 = 0.0f, sv21 = 0.0f, sv22 = 0.0f, sv23 = 0.0f, sv24 = 0.0f, sv25 = 0.0f, sv26 = 0.0f, sv27 = 0.0f, sv28 = 0.0f, sv29 = 0.0f, sv30 = 0.0f, sv31 = 0.0f, sv32 = 0.0f, sv33 = 0.0f, sv34 = 0.0f, sv35 = 0.0f, sv36 = 0.0f, sv37 = 0.0f, sv38 = 0.0f, sv39 = 0.0f, in0 = 0.0f, v0 = 0.0f, v2 = 0.0f, v3 = 0.0f, v7 = 0.0f, v8 = 0.0f, v9 = 0.0f;\n    for (int t0 = tid; t0 < 4096; t0 += 1024) {\n        g0 = __bfloat162float(src0[(((4096 * (bid % 4096)) + (16777216 * (bid / 4096))) + t0)]);\n        s_in0[t0] = g0;\n    }\n    __syncthreads();\n    acc0 = __int_as_float(0xff800000);\n    for (int r0 = tid; r0 < 4096; r0 += 1024) {\n        in1 = s_in0[r0];\n        v1 = in1;\n        acc0 = fmaxf(acc0, v1);\n    }\n    __syncthreads();\n    s_red[tid] = acc0;\n    __syncthreads();\n    if ((tid < 512)) {\n        sv0 = s_red[tid];\n        sv1 = s_red[(tid + 512)];\n        s_red[tid] = fmaxf(sv0, sv1);\n    }\n    __syncthreads();\n    if ((tid < 256)) {\n        sv2 = s_red[tid];\n        sv3 = s_red[(tid + 256)];\n        s_red[tid] = fmaxf(sv2, sv3);\n    }\n    __syncthreads();\n    if ((tid < 128)) {\n        sv4 = s_red[tid];\n        sv5 = s_red[(tid + 128)];\n        s_red[tid] = fmaxf(sv4, sv5);\n    }\n    __syncthreads();\n    if ((tid < 64)) {\n        sv6 = s_red[tid];\n        sv7 = s_red[(tid + 64)];\n        s_red[tid] = fmaxf(sv6, sv7);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv8 = s_red[tid];\n        sv9 = s_red[(tid + 32)];\n        s_red[tid] = fmaxf(sv8, sv9);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv10 = s_red[tid];\n        sv11 = s_red[(tid + 16)];\n        s_red[tid] = fmaxf(sv10, sv11);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv12 = s_red[tid];\n        sv13 = s_red[(tid + 8)];\n        s_red[tid] = fmaxf(sv12, sv13);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv14 = s_red[tid];\n        sv15 = s_red[(tid + 4)];\n        s_red[tid] = fmaxf(sv14, sv15);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv16 = s_red[tid];\n        sv17 = s_red[(tid + 2)];\n        s_red[tid] = fmaxf(sv16, sv17);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv18 = s_red[tid];\n        sv19 = s_red[(tid + 1)];\n        s_red[tid] = fmaxf(sv18, sv19);\n    }\n    __syncthreads();\n    acc0 = s_red[0];\n    acc1 = 0.0f;\n    for (int r1 = tid; r1 < 4096; r1 += 1024) {\n        in2 = s_in0[r1];\n        v4 = in2;\n        v5 = __fsub_rn(v4, acc0);\n        v6 = expf(v5);\n        acc1 = (acc1 + v6);\n    }\n    __syncthreads();\n    s_red[tid] = acc1;\n    __syncthreads();\n    if ((tid < 512)) {\n        sv20 = s_red[tid];\n        sv21 = s_red[(tid + 512)];\n        s_red[tid] = (sv20 + sv21);\n    }\n    __syncthreads();\n    if ((tid < 256)) {\n        sv22 = s_red[tid];\n        sv23 = s_red[(tid + 256)];\n        s_red[tid] = (sv22 + sv23);\n    }\n    __syncthreads();\n    if ((tid < 128)) {\n        sv24 = s_red[tid];\n        sv25 = s_red[(tid + 128)];\n        s_red[tid] = (sv24 + sv25);\n    }\n    __syncthreads();\n    if ((tid < 64)) {\n        sv26 = s_red[tid];\n        sv27 = s_red[(tid + 64)];\n        s_red[tid] = (sv26 + sv27);\n    }\n    __syncthreads();\n    if ((tid < 32)) {\n        sv28 = s_red[tid];\n        sv29 = s_red[(tid + 32)];\n        s_red[tid] = (sv28 + sv29);\n    }\n    __syncthreads();\n    if ((tid < 16)) {\n        sv30 = s_red[tid];\n        sv31 = s_red[(tid + 16)];\n        s_red[tid] = (sv30 + sv31);\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv32 = s_red[tid];\n        sv33 = s_red[(tid + 8)];\n        s_red[tid] = (sv32 + sv33);\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv34 = s_red[tid];\n        sv35 = s_red[(tid + 4)];\n        s_red[tid] = (sv34 + sv35);\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv36 = s_red[tid];\n        sv37 = s_red[(tid + 2)];\n        s_red[tid] = (sv36 + sv37);\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv38 = s_red[tid];\n        sv39 = s_red[(tid + 1)];\n        s_red[tid] = (sv38 + sv39);\n    }\n    __syncthreads();\n    acc1 = s_red[0];\n    for (int q = tid; q < 4096; q += 1024) {\n        in0 = s_in0[q];\n        v0 = in0;\n        v2 = __fsub_rn(v0, acc0);\n        v3 = expf(v2);\n        v7 = (v3 / acc1);\n        v8 = __bfloat162float(__float2bfloat16_rn(v7));\n        v9 = __bfloat162float(__float2bfloat16_rn(v8));\n        dst[(((4096 * (bid % 4096)) + (16777216 * (bid / 4096))) + q)] = __float2bfloat16_rn(v9);\n    }\n}"
+  }
+ ],
+ "mutations": [
+  {
+   "output": "__mut0",
+   "input": "v0",
+   "strategy": "direct",
+   "producer": "k___mut0__2irs4ajfpf",
+   "slots": [
+    0
+   ]
+  }
+ ]
+}

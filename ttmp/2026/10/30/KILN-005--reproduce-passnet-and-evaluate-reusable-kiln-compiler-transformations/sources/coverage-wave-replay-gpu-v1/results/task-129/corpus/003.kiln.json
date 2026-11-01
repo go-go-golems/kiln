@@ -1,0 +1,113 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-129/corpus/003.kiln.js",
+  "sha256": "8dac1f9cd175e43fe13b0cc6fc819d9ce652517298c40249ea5e2fa37eb4128c",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    7,
+    7
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "v1",
+   "buffer": 1,
+   "shape": [
+    32,
+    12
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    2,
+    12,
+    7,
+    7
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 49,
+   "bytes": 392
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 384,
+   "bytes": 1536
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 1176,
+   "bytes": 4704
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_gather_reshape__c1i1kkv9ze",
+   "identity": "c1i1kkv9ze",
+   "row": "TPB=64",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 19,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    19,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    12,
+    7,
+    7
+   ],
+   "inShapes": [
+    [
+     32,
+     12
+    ],
+    [
+     7,
+     7
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_gather_reshape__c1i1kkv9ze(const float* __restrict__ src0, const long long* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 1176)) {\n        in0 = src0[(((e / 49) % 12) + (12 * (int)src1[((7 * ((e / 7) % 7)) + (e % 7))]))];\n        dst[((((49 * ((e / 49) % 12)) + (7 * ((e / 7) % 7))) + (e % 7)) + (588 * (e / 588)))] = in0;\n    }\n}"
+  }
+ ]
+}

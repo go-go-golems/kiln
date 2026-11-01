@@ -1,0 +1,88 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-064/corpus/000.kiln.js",
+  "sha256": "cb3ad9d73f33762c44e83b3ad993c7844b3b741e66e67ec7eb6b9dfa14ee1dc3",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    13
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    1,
+    13
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 13,
+   "bytes": 104
+  },
+  {
+   "id": 1,
+   "dtype": "i64",
+   "elements": 13,
+   "bytes": 104
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_cumsum_ew_reshape_scan__1och93ycaxq",
+   "identity": "1och93ycaxq",
+   "row": "TPB=32",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 1,
+   "block": 32,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    13
+   ],
+   "inShapes": [
+    [
+     1,
+     13
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(32) k_cumsum_ew_reshape_scan__1och93ycaxq(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, acc0 = 0, v0 = 0, v1 = 0, v2 = 0;\n    int e = 0;\n    e = ((32 * bid) + tid);\n    if ((e < 1)) {\n        acc0 = 0LL;\n        for (int a1 = 0; a1 < 13; a1 += 1) {\n            in0 = src0[a1];\n            acc0 = (acc0 + in0);\n            v0 = (acc0 * in0);\n            v1 = (v0 - 1LL);\n            v2 = (v1 + 2LL);\n            dst[a1] = v2;\n        }\n    }\n}"
+  }
+ ]
+}

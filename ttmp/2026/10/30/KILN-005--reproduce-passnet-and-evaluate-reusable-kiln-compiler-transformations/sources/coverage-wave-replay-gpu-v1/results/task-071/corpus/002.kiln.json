@@ -1,0 +1,125 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-071/corpus/002.kiln.js",
+  "sha256": "23e996b1e79a392a68f12200b03e1553cc8ec7dbacbb89d5d86f0f0aa443c1e3",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    64,
+    128
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    128
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "out1",
+   "buffer": 2,
+   "shape": [
+    64,
+    128
+   ],
+   "dtype": "bool"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 8192,
+   "bytes": 65536
+  },
+  {
+   "id": 1,
+   "dtype": "i64",
+   "elements": 128,
+   "bytes": 1024
+  },
+  {
+   "id": 2,
+   "dtype": "bool",
+   "elements": 8192,
+   "bytes": 8192
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out0__22nxmk0c2fj",
+   "identity": "22nxmk0c2fj",
+   "row": "TPB=1024",
+   "reads": [],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    128
+   ],
+   "inShapes": [],
+   "inDtypes": [],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (out)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_out0__22nxmk0c2fj(long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long x0 = 0;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 128)) {\n        x0 = ((long long)(e));\n        dst[e] = x0;\n    }\n}"
+  },
+  {
+   "name": "k_out1__1pskdn3p9uj",
+   "identity": "1pskdn3p9uj",
+   "row": "TPB=128",
+   "reads": [
+    0
+   ],
+   "writes": 2,
+   "grid": 64,
+   "block": 128,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    64,
+    128
+   ],
+   "inShapes": [
+    [
+     64,
+     128
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(128) k_out1__1pskdn3p9uj(const long long* __restrict__ src0, bool* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0;\n    bool v0 = 0;\n    int e = 0;\n    e = ((128 * bid) + tid);\n    if ((e < 8192)) {\n        in0 = src0[((e % 128) + (128 * (e / 128)))];\n        v0 = ((in0) != 0);\n        dst[((e % 128) + (128 * (e / 128)))] = v0;\n    }\n}"
+  }
+ ]
+}

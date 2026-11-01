@@ -1,0 +1,92 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-170/corpus/002.kiln.js",
+  "sha256": "531168ab6b213af223045893277a4a0a162471388b664e4c3abfc8b30488a856",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    13
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    1,
+    1,
+    13,
+    13
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 13,
+   "bytes": 104
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 169,
+   "bytes": 676
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_index_value_ew_reshape_reduce__2gcm57zijvv",
+   "identity": "2gcm57zijvv",
+   "row": "MAP=row,TPB=32",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 13,
+   "block": 32,
+   "smemBytes": 128,
+   "dispatch": [
+    13,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1,
+    13,
+    13
+   ],
+   "inShapes": [
+    [
+     1,
+     13
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(32) k_index_value_ew_reshape_reduce__2gcm57zijvv(const long long* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ int s_red_i32[32];\n    float v8 = 0.0f, v10 = 0.0f, v11 = 0.0f, v12 = 0.0f, v13 = 0.0f, v15 = 0.0f, v20 = 0.0f, v0 = 0.0f, v2 = 0.0f, v3 = 0.0f, v4 = 0.0f, v5 = 0.0f, v7 = 0.0f, v21 = 0.0f;\n    long long x2 = 0, x4 = 0, in1 = 0, x1 = 0, in0 = 0;\n    bool x3 = 0, v9 = 0, v14 = 0, v16 = 0, v18 = 0, v19 = 0, x0 = 0, v1 = 0, v6 = 0;\n    int v17 = 0, acc0 = 0, sv0 = 0, sv1 = 0, sv2 = 0, sv3 = 0, sv4 = 0, sv5 = 0, sv6 = 0, sv7 = 0, sv8 = 0, sv9 = 0;\n    x2 = ((long long)(min(max(bid, 0), 12)));\n    acc0 = 2147483647;\n    for (int r0 = tid; r0 < 13; r0 += 32) {\n        x3 = ((((min(max(bid, 0), 12) + 1) <= min(max(r0, 0), 12))) != 0);\n        v8 = ((x3) > 0.0f ? (-3.4028234663852886e+38f) : (0.0f));\n        x4 = ((long long)(min(max(r0, 0), 12)));\n        v9 = ((x4) > (x2));\n        v10 = ((float)(v9));\n        v11 = __fmul_rn(v8, v10);\n        in1 = src0[min(max(r0, 0), 12)];\n        v12 = ((float)(in1));\n        v13 = __fadd_rn(v11, v12);\n        v14 = ((v13) == (0.0f));\n        v15 = ((v14) > 0.0f ? (-3.4028234663852886e+38f) : (v11));\n        v16 = ((v15) == (-3.4028234663852886e+38f));\n        v17 = ((int)(v16));\n        acc0 = ((acc0) < (v17) ? (acc0) : (v17));\n    }\n    __syncthreads();\n    s_red_i32[tid] = acc0;\n    __syncthreads();\n    if ((tid < 16)) {\n        sv0 = s_red_i32[tid];\n        sv1 = s_red_i32[(tid + 16)];\n        s_red_i32[tid] = ((sv0) < (sv1) ? (sv0) : (sv1));\n    }\n    __syncthreads();\n    if ((tid < 8)) {\n        sv2 = s_red_i32[tid];\n        sv3 = s_red_i32[(tid + 8)];\n        s_red_i32[tid] = ((sv2) < (sv3) ? (sv2) : (sv3));\n    }\n    __syncthreads();\n    if ((tid < 4)) {\n        sv4 = s_red_i32[tid];\n        sv5 = s_red_i32[(tid + 4)];\n        s_red_i32[tid] = ((sv4) < (sv5) ? (sv4) : (sv5));\n    }\n    __syncthreads();\n    if ((tid < 2)) {\n        sv6 = s_red_i32[tid];\n        sv7 = s_red_i32[(tid + 2)];\n        s_red_i32[tid] = ((sv6) < (sv7) ? (sv6) : (sv7));\n    }\n    __syncthreads();\n    if ((tid < 1)) {\n        sv8 = s_red_i32[tid];\n        sv9 = s_red_i32[(tid + 1)];\n        s_red_i32[tid] = ((sv8) < (sv9) ? (sv8) : (sv9));\n    }\n    __syncthreads();\n    acc0 = s_red_i32[0];\n    v18 = ((acc0) != 0);\n    v19 = ((v18) == (false));\n    v20 = ((float)(v19));\n    for (int q = tid; q < 13; q += 32) {\n        x0 = ((((min(max(bid, 0), 12) + 1) <= min(max(q, 0), 12))) != 0);\n        v0 = ((x0) > 0.0f ? (-3.4028234663852886e+38f) : (0.0f));\n        x1 = ((long long)(min(max(q, 0), 12)));\n        v1 = ((x1) > (x2));\n        v2 = ((float)(v1));\n        v3 = __fmul_rn(v0, v2);\n        in0 = src0[min(max(q, 0), 12)];\n        v4 = ((float)(in0));\n        v5 = __fadd_rn(v3, v4);\n        v6 = ((v5) == (0.0f));\n        v7 = ((v6) > 0.0f ? (-3.4028234663852886e+38f) : (v3));\n        v21 = __fmul_rn(v7, v20);\n        dst[((13 * bid) + q)] = v21;\n    }\n}"
+  }
+ ]
+}

@@ -763,3 +763,79 @@ This step closes the wave. Every graph of the 24 newly complete families was com
 - Plan tasks (index: graphs): 8:3, 13:4, 22:2, 29:11, 30:3, 34:5, 40:6, 43:5, 44:2, 50:2, 53:3, 68:3, 70:2, 71:6, 84:2, 90:3, 117:3, 124:4, 129:5, 155:6, 158:2, 170:3, 179:9 (plan.json sha256 `9f6b0a273174cbab51ac1b99c5acd1a937c46fd286d2d2fcb3a0a7920d8ae4e0`).
 - Plan selection: `summarize_gates.py` replay = numerics with no outside/error verdict, a compile gate pass, and no genuine simulation mismatch; a CPU-blocked capture does not exclude a family.
 - Census: 2058/2060 graphs (1961 before), 199/200 complete families (175 before), 0 regressions, 97 gained.
+
+## Step 12: GPU round 2: CUDA-capture matcher simulation, the coverage-wave replay and two autowrap/2 regression replays
+
+The coordinator ran the coverage wave's GPU hand-offs on bling, one job at a time, from commit `4dd38ba`. The coverage-wave replay accepts 16 of 23 newly importable families (66/94 graphs). The two regression replays (typed-slice3, and the mutation set) accept exactly what they accepted before `kiln-pattern-autowrap/2`: 10/10 with 45/45 graphs, and 9/16 with 96/138 graphs. The new pattern tracer changes how every rule's pattern is traced, and it regressed nothing measured.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok do it" (see Step 9).
+
+**Assistant interpretation:** After the coverage agent's hand-off, run the GPU-side checks it requested (658 on a CUDA host for the CPU-blocked families), then the frozen replay, then guard the global `autowrap/2` change with regression replays.
+
+**Inferred user intent:** Turn the import-coverage gain into PassBench-accepted families without breaking accepted ones.
+
+**Commit (code):** none in this step; evidence and diary only.
+
+### What I did
+- **Staged `coverage-wave-replay-gpu-v1`** (641; source `4dd38ba`; 23 tasks, 94 graphs).
+- **Ran KILN-005 script 658 `--trace dynamo` on bling in the evaluator image** for the 14 families blocked on CPU: 1/14 ok. 658 captures on `meta` tensors, and a graph that moves tensors with `.to(cuda)` fails during capture with `found two different devices meta, cuda:0`, on a GPU host as well.
+- **Wrote `658-cuda-capture.py`,** a copy that captures on a real device (`KILN_SIM_DEVICE`, default `cuda`) with zero-filled inputs. Ran it once per task in separate processes, on all 23 plan tasks.
+- **Launched the coverage replay in tmux,** then queued `typed-slice3-autowrap2-gpu-v1` and `mutation-inplace-autowrap2-gpu-v1` (the same plans as Step 8, staged at `4dd38ba`) through 651. Collected all three with 669.
+
+### Why
+- `kiln-pattern-autowrap/2` (Step 10) changes how `evaluate_normalized.py` traces every rule's pattern. Replaying two previously accepted sets at the new revision is the direct regression check.
+- Capture on real CUDA matches the evaluator, which runs `torch.compile` on CUDA tensors.
+
+### What worked
+- **CUDA-capture 658: 22 of 23 tasks give identity ok on every graph.** This includes all 13 that were blocked on CPU, so autowrap/2 patterns match the Dynamo graphs.
+- **Coverage replay:** 16 families fully accepted, 66/94 graphs, 0 unexecuted. Accepted families with their scores:
+
+  | Family | Score | Family | Score |
+  |---|---|---|---|
+  | 8 | 0.822 | 70 | 0.968 |
+  | 13 | 1.038 | 71 | 0.824 |
+  | 30 | 0.932 | 84 | 0.894 |
+  | 43 | 0.931 | 90 | 0.813 |
+  | 50 | 0.810 | 117 | 1.073 |
+  | 53 | 0.892 | 129 | 0.896 |
+  | 68 | 1.240 | 155 | 0.969 |
+  | 158 | 1.086 | 179 | 1.219 |
+
+- **Regressions:** typed-slice3 at autowrap/2 is 10/10 families and 45/45 graphs; the mutation set is 9/16 and 96/138. Both are the same acceptance as Step 8.
+
+### What didn't work
+- **The first CUDA-capture run used `torch.empty`.** Uninitialized int64 index inputs made `embedding` raise `CUDA error: device-side assert triggered`, which poisons the context for every later task in the process. Fixed with `torch.zeros` and one process per task.
+- **Root-owned outputs.** The container wrote its outputs as root, so a host-side `rm -rf` failed with `Permission denied` and the `&&` chain stopped. Cleanup now runs inside the container, followed by `chown`.
+- **Seven coverage families are not accepted:**
+  - **170 (0/3):** `BackendCompilerFailed ... An error occurred when running the 'KilnPattern0000' pass`, the same rule failure that 658 shows as `KeyError: in_0`.
+  - **29 (0/11):** every graph is `correct` at the nominal tolerance (−5) but `matches=2`. The rule applies twice per graph, so it is not accepted, although its score is 1.018. On zero-filled CUDA inputs, 658 reported identity ok with one match. A pattern occurring twice in the Dynamo graph is the likely cause; I have not verified it.
+  - **22 (0/2), 44 (0/2), 124 (2/4):** correct only at tolerance −4 or −3. These are numerics, probably bf16/f16 rounding points.
+  - **34 (1/5):** one `Eager model execution failed: Environment fluctuation detected.` and three correct only at −4.
+  - **40 (2/6, DNLNet):** two graphs correct only at tolerance 1 and two at none. This is the family the agent could check only at reduced dimensions (Step 11).
+
+### What I learned
+- 658 on `meta` cannot judge any graph that moves tensors to `cuda`, on any host. The CUDA-capture variant is the usable gate for such families.
+
+### What was tricky to build
+- **Separating a gate artifact from a real failure.** The first 22-of-23 failure was a single poisoned CUDA context, not 22 failures.
+
+### What warrants a second pair of eyes
+- **Family 29's double match** is a pattern-uniqueness question for the rule generator, not numerics.
+- **Families 22, 44, 124 and 34** need per-graph error localization against the GPU reference.
+
+### What should be done in the future
+- Diagnose 170's `KeyError: in_0` in the generated rule's replacement.
+- Explain 29's two matches. If they are two real occurrences, the generator should emit a pattern that matches once, or the acceptance rule should allow repeated identical matches.
+- Find the rounding point responsible for 22, 44, 124 and 34.
+- Check DNLNet (40) at full size on the GPU.
+- Make `658-cuda-capture.py` the default capture path in a ticket script; it is evidence-only for now.
+
+### Code review instructions
+- Audits: `ttmp/2026/10/30/KILN-005-*/sources/{coverage-wave-replay,typed-slice3-autowrap2,mutation-inplace-autowrap2}-gpu-v1/results-audit.json`.
+- Simulation evidence: `ttmp/2026/11/01/integration-evidence-kiln-006-011/coverage-sim658-gpu-v1/` (`658-cuda-capture.py`, `sim658.log`, `sim658-cuda.log`, `simulations.tar.gz`).
+
+### Technical details
+- Source revision `4dd38bac3928fb461dd7bdd9c5f208741df94beb` for all three studies; evaluator image `sha256:222d8b18…f2ba`.
+- Run times on GB10: coverage 14:34–14:41, typed-slice3 14:41–14:44, mutation set 14:44–14:52.

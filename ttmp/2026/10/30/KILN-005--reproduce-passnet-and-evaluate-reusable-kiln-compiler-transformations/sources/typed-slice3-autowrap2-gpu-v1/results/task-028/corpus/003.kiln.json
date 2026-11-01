@@ -1,0 +1,88 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-028/corpus/003.kiln.js",
+  "sha256": "c55171be4b9ce5d39afc9caaaf67c9656ced899fee9c28f1ff6fb01ba3fa6450",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    2,
+    1024
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 1,
+   "shape": [
+    2,
+    1024
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 2048,
+   "bytes": 16384
+  },
+  {
+   "id": 1,
+   "dtype": "i64",
+   "elements": 2048,
+   "bytes": 16384
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_ew_cast_cumsum_scan__14tvexvwb5w",
+   "identity": "14tvexvwb5w",
+   "row": "MAP=row,TPB=1024",
+   "reads": [
+    0
+   ],
+   "writes": 1,
+   "grid": 2,
+   "block": 1024,
+   "smemBytes": 8192,
+   "dispatch": [
+    2,
+    1,
+    1
+   ],
+   "shape": [
+    2,
+    1024
+   ],
+   "inShapes": [
+    [
+     2,
+     1024
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_ew_cast_cumsum_scan__14tvexvwb5w(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    __shared__ long long s_scan0[1024];\n    long long in0 = 0, v2 = 0, acc0_x = 0, acc0_y = 0, acc0_p = 0, acc0_t = 0, acc0 = 0, v6 = 0, v7 = 0;\n    bool v0 = 0;\n    int v1 = 0, v3 = 0, v4 = 0, v5 = 0;\n    int p = 0;\n    acc0 = 0LL;\n    for (int c0 = 0; c0 < 1024; c0 += 1024) {\n        p = (c0 + tid);\n        acc0_x = 0LL;\n        if ((p < 1024)) {\n            in0 = src0[((1024 * bid) + p)];\n            v0 = ((in0) != (1LL));\n            v1 = ((int)(v0));\n            v2 = ((long long)(v1));\n            acc0_x = v2;\n        }\n        s_scan0[tid] = acc0_x;\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((1 <= tid)) {\n            acc0_y = s_scan0[(tid + (-1))];\n        }\n        __syncthreads();\n        if ((1 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((2 <= tid)) {\n            acc0_y = s_scan0[(tid + (-2))];\n        }\n        __syncthreads();\n        if ((2 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((4 <= tid)) {\n            acc0_y = s_scan0[(tid + (-4))];\n        }\n        __syncthreads();\n        if ((4 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((8 <= tid)) {\n            acc0_y = s_scan0[(tid + (-8))];\n        }\n        __syncthreads();\n        if ((8 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((16 <= tid)) {\n            acc0_y = s_scan0[(tid + (-16))];\n        }\n        __syncthreads();\n        if ((16 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((32 <= tid)) {\n            acc0_y = s_scan0[(tid + (-32))];\n        }\n        __syncthreads();\n        if ((32 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((64 <= tid)) {\n            acc0_y = s_scan0[(tid + (-64))];\n        }\n        __syncthreads();\n        if ((64 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((128 <= tid)) {\n            acc0_y = s_scan0[(tid + (-128))];\n        }\n        __syncthreads();\n        if ((128 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((256 <= tid)) {\n            acc0_y = s_scan0[(tid + (-256))];\n        }\n        __syncthreads();\n        if ((256 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_y = 0LL;\n        if ((512 <= tid)) {\n            acc0_y = s_scan0[(tid + (-512))];\n        }\n        __syncthreads();\n        if ((512 <= tid)) {\n            acc0_x = (acc0_y + acc0_x);\n            s_scan0[tid] = acc0_x;\n        }\n        __syncthreads();\n        acc0_p = (acc0 + acc0_x);\n        acc0_t = s_scan0[1023];\n        acc0 = (acc0 + acc0_t);\n        if ((p < 1024)) {\n            v3 = ((int)(acc0_p));\n            v4 = (v3 + 0);\n            v5 = (v4 * v1);\n            v6 = ((long long)(v5));\n            v7 = (v6 + 1LL);\n            dst[((1024 * bid) + p)] = v7;\n        }\n        __syncthreads();\n    }\n}"
+  }
+ ]
+}

@@ -1,0 +1,137 @@
+{
+ "format": "kiln-program/1",
+ "name": "passnet",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "../results/task-068/corpus/000.kiln.js",
+  "sha256": "5b44b6fd586b25281c4830f024b639b2e0ee7b35ad86125340f4647a51ed9a30",
+  "contraction": "separate",
+  "matmul_precision": "tf32",
+  "internal_check": "bypassed (--no-check)"
+ },
+ "inputs": [
+  {
+   "name": "v0",
+   "buffer": 0,
+   "shape": [
+    1,
+    9
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "out0",
+   "buffer": 2,
+   "shape": [
+    1,
+    1,
+    9,
+    9
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "out1",
+   "buffer": 1,
+   "shape": [
+    9,
+    9
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 9,
+   "bytes": 72
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 81,
+   "bytes": 324
+  },
+  {
+   "id": 2,
+   "dtype": "f32",
+   "elements": 81,
+   "bytes": 324
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_out1__21u8b5l4zym",
+   "identity": "21u8b5l4zym",
+   "row": "TPB=1024",
+   "reads": [],
+   "writes": 1,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    9,
+    9
+   ],
+   "inShapes": [],
+   "inDtypes": [],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL index values not implemented",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_out1__21u8b5l4zym(float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float v2 = 0.0f;\n    long long x1 = 0, v0 = 0, x0 = 0;\n    bool v1 = 0;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 81)) {\n        x1 = ((long long)((e / 9)));\n        v0 = (x1 + 1LL);\n        x0 = ((long long)((e % 9)));\n        v1 = ((x0) < (v0));\n        v2 = ((v1) > 0.0f ? (0.0f) : (-3.4028234663852886e+38f));\n        dst[((e % 9) + (9 * (e / 9)))] = v2;\n    }\n}"
+  },
+  {
+   "name": "k_out0__9cjzyqv5oh",
+   "identity": "9cjzyqv5oh",
+   "row": "TPB=1024",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 2,
+   "grid": 1,
+   "block": 1024,
+   "smemBytes": 0,
+   "dispatch": [
+    1,
+    1,
+    1
+   ],
+   "shape": [
+    1,
+    1,
+    9,
+    9
+   ],
+   "inShapes": [
+    [
+     9,
+     9
+    ],
+    [
+     1,
+     9
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(1024) k_out0__9cjzyqv5oh(const float* __restrict__ src0, const long long* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float v0 = 0.0f, v1 = 0.0f, v3 = 0.0f, in1 = 0.0f, v5 = 0.0f;\n    long long in0 = 0;\n    bool v2 = 0, v4 = 0;\n    int e = 0;\n    e = ((1024 * bid) + tid);\n    if ((e < 81)) {\n        in0 = src1[(e % 9)];\n        v0 = ((float)(in0));\n        v1 = __fsub_rn(1.0f, v0);\n        v2 = ((v1) != 0);\n        v3 = ((v2) > 0.0f ? (-3.4028234663852886e+38f) : (v1));\n        v4 = ((v3) != 0);\n        in1 = src0[((e % 9) + (9 * (e / 9)))];\n        v5 = ((v4) > 0.0f ? (-3.4028234663852886e+38f) : (in1));\n        dst[((e % 9) + (9 * (e / 9)))] = v5;\n    }\n}"
+  }
+ ]
+}
