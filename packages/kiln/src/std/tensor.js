@@ -328,7 +328,9 @@ export const nn = k.dialect("nn").describe("the frontend: a small PyTorch-like o
     if(x.type.dtype!=="f32"||w.type.dtype!=="f32")throw new KilnError("TypeError","linear arithmetic requires FP32; widen operands and narrow the source operation result explicitly");
     return T_(linearSpec(x.type.shape,w.type.shape).shape);
   }, eval: ({x,w}) => linearReference(x,w), print:"linear({x}, {w})" })
-  .op("matmul", { args: ["a", "b"], infer: ({a,b}) => {
+  // precision "highest" pins FP32 operands under matmulPrecision tf32 (a product the reference computes
+  // in FP32 regardless, e.g. PyTorch's memory-efficient f32 attention, probe 675)
+  .op("matmul", { args: ["a", "b"], attrs: { precision: null }, infer: ({a,b}) => {
     if(a.type.dtype!=="f32"||b.type.dtype!=="f32")throw new KilnError("TypeError","matmul arithmetic requires FP32; widen operands and narrow the source operation result explicitly");
     return T_(matmulSpec(a.type.shape,b.type.shape).shape);
   }, eval: ({a,b}) => matmulReference(a,b), print:"matmul({a}, {b})" })
@@ -445,7 +447,7 @@ export const N = {
   amax: (x, axis = -1, keepdim = true) => nn.reduce(x, { fn: "max", axis, keepdim }),
   mean: (x, axis = -1, keepdim = true) => N.mul(N.sum(x, axis, keepdim), 1 / x.type.shape.at(axis < 0 ? axis : axis)),
   linear: (x, w, b) => (b ? N.add(nn.linear(x, w), b) : nn.linear(x, w)),
-  matmul: (a, b) => nn.matmul(a, b),
+  matmul: (a, b, precision = null) => nn.matmul(a, b, { precision }),
   rms_norm: (x, w, o = {}) => nn.rms_norm(x, w, o), layer_norm: (x, w, b, o = {}) => nn.layer_norm(x, w, b, o),
   softmax: (x, dim = -1) => nn.softmax(x, { dim }), gelu: (x, approximate = "tanh") => nn.gelu(x, { approximate }), silu: (x) => nn.silu(x),
   transpose: (x, d0 = -2, d1 = -1) => nn.transpose(x, { d0, d1 }), reshape: (x, shape) => nn.reshape(x, { shape }),
@@ -587,9 +589,15 @@ const tf32 = (v) => (isTf32(v) ? v : nn.ew([v], { fn: "round_tf32" }));
 const fp32Operands = (...vs) => vs.every((v) => (v.type.dtype || "f32") === "f32") && !vs.every(isTf32);
 export const tf32Linear = k.rule("tf32_linear").match(P.op("nn.linear").as("n").where(({ n }) => fp32Operands(n.arg("x"), n.arg("w"))))
   .rewrite(({ n }) => nn.linear(tf32(n.arg("x")), tf32(n.arg("w"))));
-export const tf32Matmul = k.rule("tf32_matmul").match(P.op("nn.matmul").as("n").where(({ n }) => fp32Operands(n.arg("a"), n.arg("b"))))
+export const tf32Matmul = k.rule("tf32_matmul").match(P.op("nn.matmul").as("n").where(({ n }) => n.attrs.precision !== "highest" && fp32Operands(n.arg("a"), n.arg("b"))))
   .rewrite(({ n }) => nn.matmul(tf32(n.arg("a")), tf32(n.arg("b"))));
-export const tf32Pass = k.pass("frontend/tf32-contraction-inputs").rules(tf32Linear, tf32Matmul)
+// cuDNN's TF32 1x1 convolutions round operands ties-to-even like cuBLAS (probe 671; task 119's shape,
+// probe 675: max error 9e-6 against 1.5e-3 for FP32). 3x3 convolutions measure closer to ties-away and
+// keep FP32 operands; the P0 replay's convolution regressions were under ties-away rounding.
+const pointwise = (n) => n.attrs.groups === 1 && n.arg("w").type.shape.slice(2).every((d) => d === 1);
+export const tf32Conv1x1 = k.rule("tf32_conv1x1").match(P.op("nn.conv2d").as("n").where(({ n }) => pointwise(n) && fp32Operands(n.arg("x"), n.arg("w"))))
+  .rewrite(({ n }) => nn.conv2d(tf32(n.arg("x")), tf32(n.arg("w")), n.arg("b"), { stride: n.attrs.stride, padding: n.attrs.padding, dilation: n.attrs.dilation, groups: n.attrs.groups }));
+export const tf32Pass = k.pass("frontend/tf32-contraction-inputs").rules(tf32Linear, tf32Matmul, tf32Conv1x1)
   .describe("round FP32 matrix-product operands to TF32 to match a cuBLAS TF32 reference");
 // Convolutions keep FP32 operands: under the same rounding, the P0 replay matched cuDNN's TF32
 // convolutions worse than FP32 did (1 graph fixed, 4 broken), while linear layers matched (8 fixed, 0 broken).

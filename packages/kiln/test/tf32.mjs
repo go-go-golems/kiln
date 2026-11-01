@@ -1,5 +1,5 @@
 // matmulPrecision "tf32": FP32 contraction operands are rounded to TF32 (round to nearest, ties to even: probe 671)
-// to match a reference backend with PyTorch allow_tf32 for matrix products; bias, convolutions and
+// to match a reference backend with PyTorch allow_tf32 for matrix products and 1x1 convolutions; bias, other convolutions and
 // the default "highest" policy are unchanged.
 import assert from "node:assert/strict";
 import { k } from "../src/core/kiln.js";
@@ -48,11 +48,15 @@ assert.ok(fpKernels.every((kn) => !kn.cuda.includes("tf32")), "highest emits no 
 const wgslKernels = programOf(pipeline({ target: hardware, matmulPrecision: "tf32" }).run(g).graph).kernels;
 assert.ok(wgslKernels.some((kn) => kn.wgsl && kn.wgsl.includes("fn kiln_round_tf32")), "WGSL carries the same rounding");
 
-// convolutions keep FP32 operands (cuDNN's TF32 convolution is not matched by operand rounding)
-const conv = (groups) => k.trace("tf32-conv-" + groups, ({ x, w }) => ({ out: N.conv2d(x, w, null, { groups }) }),
-  { x: k.tensor([1, 2, 4, 4]), w: k.tensor([2, 2 / groups, 3, 3]) });
-const convCuda = (groups) => programOf(pipeline({ target: hardware, matmulPrecision: "tf32" }).run(conv(groups)).graph).kernels.map((kn) => kn.cuda).join("\n");
-assert.ok(!convCuda(1).includes("tf32"));
-assert.ok(!convCuda(2).includes("tf32"));
+// 1x1 convolutions round like products (probe 671/675); 3x3 and grouped convolutions keep FP32 operands
+const conv = (groups, size) => k.trace(`tf32-conv-${groups}-${size}`, ({ x, w }) => ({ out: N.conv2d(x, w, null, { groups }) }),
+  { x: k.tensor([1, 2, 4, 4]), w: k.tensor([2, 2 / groups, size, size]) });
+const convCuda = (groups, size) => programOf(pipeline({ target: hardware, matmulPrecision: "tf32" }).run(conv(groups, size)).graph).kernels.map((kn) => kn.cuda).join("\n");
+assert.ok(convCuda(1, 1).includes("kiln_round_tf32"), "a pointwise convolution rounds its operands");
+assert.ok(!convCuda(1, 3).includes("tf32"));
+assert.ok(!convCuda(2, 1).includes("tf32"));
+// a product pinned to "highest" keeps FP32 operands (PyTorch's f32 attention kernel, probe 675)
+const pinned = k.trace("pinned", ({ a, b }) => ({ out: N.matmul(a, b, "highest") }), { a: k.tensor([4, 8]), b: k.tensor([8, 4]) });
+assert.ok(programOf(pipeline({ target: hardware, matmulPrecision: "tf32" }).run(pinned).graph).kernels.every((kn) => !kn.cuda.includes("tf32")));
 assert.throws(() => pipeline({ matmulPrecision: "medium" }), /matmulPrecision/);
 console.log("tf32 matmul precision rounds FP32 contraction operands and nothing else");

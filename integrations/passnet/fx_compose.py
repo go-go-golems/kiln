@@ -137,11 +137,13 @@ def lower_sdpa(c):
     scale = c.ctx.literal(bound.get('scale', 'null'))
     scale = 1 / math.sqrt(mq['shape'][-1]) if scale is None else scale
     q, k, v = (f'N.cast({bound[f]}, "f32")' for f in ('query', 'key', 'value'))
-    scores = f'N.mul(N.matmul({q}, N.transpose({k}, -2, -1)), {json.dumps(scale)})'
+    # PyTorch runs f32 attention in the memory-efficient kernel, whose products are FP32 even with
+    # TF32 enabled (probe 675): pin both products to FP32
+    scores = f'N.mul(N.matmul({q}, N.transpose({k}, -2, -1), "highest"), {json.dumps(scale)})'
     mask = bound.get('attn_mask', 'null')
     if mask != 'null':
         mm = c.ctx.resolve(mask)
         if mm['dtype'] == 'torch.bool': scores = f'N.select({mask}, {scores}, -Infinity)'
         elif mm['dtype'] in FLOATING: scores = f'N.add({scores}, N.cast({mask}, "f32"))'
         else: raise ValueError(f'{c.name}: attention mask dtype {mm["dtype"]} unsupported')
-    return f'N.cast(N.matmul(N.softmax({scores}, -1), {v}), {json.dumps(dtype)})'
+    return f'N.cast(N.matmul(N.softmax({scores}, -1), {v}, "highest"), {json.dumps(dtype)})'
