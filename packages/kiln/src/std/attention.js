@@ -21,7 +21,6 @@
 import { k, P } from "../core/kiln.js";
 import * as IX from "../core/ix.js";
 import { E, substE, walkE, free, inlineInto } from "./loop.js";
-import { flashLegal } from "./flash.js";
 
 const J = "__j", EV = "__e";
 const MUL = new Set(["mul", "mul_rn", "multiply"]);
@@ -174,7 +173,7 @@ const MAX_REGION = 6, MAX_STATES = 48;
 const hasMax = (v, depth) => v.is("loop.kernel") && (v.attrs.expr.__key.includes("red:max") || (depth > 0 && v.args.some((a) => hasMax(a, depth - 1))));
 const mightBeAttention = (c) => c.attrs.expr.__key.includes("red:add") && hasMax(c, 3);
 function regionSearch(c, graph, accept) {
-  const start = { ids: new Set([c.id]), node: { id: c.id, args: c.args, attrs: { expr: c.attrs.expr, origin: c.attrs.origin || [] } } };
+  const start = { ids: new Set([c.id]), kernels: [c], node: { id: c.id, args: c.args, attrs: { expr: c.attrs.expr, origin: c.attrs.origin || [] } } };
   const queue = [start], seen = new Set([c.id]);
   let states = 0;
   while (queue.length && states++ < MAX_STATES) {
@@ -190,14 +189,18 @@ function regionSearch(c, graph, accept) {
       seen.add(key);
       let r;
       try { r = inlineInto(st.node, p); } catch { continue; }
-      queue.push({ ids, node: { id: c.id, args: r.args, attrs: { expr: r.expr, origin: r.origin } } });
+      queue.push({ ids, kernels: [...st.kernels, p], node: { id: c.id, args: r.args, attrs: { expr: r.expr, origin: r.origin } } });
     }
   }
   return null;
 }
 
-/** The fusion rule; `legal(match, target)` says whether some MAP=flash option can run the match. */
-export function createAttentionRule({ legal = () => true } = {}) {
+/**
+ * The fusion rule. `legal(match, target)` says whether some MAP=flash option can run the match;
+ * `cost(expr, shape, inShapes, target)` (optional) predicts a kernel's best time, and the region fuses only
+ * when the fused kernel is predicted no slower than the kernels it replaces.
+ */
+export function createAttentionRule({ legal = () => true, cost = null } = {}) {
   return k.rule("fuse_attention")
     .match(P.op("loop.kernel").as("c").where(({ c }) => mightBeAttention(c)))
     .mutate(({ c, tx, skip, graph, ctx }) => {
@@ -206,11 +209,17 @@ export function createAttentionRule({ legal = () => true } = {}) {
       const found = regionSearch(c, graph, (nd) => matchSoftmaxContraction(nd.attrs.expr, c.attrs.shape, nd.args.map((a) => a.type.shape)));
       if (!found || found.ids.size < 2) skip("not a softmax contraction");
       if (!legal(found.match, ctx?.target)) skip("no MAP=flash option fits this target");
+      if (cost) {
+        const shapes = (v) => v.args.map((a) => a.type.shape);
+        const was = found.kernels.reduce((a, v) => a + cost(v.attrs.expr, v.attrs.shape, shapes(v), ctx.target), 0);
+        const now = cost(found.node.attrs.expr, c.attrs.shape, shapes(found.node), ctx.target);
+        if (now > was) skip(`fused attention predicted slower: ${now.toFixed(1)} us > ${was.toFixed(1)} us composed`);
+      }
       tx.set(c, { args: found.node.args, attrs: { expr: found.node.attrs.expr, origin: found.node.attrs.origin } });
     })
     .describe("fuse a scores / softmax / P·V region into one kernel when MAP=flash can run it");
 }
 
-export const fuseAttention = createAttentionRule({ legal: flashLegal });
-export const attentionPass = k.pass("loop/attention").short("a").rules(fuseAttention)
-  .describe("fuse attention (scores, softmax, P·V) into one kernel the flash map runs");
+/** The loop/attention pass (short "a") over a fusion rule; emmy.js builds it with the flash legality and cost. */
+export const attentionPassOf = (rule) => k.pass("loop/attention").short("a").rules(rule)
+  .describe("fuse attention (scores, softmax, P·V) into one kernel the flash map runs, where predicted faster");

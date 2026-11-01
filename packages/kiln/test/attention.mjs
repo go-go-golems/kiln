@@ -51,10 +51,13 @@ const rnd = () => { seed = (seed * 1103515245 + 12345) >>> 0; return (seed / 2 *
 const inputsFor = (g) => Object.fromEntries(g.inputs.map(({name, id}) => { const ty = g.nodes.get(id).type; return [name, new Tensor(ty.shape, Float32Array.from({length: numel(ty.shape)}, rnd), ty.dtype)]; }));
 const maxAbs = (a, b) => { let m = 0; for (let i = 0; i < a.length; i++) m = Math.max(m, Math.abs(a[i] - b[i])); return m; };
 
+// forced (unguarded) fusion: one kernel whatever the guard or the cost model would say
+const unguarded = k.pass('loop/fusion').short('f').rules(createFusionRule({decide: () => true})).order('reverse');
+const forcedKernels = (g, contraction = 'separate') => { const r = pipeline({target: gb10, contraction}).replace('loop/fusion', unguarded).run(g); assert.ok(r.ok, r.error?.message); return loopKernels(r); };
+
 // ---------------------------------------------------------------- Phase 1: the recognizer
 {
-  // forced (unguarded) fusion forms the same expression the attention pass forms
-  const unguarded = k.pass('loop/fusion').short('f').rules(createFusionRule({decide: () => true})).order('reverse');
+  // forced fusion forms the same expression the attention pass forms
   for (const contraction of ['separate', 'allow']) {
     const g = graph({L: 5, S: 7, D: 4});
     const forced = pipeline({target: gb10, contraction}).replace('loop/fusion', unguarded).run(g);
@@ -117,6 +120,9 @@ const maxAbs = (a, b) => { let m = 0; for (let i = 0; i < a.length; i++) m = Mat
   const big = graph({L: 4, S: 4, D: 512});
   assert.ok(loopKernels(compile(big, {t: web})).every((n) => !matchOf(n)));
   assert.throws(() => pipeline({attention: 'flash'}), /attention must be/);
+  // legal but predicted slower than the composed kernels (D=128 on gb10): the rule declines
+  const wide = graph({H: 8, L: 256, S: 256, D: 128});
+  assert.equal(loopKernels(compile(wide)).length, 3);
 }
 
 // ---------------------------------------------------------------- Phase 3: the Tile mapping
@@ -128,14 +134,14 @@ const leaves = (an, t) => {
 };
 {
   for (const D of [64, 128]) for (const t of [gb10, web]) {
-    const [kern] = loopKernels(compile(graph({L: 128, S: 128, D}), {t: gb10}));
+    const [kern] = forcedKernels(graph({L: 128, S: 128, D}));
     const an = analyze(kern.attrs.expr, kern.attrs.shape, kern.inShapes);
     assert.ok(legalMaps(an).includes('flash'));
     const fl = leaves(an, t).filter((kn) => kn.MAP === 'flash');
     assert.equal(fl.length, flashOptions(an.attention, t).length, 'the fork tree and flashOptions agree');
     for (const kn of fl) {
-      assert.ok(flashSmemBytes(an.attention, kn.BR, kn.BC) <= t.smemPerBlock && launch(an, kn).smem <= t.smemPerBlock);
-      assert.ok(kn.TPB <= t.maxThreadsPerBlock && kn.TPB % kn.BR === 0);
+      assert.ok(flashSmemBytes(an.attention, kn) <= t.smemPerBlock && launch(an, kn).smem <= t.smemPerBlock);
+      assert.ok(kn.TPB <= t.maxThreadsPerBlock && kn.BR % kn.RM === 0 && kn.TPB % (kn.BR / kn.RM) === 0);
     }
     if (t === gb10) assert.ok(fl.length > 0, `gb10 runs D=${D}`);
     if (t === web && D === 64) assert.ok(fl.length > 0 && fl.every((kn) => kn.BR * kn.BC <= 16 * 16), 'WebGPU fits only the smallest tiles');
@@ -197,13 +203,14 @@ simulated += simulateAll({L: 16, S: 32, D: 16, mask: 'none'}, web);
     }
   }
 }
-// CUDA source: one kernel, static shared arrays, three barriers in the key loop, f16 storage narrowed once
+// CUDA source: one kernel, static shared arrays, four barriers in the key loop, f16 storage narrowed
 {
-  const kk = flashKernel(compile(graph({L: 9, S: 11, D: 16, dtype: 'f16'}), {params: {MAP: 'flash', BR: 8, BC: 16, TPB: 128}}));
-  for (const a of ['sQ', 'sK', 'sV', 'sS']) assert.match(kk.cuda, new RegExp(`__shared__ float ${a}\\[`));
+  const kk = flashKernel(compile(graph({L: 9, S: 11, D: 16, dtype: 'f16'}), {params: {MAP: 'flash', BR: 8, BC: 16, RM: 2, TPB: 64}}));
+  assert.equal(kk.row, 'MAP=flash,TPB=64,BR=8,BC=16,RM=2');
+  for (const a of ['sQ', 'sK', 'sV', 'sP', 'sM']) assert.match(kk.cuda, new RegExp(`__shared__ float ${a}\\[`));
   assert.match(kk.cuda, /for \(int j0 = 0; j0 < 11; j0 \+= 16\)/);
   const loop = kk.cuda.slice(kk.cuda.indexOf('for (int j0'));
-  assert.equal((loop.match(/__syncthreads\(\)/g) || []).length, 3);
+  assert.equal((loop.match(/__syncthreads\(\)/g) || []).length, 4);
   assert.match(kk.cuda, /__float2half_rn/);
   assert.equal(kk.wgsl, null, 'mul_rn has no WGSL spelling');
 }

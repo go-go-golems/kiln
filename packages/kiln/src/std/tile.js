@@ -13,7 +13,7 @@ import * as IX from "../core/ix.js";
 import { schedule, free, printNest, displayNames, workOf } from "./loop.js";
 import { FNS } from "./fns.js";
 import { matchSoftmaxContraction } from "./attention.js";
-import { flashBR, flashBC, flashTPB, flashLaunch, flashCounts, printFlash } from "./flash.js";
+import { flashBR, flashBC, flashRM, flashTPB, flashLaunch, flashCounts, printFlash } from "./flash.js";
 
 // ----------------------------------------------------------------------------- knobs
 export const MAP = k.param.enum("MAP", ["thread", "row", "tiled", "flash"], { off: "thread" }).group("schedule").help("how the kernel maps onto the GPU");
@@ -27,7 +27,8 @@ export const TM = k.param.enum("TM", [1, 2, 4, 8], { off: 1 }).group("tile").hel
 export const TN = k.param.enum("TN", [1, 2, 4, 8], { off: 1 }).group("tile").help("register tile columns per thread");
 export const BR = k.param.enum("BR", [8, 16, 32, 64], { off: 0 }).group("tile").help("query rows per block (flash map)");
 export const BC = k.param.enum("BC", [16, 32, 64], { off: 0 }).group("tile").help("keys per shared-memory tile (flash map)");
-export const KNOBS = [MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, BR, BC];
+export const RM = k.param.enum("RM", [1, 2, 4], { off: 0 }).group("tile").help("query rows per thread (flash map)");
+export const KNOBS = [MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, BR, BC, RM];
 export const canonRow = (kn) => KNOBS.filter((p) => kn[p.name] !== undefined && kn[p.name] !== p.off).map((p) => `${p.name}=${kn[p.name]}`).join(",") || "MAP=thread";
 
 // ----------------------------------------------------------------------------- analysis
@@ -123,7 +124,8 @@ export function forkTree(an, t) {
     .level(MAP, () => legalMaps(an))
     .level(BR, (kn) => (kn.MAP === "flash" ? flashBR(att) : [0]))
     .level(BC, (kn) => (kn.MAP === "flash" ? flashBC(att, kn.BR, t) : [0]))
-    .level(TPB, (kn) => (kn.MAP === "flash" ? flashTPB(att, kn.BR, kn.BC, t) : kn.MAP === "thread" ? [64, 128, 256, 512, 1024].filter((v) => v <= maxT) : kn.MAP === "row" ? [32, 64, 128, 256, 512, 1024].filter((v) => v <= maxT && v <= Math.max(32, pow2(an.maxExtent) * 2)) : [0]))
+    .level(RM, (kn) => (kn.MAP === "flash" ? flashRM(att, kn.BR) : [0]))
+    .level(TPB, (kn) => (kn.MAP === "flash" ? flashTPB(att, kn.BR, kn.BC, kn.RM, t) : kn.MAP === "thread" ? [64, 128, 256, 512, 1024].filter((v) => v <= maxT) : kn.MAP === "row" ? [32, 64, 128, 256, 512, 1024].filter((v) => v <= maxT && v <= Math.max(32, pow2(an.maxExtent) * 2)) : [0]))
     .level(COARSEN, (kn) => (kn.MAP === "thread" ? [1, 2, 4] : [1]))
     .level(STAGE, (kn) => {
       if (kn.MAP !== "row" || !an.stage.length) return ["none"];
@@ -383,6 +385,20 @@ export const costPrior = k.decide.cost(({ knobs, node, ctx }) => {
   const an = analyze(node.attrs.expr, node.attrs.shape, node.args.map((a) => a.type.shape));
   return estimate(an, knobs, ctx.target).us;
 }, { name: "model" }).for("schedule");
+
+/** The cheapest option of a Loop IR kernel under the analytic model: { us, knobs, … } over every legal leaf. */
+export function bestEstimate(expr, shape, inShapes, t) {
+  const an = analyze(expr, shape, inShapes);
+  const f = forkTree(an, t).leaf((kn) => kn);
+  let best = null;
+  const rec = (i, kn) => {
+    if (i === f.meta.tree.length) { const e = estimate(an, kn, t); if (!best || e.us < best.us) best = { ...e, knobs: kn }; return; }
+    const { p, valuesFn } = f.meta.tree[i];
+    for (const v of valuesFn(kn)) rec(i + 1, { ...kn, [p.name]: v });
+  };
+  rec(0, {});
+  return best;
+}
 
 /** The analytic model's predicted time (µs) of every scheduled kernel in a Tile IR graph, summed. */
 export function predictedCost(tileGraph, t) {

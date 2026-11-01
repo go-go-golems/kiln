@@ -3,12 +3,16 @@
 import { k } from "../core/kiln.js";
 import { nn, tensor, decomposition, optimization, separateRoundingPass, tf32Pass } from "./tensor.js";
 import { loop, lift, fuse, stamp } from "./loop.js";
-import { attentionPass } from "./attention.js";
-import { tile, tilePass, costPrior } from "./tile.js";
+import { createAttentionRule, attentionPassOf } from "./attention.js";
+import { flashLegal } from "./flash.js";
+import { tile, tilePass, costPrior, bestEstimate } from "./tile.js";
 import { kern, kernelPass } from "./kernel.js";
 import { gpu, emitPass } from "./program.js";
 import { SPECS, target } from "./targets.js";
 
+// attention "fused": legal on the target and predicted no slower than the composed kernels (analytic model)
+export const fuseAttention = createAttentionRule({ legal: flashLegal, cost: (expr, shape, inShapes, t) => bestEstimate(expr, shape, inShapes, t).us });
+export const attentionPass = attentionPassOf(fuseAttention);
 export const IRS = ["torch", "tensor", "loop", "tile", "kernel", "gpu"];
 export function defaultDecide(store) {
   // pins, then measured evidence (this store, or the one the workbench passes in the run context),

@@ -160,7 +160,7 @@ def inspect_corpus(upstream, sample_list, output):
         print(task_index+1, sample, flush=True)
 
 
-def compile_task(directory, kiln, target, contraction=None, optimization_program=None, skip_internal_reference_check=False, matmul_precision=None):
+def compile_task(directory, kiln, target, contraction=None, optimization_program=None, skip_internal_reference_check=False, matmul_precision=None, attention=None):
     directory = directory.resolve()
     manifest = read_manifest(directory)
     results = []
@@ -171,6 +171,7 @@ def compile_task(directory, kiln, target, contraction=None, optimization_program
                    '--target', target, '--out', str(output)]
         if contraction is not None:command.extend(['--contraction',contraction])
         if matmul_precision is not None:command.extend(['--matmul-precision',matmul_precision])
+        if attention is not None:command.extend(['--attention',attention])
         if optimization_program is not None:command.extend(['--optimization-program',str(optimization_program.resolve())])
         if skip_internal_reference_check:command.append('--no-check')
         # the program writes mutated inputs itself (PassBench's dispatch admits no tensor operation)
@@ -200,6 +201,7 @@ def main():
     compile.add_argument('--target', required=True)
     compile.add_argument('--contraction',choices=['allow','separate'])
     compile.add_argument('--matmul-precision',choices=['highest','tf32'],help='tf32 matches a reference backend with PyTorch allow_tf32 enabled')
+    compile.add_argument('--attention',choices=['composed','fused'],help='fused: one flash-attention kernel per recognized SDPA (KILN-007)')
     compile.add_argument('--optimization-program',type=Path)
     compile.add_argument('--skip-internal-reference-check',action='store_true',
                          help='Diagnostic export bypass; external benchmark correctness is still required')
@@ -212,7 +214,7 @@ def main():
         export_task(args.upstream, args.sample, args.output, args.metadata_mode)
     elif args.command == 'compile':
         compile_task(args.directory, args.kiln, args.target, args.contraction,
-                     args.optimization_program,args.skip_internal_reference_check,args.matmul_precision)
+                     args.optimization_program,args.skip_internal_reference_check,args.matmul_precision,args.attention)
     else:
         inspect_corpus(args.upstream, args.sample_list, args.output)
 

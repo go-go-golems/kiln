@@ -1,50 +1,62 @@
 // MAP=flash at the Tile IR (KILN-007): the geometry, legality, cost counts and printed form of the
 // flash-attention mapping of a recognized softmax contraction (attention.js). One block owns BR consecutive
-// query rows of one batch position; K and V stream through shared memory BC keys at a time; each query row
-// is owned by TPR = TPB / BR threads, and each of those keeps DPT = ceil(D / TPR) output columns in registers
-// together with the row's running maximum m and sum l (the online softmax). The materializer is
-// flash-kernel.js; the inner products are FP32 SIMT products (the `products` field names the seam where a
+// query rows of one batch position; K and V stream through shared memory BC keys at a time. Threads form
+// G = BR / RM row groups of TPR lanes; each thread keeps an RM × KN tile of scores and an RM × DPT tile of
+// output accumulators in registers (KN = BC / TPR keys, DPT = ceil(D / TPR) columns), with every owned row's
+// running maximum m and sum l: the online softmax. Register tiling is what keeps the kernel from being bound
+// by shared memory: a loaded Q or P value feeds KN or DPT products, a loaded K or V value RM products.
+// The materializer is flash-kernel.js; its products are FP32 SIMT (the `products` seam there is where a
 // tensor-core product can plug in later: KILN-006).
 import * as IX from "../core/ix.js";
 import { strides } from "../core/util.js";
 import { walkE } from "./loop.js";
 import { FNS } from "./fns.js";
 
-export const FLASH_BR = [8, 16, 32, 64], FLASH_BC = [16, 32, 64], FLASH_TPB = [64, 128, 256];
+export const FLASH_BR = [8, 16, 32, 64], FLASH_BC = [16, 32, 64], FLASH_TPB = [64, 128, 256], FLASH_RM = [1, 2, 4];
 const pow2 = (x) => 2 ** Math.ceil(Math.log2(Math.max(1, x)));
 
-/** Shared-memory layout in floats: Q, K row-padded by one (bank conflicts), V, the score tile row-padded. */
-export function flashLayout(att, BR, BC) {
-  const QS = att.E + 1, KS = att.E + 1, VS = att.D, SS = BC + 1;
-  return { QS, KS, VS, SS, sQ: BR * QS, sK: BC * KS, sV: BC * VS, sS: BR * SS };
-}
-export const flashSmemBytes = (att, BR, BC) => { const l = flashLayout(att, BR, BC); return 4 * (l.sQ + l.sK + l.sV + l.sS); };
+// Threads: G = BR / RM row groups of TPR = TPB / G lanes. Lane `lane` of group g owns rows g + k·G (k < RM),
+// the keys lane + n·TPR (n < KN = BC / TPR) of every score tile, and the columns lane + q·TPR (q < DPT).
 export const flashGeometry = (att, kn) => {
-  const TPR = kn.TPB / kn.BR, DPT = Math.ceil(att.D / TPR);
+  const RM = kn.RM || 1, G = kn.BR / RM, TPR = kn.TPB / G, KN = kn.BC / TPR, DPT = Math.ceil(att.D / TPR);
   const batches = att.batchVars.reduce((a, v) => a * att.shape[+v.slice(1)], 1);
   const nb = Math.ceil(att.L / kn.BR), tiles = Math.ceil(att.S / kn.BC);
-  return { TPR, DPT, batches, nb, tiles, blocks: batches * nb };
+  return { RM, G, TPR, KN, DPT, batches, nb, tiles, blocks: batches * nb };
 };
+/** Shared-memory layout in floats: Q, K and V tiles, the probability tile sP, and each lane's partial row
+ *  maxima sM (TPR per row). Row strides make a warp's accesses fall in distinct banks: Q and K rows are read by
+ *  different row groups (and lanes) at one e, so their stride is odd; probability rows are written at
+ *  (g, lane) and read at (g, c), so their stride is ≡ TPR (mod 32). */
+export function flashLayout(att, BR, BC, TPR = 1) {
+  const QS = att.E + 1, KS = att.E + 1, VS = att.D, SS = BC + ((((TPR - BC) % 32) + 32) % 32);
+  return { QS, KS, VS, SS, sQ: BR * QS, sK: BC * KS, sV: BC * VS, sP: BR * SS, sM: BR * TPR };
+}
+const smemOf = (l) => 4 * (l.sQ + l.sK + l.sV + l.sP + l.sM);
+export const flashSmemBytes = (att, kn) => smemOf(flashLayout(att, kn.BR, kn.BC, flashGeometry(att, kn).TPR));
 
 // option legality, level by level (the fork tree in tile.js asks for each knob given the earlier ones)
 export const flashBR = (att) => FLASH_BR.filter((v) => v <= Math.max(8, pow2(att.L)));
-export const flashBC = (att, BR, t) => FLASH_BC.filter((v) => v <= Math.max(16, pow2(att.S)) && flashSmemBytes(att, BR, v) <= t.smemPerBlock);
-export const flashTPB = (att, BR, BC, t) => FLASH_TPB.filter((T) => {
-  if (T > t.maxThreadsPerBlock || T % BR) return false;
-  const TPR = T / BR;
-  return TPR <= 32 && TPR <= BC && Math.ceil(att.D / TPR) <= 32;
+// the smallest layout a (BR, BC) admits (TPR = 1): BC is legal when some TPB fits
+export const flashBC = (att, BR, t) => FLASH_BC.filter((v) => v <= Math.max(16, pow2(att.S)) && smemOf(flashLayout(att, BR, v, 1)) <= t.smemPerBlock);
+export const flashRM = (att, BR) => FLASH_RM.filter((v) => BR % v === 0 && v <= BR);
+export const flashTPB = (att, BR, BC, RM, t) => FLASH_TPB.filter((T) => {
+  const G = BR / RM;
+  if (T > t.maxThreadsPerBlock || T % G) return false;
+  const TPR = T / G, KN = BC / TPR, DPT = Math.ceil(att.D / TPR);
+  // register budget: RM·KN scores and RM·DPT accumulators per thread
+  return TPR <= 32 && Number.isInteger(KN) && KN >= 1 && RM * KN <= 16 && RM * DPT <= 64 && smemOf(flashLayout(att, BR, BC, TPR)) <= t.smemPerBlock;
 });
-/** Every legal (BR, BC, TPB) for a match on a target; empty when MAP=flash cannot run it. */
+/** Every legal (BR, BC, RM, TPB) for a match on a target; empty when MAP=flash cannot run it. */
 export function flashOptions(att, t) {
   const out = [];
-  for (const BR of flashBR(att)) for (const BC of flashBC(att, BR, t)) for (const TPB of flashTPB(att, BR, BC, t)) out.push({ BR, BC, TPB });
+  for (const BR of flashBR(att)) for (const BC of flashBC(att, BR, t)) for (const RM of flashRM(att, BR)) for (const TPB of flashTPB(att, BR, BC, RM, t)) out.push({ BR, BC, RM, TPB });
   return out;
 }
 export const flashLegal = (att, t) => !!t && flashOptions(att, t).length > 0;
 
 export function flashLaunch(att, kn) {
   const g = flashGeometry(att, kn);
-  return { grid: g.blocks, block: kn.TPB, smem: flashSmemBytes(att, kn.BR, kn.BC), ...g };
+  return { grid: g.blocks, block: kn.TPB, smem: flashSmemBytes(att, kn), ...g };
 }
 
 // ----------------------------------------------------------------------------- counts for the cost model
@@ -61,31 +73,32 @@ function fragment(x, inShapes, v) {
   });
   return { bytes, flops };
 }
-// the most distinct shared addresses in one bank over a warp's 32 lanes
-const conflict = (addr) => { const banks = new Map(); for (let t = 0; t < 32; t++) { const a = addr(t), b = ((a % 32) + 32) % 32; if (!banks.has(b)) banks.set(b, new Set()); banks.get(b).add(a); } let d = 1; for (const s of banks.values()) d = Math.max(d, s.size); return d; };
 
 /** Analytic counts for one MAP=flash option (the shape of the kernel flash-kernel.js writes). */
 export function flashCounts(att, kn) {
   const { BR, BC, TPB } = kn;
-  const g = flashGeometry(att, kn), lay = flashLayout(att, BR, BC);
+  const g = flashGeometry(att, kn), lay = flashLayout(att, BR, BC, g.TPR);
   const { E: Ed, D } = att;
+  const { RM, KN, DPT, TPR } = g;
   const fA = fragment(att.A, att.inShapes, "__e"), fB = fragment(att.B, att.inShapes, "__e"), fV = fragment(att.V, att.inShapes, att.dVar);
   const fE = fragment(att.epi, att.inShapes, "__j"), fP = fragment(att.post, att.inShapes, att.dVar);
-  const B = g.blocks, T = g.tiles;
+  const B = g.blocks, T = g.tiles, threadTiles = B * T * TPB;
   const rows = B * BR, scores = B * T * BR * BC;
-  // per thread and key tile: the row maximum (BC), the probabilities (sub, exp, select, add: 11) and the P·V update
-  const perThreadTile = BC * (1 + 11) + BC * g.DPT * 2 + g.DPT + 12;
-  const flops = B * BR * Ed * fA.flops + B * T * BC * (Ed * fB.flops + D * fV.flops)
-    + scores * (2 * Ed + fE.flops) + B * T * TPB * perThreadTile + rows * g.TPR * g.DPT * (4 + fP.flops);
+  // per thread and key tile: RM·KN inner products of length E; the row maxima (RM·(KN + TPR)), RM·KN
+  // probabilities (sub, exp, select: 10) and the P·V update (RM·DPT products per key, RM sums)
+  const perThreadTile = RM * KN * 2 * Ed + RM * (KN + TPR) + RM * KN * 10 + RM * (DPT + 1) * 2 + BC * RM * (DPT * 2 + 1);
+  const flops = B * BR * Ed * fA.flops + B * T * BC * (Ed * fB.flops + D * fV.flops) + scores * fE.flops
+    + threadTiles * perThreadTile + rows * TPR * DPT * (4 + fP.flops);
   const traffic = B * BR * Ed * fA.bytes + B * T * BC * (Ed * fB.bytes + D * fV.bytes) + scores * fE.bytes
     + rows * D * (4 + fP.bytes);
-  // shared memory: stores of the Q, K, V and score tiles; inner-product reads of Q and K; the per-thread
-  // sweeps over the score row and the V tile (lanes of a row read consecutive columns, rows broadcast)
-  const sStore = conflict((t) => Math.floor(t / g.TPR) * lay.SS + (t % g.TPR));
-  const smemWavefronts = (B * BR * Ed + B * T * BC * (Ed + D)) / 32 + (scores / 32) * sStore
-    + (scores * Ed * 2) / 32 + (B * T * TPB * (2 * BC + BC * g.DPT)) / 32;
-  const warpInstr = (flops + B * T * TPB * (2 * BC + BC * g.DPT) + scores * Ed * 2) / 32 + traffic / 128;
-  return { flops, traffic, smemWavefronts, warpInstr, threads: TPB, blocks: B, smem: flashSmemBytes(att, BR, BC), regs: 32 + g.DPT * 2 };
+  // shared memory, in warp requests (a request whose lanes hit distinct banks or one broadcast address is
+  // one wavefront; the layout's strides make every access below conflict-free): tile stores, then per thread
+  // and tile the score reads (E·(RM + KN)), the partial maxima (RM stores, RM·TPR reads), the probability
+  // stores (RM·KN) and the P·V reads (BC·(RM + DPT))
+  const perThreadSmem = Ed * (RM + KN) + RM * (1 + TPR) + RM * KN + BC * (RM + DPT);
+  const smemWavefronts = (B * BR * Ed + B * T * BC * (Ed + D)) / 32 + (threadTiles * perThreadSmem) / 32;
+  const warpInstr = (flops / 2 + threadTiles * perThreadSmem) / 32 + traffic / 128;
+  return { flops, traffic, smemWavefronts, warpInstr, threads: TPB, blocks: B, smem: flashSmemBytes(att, kn), regs: Math.min(255, 32 + RM * (KN + DPT) + DPT) };
 }
 
 // ----------------------------------------------------------------------------- printing
@@ -94,14 +107,15 @@ export function printFlash(att, kn, buf = (i) => "in" + i) {
   const P = (x) => printFrag(x, buf);
   return [
     `launch grid=${g.grid} block=${g.block} smem=${g.smem} B`,
-    `Tile(axes=(${att.batchVars.map((v) => `${v}:${att.shape[+v.slice(1)]}=BLOCK`).concat([`${att.iVar}:${att.L}/${kn.BR}=BLOCK`, `row:${kn.BR}×lane:${g.TPR}=THREAD`]).join(", ")})):  # flash attention, online softmax`,
+    `Tile(axes=(${att.batchVars.map((v) => `${v}:${att.shape[+v.slice(1)]}=BLOCK`).concat([`${att.iVar}:${att.L}/${kn.BR}=BLOCK`, `group:${g.G}×lane:${g.TPR}=THREAD`]).join(", ")})):  # flash attention, online softmax`,
     `    Q tile [${kn.BR}×${att.E}] = Stage(${P(att.A)})`,
-    `    m = -inf, l = 0, acc[${g.DPT}] = 0 per thread (columns ${att.dVar} = lane + q·${g.TPR})`,
+    `    per thread: rows g + k·${g.G} (k < ${g.RM}), keys lane + n·${g.TPR} (n < ${g.KN}), columns ${att.dVar} = lane + q·${g.TPR} (q < ${g.DPT})`,
+    `    m = -inf, l = 0 per row; acc[${g.RM}×${g.DPT}] = 0`,
     `    for j0 in 0..${att.S} step ${kn.BC}:`,
     `        K tile [${kn.BC}×${att.E}] = Stage(${P(att.B)}),  V tile [${kn.BC}×${att.D}] = Stage(${P(att.V)})`,
     `        S tile [${kn.BR}×${kn.BC}] = ${P(att.epi).replace("in-2[]", `Σ_e<${att.E} ${att.dotFn}(Q, K)`)}`,
-    `        m' = max(m, rowmax S);  α = exp(m − m');  p = exp(S − m')`,
-    `        l = α·l + Σ p;  acc = α·acc + Σ p·V;  m = m'`,
+    `        m' = max(m, rowmax S);  α = exp(m − m');  P tile = exp(S − m')`,
+    `        l = α·l + Σ P;  acc = α·acc + P·V;  m = m'`,
     `    out = ${P(att.post).replace("in-1[]", "acc / l")}`,
   ].join("\n");
 }

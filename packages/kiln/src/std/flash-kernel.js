@@ -1,21 +1,25 @@
 // MAP=flash at the Kernel IR (KILN-007): the online-softmax attention kernel, spelled out as threads, shared
 // memory and barriers with the KB builder, so the CUDA, WGSL and simulator emitters need nothing new.
 //
-//   block  = (batch position, row block rb); thread = (row r = tid / TPR, lane = tid % TPR)
-//   sQ ← A(i, e) for the block's BR rows                                   sync
-//   m = −inf, l = 0, acc[q] = 0                    (q < DPT; column d = lane + q·TPR)
+//   block  = (batch position, row block rb); thread = (row group g = tid / TPR, lane = tid % TPR)
+//   rows r_k = g + k·G (k < RM), keys c_n = lane + n·TPR (n < KN), columns d_q = lane + q·TPR (q < DPT)
+//   sQ ← A(i, e) for the block's BR rows                                                        sync
+//   m_k = −inf, l_k = 0, acc_kq = 0
 //   for j0 in 0..S step BC:
-//       sK ← B(j, e), sV ← V(j, d) for the tile's BC keys                    sync
-//       sS[r, c] ← epi(Σ_e sQ[r, e]·sK[c, e]) for c = lane, lane + TPR, …     sync
-//       every thread of the row: m' = max(m, max_c sS[r, c]); α = exp(m − m')
-//       l = α·l + Σ_c p_c;  acc[q] = α·acc[q] + Σ_c p_c·sV[c, d_q];  m = m'   sync
-//   out = post(acc[q] / l)
+//       sK ← B(j, e), sV ← V(j, d) for the tile's BC keys                                         sync
+//       s_kn = epi(Σ_e sQ[r_k, e]·sK[c_n, e]) in registers; sM[r_k, lane] = max_n s_kn           sync
+//       m'_k = max(m_k, max_t sM[r_k, t]); α_k = exp(m_k − m'_k); sP[r_k, c_n] = exp(s_kn − m'_k)
+//       l_k = α_k·l_k, acc_kq = α_k·acc_kq                                                      sync
+//       for c: p_k = sP[r_k, c]; l_k += p_k; acc_kq += p_k·sV[c, d_q]; then m_k = m'_k           sync
+//   out = post(acc_kq / l_k)
 //
-// Each lane of a row computes m', α and p from the same shared values in the same order, so every copy of
-// m and l agrees bit for bit without another barrier. A row whose scores are all −inf keeps p = 0 and α = 1
-// (a guard on m' > −inf), so it ends in 0 / 0 = NaN, which is what the three-pass reference computes.
-// The inner product Σ_e sQ·sK is an FP32 SIMT product in the expression's own spelling (dotFn: mul or
-// mul_rn); `products` is the seam where a tensor-core product (KILN-006) can replace scoreTile().
+// The maximum is exact in any order, so the per-lane partial maxima give every lane of a row group the same
+// m'_k; every lane computes α_k from it, and sums
+// l_k over the same sP row in the same order, so all copies agree bit for bit. A row whose scores are all
+// −inf keeps p = 0 and α = 1 (a guard on m' > −inf) and ends in 0 / 0 = NaN, which is what the three-pass
+// reference computes. Both products are FP32 SIMT in the expression's own spelling (dotFn, pvFn: mul or
+// mul_rn); `products` is the seam where a tensor-core implementation (KILN-006) can replace the score tile
+// and the P·V update.
 import { KilnError } from "../core/kiln.js";
 import * as IX from "../core/ix.js";
 import { strides } from "../core/util.js";
@@ -45,31 +49,49 @@ function emitFrag(kb, an, x, env, leaves = new Map()) {
   };
   return go(x);
 }
-// `fn` under a bounds condition, or unconditionally when the condition is always true
+// `fn` under a bounds condition, or unconditionally when every condition is statically true (false entries)
 const guarded = (kb, conds, fn) => { const cs = conds.filter(Boolean); if (!cs.length) return fn(); kb.if(cs.reduce((a, b) => a.and(b)), fn); };
 
-/** The FP32 SIMT score of one (row, key) pair: Σ_e sQ[r, e] · sK[c, e], sequential in e like the reference. */
-function scoreSimt(kb, att, lay, r, c) {
-  const dot = kb.let(kx.num(reducer(att.accFn).init), "dot");
+// ----------------------------------------------------------------------------- FP32 SIMT products
+/** The RM × KN score tile of one thread: dot[k][n] = Σ_e sQ[r_k, e] · sK[c_n, e], sequential in e (as the
+ *  reference sums), each loaded Q value feeding KN products and each K value RM products. */
+function scoresSimt(kb, att, lay, rows, keys) {
+  const init = kx.num(reducer(att.accFn).init), add = reducer(att.accFn).op;
+  const dot = rows.map((_, k) => keys.map((_, n) => kb.let(init, `d${k}_${n}`)));
   kb.for("e", 0, att.E, 1, (e) => {
-    const q = kb.sload("sQ", r.mul(lay.QS).add(e), "qv"), kv = kb.sload("sK", c.mul(lay.KS).add(e), "kv");
-    const p = kb.let(kx.op(att.dotFn, kx.v(q), kx.v(kv)), "qk");
-    kb.let(kx.op(reducer(att.accFn).op, kx.v(dot), kx.v(p)), dot);
+    const q = rows.map((r, k) => kb.sload("sQ", r.mul(lay.QS).add(e), `q${k}`));
+    const kv = keys.map((c, n) => kb.sload("sK", c.mul(lay.KS).add(e), `k${n}`));
+    rows.forEach((_, k) => keys.forEach((_, n) => {
+      const p = kb.let(kx.op(att.dotFn, kx.v(q[k]), kx.v(kv[n])), `qk${k}_${n}`);
+      kb.let(kx.op(add, kx.v(dot[k][n]), kx.v(p)), dot[k][n]);
+    }));
   });
-  return kx.v(dot);
+  return dot.map((row) => row.map((d) => kx.v(d)));
 }
-export const products = { simt: scoreSimt };
+/** One key of the P·V update: l_k += p_k; acc[k][q] += p_k · sV[c, d_q] (each V value feeds RM products). */
+function pvSimt(kb, att, lay, c, rows, cols, l, acc, colOk) {
+  const p = rows.map((r, k) => kb.sload("sP", r.mul(lay.SS).add(c), `p${k}`));
+  rows.forEach((_, k) => kb.let(kx.op(att.addFn, kx.v(l[k]), kx.v(p[k])), l[k]));
+  cols.forEach((d, q) => guarded(kb, [colOk(q)], () => {
+    const v = kb.sload("sV", c.mul(lay.VS).add(d), `v${q}`);
+    rows.forEach((_, k) => {
+      const pv = kb.let(kx.op(att.pvFn, kx.v(p[k]), kx.v(v)), `pv${k}_${q}`);
+      kb.let(kx.op(att.addFn, kx.v(acc[k][q]), kx.v(pv)), acc[k][q]);
+    });
+  }));
+}
+export const products = { simt: { scores: scoresSimt, pv: pvSimt } };
 
 export function matFlash(an, kn) {
   const att = an.attention;
   if (!att) throw new KilnError("MaterializeError", "MAP=flash on a kernel that is not a recognized softmax contraction");
   const kb = new KB();
   const { BR, BC, TPB: T } = kn;
-  const g = flashGeometry(att, kn), lay = flashLayout(att, BR, BC);
-  const { TPR, DPT, nb } = g;
+  const g = flashGeometry(att, kn), lay = flashLayout(att, BR, BC, g.TPR);
+  const { RM, G, TPR, KN, DPT, nb } = g;
   const { L, S, D, E } = att;
   const raggedL = L % BR !== 0, raggedS = S % BC !== 0, raggedD = D % TPR !== 0;
-  const score = products.simt;
+  const prod = products.simt;
   // block and thread coordinates
   const rb = kb.int(V("bid").mod(nb), "rb");
   const benv = {};
@@ -82,11 +104,14 @@ export function matFlash(an, kn) {
       stride *= n;
     }
   }
-  const r = kb.int(V("tid").div(TPR), "r"), lane = kb.int(V("tid").mod(TPR), "lane");
-  const i = kb.int(rb.mul(BR).add(r), "qi");
-  for (const [name, size] of [["sQ", lay.sQ], ["sK", lay.sK], ["sV", lay.sV], ["sS", lay.sS]]) kb.shared(name, size);
+  const grp = kb.int(V("tid").div(TPR), "grp"), lane = kb.int(V("tid").mod(TPR), "lane");
+  const rows = Array.from({ length: RM }, (_, k) => kb.int(grp.add(k * G), `r${k}`));
+  const qi = rows.map((r, k) => kb.int(rb.mul(BR).add(r), `qi${k}`));
+  const cols = Array.from({ length: DPT }, (_, q) => lane.add(q * TPR));
+  const colOk = (q) => raggedD && cols[q].lt(D);
+  for (const [name, size] of [["sQ", lay.sQ], ["sK", lay.sK], ["sV", lay.sV], ["sP", lay.sP], ["sM", lay.sM]]) kb.shared(name, size);
+  kb.note(`flash attention: ${BR} rows × ${BC} keys per tile; ${G} row groups × ${TPR} lanes; per thread ${RM} rows × ${KN} keys, ${DPT} columns`);
   // the block's query rows
-  kb.note(`flash attention: ${BR} rows × ${BC} keys per tile, ${TPR} threads per row, ${DPT} columns per thread`);
   kb.for("tq", V("tid"), BR * E, T, (t) => {
     const rr = kb.int(t.div(E), "qr"), ee = kb.int(t.mod(E), "qe"), gi = rb.mul(BR).add(rr);
     const val = kb.let(kx.num(0), "qs");
@@ -94,9 +119,8 @@ export function matFlash(an, kn) {
     kb.sstore("sQ", rr.mul(lay.QS).add(ee), kx.v(val));
   });
   kb.sync();
-  const m = kb.let(NEG_INF, "m"), l = kb.let(kx.num(0), "l");
-  const acc = Array.from({ length: DPT }, (_, q) => kb.let(kx.num(0), `acc${q}`));
-  const col = (q) => lane.add(q * TPR);
+  const m = rows.map((_, k) => kb.let(NEG_INF, `m${k}`)), l = rows.map((_, k) => kb.let(kx.num(0), `l${k}`));
+  const acc = rows.map((_, k) => cols.map((_, q) => kb.let(kx.num(0), `acc${k}_${q}`)));
   kb.for("j0", 0, S, BC, (j0) => {
     // stage the key tile and the value tile
     kb.for("tk", V("tid"), BC * E, T, (t) => {
@@ -112,53 +136,52 @@ export function matFlash(an, kn) {
       kb.sstore("sV", cc.mul(lay.VS).add(dd), kx.v(val));
     });
     kb.sync();
-    // the score tile: each lane computes the scores of its row at keys lane, lane + TPR, …
-    kb.for("c", lane, BC, TPR, (c) => {
-      const gj = j0.add(c);
-      const sv = kb.let(NEG_INF, "sc");
-      guarded(kb, [raggedL && i.lt(L), raggedS && gj.lt(S)], () => {
-        const dot = score(kb, att, lay, r, c);
-        kb.let(emitFrag(kb, an, att.epi, { ...benv, [att.iVar]: i, __j: gj }, new Map([[att.dot, dot]])), sv);
+    // the score tile: RM × KN inner products in registers, then the epilogue (scale, mask) per score
+    const keys = Array.from({ length: KN }, (_, n) => kb.int(lane.add(n * TPR), `c${n}`));
+    const dot = prod.scores(kb, att, lay, rows, keys);
+    const sc = rows.map((r, k) => {
+      const pm = kb.let(NEG_INF, `pm${k}`);
+      const row = keys.map((c, n) => {
+        const s = kb.let(NEG_INF, `s${k}_${n}`), gj = j0.add(c);
+        guarded(kb, [raggedL && qi[k].lt(L), raggedS && gj.lt(S)], () =>
+          kb.let(emitFrag(kb, an, att.epi, { ...benv, [att.iVar]: qi[k], __j: gj }, new Map([[att.dot, dot[k][n]]])), s));
+        kb.let(kx.op("max", kx.v(pm), kx.v(s)), pm);
+        return s;
       });
-      kb.sstore("sS", r.mul(lay.SS).add(c), kx.v(sv));
+      kb.sstore("sM", r.mul(TPR).add(lane), kx.v(pm));
+      return row;
     });
     kb.sync();
-    // online softmax: every thread of a row reads the same scores in the same order
-    const mt = kb.let(NEG_INF, "mt");
-    kb.for("cm", 0, BC, 1, (c) => { const sv = kb.sload("sS", r.mul(lay.SS).add(c), "sm"); kb.let(kx.op("max", kx.v(mt), kx.v(sv)), mt); });
-    const m2 = kb.let(kx.op("max", kx.v(m), kx.v(mt)), "m2");
-    const ok = kb.let(kx.op("gt", kx.v(m2), NEG_INF), "live");
-    const dm = kb.let(kx.op(att.subFn, kx.v(m), kx.v(m2)), "dm");
-    const ea = kb.let(kx.op("exp", kx.v(dm)), "ea");
-    const alpha = kb.let(kx.op("select", kx.v(ok), kx.v(ea), kx.num(1)), "alpha");
-    kb.let(kx.op(att.mulFn, kx.v(alpha), kx.v(l)), l);
-    for (let q = 0; q < DPT; q++) guarded(kb, [raggedD && col(q).lt(D)], () => kb.let(kx.op(att.mulFn, kx.v(alpha), kx.v(acc[q])), acc[q]));
-    kb.for("cp", 0, BC, 1, (c) => {
-      const sv = kb.sload("sS", r.mul(lay.SS).add(c), "sp");
-      const d = kb.let(kx.op(att.subFn, kx.v(sv), kx.v(m2)), "ds");
-      const ex = kb.let(kx.op("exp", kx.v(d)), "ex");
-      const p = kb.let(kx.op("select", kx.v(ok), kx.v(ex), kx.num(0)), "p");
-      kb.let(kx.op(att.addFn, kx.v(l), kx.v(p)), l);
-      for (let q = 0; q < DPT; q++) guarded(kb, [raggedD && col(q).lt(D)], () => {
-        const vv = kb.sload("sV", c.mul(lay.VS).add(col(q)), `v${q}`);
-        const pv = kb.let(kx.op(att.pvFn, kx.v(p), kx.v(vv)), `pv${q}`);
-        kb.let(kx.op(att.addFn, kx.v(acc[q]), kx.v(pv)), acc[q]);
+    // online softmax: the tile's row maxima, the rescale factors, and this thread's probabilities
+    rows.forEach((r, k) => {
+      const mt = kb.let(NEG_INF, `mt${k}`);
+      kb.for("cm", 0, TPR, 1, (t) => { const v = kb.sload("sM", r.mul(TPR).add(t), `sm${k}`); kb.let(kx.op("max", kx.v(mt), kx.v(v)), mt); });
+      const m2 = kb.let(kx.op("max", kx.v(m[k]), kx.v(mt)), `mx${k}`);
+      const live = kb.let(kx.op("gt", kx.v(m2), NEG_INF), `live${k}`);
+      const dm = kb.let(kx.op(att.subFn, kx.v(m[k]), kx.v(m2)), `dm${k}`);
+      const ea = kb.let(kx.op("exp", kx.v(dm)), `ea${k}`);
+      const alpha = kb.let(kx.op("select", kx.v(live), kx.v(ea), kx.num(1)), `alpha${k}`);
+      keys.forEach((c, n) => {
+        const ds = kb.let(kx.op(att.subFn, kx.v(sc[k][n]), kx.v(m2)), `ds${k}_${n}`);
+        const ex = kb.let(kx.op("exp", kx.v(ds)), `ex${k}_${n}`);
+        const p = kb.let(kx.op("select", kx.v(live), kx.v(ex), kx.num(0)), `pp${k}_${n}`);
+        kb.sstore("sP", r.mul(lay.SS).add(c), kx.v(p));
       });
+      kb.let(kx.op(att.mulFn, kx.v(alpha), kx.v(l[k])), l[k]);
+      cols.forEach((_, q) => guarded(kb, [colOk(q)], () => kb.let(kx.op(att.mulFn, kx.v(alpha), kx.v(acc[k][q])), acc[k][q])));
+      kb.let(kx.v(m2), m[k]);
     });
-    kb.let(kx.v(m2), m);
+    kb.sync();
+    kb.for("cp", 0, BC, 1, (c) => prod.pv(kb, att, lay, c, rows, cols, l, acc, colOk));
     kb.sync();
   });
   // the output: post(acc / l) at every (row, column) this thread owns
   const outSt = strides(att.shape);
-  for (let q = 0; q < DPT; q++) {
-    const d = col(q);
-    guarded(kb, [raggedL && i.lt(L), raggedD && d.lt(D)], () => {
-      const o = kb.let(kx.op("div", kx.v(acc[q]), kx.v(l)), `o${q}`);
-      const env = { ...benv, [att.iVar]: i, [att.dVar]: d };
-      const val = emitFrag(kb, an, att.post, env, new Map([[att.core, kx.v(o)]]));
-      const flat = att.shape.reduce((a, _, j) => a.add(IX.lift(env["a" + j] ?? C(0)).mul(outSt[j])), C(0));
-      kb.store("out", flat, val);
-    });
-  }
+  rows.forEach((_, k) => cols.forEach((d, q) => guarded(kb, [raggedL && qi[k].lt(L), colOk(q)], () => {
+    const o = kb.let(kx.op("div", kx.v(acc[k][q]), kx.v(l[k])), `o${k}_${q}`);
+    const env = { ...benv, [att.iVar]: qi[k], [att.dVar]: d };
+    const val = emitFrag(kb, an, att.post, env, new Map([[att.core, kx.v(o)]]));
+    kb.store("out", att.shape.reduce((a, _, j) => a.add(IX.lift(env["a" + j] ?? C(0)).mul(outSt[j])), C(0)), val);
+  })));
   return kb;
 }
