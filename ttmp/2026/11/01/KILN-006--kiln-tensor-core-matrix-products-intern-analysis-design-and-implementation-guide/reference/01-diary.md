@@ -438,3 +438,62 @@ One design change against the guide came from the first run of the tail test: at
 ### Technical details
 - Cases in `test/mma-kernel.mjs`: TF32 linear+bias+relu 512×256×384 (CUDA has inline PTX, no packing; WGSL null with reason; four accumulation orders pass; a check with `K.mma` removed fails with "not representable in tf32"); three explicit knob sets (`64/64/16/32/32`, `32/64/8/16/64`, `128/16/32/64/8`); f16 and bf16 linear 64×48×40 (packing helpers, includes, `__float2half_rn`/`__float2bfloat16_rn` stores); batched matmul `[4,96,80]@[4,80,72]`; tails `M=33, K=19, N=17` for TF32 (fused rounding, `K.mma.a/b = null`, `kiln_round_tf32(` in the mma kernel) and f16; bias+GELU; scale+residual; refusals (FP32 highest, `matmul(..., "highest")` under tf32, mixed f16/bf16, WebGPU `sm 0`, `sm 70`, f32 precisions, `max` reduction, `mul(sub(a, c), b)`, a second multiply, `add(a, b)` body); default gb10 compile has no `mma` and no `WM`/`WN` keys.
 - First pinned compile on GB10 (model-ranked knobs under the FP32-peak prior): `k_linear_ew_reduce MAP=mma,BM=128,BN=32,BK=16,WM=16,WN=8`, grid 48, block 1024, 12800 B shared memory; simulated 145 ms.
+
+## Step 9: Phase 4 — the tensor-core cost model, and why defaults need an explicit gate
+
+`estimateMma` (written in Step 8 so that the fork tree could be ranked at all) counts what `matMma` writes: tensor flops, global traffic of the tile loads, shared-memory wavefronts of padded tile stores and fragment reads, warp instructions for loads, atoms and packing, and the scalar epilogue. `timeModel` gains a `tensor` resource only when a kernel has tensor flops, so every existing estimate's `parts` object is unchanged. I compared the estimate with the instrumented simulator on a pinned 256×192×320 TF32 kernel: tensor flops and shared-memory wavefronts agree exactly, warp instructions within 0.4 %, traffic within 13 %. `test/mma-cost.mjs` pins those agreements and the ranking behaviour.
+
+The guide's decision "use `peakTflops` as a pessimistic prior, then `MAP=mma` is never predicted faster" turned out to be false in this model: at equal compute rate, the 1024³ TF32 product is predicted at 86 µs on `mma` against 254 µs on `tiled` on GB10, because `tiled` is shared-memory bound and an atom needs 6 fragment loads per 1024 multiply-adds. The explicit gate in `costPrior` (Step 8) is therefore what keeps the default compile unchanged, not the prior.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 6.
+**Assistant interpretation:** Phase 4 of the guide: per-precision rates, estimate branch, tensor term, `regsEstimate`; tests that defaults are unchanged without rates and that ranking works with them.
+**Inferred user intent:** The model must be able to choose tensor cores once the GB10 rates are measured, and must not do so before.
+**Commit (code):** the commit following this entry — "KILN-006 Phase 4: tensor-core cost model and ranking tests".
+
+### What I did
+- targets.js: documented the optional `mma: { tf32, f16, bf16 }` field; no spec carries it (A100 datasheet figures recorded in the comment only).
+- test/mma-cost.mjs (new): ranking with an A100-like test spec (`mma: {156, 312, 312}`): 1024³ TF32 → `mma` by `model`; 16³ → not `mma`; `SPECS.a100` and `SPECS.gb10` (no rates) → no `mma`; FP32 highest → no `mma`; an f16 1024×512×768 linear → `mma`; a `MAP=mma` pin on an unrated target → `pinned-partial`, "the rest by model". Counts: tensor flops and wavefronts equal the simulator's, warp instructions within 5 %, traffic within 25 %, `regs` formula for TF32 and f16, tensor part equal, `timeModel` uses the rate when given, `tiled` estimates have no `tensor` part, `predictedCost` equals the per-kernel sum and differs between pinned `mma` and pinned `tiled`, `estimate` of `MAP=mma` without a plan throws.
+- Re-ran the Step 8 comparison dump: still `IDENTICAL` to the base revision.
+
+### Why
+- No real spec gets a rate: (1) GB10's are unmeasured (guide Open question 1); (2) giving A100/H100 datasheet rates would switch default compiles on those targets to kernels that have never been compiled by NVRTC, let alone run; (3) a new spec field changes `specHash(device.spec)` and with it the content ids of records simulated on that spec (records.js `contentOf`). A derived test spec exercises the ranking without any of these effects.
+
+### What worked
+- `node test/mma-cost.mjs` → "mma cost model: unchanged defaults without rates, ranking with rates, counts agree with the simulator". `npm test` → "all 52 passed"; pytest → "177 passed, 7 subtests passed".
+
+### What didn't work
+- No failures in this step. (The numbers that falsified the guide's prior assumption are in Technical details.)
+
+### What I learned
+- At equal FP32 peak, the model already prefers `mma` for large products because of the shared-memory term; the real speedup on hardware will come from both the tensor rate and the lower shared-memory traffic per multiply-add.
+- The model's favourite warp tile at the peak prior is small (`WM=16, WN=8`); larger tiles reuse fragments better but cost registers and occupancy. Calibration on hardware decides.
+
+### What was tricky to build
+- Matching wavefront counts exactly required `estimateMma` to use the same padded strides (`mmaSmemLayout`) as `matMma`, and the same lane→address mapping for tile stores as the loader (`kFast` choice from the operand's coefficients).
+
+### What warrants a second pair of eyes
+- The `Infinity` gate in `costPrior` depends on `fork.options` being passed to cost functions (core/kiln.js `decide.cost` passes `fork: fp`). If evidence later measures an `mma` row, `decide.evidence` can still choose it, which is intended.
+- Traffic is 13 % below the simulator on the test kernel; the epilogue traffic approximation (`numelOut · 4 · (1 + epilogue loads)`) is the likely source.
+
+### What should be done in the future
+- Phase 0: measure GB10 dense TF32/f16/bf16 rates with FP32 accumulation; set `SPECS.gb10.mma` (this changes the gb10 spec hash, so do it together with a planned record refresh).
+- Phase 5: recalibrate `estimateMma` from measured kernels (KILN-005 reference 47's method).
+
+### Code review instructions
+- tile.js `estimateMma`, `timeModel` (`raw.tensor`), `costPrior`; targets.js comment.
+- `node packages/kiln/test/mma-cost.mjs`.
+
+### Technical details
+Per-mapping best estimates (µs), TF32 square matmul, scratch script `KILN-006-impl/try3.mjs`:
+
+| target | n | tiled best | mma best (bound) | chosen by default |
+|---|---|---|---|---|
+| gb10 (no rate, FP32-peak prior) | 128 | 4.76 | 5.82 (dram) | tiled |
+| gb10 (no rate, FP32-peak prior) | 1024 | 253.95 | 86.00 (tensor) | tiled (gate) |
+| a100 + test rates | 128 | 5.93 | 3.73 (launch) | mma |
+| a100 + test rates | 1024 | 243.98 | 42.44 (smem) | mma |
+
+At n = 16 fusion inlines the TF32 rounding and the kernel is a `MAP=row` kernel.
+
+Estimate vs simulator (`a100-tensor-test`, `MAP=mma,BM=64,BN=64,BK=16,WM=32,WN=32`, 256×192×320, all 20 blocks): tensorFlops 31457280 / 31457280; smemWavefronts 53760 / 53760; warpInstr 143360 / 143920; traffic 2293760 / 2621440; regs 72 / 72; us 9.30 / 10.21; check `max abs diff 0.00e+0`.
