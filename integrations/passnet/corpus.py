@@ -169,6 +169,9 @@ def compile_task(directory, kiln, target, contraction=None, optimization_program
         if matmul_precision is not None:command.extend(['--matmul-precision',matmul_precision])
         if optimization_program is not None:command.extend(['--optimization-program',str(optimization_program.resolve())])
         if skip_internal_reference_check:command.append('--no-check')
+        # the program writes mutated inputs itself (PassBench's dispatch admits no tensor operation)
+        names=list(record['inputs'])
+        for mutation in record['input_mutations']:command.extend(['--mutation',f"{mutation['output']}={names[mutation['input_index']]}"])
         with source.with_suffix('.compile.log').open('w') as log:
             result = subprocess.run(command, cwd=kiln, stdout=log, stderr=subprocess.STDOUT)
         results.append({'graph': record['graph'], 'command': command,

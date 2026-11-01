@@ -1,8 +1,9 @@
 // kiln-program/1: a compiled program as a consumer loads it. Kernels in launch order, the buffer each argument reads
 // and each kernel writes, the dispatch geometry, and the identity that ties every kernel back to its record.
-import { numel, dtypeBytes } from "../core/util.js";
+import { numel, dtypeBytes, hash } from "../core/util.js";
 import { KilnError } from "../core/kiln.js";
 import { CODEGEN_VERSION } from "./records.js";
+import { CUDA_STORAGE } from "./emit.js";
 
 export const PROGRAM_FORMAT = "kiln-program/1";
 
@@ -30,7 +31,22 @@ function renameCuda(src, from, to) {
  * `run` is a finished pipeline run whose last IR holds gpu kernels; `prog` is `programOf(run.graph)`. Data constants
  * (weights, tables) become buffers with their values inline, as base64 little-endian fp32. → the kiln-program/1 object
  */
-export function exportProgram(run, prog, { name, params = {}, target = null, source = null } = {}) {
+// An input the source graph mutates is written by the program itself: a final copy kernel from the computed value
+// into the input's own storage. Every read of the original value is an earlier launch, so the write cannot race,
+// and the caller needs no tensor operation (PassBench's dispatch admits factories only).
+function writebackKernel(from, to) {
+  const ctype = CUDA_STORAGE[from.dtype], n = numel(from.shape), block = 256, grid = Math.max(1, Math.ceil(n / block));
+  const identity = hash(`writeback|${from.dtype}|${from.shape.join("x")}`), exported = `k_writeback__${identity}`;
+  const cuda = `${from.dtype === "f16" ? "#include <cuda_fp16.h>\n" : from.dtype === "bf16" ? "#include <cuda_bf16.h>\n" : ""}extern "C" __global__ void __launch_bounds__(${block}) ${exported}(const ${ctype}* __restrict__ src0, ${ctype}* __restrict__ dst) {
+    const int e = blockIdx.x * ${block} + threadIdx.x;
+    if (e < ${n}) dst[e] = src0[e];
+}`;
+  return { name: exported, identity, row: "MAP=thread", reads: [from.buffer], writes: to.buffer, grid, block, smemBytes: 0,
+    dispatch: [Math.min(grid, 65535), Math.ceil(grid / 65535), 1], shape: from.shape, inShapes: [from.shape], inDtypes: [from.dtype],
+    wgslUnavailable: "input mutation write-back is emitted for CUDA only", cuda };
+}
+
+export function exportProgram(run, prog, { name, params = {}, target = null, source = null, mutations = {} } = {}) {
   const g = run.graph;
   const buffers = [], byNode = new Map();
   const add = (nodeId, dtype, shape, extra = {}) => {
@@ -79,6 +95,14 @@ export function exportProgram(run, prog, { name, params = {}, target = null, sou
     if (!byNode.has(o.id)) throw new KilnError("ExportError", `output ${o.name} is ${g.nodes.get(o.id)?.name || "missing"}: an exported output must be a kernel's or an input's buffer`);
     return { name: o.name, buffer: byNode.get(o.id), shape: g.nodes.get(o.id).type.shape, dtype: buffers[byNode.get(o.id)].dtype };
   });
+  for (const [outName, inName] of Object.entries(mutations)) {
+    const o = outputs.find((x) => x.name === outName), i = inputs.find((x) => x.name === inName);
+    if (!o || !i) throw new KilnError("ExportError", `mutation ${outName} -> ${inName}: no such output or input`);
+    if (o.shape.join() !== i.shape.join() || o.dtype !== i.dtype) throw new KilnError("ExportError", `mutation ${outName} -> ${inName}: value (${o.shape}) ${o.dtype} does not match the input (${i.shape}) ${i.dtype}`);
+    if (o.buffer === i.buffer) continue;
+    kernels.push(writebackKernel(o, i));
+    o.buffer = i.buffer;
+  }
   return {
     format: PROGRAM_FORMAT, name: name || g.name, codegen: CODEGEN_VERSION,
     target: target ? { id: target.id, name: target.name } : null, params, source,

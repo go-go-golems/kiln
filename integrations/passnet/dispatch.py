@@ -78,12 +78,10 @@ class CorpusDispatch:
             raise ValueError(f'No compiled program for input metadata and constants: {key}')
         program,structure,mutations=self.programs[key]
         outputs=program(*inputs)
+        # the compiled program wrote each mutated input in place: its output is the input tensor itself
         for mutation in mutations:
-            destination=inputs[mutation['input_index']]
-            value=outputs[mutation['output']]
-            if value.shape!=destination.shape or value.dtype!=destination.dtype or value.device!=destination.device:
-                raise ValueError('Mutation output metadata does not match input')
-            destination.copy_(value)
+            if outputs[mutation['output']] is not inputs[mutation['input_index']]:
+                raise ValueError(f"Mutation {mutation['output']} was not written into input {mutation['input_index']}")
         return restore_outputs(structure,outputs,inputs)
 
     def close(self):

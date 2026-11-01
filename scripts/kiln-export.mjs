@@ -14,6 +14,7 @@
 //     --matmul-precision P  highest (default) or tf32: round FP32 matmul/linear/conv operands to TF32,
 //                         matching a reference backend with PyTorch allow_tf32 enabled
 //     --optimization-program PATH  apply a validated Kiln transformation program to the standard pipeline
+//     --mutation OUT=IN    the source graph mutates input IN to output OUT's value: the program writes it in place
 //
 // Exits non-zero when the script does not compile, the check fails, or a kernel argument cannot be exported.
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
@@ -37,7 +38,7 @@ function usage(code) {
 }
 
 function parseArgs(argv) {
-  const o = { params: {}, target: "webgpu", check: true };
+  const o = { params: {}, target: "webgpu", check: true, mutations: {} };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i], next = () => { if (i + 1 >= argv.length) usage(2); return argv[++i]; };
     if (a === "--help" || a === "-h") usage(0);
@@ -51,6 +52,7 @@ function parseArgs(argv) {
     else if (a === "--contraction") { o.contraction = next(); if (!["allow", "separate"].includes(o.contraction)) usage(2); }
     else if (a === "--matmul-precision") { o.matmulPrecision = next(); if (!["highest", "tf32"].includes(o.matmulPrecision)) usage(2); }
     else if (a === "--optimization-program") o.optimizationProgram = next();
+    else if (a === "--mutation") { const [out, input, ...rest] = next().split("="); if (!out || !input || rest.length) usage(2); o.mutations[out] = input; }
     else { process.stderr.write(`unknown argument ${a}\n`); usage(2); }
   }
   if (!!o.preset === !!o.script) usage(2);
@@ -101,7 +103,7 @@ function compileOne(pins) {
     internalCheck = status;
   }
   const values = Object.fromEntries([...c.project._params].map((p) => [p.name, c.params.get(p)]));
-  const program = exportProgram(c.run, c.prog, { name: o.name || c.project.name, params: values, target, source: { ...source, internal_check: internalCheck } });
+  const program = exportProgram(c.run, c.prog, { name: o.name || c.project.name, params: values, target, source: { ...source, internal_check: internalCheck }, mutations: o.mutations });
   if (optimizationProgram) program.compiler_policy = optimizationProgram;
   if (decision) program.compiler_policy_decision = decision;
   process.stderr.write(`${at}: ${program.kernels.map((k) => `${k.name} ${k.row}`).join("; ")}\n`);

@@ -82,4 +82,17 @@ const exp = (g, opts) => { const r = pipe.run(g); return exportProgram(r, progra
   check(!!wide && /MAP=(row|tiled)/.test(wide.row), `a row-mapped launch past 2^31 threads is exported: ${msg || wide?.row}`);
 }
 
+// an input the source mutates is written by the program's last kernel into the input's own buffer
+{
+  const g = k.trace("mut", ({ x }) => ({ y: N.mean(N.relu(x), -1), __mut0: N.relu(x) }), { x: k.tensor([4, 8]) });
+  const r = pipe.run(g), p = exportProgram(r, programOf(r.graph), { mutations: { __mut0: "x" } });
+  const last = p.kernels.at(-1), x = p.inputs[0], mut = p.outputs.find((o) => o.name === "__mut0");
+  check(mut.buffer === x.buffer, "the mutated output is the input's buffer");
+  check(last.writes === x.buffer && /k_writeback__/.test(last.name) && /dst\[e\] = src0\[e\]/.test(last.cuda), "a final write-back kernel stores into the input");
+  check(p.kernels.slice(0, -1).every((kn) => kn.writes !== x.buffer), "no earlier kernel writes the input");
+  let msg = null;
+  try { exportProgram(r, programOf(r.graph), { mutations: { y: "x" } }); } catch (e) { msg = e.message; }
+  check(/does not match the input/.test(msg || ""), `a mutation must match the input's type: ${msg}`);
+}
+
 if (failed) { console.log(`${failed} failed`); process.exitCode = 1; }

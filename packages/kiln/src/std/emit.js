@@ -13,6 +13,9 @@ const flit = (v, lang) => {
 };
 
 // ----------------------------------------------------------------------------- CUDA
+// CUDA spelling of each storage dtype
+export const CUDA_STORAGE = Object.freeze({ f32: "float", u8: "unsigned char", f16: "__half", bf16: "__nv_bfloat16", i64: "long long", bool: "bool" });
+
 export function toCuda(K) {
   // buffers are src0…srcN and dst: kernel temporaries are named in0, in1… after the Loop IR's loads
   const bufName = (b) => (b === "out" ? "dst" : "src" + b);
@@ -27,7 +30,7 @@ export function toCuda(K) {
   const fx = (e) => (e.k === "num" ? flit(e.v, "c") : e.k === "var" ? e.n : fill(FNS[e.fn].c, e.a.map(fx)));
   const ins = K.params.filter((p) => p.role === "in");
   const lines = [];
-  const storage = { f32: "float", u8: "unsigned char", f16: "__half", bf16: "__nv_bfloat16", i64: "long long", bool: "bool" };
+  const storage = CUDA_STORAGE;
   const ctype = (p) => {
     const dtype = p.dtype || "f32";
     if (!Object.hasOwn(storage, dtype)) throw new TypeError(`CUDA storage dtype unsupported: ${dtype}`);

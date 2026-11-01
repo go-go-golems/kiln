@@ -47,10 +47,15 @@ class DispatchTests(unittest.TestCase):
                     'input_dtypes':{'x':'f32'},'output_structure':{'input_alias':0},
                     'input_mutations':[{'input_index':0,'output':'__mut0'}]}
             (root/'manifest.json').write_text(json.dumps({'format':FORMAT,'variants':[record]}))
-            program=Mock(side_effect=lambda x:{'__mut0':x+1})
+            # the compiled program writes the mutated input in place and returns that storage
+            program=Mock(side_effect=lambda x:{'__mut0':x.add_(1)})
             dispatcher=CorpusDispatch(root,program_factory=Mock(return_value=program))
             x=torch.tensor([2.,3.])
             result=dispatcher(x)
             self.assertIs(result,x)
             torch.testing.assert_close(x,torch.tensor([3.,4.]))
             dispatcher.close()
+            # a program that computes the value elsewhere violates the contract
+            stray=CorpusDispatch(root,program_factory=Mock(return_value=Mock(side_effect=lambda x:{'__mut0':x+1})))
+            with self.assertRaisesRegex(ValueError,'was not written into input 0'):stray(torch.tensor([2.,3.]))
+            stray.close()
