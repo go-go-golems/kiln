@@ -79,6 +79,8 @@ export class Project {
       if (t?.kind === "tensor" && ["f16", "bf16"].includes(t.dtype)) {
         if (!(value instanceof Tensor)) throw new k.KilnError("TypeError", `reference input ${i.name} requires Tensor data`);
         out[i.name] = new Tensor(value.shape, Float32Array.from(value.data, x => roundToDtype(x, t.dtype)));
+      } else if (t?.kind === "tensor" && exact[t.dtype] && !t.shape?.length && (typeof value === "bigint" || Number.isInteger(value) || typeof value === "boolean")) {
+        out[i.name] = value; // a rank-0 dialect input given as a plain number
       } else if (t?.kind === "tensor" && exact[t.dtype]) {
         if (!(value instanceof Tensor) || !(value.data instanceof exact[t.dtype]) || value.shape.join() !== t.shape.join()) {
           throw new k.KilnError("TypeError", `reference input ${i.name} requires exact ${t.dtype} Tensor data`);
