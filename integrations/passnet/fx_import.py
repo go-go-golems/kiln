@@ -6,7 +6,7 @@ looks operations up and applies the shared postconditions.
 """
 import json
 from dtypes import FLOATING, IMPORTED
-from fx_ops import Call, Lowered, Op, Registry, bind
+from fx_ops import Call, Lowered, Op, Registry, bind, fill_literal
 from fx_pooling import AVG_POOL2D, lower_avg_pool2d, ADAPTIVE_AVG_POOL2D, lower_adaptive_avg_pool2d
 from fx_indexing import lower_index,lower_transpose,lower_reshape,lower_singleton_view,SINGLETON_FUNCTIONS,SINGLETON_METHODS,lower_flatten,FLATTEN_FUNCTIONS
 from fx_linalg import FUNCTIONS as LINALG_FUNCTIONS, METHODS as LINALG_METHODS, lower_linalg
@@ -41,6 +41,11 @@ def first_ref(c):
     return first.get('ref') if isinstance(first, dict) else None
 
 
+def js_int(value):
+    """A Python int as an exact N.int literal: past 2^53 a JS number rounds, so it is spelled as a BigInt."""
+    return f'N.int({value}n)' if abs(value) > 2 ** 53 - 1 else f'N.int({value})'
+
+
 def operand(c, j, value=None):
     """Positional argument j as a Kiln operand. A Python int or bool scalar is spelled N.int/N.bool:
     PyTorch promotion gives it the integer or bool category, which a bare JS number (float) loses.
@@ -49,7 +54,7 @@ def operand(c, j, value=None):
     raw = c.raw_args['tuple'][j] if value is None else value
     text = c.args[j] if value is None else json.dumps(value)
     if type(raw) is bool: return f'N.bool({json.dumps(raw)})'
-    if type(raw) is int: return f'N.int({raw})'
+    if type(raw) is int: return js_int(raw)
     return cuda_scalar_operand(c, j, text) if value is None else text
 
 
@@ -375,7 +380,7 @@ def lower_fill_factory(c):
         if set(bound) - {'size', *FACTORY_KEYWORDS}: raise ValueError(f'{c.name}: unsupported {kind} arguments')
     factory_device(c, bound)
     if type(value) not in (int, float, bool): raise ValueError(f'{c.name}: static fill value required')
-    return Lowered(f'N.full({json.dumps(c.meta["shape"])}, {json.dumps(value)}, {json.dumps(factory_dtype(c, kind))})')
+    return Lowered(f'N.full({json.dumps(c.meta["shape"])}, {fill_literal(c, value)}, {json.dumps(factory_dtype(c, kind))})')
 
 
 LIKE = {'torch.zeros_like': 0, 'torch.ones_like': 1, 'torch.full_like': None}
@@ -398,7 +403,7 @@ def lower_fill_like(c):
     factory_device(c, bound)
     if 'fill_value' in fields: value = c.ctx.literal(bound.get('fill_value', 'null'))
     if type(value) not in (int, float, bool): raise ValueError(f'{c.name}: static fill value required')
-    return Lowered(f'N.full({json.dumps(c.meta["shape"])}, {json.dumps(value)}, {json.dumps(factory_dtype(c, name))})')
+    return Lowered(f'N.full({json.dumps(c.meta["shape"])}, {fill_literal(c, value)}, {json.dumps(factory_dtype(c, name))})')
 
 
 @op('tensor_literal', functions=('torch.tensor',))
@@ -409,7 +414,7 @@ def lower_tensor_literal(c):
     factory_device(c, bound)
     value = c.ctx.literal(bound['data'])
     if type(value) not in (int, float, bool): raise ValueError(f'{c.name}: torch.tensor of a static number required (data lists are not lowered)')
-    return Lowered(f'N.full([], {json.dumps(value)}, {json.dumps(factory_dtype(c, "tensor"))})')
+    return Lowered(f'N.full([], {fill_literal(c, value)}, {json.dumps(factory_dtype(c, "tensor"))})')
 
 
 @op('linspace', functions=('torch.linspace',))
@@ -1067,7 +1072,7 @@ def lower_setitem(ctx, name, var, args, node, lines):
     else:
         literal = ctx.literal(value) if isinstance(value, str) else None
         if type(literal) not in (int, float, bool): raise ValueError(f'{name}: assigned value must be a tensor or a static number')
-        number = f'N.bool({json.dumps(literal)})' if type(literal) is bool else f'N.int({literal})' if type(literal) is int else json.dumps(literal)
+        number = f'N.bool({json.dumps(literal)})' if type(literal) is bool else js_int(literal) if type(literal) is int else json.dumps(literal)
         write_region(ctx, view, number, None, var, lines)
 
 
