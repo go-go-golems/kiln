@@ -1358,3 +1358,75 @@ The coordinator fast-forwarded `research/passnet` to the integration branch and 
 ### Technical details
 - Curated path list: `git diff --name-only main...research/passnet`, minus `ttmp/2026/10/30/KILN-005-*/sources/`.
 - Secret-scan patterns: AWS, GitHub, Anthropic/OpenAI, Slack, HF, GitLab and Google keys, PEM private keys, and quoted key/secret/token/password assignments.
+
+## Step 20: The three Codex review findings on PR #1
+
+The Codex review of PR #1 raised three findings, and all three reproduced:
+- **P1:** a clone of a mutated input returned the mutated value.
+- **P2:** int64 operands larger than 2^53 were rounded.
+- **P2:** layout references dropped integer storage.
+
+Each fix is a commit on research/passnet with a regression test, cherry-picked to `passnet-into-main`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Address cde review issues: https://github.com/go-go-golems/kiln/pull/1"
+
+**Assistant interpretation:** Fix the review findings on the PR and reply to them.
+
+**Inferred user intent:** Get PR #1 clean for merging.
+
+**Commit (code):**
+- On research/passnet: `ec784f0` (export snapshot), `01b04bc` (layout storage), `ff6c63b` (exact ints).
+- Cherry-picked to the PR branch.
+
+### What I did
+- **P1 (`integrations/passnet/fx_coverage.py:48`).**
+  - Reproduced in the program simulator with `{ saved: N.reshape(x, [2]), __mut0: N.add(x, 1) }`, input `[3, 4]`. Both strategies returned `saved [4, 5]`, with `saved` and `__mut0` on buffer 0.
+  - The root cause is in `exportProgram`, not the importer. The identity reshape is eliminated, so the output takes the input's buffer, and the mutation then overwrites it.
+  - Fix: before planning mutations, every non-mutation output on a to-be-mutated input's buffer gets a new buffer and a `k_snapshot__` copy kernel, unshifted to launch first.
+- **P2 (`fx_import.py:52`).**
+  - `N.int` with a BigInt was already exact through frontend eval, Loop IR and CUDA emission (`9007199254740993LL`). So `js_int` spells |v| > 2^53 − 1 as `N.int(<v>n)` for operands and slice-assignment literals.
+  - `N.full` rejects BigInt. For it, `fx_ops.fill_literal` refuses such ints in `torch.full`, `full_like`/`new_full`, `torch.tensor` and `fill_`.
+- **P2 (`layout.js:27`).** `reference()` allocates `new Tensor(shape, null, input.dtype)`. Constant pad values are converted with `BigInt(Math.trunc(v))` for i64, and `rollReference` keeps the dtype.
+- **Tests:**
+  - `inplace.mjs`: snapshot under both strategies, no hazards.
+  - `layout.mjs`: i64 past 2^53 and i32 at its limit, frontend and Loop IR.
+  - `test_fx_import.py`: BigInt spelling and the refused fill.
+
+### Why
+- Each finding is a silent wrong answer: the internal reference agreed with the wrong value, or the program threw. None is a style point.
+
+### What worked
+- **Tests.**
+  - research/passnet: kiln 63/63, passnet 223 OK.
+  - PR branch: the same, plus workbench 6/6 (with the x64 esbuild workaround from Step 19).
+- **Reproductions.** All three reproduced before fixing.
+- **Clone repro after the fix:** `saved [3, 4]`, `x [4, 5]` under both `auto` and `writeback`.
+
+### What didn't work
+- **A stray `cat >> /dev/null` in a compound command waited on stdin** and hung the shell call until it was stopped. The edit before it had already applied.
+- **The first fill test used `torch.full((2,), …)`,** which `symbolic_trace` folds into a `get_attr` constant (`unsupported FX node kind get_attr`). I switched to `torch.full_like(x, …)`.
+- **Circular import.** `fill_literal` was first placed in `fx_import.py`, but `fx_coverage.py` is imported by `fx_import.py`, so importing in the other direction would be circular. Moved to `fx_ops.py`.
+
+### What I learned
+- The frontend and Loop IR references have value semantics, so they cannot see buffer aliasing. Only the program simulator (or hardware) shows an output aliasing a mutated input.
+- Kiln's i64 constants are already BigInt-clean end to end. The precision loss was purely in the Python-to-JS text.
+
+### What was tricky to build
+- **Placing the snapshot copy.** It must precede every kernel, including a direct-write producer, so the launch-order proof in `inplace.js` still sees the input's original readers before the producer. Unshifting before `planMutation` keeps kernel indices consistent.
+
+### What warrants a second pair of eyes
+- **Bool pad values.** A pad constant for a bool tensor is assigned as a number to `Uint8Array` (0.5 → 0, where PyTorch gives True). This is not reachable from the importer today.
+- **`kiln_eval.mjs` output precision.** It maps outputs through `Number`, so a Python test cannot check an exact i64 output past 2^53. The JS tests cover that.
+
+### What should be done in the future
+- Give `N.full` BigInt support, then drop the `fill_literal` refusal.
+
+### Code review instructions
+- `packages/kiln/src/std/export.js`: the snapshot loop before "mutations in order".
+- `packages/kiln/src/std/layout.js` `reference`/`rollReference`.
+- `integrations/passnet/fx_import.py` `js_int`, and `fx_ops.py` `fill_literal`.
+
+### Technical details
+- Snapshot kernels reuse `writebackKernel(from, to, "snapshot")`: same CUDA copy, entry `k_snapshot__<hash>`, CUDA-only like the write-back.
