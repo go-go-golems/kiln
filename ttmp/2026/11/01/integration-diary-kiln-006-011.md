@@ -1287,3 +1287,74 @@ The coordinator gated, froze and replayed one combined plan, `coverage-wave2-rep
 - **Totals over 47 audits (each family's most recent run):**
   - 157 families accepted; 198 replayed, all except 97 and 194;
   - 1871/2055 graphs accepted, best per family, out of 2060 in total.
+
+## Step 19: Merge into research/passnet, a curated PR to main, and a public repository
+
+The coordinator fast-forwarded `research/passnet` to the integration branch and found a workbench regression, then fixed it (`307b6c3`). Next, the coordinator built `passnet-into-main` from `main` with every code and doc change, but without KILN-005's `sources/` evidence, opened PR #1 (https://github.com/go-go-golems/kiln/pull/1) and made `go-go-golems/kiln` public after a secret scan.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Are we ready to do a PR? or what do yu want to do before? it says something about 8 bugs", then "merge locally. Is it time for a PR from research/passnet to main tho?", then "ok, do it. make the repo public as well".
+
+**Assistant interpretation:**
+- Merge the integration branch into `research/passnet` locally.
+- Open a curated PR to `main` that leaves out the bulky evidence.
+- Switch the repository's visibility to public.
+
+**Inferred user intent:** Land the PassNet work on main and publish the project.
+
+**Commit (code):**
+- `307b6c3` (research/passnet): the fix.
+- `1c21c07`, `ed2b8df`, `640668e` (passnet-into-main): the curated copy.
+
+### What I did
+- `git merge --ff-only integration/kiln-006-011` on research/passnet: no merge commit needed.
+- Created worktree `worktrees/passnet-main-pr` (branch `passnet-into-main`, from main 974634a).
+- Checked out every path from `main...research/passnet` except `ttmp/.../KILN-005-*/sources/`: 1122 files, a 60 MB tree, against roughly 500 MB of tracked `ttmp` on research/passnet. Made three commits: compiler, PassNet integration, ticket docs.
+- Ran every suite in the curated worktree:
+  - `packages/kiln`: 63/63;
+  - `apps/workbench` (`npm test`): 6/6 after the fix;
+  - `integrations/passnet`: 223 OK;
+  - `runtime/python`: OK.
+- Scanned every blob reachable from origin/main, origin/research/passnet and the PR head for credential patterns: 13860 blobs. Then pushed both branches, opened PR #1 and set visibility through `gh api -X PATCH repos/go-go-golems/kiln -f visibility=public`.
+
+### Why
+- The evidence is append-only and stays on research/passnet; main should not carry 460 MB of GPU corpora and vendored tarballs in its history.
+
+### What worked
+- **Fast-forward and curated diff.** The fast-forward was clean. The curated branch differs from research/passnet only under KILN-005 `sources/`; `git diff --stat research/passnet HEAD` lists nothing outside it.
+- **Secret scan.** 11 hits, all harmless:
+  - `api_key = "sk-no-key-required"` in llama.cpp's README;
+  - an analytics beacon token in saved public PyTorch doc pages.
+
+### What didn't work
+- **Workbench preset W-02 failed** with `reference input x requires exact i32 Tensor data`. The exact-storage check in `packages/kiln/src/std/index.js` `inputsFor` rejected a rank-0 i32 dialect input bound to a JS number (`.data({ x: 5, y: -7, z: 3 })`). Fixed: rank-0 integer and bool inputs accept plain numbers, bigints and booleans.
+- **Workbench tests could not run as installed:**
+  - the shared `node_modules` holds `@esbuild/linux-arm64` only, so esbuild fails on x64;
+  - `pnpm test` fails because `packageManager` pins pnpm 12.4.1, which is not published.
+  - Worked around by fetching `@esbuild/linux-x64@0.24.2` into the scratchpad with `ESBUILD_BINARY_PATH`, and adding a `packages/kiln/node_modules/@kiln/evidence` link.
+- **`git checkout --no-overlay research/passnet -- .`**, run by mistake while refreshing the curated tree, staged all 19884 `sources/` files. It was undone with `git reset --hard main` before any commit.
+- **The first path filter (`/sources/`) also dropped KILN-006–011's small evidence** (45 files). Added back by amending the docs commit.
+- **Old gh flag.** `gh repo edit --accept-visibility-change-consequences` is unknown to gh 2.45; I used the REST API instead.
+
+### What I learned
+- The PassNet-era strict input typing had not been exercised against the workbench presets. The kiln package suite alone does not cover dialect presets with scalar integer inputs.
+
+### What was tricky to build
+- Keeping the curated branch exactly "research/passnet minus KILN-005 sources" while applying a fix that exists on both branches.
+
+### What warrants a second pair of eyes
+- **Private details now public.** The KILN-005 diaries and scripts, now public, mention the LAN address 192.168.0.65 and the `manuel@bling.local` SSH target.
+- **Third-party content.** `research/passnet` carries vendored tarballs (llama.cpp, r2e-gym) and saved PyTorch doc pages.
+
+### What should be done in the future
+- Fix the pnpm pin and the arm64-only install.
+- Fix the 8 coverage bugs from Step 18 on a branch off main.
+
+### Code review instructions
+- Review PR #1 by commit.
+- The behaviour change outside the PassNet features is the `inputsFor` rank-0 branch.
+
+### Technical details
+- Curated path list: `git diff --name-only main...research/passnet`, minus `ttmp/2026/10/30/KILN-005-*/sources/`.
+- Secret-scan patterns: AWS, GitHub, Anthropic/OpenAI, Slack, HF, GitLab and Google keys, PEM private keys, and quoted key/secret/token/password assignments.
