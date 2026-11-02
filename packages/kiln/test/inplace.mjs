@@ -146,6 +146,18 @@ for (const [label, c] of Object.entries(CASES)) {
   check(close(sim.outputs.out, want.out.data) && close(sim.inputs.x, want.__mut0.data) && close(sim.inputs.y, want.__mut1.data) && !sim.hazards.length, "two mutations: the oracle matches the graph");
 }
 
+// an output that is the input's own value (an imported clone: an identity reshape) keeps the value from before the
+// mutation, under both strategies
+{
+  const b = build(({ x }) => ({ saved: N.reshape(x, [2]), __mut0: N.add(x, 1) }), { x: k.tensor([2]) });
+  for (const s of ["auto", "writeback"]) {
+    const p = exp(b, { mutations: { __mut0: "x" }, mutationStrategy: s });
+    const sim = simulateProgram(p, { x: Float32Array.from([3, 4]) }, { instrument: true });
+    check(close(sim.outputs.saved, [3, 4]) && close(sim.inputs.x, [4, 5]) && /k_snapshot__/.test(p.kernels[0].name) && sim.hazards.length === 0,
+      `a clone of a mutated input keeps its snapshot [${s}]: saved ${[...sim.outputs.saved]}, x ${[...sim.inputs.x]}`);
+  }
+}
+
 // an unknown strategy is refused
 {
   let msg = null;
