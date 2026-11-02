@@ -52,16 +52,16 @@ function renameCuda(src, from, to) {
 // (PassBench's dispatch admits factories only). Where inplace.js proves it safe, the kernel that computes the new
 // value stores it straight into the input's buffer. Otherwise a final copy kernel writes it there: every read of the
 // original value is an earlier launch, so that write cannot race. program.mutations[] records which, and why.
-function writebackKernel(from, to) {
+function writebackKernel(from, to, kind = "writeback") {
   const ctype = CUDA_STORAGE[from.dtype], n = numel(from.shape), block = 256, grid = Math.max(1, Math.ceil(n / block));
-  const identity = hash(`writeback|${from.dtype}|${from.shape.join("x")}`), exported = `k_writeback__${identity}`;
+  const identity = hash(`${kind}|${from.dtype}|${from.shape.join("x")}`), exported = `k_${kind}__${identity}`;
   const cuda = `${from.dtype === "f16" ? "#include <cuda_fp16.h>\n" : from.dtype === "bf16" ? "#include <cuda_bf16.h>\n" : ""}extern "C" __global__ void __launch_bounds__(${block}) ${exported}(const ${ctype}* __restrict__ src0, ${ctype}* __restrict__ dst) {
     const int e = blockIdx.x * ${block} + threadIdx.x;
     if (e < ${n}) dst[e] = src0[e];
 }`;
   return { name: exported, identity, row: "MAP=thread", reads: [from.buffer], writes: to.buffer, grid, block, smemBytes: 0,
     dispatch: [Math.min(grid, 65535), Math.ceil(grid / 65535), 1], shape: from.shape, inShapes: [from.shape], inDtypes: [from.dtype],
-    wgslUnavailable: "input mutation write-back is emitted for CUDA only", cuda };
+    wgslUnavailable: `input mutation ${kind === "writeback" ? "write-back" : kind} is emitted for CUDA only`, cuda };
 }
 
 // The Loop IR behind each exported kernel record, for in-process consumers (the CPU program oracle, program-sim.js):
@@ -127,6 +127,15 @@ export function exportProgram(run, prog, { name, params = {}, target = null, sou
     if (!byNode.has(o.id)) throw new KilnError("ExportError", `output ${o.name} is ${g.nodes.get(o.id)?.name || "missing"}: an exported output must be a kernel's or an input's buffer`);
     return { name: o.name, buffer: byNode.get(o.id), shape: g.nodes.get(o.id).type.shape, dtype: buffers[byNode.get(o.id)].dtype };
   });
+  // An output that is a to-be-mutated input's own buffer (an identity of it: a clone, a no-op reshape) must keep the
+  // value from before the mutation. It gets its own buffer, filled by a copy launched before every other kernel.
+  const mutated = new Set(Object.values(mutations).map((n) => inputs.find((x) => x.name === n)?.buffer));
+  for (const o of outputs) {
+    if (o.name in mutations || !mutated.has(o.buffer)) continue;
+    const from = { ...o };
+    o.buffer = add(Symbol(o.name), o.dtype, o.shape);
+    kernels.unshift(writebackKernel(from, o, "snapshot")); irs.unshift({ copy: true });
+  }
   // mutations in order: each plan sees the records as the previous mutations left them (inplace.js)
   const decided = [];
   for (const [outName, inName] of Object.entries(mutations)) {
