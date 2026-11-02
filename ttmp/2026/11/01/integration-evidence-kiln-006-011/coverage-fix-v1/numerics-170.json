@@ -1,0 +1,112 @@
+{
+ "format": "kiln-coverage-numerics/1",
+ "torch": "2.11.0+cu130",
+ "dist": "randn",
+ "records": [
+  {
+   "task": 170,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/46/3a/463aa6d19f787acb2f6e59ac1c02516e19b00d34684d958ac50d1d92b2547cc2",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/hf-tiny-model-private_tiny-random-OPTForSequenceClassification/_decomposed/hf-tiny-model-private_tiny-random-OPTForSequenceClassification_start0_end22_0",
+   "dist": "randn",
+   "max_dim": null,
+   "verdict": "exact",
+   "seconds": 2.3,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      1,
+      1,
+      21,
+      21
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 3.4028234663852886e+38,
+     "exact": true
+    },
+    "loop.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      1,
+      1,
+      21,
+      21
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 3.4028234663852886e+38,
+     "exact": true
+    }
+   }
+  },
+  {
+   "task": 170,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/46/3a/463aa6d19f787acb2f6e59ac1c02516e19b00d34684d958ac50d1d92b2547cc2",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/9/samples/transformers-auto-model/noamr_bert-finetuned-ner/_decomposed/noamr_bert-finetuned-ner_start0_end22_0",
+   "dist": "randn",
+   "max_dim": null,
+   "verdict": "exact",
+   "seconds": 2.3,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      1,
+      1,
+      10,
+      10
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 3.4028234663852886e+38,
+     "exact": true
+    },
+    "loop.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      1,
+      1,
+      10,
+      10
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 3.4028234663852886e+38,
+     "exact": true
+    }
+   }
+  },
+  {
+   "task": 170,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/46/3a/463aa6d19f787acb2f6e59ac1c02516e19b00d34684d958ac50d1d92b2547cc2",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/transformers-auto-model/DatologyAI_cls-opt-vit-b-32/_decomposed/DatologyAI_cls-opt-vit-b-32_start0_end22_0",
+   "dist": "randn",
+   "max_dim": null,
+   "verdict": "exact",
+   "seconds": 2.3,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      1,
+      1,
+      13,
+      13
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 3.4028234663852886e+38,
+     "exact": true
+    },
+    "loop.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      1,
+      1,
+      13,
+      13
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 3.4028234663852886e+38,
+     "exact": true
+    }
+   }
+  }
+ ]
+}

@@ -51,7 +51,7 @@ const kernelFor = (device, knobs) => {
   check(store.isStale(r1) && !store.isStale(r2), "newest record defines the current content id: the older one is stale");
   store.observe(prog, sim);
   check(!store.isStale(r1) && store.isStale(r2) && store.status(r2) === "stale", "a compile observes the real content id: the other one is stale");
-  const old = structuredClone(r1); old.manifest.codegen = "kiln-codegen/0"; old.at = "2026-10-19T14:00:00.000Z"; delete old.id; old.id = recordId(old);
+  const old = structuredClone(r1); old.manifest.codegen = "kiln-codegen/2"; old.at = "2026-10-19T14:00:00.000Z"; delete old.id; old.id = recordId(old);
   store.add(old);
   check(store.isStale(old) && !store.isDecisive(old), `a record from an older code generator is stale (${CODEGEN_VERSION} now)`);
   let threw = false; try { store.add({ ...r1, id: "0".repeat(64) }); } catch { threw = true; }

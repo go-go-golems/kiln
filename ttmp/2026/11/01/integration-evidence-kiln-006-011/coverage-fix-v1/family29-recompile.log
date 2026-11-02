@@ -1,0 +1,91 @@
+[kiln-normalized-fx/1] metadata policy kiln-dispatch-record-stream/1
+[kiln-pattern-autowrap/2] preserve explicit in-place operators and factory calls in match patterns
+[kiln-normalized-fx/1] MODIFIED MATCHING PROTOCOL; original source/dispatch/numerical checks retained
+[kiln-normalized-fx/1] pattern normalization []
+[kiln-pattern-multi-output/1] upstream tuple destructuring 3
+[kiln-normalized-fx/1] pattern normalization []
+[kiln-pattern-multi-output/1] upstream tuple destructuring 3
+[kiln-normalized-fx/1] pattern normalization []
+[kiln-pattern-multi-output/1] upstream tuple destructuring 3
+[kiln-normalized-fx/1] pattern normalization []
+[kiln-pattern-multi-output/1] upstream tuple destructuring 3
+[kiln-normalized-fx/1] pattern normalization []
+[kiln-pattern-multi-output/1] upstream tuple destructuring 3
+[kiln-normalized-fx/1] pattern normalization []
+[kiln-pattern-multi-output/1] upstream tuple destructuring 3
+[PassMgrBackend] Loaded 6 passes: ['KilnPattern0000', 'KilnPattern0001', 'KilnPattern0002', 'KilnPattern0003', 'KilnPattern0004', 'KilnPattern0005']
+graph-net-test-compiler-log [Processing] /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/TinyLlama/TinyLlama-1.1B-Chat-v0.4/_decomposed/TinyLlama-1.1B-Chat-v0.4_start3_end24_1
+graph-net-test-compiler-log [Config] model: TinyLlama/TinyLlama-1.1B-Chat-v0.4
+graph-net-test-compiler-log [Config] device: cuda
+graph-net-test-compiler-log [Config] hardware: NVIDIA GB10
+graph-net-test-compiler-log [Config] compiler: pass_mgr
+graph-net-test-compiler-log [Config] warmup: 2
+graph-net-test-compiler-log [Config] trials: 3
+graph-net-test-compiler-log [Config] compile_framework_version: 2.12.0a0+5aff3928d8.nv26.05
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0001 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0001.
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0002 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0002.
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0003 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0003.
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0004 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0004.
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0005 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0005.
+V1101 20:44:31.752000 96 torch/_dynamo/guards.py:5142] [0/1] [__recompiles] Recompiling function forward in /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/TinyLlama/TinyLlama-1.1B-Chat-v0.4/_decomposed/TinyLlama-1.1B-Chat-v0.4_start3_end24_1/model.py:6
+V1101 20:44:31.752000 96 torch/_dynamo/guards.py:5142] [0/1] [__recompiles]     triggered by the following guard failure(s):
+V1101 20:44:31.752000 96 torch/_dynamo/guards.py:5142] [0/1] [__recompiles]     - 0/0: GLOBAL_STATE changed: grad_mode 
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Applied 1 replacements with KilnPattern0000.
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0001 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0001.
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0002 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0002.
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0003 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0003.
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0004 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0004.
+[kiln-normalized-fx/1] target normalization []
+[PassMgrBackend] Pass KilnPattern0005 failed to match.
+[PassMgrBackend] No specific node failures recorded for KilnPattern0005.
+[Profiling] Using device: cuda NVIDIA GB10, warm up 2, trials 3
+Trial 1: e2e=0.39029 ms, gpu=0.34774 ms
+Trial 2: e2e=0.19717 ms, gpu=0.17626 ms
+Trial 3: e2e=0.17309 ms, gpu=0.15811 ms
+Compiled model execution failed: Environment fluctuation detected.
+  IQR/median = 55.1% (threshold: 20%)
+  Raw times (ms): [0.3902912139892578, 0.1971721649169922, 0.17309188842773438]
+Please re-run the evaluation.
+Traceback (most recent call last):
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 269, in test_single_model
+    compiled_out, compiled_time_stats = compiled_bench.exec()
+                                        ^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/torch/test_compiler.py", line 210, in exec
+    self.stats["e2e"] = test_compiler_util.get_timing_stats(e2e_times)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/upstream/pass_bench/test_compiler_util.py", line 137, in get_timing_stats
+    raise RuntimeError(
+RuntimeError: Environment fluctuation detected.
+  IQR/median = 55.1% (threshold: 20%)
+  Raw times (ms): [0.3902912139892578, 0.1971721649169922, 0.17309188842773438]
+Please re-run the evaluation.
+
+--- Full Traceback ---
+debug-model-execution RuntimeError /work/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/transformers-auto-model/TinyLlama/TinyLlama-1.1B-Chat-v0.4/_decomposed/TinyLlama-1.1B-Chat-v0.4_start3_end24_1
+[Profiling] Using device: cuda NVIDIA GB10, warm up 2, trials 3
+Trial 1: e2e=0.22459 ms, gpu=0.18835 ms
+Trial 2: e2e=0.17357 ms, gpu=0.15702 ms
+Trial 3: e2e=0.16284 ms, gpu=0.14851 ms
+graph-net-test-compiler-log [Result] status: failed
+graph-net-test-compiler-log [Fail due to compiled model execution error.]

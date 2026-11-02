@@ -4,23 +4,25 @@
 import { k, P } from "../core/kiln.js";
 import { numel, hash, rng, inKey, dtypeBytes } from "../core/util.js";
 import { checkSamples } from "@kiln/evidence";
-import { toCuda, toWgsl, toSim, SimMetrics } from "./emit.js";
+import { toCuda, toWgsl, wgslUnavailableReason, toSim, SimMetrics } from "./emit.js";
 import { printKernelBody } from "./kernel.js";
 import { schedule, compilePoint, workOf } from "./loop.js";
 import { timeModel, regsEstimate } from "./tile.js";
+import * as IX from "../core/ix.js";
+import { roundOperand } from "./mma.js";
 
 export const gpu = k.dialect("gpu").describe("the final IR: kernels with their rendered sources")
   .op("kernel", {
     args: { variadic: "ins" },
-    attrs: { K: null, cuda: "", wgsl: "", name: null, expr: null, shape: [], inShapes: [], inDtypes: [], map: null },
-    infer: ({ shape }) => k.tensor(shape),
+    attrs: { K: null, cuda: "", wgsl: "", wgslUnavailable: null, name: null, expr: null, shape: [], outDtype: "f32", inShapes: [], inDtypes: [], map: null },
+    infer: ({ shape, outDtype }) => k.tensor(shape, outDtype),
     print: ({ name, ins }) => `gpu.kernel ${name || "·"}(${ins})`,
     body: ({ cuda }) => cuda,
-    identity: ({ expr, shape, args }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}`),
-    keyIgnore: ["name", "cuda", "wgsl"],
+    identity: ({ expr, shape, args, outDtype }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}${outDtype && outDtype !== "f32" ? "|out:" + outDtype : ""}`),
+    keyIgnore: ["name", "cuda", "wgsl", "wgslUnavailable"],
   });
 export const emitRule = k.rule("emit_sources").match(P.op("kernel.kernel").as("n"))
-  .rewrite(({ n }) => n.lower(gpu.kernel, { ...n.attrs, cuda: toCuda(n.attrs.K), wgsl: toWgsl(n.attrs.K) }))
+  .rewrite(({ n }) => n.lower(gpu.kernel, { ...n.attrs, cuda: toCuda(n.attrs.K), wgsl: wgslUnavailableReason(n.attrs.K) ? null : toWgsl(n.attrs.K), wgslUnavailable: wgslUnavailableReason(n.attrs.K) }))
   .describe("render CUDA C++ and WGSL from Kernel IR (a 1:1 tree walk)");
 export const emitPass = k.pass("lowering/emit").short("c").rules(emitRule).describe("render CUDA and WGSL source for every kernel");
 
@@ -33,10 +35,10 @@ export function programOf(g) {
     if (n.name !== "gpu.kernel" && n.name !== "kernel.kernel") continue;
     const a = n.attrs, inDtypes = a.inShapes.map((_, i) => a.inDtypes?.[i] || "f32");
     kernels.push({
-      id, name: a.name || id, K: a.K, cuda: a.cuda || toCuda(a.K), wgsl: a.wgsl || toWgsl(a.K), expr: a.expr, shape: a.shape, inShapes: a.inShapes, inDtypes,
+      id, name: a.name || id, K: a.K, cuda: a.cuda || toCuda(a.K), wgsl: wgslUnavailableReason(a.K) ? null : (a.wgsl || toWgsl(a.K)), wgslUnavailable: wgslUnavailableReason(a.K), expr: a.expr, shape: a.shape, inShapes: a.inShapes, inDtypes, outDtype: a.outDtype || "f32",
       args: n.args.map((x) => g.ref(x)), map: a.map, row: a.K.row,
-      identity: hash(`loop|${a.expr.__key}|${a.shape.join("x")}|${a.inShapes.map((s, i) => inKey(s, inDtypes[i])).join(",")}`),
-      bytes: numel(a.shape) * 4 + a.inShapes.reduce((s, x, i) => s + numel(x) * dtypeBytes(inDtypes[i]), 0),
+      identity: hash(`loop|${a.expr.__key}|${a.shape.join("x")}|${a.inShapes.map((s, i) => inKey(s, inDtypes[i])).join(",")}${a.outDtype && a.outDtype !== "f32" ? "|out:" + a.outDtype : ""}`),
+      bytes: numel(a.shape) * dtypeBytes(a.outDtype || "f32") + a.inShapes.reduce((s, x, i) => s + numel(x) * dtypeBytes(inDtypes[i]), 0),
     });
   }
   return { kernels, graph: g };
@@ -54,6 +56,45 @@ export function kernelInputs(kern, seed = 1) {
     return d;
   });
 }
+// Simulator inputs: kernelInputs for floating buffers (the values every device shares); an integer
+// buffer gets typed storage with small integers, so integer kernels simulate exactly. A buffer read
+// through a data-dependent index term (a gather's ids) holds 0 or 1, valid for every axis of size 2+.
+const INT_STORAGE = { i64: BigInt64Array, i32: Int32Array, bool: Uint8Array };
+export const isIntegerDtype = (d) => Object.hasOwn(INT_STORAGE, d);
+function dataIndexedInputs(body) {
+  const out = new Set();
+  const ix = (e) => { if (IX.isIx(e)) for (const l of IX.loadsOf(e)) out.add(l.v.i); };
+  const fx = (e) => { if (!e) return; if (e.k === "ix") ix(e.e); else if (e.k === "op") e.a.forEach(fx); };
+  const walk = (ss) => { for (const st of ss) { [st.idx, st.c, st.from, st.to, st.step].forEach(ix); if (st.s === "iset") ix(st.e); else fx(st.e); if (st.body) walk(st.body); } };
+  walk(body);
+  return out;
+}
+export function simInputs(kern, seed = 1) {
+  const floats = kernelInputs(kern, seed);
+  const ld = dataIndexedInputs(kern.K?.body ?? []);
+  return kern.inShapes.map((s, j) => {
+    const d = kern.inDtypes?.[j] || "f32";
+    if (!isIntegerDtype(d)) return floats[j];
+    const r = rng(seedOf(kern, seed, j)), n = numel(s), out = new INT_STORAGE[d](n);
+    for (let i = 0; i < n; i++) { const v = d === "bool" || ld.has(j) ? Math.floor(r() * 2) : Math.floor(r() * 9) - 4; out[i] = d === "i64" ? BigInt(v) : v; }
+    return out;
+  });
+}
+export const outputStorage = (dtype, n) => (isIntegerDtype(dtype) ? new INT_STORAGE[dtype](n) : new Float32Array(n).fill(NaN));
+// integer outputs compare exactly (BigInt for int64)
+export function checkExact(got, want) {
+  let bad = 0, first = -1;
+  for (let i = 0; i < want.length; i++) if (BigInt(got[i]) !== BigInt(want[i])) { bad++; if (first < 0) first = i; }
+  return { ok: bad === 0, maxAbs: bad ? Infinity : 0, bad, n: want.length, skipped: 0, first, message: bad ? `${bad} of ${want.length} integer values differ (first at ${first}: ${got[first]} vs ${want[first]})` : "integer values equal" };
+}
+// A tensor-core kernel (K.mma, KILN-006) is legal only because its A and B inputs arrive in the operand format: from a
+// round_tf32 producer, or from f16/bf16 storage. Seeded inputs are uniform FP32 values, so a check of the kernel in
+// isolation rounds those two inputs to the format the graph delivers them in; the reference sees the same values.
+export function operandInputs(kern, ins) {
+  const mm = kern.K?.mma;
+  if (!mm) return ins;
+  return ins.map((d, j) => (j === mm.a || j === mm.b ? Float32Array.from(d, (x) => roundOperand(x, mm.operand)) : d));
+}
 // reference values at chosen output indices, from the Loop IR semantics
 export function referenceAt(kern, inputs, idx) {
   const f = compilePoint(schedule(kern.expr, kern.shape), kern.inShapes);
@@ -68,11 +109,11 @@ export function sampleIndices(n, count = 384, seed = 3) {
 
 // ----------------------------------------------------------------------------- the simulator
 const SIMS = new WeakMap();
-function simFor(K, instrument) {
+function simFor(K, instrument, mmaOrder = "sequential") {
   let c = SIMS.get(K);
   if (!c) { c = {}; SIMS.set(K, c); }
-  const key = instrument ? "i" : "p";
-  return (c[key] ||= toSim(K, { instrument }));
+  const key = (instrument ? "i" : "p") + "|" + mmaOrder;
+  return (c[key] ||= toSim(K, { instrument, mmaOrder }));
 }
 export function sampleBlocks(G, count = 12) {
   if (G <= count) return Array.from({ length: G }, (_, i) => i);
@@ -80,7 +121,8 @@ export function sampleBlocks(G, count = 12) {
   for (let i = 1; out.size < count; i++) out.add(Math.floor((i * G) / count));
   return [...out].sort((a, b) => a - b);
 }
-export function simulateKernel(kern, target, { seed = 1, blocks = null } = {}) {
+// mmaOrder: the FP32 accumulation order the emulated tensor-core atoms use (mma.js ORDERS)
+export function simulateKernel(kern, target, { seed = 1, blocks = null, mmaOrder = "sequential" } = {}) {
   // sample enough blocks to see the pattern, but bound the simulated work (~6M ops) so heavy kernels stay interactive
   if (blocks == null) {
     let per = 0;
@@ -89,10 +131,10 @@ export function simulateKernel(kern, target, { seed = 1, blocks = null } = {}) {
     blocks = Math.max(per > 2.5e7 ? 1 : 2, Math.min(12, Math.ceil(4096 / kern.K.block), byWork));
   }
   const K = kern.K;
-  const ins = kernelInputs(kern, seed);
-  const out = new Float32Array(numel(kern.shape)).fill(NaN);
+  const ins = operandInputs(kern, simInputs(kern, seed)), integer = isIntegerDtype(kern.outDtype);
+  const out = outputStorage(kern.outDtype, numel(kern.shape));
   const M = new SimMetrics(K.block, out.length);
-  const run = simFor(K, true);
+  const run = simFor(K, true, mmaOrder);
   const list = sampleBlocks(K.grid, blocks);
   const t0 = performance.now();
   run([...ins, out], list, M);
@@ -101,21 +143,24 @@ export function simulateKernel(kern, target, { seed = 1, blocks = null } = {}) {
   const covered = [];
   for (let i = 0; i < M.cov.length; i++) if (M.cov[i]) covered.push(i);
   const pick = covered.length > 512 ? sampleIndices(covered.length, 512).map((j) => covered[j]) : covered;
-  const want = referenceAt(kern, ins, pick);
-  const got = Float32Array.from(pick, (i) => out[i]);
-  const check = pick.length ? checkSamples(got, want) : { ok: false, message: "the sampled blocks wrote nothing" };
+  let check;
+  if (!pick.length) check = { ok: false, message: "the sampled blocks wrote nothing" };
+  else if (integer) { const f = compilePoint(schedule(kern.expr, kern.shape), kern.inShapes); check = checkExact(pick.map((i) => out[i]), pick.map((e) => f(ins, e))); }
+  else check = checkSamples(Float32Array.from(pick, (i) => out[i]), referenceAt(kern, ins, pick));
   check.n = pick.length;
   if (M.oobs.length) check.ok = false, check.message = `out-of-bounds ${M.oobs[0].what} (address ${M.oobs[0].a}); ` + check.message;
   if (M.badSyncs.length) check.ok = false, check.message = "a barrier runs in divergent code; " + check.message;
+  if (M.badMmas.length) check.ok = false, check.message = `${M.badMmas[0].message}; ` + check.message;
   return { metrics: metricsOf(kern, M, target, list.length), check, simMs };
 }
-export function regsOf(K) { return Math.min(255, regsEstimate(K.map, K.floats.length / 2)); }
+export function regsOf(K) { return Math.min(255, regsEstimate(K.map, K.floats.length / 2, K.mma?.op)); }
 export function metricsOf(kern, M, t, nb) {
   const K = kern.K, scale = K.grid / Math.max(1, nb);
   const traffic = (M.ldSect + M.stSect) * 32 * scale;
   const uniq = kern.bytes;
   const dram = Math.min(traffic, Math.max(uniq, traffic * (uniq > t.l2MB * 1048576 ? 0.6 : 0.12)));
   const counts = { flops: M.flops * scale, traffic, dram, smemWavefronts: M.shWave * scale, warpInstr: M.warpInstr * scale, threads: K.block, blocks: K.grid, smem: K.smemBytes, regs: regsOf(K) };
+  if (M.tensorFlops) Object.assign(counts, { tensorFlops: M.tensorFlops * scale, tensorTflops: t.mma?.[K.mma?.operand] ?? t.peakTflops });
   const tm = timeModel(counts, t);
   return {
     ...counts, ...tm,
@@ -128,7 +173,7 @@ export function metricsOf(kern, M, t, nb) {
 }
 // run every block (no instrumentation): for small kernels and end-to-end reference runs
 export function simulateFull(kern, inputs) {
-  const out = new Float32Array(numel(kern.shape));
+  const out = isIntegerDtype(kern.outDtype) ? outputStorage(kern.outDtype, numel(kern.shape)) : new Float32Array(numel(kern.shape));
   const run = simFor(kern.K, false);
   run([...inputs, out], Array.from({ length: kern.K.grid }, (_, i) => i), null);
   return out;

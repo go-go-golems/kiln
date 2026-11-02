@@ -121,6 +121,9 @@ class Program:
 class WgpuProgram(Program):
     def __init__(self, program: dict, device=None, power_preference: str = "high-performance"):
         super().__init__(program)
+        for kernel in program["kernels"]:
+            if not kernel.get("wgsl"):
+                raise ValueError(f"WebGPU unavailable for {kernel['name']}: {kernel.get('wgslUnavailable', 'no WGSL source')}")
         import wgpu
 
         self._wgpu = wgpu
@@ -278,7 +281,7 @@ class _Cuda:
         if r != 0:
             raise RuntimeError(f"{what}: {self.nvrtc.nvrtcGetErrorString(r).decode()} ({r})")
 
-    def compile(self, source: str, entry: str, arch: tuple[int, int]) -> tuple[bytes, str]:
+    def compile(self, source: str, entry: str, arch: tuple[int, int], include_paths=()) -> tuple[bytes, str]:
         """CUBIN for ``sm_XY``; PTX for ``compute_XY`` (the driver JITs it) when this NVRTC does not know the real
         architecture. Default flags, as the runner's nvcc: IEEE division and square root, FMA contraction on."""
         n, errors = self.nvrtc, []
@@ -286,8 +289,9 @@ class _Cuda:
             prog = ctypes.c_void_p()
             self.ncheck(n.nvrtcCreateProgram(ctypes.byref(prog), source.encode(), f"{entry}.cu".encode(), 0, None, None), "nvrtcCreateProgram")
             try:
-                opts = (ctypes.c_char_p * 1)(opt.encode())
-                r = n.nvrtcCompileProgram(prog, 1, opts)
+                options = [opt, *[f"--include-path={Path(p).resolve()}" for p in include_paths]]
+                opts = (ctypes.c_char_p * len(options))(*[v.encode() for v in options])
+                r = n.nvrtcCompileProgram(prog, len(options), opts)
                 if r != 0:
                     size = ctypes.c_size_t()
                     n.nvrtcGetProgramLogSize(prog, ctypes.byref(size))
@@ -309,13 +313,14 @@ class _Cuda:
 class CudaProgram(Program):
     """Kernels compiled with NVRTC for the current device, buffers allocated with cuMemAlloc. Runs in the device's
     primary context, the one the CUDA runtime (and so PyTorch) uses, so pointers from either are interchangeable; each
-    program holds a reference to it until ``close``. A live non-primary context current on this thread is used as found.
+    program holds a reference to it until ``close``.
+    ``include_paths`` explicitly supplies NVRTC header search directories (for CUDA half/bfloat16 headers). A live non-primary context current on this thread is used as found.
 
     ``allocate=False`` allocates only the constant buffers: the caller passes a pointer for every input and output to
     ``launch``, and one for every buffer in ``scratch`` (the intermediates between kernels). Two launches that run at the
     same time on different streams then share nothing, which one set of launcher-owned intermediates cannot offer."""
 
-    def __init__(self, program: dict, device: int = 0, allocate: bool = True):
+    def __init__(self, program: dict, device: int = 0, allocate: bool = True, include_paths=()):
         super().__init__(program)
         cu = self._cuda = _Cuda.get()
         d = ctypes.c_int()
@@ -358,7 +363,7 @@ class CudaProgram(Program):
                     raw = self._constant(b)
                     cu.check(cu.cu.cuMemcpyHtoD_v2(p.value, raw, len(raw)), "cuMemcpyHtoD")
             for k in program["kernels"]:
-                image, kind = cu.compile(k["cuda"], k["name"], self.arch)
+                image, kind = cu.compile(k["cuda"], k["name"], self.arch, include_paths=include_paths)
                 self.images[k["name"]] = kind
                 mod, fn = ctypes.c_void_p(), ctypes.c_void_p()
                 cu.check(cu.cu.cuModuleLoadData(ctypes.byref(mod), image), f"cuModuleLoadData {k['name']}")

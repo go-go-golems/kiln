@@ -1,0 +1,571 @@
+{
+ "format": "kiln-program/1",
+ "name": "division-i32",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/11/01/KILN-011--kiln-integer-floor-division-and-modulo-intern-analysis-design-and-implementation-guide/sources/division-cuda-v1/division-i32.kiln.js",
+  "sha256": "d97be5ec02fa94940d551d83df1fc5255fa9ff5df4ecf40f278acb17cfd93de7",
+  "internal_check": "ok at loop"
+ },
+ "inputs": [
+  {
+   "name": "a",
+   "buffer": 0,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  },
+  {
+   "name": "b",
+   "buffer": 1,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "floordiv",
+   "buffer": 2,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  },
+  {
+   "name": "remainder",
+   "buffer": 3,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  },
+  {
+   "name": "truncdiv",
+   "buffer": 4,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  },
+  {
+   "name": "fmod",
+   "buffer": 5,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  },
+  {
+   "name": "floor_lit",
+   "buffer": 6,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  },
+  {
+   "name": "rem_lit",
+   "buffer": 7,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  },
+  {
+   "name": "floor_neg",
+   "buffer": 8,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  },
+  {
+   "name": "rem_neg",
+   "buffer": 9,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  },
+  {
+   "name": "trunc_lit",
+   "buffer": 10,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  },
+  {
+   "name": "fmod_lit",
+   "buffer": 11,
+   "shape": [
+    4096
+   ],
+   "dtype": "i32"
+  },
+  {
+   "name": "truediv",
+   "buffer": 12,
+   "shape": [
+    4096
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 1,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 2,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 3,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 4,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 5,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 6,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 7,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 8,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 9,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 10,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 11,
+   "dtype": "i32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 12,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_floordiv__1nh6g9021n2",
+   "identity": "1nh6g9021n2",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i32",
+    "i32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i32 (in)",
+   "cuda": "__device__ __forceinline__ int kiln_floordiv_i32(int a, int b) { if (b == -1) return (int)(0u - (unsigned int)a); int q = a / b, r = a % b; return q - (int)((r != 0) & ((r ^ b) < 0)); }\nextern \"C\" __global__ void __launch_bounds__(64) k_floordiv__1nh6g9021n2(const int* __restrict__ src0, const int* __restrict__ src1, int* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    int in0 = 0, in1 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = kiln_floordiv_i32(in0, in1);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_remainder__5sl2hrp1mq",
+   "identity": "5sl2hrp1mq",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 3,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i32",
+    "i32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i32 (in)",
+   "cuda": "__device__ __forceinline__ int kiln_remainder_i32(int a, int b) { if (b == -1) return 0; int r = a % b; return r + (((r != 0) & ((r ^ b) < 0)) ? b : 0); }\nextern \"C\" __global__ void __launch_bounds__(64) k_remainder__5sl2hrp1mq(const int* __restrict__ src0, const int* __restrict__ src1, int* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    int in0 = 0, in1 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = kiln_remainder_i32(in0, in1);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_truncdiv__ujwbgz6jj7",
+   "identity": "ujwbgz6jj7",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 4,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i32",
+    "i32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i32 (in)",
+   "cuda": "__device__ __forceinline__ int kiln_truncdiv_i32(int a, int b) { return b == -1 ? (int)(0u - (unsigned int)a) : a / b; }\nextern \"C\" __global__ void __launch_bounds__(64) k_truncdiv__ujwbgz6jj7(const int* __restrict__ src0, const int* __restrict__ src1, int* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    int in0 = 0, in1 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = kiln_truncdiv_i32(in0, in1);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_fmod__15b7ynir462",
+   "identity": "15b7ynir462",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 5,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i32",
+    "i32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i32 (in)",
+   "cuda": "__device__ __forceinline__ int kiln_fmod_i32(int a, int b) { return b == -1 ? 0 : a % b; }\nextern \"C\" __global__ void __launch_bounds__(64) k_fmod__15b7ynir462(const int* __restrict__ src0, const int* __restrict__ src1, int* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    int in0 = 0, in1 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = kiln_fmod_i32(in0, in1);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_floor_lit__v4oihqrgxf",
+   "identity": "v4oihqrgxf",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 6,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i32 (in)",
+   "cuda": "__device__ __forceinline__ int kiln_floordiv_i32(int a, int b) { if (b == -1) return (int)(0u - (unsigned int)a); int q = a / b, r = a % b; return q - (int)((r != 0) & ((r ^ b) < 0)); }\nextern \"C\" __global__ void __launch_bounds__(64) k_floor_lit__v4oihqrgxf(const int* __restrict__ src0, int* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    int in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_floordiv_i32(in0, 80);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_rem_lit__1hjz4mjkoz6",
+   "identity": "1hjz4mjkoz6",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 7,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i32 (in)",
+   "cuda": "__device__ __forceinline__ int kiln_remainder_i32(int a, int b) { if (b == -1) return 0; int r = a % b; return r + (((r != 0) & ((r ^ b) < 0)) ? b : 0); }\nextern \"C\" __global__ void __launch_bounds__(64) k_rem_lit__1hjz4mjkoz6(const int* __restrict__ src0, int* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    int in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_remainder_i32(in0, 80);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_floor_neg__1pk8l5ho43x",
+   "identity": "1pk8l5ho43x",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 8,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i32 (in)",
+   "cuda": "__device__ __forceinline__ int kiln_floordiv_i32(int a, int b) { if (b == -1) return (int)(0u - (unsigned int)a); int q = a / b, r = a % b; return q - (int)((r != 0) & ((r ^ b) < 0)); }\nextern \"C\" __global__ void __launch_bounds__(64) k_floor_neg__1pk8l5ho43x(const int* __restrict__ src0, int* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    int in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_floordiv_i32(in0, -3);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_rem_neg__1mnoz3j0xy8",
+   "identity": "1mnoz3j0xy8",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 9,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i32 (in)",
+   "cuda": "__device__ __forceinline__ int kiln_remainder_i32(int a, int b) { if (b == -1) return 0; int r = a % b; return r + (((r != 0) & ((r ^ b) < 0)) ? b : 0); }\nextern \"C\" __global__ void __launch_bounds__(64) k_rem_neg__1mnoz3j0xy8(const int* __restrict__ src0, int* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    int in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_remainder_i32(in0, -3);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_trunc_lit__umsa367vvv",
+   "identity": "umsa367vvv",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 10,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i32 (in)",
+   "cuda": "__device__ __forceinline__ int kiln_truncdiv_i32(int a, int b) { return b == -1 ? (int)(0u - (unsigned int)a) : a / b; }\nextern \"C\" __global__ void __launch_bounds__(64) k_trunc_lit__umsa367vvv(const int* __restrict__ src0, int* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    int in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_truncdiv_i32(in0, 14);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_fmod_lit__l12fql7vrl",
+   "identity": "l12fql7vrl",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 11,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i32 (in)",
+   "cuda": "__device__ __forceinline__ int kiln_fmod_i32(int a, int b) { return b == -1 ? 0 : a % b; }\nextern \"C\" __global__ void __launch_bounds__(64) k_fmod_lit__l12fql7vrl(const int* __restrict__ src0, int* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    int in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_fmod_i32(in0, 16);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_truediv__6xnmbot0ks",
+   "identity": "6xnmbot0ks",
+   "row": "TPB=64",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 12,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i32",
+    "i32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i32 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_truediv__6xnmbot0ks(const int* __restrict__ src0, const int* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float v0 = 0.0f, v1 = 0.0f, v2 = 0.0f;\n    int in0 = 0, in1 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src1[e];\n        v0 = ((float)(in0));\n        in1 = src0[e];\n        v1 = ((float)(in1));\n        v2 = (v0 / v1);\n        dst[e] = v2;\n    }\n}"
+  }
+ ]
+}

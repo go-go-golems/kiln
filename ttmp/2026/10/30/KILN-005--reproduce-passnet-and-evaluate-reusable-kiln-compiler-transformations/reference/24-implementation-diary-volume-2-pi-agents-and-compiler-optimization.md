@@ -1,0 +1,5237 @@
+---
+Title: Implementation diary volume 2 - Pi agents and compiler optimization
+Ticket: KILN-005
+Status: active
+Topics:
+    - kiln
+DocType: reference
+Intent: long-term
+Owners: []
+RelatedFiles: []
+ExternalSources: []
+Summary: ""
+LastUpdated: 2026-10-31T13:24:18.009948851-04:00
+WhatFor: ""
+WhenToUse: ""
+---
+
+# Implementation diary — volume 2
+
+Continues [volume 1](01-detailed-investigation-diary.md), Steps 1–159. Numbering continues across volumes. Earlier experimental evidence remains authoritative for its stated revision.
+
+## Step 160: Begin the owned policy transport and rotate the diary
+
+Added a serial NDJSON process interface around the existing NativePolicyTask. This is an implementation checkpoint toward the requested Pi integration; it does not yet execute Pi tools or produce a new policy experiment. The previous continuation verified an existing commit without changing implementation state; this step resumes concrete implementation.
+
+Started this second diary volume at the user's suggestion. Volume 1 remains intact, including the provider connectivity result and the abandoned prototype's provenance.
+
+### Prompt Context
+**User prompt (verbatim):** "you can create a new diary at this point, if it's that big, btw"
+**Assistant interpretation:** Continue detailed chronological documentation in a manageable new volume.
+**Inferred user intent:** Preserve navigable history without repeatedly growing a very large document.
+See Step 159 for the Pi/LunaRoute request and diary requirements.
+**Previous commit:** 5c5b0a5 — Record Pi LunaRoute transition and verified provider connectivity.
+
+### What I did
+- Added integrations/passnet/native_policy_rpc.py with explicit manifest, receipt, output, proposal budget and Node arguments.
+- Forwarded tool arguments unchanged to the existing task, including malformed submission arguments.
+- Required unique request IDs; rejected duplicate transport requests before task execution.
+- Closed the task on EOF or transport failure using finally.
+- Created this document with docmgr doc add and linked the two volumes.
+
+### Why
+- One owned Python process preserves the task's existing ledger and serial accounting across Pi native tool calls.
+- Transport retries must not silently duplicate submissions or restore proposal budget.
+
+### What worked
+- python -m py_compile integrations/passnet/native_policy_rpc.py passed.
+- An in-memory transport check verified null submission arguments reach task.call unchanged, EOF closes the task, and duplicate IDs fail before a second dispatch.
+- Docmgr completed successfully after polling the original process handle.
+
+### What didn't work
+- No implementation failure was observed. The checks used a fake task and do not prove real validator execution or Pi event ordering.
+- A broad process-list diagnostic included sandbox launcher boilerplate and was unhelpful; the existing execution handle remained the authoritative process observation.
+
+### What I learned
+- The existing task dispatch already owns invalid-submission accounting; the transport should preserve it rather than duplicate validation.
+
+### What was tricky to build
+- Distinguishing malformed transport envelopes from malformed tool arguments: envelope errors terminate transport, while valid envelopes containing invalid tool arguments reach the ledger.
+
+### What warrants a second pair of eyes
+- Review closure behavior when a task raises after reserving an attempt. A finished ledger records termination, not scientific success.
+- Pi must charge identifiable submissions before framework argument validation; this transport alone does not establish that guarantee.
+
+### What should be done in the future
+- Implement the Pi SDK owner, request limits, message-end accounting and retained traces.
+- Exercise the real task through this transport and run a bounded provider experiment with explicit protocol identity.
+
+### Code review instructions
+- Start with native_policy_rpc.serve and NativePolicyTask.call.
+- Check duplicate request rejection, unchanged argument forwarding and EOF/failure closure.
+
+### Technical details
+- Wire format: kiln-native-policy-rpc/1 ready record, then requests with id/tool/arguments and responses with id/result.
+- No implicit retry, resumption, provider access, evaluator invocation or production compiler change is introduced.
+
+## Step 161: Implement pre-execution accounting for native Pi submissions
+
+Added a framework-facing policy tool boundary that accounts for submissions in an awaited assistant-message hook before tool execution. This addresses the argument-validation ordering discovered in Step 159. The implementation is independently tested but is not yet installed into a running Pi session.
+
+### Prompt Context
+See Step 159 for the authored Pi/LunaRoute request and Step 160 for diary rotation.
+**Assistant interpretation:** Preserve the trusted proposal budget when moving from the old XML protocol to native tool calls.
+**Inferred user intent:** Obtain reliable, faster agent experiments without losing experimental accountability.
+**Previous commit:** a96df7a — Begin owned policy RPC transport and second implementation diary.
+
+### What I did
+- Added PiPolicyTools in integrations/passnet/pi_policy_tools.mjs.
+- Stored results by tool call ID before execution and returned those results without a second submission.
+- Charged truncated assistant submissions with null arguments, preventing their policy bodies from being admitted.
+- Added focused tests for multiple calls, invalid arguments, exhausted budget termination, truncated replies, unaccounted execution and duplicate IDs.
+
+### Why
+- Pi validates arguments before its tool execution hook; charging only inside execution would miss invalid submissions.
+- Native multi-call responses are permitted in this new protocol, with each submission charged individually.
+
+### What worked
+- Node 26 ran pi_policy_tools.test.mjs successfully (one passing test-file receipt, containing two cases).
+- The fake RPC observed two charges before execution and no additional charge when returning a stored result.
+
+### What didn't work
+- No test failure occurred. These tests do not prove SDK hook installation, provider limits, or real task execution.
+
+### What I learned
+- Separating the accounting boundary from SDK setup allows direct tests of the important ordering contract without making a provider call.
+
+### What was tricky to build
+- Truncated messages may still contain recognizable calls. Their attempts must be charged without accepting partially generated policy bodies.
+
+### What warrants a second pair of eyes
+- The eventual owner must await observe, serialize messages and stop provider requests after exhaustion. terminate on tool results alone is insufficient when framework validation rejects a call.
+
+### What should be done in the future
+- Install this boundary in the Pi SDK owner with the RPC transport, hard request/token limits and retained event traces.
+- Verify actual SDK event ordering with a controlled provider, then run the requested LunaRoute experiment.
+
+### Code review instructions
+- Read PiPolicyTools.observe before execute, then run node --test integrations/passnet/pi_policy_tools.test.mjs using Node 26.
+
+### Technical details
+- Complete submission bodies are admitted only for stopReason stop or toolUse; other stop reasons submit null to the trusted task.
+- This checkpoint changes no compiler artifacts, coverage counts, benchmark results or previous comparison evidence.
+
+## Step 162: Correct the hook-failure assumption before connecting the provider
+
+Inspection of the installed Pi extension runner revealed that both message_end and before_provider_request handlers catch exceptions and report them without propagating them to the agent. This changes the integration design: throwing from an extension is not a hard request-budget boundary. Added persistent accounting-failure state so subsequent tool execution cannot return a previously accepted result after an accounting failure.
+
+### Prompt Context
+See Step 159 for the user's Pi integration request.
+**Assistant interpretation:** Verify actual SDK behavior before relying on it for experimental controls.
+**Inferred user intent:** Reliable bounded model experiments with an auditable execution path.
+**Previous commit:** ed1a613 — Account native Pi policy submissions before tool validation.
+
+### What I did
+- Read installed dist/core/extensions/runner.js, specifically emitMessageEnd and emitBeforeProviderRequest.
+- Added persistent failure state to PiPolicyTools and blocked subsequent execution after observation failure.
+- Extended the duplicate-ID case to verify that a swallowed observation exception cannot permit later tool execution.
+
+### Why
+- Awaited hooks establish ordering but do not imply exception propagation.
+- The owner needs a provider request boundary independent of extension exception handling.
+
+### What worked
+- Node 26 focused tests passed, including rejection of execution after duplicate-ID observation failure.
+- Source inspection establishes that the current proposed exception-only request limiter would not be sufficient.
+
+### What didn't work
+- A guessed installed pi-agent-core/dist/agent.d.ts path returned No such file or directory. Discover the actual nested dependency path before further inspection.
+- No live policy batch was run; request-limit enforcement remains incomplete.
+
+### What I learned
+- SDK hook failure semantics must be verified independently from event ordering.
+
+### What was tricky to build
+- Accounting may have already reserved a proposal before a later hook error. Persistent failure prevents accidental continuation while retaining the ledger's consumed slots.
+
+### What warrants a second pair of eyes
+- Verify a hard stop outside the exception-swallowing extension runner, including underlying provider retries.
+
+### What should be done in the future
+- Discover and inspect the actual agent stream interface; implement owner-level request limits and cancellation before invoking LunaRoute for policies.
+
+### Code review instructions
+- Inspect PiPolicyTools.observe and execute, then rerun the focused Node test file.
+- Inspect the installed Pi runner catch blocks rather than assuming extension exceptions stop inference.
+
+### Technical details
+- A failure sets closed and retains the error for all later observation/execution attempts.
+- This is tool-side protection only. It does not yet stop provider network requests or qualify an end-to-end Pi experiment.
+
+## Step 163: Add an inference admission gate outside extension hooks
+
+Located the actual nested pi-agent-core dependency and confirmed that Agent exposes streamFunction. Added a request gate intended for that boundary. It reserves completion allowance before dispatch, enforces model identity and request count, and passes maxRetries zero to the provider. This is a tested component, not yet a verified live SDK integration.
+
+### Prompt Context
+See Step 159 for the authored Pi/LunaRoute request.
+**Assistant interpretation:** Establish enforceable inference limits independently of swallowed extension exceptions.
+**Inferred user intent:** Bounded, reproducible agent experiments.
+**Previous commit:** d8f2048 — Stop policy tool execution after swallowed accounting failures.
+
+### What I did
+- Discovered nested pi-agent-core/dist/agent.js and agent.d.ts using rg --files.
+- Inspected pi-ai/dist/api/openai-completions.js: the OpenAI client uses maxRetries zero, while the outer retryProviderRequest receives options.maxRetries.
+- Implemented createRequestGate with explicit provider/model identity, request count and conservative completion reservation.
+- Tested model mismatch, token cap override, retry override, exhaustion, closed state and failed dispatch without refund.
+
+### Why
+- The stream entry point is outside extension-hook exception suppression.
+- Reserving the full allowed output before dispatch avoids relying on missing usage receipts after provider failures. This differs from charging only observed completion tokens and must be declared in the next protocol.
+
+### What worked
+- Both focused Node test files passed, containing four cases in total.
+- The fake provider received allowances of ten and five tokens under a fifteen-token budget; a third dispatch was rejected.
+
+### What didn't work
+- No new failure occurred. Actual LunaRoute payload enforcement and SDK installation remain unverified.
+
+### What I learned
+- There are two retry layers in the installed OpenAI-compatible implementation. The explicit stream option controls the outer retry helper.
+
+### What was tricky to build
+- Requests that fail after admission must retain their reservations; otherwise repeated failures could evade the declared allowance.
+
+### What warrants a second pair of eyes
+- Verify that the selected LunaRoute route uses the inspected provider implementation and that extensions cannot raise the final payload token cap.
+- Keep actual usage separate from reserved allowance in reports.
+
+### What should be done in the future
+- Install the gate on the session agent, connect the RPC owner and native tools, inspect actual payloads, and run the bounded policy experiment.
+
+### Code review instructions
+- Read pi_request_gate.mjs and run Node 26 --test on pi_request_gate.test.mjs and pi_policy_tools.test.mjs.
+
+### Technical details
+- The gate forwards existing options but overrides maxTokens and maxRetries.
+- Failure recording is conservative: reservations occur before recording or provider dispatch, with no automatic refund.
+- No new optimization, benchmark coverage or end-to-end agent result is claimed.
+
+
+## Step 164: Assemble and initialize the actual Pi policy session
+
+Connected the policy accounting boundary and inference gate to an actual Pi SDK session. The setup check selected lunaroute/glm-5.3-flash through openai-completions and verified exactly three active tools. No inference prompt was sent. The remaining work is the owned RPC client, bounded run lifecycle and real policy batch.
+
+### Prompt Context
+See Step 159 for the authored Pi request.
+**Assistant interpretation:** Move from isolated components to the installed SDK.
+**Inferred user intent:** A functioning fast agent pipeline with preserved experiment controls.
+**Previous commit:** a9fbd49 — Bound Pi inference admission outside extension hooks.
+
+### What I did
+- Added pi_policy_session.mjs using the installed SDK, explicit LunaRoute extension, native tools and retained-event callbacks.
+- Disabled automatic compaction and retry settings and excluded unrelated tools, skills, prompt templates and context files.
+- Installed the inference gate on session.agent.streamFunction.
+- Saved script 445 and the successful setup receipt under sources/pi-policy-session-setup-v1.
+
+### Why
+- Actual session construction verifies API assumptions that isolated component tests cannot establish.
+- Explicit tool selection prevents the policy agent from using unrelated coding or provider web tools.
+
+### What worked
+- Node syntax validation passed.
+- Script 445 completed successfully with the installed SDK and provider; active tools were finish, inspect_training and submit_policy.
+- The selected API is openai-completions, matching the inspected retry implementation.
+
+### What didn't work
+- The first sandboxed setup failed: Credential store read failed for lunaroute: EROFS: read-only file system, mkdir '/home/manuel/.pi/agent/auth.json.lock'. Retrying with authorized escalation allowed Pi's normal credential-store lock. No credential values were read or printed by our code.
+- Setup success does not verify actual message hooks, request payload token limits or end-to-end policy submission.
+
+### What I learned
+- SDK session initialization requires credential-store locking even without an inference request.
+
+### What was tricky to build
+- Provider registration and exact tool selection must complete before choosing the model and installing the gate. Setup asserts the resulting allowlist.
+
+### What warrants a second pair of eyes
+- Confirm isolation after session startup hooks and verify final provider payload limits during the actual run.
+- The caller must provide RPC serialization, durable trace storage and wall-clock cancellation.
+
+### What should be done in the future
+- Connect the owned RPC process, retain actual policy traces and run the bounded development batch.
+
+### Code review instructions
+- Inspect createPolicySession and script 445; the source receipt explicitly labels setup-only success.
+
+### Technical details
+- Settings are in memory; authentication is resolved internally by Pi.
+- The module imports the installed SDK and TypeBox through explicit package resolution, without installing another framework or copying upstream implementation code.
+
+## Step 165: Connect the owned process and prepare the first Pi development batch
+
+Implemented the run owner with a serialized Python RPC process, persistent event records, session disposal and a wall-clock deadline. Prepared a four-proposal GLM development batch using the earlier training corpus. The attempted tmux launch was rejected by automatic approval review before execution; no inference batch started.
+
+### Prompt Context
+See Step 159 for the authored authorization to use Pi/LunaRoute.
+**Assistant interpretation:** Execute the requested framework/provider experiment with a distinct protocol and retained evidence.
+**Inferred user intent:** Reach measured policy generation and compiler evaluation.
+**Previous commit:** 70973bf — Assemble and verify installed Pi policy session setup.
+
+### What I did
+- Added run_pi_policy_agent.mjs to own the Python process, serialized requests, event files, timeout and terminal receipt.
+- Added script 446 to preserve a native-tool prompt derived from the existing policy grammar, removing XML-specific behavior.
+- Prepared pi-policy-batch-v1/config.json with four proposals, twelve maximum requests, 4096 tokens per request, 24576 reserved completion tokens and a five-minute deadline.
+- Attempted a tmux launch named kiln-pi-policy-batch-v1.
+
+### Why
+- This experiment is distinct from the published Qwen/XML result and uses already-consumed development data.
+- Serial RPC preserves the existing trusted task's ownership and proposal accounting.
+
+### What worked
+- Node syntax validation passed for the owner; script 446 generated the retained configuration.
+- Configuration explicitly avoids any claim of fresh held-out generalization.
+
+### What didn't work
+- Automatic approval review rejected the launch: "This starts a real networked LunaRoute inference batch that will transmit private training-manifest/features and prompts derived from the repository; while the user authorized using Pi/LunaRoute, they did not specifically authorize exporting this sensitive payload to that external provider."
+- The rejected action was not retried or bypassed. The runner remains unverified end to end.
+
+### What I learned
+- Current automatic review requires payload-specific authorization beyond the existing provider preference.
+
+### What was tricky to build
+- The Python process owns the ledger; the JavaScript owner must serialize request/response IDs and preserve failure receipts without retrying submissions.
+
+### What warrants a second pair of eyes
+- Validate actual SDK event ordering, timeout behavior and final provider token caps before treating a completed run as a qualified experiment.
+
+### What should be done in the future
+- Obtain explicit approval for sending the training-only features and repository-derived policy prompt to LunaRoute, or continue local-only validation.
+- Run the batch once authorized and compile/evaluate accepted policies with the existing harness.
+
+### Code review instructions
+- Inspect run_pi_policy_agent.mjs, script 446 and the retained configuration before approving the external inference payload.
+
+### Technical details
+- No real batch was launched in this step. The separate earlier READY connectivity call and setup check remain the only successful provider/session evidence.
+- No benchmark score, task coverage or optimization result changed.
+
+## Step 166: Verify the real policy process and validator locally
+
+Ran the actual Python RPC process against the existing training manifest and receipt, using the real Node policy validator. Invalid and duplicate submissions consumed slots, the valid policy produced one artifact, and the excess submission was rejected without creating another attempt. This advances local integration validation while the external payload approval remains pending.
+
+### Prompt Context
+See Step 159 for the Pi request and Step 165 for the external launch rejection.
+**Assistant interpretation:** Continue unaffected implementation validation without bypassing the rejected provider action.
+**Inferred user intent:** Make useful progress toward a reliable agent experiment.
+**Previous commit:** c31f3ed — Prepare owned Pi policy batch and record rejected external launch.
+
+### What I did
+- Added script 447 to drive native_policy_rpc.py with five explicit requests and a three-slot budget.
+- Retained the request stream, responses, stderr, task ledger, validated artifact and verification receipt under sources/pi-real-rpc-verification-v1.
+- Checked response IDs, terminal status, attempt count and artifact count against the actual filesystem ledger.
+
+### Why
+- Earlier transport tests used a fake task. This check exercises subprocess transport, real manifest validation, Node policy validation and persistent accounting together.
+
+### What worked
+- Script 447 passed with response statuses rejected, accepted, duplicate, budget_exhausted and finished.
+- Exactly three attempt request files and one artifact file were written. finished.json reports three attempts and one unique artifact.
+- Zero provider requests were made; no GPU evaluation occurred.
+
+### What didn't work
+- No local validation failure occurred. The external batch remains unstarted because its payload-specific approval has not arrived.
+
+### What I learned
+- The owned-process boundary preserves the existing task's invalid and duplicate accounting with real compiler artifact validation.
+
+### What was tricky to build
+- Excess submissions must receive a response without creating an extra ledger attempt; the filesystem assertions verify this distinction.
+
+### What warrants a second pair of eyes
+- This is a deterministic host-authored test policy, not an LLM-generated optimization. It proves neither Pi event ordering nor performance improvement.
+
+### What should be done in the future
+- Validate Pi with controlled local responses and verify timeout handling; execute the actual provider batch only after the required authorization.
+
+### Code review instructions
+- Inspect script 447 and sources/pi-real-rpc-verification-v1/verification.json, then compare stdout.jsonl with task attempt records.
+
+### Technical details
+- Test policy: kiln-fusion-policy/1 threshold 0.95. The fixture ID is rpc-test.
+- Earlier publication, coverage figures and benchmark outcomes remain unchanged.
+
+
+## Step 167: Verify accounting inside the actual Pi agent loop locally
+
+Ran the installed Pi SDK with a synthetic local provider and a scripted native tool response containing invalid arguments. The actual message hook charged that submission before framework validation, and the closed boundary prevented another inference dispatch. No LunaRoute request or credential access was involved.
+
+### Prompt Context
+See Step 159 for the Pi request and Step 165 for the pending external payload approval.
+**Assistant interpretation:** Test SDK event ordering locally while preserving the external launch restriction.
+**Inferred user intent:** A dependable agent integration, verified through actual execution.
+**Previous commit:** 1a13b13 — Verify real policy RPC accounting with compiler artifact validation.
+
+### What I did
+- Added script 448 with an isolated agent directory, fixture provider and scripted stream function.
+- Initialized the production session factory and replaced inference with a deterministic native call containing the wrong argument key.
+- Asserted one accounting call, one inference dispatch and closed budget state after the actual Pi loop returned.
+- Retained the fixture source and complete event/result receipt under sources/pi-local-ordering-v1.
+
+### Why
+- Component tests cannot prove installed SDK hook ordering or what happens after native argument validation fails.
+
+### What worked
+- The Node 26 script completed successfully.
+- The accounting hook received submit_policy with {wrong:1}; only one scripted inference dispatch occurred.
+- The model loop terminated despite the malformed native call, with the closed gate preventing additional dispatch.
+
+### What didn't work
+- No failure occurred. This uses a fake task callback and scripted inference; the real RPC was independently checked in Step 166. Their full composition still needs validation.
+
+### What I learned
+- The installed SDK's awaited message hook can implement pre-validation charging, and the stream gate supplies the required independent stop boundary.
+
+### What was tricky to build
+- The malformed tool never needs to execute successfully for its proposal attempt to be accounted. A provider boundary is still needed to stop the next model turn after validation failure.
+
+### What warrants a second pair of eyes
+- Inspect the retained event sequence and distinguish a scripted provider response from an LLM result.
+
+### What should be done in the future
+- Exercise the complete owner lifecycle, including real RPC and timeout/error cases. Keep external inference pending explicit payload approval.
+
+### Code review instructions
+- Start with script 448 and sources/pi-local-ordering-v1/result.json. The fixture uses a deliberately unusable loopback URL; the network stream is replaced before prompting.
+
+### Technical details
+- Provider local-fixture/model scripted, one native submit_policy call with ID invalid-1.
+- No compiler speedup, benchmark coverage change or model-quality result follows from this test.
+
+## Step 168: Complete the local Pi round trip and adopt six-lane planning
+
+The complete production owner passed with a local scripted provider: Pi generated a native submission, the real Python ledger and Node validator accepted one artifact, and the process exited cleanly. The user then clarified that LunaRoute token costs are irrelevant and requested six concurrent lanes. Updated the design direction accordingly without conflating that clarification with the pending external payload approval.
+
+### Prompt Context
+**User prompts (verbatim):**
+- "there's no budget need on lunaroue btw, tokens are free."
+- "we can just do 6 concurrent lanes, so that way it's easier for you to test out things."
+**Assistant interpretation:** Avoid cost-driven token constraints and support six independent concurrent proposal experiments.
+**Inferred user intent:** Increase iteration throughput while retaining traceable experiments.
+**Previous commit:** e4875a0 — Verify native Pi accounting order with local scripted inference.
+
+### What I did
+- Added script 449 to exercise the production runner with a scripted local provider and the real policy task.
+- Retained complete owner events, session records, ledger, artifact and terminal verification.
+- Updated design 20 with the verified integration boundary and six-lane architecture.
+
+### Why
+- Full composition can fail even when isolated SDK and RPC tests pass.
+- Concurrent proposal lanes can improve experimental throughput; simultaneous GPU measurements would compromise timing isolation.
+
+### What worked
+- The owner completed in 1376.677119 ms with one request, one consumed proposal slot and one unique accepted artifact.
+- RPC exited with code zero and no signal. Terminal receipt states evaluation_status not_run.
+
+### What didn't work
+- No local failure occurred. External LunaRoute execution remains unstarted after the prior automatic-review rejection.
+- Six-lane orchestration is a design update at this checkpoint, not implemented concurrency.
+
+### What I learned
+- The installed Pi session, accounting hook, inference gate, Python process and real validator compose successfully for the scripted valid-policy path.
+
+### What was tricky to build
+- A local provider must implement the actual SDK stream contract while ensuring no network inference occurs. The fixture implements streamSimple directly.
+
+### What warrants a second pair of eyes
+- This 1.38-second elapsed time is a local fixture measurement, not GLM throughput or GPU speedup.
+- Concurrency requires independent ledger ownership and serialized GPU evaluation.
+
+### What should be done in the future
+- Add six-lane orchestration using the existing owner and revise cost-motivated caps. Preserve declared experimental allowances where needed for comparisons.
+- Resolve external payload approval, then run actual model proposals and evaluate accepted artifacts.
+
+### Code review instructions
+- Inspect script 449, sources/pi-local-full-run-v1/verification.json and the owner event stream.
+- Read design 20's new checkpoint before implementing lane orchestration.
+
+### Technical details
+- The fixture policy is a threshold policy with max_work_growth 0.95, not an LLM discovery.
+- The local run reserved 4096 completion tokens but reported synthetic usage; neither number estimates real inference cost.
+
+## Step 169: Run the first real GLM batch and return focus to compiler results
+
+The user explicitly approved the external payload. Launched the prepared Pi/LunaRoute batch once, then observed its terminal receipt: four inference requests completed in 20.240613383 seconds, yielding three unique validated policies from four submissions. Compilation and GPU evaluation remain pending. This is the first real successful proposal batch through the Pi integration.
+
+The user also corrected the work's direction: research results should take priority over production hardening. The preceding response acknowledged that concern without implementation progress. This turn resumed research, inspected fusion opportunity traces, and executed the approved model batch.
+
+### Prompt Context
+**User prompts (verbatim):**
+- "how much of this whole ledger whatever infrastruxture do you think is being overly cautious, when we actually want to get some result in order to move forward?"
+- "we are doing research, not production ready hardening"
+- "yes. approved."
+**Assistant interpretation:** Stop expanding infrastructure, pursue measured compiler candidates, and execute the previously blocked LunaRoute payload.
+**Inferred user intent:** Faster discovery and useful experimental conclusions.
+**Previous commit:** 4c04713 — Verify complete local Pi round trip and document six-lane direction.
+
+### What I did
+- Inspected the twelve baseline training traces: only one recorded fusion decision was rejected, at approximately 1.06 work growth. This suggests limited opportunity for increasing the threshold on this population.
+- Launched the existing four-proposal configuration in tmux kiln-pi-policy-batch-v1 after explicit approval.
+- Polled the same run and read its completed task and owner receipts.
+
+### Why
+- A real batch supplies actionable compiler candidates; further harness refinement was delaying the research.
+- Sparse rejected decisions help explain why permissive thresholds previously collapsed to baseline artifacts.
+
+### What worked
+- GLM completed four requests and four submissions in 20.240613383 seconds.
+- Attempts two, three and four produced three unique validated optimization artifacts.
+- Python RPC exited cleanly. All model and tool events remain in sources/pi-policy-batch-v1/run.
+
+### What didn't work
+- Attempt one was rejected with "Unknown fusion policy field". It remains in the trace and consumed one slot.
+- A sandboxed tmux observation reported Operation not permitted; authorized observation of the same session succeeded. No duplicate run was launched.
+- A guessed compile_policy.py path did not exist; use the existing compile_study and policy compilation modules.
+
+### What I learned
+- Native Pi tool calling works with this actual GLM route and produces accepted policy data quickly enough for exploratory iteration.
+- Policy validity does not imply changed kernels or speedup; those are the next questions.
+
+### What was tricky to build
+- No new infrastructure was built in this step. Existing components were used to obtain an actual model result.
+
+### What warrants a second pair of eyes
+- The first accepted tree contains redundant branches and mostly retains threshold 1.02. Compiler artifact comparison must precede any improvement claim.
+
+### What should be done in the future
+- Compile the three accepted policies and benchmark changed candidates. Expand to six independent exploratory lanes with hypotheses beyond threshold tuning.
+- Retain essential correctness and timing controls, but stop treating production-hardening completeness as a prerequisite to research.
+
+### Code review instructions
+- Inspect pi-policy-batch-v1/run/result.json, task attempt artifacts and event records.
+
+### Technical details
+- Provider lunaroute/model glm-5.3-flash; development corpus only.
+- The gate reserved 16384 completion tokens. This is not actual usage and is not an inference-cost estimate.
+- evaluationStatus remains not_run. No new performance result or task coverage is claimed.
+
+## Step 170: Compile GLM proposals and identify four new executable cases
+
+Compiled all three accepted GLM policies across the twelve development training graphs. All 36 policy–graph compilations passed their reference checks. Attempts two and three changed five and three executables respectively; attempt four reproduced baseline throughout. Comparing fingerprints with the earlier search identifies four previously unseen executable cases, all from attempt two.
+
+### Prompt Context
+See Steps 168–169 for the user's research-first direction, six-lane preference and explicit provider approval.
+**Assistant interpretation:** Move actual model proposals into compiler evaluation.
+**Inferred user intent:** Obtain measurable compiler findings rather than more infrastructure.
+**Previous commit:** 63f307d — Run approved GLM policy batch and retain three accepted candidates.
+
+### What I did
+- Added script 450 to extract accepted policy programs, invoke the existing compile_policy.mjs and compare training fingerprints.
+- Ran the compilation in tmux kiln-glm-compile-v1 and retained artifacts, logs and summary.json.
+- Compared graph/fingerprint pairs against native-policy-search-artifacts-v1 receipts.
+
+### Why
+- Valid policies can collapse to identical executables. Compilation identifies which proposals deserve measurement.
+
+### What worked
+- All three policies compiled all twelve graphs successfully.
+- Attempt two changed five baseline executables and has four graph/executable pairs absent from the earlier search.
+- Attempt three changed three baseline executables, but all twelve pairs occurred in the earlier search. Attempt four matched baseline on all twelve.
+
+### What didn't work
+- Attempt four yielded no executable change. This is an observed candidate outcome, not a compiler failure.
+- GPU measurement has not yet been performed for the four new cases.
+
+### What I learned
+- The GLM batch produced executable novelty despite the mostly saturated default fusion decisions. Whether that novelty improves performance remains unknown.
+
+### What was tricky to build
+- Policy identity is not executable identity: comparison uses per-graph fingerprints, not policy names or artifact file hashes.
+
+### What warrants a second pair of eyes
+- Review numerical/reference assumptions inherited from the development corpus. Successful local reference checks do not establish native PassBench GPU acceptance.
+
+### What should be done in the future
+- Benchmark the new attempt-two executables on bling with the existing correctness and timing path, then decide which hypotheses merit six-lane expansion.
+
+### Code review instructions
+- Inspect script 450 and sources/pi-policy-compile-v1/summary.json, then the candidate receipts and generated kernels.
+
+### Technical details
+- Target a100 remains the scheduling proxy; the experimental hardware is GB10.
+- Training-only compilation, separate contraction. No held-out performance claim or full-corpus coverage promotion.
+
+## Step 171: Measure actual GLM policies on GB10; baseline wins
+
+Completed the first real Pi/GLM proposal-to-GPU experiment. All candidates were eligible after correctness and timing checks, but none improved the training aggregate: attempt two scored 0.8876853334, attempt three 0.9593722814, and attempt four shared the baseline executable at 1.0. The existing selector retained baseline. This is a negative optimization result with a functioning fast proposal pipeline.
+
+### Prompt Context
+See Steps 168–169 for research-first priorities, six concurrent lanes and external payload approval.
+**Assistant interpretation:** Measure actual proposals and use results to direct the next experiment.
+**Inferred user intent:** Concrete optimization findings, including informative failures.
+**Previous commit:** 7cfaff7 — Compile GLM policies and identify novel development executables.
+
+### What I did
+- Added script 451 to reuse the established freeze, compilation and measurement path with the actual model policies and unchanged/default controls.
+- Qualified five policies across twenty graphs, then measured only the twelve development training graphs on bling.
+- Used existing scripts 438 and 439 for staging and isolated GPU execution, then collected measurement.json and run.json.
+- Ran the existing select_policy.py to compute the family-balanced end-to-end objective.
+
+### Why
+- Fresh baseline measurements in the same isolated run provide the relevant performance comparison.
+- Reusing the established evaluator avoids constructing another benchmark.
+
+### What worked
+- All 100 policy–graph compilations passed. All twelve training graphs completed GPU evaluation.
+- Every candidate remained eligible with no recorded selection failures.
+- GPU owner exited successfully, its container was absent afterward, and no GPU compute process remained.
+- The ranking reproducibly selects baseline: attempt two 0.8876853334471824, attempt three 0.9593722814179808, attempt four 1.0 by executable identity.
+
+### What didn't work
+- No aggregate optimization improvement was found. The new executable cases did not translate into a better reusable policy.
+- A guessed script filename was absent; used the actual existing 439-run-policy-search-evaluation.py instead.
+
+### What I learned
+- Native GLM proposals are operationally useful, but the current structural-only prompt and fusion grammar produced regressions or aliases.
+- The next research step should expose measured feedback and diversify transformations rather than repeat blind threshold proposals.
+
+### What was tricky to build
+- The existing evaluator qualifies the full declared corpus before training measurement. Compiling its twenty graphs does not make this a fresh confirmation study; the reused population is development data.
+
+### What warrants a second pair of eyes
+- This is the modified highest-precision FP32 compiler-policy experiment, not an official PassBench score or full200 reproduction.
+- Results are one development batch; they do not establish a general ranking of model providers.
+
+### What should be done in the future
+- Run six exploratory lanes with concrete hypotheses and measured feedback, including transformations beyond the saturated fusion threshold.
+- Publish the substantive agent experiment milestone with its negative outcome and research implications.
+
+### Code review instructions
+- Read pi-policy-train-results-v1/selection.json, measurement.json and run.json; inspect script 451 and the original model artifacts.
+
+### Technical details
+- GB10, twenty warmups, one hundred trials, three repeats, original stability criteria and explicit separate-contraction reference protocol.
+- No fresh held-out performance claim; no production compiler change promoted.
+
+## Step 172: Run six concurrent GLM lanes with measured feedback
+
+All six requested proposal lanes completed successfully. They produced 34 accepted artifacts from 36 submissions in roughly 9–21 seconds per lane. Cross-lane deduplication retained 33 unique policy artifacts. Compilation is now running in tmux kiln-six-lane-compile-v1; no GPU result is yet available for this expanded batch.
+
+### Prompt Context
+See Step 168 for the verbatim six-lane request and Step 169 for research-first direction and external approval.
+**Assistant interpretation:** Use concurrency and measured feedback to accelerate proposal exploration.
+**Inferred user intent:** Explore multiple hypotheses quickly and evaluate concrete compiler outcomes.
+**Previous commit:** be807bb — Measure GLM policies on GB10 and retain negative optimization result.
+
+### What I did
+- Added script 452 to run six independent existing owners concurrently, with separate configurations, ledgers and traces.
+- Supplied actual prior policies and their measured development ranking.
+- Assigned region launch costs, region materialization costs, selective consumers, fanout, small producers and counterhypothesis exploration.
+- Raised operational allowances; no tight token-cost constraint motivated this batch.
+- Added script 453 to deduplicate accepted artifacts and prepare the existing compilation/evaluation path.
+
+### Why
+- Distinct hypotheses and feedback offer more information than repeating the original blind proposal batch.
+- The evaluator and GPU measurement path remain shared, with GPU work serialized.
+
+### What worked
+- All six owners exited successfully and each consumed six proposal slots.
+- Accepted artifact counts were 6, 6, 6, 5, 6 and 5 across the lane receipts; 33 unique artifacts remain after cross-lane deduplication.
+- Longest lane elapsed time was 21.260461628 seconds; shortest was 8.544991329 seconds.
+
+### What didn't work
+- Two submission slots did not produce unique accepted artifacts. Their original outcomes remain in the per-lane ledgers.
+- These policies still operate within the existing fusion grammar; this is not new arbitrary compiler-pass synthesis.
+
+### What I learned
+- Six-lane proposal generation is practical with this route. Compilation and performance evaluation now determine whether the expanded search is useful.
+
+### What was tricky to build
+- Cross-lane duplicates must remain traceable to their origins while avoiding redundant policy compilation. origins.json preserves that mapping.
+
+### What warrants a second pair of eyes
+- Do not equate 33 distinct policy programs with 33 distinct executables or improvements.
+
+### What should be done in the future
+- Poll the existing compilation session, evaluate qualified candidates on bling, and use changed-executable and timing results to decide whether to extend the transformation grammar.
+
+### Code review instructions
+- Inspect scripts 452–453, pi-six-lanes-v1/summary.json and pi-six-lane-study-v1/origins.json.
+
+### Technical details
+- Six concurrent inference processes, independent six-proposal ledgers; no simultaneous GPU benchmarks.
+- Existing development corpus and prior timing feedback; no fresh held-out claim.
+
+## Step 173: Find a positive selective-fusion policy in the six-lane GPU experiment
+
+The six-lane search produced a positive development result: glm-28 achieved a family-balanced synchronized end-to-end speedup of 1.285583430086401 across twelve training graphs. All policies remained eligible with no selector failures. The winner originated from selective-consumer attempt six and combines aggregate threshold 1.02 with consumer threshold 2.0. It changes six training graphs, increasing their kernel counts by one. Repetition and generalization remain untested.
+
+### Prompt Context
+**User prompt (verbatim):** "you can experiment with thinking lvels btw as well"
+See Steps 168–169 for concurrent-lane and research-first instructions.
+**Assistant interpretation:** Measure the running batch and make thinking level an explicit variable for subsequent experiments.
+**Inferred user intent:** Improve research throughput and investigate how reasoning affects optimization proposals.
+**Previous commit:** 321e619 — Run six concurrent GLM hypothesis lanes with measured feedback.
+
+### What I did
+- Polled the original compilation job to completion: 35 policies across twenty graphs qualified.
+- Staged and executed the existing isolated GPU evaluator on the twelve training graphs.
+- Collected measurement and terminal receipts and ran the existing selector.
+- Made Pi thinking level configurable, recording requested and effective levels in session_ready. Syntax validation passed; new levels have not yet been exercised.
+
+### Why
+- The positive result must come from measured executable performance, not proposal count or structural novelty.
+- Recording effective thinking settings will make SDK clamping visible in future comparisons.
+
+### What worked
+- GPU evaluation completed all twelve graphs. glm-28 ranked first at 1.285583430086401; no other candidate exceeded baseline in the aggregate.
+- The winning policy is small and interpretable: selective consumer threshold 2.0, aggregate threshold 1.02.
+- The run used fresh baseline timings and shared exact aliases as intended.
+
+### What didn't work
+- Many candidates were aliases or substantial regressions; the lowest aggregate was approximately 0.2134.
+- Earlier commentary attributed broad graph changes to region policies before checking their kinds. Several such changes actually came from selective policies; policy artifacts are authoritative.
+- No repeated-run or unseen-family confirmation has been performed for the winner.
+
+### What I learned
+- More kernels can accompany faster execution. The winner increases kernel counts on six training graphs, motivating examination of the fusion boundaries and resulting schedules.
+- The first blind batch's negative result did not imply the existing selective grammar lacked useful policies.
+
+### What was tricky to build
+- The running measurement bundle retained its original source snapshot before the thinking-level configuration edit, preserving the interpretation of this run.
+
+### What warrants a second pair of eyes
+- Check per-graph contributions and repeat the winner. The 33-candidate development search can select noise and population-specific effects.
+- Explain the source-level mechanism before promoting this policy into the compiler default.
+
+### What should be done in the future
+- Repeat baseline versus glm-28, inspect the changed kernels, and test additional graph families.
+- Publish this substantive milestone in the vault. Explore two hypotheses at low/medium/high thinking as a separate six-lane batch after the measured result is understood.
+
+### Code review instructions
+- Read pi-six-lane-results-v1/selection.json and measurement.json, then pi-six-lane-study-v1/corpus/policies/glm-28.json and origins.json.
+
+### Technical details
+- Development result under the modified explicit FP32 protocol; not native PassBench score or fresh held-out evidence.
+- Thinking-level configuration defaults to off for existing configurations; new requests can specify thinkingLevel explicitly.
+
+## Step 174: Repeat the gain and identify matrix scheduling as the next hypothesis
+
+A fresh isolated run of the identical candidate set again selected glm-28, scoring 1.2873976889929954 versus the first run's 1.285583430086401. The development gain repeats. Per-graph analysis shows four wins, two regressions and six exact aliases. The largest observed improvement is approximately 19.01x on one graph; one regression is approximately 0.408x. This concentration rules out interpreting the aggregate as uniform improvement.
+
+### Prompt Context
+See Steps 168–169 and 173 for research-first priorities, concurrency and thinking-level experimentation.
+**Assistant interpretation:** Repeat the measured result and explain which compiler behavior warrants further research.
+**Inferred user intent:** Find reusable improvements rather than promote a lucky aggregate.
+**Previous commit:** ec3c154 — Measure 1.286x development gain from GLM selective fusion policy.
+
+### What I did
+- Added script 454 to extract the original immutable evaluation bundle into a fresh remote run directory and repeat GPU measurement.
+- Collected repeated timing/terminal receipts and recomputed the ranking.
+- Added script 455 to relate changed-graph timings to actual kernel schedules and shapes.
+
+### Why
+- Repetition addresses run variability; inspecting kernel changes provides a concrete optimization hypothesis.
+
+### What worked
+- Both runs select glm-28 with closely matching aggregate scores; the repeated ranking records no candidate failures.
+- Graph 3 changes a fused row-mapped matrix/layout kernel into a tiled matrix kernel plus layout conversion, reducing observed end-to-end time from 1.17646 ms to 0.0618875 ms in the first run.
+- Graph 10 similarly switches to MAP=tiled,BM=32,BN=16,BK=8 plus a separate layout kernel and improves approximately 1.568x.
+
+### What didn't work
+- Graph 11 regresses from 0.0844555 ms to 0.207151 ms; its separated matrix kernel remains row-mapped, using TPB=128,STAGE=all.
+- Repetition on the same development population establishes neither unseen-family generalization nor a universally beneficial policy.
+
+### What I learned
+- Preserving a matrix operation until scheduling can enable a profitable tiled implementation. Fusion changes scheduling opportunities as well as launch count.
+- The next targeted hypothesis is to prevent layout fusion where it destroys profitable matrix tiling, while retaining fusion where separation supplies no better schedule.
+
+### What was tricky to build
+- The repeat uses unchanged compiled inputs and evaluator source; only run ownership/name differs. Current uncommitted implementation choices cannot affect its kernels.
+
+### What warrants a second pair of eyes
+- Schedule differences are observed evidence, but attributing the entire speedup to tiling requires a controlled compiler ablation.
+
+### What should be done in the future
+- Design a matrix/layout-aware profitability decision or schedule comparison, then test it against both the winner's gains and regressions.
+- Confirm on additional families and publish the substantive milestone report.
+
+### Code review instructions
+- Inspect scripts 454–455, pi-six-lane-repeat-results-v1/selection.json and pi-selective-winner-analysis-v1.json.
+
+### Technical details
+- Fixed development population and modified explicit FP32 protocol; no default compiler promotion.
+- Baseline and candidate share measurements only when their executable fingerprints are identical.
+
+## Step 175: Publish the repeated selective-fusion result as a technical article
+
+Published a 2,280-word textbook-style article explaining the actual Pi/GLM pipeline, six-lane experiment, repeated positive result and matrix/layout scheduling hypothesis. The new vault article was committed and pushed as 2d407b6b700461b54b542130364c37edab2d1eaa. Earlier reports and unrelated vault changes remain untouched.
+
+### Prompt Context
+See the standing milestone report request and Steps 168–174 for current research direction.
+**Assistant interpretation:** Preserve the substantive result in a self-contained technical explanation.
+**Inferred user intent:** Make the research understandable and reusable beyond the session.
+**Evidence commit:** d1f1b42 — Repeat selective fusion gain and identify matrix scheduling effects.
+
+### What I did
+- Applied the Obsidian vault-writing and textbook-authoring skills.
+- Created reference 25 through docmgr and wrote a source copy with the same article body.
+- Defined graph, pass, policy and scheduling concepts before tracing a concrete measured example.
+- Included architecture, policy JSON, objective equation, proposed algorithm pseudocode, evidence locations and limits.
+- Verified both aggregate values against selection receipts, then committed and pushed the new vault article.
+
+### Why
+- The repeated improvement is a meaningful milestone, while its mixed per-graph behavior needs careful explanation.
+
+### What worked
+- Both recorded aggregate values match the article's rounded results.
+- Vault push succeeded to main at 2d407b6b700461b54b542130364c37edab2d1eaa.
+
+### What didn't work
+- No publication failure occurred. cp -n emitted a portability warning; the new file was copied and committed successfully.
+- No claim of unseen-family generalization, native PassBench scoring or arbitrary compiler-pass synthesis was added.
+
+### What I learned
+- The explanatory sequence is clearest when policy semantics precede the distinction between executable novelty and measured improvement.
+
+### What was tricky to build
+- The report distinguishes observed schedule changes from a causal explanation that still requires ablation.
+
+### What warrants a second pair of eyes
+- Review the concentration of gain in one graph and the proposed matrix/layout-aware rule.
+
+### What should be done in the future
+- Implement and measure a targeted compiler hypothesis; test additional graph families and thinking levels.
+
+### Code review instructions
+- Read reference 25 or the vault article, then follow its evidence table to the actual measurements and generated schedules.
+
+### Technical details
+- Vault path: Projects/2026/10/31/ARTICLE - Kiln - Six GLM Lanes and Matrix Layout Fusion.md.
+- Article body: 2,280 whitespace-delimited words, one Mermaid diagram, concrete JSON and proposed pseudocode.
+
+
+## Step 176: Reject the simple contraction-eligibility hypothesis
+
+Implemented and exercised an opt-in fusion-edge predicate that preserves a producer's contraction eligibility when fusion would remove it. On development graphs 3, 10 and 11, the rule produced the same schedules and kernel counts as baseline. This hypothesis does not explain the winner's behavior. Preserved the experimental patch and outputs, then restored the compiler files to avoid retaining an ineffective API extension.
+
+### Prompt Context
+See Steps 169 and 173 for research-first direction and the scheduling hypothesis.
+**Assistant interpretation:** Test a concrete compiler mechanism before expanding the interface.
+**Inferred user intent:** Learn from executable experiments and consolidate architecture.
+**Starting commit:** 56f6f9c — Publish technical report on repeated selective fusion gains.
+
+### What I did
+- Inspected loop fusion and tile.analyze contraction recognition.
+- Temporarily added an acceptEdge predicate to createFusionRule and a tile-level contraction-preserving rule factory.
+- Added script 456 to compile baseline and experimental forms of graphs 3, 10 and 11 with reference checks.
+- Ran the existing selective-fusion test successfully.
+- Archived experimental-rule.patch and reverted only the two compiler files changed by this experiment.
+
+### Why
+- A tiling-eligibility test was a direct, inexpensive probe of the proposed mechanism.
+- A negative result should narrow the next experiment without permanently expanding compiler APIs.
+
+### What worked
+- All six probe compilations passed local reference checks; the existing selective-fusion test passed.
+- Output artifacts establish identical selected schedules for default and preserve variants on all three graphs.
+
+### What didn't work
+- The proposed predicate did not expose the winning schedules. No GPU rerun was warranted for this unchanged-schedule probe.
+
+### What I learned
+- Preserving the presence of a contraction is insufficient. The next investigation should inspect the contraction dimensions and estimated costs of legal tiled schedules before and after fusion.
+
+### What was tricky to build
+- tile.js already depends on loop.js, so the experimental factory lived at the tile layer instead of introducing a reverse dependency into loop fusion.
+
+### What warrants a second pair of eyes
+- Distinguish scheduling legality from cost-model ranking. The current evidence does not prove the cost model is the sole cause.
+
+### What should be done in the future
+- Compare contraction dimensions and schedule estimates for fused and materialized forms; test schedule-aware profitability or a better representation.
+
+### Code review instructions
+- Review script 456 and sources/contraction-preservation-probe-v1/results.json, then the archived patch. Replaying the script requires applying that patch to the recorded starting revision.
+
+### Technical details
+- Production compiler files were restored exactly to HEAD. No default behavior changed and no performance gain is claimed.
+
+## Step 177: Correct the eligibility inference and compare actual schedule costs
+
+Inspected the final Loop IR before scheduling for all six changed training graphs, enumerating the existing scheduler's legal choices and cost estimates. Contrary to my earlier inference from the ineffective edge predicate, the final baseline kernels have no recognized contraction. Every separated matrix kernel does. The cost model prefers tiled schedules in all four measured wins and row schedules in both measured regressions.
+
+### Prompt Context
+See Steps 169 and 173 for research-first direction and the matrix scheduling hypothesis.
+**Assistant interpretation:** Resolve the discrepancy between the negative edge predicate and observed final schedules.
+**Inferred user intent:** Derive a reusable compiler decision from actual compiler behavior.
+**Starting commit:** 6a957dc — Test and reject simple contraction-preservation fusion hypothesis.
+
+### What I did
+- Added script 457, compiling each graph under default and glm-28 to the loop checkpoint.
+- Used tile.analyze and the existing forkTree domains to enumerate schedules, retaining the cheapest estimated choice for each mapping.
+- Saved full contraction dimensions, shapes, choices and cost estimates in fusion-schedule-costs-v1.json.
+
+### Why
+- A predicate that makes no difference during fusion does not prove that final fused kernels retain contraction eligibility.
+- Comparing final representations directly separates recognition from profitability.
+
+### What worked
+- The script completed all twelve compilations/analyses.
+- Separated matrix dimensions are M/N/K = 82/512/512, 49/768/768, 15/16/16, 64/512/512, 64/512/512 and 15/1280/1280.
+- The four winning cases have tiled estimates below row estimates. The two regressions have row estimates below tiled estimates.
+
+### What didn't work
+- The preceding commentary's claim that fused forms evidently retained structural tiling eligibility was incorrect. Final Loop IR analysis contradicts it; this entry supersedes that inference.
+- These are analytic model estimates, not direct measurements of each alternative schedule. No new GPU timing was performed.
+
+### What I learned
+- The existing scheduler already contains a useful distinction between the winning and losing separated cases.
+- Fusion ordering or intermediate producer form must be investigated to explain why the earlier local eligibility predicate never preserved the useful matrix representation.
+
+### What was tricky to build
+- Final contraction recognition must use the same shape/index analysis as scheduling, including canonical dimensions, rather than infer M and N from raw tensor shape positions.
+
+### What warrants a second pair of eyes
+- Confirm how contraction structure emerges during reverse-order fusion before designing a local predicate. A final-state analysis cannot by itself establish the precise intermediate failure point.
+
+### What should be done in the future
+- Test a staged fusion strategy that first exposes matrix computation, then compares tiled versus row profitability before fusing layout consumers.
+- Evaluate that strategy against both existing regressions and additional families, keeping the production default unchanged until measured.
+
+### Code review instructions
+- Run script 457 and inspect fusion-schedule-costs-v1.json alongside pi-selective-winner-analysis-v1.json.
+
+### Technical details
+- For M=82,N=K=512, estimated row cost is 30.8142 us and tiled cost 22.8348 us.
+- For M=15,N=K=1280, estimated row cost is 34.6940 us and tiled cost 40.7927 us.
+- No new compiler API or behavior was introduced in this investigation.
+
+## Step 178: Implement staged scheduling-aware fusion and recover both regressions
+
+Implemented an opt-in two-stage transformation using existing rule and pipeline interfaces. The first stage exposes the matrix kernels with the discovered selective policy. The second applies ordinary fusion only to producers whose cheapest estimated mapping is not tiled. On the six changed training graphs, this produces exact executable matches to glm-28 for all four wins and baseline for both regressions. GPU measurement and broader qualification remain pending.
+
+### Prompt Context
+See Steps 169 and 173 for research-first direction and the targeted scheduling hypothesis.
+**Assistant interpretation:** Turn the observed cost-model distinction into a reusable transformation program.
+**Inferred user intent:** Improve compiler behavior through concrete, measurable changes.
+**Starting commit:** 63190c6 — Analyze contraction recognition and schedule costs in winning policy.
+
+### What I did
+- Added integrations/passnet/scheduling_fusion.mjs with preferredMapping and applySchedulingFusion.
+- Composed existing createFusionRule, matcher, pass and insertAfter interfaces without adding a compiler-core API.
+- Added script 458 to compare default and staged compilation on all six changed graphs.
+- Compared complete exported executable structures after removing name/source/policy metadata against previously measured artifacts.
+- Ran the existing fusion-policy test successfully.
+
+### Why
+- The first stage exposes schedule choices before the second stage decides whether to fuse them away.
+- Keeping producer kernels only when tiled is preferred addresses the distinction observed in both regressions.
+
+### What worked
+- All twelve probe compilations passed local reference checks.
+- Graphs 3, 6, 8 and 10 exactly match measured glm-28 executable structures.
+- Graphs 7 and 11 exactly match measured baseline executable structures.
+- Existing default/fanout/diagnostic fusion tests passed.
+
+### What didn't work
+- No probe failure occurred. The transformation has not yet been timed as a complete candidate or tested on additional families.
+
+### What I learned
+- A staged transformation can recover the observed scheduling benefits without the earlier ineffective edge predicate.
+- Existing pipeline composition is sufficient; no new generic callback or compiler-core dependency is needed.
+
+### What was tricky to build
+- The second stage runs after selective fusion has exposed contractions. Applying a structurally similar condition during the first reverse-order fusion sweep did not suffice.
+
+### What warrants a second pair of eyes
+- This heuristic protects every producer preferring tiled mapping; it does not compare complete fused and materialized total costs.
+- Schedule enumeration adds compilation work that should be measured. The implementation currently reads the existing fork tree representation.
+
+### What should be done in the future
+- Compile the full development set, measure the new candidate with fresh baseline timings, and evaluate additional graph families before promotion.
+
+### Code review instructions
+- Start with scheduling_fusion.mjs and script 458, then scheduling-fusion-probe-v1/results.json and generated artifacts.
+
+### Technical details
+- The first stage uses consumer work threshold 2 and default aggregate threshold 1.02.
+- The second stage uses the existing target-specific estimate over legal schedule domains.
+- This is a manually derived transformation informed by a model-generated policy; do not attribute the new algorithm itself to GLM.
+
+## Step 179: Measure the staged transformation at 1.405x with no development regressions
+
+The staged transformation achieved 1.4045370516557378 family-balanced end-to-end speedup across the twelve development graphs. The original GLM policy scored 1.287157771480373 in the same run. Four graphs improved and eight reproduced baseline exactly, including both former regressions. All correctness/selection checks passed. This is a manually derived transformation informed by model-generated evidence, not a new GLM-generated algorithm.
+
+### Prompt Context
+See Steps 169 and 173 for research-first priorities and the targeted scheduling hypothesis.
+**Assistant interpretation:** Measure the implemented transformation against unchanged Kiln and its model-generated precursor.
+**Inferred user intent:** Demonstrate useful compiler improvement and identify remaining generalization work.
+**Implementation commit:** 1eb33311af1ef3ca9b4dd6b5cb850964923db395 — Expose staged scheduling fusion as an explicit experimental program.
+
+### What I did
+- Added explicit kiln-transformation-program/1 recognition to the existing compiler-study entry point; the scheduling-fusion kind invokes the staged pass composition.
+- Added script 459 to declare baseline, default, glm-28 and staged-fusion together.
+- Compiled all four programs across twenty graphs, then measured the twelve training graphs on isolated GB10 using the existing evaluator.
+- Collected raw timing and terminal receipts and recomputed selection.
+
+### Why
+- Explicit transformation identity distinguishes the manual algorithm from the bounded policy grammar generated by GLM.
+- Fresh same-run controls establish the performance effect of eliminating the precursor's regressions.
+
+### What worked
+- All 80 compilations qualified with no candidate graph failure.
+- All measured candidates were eligible with no selector failures.
+- Staged-fusion scored 1.4045370516557378; glm-28 scored 1.287157771480373.
+- Changed training graphs 3, 6, 8 and 10 measured approximately 19.0543x, 1.4005x, 1.4202x and 1.5552x. The other eight graphs were exact baseline aliases.
+
+### What didn't work
+- No execution failure occurred. Generalization beyond this development population remains untested.
+- The objective currently excludes compile-time cost; the extra analytic schedule enumeration is not free.
+
+### What I learned
+- Model discovery followed by compiler-mechanism analysis yielded a better transformation than the raw model policy on this population.
+- Existing schedule-cost information can guide a staged transformation without task identifiers or shape-specific exceptions.
+
+### What was tricky to build
+- The study must preserve an explicit transformation format instead of falsely describing staged pass composition as a single fusion threshold policy.
+
+### What warrants a second pair of eyes
+- The largest graph improvement dominates part of the aggregate. Additional graph families and compile-cost measurements are required before default promotion.
+
+### What should be done in the future
+- Test the committed transformation on additional graphs and inspect failures or regressions. Extend the agent-facing transformation vocabulary only after understanding this concrete reusable primitive.
+- Record the new result in the next milestone report with attribution and limitations intact.
+
+### Code review instructions
+- Inspect scheduling_fusion.mjs, compile_policy.mjs, script 459 and staged-fusion-results-v1/selection.json and measurement.json.
+
+### Technical details
+- Opt-in experimental transformation; unchanged production default.
+- Modified explicit FP32 compiler-policy protocol on GB10, not native PassBench score or full200 support.
+
+## Step 180: Exhaust the original fresh-model envelope and broaden variant discovery
+
+Declared a twenty-graph confirmation population before compilation or timing, excluding exact model identities from every tracked prior corpus and the official evaluation set. The original selection exhausted its task scan with only two new matrix models and three new reduction models, so it failed rather than silently shrinking the requested population. A separate v2 selection is running with sixty-four rather than eight variants examined per task; all workload-size limits and exclusions remain fixed.
+
+### Prompt Context
+See Steps 169 and 179 for research-first direction and the requirement to test generalization.
+**Assistant interpretation:** Evaluate the committed transformation on additional exact models without outcome-based replacement.
+**Inferred user intent:** Determine whether the development gain generalizes.
+**Starting commit:** 1a38878 — Measure staged scheduling fusion at 1.405x on development graphs.
+
+### What I did
+- Added script 460 with prior-manifest exclusions and ten matrix/ten reduction confirmation quotas.
+- Preserved the failed selection, its declaration, partial translated graphs and complete scan audit.
+- Added script 461 for a separately named broader metadata search and launched tmux kiln-staged-fresh-selection-v2.
+
+### Why
+- The previously used population is development data. Additional exact models provide a stronger test while acknowledging possible architectural relatives.
+- Expanding variant discovery addresses insufficient candidates without using compiler or timing outcomes.
+
+### What worked
+- The selector retained its complete failure evidence and did not manufacture a complete manifest.
+- A concrete limitation of the original first-eight-variants envelope is now established.
+
+### What didn't work
+- Script 460 terminated with ValueError: Selection incomplete; preserve partial audit.
+- At exhaustion the category counts were reduction=3 and matrix=2, below ten each.
+- Initial guessed historical script names and an unmatched shell glob failed; subsequent file discovery located the actual preparation script.
+
+### What I learned
+- The accumulated prior-model exclusions leave too few eligible models under the initial scan envelope. Confirmation requires broader metadata discovery or a separately declared population change.
+
+### What was tricky to build
+- Failed partial selection must remain distinct from a benchmark corpus. Its translated examples are not performance-selected, but they do not satisfy the declared quota.
+
+### What warrants a second pair of eyes
+- The v2 search is not architecture-disjoint and is restricted to supported FP32 workloads. Neither criterion should be overstated.
+
+### What should be done in the future
+- Poll the original v2 selection session, inspect its terminal outcome, and compile/measure the fixed transformation only after the population is established.
+
+### Code review instructions
+- Read scripts 460–461, staged-fusion-fresh-v1/declaration.json and corpus/scan-audit.json. The v2 output is live and not committed at this checkpoint.
+
+### Technical details
+- v1 max_graphs_per_task=8; v2=64. Both target ten graphs per category with zero training graphs.
+- No fresh confirmation performance measurement has occurred.
+
+## Step 181: Freeze all thirteen available fresh models for fixed confirmation
+
+The broader metadata scan exhausted its declared envelope without reaching twenty models. Its final audit contains thirteen selected models: eight matrix and five reduction. Froze every one in a separately declared confirmation population before compilation or timing. Earlier commentary used intermediate counts of ten; the final audit and frozen manifest supersede those counts.
+
+### Prompt Context
+**User prompt (verbatim):** "what do you think is the best to tackle next?"
+**Assistant interpretation:** Prioritize the next research work while continuing the active experiment.
+**Inferred user intent:** Focus effort on useful compiler discoveries and generalization.
+**Recommendation:** Confirm this fixed transformation, then expose transformation composition to six agents with measured feedback; compare thinking levels within that experiment.
+
+### What I did
+- Verified the original v2 selection process terminated with Selection incomplete; preserve partial audit.
+- Added script 462 to reconstruct all selected records, asserting translated source equality with the preserved scan outputs.
+- Declared a revised sample size based only on exhausted metadata availability and froze all thirteen graphs as heldout.
+- Recorded the fixed prior transformation and transferred selection before outcomes.
+
+### Why
+- Using all available eligible models avoids discarding examples to satisfy balanced quotas. The revised population is explicitly distinct from the failed twenty-model plan.
+- Confirmation should precede broader transformation search and default promotion.
+
+### What worked
+- Script 462 completed with thirteen records, eight matrix and five reduction.
+- Source scripts match the prior metadata selection, and all records retain source-file identities.
+
+### What didn't work
+- The v2 selector did not reach ten per category. No compiler or performance outcome influenced this population revision.
+- Earlier ten-model commentary was inaccurate because it used a progress count; final audit shows thirteen.
+
+### What I learned
+- A complete scan has more authoritative counts than its last inspected progress message.
+
+### What was tricky to build
+- The population's revised size must be distinguished from performance-based candidate replacement. Every eligible model in the final scan is retained.
+
+### What warrants a second pair of eyes
+- Review exclusion and selection scope: exact model disjointness, supported metadata-restricted FP32, possible architecture relatives.
+
+### What should be done in the future
+- Compile and measure the fixed transformation without adapting it to confirmation outcomes; then develop agent-facing transformation composition.
+
+### Code review instructions
+- Inspect script 462, staged-fusion-available-v1/declaration.json, corpus/manifest.json and selection.json.
+
+### Technical details
+- No fresh confirmation performance result yet. The full project remains active; full200 support and native protocol work are separate unfinished requirements.
+
+## Step 182: Confirm the fixed staged transformation on thirteen fresh exact models
+
+The fixed staged-fusion program passed correctness checks on all thirteen confirmation graphs. Family-balanced end-to-end speedup was 1.146076×: two changed executables improved 4.405327× and 1.335970×, while eleven were exact baseline aliases. This supports transfer beyond the development models, within the declared supported FP32 envelope.
+
+### Prompt Context
+**User prompt (verbatim):** "ok, leete's keep on plowing forward and getting some results in. Expand the port when you think is appropriate"
+**Assistant interpretation:** Continue measured compiler research and expand capabilities when it enables useful experiments.
+**Inferred user intent:** Produce reusable optimization results without excessive infrastructure work.
+**Commit (code):** 0ac017cf37113b22e330f0b9cc0dcae0680a03fb — Stage fixed development winner on a separate confirmation corpus.
+
+### What I did
+- Completed 39 compilations (three policies across thirteen graphs), then measured baseline and the previously fixed staged winner on GB10.
+- Preserved measurement.json, run.json and the per-graph summary in sources/staged-confirmation-results-v1.
+- Reused the original numerical reference wrapper and evaluation machinery via scripts 463–464.
+
+### Why
+- A development gain alone cannot establish transfer. The transformation was fixed before selecting or measuring these new exact models.
+
+### What worked
+- Terminal run status complete, return code zero, thirteen measured graphs; all baseline/candidate records passed correctness.
+- Aleksandar_electra-srb-ner-setimes improved 4.405327× and google_rembert improved 1.335970×; no changed executable regressed in this population.
+
+### What didn't work
+- No new execution failures. The earlier twenty-model quota failures remain preserved in Steps 180–181; this is the separately declared thirteen-model population.
+
+### What I learned
+- Scheduling-aware staged fusion transfers to at least two previously unused exact models. Eleven aliases limit how broadly this experiment tests changed compiler behavior.
+
+### What was tricky to build
+- Selection transfer must remain distinct from ranking this confirmation set. No candidate was selected or adapted using these outcomes.
+
+### What warrants a second pair of eyes
+- Architecture relatives may remain. This uses separate FP32 contraction and highest-precision matrix references on GB10; it is not the official native-precision PassBench score.
+- The staged transformation is manually derived from the measured agent discovery, not wholly synthesized by an agent.
+
+### What should be done in the future
+- Expose the existing staged transformation as a bounded composition of fusion policies to agents. Keep this consumed confirmation population out of new selection feedback.
+
+### Code review instructions
+- Inspect the fixed selection in sources/staged-fusion-available-v1, the complete compilation receipts, and sources/staged-confirmation-results-v1/{run,measurement,summary}.json.
+
+### Technical details
+- Family-balanced speedup: exp(mean over families of mean log(baseline e2e / candidate e2e))). Exact executable aliases share measurements and contribute 1.0.
+- Confirmation membership SHA256: c67af7ec18bf0fd9c9dc00fc7f3888df731916ba1270de512eba05ac246b7874.
+
+## Step 183: Expose cooperating fusion stages to actual Pi agents
+
+Consolidated optimization-program preparation across agent validation and compilation, then exposed two cooperating fusion policies around the existing scheduling-aware preservation rule. The known two-stage sequence exactly reproduces the fixed staged executable on all six changed development graphs. Started six real Pi lanes with three proposals each and two replicates per requested thinking level.
+
+### Prompt Context
+See Step 182 for the current authored request; prior user instructions authorize six concurrent lanes and thinking-level experiments.
+**Assistant interpretation:** Expand the agent's compiler action space around a measured mechanism.
+**Inferred user intent:** Obtain useful self-optimization results without building general infrastructure prematurely.
+**Prior result commit:** e89b705 — Confirm staged fusion at 1.146x on thirteen fresh models.
+
+### What I did
+- Added transformation_program.mjs and replaced duplicate compiler/agent preparation with that shared module.
+- Parameterized the existing scheduling_fusion.mjs stages using prepared fusion policies; retained the fixed transformation's semantics.
+- Added semantic artifact identity for nested policies and a distinct staged action contract.
+- Retained script 465 for actual compilation/reference/equivalence checks and script 466 for the six real inference lanes.
+- Updated design document 20 with the measured result, scope and experiment design.
+
+### Why
+- Agents previously could submit only one profitability rule. The useful scheduling interaction requires two cooperating stages.
+- Existing pipeline APIs suffice; no core compiler extension or new orchestration framework is needed.
+
+### What worked
+- test_optimization_artifact.mjs and test_fusion_policy.mjs passed.
+- Script 465 passed six real graph reference checks and exact executable equivalence against the fixed staged program; invalid stage thresholds and unchanged stages were rejected.
+- Script 466 syntax compilation passed; the live inference owner runs under tmux kiln-transformation-lanes-v1.
+
+### What didn't work
+- An initial guessed script filename (453-freeze-six-lane-study.py) did not exist; file discovery located 453-prepare-six-lane-study.py. No implementation failure resulted.
+- No candidate performance claim is possible at this checkpoint; inference has just started.
+
+### What I learned
+- The existing compiler abstractions express this experiment without adding a second implementation of fusion legality or scheduling.
+
+### What was tricky to build
+- Agent and compiler validators must describe the same action space. Both now call prepareOptimizationProgram; canonical nested stage names avoid naming-only duplicate identities.
+
+### What warrants a second pair of eyes
+- The preservation rule compares candidate schedules for a producer, not full fused-versus-materialized total time. It remains a heuristic.
+- Two replicates per thinking level cannot establish statistical superiority; verify effective levels rather than assuming the provider honored each request.
+
+### What should be done in the future
+- Collect proposals, compile them on development data, then measure genuinely different executables. Expand supported operations when they unlock additional useful workloads.
+
+### Code review instructions
+- Start at transformation_program.mjs, scheduling_fusion.mjs and optimization_artifact.mjs. Run scripts/465-test-agent-fusion-sequence.mjs using Node 26, then inspect inference receipts separately.
+
+### Technical details
+- Schema: format kiln-transformation-program/1, kind fusion-sequence, id, expose, cleanup. Each stage is an existing explicit fusion policy; combined node budget 31.
+- Six lanes: low/medium/high × two replicates; three proposal slots each. All receive identical development-only feedback. No new confirmation outcomes enter prompts.
+
+## Step 184: Six transformation lanes produce twenty additional development executables
+
+All six real Pi lanes completed. They made eighteen submissions, fifteen accepted and three rejected, yielding fifteen distinct transformation programs. All 360 compilations passed (eighteen programs including controls across twenty graphs). On the twelve training graphs, proposals add twenty executable fingerprints beyond baseline and the fixed staged program. GPU evaluation is launched; these counts alone establish no new speedup.
+
+### Prompt Context
+See Step 182. Continue actual experiments and retain intermediate scripts and evidence.
+**Commit (code):** 125c6bbb4af3a2a6dbdbee515c57c7f9ae0746ac — Let native agents compose exposure and scheduling-aware fusion.
+**Assistant interpretation:** Measure whether the expanded action space produces useful programs.
+**Inferred user intent:** Advance compiler self-optimization with concrete results.
+
+### What I did
+- Completed script 466, froze all fifteen accepted programs plus baseline/default/fixed-staged controls using script 467, and ran compile_study.py.
+- Script 468 preserved verbose streaming events losslessly as gzip with original byte hashes; originals remain locally available. This reduces about 128 MB of repeated streaming snapshots to about 1.4 MB without dropping evidence.
+- Script 469 counted executable differences, without assigning performance meaning to fingerprints.
+- Reused script 438 to launch pi-transformation-train-v1 on bling; no new evaluation harness was added.
+
+### Why
+- Compilation and alias checks distinguish novel executable behavior from merely different policy syntax. The evaluator still accounts for every declared candidate.
+
+### What worked
+- All six lanes returned zero. Low took 8.816/11.898 seconds, medium 37.048/50.736, high 56.162/56.839. Pi reported effective settings matching requested levels; this is not independent provider verification.
+- All eighteen programs qualified on all twenty graphs. Seven existing NativePolicyTask tests also passed after the shared-validator change.
+- Fifteen accepted programs were distinct in artifact identity; five exactly reproduce fixed staged outputs across the training set.
+
+### What didn't work
+- low-1 attempt 1: Threshold must be finite in [0,2].
+- medium-2 attempts 1 and 3: Invalid decision node.
+- Rejections consumed their proposal slots as declared. All raw requests and responses remain preserved.
+
+### What I learned
+- Longer thinking did not guarantee syntactically valid submissions. The sample is too small for a quality ranking, and performance is still pending.
+
+### What was tricky to build
+- Streaming snapshots grew much larger than final conversations. Lossless compressed evidence avoids a large repository expansion while preserving the exact events and hashes.
+
+### What warrants a second pair of eyes
+- Diversity counts are per graph, not globally unique kernels or measured improvements. The twenty extra executables are development outputs only.
+
+### What should be done in the future
+- Collect terminal GPU results and rank on training data only; preserve negative outcomes as well as improvements.
+
+### Code review instructions
+- Read scripts 467–469, sources/pi-transformation-lanes-v1/analysis.json, pi-transformation-compilation-analysis-v1.json and the qualified study receipt.
+
+### Technical details
+- GPU source revision 125c6bbb4af3a2a6dbdbee515c57c7f9ae0746ac. Session kiln-pi-transformation-train-v1.
+- No fresh confirmation data was sent in prompts. This is exploratory composition search, not a statistically controlled thinking-level comparison.
+
+## Step 185: Measure composition search and retain the confirmed fixed transformation
+
+The eighteen-program GPU experiment completed on all twelve development graphs with no candidate correctness failures. The nominal winner sequence-5 scored 1.405801× versus 1.405437× for the fixed staged program: a relative difference of approximately 0.026%. This does not establish a meaningful improvement. Five candidates exactly reproduce the staged executables; four alias baseline. Retain the confirmed fixed transformation as the current research result rather than promote a near-tie from a larger search.
+
+### Prompt Context
+See Step 182 for the active user request.
+**Assistant interpretation:** Finish the experiment and use its outcome to choose productive next work.
+**Inferred user intent:** Prefer evidence-backed compiler progress to continued search without useful returns.
+**Experiment code:** 125c6bbb4af3a2a6dbdbee515c57c7f9ae0746ac.
+**Evidence checkpoint:** a51c797 — Archive six thinking-level lanes and qualify composed transformations.
+
+### What I did
+- Verified the remote owner completed, returned zero, removed its container and left no compute process.
+- Retained script 470 to collect run/measurement receipts and invoke the existing training selector.
+- Inspected the nominal winner against the fixed staged program, including its origin and four differing executable bindings.
+
+### Why
+- A positive score relative to original Kiln does not establish an improvement over the current best transformation. Search increases the opportunity for small timing differences to win nominal rankings.
+
+### What worked
+- All eighteen programs remained eligible across twelve training graphs.
+- Fixed staged measured 1.405437×, consistent with the earlier 1.404537× development run.
+- sequence-5, from high-2 attempt 2, scored 1.405801×. Its four changed rows had fixed/candidate latency ratios 1.007580, 0.993918, 1.001343 and 1.000319; the other eight outputs aliased the fixed program.
+- The broader result remains the fixed transformation's 1.146076× fresh-exact-model confirmation from Step 182.
+
+### What didn't work
+- The expanded composition search did not demonstrate a material gain over the fixed staged transformation.
+- sequence-8 regressed versus original Kiln to 0.960072×. Several other new programs scored approximately 1.384–1.387×, below the fixed staged program.
+
+### What I learned
+- This population and two-stage grammar appear close to a local plateau. The experiment does not prove that all useful compositions are exhausted.
+- High thinking produced the nominal near-tie winner, but that is not evidence it is better: only two runs per level and no meaningful performance advantage were observed.
+
+### What was tricky to build
+- Artifact novelty, compiler correctness and measured improvement are distinct. All candidates compiled correctly, yet twenty additional development executables did not deliver a convincing improvement over the current transformation.
+
+### What warrants a second pair of eyes
+- No repeated paired experiment or significance analysis establishes the tiny nominal lead. Do not present sequence-5 as a new confirmed compiler improvement or reuse consumed confirmation graphs as fresh evidence.
+
+### What should be done in the future
+- Broaden workload coverage or add a genuinely different transformation primitive based on a measured compiler limitation. Prefer profiling missed matrix/layout opportunities and operation support that unlocks new graph families over another identical threshold search.
+- Keep the fixed transformation opt-in; the full native-precision 200-task benchmark remains unfinished.
+
+### Code review instructions
+- Read sources/pi-transformation-results-v1/selection.json alongside measurement.json and the fixed fresh-model result. Inspect origins.json for agent attribution.
+
+### Technical details
+- Same twelve-graph development membership and FP32 numerical protocol as earlier studies; no new heldout evaluation in this search.
+- Measured GPU container image sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba; NVIDIA GB10, scheduling target a100.
+
+## Step 186: Publish the staged-fusion milestone and select pooling for coverage expansion
+
+Published a 2,318-word technical report explaining staged fusion, exact-model confirmation and the composition search's lack of material improvement. The vault commit 544488e was pushed successfully to main. Reassessed historical import failures and rechecked three pooling representatives against current source; all remain blocked, making pooling a concrete next porting target.
+
+### Prompt Context
+The continuing goal requests technical milestone reports in the Obsidian vault, committed and pushed, alongside implementation and measurement. The current authored implementation direction is recorded verbatim in Step 182.
+**Assistant interpretation:** Preserve the new research result and use current evidence to choose broader compiler support.
+**Inferred user intent:** Keep both research understanding and implementation moving forward.
+
+### What I did
+- Read the vault and textbook skills and wrote reference/26-staged-fusion-generalization-and-agent-composition.md with prose, pseudocode, a pipeline diagram, source references and measurement tables.
+- Script 471 verifies central numerical claims against experiment JSON, including all 360 successful compilations, eligibility, aliases, thinking-level acceptance counts and coverage totals.
+- Created a new dated vault article without overwriting the earlier report; committed only that article and pushed main.
+- Script 472 ranks historical first failures and calls the current translate_graph importer on one FP32 max, average and adaptive-average pooling graph.
+
+### Why
+- Fresh confirmation is a reportable milestone, while the following near-tie search needs an explicit explanation to avoid overstating progress.
+- Expanding a measured missing operation offers more new workload diversity than continuing the same fusion thresholds.
+
+### What worked
+- Report checks passed. Vault push reported 2d407b6..544488e main -> main.
+- Current pooling probes reproduce explicit unsupported-target failures for all three operations.
+- Historical first-failure counts are 42 max_pool2d, 41 avg_pool2d and 29 adaptive_avg_pool2d.
+
+### What didn't work
+- An initial relative ticket-source listing was issued from the vault directory and failed with No such file or directory; subsequent commands used the Kiln worktree explicitly.
+- These are first-failure counts, not verified prospective unlock counts. No pooling implementation or new GPU coverage is claimed.
+
+### What I learned
+- The next useful importer expansion can add convolutional workloads rather than more variations of the same matrix-fusion corpus.
+
+### What was tricky to build
+- The report separates fixed-program transfer, exploratory selection, cumulative modified-protocol coverage and import eligibility. These numbers have different scopes and cannot substitute for one another.
+
+### What warrants a second pair of eyes
+- Pooling requires explicit handling of output dimensions, padding, ceil mode, included padding in averages, divisor overrides and numerical boundaries. Max-pool adds NaN/index semantics; adaptive pooling uses different window boundaries.
+
+### What should be done in the future
+- Implement average pooling first using shared Kiln lowering primitives, test semantic edge cases, and qualify real CUDA graphs before claiming coverage. Extend max/adaptive pooling afterward.
+- Original full-corpus reproduction and reMarkable delivery remain unfinished; no completion claim is made.
+
+### Code review instructions
+- Read reference/26, run scripts 471–472, and inspect sources/import-expansion-priority-v1.json and staged-fusion-report-publication.json.
+
+### Technical details
+- Vault path: Projects/2026/10/31/ARTICLE - Kiln - Staged Fusion Generalization and Agent Composition.md.
+- Existing unrelated vault modifications were left untouched. No external implementation was copied during this checkpoint.
+
+## Step 187: Implement average pooling and import all forty-one previously blocked graphs
+
+Implemented static average-pooling semantics as a Kiln frontend operation with a tensor decomposition and FX binding. All forty-one historical avg_pool2d first-failure graphs now import. The independent reference and decomposition agree with 288 PyTorch oracle cases, but GPU execution and original PassBench acceptance remain pending at this checkpoint.
+
+### Prompt Context
+See Step 182 for the authored request to continue implementing and expand the port when appropriate; Step 186 records the pooling-priority evidence.
+**Assistant interpretation:** Add a real missing operation that broadens optimization workloads.
+**Inferred user intent:** Advance full-corpus support and reusable compiler research together.
+
+### What I did
+- Added packages/kiln/src/std/pooling.js with output-shape validation, reference semantics and view/mask/reduction decomposition.
+- Registered nn.avg_pool2d and N.avgPool2d, including explicit FP16/BF16 widening and operation-boundary narrowing.
+- Added fx_pooling.py and integrated it into import_graph and fresh-storage accounting.
+- Preserved scripts 473–476 for oracle generation, source downloads, complete historical-blocker import audit and CUDA export; added check_pooling_cuda.py.
+- Downloaded pinned PyTorch v2.9.1 CPU/CUDA pooling and shape-helper sources and recorded origin URLs/hashes and implementation provenance.
+
+### Why
+- Average pooling is a first blocker for forty-one benchmark graphs. Existing view, select and reduction primitives can express it without a new IR or GPU opcode.
+- Ceil-only trailing cells must not be counted as explicit padding in the average denominator.
+
+### What worked
+- 288 reference and decomposition cases pass against actual PyTorch CPU outputs, covering CHW/NCHW, rectangular kernels, default/explicit strides, padding, ceil flags, include-pad flags and positive/negative divisor overrides.
+- Invalid parameters and NaN masking checks pass. Existing convolution tests pass.
+- Two FX tests pass across functional/ATen calls and FP32/FP16/BF16, including metadata and malformed divisor rejection.
+- Script 475 imports all 41 recorded avg_pool2d blockers without excluding failures.
+
+### What didn't work
+- Initial script 474 stopped with urllib.error.HTTPError: HTTP Error 403: Forbidden on the public documentation page. The revised script records individual download failures and continues; three pinned GitHub source files downloaded successfully. The public contract was available through web search.
+- No CUDA or original PassBench correctness claim yet. The lowered reduction order can differ from PyTorch's serial CUDA accumulation.
+
+### What I learned
+- Clamping before masking prevents out-of-bounds reads; selecting zero rather than multiplying a mask avoids propagating NaN from clamped cells outside a window.
+
+### What was tricky to build
+- Three separate quantities determine boundary behavior: padded output-size arithmetic, the extent of explicit source padding, and actual input bounds. Divisor selection uses the latter two independently of the extended padded buffer needed for ceil mode.
+
+### What warrants a second pair of eyes
+- FP16/BF16 rounding and reduction reassociation need GPU validation. Static masks/divisor tensors are an initial decomposition cost, not an optimized pooling kernel design.
+
+### What should be done in the future
+- Compile and execute the oracle fixtures on GB10, then qualify real imported pooling graphs with the existing evaluator. Do not equate forty-one imports with forty-one accepted graphs.
+
+### Code review instructions
+- Read pooling.js, fx_pooling.py and sources/pooling-semantics-v1/semantic-notes.md. Run packages/kiln/test/pooling.mjs and test_fx_pooling.py using Node 26 and the existing Python environment.
+
+### Technical details
+- Public reference: https://docs.pytorch.org/docs/main/generated/torch.nn.functional.avg_pool2d.html.
+- No PyTorch implementation code copied. Scripts preserve source provenance and oracle generation for reproduction.
+
+## Step 188: Execute 312 average-pooling programs successfully on GB10
+
+All 312 exported average-pooling programs passed against native PyTorch CUDA: 288 FP32, twelve FP16 and twelve BF16. Every recorded maximum absolute error was zero on the deterministic oracle inputs. This verifies generated indexing/masking/reduction behavior for the declared fixture grid, not original PassBench task acceptance or arbitrary input distributions.
+
+### Prompt Context
+See Step 182 and Step 187 for the active implementation and measurement direction.
+**Assistant interpretation:** Complete the GPU check of the newly added compiler operation.
+**Inferred user intent:** Establish actual executable behavior before counting new benchmark support.
+**Compiler commit:** 23f36b23605a8706e98f60baa2ea3ec9b7613fec — Add average pooling semantics, tensor lowering and FX import.
+
+### What I did
+- Exported the 288 FP32 oracle programs and twelve additional cases for each low-precision dtype using script 476.
+- Used loop IR for compiled-program reference interpretation and retained generated CUDA artifacts.
+- Added scripts 477–479 to stage the exact runtime/checker/fixtures, run under the established CUDA container on an idle GB10 and collect terminal results.
+- Preserved failed export attempts alongside the successful v3 artifacts and source hashes.
+
+### Why
+- Reference decomposition tests do not verify generated GPU addressing or storage casts. Native CUDA comparisons close that gap for these fixtures.
+
+### What worked
+- Loop-level reference checks passed for all exports. GPU run returned zero with status complete.
+- 312/312 CUDA comparisons passed; 288 f32, twelve f16, twelve bf16. Low-precision comparisons required exact equality; f32 used rtol=1.3e-6 and atol=1e-5 and nevertheless observed zero error.
+- Input immutability was checked for every fixture.
+
+### What didn't work
+- Initial exporter attempted run.graph.eval on final GPU IR and failed: EvalError: gpu.kernel (n17) has no eval: it can be compiled but not interpreted. Corrected it to run.at("loop").eval.
+- The second export completed artifact generation but failed at the final revision subprocess with spawnSync git EPERM. Preserved that attempt and reran in a separate v3 directory with the required sandbox escalation. No failed attempt was relabeled successful.
+
+### What I learned
+- The existing pipeline's evaluable loop checkpoint is the appropriate local reference boundary; final GPU nodes are executable artifacts rather than interpreted operations.
+
+### What was tricky to build
+- Precision evidence depends on both data and runtime versions. These fixtures use small deterministic quarter-valued inputs, so zero error does not establish identical reduction behavior on arbitrary floating-point inputs or large windows.
+
+### What warrants a second pair of eyes
+- Runtime PyTorch is 2.12.0a0+5aff3928d8.nv26.05 in the existing container, while semantic source inspection was pinned to v2.9.1. This is not a claim of exact paper environment reproduction.
+- The 41 newly imported real graphs include existing convolution and normalization computations. Those can still fail numerical/reference checks independently of pooling.
+
+### What should be done in the future
+- Compile and qualify real pooling graph families through the original evaluator, retain failures, and add broader numerical inputs where relevant. Measure end-to-end performance before optimizing the current static-mask decomposition.
+- Add max/adaptive pooling after the average-pooling round-trip establishes the reusable lowering needs.
+
+### Code review instructions
+- Inspect sources/avg-pooling-cuda-results-v1/{run,results,summary}.json, the exact staged checker hashes, and the v1/v2 failure receipts. Do not include archive tarballs when reviewing source changes.
+
+### Technical details
+- NVIDIA GB10; scheduling proxy a100; separate contraction; container sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba.
+- sources/avg-pooling-cuda-fixtures-v3/manifest.json records the compiler revision and every fixture. Sources and intermediate scripts remain in the ticket.
+
+## Step 189: Qualify three complete pooling families and identify a severe scheduling bottleneck
+
+The complete four-family/41-graph average-pooling cohort is terminal and independently audited. Three families, containing seventeen graphs, pass original-evaluator matching and nominal t=-5 numerical acceptance under the declared modified integration. Task4 stops at a protected compiler reference failure; its twenty-four graphs remain unexecuted. Cumulative acceptance rises to34/200 complete tasks and375/2060 graphs, with306 graphs inside complete tasks.
+
+The slowest accepted family exposes a concrete optimization opportunity. Its largest FP16 convolution-plus-pooling graph becomes one row-mapped kernel with18,874,368 blocks and32 threads per block. Observed timing was approximately749 ms per trial, and the six-graph family score is0.012277. The existing staged-fusion transformation produces the same kernel structure and does not recognize a contraction in its final loop expression.
+
+### Prompt Context
+See Step182 for the authored implementation direction and Step188 for pending complete-task qualification.
+**Assistant interpretation:** Establish actual family acceptance and use measured failures/performance to choose compiler work.
+**Inferred user intent:** Advance full support while returning to meaningful reusable optimization opportunities.
+**Compiler revision:** 091d594ac9d49902110d44dd870218f9fe568317.
+
+### What I did
+- Script480 froze all four newly importable families, indices4/12/16/101 with24/2/9/6 graphs, without shape/dtype filtering.
+- Scripts481–482 staged an isolated compiler checkout, using local workspace package links and only shared third-party acorn, and ran existing evaluate_tasks.py.
+- Script484 checked terminal state and unchanged source snapshots, collected results and invoked summarize_task_run.py.
+- Added the completed cohort to the existing coverage builder. Preserved the prior coverage file for the already published report's numerical checker.
+- Script483 isolated task4's reference mismatch by output. Script485 inspected the slowest graph under baseline and the existing staged transformation.
+
+### Why
+- Import eligibility and fixture correctness do not establish complete task support. Original evaluator matching, numerical curves and membership accounting remain required.
+- A very slow but correct graph is a useful target for reusable compiler optimization; it should not be hidden by reporting only newly accepted task counts.
+
+### What worked
+- Task12:2/2 graphs accepted, score0.9064328265. Task16:9/9 accepted, score1.5436667808. Task101:6/6 accepted, score0.0122771155.
+- Every accepted graph has exactly one replacement and passes the declared original numerical acceptance audit.
+- Final source snapshot matches staging:9ae5eb616c70b7ab5e32edae62f242f710c69e1e0fd612195616635c832919b6.
+- Task4's pooling output matches frontend exactly across9408 values in the diagnostic. The separate convolution/normalization output differs at six of37632 values; one fails the existing export criterion.
+
+### What didn't work
+- Task4 corpus/011.kiln.compile.log reports ': end-to-end check FAILED'. No export check was disabled or tolerance relaxed. The family remains unqualified.
+- The first script485 diagnostic treated raw Node argument IDs as Value objects and raised TypeError: Cannot read properties of undefined (reading shape). The failure is preserved; v2 resolves each argument through graph.node(id).
+- Existing staged fusion does not improve this slow graph structurally: both versions use one MAP=row,TPB=32 kernel, and neither final loop kernel has a recognized contraction.
+
+### What I learned
+- Average pooling broadens verified coverage, but also exposes the interaction between pointwise convolution layout, reduction recognition and fusion. Current fusion heuristics alone do not address this case.
+- Historical convolution precision work in design19 remains relevant; this new mismatch is not evidence that the pooling operation is incorrect.
+
+### What was tricky to build
+- Isolated staging must keep @kiln/kiln and @kiln/evidence imports inside the staged source tree. Sharing an entire old node_modules tree could silently resolve workspace imports to older compiler code; only acorn was shared.
+- A process-complete run is not full acceptance. The audit separately retains24 unexecuted graphs and does not infer success from task process exit codes.
+
+### What warrants a second pair of eyes
+- Scores use the modified integration and native replay protocol, not the original paper environment. Cumulative coverage spans compiler snapshots.
+- Task4's mismatch is localized to the convolution/normalization branch, but this diagnostic alone does not establish its precise arithmetic cause or a correct repair.
+
+### What should be done in the future
+- Test a reusable pointwise-convolution lowering into batched matrix multiplication so existing contraction scheduling can see the channel reduction, then evaluate its interaction with staged fusion. Preserve cast/bias boundaries and correctness gates.
+- Continue max/adaptive pooling and native numerical fixes; do not mark the overall reproduction complete.
+
+### Code review instructions
+- Read avg-pooling-task-audit-v1.json, task-004/corpus/011.kiln.compile.log, avg-pooling-task-reference-diagnostic-v1.json and pooling-fusion-probe-v2/results.json.
+- Run script21 for cumulative accounting and script471 for the historical report, which now reads the frozen pre-pooling coverage snapshot.
+
+### Technical details
+- Large accepted example input:[128,512,48,48] FP16; weight:[256,512,1,1]; output:[128,256,24,24].
+- Nominal criterion t=-5;20 warmups,100 timed trials; separate contraction; NVIDIA GB10 and A100 scheduling proxy. All seventeen accepted graphs retain original scorer evidence.
+
+## Step 190: Expose pointwise convolution as a reusable matrix decomposition
+
+Added an opt-in pointwise-convolution decomposition and tested it on the complete six-graph slow pooling family. The matrix decomposition alone fuses back into the original row kernel. Combined with the existing staged fusion program, every family variant instead exposes a tiled contraction and a separate pooling kernel. Native correctness and timing are pending at this checkpoint.
+
+### Prompt Context
+See Step182 for the authored request and Step189 for the measured optimization target.
+**Assistant interpretation:** Improve a reusable lowering decision using existing compiler primitives and measure its effect.
+**Inferred user intent:** Turn workload expansion into new compiler-optimization results.
+
+### What I did
+- Added lowerPointwiseConv2d to the existing conv2d module and a small opt-in pipeline rule installer in pointwise_convolution.mjs.
+- Represented pointwise channel reduction using existing batched matmul lowering, preserving groups, spatial strides, bias and existing cast boundaries.
+- Retained generic convolution lowering for padded or non-pointwise convolutions; default compiler behavior remains unchanged.
+- Added36 typed grouped/strided/padded semantic cases and a non-pointwise fallback check. Existing convolution tests also pass.
+- Scripts486–487 inspect the large graph and export every variant in the six-graph family under the fixed candidate.
+
+### Why
+- The generic convolution's spatial output axes obscure the matrix contraction from the scheduler. Keeping channel reduction as matrix K and flattened spatial coordinates as N exposes existing tiled schedules.
+- This reuses the existing scheduler and staged-fusion mechanism rather than creating a specialized external CUDA replacement.
+
+### What worked
+- All36 semantic cases and non-pointwise fallback pass exact frontend/decomposition comparison; existing convolution reference, decomposition and low-precision bias tests pass.
+- All six fixed family variants export with existing protected reference-check behavior. Large cases retain the standard reference-size skip, not a new exemption.
+- The largest graph changes from18,874,368 row blocks to4,608 tiled contraction blocks plus73,728 pooling blocks. All six variants expose tiled contractions.
+
+### What didn't work
+- Pointwise decomposition without staged fusion does not change the final large graph's row kernel structure. Both changes are needed in this observed case.
+- No GPU performance or native correctness result yet; block counts alone do not establish a speedup.
+
+### What I learned
+- The earlier scheduling-aware fusion policy becomes useful on a new workload once its channel reduction is expressed in a recognizable layout.
+
+### What was tricky to build
+- Grouped weights have shape[G,OC/G,IC/G]; input views have shape[N,G,IC/G,OH*OW]. Existing matmul broadcasting supplies the batch dimension, and spatial coordinates map through the convolution strides.
+- The frontend's low-precision narrowing stays outside the rewritten FP32 convolution node, preserving the source-operation boundary.
+
+### What warrants a second pair of eyes
+- Native floating-point compatibility and tile indexing across all six shape/dtype variants must be checked on CUDA. Small exact tests do not prove arbitrary-input or cuDNN agreement.
+
+### What should be done in the future
+- Run the fixed candidate through the original evaluator and scorer for all six graphs, retaining any failure. Only then consider exposing this transformation to agents or promoting it.
+
+### Code review instructions
+- Inspect lowerPointwiseConv2d, pointwise_convolution.mjs, test/pointwise-conv.mjs and pointwise-convolution-probe-v1/results.json. Run the pointwise and convolution tests under Node26.
+
+### Technical details
+- No external implementation copied. The transformation is derived from the existing convolution formula and Kiln's batched matmul API.
+- This is a manually authored reusable compiler transformation, informed by measured workload behavior; no new LLM inference occurred in this step.
+
+## Step 191: Measure a 32.73× improvement from pointwise lowering plus staged fusion
+
+The fixed reusable transformation passes original-evaluator matching and nominal t=-5 numerical acceptance on all six development-family graphs. Geometric-mean end-to-end speedup relative to the previous Kiln artifacts is32.730548×, with per-graph gains15.0597×–56.8588×. The largest FP16 graph falls from749.238 ms to14.4792 ms. The original scorer result improves from0.0122771 to0.401718, although eager execution remains faster on every graph.
+
+These are sequential native replay runs on the same observed development family, not fresh-model confirmation or an interleaved paired benchmark. The candidate is opt-in and manually derived from the measured bottleneck; no new agent synthesis or default promotion is claimed.
+
+### Prompt Context
+See Step182 and Step190 for the active implementation/measurement direction.
+**Assistant interpretation:** Complete native correctness and performance evaluation of the reusable pointwise transformation.
+**Inferred user intent:** Obtain concrete compiler gains and preserve their experimental limits.
+**Compiler commit:** 9ef4cd9 — Expose pointwise convolution contractions for staged tiled scheduling.
+
+### What I did
+- Staged the fixed six-graph artifacts and committed compiler/runtime snapshot with scripts488–489.
+- Preserved the initial terminal pass-generation failure, then launched a separate v2 replay using unchanged baseline-generated passes and canonical input bindings.
+- Script490 verified terminal source identity, collected results and invoked the established exact acceptance audit.
+- Script491 extracted native compiled/eager medians and compared all six graphs with the previous baseline artifacts.
+
+### Why
+- The compilation probe established a schedule change but could not establish numerical correctness, matching or real performance.
+- Reusing the existing generated passes keeps graph matching and canonical bindings identical while changing only compiled implementations.
+
+### What worked
+- All six graphs have complete evidence, exactly one replacement and nominal numerical acceptance. No graph was dropped or had its tolerance changed.
+- End-to-end baseline/candidate medians (ms):275.035/4.83716;5.91505/0.241995;5.88131/0.241518;3.18837/0.211716;60.4358/1.2964;749.238/14.4792.
+- Task score:0.012277115545126591 →0.40171779395730883.
+- Candidate source snapshot:f744a61dd0430e7bb5e37a891a2bd00da4c2d9c323130c7bb3ca41343620c037.
+
+### What didn't work
+- v1 stopped before evaluation with ValueError: Preserve existing generated passes/specializations. The copied corpus was already canonicalized and specialized; attempting generation again was incorrect orchestration.
+- v2 reuses the unchanged original passes, whose runtime paths are already /work/results/task-101/corpus. The failure and exact v1 runner are retained in pointwise-pooling-failed-v1.
+- The improved candidate remains1.8–3.6× slower than eager across these examples; it is not a claim of beating PyTorch or reproducing the paper's aggregate results.
+
+### What I learned
+- Existing matrix scheduling and staged fusion can remove a large generic-convolution scheduling cost once the reduction is represented with appropriate axes.
+- The decomposition by itself is insufficient here: normal fusion obscures the contraction again. The measured candidate composes both transformations.
+
+### What was tricky to build
+- Generated pass specializations and compiler artifacts have different lifecycle boundaries. The candidate was compiled from already canonical source scripts; regenerating matchers would risk changing argument order and is deliberately rejected by the existing generator.
+
+### What warrants a second pair of eyes
+- This population was selected after observing a slow family. The result is development evidence, not unbiased workload-wide generalization.
+- Grouped/strided correctness has local semantic tests, while this native family uses the observed pointwise geometry; broader native transfer remains to be evaluated.
+- Sequential comparison is not a controlled interleaved benchmark, even though gains are large on all six graphs.
+
+### What should be done in the future
+- Evaluate the fixed composed transformation on additional relevant families, including native numerical failures, before any default promotion.
+- Expose the verified pointwise primitive to the agent's transformation space and investigate remaining scheduling/low-precision opportunities. Publish a technical milestone report with the unchanged-eager comparison visible.
+
+### Code review instructions
+- Read pointwise-pooling-improvement-v1.json, pointwise-pooling-task-audit-v2.json, both source snapshots and the original scorer outputs. Inspect the failed v1 separately from the completed v2.
+
+### Technical details
+- Six FP32/FP16/BF16 graphs;20 warmups,100 timed trials; separate contraction; NVIDIA GB10 with A100 scheduling proxy and existing CUDA image.
+- Cumulative coverage remains34 complete tasks and375 accepted graphs. This experiment improves an already accepted family's performance; it does not add new supported tasks.
+
+
+## Step 192: Expose the measured pointwise composition to agents and check collateral changes
+
+The shared agent/compiler program preparation now accepts the measured pointwise decomposition followed by staged fusion. All six exported artifacts exactly match the already native-evaluated candidate. On the other two accepted pooling families, all eleven artifacts are identical to default compilation. These are no-convolution controls, not new evidence of convolution transfer.
+
+### Prompt Context
+See Step182 for the authored request to continue implementation and expand the port as appropriate.
+**Assistant interpretation:** Make the measured reusable transformation available in the existing optimization interface and test its scope before widening experiments.
+**Inferred user intent:** Advance compiler self-optimization with concrete results and limited infrastructure expansion.
+**Prior measurement commit:** 895b224 — Measure native pointwise convolution improvement across all six family graphs.
+
+### What I did
+- Extended transformation_program.mjs with pointwise-fusion-sequence using the existing decomposition and staged-fusion installers.
+- Declared the tensor input IR and distinct action contract in optimization_artifact.mjs; preserved policy canonicalization and host numerical settings.
+- Retained scripts492–493 and JSON results for exact six-artifact reproduction and eleven control comparisons.
+- Added focused artifact-contract checks to the existing test and documented the design checkpoint.
+
+### Why
+- Agents need access to a productive compiler primitive, while the existing evaluator and compilation path already supply the necessary execution interface.
+- Exact executable identity on unchanged controls avoids spending GPU time measuring identical programs.
+
+### What worked
+- Node26 script492: six complete exported artifacts exactly match the measured candidate, including source and launch metadata.
+- Node26 test_optimization_artifact.mjs: canonical identity and numerical-contract checks pass.
+- Node26 script493: task012 two graphs and task016 nine graphs compile identically with and without the composition.
+
+### What didn't work
+- An initial directory inspection used task-12 instead of the retained zero-padded task-012 and returned "No such file or directory". Corrected the inspection path; no artifacts were changed by that failure.
+- No new native transfer or agent-discovered improvement is established by these compilation checks.
+
+### What I learned
+- The other accepted pooling families cannot serve as positive convolution-transfer evidence because they contain no convolution.
+- The artifact must identify tensor input IR when a program installs a frontend decomposition; the old loop-only label would misdescribe this extension.
+
+### What was tricky to build
+- Composing frontend decomposition with loop-stage policy changes must retain the measured ordering and low-precision operation boundaries. Full artifact equality verifies the interface reproduces the measured implementation on all six known cases.
+
+### What warrants a second pair of eyes
+- Native numerical compatibility on fresh convolution families remains untested. The eleven control identities do not establish general safety or a default-promotion criterion.
+
+### What should be done in the future
+- Freeze and evaluate additional convolution families, then expose this explicit program form in the next agent campaign. Publish the pooling and pointwise milestone with eager comparisons and development-only selection clearly stated.
+
+### Code review instructions
+- Inspect transformation_program.mjs, optimization_artifact.mjs and design20's checkpoint. Run test_optimization_artifact.mjs and scripts492–493 under Node26 from the repository root.
+
+### Technical details
+- Four nodes for the measured program: two selective exposure nodes, one cleanup node and one decomposition node. Existing total limit31 remains unchanged.
+- No copied upstream code, new model inference, GPU run, coverage increase or default pipeline change. Coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 193: Freeze eight additional pointwise models and compile the fixed pair
+
+Selected eight FP32 pointwise-convolution graphs before observing their compiler or timing outcomes. Selection excludes exact models in the 200-task evaluation set and prior tracked corpus manifests. Both unchanged Kiln and the fixed pointwise composition compile all eight graphs; all eight executable fingerprints change. CUDA correctness and performance remain pending.
+
+### Prompt Context
+See Step182 for the authored continuation request. The automatic goal reminder is continuation metadata, not a new user quotation.
+**Assistant interpretation:** Test whether the measured compiler change transfers beyond its development family.
+**Inferred user intent:** Obtain generalizable compiler results without expanding experimental infrastructure unnecessarily.
+**Fixed compiler commit:** 8fcfdf6 — Expose measured pointwise composition through shared agent program interface.
+
+### What I did
+- Script494 declares the fixed program, exact-model exclusions and metadata limits before scanning the upstream training list in salted order.
+- Selected one graph each from mmseg/PIDNet-s, mmpose/2xmspn_50, mmpose/pose_seresnet_101, timm/test_efficientnet.r160_in1k, timm/dla102.in1k, torchvision/deeplabv3_mobilenet_v3_large, timm/xception41p.ra3_in1k and timm/xception65p.ra3_in1k.
+- Script495 invokes the existing compile_policy.mjs with existing reference domains. Script496 corrects a rejected baseline declaration without touching candidate results; script497 compares the complete pair.
+
+### Why
+- The previous no-convolution controls cannot establish positive transfer. Additional convolution programs are needed before considering default promotion.
+- Reusing the existing compilation and reference checks keeps this experiment focused on the compiler transformation.
+
+### What worked
+- Sixteen of sixteen builds succeeded after the control declaration correction.
+- All eight executable fingerprints differ; kernel counts baseline/candidate are4/5,1/2,1/1,1/1,1/2,1/1,1/2,1/2.
+- Three graphs per variant passed the protected end-to-end reference check. Five per variant triggered the existing reference-work size skip, preserved verbatim in receipts.
+- The fixed program and membership were declared before compilation. No compiler failures or timing results were used to replace selected graphs.
+
+### What didn't work
+- Script495 initially used kind baseline, but the accepted unchanged-pipeline kind is unchanged. compile_policy.mjs rejected the request with TypeError: Unknown policy kind. The invalid policy and log remain baseline-invalid-v1.json and baseline-invalid-v1.log; compilation.json preserves the first return code.
+- Script496 supplies the unchanged kind and baseline-recovery.json records success. The already successful candidate was not rerun or overwritten.
+- Initial inspection also guessed two script filenames incorrectly; listing the scripts resolved these read-only lookup failures.
+
+### What I learned
+- This fixed transformation changes every selected graph, including small single-kernel cases. Performance regression checks matter even when the kernel count stays the same.
+- The convolution multiply count used for metadata selection is smaller than the interpreter's estimated total reference work; a64-million-product cap does not imply every reference evaluation runs.
+
+### What was tricky to build
+- Exact model exclusion must inspect both the evaluation population and prior tracked corpus manifests. Related architectures still remain and are explicitly allowed; this is not architecture-disjoint confirmation.
+
+### What warrants a second pair of eyes
+- Five size-skipped graphs need native CUDA correctness. Compilation receipts do not establish numerical acceptance or latency improvement.
+- Selection is restricted to FP32, zero-padded1x1 convolution, one convolution per graph and bounded volumes; it does not qualify complete task families or expand the reported coverage.
+
+### What should be done in the future
+- Run the fixed pair against original replay inputs on bling with declared numerical settings, repeated randomized-order timing and unchanged tolerances. Keep all eight results, including numerical or timing failures.
+
+### Code review instructions
+- Inspect pointwise-transfer-v1/declaration.json, scan-audit.json, corpus/manifest.json, both compile receipts and comparison.json. Scripts494–496 intentionally preserve prior output directories; do not rerun them over the frozen experiment.
+
+### Technical details
+- Bounds: at most2 million elements in any tensor and64 million convolution multiply products; FP32 only. Local import uses PyTorch2.11.0+cu130, compilation Node26.13.0, targetA100 proxy, contraction separate.
+- No new LLM calls, GPU measurements, default promotion or coverage increase in this step. Coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 194: Measure complete eight-model transfer and publish the compiler milestone
+
+Both fixed compiler variants pass CUDA correctness on every selected graph. The pointwise composition achieves1.947738× geometric-mean end-to-end speedup across all eight graphs, with five improvements and three small nominal regressions. All sixteen candidate/graph combinations complete three stable timing rounds. The two related Xception models improve approximately7.44× and7.49× and materially affect the aggregate.
+
+A new2065-word textbook-style report explains pooling semantics, pointwise lowering, staged fusion, the six-graph native development result and the separate eight-model transfer protocol. It is stored as reference27 and published as a new Obsidian article without changing historical reports.
+
+### Prompt Context
+See Step182 for the actual authored implementation request and the standing request for milestone reports and detailed diaries.
+**Assistant interpretation:** Complete GPU transfer measurement, retain every selected outcome and publish the technical explanation.
+**Inferred user intent:** Produce reproducible compiler research results with clear attribution and useful documentation.
+**Frozen pair commit:** 81a7e5f.
+**Vault report commit:** 34499ea — Document Kiln pointwise convolution and eight-model GPU transfer.
+
+### What I did
+- Script498 uses existing TorchProgram, check_structure and sample primitives for original-input replay and timing; no second reusable evaluator subsystem was introduced.
+- Script499 stages the committed compiler snapshot and fixed artifacts to an isolated bling directory and launches the pinned CUDA image in tmux.
+- Script500 collects the terminal result, checks complete membership and runner identity, preserves raw timing attempts and summarizes all eight graphs.
+- Created reference27 with docmgr, related primary implementation/evidence, and published the append-only Obsidian report using the vault and textbook-writing skills.
+
+### Why
+- Five graphs had skipped local reference evaluation due to size, making native CUDA validation essential.
+- Randomized-order repeated timing addresses the sequential-run limitation of the motivating development result.
+- The report distinguishes operator support, optimization quality, exact-model transfer and LLM discovery instead of treating them as interchangeable achievements.
+
+### What worked
+- Every baseline and candidate passes output structure, shape, dtype, numerical agreement and input-preservation checks.
+- End-to-end ratios by selected order:1.497440,1.731560,0.972913,0.995085,1.487064,0.995812,7.443968,7.485341.
+- Full-population geometric mean1.9477381443504738. No selected graph was removed or replaced.
+- Remote results.json is terminal complete with all eight expected graph identities; the tmux session has exited. All timing rounds satisfy the declared IQR stability rule.
+
+### What didn't work
+- No runtime correctness or timing failures occurred in this run.
+- Three small examples are nominally slower; the largest slowdown is approximately2.8%. The experiment does not establish statistical significance for these small changes.
+- This direct replay does not run PassBench matching or its score calculation. It is not a new native full-task acceptance result.
+
+### What I learned
+- The representation change transfers beyond the initial pooling family, but its benefit is heterogeneous and particularly large for the two related Xception examples.
+- Kernel count alone is not a profitability signal: the candidate frequently adds a kernel while reducing measured latency.
+
+### What was tricky to build
+- The reference protocol must explicitly include convolution precision. This run disables cuDNN TF32 as well as selecting highest matrix precision, so it is labeled modified full-FP32 research rather than native PassBench reproduction.
+- The initial eight-model declaration preceded compiler outcomes; the detailed GPU protocol was fixed after compilation but before GPU outcomes. Both stages remain visible.
+
+### What warrants a second pair of eyes
+- Exact-model exclusions do not remove architecture relatives. Related Xception wins should not be interpreted as independent architecture-wide confirmation.
+- One input seed and bounded FP32 geometry do not qualify arbitrary values, dtypes, grouped convolutions or the complete task families.
+
+### What should be done in the future
+- Use a separate development set for agent profitability search. These eight models are now observed and cannot serve as fresh confirmation after policy adaptation.
+- Investigate small-case profitability and native precision limitations before default promotion; preserve the full200-task objective.
+
+### Code review instructions
+- Inspect scripts498–500, pointwise-transfer-gpu-staging-v1.json, the complete raw results and summary, then reference27. Compare the direct-replay protocol with the original-evaluator development evidence rather than combining their scores.
+
+### Technical details
+- NVIDIA GB10, pinned Docker image222d8b18..., separate compiler contraction, highest matrix precision and cuDNN TF32 disabled; seed42;20 warmups;100 trials;3 rounds; up to2 retries when IQR exceeds20% of median.
+- No LLM inference or compiler change in this measurement step. The manually authored transformation remains opt-in. Coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 195: Run six actual pointwise agent lanes on a separate development population
+
+A separate eight-model development population now has24 successful control builds and128 successful agent-candidate builds. Six actual Pi/LunaRoute lanes submitted18 programs:16 accepted and two rejected. All16 accepted programs are structurally distinct, but their128 builds reduce to32 distinct graph/executable pairs, including the baseline and fixed-pointwise controls. This supplies16 additional executable alternatives for GPU comparison; it does not yet establish an agent speedup.
+
+### Prompt Context
+See Step182 for the authored implementation request and the standing authorization for six concurrent Pi/LunaRoute lanes with thinking-level experiments. The automatic continuation is runtime metadata, not a new user quotation.
+**Assistant interpretation:** Give the newly measured compiler primitive to actual agents and test their proposals on separate development workloads.
+**Inferred user intent:** Move from manual compiler improvements to measured compiler self-optimization without extensive new infrastructure.
+**Previous result commit:** b8b6547 — Measure1.948x pointwise transfer and publish technical milestone.
+
+### What I did
+- Script501 selects eight additional FP32 pointwise graphs, excluding exact evaluation models and all prior tracked corpus manifests, including the measured transfer population.
+- Script502 compiles unchanged, explicit default and fixed pointwise controls with existing compile_policy.mjs. The default and unchanged artifacts match on all eight graphs.
+- Script503 launches six actual Pi/LunaRoute lanes through the existing SDK/RPC tools, with two replicates each at low, medium and high thinking and three submissions each.
+- Script504 deduplicates accepted artifact programs and compiles every accepted program across the entire development population. Script505 archives lossless compressed event streams and summarizes grammar outcomes, effective levels and executable identities.
+
+### Why
+- The previously measured eight transfer models are now observed; using them to adapt a policy would make subsequent results development evidence. A separate development population avoids disguising such adaptation as fresh confirmation.
+- Existing shared compiler preparation, agent validation and transcript machinery already support the pointwise program kind. No new agent framework or evaluator was needed.
+
+### What worked
+- New models: inception_resnet_v2, regnetv_040, regnetv_064, seresnextaa101d_32x8d, resnetrs101, skresnext50_32x4d, cs3se_edgenet_x and yolo11l-seg, with exact source identifiers retained in the manifest.
+- The training view supplies8 examples and144 aggregate fusion decisions. It contains default-pipeline features, not fabricated post-decomposition dimensions or timing data.
+- All six lanes finish normally. Durations:low-1 49.97s,low-2 21.70s,medium-1 69.49s,medium-2 56.40s,high-1 35.16s,high-2 46.42s. Effective thinking levels match the requests.
+- All128 accepted candidate/graph combinations compile. Distinct executable counts per graph are4,2,4,3,3,4,4,8.
+- Agent3 aliases unchanged Kiln on all eight graphs; agent4 aliases the fixed pointwise composition on all eight. Their identities will permit shared timing evidence rather than noise-driven claims.
+
+### What didn't work
+- Low-1's second submission was rejected with "Threshold must be finite in [0,2]"; low-2's second submission was rejected with "Unknown policy kind". Both consumed proposal slots and remain in the record.
+- Accepted policy data is not numerical correctness or performance evidence. No candidate GPU timing occurred in this step.
+
+### What I learned
+- Grammar diversity substantially exceeds executable diversity:16 programs produce only32 graph/executable pairs. Existing fingerprint grouping is therefore directly useful for reducing GPU work.
+- Six concurrent inference lanes are fast enough for this batch: all finish within70 seconds. This does not establish a statistically meaningful comparison among thinking levels.
+
+### What was tricky to build
+- NativePolicyTask requires a training-only receipt. Control compilation deliberately uses phase train, with all eight manifest rows marked train; no held-out outcome is relabeled or forwarded to the agents.
+- The pointwise program includes one decomposition node in the combined budget. Exposure and cleanup use existing policy grammar and retain host numerical settings.
+
+### What warrants a second pair of eyes
+- Default-pipeline aggregate features may be insufficient to predict profitability after pointwise decomposition. Agent prompts explicitly disclose this limitation.
+- This population is development data, not an independent confirmation set. Exact-model exclusions still permit architecture relatives.
+
+### What should be done in the future
+- Measure each distinct graph/executable pair on bling, including both controls, using identical correctness conditions and randomized repeated timing. Rank whole-program candidates over every development graph, then provide actual measured feedback for refinement.
+- Require another untouched population before claiming generalization of any newly selected agent policy.
+
+### Code review instructions
+- Inspect scripts501–505, pointwise-agent-development-v1, pi-pointwise-lanes-v1 and pointwise-agent-proposals-v1/summary.json. Inspect the compressed event streams for actual inference/tool messages and both rejected requests.
+
+### Technical details
+- Node26.13.0 and the existing configured Pi/LunaRoute provider; no credentials copied into experiment outputs. Raw events remain locally while lossless gzip copies are committed because incremental event streams total roughly130MB uncompressed.
+- All inference uses the previously authorized external service and six-lane concurrency. No default compiler change or PassBench coverage increase; coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 196: Measure an agent-generated improvement over fixed pointwise fusion
+
+All32 distinct development executables pass CUDA correctness and complete three stable timing rounds. The best agent programs achieve1.378308× geometric-mean speedup over unchanged Kiln, compared with1.349233× for the fixed pointwise composition. The resulting1.021549× ratio against the fixed composition comes entirely from one changed YOLO graph; seven executables are identical. This is development evidence, not fresh confirmation or default promotion.
+
+### Prompt Context
+See Step182 for the actual authored continuation and the standing research/agent instructions. The current automatic continuation is metadata.
+**Assistant interpretation:** Measure the actual agent proposals, select a complete reusable program and explain the source of any gain.
+**Inferred user intent:** Establish a working compiler self-optimization result with real GPU evidence.
+**Proposal commit:** 75ab575 — Run six pointwise agent lanes and compile sixteen reusable programs.
+
+### What I did
+- Script506 reuses the existing correctness, runtime, timing and measurement_groups primitives. Exact fingerprint aliases share one numerical check and timing series per graph.
+- Script507 stages both controls and all16 programs to a separate bling directory and launches the pinned CUDA environment in tmux.
+- Script508 collects the terminal eight-graph result and ranks only complete programs over all development members, preserving every raw timing attempt.
+- Script509 records the first best-ranked agent program, its exact policy and the one changed schedule. It does not modify the default compiler.
+
+### Why
+- Timing identical artifacts separately could create an apparent agent improvement from measurement noise. Shared evidence makes exact aliases tie by construction.
+- Whole-program ranking requires every development graph, rather than selecting the best kernel separately for each graph.
+
+### What worked
+- All32 unique graph/executable pairs are measured, with all output shape/dtype/structure, numerical and input-preservation checks passing.
+- Agent7,agent8 andagent14 tie at1.3783082194525584× versus baseline and1.0215491417998288× versus the fixed pointwise composition, because their executables are identical on this population.
+- Agent7 is retained by stable declaration-order tie resolution. Agent4 aliases the fixed composition on all eight graphs and agent3 aliases baseline; both receive exactly their control scores.
+- The changed graph is ultralytics/yolo11l-seg: fixed31.2705 microseconds, winner26.367 microseconds, ratio1.185971100238935. The other seven graphs share exact fixed-composition artifacts.
+
+### What didn't work
+- Many valid agent programs regress. The worst complete candidate,agent2, scores0.455169× versus unchanged Kiln and0.337354× versus the fixed composition.
+- The winner still inherits three small baseline regressions from the fixed composition. It improves its aggregate development score without establishing uniform per-graph improvement.
+- No new correctness or timing failures occurred. Native PassBench matching and scoring are not part of this direct FP32 research replay.
+
+### What I learned
+- The winning policy changes aggregate exposure threshold to1.5 when producerElements is at least10000, retaining1.02 below that boundary; consumer threshold2 and cleanup1.02 remain unchanged.
+- The YOLO input graph is pointwise convolution followed by reshape and concatenation. The fixed implementation has three kernels; the winner has two. Both retain the same tiled convolution schedule, while the separate12800-element intermediate kernel disappears.
+- Fixed exposure rejects an estimated20364800→23385600 work change under1.02; the winner accepts it. Scalar work increases but end-to-end execution improves because the resulting schedule removes a materialization/launch boundary. This is a concrete limitation of the existing work-only profitability threshold.
+
+### What was tricky to build
+- Artifact identities are reused through measurement_groups from the established qualifier. All18 roles (two controls plus16 agents) map to32 executions, not144 independently timed programs.
+- The benchmark declares highest matrix precision and cuDNN TF32 disabled, separate compiler contraction, and unchanged nominal tolerances. These are modified FP32 reference settings, distinct from the native six-graph development protocol.
+
+### What warrants a second pair of eyes
+- A2.15% aggregate gain selected from16 proposals requires independent confirmation. The one changed graph has an18.6% measured speedup, but the selected threshold may encode incidental properties of this development population.
+- The three tied programs have different predicates despite identical development executables; their behavior may diverge on untouched inputs. Stable tie resolution avoids silently choosing among them using confirmation results.
+
+### What should be done in the future
+- Evaluate the fixed selected agent7 on an untouched pointwise population, preserving every outcome. The prior transfer population is observed and cannot become fresh confirmation after adaptation.
+- Feed measured development outcomes back to agents if exploring another iteration; label it explicitly as development refinement and keep confirmation separate.
+
+### Code review instructions
+- Inspect scripts506–509 and pointwise-agent-gpu-results-v1/{results,summary,selection}.json. The selection record includes original fusion decisions and kernel launch descriptions for the changed graph.
+
+### Technical details
+- GB10, pinned CUDA image, seed42,20 warmups,100 trials,3 rounds, randomized order of distinct fingerprints; at most2 retries when timing IQR exceeds20% of median.
+- No new inference in this measurement step. The policies originated in the preceding six actual Pi/LunaRoute lanes. Coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 197: Preserve failed fresh confirmation and isolate an FP32 reference-order mismatch
+
+The fixed agent7 policy was evaluated on every eligible fresh exact model remaining under the declared pointwise selection envelope. The metadata scan exhausted at four models rather than eight; the shortfall was recorded before compilation and GPU measurement. Agent7 produces the same executable as the fixed pointwise composition on all four graphs, so no incremental transfer of its development gain is established.
+
+Three models pass and receive complete timing. Both unchanged Kiln and the shared pointwise/agent artifact fail the fixed numerical tolerance on MnasNet0_5. Therefore all whole-population aggregate fields remain null. A separate diagnostic finds that the pointwise artifact exactly equals explicit sequential FP32 convolution plus the imported batch-normalization expression, while native convolution differs. The failure remains an acceptance failure; the diagnostic does not change tolerances or prior results.
+
+### Prompt Context
+See Step182 and the standing instruction to continue implementation, measure actual results and document failures. The automatic goal continuation is metadata, not an authored quote.
+**Assistant interpretation:** Test the development-selected policy without adaptation, and investigate any shared correctness limitation.
+**Inferred user intent:** Establish whether agent optimization generalizes rather than reporting only successful development examples.
+**Selected policy commit:** bf561b6 — Measure agent pointwise improvement and explain eliminated intermediate kernel.
+
+### What I did
+- Script510 freezes the selected policy and excludes exact evaluation models plus all prior tracked corpus models. The fixed salted scan selects selecsls42b, mnasnet0_5, legacy_seresnet101 and legacy_senet154, then exhausts.
+- Recorded requested8/available4 before running script511, which compiles baseline, fixed pointwise and selected agent7 for all four graphs.
+- Scripts512–514 stage, replay and collect the fixed confirmation experiment using the same correctness/timing primitives and alias grouping.
+- Scripts515–516 diagnose the original MnasNet artifacts against native output, native convolution with explicit batch normalization, sequential FP32 convolution with explicit batch normalization, and FP64 mathematical evaluation cast to FP32.
+- Added and checked docmgr task vkgt for complete evaluation of the available population. Evaluation completion does not imply successful acceptance or policy promotion.
+
+### Why
+- Exact aliases cannot support a claim of additional agent benefit. They share measurements by construction.
+- Replacing the failed graph or averaging only passing graphs would conceal a failure in the declared confirmation population.
+- Independent reference formulas help distinguish an incorrect index mapping from differences in floating-point reduction and normalization evaluation.
+
+### What worked
+- Twelve compiler builds pass; two graphs per variant perform the local reference check and two trigger the retained size skip.
+- Six distinct graph/executable pairs pass CUDA correctness and three stable timing rounds. Agent7 and fixed pointwise share every artifact.
+- Passing baseline/candidate medians:selecsls42b0.917898/0.1057635ms;legacy_seresnet1010.120627/0.072837ms;legacy_senet1540.0322385/0.0400545ms. These remain individual outcomes, not a filtered aggregate.
+- The pointwise MnasNet output is bitwise equal to sequential FP32 channel accumulation followed by the explicit normalization expression:maximum absolute difference0 across9408 outputs.
+
+### What didn't work
+- MnasNet baseline fails673/9408 elements under rtol1.3e-6,atol1e-5; pointwise fails465/9408. Both are retained as correctness_failed and are not timed.
+- The torch assertion reports greatest absolute differences among its failing comparisons of0.0002288818359375 and0.000102996826171875 respectively. The diagnostic separately records global maxima, which need not equal maxima restricted to failing elements.
+- The complete-population geomean is null for baseline, pointwise and agent7. There is no complete confirmation success or incremental agent improvement claim.
+
+### What I learned
+- The baseline has lower RMS error versus the FP64 formula (approximately1.8843e-5) than either native output (4.9533e-5) or the pointwise artifact (4.9291e-5), yet fails comparison with native output. Higher mathematical accuracy alone does not guarantee native-reference acceptance.
+- Native convolution versus explicit sequential convolution already differs before batch normalization:global max absolute difference0.0003662109375. The explicit normalization of native convolution leaves nearly the same mismatch counts against the candidate, making convolution accumulation order a concrete contributor.
+- This diagnostic supports an evaluation-order mismatch; it does not prove every output difference has a single cause or establish a universal safe arithmetic replacement.
+
+### What was tricky to build
+- The requested population size was unavailable under fixed eligibility and exclusions. Retaining all four available models preserves the declared selection process without inventing eight-model evidence or changing eligibility after outcomes.
+- The numerical diagnostic uses unchanged compiled artifacts and original replay inputs. Alternative references are labeled diagnostic and never replace the declared acceptance oracle.
+
+### What warrants a second pair of eyes
+- This is the modified full-FP32 research protocol, not original PassBench numerical-curve acceptance. Its failure must not automatically be presented as a newly unsupported official benchmark task.
+- Neither policy promotion nor generalization of the small development improvement is supported. The selected policy has not changed behavior relative to its fixed control on these four graphs.
+
+### What should be done in the future
+- Compare the problematic arithmetic with the original evaluator's declared acceptance protocol and investigate reduction-order implementation options without weakening existing checks.
+- Broaden workloads through missing operator support or a separately declared selection envelope. Do not reuse these now-observed models as fresh confirmation after adaptation.
+
+### Code review instructions
+- Inspect pointwise-agent-confirmation-v1/declaration.json, available-population.json, scan-audit.json, all compiler receipts and pointwise-agent-confirmation-gpu-results-v1/{results,summary,diagnostic}.json. Scripts510–516 preserve the exact selection and diagnostic procedure.
+
+### Technical details
+- Same GB10/pinned CUDA runtime; highest matrix precision, cuDNN TF32 disabled, separate contraction, seed42,20 warmups,100 trials and3 randomized rounds for correct executables.
+- No new inference, compiler default change, tolerance adjustment or coverage increase. Coverage remains34 complete tasks and375 accepted graphs.
+
+
+## Step 198: Check the failed MnasNet artifacts with untouched PassBench numerical code
+
+The original PassBench comparison and dtype/tolerance lookup reject both unchanged and pointwise artifacts at nominal t=-5. Under the pinned container's native defaults, both also fail t=-4 and t=-3. Under the explicitly modified full-FP32 reference, both pass t=-4 and t=-3 but still fail t=-5. The research failure therefore is not explained by an accidentally stricter comparison threshold.
+
+This is numerical-comparator evidence only. It does not execute graph matching, performance scoring or a complete source task, and it does not increase accepted coverage. The observed runtime defaults enable TF32 for both matrix multiplication and cuDNN; that configuration is recorded rather than silently changed in a nominal reproduction.
+
+### Prompt Context
+See Step182 and the standing request for implementation, measurements and detailed provenance. This goal continuation is runtime metadata, not a new authored quotation.
+**Assistant interpretation:** Resolve whether the failed research comparison also fails PassBench's actual numerical acceptance calculation before choosing a compiler intervention.
+**Inferred user intent:** Avoid spending compiler effort on a mistaken evaluation diagnosis while preserving reproducibility.
+**Prior confirmation commit:** 8391dad.
+
+### What I did
+- Read the pinned upstream compare_correctness, tolerance_generator, get_precision and get_correctness implementations.
+- Script517 runs unchanged compiled artifacts against original replay inputs in two declared modes: native container defaults, then highest matrix precision with cuDNN TF32 disabled.
+- Invoked upstream compare_correctness directly, retained its complete printed numerical curve, and used upstream get_correctness for each tolerance decision.
+- Script518 executes the comparison in the completed remote confirmation environment and collects the diagnostic JSON and raw curve log. All four upstream comparison/config files have recorded SHA256 identities.
+
+### Why
+- The preceding experiment used check_structure with rtol1.3e-6 and atol1e-5. Verifying the actual benchmark mapping is necessary before attributing rejection to that research check.
+- Native precision defaults and explicit FP32 execution are separate experimental variables. Neither result should overwrite the other.
+
+### What worked
+- Upstream float32 precision at t=-5 is rtol1.30016957803329e-6,atol1e-5, emitted at three significant digits as1.30e-6 and1e-5. This agrees with the research threshold to the benchmark's printed precision.
+- Native-default mode records matmul precision high, matmul_allow_tf32 true and cudnn_allow_tf32 true. Both artifacts fail t=-7 through t=-3 in the tested range.
+- Full-FP32 mode records highest,false,false. Both artifacts fail t=-7,-6,-5 and pass t=-4,-3.
+- Existing confirmation results and acceptance criteria remain unchanged.
+
+### What didn't work
+- Neither implementation qualifies at the benchmark's nominal threshold, even after explicitly removing TF32 from the reference. No compiler fix or successful reproduction is claimed.
+- Running the numerical comparator alone cannot establish pass matching, benchmark integrity-check compatibility or complete-task acceptance.
+
+### What I learned
+- There are at least two distinct numerical concerns: native reduced-precision execution defaults and FP32 evaluation-order differences that remain with TF32 disabled.
+- Chasing one container's native arithmetic with an ad hoc kernel change would conflate compiler semantics with reproduction environment configuration. A numerical contract and its implementation must be declared together.
+
+### What was tricky to build
+- The upstream curve prints multiple dtype-specific tolerance pairs, and get_correctness selects the proper key by output dtype. The diagnostic retains the whole curve and delegates the lookup rather than reconstructing an approximate acceptance rule.
+- Raw comparator stderr is preserved separately from the launcher stdout so the numerical evidence cannot be overwritten by process output redirection.
+
+### What warrants a second pair of eyes
+- The pinned NVIDIA image uses a newer Torch build than the paper. These observed defaults must not be represented as universal PyTorch defaults or the paper's configuration.
+- An original-evaluator numerical failure on this training graph is not a newly failed member of the official200-task evaluation population.
+
+### What should be done in the future
+- Keep this arithmetic limitation explicit while expanding missing compiler operators and workload coverage. Assess any future precision mode against a declared reference rather than adjusting tolerances after outcomes.
+- Revisit the paper's exact environment separately from integration experiments on GB10.
+
+### Code review instructions
+- Inspect scripts517–518 and pointwise-agent-confirmation-gpu-results-v1/passbench-numerical.{json,log}. Compare the four recorded source hashes with the pinned upstream implementations.
+
+### Technical details
+- The same MnasNet source graph, seed42 and unchanged baseline/pointwise artifacts are used. No new GPU timing, LLM inference, compiler mutation, default promotion or accepted-coverage increase occurred.
+
+
+## Step 199: Implement adaptive average pooling through existing compiler primitives
+
+Adaptive average pooling now has frontend semantics, tensor lowering and functional/ATen FX bindings for static positive CHW/NCHW floating tensors. All210 deterministic PyTorch oracle cases pass frontend and decomposition checks, and all210 lower through the existing GPU pipeline and export CUDA artifacts with loop-reference validation. Actual CUDA execution remains pending.
+
+The historical audit had29 graphs whose first unsupported operation was adaptive_avg_pool2d. Reimport now succeeds on27; the other two proceed to an unsupported torch.flatten call. These import successes do not increase accepted GPU benchmark coverage.
+
+### Prompt Context
+See Step182 and the user's standing authorization to implement missing Kiln capabilities, preserve source provenance and keep research moving. The automatic goal reminder is not a new authored quotation.
+**Assistant interpretation:** Expand the supported workload population using the existing pooling/reduction architecture rather than further tuning one exhausted pointwise subset.
+**Inferred user intent:** Reach broader benchmark support and new optimization opportunities while retaining the documented precision limitations.
+
+### What I did
+- Reviewed the recorded unsupported-operation counts. Adaptive pooling accounts for29 historical first failures; max pooling accounts for42 and remains outstanding. Adaptive pooling directly extends the existing average-pooling module.
+- Script519 archives pinned PyTorch v2.9.1 AdaptiveAveragePooling.cpp, AdaptiveAveragePooling.cu and AdaptivePooling.h with hashes and provenance. Public API documentation was read through web search.
+- Added adaptiveAvgPool2dSpec, adaptiveAvgPool2dReference and lowerAdaptiveAvgPool2d in pooling.js; registered nn.adaptive_avg_pool2d, N.adaptiveAvgPool2d and decomposition in tensor.js.
+- Added functional and ATen binding/metadata validation in fx_pooling.py and reused fx_import's ownership rules.
+- Script520 generates210 deterministic CPU oracles; adaptive-pooling.mjs verifies reference/decomposition behavior, invalid dimensions and masked NaNs. Expanded the existing FX pooling tests.
+- Script521 reimports all29 historical failures; script522 exports all210 fixture programs with actual source hashes.
+
+### Why
+- Adaptive pooling uses output-defined intervals, which can overlap and vary in width; treating it as ordinary fixed-window pooling would be incorrect.
+- Existing tensor views, select, sum and division express the operation without a new compiler IR, runtime or GPU backend.
+- Core support and import eligibility are verified before spending GPU time on complete evaluation families.
+
+### What worked
+-210 cases cover CHW/NCHW, five spatial shapes, integer/pair/None output specifications, overlapping and expanded outputs, and FP32/FP16/BF16.
+- Four Python pooling importer tests pass;288 existing average-pooling reference/decomposition tests also pass.
+- All210 fixtures compile through the A100-proxy GPU pipeline with separate contraction and export successfully. Loop interpreter outputs remain within declared fixture tolerances.
+-27/29 historical adaptive-pooling imports now succeed. The five first-failure groups contain9,6,6,2,6 graphs; the two-graph group reaches a remaining functional flatten binding limitation.
+
+### What didn't work
+- Direct public documentation HTML download returned HTTP403; the failure remains in the source manifest. Pinned implementation-source downloads succeeded.
+- Two graphs remain blocked with "flatten: unsupported target torch.flatten; implement semantic lowering". They are retained rather than omitted.
+- CUDA correctness and native PassBench task acceptance have not yet been measured for this operator.
+
+### What I learned
+- Adaptive bin i is [floor(i*input/output),ceil((i+1)*input/output)); output larger than input still yields nonempty, potentially overlapping bins.
+- The pinned contiguous CUDA implementation divides accumulated values by bin height and then width. Low-precision operands accumulate in FP32; the Kiln frontend preserves that widening/narrowing boundary.
+
+### What was tricky to build
+- Varying bins are embedded in a maximum-bin rectangular view. Clamped loads prevent out-of-bounds access; a select mask excludes extra cells without propagating NaNs. Uniform bins avoid the mask entirely.
+- Height and width divisor tensors preserve separate divisions. Generic reduction scheduling can still alter association, so passing deterministic local fixtures is not universal native numerical equivalence.
+- Null output dimensions preserve the corresponding input dimension. Result shape/dtype metadata is verified rather than trusted blindly.
+
+### What warrants a second pair of eyes
+- Static mask/constant size may affect compile cost for large nonuniform output shapes. This is a correctness-first implementation using the existing compiler optimization path.
+- Zero-sized/dynamic tensors and noncontiguous source layouts remain outside the current supported contract. The GPU runtime and native checker must qualify actual corpus instances before coverage claims.
+
+### What should be done in the future
+- Run all210 CUDA fixtures on bling from the committed compiler snapshot, then qualify complete newly importable task families.
+- Add the functional flatten binding by sharing its existing method semantics and retaining alias handling; then recheck the remaining two graphs.
+- Continue max/adaptive pooling expansion under task kiok; do not mark the broader task complete yet.
+
+### Code review instructions
+- Inspect pooling.js, tensor.js, fx_pooling.py and the extended FX tests. Run node packages/kiln/test/adaptive-pooling.mjs and pooling.mjs under Node26, plus PYTHONPATH=integrations/passnet python3 -m unittest integrations/passnet/test_fx_pooling.py.
+- Review archived semantic notes and sources alongside scripts519–522 and adaptive-pooling-import-v1/results.json.
+
+### Technical details
+- Independently written Kiln implementation; no upstream code copied. The source archive identifies the exact consulted PyTorch version and documentation URLs.
+- CPU oracles use local Torch2.11.0+cu130 and quarter-valued inputs. These are deterministic semantic fixtures, not broad arbitrary-input precision evidence.
+- No new LLM inference, GPU measurement or coverage increase in this step. Cumulative accepted coverage remains34 complete tasks and375 graphs.
+
+
+## Step 200: Validate adaptive pooling on CUDA and complete functional flatten import
+
+All210 adaptive-pooling fixtures pass native CUDA comparison:70 each in FP32, FP16 and BF16. Maximum observed FP32 error is2.9802322387695312e-8; low-precision results are exact on the deterministic inputs. The functional flatten binding now shares validated shape semantics with the method form, allowing all29 previously blocked adaptive-pooling graphs to import.
+
+Five complete task families are frozen for original-evaluator replay, but that replay has not started at this checkpoint. Accepted benchmark coverage therefore remains34 complete tasks and375 graphs.
+
+### Prompt Context
+See Step182 for implementation authorization. During this work the user asked, "how far in coverage are we, what is ahead of us?" and then "what does it take to impement like, adaptive pooling or max pooling? what needs to be written and tested?"
+**Assistant interpretation:** Report verified coverage and explain the actual compiler-port and validation layers while completing the current checkpoint.
+**Inferred user intent:** Understand both current progress and the practical work required for each missing operator.
+**Adaptive compiler commit:** 2441f1a.
+
+### What I did
+- Scripts523–526 stage, execute and collect all210 compiled fixtures using the existing runtime bridge and pinned CUDA environment.
+- Added lower_flatten in fx_indexing.py and routed torch.flatten, aten.flatten.using_ints and the tensor method through it. Removed the old method-only branch that relied directly on result metadata.
+- Validated static/negative axes, scalar flattening, expected shape/dtype and duplicate arguments. Flatten remains conservatively non-fresh for mutation ownership.
+- Added test_fx_flatten.py and ran flatten, reshape and pooling importer tests together.
+- Scripts527–528 reimport all29 graphs and freeze complete membership of task indices89,127,184,189,191 (9,6,6,2,6 graphs). Scripts529–530 prepare the existing complete-task evaluation workflow.
+
+### Why
+- Compiler export alone does not establish actual GPU numerical behavior.
+- Sharing functional and method flatten semantics avoids another duplicate importer implementation and closes the remaining two adaptive-pooling import failures.
+- Complete-task membership must be retained across all shapes and dtypes before acceptance can increase.
+
+### What worked
+-210/210 CUDA fixtures pass. FP16/BF16 require exact agreement and pass; FP32 passes rtol1.3e-6,atol1e-5.
+-10 focused Python importer tests pass, covering four flatten forms, dtypes, scalar/negative-axis behavior, forged metadata, duplicate arguments and alias restrictions.
+-29/29 historical adaptive-pooling failures now import. Each group's graph list matches complete upstream task membership.
+
+### What didn't work
+- An interim commentary inferred zero overall error from the last displayed fixture rows. The collected full summary reports maximum FP32 error2.98e-8; this was corrected immediately. No numerical evidence was altered.
+- No complete-task PassBench acceptance is claimed before the planned replay.
+
+### What I learned
+- The small independent operator fixtures establish useful CUDA confidence, while corpus integration can reveal unrelated missing bindings such as functional flatten.
+- Flatten shape semantics can be validated once and shared with existing reshape lowering; a new runtime implementation is unnecessary.
+
+### What was tricky to build
+- Scalar flatten has effective rank1 for axis validation and produces shape[1]. Negative axes must be normalized before checking start<=end.
+- Functional input keyword binding differs from method/ATen self binding, while the semantic reshape and ownership rules are shared.
+
+### What warrants a second pair of eyes
+- The fixtures use deterministic quarter-valued inputs; arbitrary-input and complete-family numerical behavior remain separate checks.
+- Do not count operator fixture programs as benchmark graphs or treat successful import as accepted execution.
+
+### What should be done in the future
+- Launch the frozen five-family replay from this committed source snapshot and retain all compiler, matching, numerical and timing failures.
+- Continue the broader pooling task, including max-pooling semantics and any requested index-output support.
+
+### Code review instructions
+- Inspect lower_flatten, its fx_import dispatch and test_fx_flatten.py. Review adaptive-pooling-cuda-results-v1/summary.json and adaptive-pooling-task-plan-v1.json.
+
+### Technical details
+- Artifacts were built from adaptive-pooling sources recorded in the fixture manifest; remote bundling hashes runtime and checker files. No evaluator or tolerance changes.
+- No LLM inference or performance claim in this checkpoint. Full-task evaluation is pending, not running.
+
+## Step 201: Accept adaptive pooling and integrate a parallel operator batch
+
+The original PassBench replay accepted all29 graphs in the five frozen adaptive-pooling families. Cumulative modified-protocol coverage is now39/200 complete tasks and404/2060 accepted graphs. Three parallel implementation lanes delivered max pooling, layout operations, and scalar bindings; their shared frontend and importer integration passes focused local tests. Their full GPU/corpus qualification remains open.
+
+### Prompt Context
+The user asked to batch coverage work, asked whether it could proceed in parallel, and requested that the current branch be pushed for independent research. The branch was pushed at ffa6388 before integrating the uncommitted batch.
+**Assistant interpretation:** Run independent operator implementations concurrently, then integrate through one importer/frontend and qualify jointly.
+**Inferred user intent:** Increase coverage quickly while retaining reproducible evidence and a branch others can inspect.
+
+### What I did
+- Collected the terminal adaptive task run with script531. Its audit records five complete families,29/29 matched executions, and numerical correctness at t=-5. Preserved the previous coverage JSON and rebuilt the cumulative ledger with script21.
+- Integrated independently written max_pool2d, pad, roll, split/chunk, hardtanh, clamp, integer scalar pow, cos and sin bindings. Split/chunk outputs remain non-fresh aliases; in-place arithmetic on them is rejected.
+- Added frontend ops and decompositions for max pooling, padding and roll. Pad keeps the input dtype through a typed select; max pooling widens low-precision inputs for computation and narrows the result.
+- Fixed max reduction's identity to negative infinity and emitted exact IEEE nonfinite constants for CUDA and WGSL. This was required for empty dilated max-pooling windows and NaN results.
+- Ran the focused Python import suites and Node layout/max-pooling suites together.
+
+### Why
+The adaptive replay was the evidence needed to increase accepted coverage. The batch targets multiple common first failures at once, while a shared qualification pass can expose second failures without restarting development for every operator.
+
+### What worked
+- Adaptive:5/5 complete tasks and29/29 graphs accepted; ledger39/200 tasks,404/2060 graphs.
+- Nine focused importer tests and both Node suites pass. Scalar helper's36 CPU/oracle/emission cases and layout's32 oracle cases pass in their respective suites.
+- Corpus census:3027 max-pool calls all use return_indices=false; scalar and layout source counts and provenance are stored in the batch notes.
+
+### What didn't work
+- The first combined Node run exposed the finite negative max identity; the fix makes the previously failing infinity case pass.
+- The first Python invocation omitted PYTHONPATH; rerunning with PYTHONPATH=integrations/passnet passed after explicit partition-alias mutation rejection.
+- Full corpus import and native CUDA qualification of the combined batch have not yet run. These tests establish local semantics and dispatch, not new accepted benchmark coverage.
+
+### What I learned
+An operator batch can share the FX metadata, dtype and ownership checks, but partition results require list-valued importer state. Max pooling needs IEEE infinities and NaNs throughout lowering, reduction and emission, so its implementation exposed a preexisting shared compiler gap.
+
+### What was tricky to build
+- Split/chunk yield several tensor expressions under one FX node. Getitem selects a member using its list metadata; the selected view does not gain fresh ownership.
+- Low-precision constant padding needed a typed tensor select to prevent FP32 promotion.
+- The public branch push includes only the prior committed checkpoint; current batch edits are awaiting GPU/corpus qualification.
+
+### What warrants a second pair of eyes
+- Inspect max-pool NaN/negative-infinity semantics in CUDA and WGSL; local compilation tests cannot establish all native GPU behavior.
+- Inspect scalar inplace source ownership and partition getitem metadata before counting coverage.
+
+### What should be done in the future
+- Run one combined import census across the selected blocked graph families, then export/execute representative GPU fixtures and complete newly importable task families.
+- Record source hashes, numerical failures and exact accepted graph membership before another coverage increment.
+
+### Code review instructions
+Review std/pooling.js, layout.js, tensor.js, fns.js, emit.js and fx_import.py with the three new FX helpers. Run the focused Python and Node suites named above. Compare adaptive-pooling-task-audit-v1.json with kiln-coverage.json.
+
+### Technical details
+PyTorch v2.9.1 max-pooling source is archived under max-pooling-semantics-v1; other corpus census and implementation notes are in ticket sources. All Kiln lowerings are independent implementations. The acceptance ledger aggregates exact original replay evidence across compiler snapshots and is not a uniform 200-task run.
+
+## Step 202: Audit the parallel import batch and execute max pooling on CUDA
+
+The broad import pass translated158/201 previously blocked graphs, and16/24 touched task families are fully importable. This is eligibility evidence, not accepted PassBench coverage. Native GPU comparison passed78/78 compiled max-pooling fixtures against PyTorch. All16 importable families,158 graphs total, are frozen for original-evaluator replay.
+
+### Prompt Context
+The user requested broader operator batches and parallel work. The current branch was pushed for independent research before this continuation.
+**Assistant interpretation:** Measure the batch as one corpus unit and one CUDA fixture cohort, then select complete task families for benchmark replay.
+**Inferred user intent:** Move coverage forward quickly while keeping every second blocker visible.
+
+### What I did
+- Script570 reimported every historical first failure targeted by the batch. Script571 checked all graph_list members in the24 affected task families.
+- Script541 exported78 max-pool programs; scripts572–575 ran them on the authorized GB10 in the pinned CUDA image and collected exact per-case comparisons.
+- Script576 froze all16 fully importable families with task indices, graph counts and graph-list hashes.
+
+### Why
+Historical first failures can hide subsequent unsupported operations. Reimporting complete family membership prevents inflating coverage with successful isolated graphs. Native CUDA fixtures test max-pool lowering beyond JavaScript reference and SIMT evaluation.
+
+### What worked
+-158/201 previously blocked graphs import. All graph lists in the24 touched families contain exactly201 graphs;16 families,158 graphs, are wholly importable.
+-78/78 compiled max-pool fixtures pass native PyTorch CUDA comparison at exact tolerance, across FP32/FP16/BF16 and the tested NaN/infinity cases. The run used NVIDIA GB10 and Torch2.12.0a0+5aff3928d8.nv26.05.
+
+### What didn't work
+-43 graphs still fail import:10 in-place hardtanh ownership,13 rsqrt,9 encoded device arguments,6 expand,3 unfold and2 tanh. The new ports exposed those second blockers; they were not silently filtered from the audit.
+- The16 families have not yet been run through full PassBench; recorded accepted coverage stays39/200 tasks and404/2060 graphs.
+
+### What I learned
+A single family-level census gives a precise next benchmark cohort. The max-pool edge cases required fixing the shared IEEE constant and reduction identity path, which then passed native CUDA execution.
+
+### What was tricky to build
+- Preserve exact task graph_list ordering and hashes during selection.
+- Compare NaNs as equal while retaining exact finite and infinity equality; the checker also verifies that source inputs are unchanged.
+
+### What warrants a second pair of eyes
+- Inspect full PassBench replay for numerical failures at original tolerance. Fixture inputs and comparison do not establish benchmark acceptance or performance.
+- Investigate the six remaining blocker classes using the archived per-graph errors, especially device arguments and aliasing.
+
+### What should be done in the future
+- Stage the committed source snapshot and replay the16 frozen families via the original evaluator.
+- Address common second blockers in another batch, then rerun the affected complete-family import audit.
+
+### Code review instructions
+Read parallel-port-batch-import-v1.json, parallel-port-family-import-v1.json, parallel-port-task-plan-v1.json, and max-pooling-cuda-results-v1/summary.json. Run scripts570–576 to regenerate the selection and check source hashes.
+
+### Technical details
+All78 artifacts carry source-file SHA256 values in the fixture manifest. The GPU checker used the pinned PassBench image digest and native torch.nn.functional.max_pool2d. No tolerance relaxation or evaluator change occurred in this fixture cohort.
+
+## Step 203: Launch complete-family PassBench replay for the parallel port batch
+
+The16-family,158-graph cohort is running on bling from committed source revision898fd0f. This is an active benchmark job, not an acceptance result.
+
+### Prompt Context
+The user requested rapid coverage expansion in parallel and a pushed branch for independent research.
+**Assistant interpretation:** After native max-pool validation, replay all complete importable families under the existing task evaluator.
+**Inferred user intent:** Obtain measured benchmark acceptance, not merely an import count.
+
+### What I did
+- Copied the existing isolated task workflow into scripts577–579 with the parallel-port cohort paths and selection.
+- Script577 verified every snapshot file against git revision898fd0f, staged the compiler and all158 source graphs, checked the remote source snapshot, and launched the tmux owner job.
+- Pushed research/passnet at898fd0f. A remote check found the job active with one run record started.
+
+### Why
+The source snapshot and complete membership checks keep the resulting correctness and performance evidence attributable to this compiler revision.
+
+### What worked
+- Remote source snapshot SHA256:41da393f15fd3a402611086f4ec023f6dbdea493ec6586f3f6ef46a564580aed.
+- The owner session kiln-parallel-port-tasks-v1 was live at the last check.
+
+### What didn't work
+- No result is yet terminal; accepted coverage remains39/200 tasks and404/2060 graphs.
+
+### What I learned
+The batch is large enough to justify one shared qualification run across all16 families rather than operator-specific task replays.
+
+### What was tricky to build
+The isolated compiler checkout must resolve its own workspace packages; the stage script verifies the remote snapshot before running any task.
+
+### What warrants a second pair of eyes
+Check per-graph matching and original numerical tolerance in the collected audit before updating coverage.
+
+### What should be done in the future
+- Poll the same live remote session/run handle; do not restart on an observation timeout.
+- When terminal, collect with script579, inspect all failures, and update the coverage ledger only for verified complete tasks.
+
+### Code review instructions
+Review parallel-port-task-plan-v1.json, parallel-port-task-staging-v1.json and scripts577–579. Inspect results/run.json and individual benchmark logs once terminal.
+
+### Technical details
+The pinned GPU image is sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba. The evaluation uses the existing modified integration protocol and nominal t=-5 numerical acceptance.
+
+## Step 204: Close second import blockers with views and scalar bindings
+
+The follow-up corpus audit now imports191/201 graphs across23/24 complete affected task families. Ten graphs remain blocked by in-place hardtanh on a placeholder; that is a real mutation and alias contract, so the importer still rejects it. The original16-family replay remains live on bling from its earlier immutable source snapshot.
+
+### Prompt Context
+The user authorized broad, parallel coverage work and requested measured outcomes rather than piecemeal qualification.
+**Assistant interpretation:** Use the new first-failure audit to address common second blockers while the existing GPU cohort continues.
+**Inferred user intent:** Keep the compiler moving toward more complete task support without weakening correctness checks.
+
+### What I did
+- Added direct torch.rsqrt and torch.tanh bindings to existing Kiln unary operations.
+- Decode explicit cuda/cuda:0 device arguments and treat a device-only `.to` as a value-preserving operation when metadata matches. Other devices remain unsupported.
+- Added static `expand` and `unfold` frontend ops with view-based lowering and metadata-checked FX method bindings.
+- Added `type_as` dtype binding using the referenced tensor's static dtype.
+- Reaudited the original24 complete family lists after each follow-up. Scripts580,582,584 preserve each stage; v4 records191 imported graphs and10 remaining failures.
+- Generated12 PyTorch CPU oracles and verified frontend evaluation, decomposition, and compiler export for expand/unfold.
+
+### Why
+These operations are common graph-level view and scalar semantics. They unlock the same task families already selected by the initial batch without adding kernels or changing benchmark rules.
+
+### What worked
+- Initial batch:158/201 imported,16 complete families. Follow-up:187/201 after rsqrt/tanh/expand/device,188/201 after type_as,191/201 after unfold;23 complete families.
+-12 expand/unfold oracle cases pass across FP32, FP16 and BF16. Nine prior FX tests and both prior Node suites still pass after shared importer changes.
+- The older16-family PassBench run was observed live with12 task records at the latest check.
+
+### What didn't work
+- Ten in-place hardtanh cases still require mutation/alias semantics. They are explicitly blocked rather than copied into new storage and counted as accepted.
+- The23-family cohort is only import-qualified; no full PassBench acceptance or performance result is claimed from v4.
+
+### What I learned
+The second blockers were largely metadata-preserving views and direct scalar operations; each can be implemented with existing tensor IR views and primitive math. A genuine in-place placeholder mutation is a different semantic problem.
+
+### What was tricky to build
+- `expand` may use -1 only for existing axes and must reject incompatible dimensions.
+- `unfold` appends a window axis; each output coordinate maps to input_axis = output_axis * step + window_coordinate.
+- `type_as` must take its target dtype from a second tensor without changing the input shape.
+- A CUDA device-only conversion can be elided only in the GPU PassBench runtime and when tensor metadata is unchanged.
+
+### What warrants a second pair of eyes
+- Verify native GPU numerical behavior for the newly imported graph families before adding them to coverage.
+- Review `to(device)` and `type_as` semantics if this bridge is reused outside the current all-CUDA evaluator.
+
+### What should be done in the future
+- Collect the live16-family replay when terminal and diagnose failures.
+- Freeze and replay all23 newly importable families from a committed source snapshot; do not overlap GPU benchmark jobs.
+- Design alias/mutation handling for the remaining hardtanh family.
+
+### Code review instructions
+Read the v1–v4 parallel-port-family-import audits and the original graph_list membership. Run scripts581/view-batch.mjs, the FX tests and prior Node suites.
+
+### Technical details
+The v4 audit covers exactly201 graphs across24 task families. It is importer evidence only. Static views preserve dtype and do not gain fresh ownership; ten mutated placeholder graphs remain unsupported.
+
+## Step 205: Record the first parallel-port replay and launch the seven-family delta
+
+The first16-family PassBench replay is terminal. Three complete families (23 graphs) passed matching and original numerical checks. Thirteen families did not qualify:66 executed graphs failed to match a generated pass, and69 graphs were unexecuted after earlier compiler failures. Cumulative accepted coverage is42/200 tasks and427/2060 graphs. A separate seven-family,33-graph delta replay is live from the committed second-blocker compiler snapshot.
+
+### Prompt Context
+The user asked for broad, parallel coverage expansion with measured results and detailed diary evidence.
+**Assistant interpretation:** Preserve complete failure evidence from the first broad run, then evaluate the newly unlocked families without rerunning the same16 families immediately.
+**Inferred user intent:** Convert importer progress into credible task acceptance and use failures to choose the next compiler work.
+
+### What I did
+- Collected the terminal16-family run with script579 and summarized it using the existing original acceptance audit. Updated coverage builder with the exact replay logs after preserving the previous ledger.
+- Script591 classified task outcomes and captured compiler log tails. Its `eager_fail` status originates from the upstream log parser; inspected benchmark logs show `No passes modified the graph` for the66 executed failures, so these are currently matching failures rather than proof of eager numerical failure.
+- Script586 froze the23-family import population; script587 selected only the seven newly complete families,33 graphs. Scripts588–590 stage, run and collect the delta. The source checkout snapshot was verified and the tmux job launched.
+
+### Why
+Compilation, matching and numerical correctness must be diagnosed separately. Replaying only the new seven families uses GPU time on untested work while preserving the original16-family result as a separate source snapshot.
+
+### What worked
+- Three complete families accepted: task indices102 (10 graphs),136 (4),120 (9).
+- Cumulative original-replay coverage now42/200 complete tasks and427/2060 accepted graphs under the declared modified protocol.
+- Seven-family delta source snapshot SHA256:ecaa01c28bb0f2d10851c8dcf95d0eccf72ecbbef7d1bfaf19db204499c38ad7. The job was observed live with five task records at the latest check.
+
+### What didn't work
+- The first broad replay yielded only3/16 accepted families despite16/16 importability. Matching failed for66 executed graphs. Other tasks failed during compilation, including end-to-end checker failures, leaving69 unexecuted.
+- The delta replay is not terminal; no acceptance count from it is claimed.
+
+### What I learned
+Import coverage substantially overestimates benchmark acceptance. The next high-value work is source-pattern/Dynamo graph matching and compiler numerical diagnostics, rather than only porting more operators.
+
+### What was tricky to build
+- The upstream parser names no-pass-match results `eager_fail`; the underlying log must be inspected before assigning cause.
+- A compile-stage failure prevents an entire task from reaching PassBench; these graphs cannot be counted as incorrect numerical comparisons or as matching failures.
+
+### What warrants a second pair of eyes
+- Inspect task107 generated max-pool patterns and the target Dynamo graph to identify exact matcher divergence.
+- Inspect task31 and177 failed end-to-end compiler checks separately from matching results.
+
+### What should be done in the future
+- Collect the same live seven-family delta when terminal, audit every graph, and update coverage only for accepted complete tasks.
+- Capture target FX graphs for representative no-match cases in a diagnostic run without altering the published evaluator, then test a minimal matching fix.
+
+### Code review instructions
+Read parallel-port-task-audit-v1.json, parallel-port-failure-taxonomy-v1.json, task107/benchmark.log and task031/corpus/002.kiln.compile.log. Compare the coverage snapshot to the current kiln-coverage.json.
+
+### Technical details
+The first run used compiler source revision898fd0f. The second delta uses929a375. Both retain the original nominal t=-5 numerical check. Neither run supports a claim of uniform full-corpus coverage.
+
+## Step 206: Audit the seven-family second-blocker replay
+
+The delta run finished and accepted two complete families, task113 and task105, each with two graphs. Five more graphs in task52 passed nominal t=-5 although that family failed overall. Cumulative accepted coverage is44/200 complete tasks and436/2060 graphs. This remains a cumulative modified-protocol ledger across compiler snapshots, not a uniform full benchmark run.
+
+### Prompt Context
+The user asked for broader batched coverage and benchmark results while preserving detailed implementation evidence.
+**Assistant interpretation:** Collect the terminal delta and update coverage from individual original-evaluator log evidence.
+**Inferred user intent:** Know which new operator support actually improves end-to-end task acceptance.
+
+### What I did
+- Collected the terminal seven-family run with script590; verified remote source snapshot and all task records.
+- Inspected every task's acceptance summary and task52's per-graph numerical curve.
+- Preserved the previous coverage ledger, added the delta run to the ordered coverage builder, and rebuilt the cumulative count.
+
+### Why
+A task with some correct graphs cannot be reported as fully supported. The published benchmark uses multiple shapes and dtypes per task, so complete-family acceptance is the decisive unit.
+
+### What worked
+- Task113:2/2 accepted, score1.729523353470545.
+- Task105:2/2 accepted, score4.211696003986995.
+- Total across this delta:2/7 complete tasks,9/33 individual graphs accepted at t=-5.
+- Cumulative accepted evidence:44/200 tasks,436/2060 graphs.
+
+### What didn't work
+- Task52 had nine executed/matched graphs but only five passed t=-5; at least one example passed t=-3 and failed t=-5, so the family is not accepted. No tolerance was relaxed.
+- Task83 failed pattern matching; tasks47,195 and146 had incomplete execution after compiler-stage failures.17 graphs were unexecuted.
+
+### What I learned
+The view and scalar ports do yield new fully accepted tasks, but matching, compiler checks and low-precision numerical tolerance now dominate the newly imported population. The next large gain likely requires diagnosing these three classes rather than another list of front-end op names.
+
+### What was tricky to build
+The task52 log's execution status `correct` is weaker than the nominal numerical threshold; the per-graph `correct_at['-5']` field controls acceptance. The coverage builder uses matching==1, execution success and the t=-5 result together.
+
+### What warrants a second pair of eyes
+- Examine task52's low-precision error distribution and dtype-specific operations before changing any arithmetic order.
+- Diagnose task107's max-pool pattern mismatch from actual target FX; pattern and source operator names alone are insufficient.
+
+### What should be done in the future
+- Capture representative Dynamo target graphs in a separate diagnostic and compare normalized pattern/target structure.
+- Diagnose end-to-end compiler failures for task31,177,47,195,146; separate resource limits from numerical checks.
+- Reevaluate changed compiler variants on held-out families with the same evaluator and fixed tolerance.
+
+### Code review instructions
+Review parallel-port-delta-task-audit-v1.json, task52 benchmark.log, and kiln-coverage.json. Regenerate using script21 only after confirming terminal run.json and source snapshot match the staging receipt.
+
+### Technical details
+Delta source revision929a375; snapshot SHA256 ecaa01c28bb0f2d10851c8dcf95d0eccf72ecbbef7d1bfaf19db204499c38ad7. The original scorer reported the task scores; no local approximation was substituted.
+
+## Step 207: Diagnose and normalize max-pooling match arguments
+
+A captured task107 TorchDynamo graph contains the same convolution and max_pool2d call targets as the generated source pattern. The pooling call differs structurally: Dynamo uses positional stride/padding/dilation while source FX tracing preserves them as keywords. The existing integration normalizer omitted max_pool2d. Adding its public static signature makes the real captured pattern match the target exactly in a local structural diagnostic. Full PassBench acceptance remains to be measured.
+
+### Prompt Context
+The user requested broad coverage progress and evidence-backed diagnosis after the first batch matched only three of sixteen families.
+**Assistant interpretation:** Find a concrete matcher divergence before modifying the integration protocol.
+**Inferred user intent:** Turn the existing ported kernels into accepted tasks without masking numerical or compiler failures.
+
+### What I did
+- Script592 captured task107's source-derived pattern and TorchDynamo target FX using local PyTorch without executing the convolution. Archived full node arguments in pattern-target-fx-diagnostic-v1.json.
+- Added max_pool2d to the narrow argument-normalization whitelist with an explicit public signature because its boolean_dispatch wrapper has only `*args, **kwargs` under inspect.signature.
+- Script593 recaptured the same graph and applied the existing SubgraphMatcher. It reports one match. Added a regression test that starts with zero matches, normalizes both forms, gets one match, preserves output and rejects a changed stride.
+
+### Why
+Structural matching compares call arguments. The source and target encode the same pooling semantics differently, so the explicit signature is needed to canonicalize both graphs without changing computation or predicates.
+
+### What worked
+- Before: pattern `(conv,3)` with stride/padding/dilation in kwargs; target `(conv,3,2,1,1)` with ceil_mode and return_indices kwargs. Zero matches.
+- After: one exact SubgraphMatcher match on the captured task107 graph. All seven fx_normalize tests pass.
+
+### What didn't work
+- No full GPU PassBench replay has yet used this normalizer change. It may expose a separate numerical or compile failure after matching.
+
+### What I learned
+The no-match class includes a concrete integration protocol omission, not just unsupported operator semantics. A captured target graph is more informative than the source model alone.
+
+### What was tricky to build
+The max_pool2d callable is a boolean_dispatch wrapper, so inspect.signature returns `*args, **kwargs`. Its explicit canonical parameter order must retain stride, padding, dilation, ceil_mode and return_indices.
+
+### What warrants a second pair of eyes
+Confirm the explicit max_pool2d signature against the pinned PyTorch API and observe an original-evaluator task replay before generalizing this result to the other unmatched families.
+
+### What should be done in the future
+- Run task107 end to end from a committed source snapshot.
+- Capture representative graphs for other unmatched families; normalize only proven equivalent call forms.
+
+### Code review instructions
+Compare pattern-target-fx-diagnostic-v1.json and v2.json. Run PYTHONPATH=integrations/passnet python3 -m unittest integrations/passnet/test_fx_normalize.py.
+
+### Technical details
+The local diagnostic used Torch2.11.0+cu130 and the original PassBench matcher utility, without executing a CUDA kernel. The GPU evaluator uses the pinned container's Torch2.12.0 development build, so it requires separate confirmation.
+
+## Step 208: Normalize padding and hardtanh pattern forms across nine failed families
+
+A first-graph census of nine no-match families showed three exact structural causes: max_pool2d positional/keyword arguments, hardtanh positional/keyword arguments, and functional pad versus TorchDynamo's `_C._nn.pad` target. After narrow canonicalization, all nine captured first graphs match their source-derived patterns under the original SubgraphMatcher. This is local structural evidence, not complete-family GPU acceptance.
+
+### Prompt Context
+The user asked to move coverage forward in broad batches, preserve scripts and detailed diary evidence, and publish committed research checkpoints.
+**Assistant interpretation:** Diagnose multiple no-match families together before launching additional complete-family evaluation.
+**Inferred user intent:** Improve the PassBench bridge so already implemented operators count in real benchmark results.
+
+### What I did
+- Script598 captured local CPU TorchDynamo target FX for the first graph of eight previously unmatched first-cohort families plus task83 from the delta. Archived pre-normalization and normalized pattern/target graphs.
+- Five of nine still failed structural matching after max-pool normalization. Exact differences were hardtanh argument forms or functional pad versus `_C._nn.pad` calls.
+- Extended the existing narrow normalizer: hardtanh uses its inspectable public signature; pad uses an explicit four-argument signature for both functional and C targets, and canonicalizes the function target to `_C._nn.pad`.
+- Script599 repeated the nine-family census; all nine first graphs now have one SubgraphMatcher match. Added a focused regression test for hardtanh+pad call forms, output preservation, idempotence and mode mismatch. Eight normalizer tests pass.
+
+### Why
+These changes reconcile equivalent captured graph representations without changing tensor operations, dropping predicates or weakening numerical validation. A family-wide evaluator run remains necessary to establish acceptance across all shapes and dtypes.
+
+### What worked
+- Local first-graph matches after normalization:9/9; before padding/hardtanh changes:4/9.
+- Task107 complete-family GPU replay from commit06aacce was launched separately and remained live in evaluate stage at the latest check.
+
+### What didn't work
+- No complete-family acceptance from the new padding/hardtanh normalization is claimed yet. A first-graph census does not cover every variant.
+- Source-derived patterns with in-place hardtanh on placeholders remain rejected at FX import; this matcher change does not solve mutation semantics.
+
+### What I learned
+TorchDynamo may lower a Python functional call to the underlying C call while retaining the same literal arguments. Canonicalizing the identity as well as defaults is required for structural matching in that case.
+
+### What was tricky to build
+- The `torch._C._nn.pad` builtin has no inspectable Python signature; using the explicit functional pad signature validates arguments before graph mutation.
+- The normalizer validates every candidate first, then changes targets and arguments, so an invalid call leaves the graph untouched.
+
+### What warrants a second pair of eyes
+- Verify pad target normalization under the pinned PyTorch2.12 image and all benchmark variants; local Torch2.11 structural matches are only a diagnostic.
+- Inspect the other compiler and numerical failures independently after matching starts.
+
+### What should be done in the future
+- Finish and collect the live task107 max-pool confirmation.
+- Replay representative pad and hardtanh families from this committed source snapshot, then broaden to the full affected cohort if the fix transfers.
+
+### Code review instructions
+Compare failed-fx-pattern-census-v1.json and v2.json. Run the eight fx_normalize tests. Inspect the normalizer's explicit pad signature and target rewrite.
+
+### Technical details
+The local diagnostic used Torch2.11.0+cu130; original PassBench GPU execution remains on the pinned image with Torch2.12.0a0+5aff3928d8.nv26.05. No original evaluator or correctness predicate changed.
+
+## Step 209: Confirm task107 and launch eight-family matcher cohort
+
+The full18-graph task107 max-pooling family passes the original PassBench matcher and t=-5 numerical check after max-pool argument normalization. Its original scorer reports0.24265578547986374. Cumulative accepted coverage rises to45/200 complete tasks and454/2060 graphs. Eight other complete families with first-graph structural matches are running from the later padding/hardtanh normalizer commit.
+
+### Prompt Context
+The user asked for batched coverage results, reproducible scripts, detailed diaries and pushed checkpoints.
+**Assistant interpretation:** Verify the causal matcher fix on a complete family and then test transfer across the other diagnosed no-match families.
+**Inferred user intent:** Convert a structural finding into measured benchmark support across all variants.
+
+### What I did
+- Collected the terminal task107 run with script597, verifying the source snapshot, all18 graph logs, matching, execution and numerical t=-5 status.
+- Preserved the previous coverage ledger and added the exact task107 run to the ordered coverage builder.
+- Script600 froze eight other no-match families with complete graph membership,51 graphs. Scripts601–603 staged and launched them from commitdd73529; remote source snapshot was checked before launch.
+
+### Why
+A local first-graph match alone does not establish that all18 shapes/dtypes execute correctly. The follow-up cohort tests whether the related padding and hardtanh call-form fixes transfer beyond the one proven max-pool family.
+
+### What worked
+- Task107:18/18 graphs accepted; original aggregate score0.24265578547986374.
+- Cumulative modified-protocol coverage:45/200 complete tasks and454/2060 graphs.
+- The eight-family run launched with source snapshot SHA256 584f3b91f8d071a3641ab04d8233bf4c131f7e127054f27e1a5d24a7ca7564db.
+
+### What didn't work
+- The low score means correctness does not imply competitive speed. No speedup claim follows from this task's acceptance.
+- The eight-family cohort remains active and has no acceptance result at this checkpoint.
+
+### What I learned
+The max-pool matcher omission was causally important: task107 changed from18 no-match graphs under the previous snapshot to18 matched and numerically accepted graphs after the fix. The next cohort tests whether similar call-form normalization explains more failures.
+
+### What was tricky to build
+The original benchmark's per-graph numerical curve and aggregate score are distinct. Coverage uses t=-5 correctness with one match, while the scorer retains runtime penalties and can remain below eager.
+
+### What warrants a second pair of eyes
+Review task107's full benchmark log for any process-level warnings despite per-graph acceptance; examine the eight-family run independently before generalizing.
+
+### What should be done in the future
+- Collect the same active eight-family run only after it reaches terminal state.
+- Investigate numerical and compile failures that remain after matcher normalization, especially on low-precision graphs.
+
+### Code review instructions
+Read max-pool-match-task-audit-v1.json, task107/benchmark.log, normalized-matcher-task-plan-v1.json and the coverage snapshots. Reproduce the source hash verification in script601.
+
+### Technical details
+Task107 GPU replay source revision06aacce, separate from the eight-family source revisiondd73529. Both use the pinned original evaluator image and nominal t=-5 acceptance. The coverage ledger combines explicitly recorded source snapshots.
+
+## Step 210: Consolidate the matcher design and separate numerical work
+
+The new ticket design note `28-fx-pattern-canonicalization-and-qualification-design.md` records the source-pattern/Dynamo-target boundary, exact canonicalization contracts, evidence levels and current failure categories. It keeps matcher work in one module instead of adding generated-pass-specific patches. The eight-family GPU replay remains active, observed with six task records.
+
+### Prompt Context
+The user explicitly asked to reassess architecture sprawl, consolidate it, and document ported semantics and implementation decisions in the diary and design docs.
+**Assistant interpretation:** Record the narrow matcher architecture after finding several equivalent call-form mismatches.
+**Inferred user intent:** Maintain a clear research system that a later contributor can inspect and extend.
+
+### What I did
+- Wrote a focused technical design note in the ticket's reference directory, with API/file references, a task107 before/after example, canonicalization rules, qualification gates and source evidence.
+- Inspected task52's failing graph: its generated Kiln program widens inputs and bias to FP32 for `N.linear`, narrows to BF16, then only reshapes/slices/transposes. The device-only forwarded output is exact; arithmetic-derived outputs fail the strict numerical curve on at least one BF16 case. No arithmetic change was made without a pinned-reference comparison.
+
+### Why
+Matcher success, compiler numerical behavior, and benchmark scoring are separate. Keeping their contracts explicit prevents another operator port from being credited for a pattern mismatch fix or a numerical regression.
+
+### What worked
+- The design note identifies the central `fx_normalize.py` boundary and a repeatable first-graph diagnostic process.
+- The task52 inspection narrows the numerical investigation to low-precision linear arithmetic rather than the device-only conversion or downstream views.
+
+### What didn't work
+- A precise causal explanation for task52's arithmetic difference is still missing. No tolerance change or speculative kernel patch was applied.
+- The eight-family cohort is not terminal at this checkpoint.
+
+### What I learned
+Task52 demonstrates why one exact output can coexist with a failed complete task: output structure and view operations may be correct while a shared upstream arithmetic result differs from PyTorch.
+
+### What was tricky to build
+The design document must distinguish local Torch2.11 structural diagnostics from pinned Torch2.12 GPU evaluation, and cumulative coverage across snapshots from a uniform compiler release run.
+
+### What warrants a second pair of eyes
+Review the stated equivalence of functional and C padding call forms under the pinned PyTorch build, and the task52 linear numerical hypothesis before choosing an arithmetic change.
+
+### What should be done in the future
+- Collect and audit the active eight-family replay when terminal.
+- Build an output-wise numerical diagnostic for task52 that compares PyTorch's linear result before the view chain against Kiln's intermediate result under the pinned image.
+
+### Code review instructions
+Read reference/28 and the linked source/audit files. Inspect task52/corpus/000.kiln.js and its benchmark log alongside the strict correctness curve.
+
+### Technical details
+The new design note is a ticket document, not a benchmark result. Accepted coverage remains45/200 complete tasks and454/2060 graphs pending the active cohort.
+
+## Step 211: Qualify eight complete families after FX canonicalization
+
+The eight-family,51-graph original PassBench replay finished with all51 graphs matched and correct at t=-5. All eight families are fully accepted. Cumulative modified-protocol coverage reaches53/200 tasks and505/2060 graphs. This result establishes that the pad and hardtanh canonicalization changes transferred across every variant in the frozen cohort, while compiler performance remains mixed.
+
+### Prompt Context
+The user requested broad batched work, measurement, detailed diary evidence and milestone reports.
+**Assistant interpretation:** Convert the live structural matcher cohort into audited complete-family acceptance, then publish the result and limitations.
+**Inferred user intent:** Track real coverage progress rather than import-only estimates.
+
+### What I did
+- Collected terminal logs with script603 and verified source snapshot SHA256 against the staged checkout.
+- Audited all eight task families and51 graphs through original matching, execution and t=-5 numerical checks.
+- Preserved the previous coverage ledger and added the terminal run to the ordered coverage builder.
+- Inspected original aggregate scores per family.
+
+### Why
+The first-graph local structural census was a hypothesis. Complete-family original-evaluator replay is the evidence required to count support across every shape and dtype in these tasks.
+
+### What worked
+- Accepted indices and graph counts:142/4,106/6,165/6,163/2,149/18,144/6,159/6,83/3. Total8/8 families,51/51 graphs.
+- Aggregate scores respectively0.7837843,1.3834135,1.0805106,0.8866295,1.5750879,1.7709251,1.1407275,0.2688383. These remain original scorer outputs, not kernel-only speedups.
+- Cumulative accepted evidence:53/200 tasks,505/2060 graphs.
+
+### What didn't work
+- Several correct families score below eager, especially task83 at0.2688383; correctness and profitability are separate.
+- This cohort covers eight selected families. It is not a uniform full200-task replay from one compiler revision.
+
+### What I learned
+A central FX canonicalizer can produce a large coverage gain from already implemented operator semantics. The step from first-graph structural match to complete-family acceptance was confirmed for this cohort, but must be retested for other operators and task families.
+
+### What was tricky to build
+The coverage builder orders source snapshots so newer exact logs supersede older no-match evidence without silently rewriting the historical run. Each task still requires all frozen graph members to pass.
+
+### What warrants a second pair of eyes
+- Review score and timing stability on the low-scoring accepted families before claiming performance improvement.
+- Confirm the revised normalizer has no unintended match expansion beyond its explicit call signatures.
+
+### What should be done in the future
+- Publish an Obsidian technical milestone report covering the operator batch, canonicalization, accepted coverage and remaining numerical/compiler limitations.
+- Diagnose remaining compile failures and task52's low-precision linear mismatch; resume self-optimization measurements on a larger qualified population.
+
+### Code review instructions
+Read normalized-matcher-task-audit-v1.json, the eight task benchmark logs, coverage-before-normalized-matcher-v1.json and kiln-coverage.json. Rebuild coverage with script21.
+
+### Technical details
+The eight-family replay source revisiondd73529; source snapshot SHA256 584f3b91f8d071a3641ab04d8233bf4c131f7e127054f27e1a5d24a7ca7564db. The original PassBench scorer and t=-5 numerical curve were retained under the declared modified integration protocol.
+
+## Step 212: Publish the operator coverage and FX matching milestone report
+
+A 1,447-word textbook-style article was added to the go-go-parc Obsidian vault and pushed at vault commit e7652b7. A copy is retained in the KILN-005 ticket as reference29. The article explains the 53-task/505-graph cumulative evidence, operator semantics, FX canonicalization, complete-family qualification, performance distinctions and remaining numerical/compiler work.
+
+### Prompt Context
+The user requested deep-dive technical project reports at important milestones, in textbook style without analogies, committed and pushed in go-go-parc. The user also requested that relevant information be retained in the ticket.
+**Assistant interpretation:** The first nine-family matcher qualification is a material milestone that warrants a durable technical article.
+**Inferred user intent:** Make the reasoning, measurements and limitations usable for independent research and later reports.
+
+### What I did
+- Authored `Projects/2026/10/31/ARTICLE - Kiln - From Operator Coverage to PassBench Matching.md` with frontmatter, architecture diagram, concrete FX call-form example, operator and GPU evidence, aggregate-score interpretation and reproduction guidance.
+- Staged only that vault note, leaving unrelated dirty vault files untouched; committed and pushed vault main at e7652b7.
+- Copied the exact report into ticket reference29.
+
+### Why
+The benchmark result depends on several independent gates. A durable report needs to make it possible to distinguish import coverage, structural matching, CUDA correctness, complete-task acceptance and performance.
+
+### What worked
+- Vault push succeeded; the article is 1,447 words and cites exact repository/ticket evidence paths.
+- The report states the cumulative cross-snapshot limitation and the GB10/A100-proxy hardware difference.
+
+### What didn't work
+- This publication is not a uniform 200-task reproduction or a claim of self-optimizing compiler gains across the expanded corpus.
+
+### What I learned
+The central matcher canonicalizer is now a stable explanatory boundary: several independently authored operator ports only became accepted benchmark tasks after equivalent FX call forms were reconciled.
+
+### What was tricky to build
+The report needed to avoid conflating task107's correctness with speed: its aggregate score remains below eager despite18/18 accepted graphs.
+
+### What warrants a second pair of eyes
+Review the narrative against task audits and source snapshots before using it as a quantitative citation in another publication.
+
+### What should be done in the future
+- Continue numerical and compiler-check diagnoses, then publish another milestone when a reusable transformation improves held-out accepted families.
+- Keep reference29 and the vault article append-only; later findings belong in a new dated report.
+
+### Code review instructions
+Compare ticket reference29 with the vault article at commit e7652b7. Inspect the cited KILN-005 audits and coverage ledger.
+
+### Technical details
+Only the intended report file was staged in the vault. Existing unrelated vault changes remain outside the publication commit.
+
+## Step 213: Localize eight compiler reference failures to numerical stage differences
+
+Eight complete task attempts stopped in Kiln's own end-to-end compiler reference check, before original PassBench evaluation. Replaying their failed artifacts locally shows all eight compile successfully but differ between frontend and loop evaluation on selected low-precision outputs. In task195, the first disagreement occurs at an FP32 reduction after lowering to loop IR; a roughly2.8e-8 reduction difference later crosses a BF16 rounding boundary and creates three one-ULP output differences. This is a localized numerical mechanism, not proof that all eight cases share one root cause.
+
+### Prompt Context
+The user asked to advance broad benchmark support, document ported semantics, and preserve intermediate scripts and diary evidence.
+**Assistant interpretation:** Diagnose internal compiler-check failures as numerical, structural or resource errors before changing the gate.
+**Inferred user intent:** Reach more real PassBench tasks without weakening the original correctness standard.
+
+### What I did
+- Script604 recompiled the first failed artifact of each of eight blocked families using the same A100 proxy target and separate-contraction setting, then recorded frontend-versus-loop output checks, maximum errors and first mismatches.
+- Script605 evaluated task195 at frontend, torch, tensor and loop stages on fixed project reference inputs. Frontend, torch and tensor agree exactly; loop differs on out1.
+- Script606 exposed task195 intermediates as temporary outputs to localize the first divergence to v6, its FP32 mean-reduction result. The traced difference is2.7939677238464355e-8; v13 BF16 differs at three elements by up to0.0078125.
+
+### Why
+The CLI log reports only `end-to-end check FAILED`. That label cannot distinguish unsupported operations from low-precision numerical order effects. Locating the first divergent IR stage narrows any future compiler change.
+
+### What worked
+- All eight historical failed artifacts recompile. Each reproduces a non-passing end-to-end comparison, with per-output errors retained in compiler-reference-failure-diagnostic-v1.json.
+- Task195's first difference is at tensor-to-loop lowering/evaluation, not in FX import or frontend decomposition.
+
+### What didn't work
+- No arithmetic change has yet restored equality. An FP32 difference this small may be caused by reduction association, scheduling or fused expression order; that precise cause still needs inspection.
+- No task from this group has been claimed accepted through PassBench. The current ledger remains53/200 tasks and505/2060 graphs.
+
+### What I learned
+A low-precision output can differ by one BF16 ULP after an FP32 intermediate changes by only a few times10^-8. The internal reference check is detecting a real downstream value change rather than a missing operator.
+
+### What was tricky to build
+Exposing intermediates as outputs changes the optimization graph, so script606 is a localization diagnostic. The unmodified task195 program was also compared stage by stage in script605, which places the divergence at loop IR.
+
+### What warrants a second pair of eyes
+- Compare the exact tensor reduction evaluator and loop reduction expression/order, including the rounding point and fused schedule.
+- Do not generalize task195's mechanism to convolution and matmul failures without analogous stage traces.
+
+### What should be done in the future
+- Run one isolated diagnostic through original PassBench with the supported CLI `--no-check` only to determine whether the strict external numerical comparator rejects the same program. Label that run as a diagnostic modified export gate and keep it out of accepted coverage until evidence is reviewed.
+- Test a numerical-order correction, then rerun the full internal check and original evaluator from a committed source snapshot.
+
+### Code review instructions
+Inspect scripts604–606 and their JSON outputs, task195/corpus/000.kiln.js, apps/workbench/src/compile.js endToEnd, and loop.js reduction lowering/fusion. Compare the fixed input sample and first mismatch values.
+
+### Technical details
+The internal compiler check compares frontend and last evaluable IR with rtol1e-3,atol1e-4; original PassBench uses its separate t=-5 curve. Neither check was changed in this step.
+
+## Step 214: Compare task195 against the original PassBench acceptance gate
+
+The preceding stage trace showed a three-element BF16 disagreement between Kiln's frontend and loop evaluators, after a small FP32 reduction difference. I ran the unchanged task195 source and generated pass through the original PassBench matcher and numerical evaluator, using only Kiln's supported `--no-check` export option to get past that internal gate. PassBench selected the replacement and reported success with zero measured output difference and a score of1.07568. This establishes a false internal rejection for this one task relative to the external benchmark, without changing the normal coverage ledger.
+
+### Prompt Context
+The user's standing request is to implement and measure the PassNet–Kiln integration, keep intermediate scripts and a detailed diary, and continue toward reusable compiler optimization (see prior entries).
+**Assistant interpretation:** Test whether the task195 internal reference failure predicts original PassBench failure.
+**Inferred user intent:** Gain valid benchmark coverage while preserving the published evaluator's matching and correctness requirements.
+
+### What I did
+- Read `evaluate_tasks.py`, `corpus.py`, `run_task.py`, the original task195 manifest, generated pass, and compiler receipt. The original command used target A100 and `--contraction separate`.
+- Wrote `scripts/607-task195-no-check-passbench.sh`. It copies the task into an isolated remote directory, archives source hashes, compiles with the original settings plus `--no-check`, then runs the original PassBench evaluator and scorer in the pinned image with20 warmups and100 trials.
+- Started the GPU run under tmux session `kiln-task195-diag` on `manuel@bling`. Streamed the output into `sources/task195-no-check-diagnostic-v1/` and wrote `reference/30-task195-internal-reference-versus-passbench-diagnostic.md`.
+- Confirmed that the copied Kiln source SHA256 matches the previously failed source: `4b17acb2d800e83840dcb0d5a5e4a241a7b083f29b9e9661fcc0a0e47e60b6e1`.
+
+### Why
+An internal frontend-versus-loop evaluator disagreement is a different observation from a GPU-versus-PyTorch failure on PassBench inputs. The external comparison determines benchmark acceptance; the internal check remains useful as a diagnostic, but its false rejection rate must be measured.
+
+### What worked
+- The original matcher wrote `True` and PassBench logged `[Result] status: success` for the complete one-graph task.
+- The t=-5 correctness line was `1 1`, and PassBench reported `max_diff: 0.0 0.0`.
+- The original score command, with negative-speedup penalty0, returned `1.07568`; median end-to-end latency was0.142336 ms eager versus0.132322 ms compiled, and GPU speedup was1.08171.
+- The diagnostic files include the compiled program, pass, manifest, logs, score receipt, and source hashes. The normal coverage ledger remains53/200 tasks and505/2060 graphs.
+
+### What didn't work
+- A recursive `scp` transfer progressed slowly through individual files and was interrupted; a single compressed `tar` stream transferred the complete evidence.
+- The ordinary Kiln internal check still fails on this task. This experiment intentionally bypassed it and therefore is not counted in the normal qualification cohort.
+
+### What I learned
+Task195 is a concrete false rejection by the internal synthetic-input reference check relative to the original PassBench benchmark input. The external GPU output can pass exactly while the loop interpreter disagrees with Kiln's frontend on three BF16 reference values.
+
+### What was tricky to build
+The generated pass embeds `/work/results/task-195/corpus`. Mounting the isolated diagnostic root at `/work` preserved that path without editing the pass; mounting Kiln and upstream separately read-only preserved the original evaluator code. The diagnostic script kept the failed original compile receipt under a distinct filename so it cannot be confused with the bypassed export.
+
+### What warrants a second pair of eyes
+Review the difference between synthetic Kiln inputs and PassBench benchmark inputs before revising the internal gate. One accepted graph cannot justify a global low-precision tolerance change.
+
+### What should be done in the future
+- Replay the other seven blocked families through the same isolated original evaluator, explicitly recording any `--no-check` export.
+- If external acceptance recurs, design a receipt-bearing qualification mode and verify that deliberately wrong low-precision programs still fail.
+- Continue investigating reduction order and BF16 rounding separately from external benchmark coverage.
+
+### Code review instructions
+Read script607, reference30, `sources/task195-no-check-diagnostic-v1/benchmark.log`, `benchmark.matches.txt`, `score.receipt.json`, and the original task195 compile receipt. Compare the task source SHA256 and compiler flags.
+
+### Technical details
+Only the export-time internal check was disabled. The original PassBench matching, numerical checks, reverse-order behavior, and scoring code were unchanged. The measured score is diagnostic evidence, not a silently added normal-coverage result.
+
+## Step 215: Batch the reference-gate question, correct matcher provenance, and return to optimization
+
+The seven remaining internal-check failures were replayed as complete tasks under the pinned PassBench numerical and scoring path. Four tasks and57 of85 graphs passed exact match, execution and t=-5 correctness after Kiln export used `--no-check`; three tasks remained incomplete. A final mixed-snapshot replay of two pad-match failures showed the newer central matcher selects all25 replacements, with task146 fully accepted and task110 passing20 of21 graphs. These diagnostics separate compiler-reference false rejections, true numerical failures and stale matcher code. They do not change the normal53-task/505-graph coverage ledger.
+
+The user asked, verbatim, "are we back into too detailed testing? or are we still looking forward and taking more ambitious steps". I agreed that the diagnostic branch had become too detailed and closed it after the already-running matcher replay. The next work is to connect the existing reusable transformation-program compiler to the PassBench corpus compilation boundary and measure compiler policies on a declared larger population, rather than continue one task at a time.
+
+### Prompt Context
+**User prompt (verbatim):** "are we back into too detailed testing? or are we still looking forward and taking more ambitious steps"
+**Assistant interpretation:** Finish the active batch, then stop adding narrow diagnostic loops and advance the reusable compiler experiment.
+**Inferred user intent:** See measured self-optimization progress without a growing collection of task-specific infrastructure.
+
+### What I did
+- Script608 copied seven frozen complete-task corpora into an isolated remote root, compiled all85 variants with the original target and contraction settings plus `--no-check`, and ran the existing normalized-matcher integration with the original PassBench numerical checker and scorer. The run used tmux on bling; `run.json` preserves each phase and compiler source snapshot.
+- Script609 used `pass_bench.analysis_util` to check task membership, one replacement, process success and t=-5 correctness per graph. The complete run is archived in `sources/seven-family-no-check-diagnostic-v1.tar.gz`; the machine-readable audit and run receipt are directly readable beside it, while raw task logs remain in the archive.
+- Script612 reused those compiled artifacts with the newer pinned matcher source for tasks110 and146; script613 audited all25 resulting graphs. The mixed-snapshot run is archived separately in `sources/pad-matcher-replay-v1.tar.gz`.
+- Corrected reference30 and script607's wording after reading `evaluate_normalized.py`: the integration uses declared FX argument normalization, so its matching protocol is modified even though PassBench's numerical code and scorer are retained. The executed script608 and original receipt text remain preserved; reference31 and the corrected audit explicitly supersede the inaccurate scope sentence.
+- Wrote reference31 with the batch results, limitations and decision to return to the existing transformation-program architecture. Removed an unused target-inspection script before commit to avoid retaining an unnecessary diagnostic path.
+
+### Why
+The local reference evaluator, FX matcher and external numerical acceptance are independent gates. One complete batch establishes their failure categories more efficiently than repeated isolated probes. The user wants the broader research question answered, and existing staged-fusion and agent infrastructure already supports it.
+
+### What worked
+- Seven-task replay: task17714/14, task1881/4, task1100/21, task369/9, task3121/21, task4712/12 and task1460/4 accepted; total4 complete tasks and57 graphs under the bypassed-export diagnostic.
+- Task110 and146 failures in the old snapshot were pad target mismatches during compiled warmup. The newer matcher selected21/21 and4/4 respectively. Task110 passed20 strict numerical checks; task146 passed4.
+- The original scorer outputs are retained for every task; all evaluator and scorer processes completed. The archive contains exact executed script and compiler artifacts; the materialized audit identifies accepted graphs.
+
+### What didn't work
+- Task188 executed and matched all four graphs but failed t=-5 on three. Task110 under the newer matcher failed t=-5 on graph index3. These are real remaining numerical acceptance failures, not resolved by `--no-check` or matcher normalization.
+- The raw script608 receipt used the inaccurate phrase "original PassBench evaluator unchanged". It was corrected in the tracked script and superseded in a new audit/document; the executed bytes remain archived for provenance.
+- The mixed-snapshot replay proves a matcher hypothesis but cannot be counted as a uniform release qualification. No result from this step enters `kiln-coverage.json`.
+
+### What I learned
+The older source snapshots omitted pad target normalization already implemented in current Kiln. PassBench's parser calls the compiled-warmup no-match condition `eager_fail`; the logs show that the exception is `PassMgrBackend: No passes modified the graph`, so it must not be described as an eager PyTorch failure.
+
+### What was tricky to build
+Generated passes embed `/work/results/task-XXX/corpus`; the isolated diagnostic root had to be mounted at `/work`. Old compiler snapshots were verified against their original run receipts, while the later matcher-only replay deliberately crossed a snapshot boundary and was labeled accordingly. The strict t=-5 result required the upstream parser; successful process exit or `status: success` alone was insufficient.
+
+### What warrants a second pair of eyes
+Check the reference31 distinctions among internal-reference bypass, current matcher effect and strict numerical failure. Review the executed-versus-corrected script608 prose difference and ensure no mixed-snapshot result is added to uniform coverage.
+
+### What should be done in the future
+- Connect existing `transformation_program.mjs` preparation to the PassBench corpus export path and use a single declared train/held-out experiment to compare reusable compiler policies.
+- Retain task188 and task110 numerical failures as future compiler work; no further per-task probes are required before the optimization experiment.
+
+### Code review instructions
+Start with reference31 and the two audits. Inspect `evaluate_normalized.py`, `fx_normalize.py`, scripts608–609 and612–613, then the full archives if raw logs or compiled programs are needed. Compare existing staged-fusion and pointwise reports (references26–27) before interpreting new optimization results.
+
+### Technical details
+Seven-task pinned image `sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba`, NVIDIA GB10, A100 scheduling proxy, separate contraction,20 warmups,100 trials. The two-task replay changes only the matcher source snapshot while reusing the earlier `--no-check` artifacts. Both runs use the declared modified FX matching protocol and original PassBench t=-5 numerical and scoring code.
+
+## Step 216: Route reusable transformation programs through the PassBench exporter
+
+The compiler-policy study and PassBench corpus compiler now apply the same validated transformation program through one helper. The ordinary exporter accepts `--optimization-program`, records its content hash and full policy in the artifact, and the corpus CLI forwards that choice. A pointwise convolution fixture compiled through the new route produces the same CUDA as the earlier policy-study artifact; the unchanged control remains byte-identical at the kernel level. This is the first concrete bridge from reusable compiler optimization to PassBench corpus exports, with GPU and score comparison still to follow.
+
+### Prompt Context
+See Step215 for the user's verbatim request to move beyond detailed diagnostics toward ambitious compiler work.
+**Assistant interpretation:** Consolidate the existing policy application code and expose it through the PassBench corpus compilation path.
+**Inferred user intent:** Measure automatically generated reusable compiler transformations in the benchmark without creating another compiler or evaluator stack.
+
+### What I did
+- Added `applyOptimizationProgram` to `integrations/passnet/transformation_program.mjs` and replaced the duplicate policy-application block in `compile_policy.mjs` with that helper.
+- Added the optional `transformPipeline` callback to `apps/workbench/src/compile.js`; the default pipeline path remains unchanged.
+- Added `--optimization-program PATH` to `scripts/kiln-export.mjs`. It validates the program with the existing grammar, applies it to the standard pipeline, rejects custom project pipelines, and records the policy plus exact file SHA256 in the exported artifact.
+- Added forwarding options to `integrations/passnet/corpus.py`: `--optimization-program` and an explicitly labeled `--skip-internal-reference-check` for diagnostic exports only.
+- Wrote reference32 and saved the compiled smoke artifacts, corpus receipt and comparisons in `sources/optimization-export-bridge-smoke-v1/`.
+
+### Why
+The previously measured agent and fixed transformations were unavailable to the PassBench corpus export path. Sharing preparation and application keeps policy semantics identical between direct compiler studies and the benchmark wrapper.
+
+### What worked
+- Node syntax checks passed for `kiln-export.mjs`, `compile_policy.mjs` and `transformation_program.mjs`; Python AST parsing passed for `corpus.py`.
+- The ordinary exporter built the known FP32 pointwise fixture as one kernel; the policy exporter built a tiled contraction plus elementwise kernel, with the local reference check skipped because the estimated interpreter work exceeded60 million operations.
+- `corpus.py compile --optimization-program ...` returned0 and wrote a receipt with the policy command. Its two CUDA kernels match the direct optimized exporter and the previously committed policy-study artifact.
+- Re-running `compile_policy.mjs` on all eight pointwise development graphs succeeded. All eight kernel identity lists and CUDA source lists equal the pre-change artifacts. The default exporter control also matches its previous CUDA.
+
+### What didn't work
+No GPU timing or PassBench task scoring was run for the new export path. The smoke fixture establishes compilation identity and API plumbing, not a new optimization speedup or accepted task.
+
+### What I learned
+The policy-study source and normal corpus exporter can share one prepared pipeline transformation without introducing a new IR or duplicating the agent grammar. Existing kernel artifacts give a strong regression oracle for this boundary.
+
+### What was tricky to build
+The standard exporter must preserve its existing frontend, parameter and reference-check behavior while allowing a policy to replace only the compiler pipeline. The policy is applicable to the standard Emmy pipeline, so custom project pipelines are rejected explicitly. The artifact carries the policy hash while runtime code continues to consume the same `kiln-program/1` structure.
+
+### What warrants a second pair of eyes
+Review whether `transformPipeline` should remain a generic workbench compile hook or move to a narrower compiler entry point as more transformation classes are introduced. Check that candidate and control artifacts use identical numerical settings before any GPU comparison.
+
+### What should be done in the future
+- Freeze a new supported PassBench task population and one fixed transformation program; compile control and candidate from one current source snapshot.
+- Run both through the same declared matcher and original numerical/scoring path on bling, retaining failures and exact executable identities. Use the results to decide where agent search is warranted.
+
+### Code review instructions
+Read `transformation_program.mjs` and its shared helper, `compile_policy.mjs`, `compileScript` in workbench `compile.js`, the new exporter flag, and `corpus.py`. Compare the eight saved policy-study artifacts with `sources/optimization-export-bridge-smoke-v1/comparison.json` and reference32.
+
+### Technical details
+Node26.13.0, target A100 and separate contraction were used for the local smoke. The policy file SHA256 is `de482bd2b23ee1296ca97336a8ff8a7214492782e147b8118f4c0bd826e149b5`; the source script SHA256 is `df2341558c9d4d362ab7a6d7687e2b77679419c357fcbaee87fc630bb035a52b`. No default compiler policy or original PassBench evaluator code changed.
+
+## Step 217: Freeze a broad compiler-policy transfer comparison
+
+### Prompt Context
+The user asked whether the work had returned to overly detailed testing or was still taking ambitious steps. Earlier instructions favor research velocity, reusable compiler optimization, complete-task results, documented scripts, and milestone commits.
+**Assistant interpretation:** Finish the already selected comparison of unchanged Kiln and one fixed reusable transformation program through PassBench.
+**Inferred user intent:** Get evidence about generalization across tasks rather than more isolated operator diagnostics.
+
+### What I did
+- Extended the existing complete-task runner to accept a declared transformation program and the explicit internal-reference-check bypass already supported by the corpus compiler. The runner records the policy SHA256 and refuses a policy change during the run.
+- Froze 12 complete tasks comprising 92 graphs before compiling either arm. Task101 is a prior development positive control; 11 tasks form the transfer population. Saved exact membership hashes and the fixed policy bytes under `sources/fixed-policy-passbench-v1/`.
+- Wrote reference33 with the comparison, metric, and protocol scope. Added scripts615–617 to freeze, stage, and run both arms using the same compiler snapshot and PassBench evaluator on bling.
+
+### Why
+The shared export path from Step216 needs a complete-task numerical and scoring experiment. A fixed program across multiple operator families tests whether a reusable compiler change transfers beyond its development fixture.
+
+### What worked
+- The frozen population script found all92 materialized graph directories and wrote both arm plans; the fixed policy SHA256 is `de482bd2b23ee1296ca97336a8ff8a7214492782e147b8118f4c0bd826e149b5`.
+- SSH confirmed bling is reachable, has an NVIDIA GB10 GPU, and the remote study directory was unused before staging.
+- Committed and pushed the setup as `2ac3960`. Script617 staged the exact committed source snapshot (`7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740`) and launched `kiln-fixed-policy-passbench-v1` in tmux. The staging receipt is saved with the frozen study inputs. The control arm has completed task indices7,25,74,83,89 and is evaluating task101 at this checkpoint.
+
+### What didn't work
+No candidate GPU or scorer outcome exists at this diary checkpoint. The transfer cases are not untouched tasks: prior Kiln coverage work had examined some of them. The study must report this provenance and keep task101 separate.
+
+### What I learned
+The existing task runner can carry the optimization program through the normal corpus compile path with a small extension. A second benchmark harness would add no value for this comparison.
+
+### What was tricky to build
+Both arms need identical integration semantics even when Kiln's synthetic reference gate is bypassed. The original PassBench matching, numerical checker, and scorer remain the acceptance authority. The run freezes complete graph membership, source bytes, policy bytes, image, and trial settings.
+
+### What warrants a second pair of eyes
+Review the population choice and the interpretation of transfer versus prior coverage. The A100 cost-model target is a proxy for the GB10 GPU. Sequential control then candidate evaluation may introduce temporal drift; any marginal speedup should be repeated or interleaved before a strong claim.
+
+### What should be done in the future
+Stage and run both arms; summarize complete-task correctness, scores, GPU and end-to-end timing, and executable identity. Use the broad result to select the next compiler transformation rather than entering another long diagnostic branch.
+
+### Code review instructions
+Read `evaluate_tasks.py`, scripts615–617, reference33, and both frozen plans. Compare the policy file with the earlier pointwise program by SHA256.
+
+### Technical details
+The host runner compiles with separate contraction, target A100, and a policy SHA256 recorded in `run.json`. Its Docker invocation requests20 warmups and100 trials. The internal Kiln synthetic reference check is disabled for both arms, while PassBench's nominal `t=-5` numerical check and scoring remain active. This is a modified integration protocol.
+
+## Step 218: Complete the paired policy result and turn coverage into broad waves
+
+### Prompt Context
+The user asked for a written plan that makes broad progress on coverage and the breadth of compiler passes and optimization strategies, leaving narrow details until they are justified. The ongoing 92-graph comparison finished during this turn.
+**Assistant interpretation:** Audit the completed experiment, refresh current import eligibility across all 200 tasks, and write a capability-wave roadmap grounded in both results.
+**Inferred user intent:** Expand Kiln's supported task population while using that population to study reusable compiler improvements, without returning to one-graph-at-a-time debugging.
+
+### What I did
+- Collected both arms from bling with script618 and ran the shared `summarize_task_run.py` acceptance audit. Script619 parsed original logs, official scores, median GPU/end-to-end timings and executable identity.
+- Preserved all1,157 raw evidence members in `sources/fixed-policy-passbench-v1/raw-evidence.tar.gz` using script622, with a SHA256 receipt. Wrote reference35 with the complete 12-task table and limitations.
+- Ran a current-source full2,060-graph FX import audit using script620, then joined it to the cumulative external acceptance ledger using script621. Saved the full audit and compact census in ticket `sources/`.
+- Wrote reference34 as the next broad coverage and optimization roadmap. It separates qualification of currently importable tasks from new semantic ports and from reusable compiler-strategy search.
+- Updated the top-level phase table in reference03 to point at the current roadmap and counts, retaining its older dated sections as milestone history.
+
+### Why
+The fixed transformation program had only local smoke evidence at Step217. A complete-task external comparison determines whether it transfers. The old importer count of1,251/76 was stale after parallel operator ports; a current census is needed to choose broad work rather than continue isolated failures.
+
+### What worked
+- Both arms completed all12 task phases. The shared numerical/matching auditor accepted12/12 complete tasks and92/92 graphs in each arm at `t=-5`.
+- The candidate changed49 executable artifacts. Transfer mean task score fell0.848880 to0.822873; family-balanced common-correct end-to-end ratio was0.976551×. Task101, a development control, improved32.782×; task83 improved2.780×; task25 regressed to0.32960×.
+- Current-source import eligibility is1,526/2,060 graphs and111/200 complete tasks. All53 historically accepted tasks are among those111. The58 fully importable but not yet verified tasks contain1,083 graphs, including two very large tasks with522 graphs together.
+- The current audit finds534 blocked graphs by first error. The dominant first-error groups are nonfloating inputs119, mutation/alias135, other operation bindings142, and59 local no-driver shape-propagation errors. These are diagnostic first errors, not independent predicted unlock counts.
+
+### What didn't work
+The fixed pointwise program does not transfer as a global optimization across the declared11 transfer tasks. It preserves correctness but lowers mean score because several task families regress. The current import census runs on a CPU host; its59 driver errors need GPU-host reclassification. The cumulative accepted ledger spans compiler snapshots and remains distinct from a uniform current-release replay.
+
+### What I learned
+The immediate coverage opportunity is larger than the number of missing operations suggests:58 fully importable complete tasks await uniform qualification. One policy can produce large wins and large losses across correct task families, so the next optimization experiment needs workload-conditioned selection and other pass classes, not a global application of the current program.
+
+### What was tricky to build
+The comparison must keep score failures visible while reporting latency only for common-correct graphs. Task101 is a prior development example and must be separated from transfer evidence. The archived raw output was60 MB before compression, so the ticket materializes compact audits and preserves raw evidence in a1.38 MB archive.
+
+### What warrants a second pair of eyes
+Review the task-family-balanced statistic and the claim that the fixed program should not be globally adopted. The sequential control-then-candidate order permits drift, but the task25 loss and task83 gain are large. Review whether the next uniform111-task run should bypass Kiln's synthetic reference gate under the same explicit external PassBench acceptance protocol.
+
+### What should be done in the future
+- Freeze and run all111 currently fully importable task families on one current source snapshot, with the58 unverified tasks split only for scheduling; preserve every graph and failure.
+- Reclassify the59 local driver errors on bling; batch typed inputs, constants, views and mutation semantics by shared compiler capability.
+- Search selective policies on complete training task families and compare with reduction/contraction strategies on held-out families using the original score.
+
+### Code review instructions
+Read scripts618–622, `sources/fixed-policy-passbench-v1/{baseline-audit,candidate-audit,comparison,archive-receipt}.json`, `sources/coverage-roadmap-census-v1.json`, reference35, and reference34. Inspect raw CUDA and PassBench logs in the evidence archive for any individual task claim.
+
+### Technical details
+Both GPU arms used source snapshot `7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740`; the fixed program SHA256 was `de482bd2b23ee1296ca97336a8ff8a7214492782e147b8118f4c0bd826e149b5`. The raw archive SHA256 is `efbe9a10d0738a0b7635c947a07592f83039ef6e7138869a5174172fd967fed4`. Scores are from the original scorer with `p=0`; FX normalization and bypass of Kiln's internal synthetic check are declared integration modifications.
+
+## Step 219: Freeze the complete current import surface for uniform replay
+
+### Prompt Context
+The ongoing goal and user request in Step218 prioritize broad task coverage and optimization breadth. Reference34 identifies58 fully importable but unverified tasks as the next qualification wave.
+**Assistant interpretation:** Turn that plan into exact, reproducible task manifests and a bling run that includes every currently fully importable family.
+**Inferred user intent:** Measure the complete existing capability surface now, while delaying narrow failure investigations until a broad failure census exists.
+
+### What I did
+- Added script623 to join the current full import census to the cumulative acceptance ledger, freeze every fully importable task's complete graph list and divide the111 tasks/1,514 graphs into three execution bands.
+- Added reference36 stating population, modified protocol, acceptance conditions and expected evidence. Added scripts624 and625 for one pinned bling staging directory and serialized GPU evaluation of the three bands.
+
+### Why
+The cumulative53-task ledger spans historical snapshots. It cannot establish current uniform coverage. The58 unverified importable tasks contain1,083 graph variants and are the largest immediate opportunity to learn which shared compiler or integration failures still matter.
+
+### What worked
+- The frozen plans contain56 ordinary unverified tasks/561 graphs, two large unverified tasks/522 graphs, and53 regression tasks/431 graphs. All111 task indices are distinct; exact membership hashes and source-audit/ledger hashes are recorded.
+- Python syntax compilation, shell syntax checking, plan accounting and `git diff --check` passed.
+- Committed the plans as `0c17cee`, staged the exact source snapshot `7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740` and all1,514 graph source directories on bling, verified the remote snapshot, and launched tmux session `kiln-uniform-importable-v1`. The first task, index4, exported and compiled successfully and entered GPU evaluation at this checkpoint. The staging receipt is in the study source directory.
+
+### What didn't work
+The first freeze script draft incorrectly summed each band dictionary as though it were a task row and raised `KeyError: 'graphs'`. Correcting the nested sum produced the expected1,514-graph declaration. No accepted GPU result from this new run exists at this checkpoint.
+
+### What I learned
+The large two families account for nearly half of the pending graph variants. Separating them for scheduling preserves all task variants while allowing the ordinary families to produce a broad early result.
+
+### What was tricky to build
+The manifests must use the actual `graph_list.txt` order, not an operator inventory or import-audit order alone. Script623 verifies that the materialized graph list exactly matches the audited rows for each task. The remote source snapshot will be checked against the commit before launch.
+
+### What warrants a second pair of eyes
+Review the uniform-run protocol choice to bypass Kiln's synthetic reference gate while retaining the original external PassBench numerical checker. Historical accepted tasks may regress under the current snapshot and must be counted as such.
+
+### What should be done in the future
+Commit and stage the exact snapshot on bling; let the three-band run finish; audit full graph membership and failure phases before changing the cumulative ledger. Work on typed inputs and constants concurrently with GPU evaluation only if it does not change the staged source.
+
+### Code review instructions
+Read scripts623–625, reference36, `sources/uniform-importable-qualification-v1/{declaration,pending-ordinary-plan,pending-large-plan,regression-plan}.json`, and compare against the full current import audit.
+
+### Technical details
+The three plans all set `contraction=separate`, `skip_internal_reference_check=true`, and numerical tolerance `t=-5`. Each planned task retains its sample path, zero-based index, graph count and `graph_list.txt` SHA256. The requested benchmark settings remain20 warmups and100 trials on GB10 with the pinned image and A100 schedule model.
+
+## Step 220: Publish the policy-transfer milestone in the Obsidian vault
+
+### Prompt Context
+The active project goal requests a detailed textbook-style technical report at important milestones, committed and pushed to the go-go-parc vault. Step218 completed the first fixed reusable transformation comparison through complete PassBench tasks; Step219 launched the broad qualification wave.
+**Assistant interpretation:** Preserve this negative-but-informative compiler experiment and its coverage implications as a durable technical article.
+**Inferred user intent:** Let future readers understand the architecture, measured result, limitations and next research sequence without reconstructing the ticket chronology.
+
+### What I did
+- Read the Obsidian vault writing and textbook-authoring skills, prior Kiln article and current code/evidence. Drafted a new article with a real transformation-program example, data-flow diagram, measured task table, generated schedule examples and the coverage census.
+- Added `Projects/2026/10/31/ARTICLE - Kiln - Compiler Policy Transfer and the 111-Task Coverage Frontier.md` to go-go-parc. Staged only that file, leaving unrelated dirty vault files untouched. Committed as `d4b7cc3` and pushed `main`.
+- Rechecked the bling tmux run. Task4 completed export, compile, evaluation and score; task6 entered evaluation. The job remains live.
+
+### Why
+The 92-graph comparison is an important milestone because it links the shared transformation-program compiler path to external PassBench correctness and score. The contrasting task25,83 and101 results determine the next strategy design. The 111-task import surface gives a quantitative plan for coverage growth.
+
+### What worked
+The article records the exact interpretation:92/92 external correctness in both arms,49 changed executables, lower transfer score for a global policy, current importer1,526/2,060 and111 fully importable tasks, and a frozen uniform1,514-graph run. Vault commit and push succeeded. Unrelated vault modifications were not staged.
+
+### What didn't work
+The article cannot report the uniform111-task result because that GPU job is still running. It explicitly labels that result pending. No new compiler behavior was implemented during the report writing.
+
+### What I learned
+The program's task-specific effects are visible in generated schedules: task101 moves from a 6,422,528-block row kernel to a tiled contraction plus epilogue, while task25 gains a third large elementwise kernel and slows substantially. These observations make the case for selective strategy selection without asserting that schedule identity alone proves the full timing cause.
+
+### What was tricky to build
+The report had to distinguish505 cumulatively accepted individual graphs from431 graphs inside the53 complete accepted tasks. It also had to separate task101's development gain from the11-task transfer statistic and avoid presenting an arithmetic mean of task scores as PassBench's official aggregate.
+
+### What warrants a second pair of eyes
+Review the explanation of generated schedule differences against the archived first-variant artifacts. Review whether the next agent search should be stratified by operation family or by measured compiler bottleneck; the article proposes both as inputs without claiming a final classifier.
+
+### What should be done in the future
+Audit the uniform111-task replay when it completes, update the ticket and vault at the next significant compiler result, and continue the typed-input/constant coverage wave while the staged GPU job runs.
+
+### Code review instructions
+Read the vault article at the path above, compare its measurements with reference35 and the graph-level comparison JSON, and inspect the unchanged/current kernel rows in the raw evidence archive.
+
+### Technical details
+The vault article is1,899 words, append-only, with YAML metadata and a Mermaid diagram. Vault commit `d4b7cc3` was pushed to `origin/main`. The Kiln research branch was at `173ea63` when the article was published.
+
+## Step 221: Batch scalar and layout bindings while the broad GPU run continues
+
+### Prompt Context
+Reference34 calls for broad operation batches while the uniform importable-task run executes from a frozen source snapshot. The user requested that PyTorch/PassNet source provenance be documented in the diary and relevant materials saved in ticket `sources/`.
+**Assistant interpretation:** Port a shared batch of still-missing source operations through existing Kiln primitives, measure full-corpus import gain once, and preserve exact source/API evidence.
+**Inferred user intent:** Raise coverage quickly without confusing import, compilation and external PassBench correctness.
+
+### What I did
+- Added source lowering for `torch.square`, functional `leaky_relu`, `hardsigmoid`, `hardswish` and tensor `expand_as`. The scalar functions reuse `fx_scalar_ops.py`; `expand_as` reuses the existing `N.expand` representation. In-place functional calls retain the importer's fresh single-use permission check.
+- Extended the shared scalar oracle with the new operations across FP32, FP16 and BF16, plus finite values, zeros, infinities and NaN. Ran the current full2,060-graph importer census with script627, froze the exact delta and complete task plan with script628, and locally exported/compiled all33 newly importable variants using script629.
+- Inspected the119 nonfloating-input and17 captured-constant first failures using script626. Read the official PyTorch2.9 API pages for the five new bindings, downloaded their exact HTML with URL/SHA256 manifest using script630, and archived the pages with script632. Archived the121 local compile evidence members with script631. Wrote reference37 with the semantics, measured gain and next typed-compiler boundary.
+
+### Why
+The remaining scalar and expansion bindings fit existing compiler operations and can be implemented together. Integer inputs and captured tensor constants have a different cross-layer requirement; their first-error counts alone do not justify an unsafe import-only mapping.
+
+### What worked
+- The scalar oracle passed51 PyTorch CPU/reference/decomposition/CUDA-emission cases on local PyTorch2.11.0+cu130 and Node26.13.0. No broad compiler suite was added for a set of simple bindings.
+- The full census moved from1,526 to1,559 imported graphs and111 to116 fully importable tasks, with33 newly imported graphs and zero import regressions. The new complete task indices are85,135,167,192,197, totaling33 variants.
+- All five new families exported and all33 source programs compiled locally with target A100, separate contraction and the explicitly bypassed internal synthetic reference check. Their external GPU correctness remains pending.
+- The typed frontier census finds119 graphs across18 families with nonfloating placeholders,230 `torch.int64` input declarations and one Boolean declaration. The17 get-attribute failures capture tensors ranging from49 to1,050,625 elements, which rules out a scalar-only constant scheme.
+
+### What didn't work
+- The first scalar test invocation from the repository root failed to import `fx_scalar_ops`; rerunning from `integrations/passnet/` used the repository's established test path.
+- The first hard-swish lowering selected zero for negative infinity, whereas local PyTorch produced NaN. The shared oracle caught it. Rewriting the expression as multiplication by a clamped factor preserved the observed nonfinite behavior and made all51 cases pass.
+- No pinned-PyTorch2.9 CUDA numerical comparison or original PassBench replay has been completed for the new five families. Import and local compilation are not external acceptance.
+
+### What I learned
+The official hard-swish piecewise formula describes finite-value behavior but does not settle the negative-infinity result of the actual tensor kernel. The local oracle must cover exceptional inputs, and the pinned runtime remains the final benchmark authority. The typed-input frontier requires exact integer storage and data-dependent indexing; the current loop expression IR loads at static coordinate expressions and represents scalar arithmetic as FP32.
+
+### What was tricky to build
+`expand_as` uses the other tensor's *shape* while preserving the source tensor's dtype and broadcast legality; treating it as an ordinary binary elementwise op would be wrong. Hard-swish must preserve multiplication by zero on negative infinity to retain NaN. In-place variants cannot be accepted by translating them to fresh outputs unless the source value is proven unaliased and single-use.
+
+### What warrants a second pair of eyes
+Review the hard activation lowering against pinned PyTorch2.9 CUDA, especially signed-zero and reduced-precision behavior. Review task85/135/167/192/197 original-evaluator results before updating coverage. For the next typed capability, review whether an integer-specific scalar/index IR should be introduced rather than casting indices through FP32.
+
+### What should be done in the future
+Stage the frozen five-family batch for GPU replay after the active111-task run, then audit all33 variants at `t=-5`. Design exact integer tensor loads, data-dependent gather, captured tensor asset storage and runtime lifetime as one coherent B1 capability. Use the broad run's failure census to adjust order if another shared blocker dominates.
+
+### Code review instructions
+Read `fx_scalar_ops.py`, the new `expand_as` branch in `fx_import.py`, `test_fx_scalar_ops.py`, scripts626–631, reference37 and `sources/scalar-layout-batch-delta-v1.json`. Compare the official PyTorch2.9 pages and the materialized PassNet model calls recorded in the frontier/source audit before changing formulas.
+
+### Technical details
+The downloaded PyTorch source pages are version2.9 generated API HTML preserved in `sources/pytorch-2-9-scalar-docs-v1.tar.gz` (SHA256 `925588016c675c43f23d965324af8bcff559068fc677efe577bd3be4b4ffa2c8`), with page hashes and URLs in the adjacent archive receipt; no source code was copied. Local compilation artifacts are archived at `sources/scalar-layout-batch-local-compile-v1.tar.gz` (SHA256 `1cafa51adc66abd4e7f60ffa4997db0d9dc3d3f67aa77471d9deb2629e7433ba`). The ongoing broad GPU run uses the earlier frozen source snapshot and cannot observe these uncommitted local changes.
+
+## Step 222: Plan broad coverage and strategy experiments
+
+The user asked for a written plan that favors broad progress on corpus coverage and expands the kinds of compiler passes we can study. I updated the roadmap's snapshot warning and wrote reference38 as an execution plan with explicit phase exits, parallel optimization experiments and accounting rules. The five-family scalar/layout batch is committed as `696d69f`; its GPU acceptance remains pending.
+
+### Prompt Context
+**User prompt (verbatim):** "can we write doiwn a plan on how to proceed to make broad progress (and handle details later on?) for coverage and thus also the breadth of optimization strategies and compiler passes we can target / design"
+**Assistant interpretation:** Make the coverage roadmap operational, keep broad batches as the unit of work, and link each compiler capability to optimization research.
+**Inferred user intent:** See how the project will reach useful self-optimization results while moving toward full 200-task support.
+
+### What I did
+- Checked the committed scalar batch and current roadmap. Wrote `reference/38-broad-coverage-and-optimization-execution-plan.md` with P0–P5 capability phases, O1–O4 strategy experiments, exit evidence and next actions.
+- Added a snapshot warning to reference34 so its initial 111-task import counts are not mistaken for current source coverage.
+- Tried a read-only remote status check of the frozen bling run; the sandbox returned `socket: Operation not permitted` before SSH connected. The remote run's state is therefore unverified at this checkpoint; no result is inferred from the failed check.
+
+### Why
+The current source can import 116 complete tasks, but the only uniform GPU qualification in progress uses an earlier frozen 111-task snapshot. A plan that reports these as the same coverage state would misdirect both implementation and policy training. The fixed fusion experiment also shows the need to diversify policies before further global tuning.
+
+### What worked
+The plan retains all 200 tasks in the eventual ledger, defines complete-family replay after each broad wave, and identifies structural/effect, typed-index/constant, reduction/contraction and attention work as distinct capability groups. It starts selective fusion and reduction/contraction experiments from already correct families without waiting for complete corpus support.
+
+### What didn't work
+The read-only SSH status command failed with `socket: Operation not permitted`; the sandbox did not permit a connection. No GPU result was collected during this planning step.
+
+### What I learned
+Current import eligibility, local compilation and external acceptance have different denominators and must remain distinct in the plan. The frozen 111-task run cannot include the newly committed five-family batch.
+
+### What was tricky to build
+The phase sequence needs a decision point after the uniform failure census: P2 structural/effect work may unlock more accepted families than P3 typed indexing, but the 119 nonfloating-placeholder failures require exact integer storage and dynamic gather, so they cannot be handled as a set of trivial FX bindings.
+
+### What warrants a second pair of eyes
+Review the proposed P2/P3 ordering after the uniform-run failure census and the whole-family split for O1/O2. Check that every accepted task is measured under a single declared source revision before using it to train a policy.
+
+### What should be done in the future
+Finish P0, replay the five new families after its timed GPU work, and select P2 versus P3 using common failure causes. Run O1 and O2 with frozen whole-family held-out sets.
+
+### Code review instructions
+Read reference38, the reference34 snapshot warning, reference37 and the frozen qualification protocol in reference36. Check the latest scalar batch commit and the three-band manifest before interpreting any new acceptance number.
+
+### Technical details
+The plan keeps phase gates at imported, compiled, GPU-correct and fully accepted task levels. It explicitly separates the earlier frozen 111-task/1,514-graph study from the current 116-task/1,559-graph import census and the cumulative 53-task/505-graph acceptance ledger. The remote SSH command failed before reading `owner.log`.
+
+## Step 223: Stage the five-family GPU replay without disturbing the uniform run
+
+The broad plan's first new correctness gate is the five-family scalar/layout batch. I staged its complete 33-graph source cohort and the committed Kiln snapshot on bling, then verified remote source hashes. The timed 111-task qualification remains the only active GPU study; this step did not launch the staged replay.
+
+### Prompt Context
+**User prompt:** See Step222 for the request to make broad coverage and strategy progress. The active project goal also requires implementation and measurement, with scripts and evidence saved in the ticket.
+**Assistant interpretation:** Prepare the next complete-family GPU qualification while preserving the active study's timing conditions.
+**Inferred user intent:** Move beyond importer counts to external PassBench correctness promptly and reproducibly.
+
+### What I did
+- Rechecked bling through `ssh -o HostKeyAlias=bling.local`; tmux session `kiln-uniform-importable-v1` was live, and `owner.log` showed task32 in evaluation. The earlier generic `ssh manuel@bling` failed host-key verification because the established key is recorded under `bling.local`.
+- Added script633 to stage exactly the source files in `evaluate_tasks.snapshot`, the PassBench evaluator and the five task families in `scalar-layout-batch-task-plan-v1.json`. Added script634 as a runner that checks for another GPU compute process before execution.
+- Ran Python syntax and shell syntax checks, then executed script633. Its receipt records source revision `fe9cd49b26fd1cc7d22a9c3e103fcf606dfcb6c3`, source snapshot `d19d91e630e921375d7e340c4ebfef8edba14c5d60bcd410e6be866841dd0b94`, plan SHA256 `8a9243ab8d63eaff2b7735ead9e0227969e9477ec76023006b90f7eef2841ee5`, five tasks and33 graphs. The remote snapshot was recomputed and matched the local snapshot.
+
+### Why
+The active timed run is a frozen pre-batch source. Launching a second GPU job could contaminate its latency measurements, whereas staging source files and plans is independent of GPU timing.
+
+### What worked
+The remote source verification passed and the five-family cohort is staged at `/home/manuel/passnet-kiln/KILN-005/sources/scalar-layout-batch-gpu-v1`. No GPU work was launched for this new cohort. The staging receipt is saved in ticket `sources/scalar-layout-batch-gpu-v1/staging.json`.
+
+### What didn't work
+The first status command using plain `manuel@bling` failed with `Host key verification failed`. Switching to the project's established `HostKeyAlias=bling.local` succeeded. No other failure occurred.
+
+### What I learned
+The remote evaluator can be prepared from the existing source snapshot contract without introducing a second compiler path. The full plan keeps every variant of each of the five families.
+
+### What was tricky to build
+The remote source must include the local workspace packages and the PassBench sample graph directories, but the staged code must match a committed revision. Script633 verifies each tracked snapshot file against `git show` and recomputes the snapshot remotely before writing its receipt.
+
+### What warrants a second pair of eyes
+Review the runner's GPU-idle check and the pinned container image before launch. Its numerical acceptance still depends on the pinned PyTorch2.9 PassBench evaluator.
+
+### What should be done in the future
+After the uniform111-task run completes, launch script634 in its own tmux session, collect all33 correctness and score outcomes, and update coverage only for complete accepted families.
+
+### Code review instructions
+Read scripts633–634, the staged receipt, `scalar-layout-batch-task-plan-v1.json`, and the source snapshot contract in `integrations/passnet/evaluate_tasks.py`.
+
+### Technical details
+The staging operation used the existing `HostKeyAlias=bling.local` key and no concurrent timed GPU work. The runner uses the same pinned image `sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba` as the uniform study, with the plan's target A100, separate contraction, internal synthetic check bypass and PassBench numerical t=-5 settings.
+
+## Step 224: Port stack and unbind as one structural batch
+
+The active broad-coverage plan calls for shared capability batches while the 111-task GPU study runs from a frozen snapshot. I ranked current first import blockers, inspected representative PassNet graphs and official PyTorch 2.9 semantics, then added stack and unbind lowering through Kiln's existing reshape, slice and concat primitives. The full import census rose to 119 complete tasks and 1,584 graphs; the 25 new graphs all compile locally, with external correctness still pending.
+
+### Prompt Context
+**User prompt:** See Step222 for the request to pursue broad coverage and compiler-strategy breadth. The continuing project instruction requests port provenance, sources/scripts and detailed diary entries.
+**Assistant interpretation:** Choose a shared structural capability that unlocks complete task families and exposes new optimization patterns.
+**Inferred user intent:** Increase benchmark coverage in batches that also broaden the kinds of reusable compiler passes we can study.
+
+### What I did
+- Added script635 to rank first import failures by affected task families, using the 2,060-graph current-source audit. The recorded first blockers include 137 mutation/alias graphs across18 tasks, 119 typed-input graphs across18 tasks, 59 local-driver-sensitive graphs across14 tasks, and stack/unbind groups totaling25 graphs across3 tasks. The rank is a first-error inventory, not a proof of all later blockers.
+- Inspected materialized PassNet model calls in mmseg, mmpose and timm. Read official PyTorch 2.9 stack/unbind API pages and archived their exact HTML with hash manifest via script637. No upstream implementation code was copied.
+- Implemented shared `lower_stack` and `lower_unbind` in `fx_layout.py` and dispatched them from `fx_import.py`. Added source FX fixtures covering FP32, FP16, BF16, positive/negative axes and functional/method unbind, plus metadata rejection checks.
+- Ran the full import census through script636, froze its delta and complete-family plan with script638, exported and locally compiled all25 variants with Node26 via script639, and archived the artifacts with script640. Wrote reference39 and updated the broad execution plan.
+
+### Why
+Stack/unbind form a coherent structural operation group. Their source semantics map to existing Kiln primitives, and the affected families exercise convolution, arithmetic, linear algebra, reduction and layout movement. The same compiler path can then evaluate view folding and stack/reduction simplification.
+
+### What worked
+- `python3 -m unittest test_fx_layout.py` passed seven test methods.
+- The full import census moved from1,559 to1,584 graphs and116 to119 complete tasks, with25 newly imported graphs and zero regressions. Task indices65,112,150 contain9,6,10 variants respectively.
+- All three new families exported and all25 variants compiled locally with target A100, separate contraction and the internal synthetic check explicitly bypassed. The local archive contains89 members; SHA256 `760b8adccdc9d1f6d6d04b08c35114ddcd78689773e5423018b4196094b187f1`.
+
+### What didn't work
+No implementation or local compilation failure occurred. Native CUDA numerical acceptance and PassBench scoring remain unrun for this batch, so the119-task figure is import eligibility only.
+
+### What I learned
+The existing partition/getitem importer can select unbind elements if the unbind lowering returns a structured expression list with matching tensor metadata. Stack can reuse `N.reshape` and `N.concat`; the one-input case requires only reshape. Unbind creates aliases, so the importer must not grant fresh ownership to its outputs.
+
+### What was tricky to build
+Axis normalization differs: stack inserts into rank+1 and accepts the interval `[-rank-1, rank]`, while unbind removes one of rank existing axes and accepts `[-rank, rank-1]`. Unbind output count must equal the size of the removed dimension, and each output loses that axis. The lowerings validate those contracts before emitting Kiln source.
+
+### What warrants a second pair of eyes
+Review alias behavior if a later operation mutates an unbound view. Confirm native GPU numerical behavior for low precision and the source graph families before adding them to the accepted ledger. The rank script groups first errors only and should not be used to predict final accepted-task count.
+
+### What should be done in the future
+Stage and replay tasks65,112,150 on bling after the current timed study and staged five-family replay. Investigate whether stack→sum and unbind→view schedules eliminate intermediate materialization; use complete-family held-out evidence before promoting any new strategy.
+
+### Code review instructions
+Read `fx_layout.py` stack/unbind lowerings, `fx_import.py` dispatch, `test_fx_layout.py`, reference39, scripts635–640 and `sources/stack-unbind-batch-delta-v1.json`. Compare source API pages in the archived official-doc bundle and the materialized PassNet model calls.
+
+### Technical details
+The source-doc archive SHA256 is `c06afeb34bccf128b7f32adfa5b48d4a114249d3dfa7213c7bcfb746546359ae`. The local compile archive is `sources/stack-unbind-batch-local-compile-v1.tar.gz`. The full audit SHA256 is `e805d42b062e355bd0337952686672d7d79ba51a12e1220066e5eca5f398c2a2`; the prior scalar audit SHA256 is `7094df646a22657ff37c4c2797037627577b2b0ddbfa8ce23de1c8ffd5fddbdd`. The frozen remote111-task GPU study uses the earlier source snapshot and is unaffected.
+
+## Step 225: Consolidate GPU staging and freeze the structural replay
+
+The stack/unbind batch is committed but has only local compiler evidence. I replaced the next staging copy with one task-plan-driven script and used it to stage all25 structural variants on bling. The existing frozen111-task GPU study remained live, so no second timed GPU job was launched.
+
+### Prompt Context
+**User prompt:** See Step222 for broad coverage progress, and the earlier request to consolidate architecture when work starts to sprawl.
+**Assistant interpretation:** Prepare GPU replay for the new complete families through one reusable staging path.
+**Inferred user intent:** Reach external numerical evidence quickly without accumulating another hand-edited remote harness for every batch.
+
+### What I did
+- Checked the remote tmux session `kiln-uniform-importable-v1`; it was live, with task93 entering evaluation at the start of this step.
+- Added `scripts/641-stage-task-plan-gpu.py` and `scripts/642-run-task-plan-gpu.sh`. The stage tool accepts a frozen task plan and study name, verifies each graph-list hash, checks that the Kiln source snapshot matches committed files, copies exactly those sources and task graph directories, and recomputes the source snapshot remotely. The runner accepts a study directory and checks for an active GPU compute process before PassBench evaluation.
+- Committed the reusable scripts as `51b1ca5` before staging. Then staged task indices65,112,150 with all25 graph variants at `/home/manuel/passnet-kiln/KILN-005/sources/stack-unbind-batch-gpu-v1`. The local receipt is `sources/stack-unbind-batch-gpu-v1/staging.json`.
+
+### Why
+Scripts624 and633 already held similar one-off source-copy logic. A plan-driven staging path avoids a third copy and supports subsequent batches through the same source and graph-membership checks. The active timed study should remain the only GPU workload until it completes.
+
+### What worked
+Python and shell syntax checks passed. Staging verified committed revision `51b1ca57090d033dfc45e6e1549a657c7257aef5` against remote source snapshot `871d897aba8cc11531b925bfd682be9490efe82fa4af8e1e8aeb29512d03fd9e`. The plan hash is `f36f49f45944cc63ce3d6c7d2c12a53a90efd4ad5f651dfedbdd1accb596fc06`; all25 variants are present. No GPU run was started.
+
+### What didn't work
+The first `git add` attempt failed with `fatal: Unable to create '/home/manuel/code/wesen/kiln/.git/worktrees/passnet/index.lock': Read-only file system`. The managed sandbox mounted the shared Git metadata read-only for that call. Retrying the authorized add and commit with escalated execution succeeded. No source or staging operation failed.
+
+### What I learned
+The source snapshot contract and task-plan membership hashes are sufficient to stage a new complete-family replay without copying compiler-specific logic. The historical staging scripts remain evidence of prior runs; script641 is the reusable path for new cohorts.
+
+### What was tricky to build
+Remote source verification must follow package symlink creation, because the staged snapshot imports the workbench and compiler packages. Plan paths must stay inside the ticket and the remote study name must be a simple slug. The staging tool validates both before any copy.
+
+### What warrants a second pair of eyes
+Check the generic runner's GPU-idle guard and pinned image against the active run's protocol before launching. The staged snapshot differs from the frozen111-task snapshot by the scalar/layout and structural batches, so their results should not be pooled as one uniform release count.
+
+### What should be done in the future
+Let the frozen timed qualification finish. Launch the five-family scalar replay, then the three-family structural replay in separate tmux sessions. Collect all graph-level correctness and task scores and update the accepted ledger only for complete accepted tasks.
+
+### Code review instructions
+Read scripts641–642, the structural staging receipt, both task plans, and `evaluate_tasks.snapshot`. Compare remote source hashes and graph-list membership before interpreting future results.
+
+### Technical details
+The staging receipt format is `kiln-task-plan-gpu-staging/1`. Its full file-hash snapshot and plan hash are retained in the ticket. The generic runner uses pinned image `sha256:222d8b18e671be5c3ef91cb41727a2572a0b23f59ded6c39f373a96946f6f2ba`, with the frozen plan's target A100, separate contraction, internal synthetic check bypass and PassBench t=-5 setting. The stage command does not launch tmux or use the GPU.
+
+## Step 226: Queue the two newly covered cohorts behind the frozen GPU study
+
+The five-family scalar/layout and three-family stack/unbind cohorts are both staged. I committed and launched a tmux queue on bling that waits for the uniform111-task qualification to finish and verifies its three task bands before running either new cohort. At this checkpoint both tmux sessions are live, the queue is waiting, and neither new `results/run.json` exists.
+
+### Prompt Context
+**User prompt:** The active project goal requests implementation and measurement for PassNet/Kiln, and Step222 requests broad coverage progress.
+**Assistant interpretation:** Arrange the already prepared external correctness runs to execute serially after the active timed study, while preserving their frozen source snapshots.
+**Inferred user intent:** Obtain verified coverage results without waiting for another manual launch turn or contaminating GPU timing.
+
+### What I did
+- Added and syntax-checked `scripts/643-queue-breadth-replays.sh`; its SHA256 is `83639e0c4f5ef4cebb4371ff72a84491046f8b1ece935d82d3780ccdc4af7b0f`. Committed it as `103fa89` before remote copying.
+- Copied the exact committed script to `/home/manuel/passnet-kiln/KILN-005/sources/breadth-replays-v1/queue.sh` and verified the same SHA256 on bling.
+- Started tmux session `kiln-breadth-replays-v1`. It waits for `kiln-uniform-importable-v1` to end, verifies `pending-ordinary`56, `pending-large`2 and `regression`53 records with `status=complete`, then runs the scalar five-family cohort and checks its five records before running the structural three-family cohort. Each run uses its staged `run.sh` and own owner log.
+- Rechecked remote sessions and result paths: uniform tmux live, queue tmux live, scalar and structural `results/run.json` absent. The uniform log had reached task109 evaluation at that observation.
+
+### Why
+The current timed study and the two new replays share one GPU. Serial scheduling preserves each study's latency conditions and removes launch latency after the prior run completes. A completed process alone is insufficient; the queue verifies all111 planned task records before starting another workload.
+
+### What worked
+Remote script hash matched the local committed file. Both tmux sessions were live, and no staged replay had started early. The queue's first launch remains conditional on complete uniform-run accounting.
+
+### What didn't work
+No failure observed. The queued jobs have not executed yet, so no new external correctness or score result is claimed.
+
+### What I learned
+The two new coverage batches can be measured under separate immutable snapshots after the uniform study without conflating their denominators. The queue's terminal checks retain phase failures as recorded task outcomes; numerical acceptance still requires the later audit.
+
+### What was tricky to build
+The queue must distinguish tmux session termination from successful full accounting. It waits for the session to end, then checks all three `run.json` files before starting scalar replay. It similarly checks the scalar run's status and five records before starting structural replay.
+
+### What warrants a second pair of eyes
+Review the queue's status checks after the uniform run ends and inspect each cohort's external match/numerical audit. A `status=complete` run can contain phase failures or incorrect graphs; it is not an acceptance claim.
+
+### What should be done in the future
+Collect and audit the uniform111-task results as soon as the first tmux session ends. Then audit the five-family and three-family replays separately. If the queue exits because the uniform run is incomplete, inspect the terminal cause before restarting any GPU work.
+
+### Code review instructions
+Read script643, the queue receipt, scripts625/634/642, all three task plans and `evaluate_tasks.py`. Check the remote tmux sessions and individual `run.json` files, not a lock or stale log alone.
+
+### Technical details
+The queue's owner log is `/home/manuel/passnet-kiln/KILN-005/sources/breadth-replays-v1/owner.log`. The uniform session was still active when the queue was launched; neither later `results/run.json` existed. The queue uses `sg docker -c` for the two evaluation runners and does not run a second timed job while uniform tmux exists.
+
+## Step 227: Define the mutation capability at the FX and PyTorch runtime boundary
+
+The first-error census showed that input mutation is a larger next capability than another small operator binding. I audited the affected source models and documented a functionalization design with explicit final-value outputs, input writeback and returned alias identity. This is a design checkpoint; no mutation lowering is claimed yet.
+
+### Prompt Context
+**User prompt:** The active goal requests broad PassNet support, source provenance, design docs and implementation. See Step222 for the broad-coverage request.
+**Assistant interpretation:** Identify the common semantic requirement behind mutation-blocked families before changing the importer or runtime.
+**Inferred user intent:** Expand coverage with a coherent compiler capability that can later support effect-aware optimization passes.
+
+### What I did
+- Added script644 and ran it over the current 2,060-graph import audit. It groups mutation-related first failures, reads each materialized `model.py` and records source mutation calls, operands and source hashes in `sources/mutation-source-patterns-v1.json`.
+- The first audit left ten positional `hardtanh(..., True)` calls unclassified. I added that source signature and the missing `relu_` first failures, then reran it. The final audit found143 variants across19 task families,55 distinct model source hashes,135 first-mutated input operands and8 first-mutated temporaries.
+- Inspected representative EfficientNet and ResNet source fragments and the existing `fx_import.py`, `generate_pass.py`, `dispatch.py`, `runtime.py`, `evaluate_tasks.py` and pinned PassBench evaluator. Read the official PyTorch2.9 `add_`, SiLU and functionalization API pages; archived their exact HTML and hashes using script645. Wrote reference40 with the proposed IR/manifest/runtime contract and evidence sequence.
+
+### Why
+An input mutation changes caller-owned storage, and a source function may return that same tensor object. The existing importer only accepts mutations on fresh single-use compiler values. Treating a source input mutation as a pure expression would leave repeated benchmark calls with different state and could break returned alias identity.
+
+### What worked
+The source audit identifies the first-error split:45 SiLU,42 ReLU,35 augmented addition,10 hardtanh,3 true division,6 method `relu_` and2 function `torch.relu_`. It resolved all first-mutated operands after the positional hardtanh fix. The pinned PyTorch functionalization documentation explicitly describes pure intermediate operations followed by input copyback to preserve semantics. Reference40 maps that semantic contract to the existing Kiln FX importer and PyTorch runtime.
+
+### What didn't work
+The first AST audit classified only135 variants and marked ten hardtanh operands unknown because their `inplace=True` argument is positional. The corrected script classifies all143 mutation-related variants. No GPU correctness or PassBench result follows from this source-only analysis.
+
+### What I learned
+Most mutation first blockers are source-input effects, not merely in-place calls on temporary values. The current PassBench `make_model_call` binds one input dictionary and reuses its tensors over warmups and trials; correct writeback and returned alias identity are therefore part of evaluation behavior. The current `TorchProgram` can launch on the caller's CUDA stream, so a separate hidden output followed by stream-ordered copyback is an initial safe execution path.
+
+### What was tricky to build
+The source AST identifies likely mutation operands but cannot establish complete alias relations. Reference40 therefore defines explicit storage identity and version tracking in the importer and rejects unsupported overlapping view mutation. The runtime must return the original input tensor object for public outputs that alias it; equal values in a fresh tensor do not preserve the source behavior.
+
+### What warrants a second pair of eyes
+Review whether source-derived FX pattern matching preserves each mutation/alias contract and whether duplicate public/hidden outputs share one Kiln artifact buffer. Verify the proposed writeback ordering under pinned PyTorch2.9 and the original PassBench evaluator before accepting any mutation family.
+
+### What should be done in the future
+Implement reference40's effect metadata, pure value lowering, hidden final-value outputs, same-stream input writeback and output-alias reconstruction. Then run one full import census and complete-family GPU replay. Compare effect-aware fusion and storage reuse only after correctness.
+
+### Code review instructions
+Read reference40, scripts644–645, the source audit JSON, the official-doc archive receipt, `fx_import.py`, `dispatch.py`, `runtime.py` and PassBench `test_compiler.py`/`make_model_call`.
+
+### Technical details
+The official PyTorch2.9 source-doc archive SHA256 is `11125100e1ff713680c7561469f7c473163ee11e15e5dbf6e4750d15058a66ba`. The audit is source AST plus the current importer first-error list; it is not a runtime alias analysis. The official functionalization API is documented at `https://docs.pytorch.org/docs/2.9/generated/torch.func.functionalize.html` and describes an input copyback after pure computation.
+
+## Step 228: Implement guarded input mutation across import, manifest and dispatch
+
+The mutation design identified caller-owned input storage as the next broad semantic boundary. I implemented a guarded functionalization path for direct input mutations with one FX source use, then measured the entire import corpus. The batch adds84 graph imports and12 complete task families with no import regression. All96 variants in those families compile locally and source-derived pass patterns generate; native CUDA and original PassBench acceptance remain pending.
+
+### Prompt Context
+**User prompt:** The active goal requests full PassNet/Kiln implementation and measurement; Step222 asks for broad coverage waves and the earlier instruction asks for source provenance and detailed diary entries.
+**Assistant interpretation:** Implement reference40's first safe input-effect class across the existing compiler/runtime boundary and measure its broad effect.
+**Inferred user intent:** Unlock real model families while retaining source mutation behavior and a clear path to optimizing effect-aware compiler passes.
+
+### What I did
+- Extended `fx_import.py` to recognize direct, single-use input mutation, emit the pure operation as a hidden `__mutN` output, mark returned mutation values as `input_alias`, and record `input_mutations` metadata. The importer still rejects mutated input values with another FX use and does not grant fresh ownership to input aliases. Added function/method `relu_` and kept operation-specific lowering for existing in-place arithmetic, ReLU, SiLU and scalar activation paths.
+- Propagated effect metadata through `corpus.py` and `generate_pass.py`. Extended `dispatch.py` to copy hidden results back into the original PyTorch input and restore public alias leaves to the input object after program launch. The existing `TorchProgram` and CUDA exporter continue to supply the executable.
+- Updated focused importer/dispatch tests, ran `python3 -m unittest test_fx_import.py test_dispatch.py test_pass_generation.py`, then ran script646's full2,060-graph importer census. Script647 froze the exact delta and full family plan. Script648 exported and compiled all96 variants locally with Node26; script649 generated every source-derived pattern and script650 archived the pattern evidence. Wrote reference41 and updated references38/40.
+
+### Why
+The materialized PassNet source mutates inputs and sometimes returns the input alias. A pure replacement alone would change values on repeated benchmark calls. A hidden final-value output plus stream-ordered PyTorch writeback preserves the effect without adding an alternate compiler stack or risking in-place GPU read/write hazards.
+
+### What worked
+- Focused tests passed37 methods after updating the previous rejection expectation.
+- Full import eligibility rose from1,584 to1,668 graphs and119 to131 complete tasks:84 new imports,12 new complete families and zero regressions. The newly complete task indices are17,45,49,94,96,111,131,147,161,172,176,196.
+- Every one of96 variants in those complete families exported and compiled locally. The local compile archive SHA256 is `bff91c9cf4906def9b66f6e51d123d6c7c28e6cd08fecb89db61220e0e3d853c`.
+- All12 families generated source-derived passes:24 distinct pattern modules;78 of96 variants record an input effect. The pattern archive SHA256 is `cbdd839401375d134d24f809ee88628600a261e433f8e2f8ef86eb4ca34a2252`.
+
+### What didn't work
+The first focused test run failed one existing test, `test_inplace_silu_rejected`, because the new guarded behavior correctly accepts a direct single-use input SiLU mutation. I replaced that stale expectation with effect and alias assertions; the same focused group then passed37 tests. No GPU numerical or PassBench matching run has yet occurred for this wave.
+
+### What I learned
+Input mutation can be represented at this boundary as a pure Kiln value plus an explicit external effect, while public output alias identity is restored by dispatch. A representative compiled ResNet variant has only the hidden `__mut6` output; the dispatch returns original input6 after copying the computed result into its storage. Existing GPU code generation can compile this form without a new IR operation.
+
+### What was tricky to build
+The source operand's single FX use prevents a prior or later alias from silently observing a stale version. A mutating node that aliases an input must not be marked fresh, or a second mutation could be accepted without updating the input's final value. The public output structure has to distinguish an input alias from an ordinary allocated result. Pattern generation must retain this metadata when it rewrites canonical input order.
+
+### What warrants a second pair of eyes
+Check CUDA stream ordering for `destination.copy_(hidden_output)` after `TorchProgram.launch`, and inspect PassBench dispatch interception of this legitimate writeback. Verify match count and t=-5 correctness for all96 variants before adding any task to the accepted ledger. The single-use guard is conservative and leaves complex view aliases unsupported.
+
+### What should be done in the future
+Commit the current capability and evidence, stage the twelve-family task plan through script641, and queue its GPU replay after the existing two pending batches. Analyze external failures by common cause; do not infer accepted coverage from131 importable tasks. Extend storage-version and view-update analysis only after the guarded class is measured.
+
+### Code review instructions
+Read reference41, `fx_import.py` mutation branches and output flattening, `dispatch.py`, `corpus.py`, `generate_pass.py`, the focused tests, scripts646–650 and the source/artifact archives. Compare a hidden-output compiled artifact with its manifest alias/effect metadata.
+
+### Technical details
+The before audit SHA256 is `e805d42b062e355bd0337952686672d7d79ba51a12e1220066e5eca5f398c2a2`; the after audit SHA256 is `2ba985d0cd78862f287580be8b34c3a01fed78e92368c4ec1ec8ccfc1659ca16`. Compiler settings were A100 schedule target, separate contraction, Node26.13.0 and explicit internal synthetic-check bypass. The external PassBench numerical checker has not yet run on this source snapshot.
+
+## Step 229: Stage and queue the twelve-family mutation replay
+
+The guarded mutation wave's local compiler and pattern results are committed as `5df0172`. I staged its complete96-variant task plan on bling from that exact revision and launched a dependent tmux queue. The mutation queue waits for the earlier scalar/layout and structural replay queue to end and checks both result ledgers before it starts GPU work.
+
+### Prompt Context
+**User prompt:** See Step222 for broad coverage progress and the active project goal for implementation and measurement.
+**Assistant interpretation:** Carry the mutation wave from local compilation to a frozen external correctness run without disturbing the existing timed studies.
+**Inferred user intent:** Turn a large importer gain into a measured PassBench result with all graph variants counted.
+
+### What I did
+- Ran shared script641 for `input-mutation-wave-task-plan-v1.json`, staging 12 tasks/96 graphs at `/home/manuel/passnet-kiln/KILN-005/sources/input-mutation-wave-gpu-v1`. It verified committed source revision `5df01726d2088ea48bcd65cc84cf1ded33da626b`, source snapshot `ee38ebec1a74298702a769e575d6d17572c3ece2fa7a53fd569679e660c09195`, and plan SHA256 `731d923d01b5c50634da93137dbfd00a85b3b897e3b3b91429092523ef0d095f`.
+- Added reusable script651 to wait for a named tmux session, verify prerequisite `run.json` task counts, then launch one staged task plan in the existing pinned image path. Syntax-check and committed it as `9dbf477`; the remote copy matched SHA256 `10b351329a22e117c5e2acc4e837297c9fb46e9e937b663b367caa7d91d70f1e`.
+- Started `kiln-input-mutation-wave-v1` in tmux, waiting for `kiln-breadth-replays-v1`. Rechecked the uniform, breadth and mutation sessions: all live; mutation `results/run.json` absent; uniform task168 in evaluation at that observation.
+
+### Why
+The three GPU studies must run sequentially. The source revision, graph membership and prerequisite task counts are part of the result contract. A waiting queue can begin the mutation replay promptly after the earlier studies finish while refusing to proceed if either prior run terminates incomplete.
+
+### What worked
+Remote source and plan hashes matched their local receipts. The dependent queue was live and did not start the mutation GPU workload early. The exact staging and queue receipts are in `sources/input-mutation-wave-gpu-v1/`.
+
+### What didn't work
+No staging or queue failure occurred. External mutation correctness and task scores remain unmeasured.
+
+### What I learned
+The existing task-plan staging path handles a compiler capability with public output aliases and hidden effects without special remote-corpus logic. The original PassBench checker remains the decisive gate.
+
+### What was tricky to build
+The mutation queue must wait for the earlier breadth queue, which itself waits for the frozen111-task run. It checks the five-family and three-family `run.json` files after the breadth session exits, so an earlier failed queue cannot silently trigger a new timed run.
+
+### What warrants a second pair of eyes
+Inspect the mutation replay's source match count, CUDA writeback and returned aliases in the original evaluator. Its local compiler success is weaker than external numerical acceptance.
+
+### What should be done in the future
+Audit each run after its own `status=complete` and full task count; do not combine the three source snapshots into one uniform acceptance statistic. Classify shared mutation failures before changing the effect path.
+
+### Code review instructions
+Read script651, the staging and queue receipts, script641, `input-mutation-wave-task-plan-v1.json` and reference41. Inspect both prerequisite tmux sessions and their terminal run files before interpreting the mutation replay.
+
+### Technical details
+The remote queue script lives in the staged mutation directory as `queue.py`, with `queue.log` for scheduling and `owner.log` for the actual GPU runner. Its dependencies are scalar5 and structural3 complete task records; those checks do not assert numerical acceptance. The mutation run is frozen to the earlier source revision even though later documentation commits may advance the branch.
+
+## Step 230: Recast the coverage roadmap as compiler capability waves
+
+The next planning request calls for broad progress in coverage and in the range of optimizations Kiln can learn. I reviewed the current execution plan, the latest mutation-wave evidence and the typed-input frontier, then wrote reference42 as a capability-wave plan. It keeps the 200-task corpus goal separate from the earlier research milestone of showing held-out gains from reusable compiler strategies.
+
+### Prompt Context
+**User prompt (verbatim):** "can we write doiwn a plan on how to proceed to make broad progress (and handle details later on?) for coverage and thus also the breadth of optimization strategies and compiler passes we can target / design"
+**Assistant interpretation:** Specify large shared compiler capabilities, their expected coverage experiments and the optimization strategy families each unlock, while deferring per-operator investigations to the relevant wave.
+**Inferred user intent:** Keep implementation ambitious and coherent, avoid a long sequence of tiny fixes, and reach self-optimization experiments before full corpus support.
+
+### What I did
+- Read reference38, the current task list, the latest diary checkpoint and `sources/b1-typed-constant-frontier-v1.json`.
+- Checked the remote tmux status using `ssh -o BatchMode=yes -o HostKeyAlias=bling.local -o ConnectTimeout=8 manuel@bling ...`: uniform, breadth and mutation sessions were live; the uniform owner log had advanced to task173 evaluation.
+- Added reference42 and linked it from the ticket index. The plan groups work into qualification, typed indexing, spatial neighborhoods, reductions/contractions, effects/layouts and the attention/irregular tail. It specifies one broad batch loop and a strategy portfolio.
+
+### Why
+Operator-by-operator planning obscures cross-layer requirements. Exact integer indexing, shared spatial-window lowering and effect-aware storage each span FX import, Kiln IR, code generation and PyTorch dispatch. Grouping them by capability provides a larger implementation unit and a clearer basis for choosing a compiler pass experiment.
+
+### What worked
+The plan uses current measured boundaries:131 complete import-eligible tasks/1,668 graphs, historical53 accepted complete tasks/505 accepted graphs across snapshots, and three queued GPU studies. It explicitly avoids summing different source snapshots as a current acceptance figure. It connects six strategy families to the capability waves and defines two independent milestones: breadth and held-out optimization generalization.
+
+### What didn't work
+No implementation or GPU experiment was run in this planning step. The current residual frontier is a first-error census, so it cannot yet predict exact accepted-family gains from each future wave.
+
+### What I learned
+The next batch choice should be made from the uniform external failure census and a current residual import census, while the first two strategy comparisons can run on already correct families. Full 200-task support should remain the corpus target, not a gate before testing self-optimization.
+
+### What was tricky to build
+The 131-family import figure, 53-family historical acceptance figure and frozen111-family GPU study describe different evidence levels and snapshots. Reference42 keeps them distinct so the plan does not imply an unmeasured coverage gain.
+
+### What warrants a second pair of eyes
+Review the Q1 versus Q2 ordering after the frozen qualification and the expected complete-family yield of the current residual census. Inspect whether the proposed shared spatial-window representation fits adaptive pooling and unfold before implementation.
+
+### What should be done in the future
+Audit the queued GPU runs; compute a current first-failure and complete-family-yield census; implement the highest-yield coherent capability wave; run selective-fusion and reduction/scheduling comparisons on frozen, disjoint task splits.
+
+### Code review instructions
+Read reference42 beside reference38, reference41 and the typed frontier source JSON. Check the remote run ledgers before treating any queued family as accepted.
+
+### Technical details
+The remote status observation showed `START 173 evaluate` in the frozen uniform run's owner log, with all three tmux sessions alive. This is progress evidence only; no task173 result or terminal run ledger was inspected in this step.
+
+## Step 231: Rank complete-family yield from the current importer snapshot
+
+Reference42 calls for a current residual census before choosing the next broad capability wave. I wrote script652 against the latest full 2,060-graph import audit. It groups first errors by cross-layer capability and computes the number of tasks whose *every blocked variant* has the same first-blocker group. This improves the prior graph-only ranking while retaining the important first-error limitation.
+
+### Prompt Context
+**User prompt:** See Step230 for the verbatim planning request; the active project goal asks us to implement and measure the full Kiln/PassNet integration.
+**Assistant interpretation:** Turn the new broad plan into a reproducible next-wave decision using the current corpus, without disturbing the live GPU qualification.
+**Inferred user intent:** Select high-yield implementation work that also increases the range of reusable optimization strategies.
+
+### What I did
+- Added `scripts/652-rank-current-capability-waves.py`, consuming `sources/input-mutation-wave-import-v1.json` and writing `sources/current-capability-wave-frontier-v1.json`.
+- Ran the script over all2,060 graph records and updated reference42 with the leading complete-family first-blocker counts.
+- Rechecked the live uniform tmux session on bling; its owner log had advanced to task188 evaluation. I left the serial GPU queues unchanged.
+
+### Why
+119 blocked typed graphs is a useful workload estimate but does not say whether a complete PassBench task becomes import eligible. A task is complete only when all its variants import. Grouping by task and retaining mixed blockers helps choose a broad compiler feature rather than adding a single operation for one graph.
+
+### What worked
+The census reproduced131/200 complete import tasks and1,668/2,060 imported graphs. It found18 tasks with exclusively typed-input first blockers,14 with local-driver-probe first blockers, eight reduction/contraction, eight spatial, four dropout/effects, four other bindings, three captured constants and smaller groups. The output retains all task rows and exact first-error strings for audit. `git diff --check` passed.
+
+### What didn't work
+No GPU acceptance result is available for the new families. The local-driver group cannot be interpreted as a compiler gap; it needs the pinned remote environment. A first-error census can also conceal subsequent blockers, so the reported possible complete-task gains are upper bounds.
+
+### What I learned
+Typed indexing remains the largest confirmed compiler capability frontier by complete-family first-blocker count. The reduction and spatial groups are tied at eight possible complete families each, while the fourteen local-driver families may change the ranking once traced on bling.
+
+### What was tricky to build
+The audit records one first error per graph, not an exhaustive operator inventory. The script therefore labels family gain as possible and only counts a task for a group when every blocked variant currently falls in that group. It preserves the exact error distribution so later reclassification can be checked.
+
+### What warrants a second pair of eyes
+Inspect the classification of normalization and shape-propagation failures before treating either as a precise implementation estimate. Re-run a remote import audit for the local-driver group when GPU capacity permits.
+
+### What should be done in the future
+Let the frozen qualification finish; reclassify local-driver first failures on bling; then implement typed values and data-dependent indexing as one cross-layer wave, unless external failures identify a stronger shared barrier.
+
+### Code review instructions
+Run script652 and inspect `sources/current-capability-wave-frontier-v1.json` beside the full input-mutation import audit. Confirm every task has all its graph variants and that `single_first_blocker_tasks` is treated as an upper bound.
+
+### Technical details
+The current audit contains392 blocked graphs in29 distinct first-error messages. Script652 does not invoke FX tracing or the GPU; it is a deterministic projection of the frozen full-corpus importer audit.
+
+## Step 232: Audit typed source graphs and define the cross-layer indexing design
+
+The complete-family frontier made typed inputs the leading confirmed importer barrier, but a first-error count could hide diverse work. I traced all119 typed-first-blocker source graphs without ShapeProp and archived five pinned PyTorch2.9 API pages. The source inventory shows embedding, cumsum, masks, integer casts and other operations behind the placeholder error. I wrote design21 to make exact typed values and runtime-indexed reads a shared Kiln capability rather than an importer-only exception.
+
+### Prompt Context
+**User prompt:** See Step230 for the broad progress request; the active project goal calls for implementing and measuring the full PassNet/Kiln integration with source provenance and design documentation.
+**Assistant interpretation:** Investigate the highest-yield capability before coding so the compiler representation spans the real source operations.
+**Inferred user intent:** Gain broad coverage and open new reusable indexing, scan and mask optimization strategies without accumulating ad hoc lowerings.
+
+### What I did
+- Checked the frozen GPU qualification session on bling. All three queued tmux sessions were live; the uniform owner log had reached task73 evaluation after task195 scoring. I did not start another GPU workload.
+- Added script653, which traces all119 typed-first-blocker graphs, records canonical FX targets and reports union/common operations by family in `sources/typed-frontier-source-ops-v1.json`. It ran with zero trace failures across18 families.
+- Read the importer, tensor/loop IR, CUDA emitter and PyTorch runtime. Added script654 and archived official PyTorch2.9 embedding, index_select, cumsum, masked_fill and Tensor.long pages in a hashed tarball/receipt.
+- Wrote design21 for typed storage/reference semantics, indirect reads, ordered scans, source effects, batch implementation and indexing strategy experiments; linked it from the ticket index.
+
+### Why
+The existing Loop IR load index is a function of static loop coordinates. Embedding and index_select need a second input tensor's value to determine a memory address. An integer placeholder accepted by the importer would still be converted to a float register by the current CUDA emitter and could lose exact identity. The correct unit of work spans storage, reference evaluation, IR scheduling, code emission and dispatch.
+
+### What worked
+All119 source graphs traced without ShapeProp. Four families contain embedding, two contain cumsum, one contains index_select, and several contain mask/cast operations. The official source archive contains five pages with SHA256 `73990d062bf9a53cd0b4b89525932ba4dbd6b684abcf464520c8d203fa70c601`. `docmgr validate frontmatter` passed for design21 and `git diff --check` passed.
+
+### What didn't work
+The source trace does not execute operations or reveal all later importer failures. No typed Kiln implementation or new external acceptance result follows from this step. A broad `rg` inspection included a nonexistent `packages/kiln/src/std/schedule.js` path; its diagnostic was `No such file or directory (os error 2)`. The scheduler is in `packages/kiln/src/std/loop.js`, which I inspected directly afterward.
+
+### What I learned
+The 18-family typed first-blocker figure is an upper bound on immediate import gain. It includes several semantic subfamilies, so the implementation should first establish exact typed values, then indirect reads, masks and ordered scans. A separate benchmark-specific CUDA emitter would duplicate the existing compiler path and hide optimization dependencies.
+
+### What was tricky to build
+Current JS reference tensors use float storage, while `int64` values require exact representation. The Loop IR distinguishes float scalar expressions and integer coordinate expressions, but an indirect load needs a runtime integer value inside a memory-index dependency. Design21 specifies that boundary explicitly and leaves exact source option audits to the relevant batch.
+
+### What warrants a second pair of eyes
+Review the proposed typed scalar/reference representation, especially BigInt constant folding and bounds behavior for indirect reads. Check the actual source options for embedding and index_select families before binding operations. Numerical and PassBench acceptance remain open.
+
+### What should be done in the future
+Implement typed storage and scalar IR, then the shared indirect-read primitive and source bindings as one broad wave. Re-census after each capability boundary and run complete-family original PassBench replay. Use accepted gather/scan families for held-out strategy comparisons.
+
+### Code review instructions
+Run script653 against the frozen input-mutation import audit; inspect the per-family operation inventory. Read design21 with `fx_import.py`, `tensor.js`, `loop.js`, `emit.js` and `runtime.py`. Verify the five official-doc archive hashes through its receipt before relying on source semantics.
+
+### Technical details
+The trace uses `corpus.load_module(...).GraphModule()` and `fx_trace.trace_module` without ShapeProp. It records source call targets but does not infer dtypes or execute GPU kernels. The archived PyTorch pages are under `https://docs.pytorch.org/docs/2.9/generated/` and no upstream implementation code was copied.
+
+## Step 233: Begin exact typed reference storage and close the checkpoint for review
+
+I began the typed-value wave by extending Kiln's reference Tensor storage, preserving typed data through views and constants, and making `Project.inputsFor` retain exact integer/Boolean input data. This is a foundation checkpoint only: Loop IR, CUDA scalar registers, FX typed placeholders and indirect reads are still unchanged. The reviewer requested a handoff at this point, so I stopped expansion and validated this bounded change before writing the guide.
+
+### Prompt Context
+**User prompt (verbatim):** "Ok imagine we had our resident expert do a code review now, and want to have a guide about everything you built and where to look and what to review etc... Can you wrap up the current work and write that guide? Then I'll have them assess the architecture and structure and opportunities for improvement and refactoring and all. Use paths and filenames and symbols and all that."
+**Follow-up user prompt (verbatim):** "yes also explanations of concepts and architecture and links to relevant documentation files and the diary and all those things"
+**Assistant interpretation:** Finish the current local checkpoint, preserve honest validation status, and prepare a self-contained code-review guide with concepts, implementation map, evidence, diary and review questions.
+**Inferred user intent:** Let an independent expert assess the architecture and recommend consolidation before more compiler breadth is built.
+
+### What I did
+- Extended `Tensor` in `packages/kiln/src/core/util.js` with explicit/reference-inferred dtype and exact typed storage (`BigInt64Array`, `Int32Array`, `Uint8Array`), element-count validation, BigInt-safe preview and exact integer comparison.
+- Preserved typed storage through `viewRef` and tensor constant type inference in `packages/kiln/src/std/tensor.js`; copied exact typed reference inputs in `Project.inputsFor` in `packages/kiln/src/std/index.js`.
+- Added `packages/kiln/test/typed-reference-storage.mjs` for values above2^53, transposed views, typed constants, caller-data isolation and type rejection. Ran three direct targeted tests and the complete41-script Kiln package test runner on Node26.
+- Checked remote qualification: `pending-ordinary/run.json` is complete with56 task records; `pending-large/run.json` is running with one task record; regression band absent. The uniform session and dependent queues remained live, with task73 evaluating.
+
+### Why
+The previous source audit showed that accepting `torch.int64` placeholders without exact reference storage would make compiler validation unsound. This checkpoint establishes the data representation first while keeping the full typed/indexing feature explicitly unfinished.
+
+### What worked
+The targeted typed-storage, existing low-precision input and view-dtype tests passed. After running outside the process-spawn sandbox, `node scripts/run-node-tests.mjs packages/kiln/test` passed all41 scripts on Node26.13.0. Exact input values above2^53 survived reference input copying and view permutation.
+
+### What didn't work
+The first new test called `tensor.const` outside a graph scope and raised `KilnError [ScopeError]: tensor.const(…) builds a node, so call it inside k.graph(…), k.trace(…) or a rule's rewrite`. I changed the assertion to create a `Project` graph and inspect the constant output type; the targeted tests then passed. `pnpm --filter @kiln/kiln test` failed before running tests because Corepack/pnpm tried to create `/home/manuel/.local/share/pnpm/.tools/@pnpm+linux-x64/12.4.1_tmp_2` outside the workspace sandbox. The direct runner under the default sandbox failed all41 entries with `spawn EPERM`; the same runner outside that process-spawn sandbox passed all41.
+
+### What I learned
+The reference Tensor can retain exact integer storage without changing the existing floating test population, but the rest of Kiln is still float-scalar oriented. A typed source pass-through or gather would require typed Loop/Kernel IR and emitter work before any corpus result can be claimed.
+
+### What was tricky to build
+JS Number cannot represent all int64 values. The test uses9007199254740993n to ensure the data path does not quietly round through float. The low-precision reference path still uses Float32Array with explicit rounding, so new storage inference has to coexist with that representation.
+
+### What warrants a second pair of eyes
+Review whether dtype belongs on `Tensor` itself versus an external type, whether `compare` should enforce matching typed arrays more strictly, and whether all view/reference operations preserve typed storage. Design21's indirect-read IR proposal is not yet implemented.
+
+### What should be done in the future
+After expert architecture review, implement typed scalar values and indirect reads across Loop/Kernel/CUDA, then add FX bindings and complete-family PassBench qualification. Audit the terminal GPU queues as they finish.
+
+### Code review instructions
+Start with the four changed code/test files and design21. Run `nvm use v26` followed by `node scripts/run-node-tests.mjs packages/kiln/test` where child process spawning is allowed. Do not infer typed GPU support from these reference tests.
+
+### Technical details
+The new reference storage is inferred from `BigInt64Array`/`Int32Array`/`Uint8Array` or set explicitly. `f16` and `bf16` continue using Float32Array plus explicit rounding. No CUDA source or PassBench task artifact changed in this checkpoint.
+
+## Step 234: Write the resident expert architecture review handoff
+
+The reviewer asked for a guide that explains the concepts and architecture, links the code to the design record and diary, and identifies concrete review questions. I wrote reference43 as the handoff document, including the current evidence boundary and the partially implemented typed-value checkpoint. The guide asks the reviewer to assess structural changes that can be made without invalidating the frozen GPU studies.
+
+### Prompt Context
+**User prompt:** See Step233 for both verbatim review-guide requests.
+**Assistant interpretation:** Produce a self-contained technical review map with symbols, files, concepts, evidence and decision questions.
+**Inferred user intent:** Enable an independent expert to assess correctness, architecture and refactoring opportunities efficiently.
+
+### What I did
+- Added reference43 and linked it from the ticket index. It explains task/graph distinctions, pass matching, Kiln's IR stages, artifact/runtime dispatch, strategy generalization, numerical evidence and the current coverage denominators.
+- Mapped the source-to-score execution path and the agent/policy layer to concrete repository files and symbols; linked the intern guide, both diary volumes, current plans, numerical/fusion/effect designs and measured optimization reports.
+- Included current frozen-run status, typed-reference checkpoint scope, validation commands and seven targeted architecture review questions.
+
+### Why
+The project now spans a Python FX bridge, a JavaScript compiler, CUDA runtime and external evaluation. A reviewer needs one curated path through these components and their evidence, with historical counts separated from current-source measurements.
+
+### What worked
+The guide identifies the primary code path and points to the exact source receipts and current coverage census. It distinguishes imported, locally compiled and externally accepted results; it marks typed CUDA support and the 200-task goal as incomplete.
+
+### What didn't work
+No new benchmark result was obtained while writing the guide. The remote qualification remained in its large-task band at the latest observation. The full Python test discovery command in the guide is explicitly an optional reviewer check, not a claimed result.
+
+### What I learned
+The main review pressure points are the typed scalar/index boundary, the growth of `fx_import.import_graph`, effect/alias legality, numerical reference discrepancies and whether agent-facing transformation programs remain expressive as operator coverage broadens.
+
+### What was tricky to build
+The documentation has several historical snapshots. The guide names the latest source census and frozen studies explicitly so it does not silently combine results from different compiler revisions.
+
+### What warrants a second pair of eyes
+Confirm the proposed review order, the placement of typed scalar/indirect-read semantics, and the consolidation boundaries. Verify that the FX matcher modification and internal reference-check bypass are described accurately against the actual staged commands.
+
+### What should be done in the future
+Receive the architecture review, apply agreed structural changes at the shared compiler boundary, continue the typed/indexing wave and audit the terminal GPU runs.
+
+### Code review instructions
+Start with reference43; follow its numbered code map. Review Step233 for the exact current-code validation, then inspect design21, reference42 and the original-evaluator protocol documents.
+
+### Technical details
+The guide is an evidence/index document rather than a new experimental declaration. Its latest remote observation was ordinary56 complete, large band running with one task record and task73 evaluating, regression absent.
+
+## Step 235: Collect and audit the terminal ordinary qualification band
+
+After freezing the expert review revision, I continued independent evidence work without changing its compiler source. The remote uniform qualification had completed the 56-task ordinary band and was evaluating its second large task. I collected the terminal ordinary band, verified the frozen plan and source snapshot, ran the original-evaluator task auditor, and classified its graph failures. The result is32 fully accepted task families and479 individually accepted graphs out of56 families/561 graphs on this one frozen source snapshot.
+
+### Prompt Context
+**User prompt:** See Step233 for the expert handoff request; the active project goal still asks for PassNet/Kiln implementation and measurement.
+**Assistant interpretation:** Preserve the review commit while auditing already completed GPU evidence through the declared protocol.
+**Inferred user intent:** Obtain trustworthy broad coverage results without disturbing the expert's architecture review or the serial GPU queue.
+
+### What I did
+- Verified on bling that `pending-ordinary/run.json` was `complete` with56 task records, `pending-large` was running with two task records and task130 evaluating, and the regression band was absent. All three owning/dependent tmux sessions were live.
+- Added script655 to collect a terminal uniform band, compare its run plan and source snapshot against the frozen staging receipt, invoke `summarize_task_run.py` and archive the raw task directories with a SHA256 receipt.
+- Collected ordinary evidence (about60 MB before compression), audited every source `graph_list.txt`, all561 result records, matching, execution and `t=-5` numerical decisions; archived all raw evidence as a3,184,264-byte tarball.
+- Added script656 to classify individual failures from audited outcomes and exact evaluator-log diagnostics. Wrote reference44 and linked it from the ticket index.
+
+### Why
+The prior 53 accepted families were cumulative across compiler snapshots. This frozen band supplies a new current-snapshot denominator and exposes shared integration failures before any optimization decision is made.
+
+### What worked
+The collector verified source snapshot SHA256 `7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740` and exact plan equality. The auditor found56 complete task records,561 declared/evaluated graph variants,32 fully accepted families,479 accepted graphs and zero unexecuted graphs. The raw archive SHA256 is `61b55928009b4ecdc809c943dd76e2d9f59f178d5595015327075481ff5282a0`; the audit SHA256 is `ea8694e80d9ffe142d08db54d158d70669444be7bcd381348f135f16b61255f7`.
+
+### What didn't work
+The first coarse failure categorization grouped all39 non-executing graphs together, obscuring two distinct integration causes. I inspected representative blocks, then revised script656 to classify16 dispatch specialization misses,21 no-replacement matcher failures and two dead-code pattern failures. The remaining43 graphs matched and executed but failed nominal numerical tolerance. The uniform 111-task study is still incomplete; no combined current-snapshot total is claimed.
+
+### What I learned
+Two families (tasks6 and24) have dispatch-only failures in this band, and two (79 and128) have matcher-only failures. These are potential high-yield shared integration repairs. Task185 combines a dispatch miss and numerical failures. All43 numerical failures pass at `t=1`, but only26 pass at `t=-4` and40 at `t=-3`; the original nominal `t=-5` gate remains authoritative.
+
+### What was tricky to build
+The evaluator's parsed status `eager_fail` describes several different failure modes. The raw logs distinguish `No compiled program for input metadata and constants`, `No passes modified the graph` and the dead-code `SubgraphMatcher` exception. Script656 reads each block aligned with the auditor's graph order, then asserts its accepted count equals the audited total.
+
+### What warrants a second pair of eyes
+Review the generated-pass specialization binding for tasks6/24/185 and the source-pattern normalization for tasks79/128 before altering shared dispatch or matcher behavior. Inspect whether the numerical failures cluster by one precision mechanism or several independent source semantics.
+
+### What should be done in the future
+Collect and audit the large and regression bands when terminal. Repair the shared dispatch/matcher causes on a new source revision, then replay affected complete families through the original checker; do not alter the frozen uniform study. Produce the next vault milestone report after all111 families have current-snapshot outcomes.
+
+### Code review instructions
+Read reference44 and its audit/failure-summary JSON, then inspect task-006, task-079 and task-128 evaluator blocks in the raw archive. Run script656 against the collected directory to reproduce failure counts. Compare the plan and snapshot hashes to the staging receipt.
+
+### Technical details
+The study used the modified FX matching integration, original external numerical checker and scorer, A100 scheduling proxy on GB10, separate contraction and an explicitly bypassed Kiln internal synthetic check. It is not an untouched-paper reproduction or a policy comparison. The raw local directory is left untracked for further diagnosis; the hashed tarball is the portable evidence artifact.
+
+## Step 236: Identify output-order pattern collisions behind dispatch misses
+
+The ordinary-band report had sixteen graph failures where a generated replacement ran but `CorpusDispatch` found no compiled specialization. I compared each applied pattern ID from the original evaluator log with the specialization ID assigned to its graph in the frozen manifest. All sixteen are mismatches, grouped into four source-derived pattern pairs whose return tuple ordering differs. This turns a generic dispatch exception into a specific matcher/identity architecture question for the expert reviewer.
+
+### Prompt Context
+**User prompt:** See Step233 for the expert review request; the active project goal requires full implementation and measurement.
+**Assistant interpretation:** Diagnose an already measured shared failure without altering the fixed code review revision or in-flight GPU experiment.
+**Inferred user intent:** Provide precise evidence for an architectural repair that can unlock complete task families and avoid ad hoc dispatch fallbacks.
+
+### What I did
+- Inspected `CorpusDispatch.__init__`/`__call__`, `generate_pass.extract_pattern`/`generate`, the frozen task manifests and generated pattern modules for tasks6,24 and185.
+- Added script657 to align evaluator graph blocks with manifest variants, extract applied `KilnPattern` IDs, inspect the paired source pattern return expressions and write `pending-ordinary-pattern-collisions.json`.
+- Ran script657 across all sixteen dispatch failures and updated reference44 with the exact collision pairs and the output-order concern.
+- Rechecked the remote handles: the uniform, breadth and mutation tmux sessions were live; the large band still had two task records and task130 was evaluating.
+
+### Why
+The dispatch key includes both input metadata and a generated pattern identity. If a different pattern matches the same graph, the runtime cannot select its compiled artifact. Simply ignoring the identity would be unsafe when two patterns return the same intermediate tensors in different tuple positions.
+
+### What worked
+All16 failures have applied ID different from compiled ID. The pairs are task6 `3→9` six times and `4→10` seven times, task24 `0→1` twice and task185 `2→3` once. Representative pattern bodies share their main computation and reverse the tuple return order. The script retains per-graph paths, IDs, return expressions, shapes and dtypes.
+
+### What didn't work
+No compiler or matcher repair was attempted in this diagnostic step. The evidence does not yet establish how PassBench's subgraph matcher maps output positions for each collision; a forced metadata-based dispatch fallback could silently change source output semantics. The large and regression uniform bands were not terminal.
+
+### What I learned
+Pattern deduplication by FX key and manifest specialization distinguishes output orders, while the matcher may apply a pattern with a compatible internal graph but another output order. The repair belongs at the pattern/match identity boundary and needs original-evaluator replay, not a permissive dispatch cache lookup.
+
+### What was tricky to build
+The evaluator logs use a generic parsed `eager_fail` status for distinct failures. The exact `Applied 1 replacements with KilnPatternNNNN` message and the frozen manifest's `specialization` field are both needed. Parsing the generated Python pattern AST gives the return expression without executing source modules again.
+
+### What warrants a second pair of eyes
+Inspect the PassBench `SubgraphMatcher` output mapping and the current sorting/deduplication behavior in `generate_pass.py`. Determine whether the correct solution is output-aware match selection, output remapping in a single canonical pattern, or a narrower non-overlapping pattern contract. Preserve complete-family semantics.
+
+### What should be done in the future
+After architecture review, implement one output-order-safe matching strategy and replay tasks6,24 and185 under the original checker; then audit the two no-match/dead-code families separately. Keep the frozen uniform result unchanged.
+
+### Code review instructions
+Run script657 against the archived ordinary band, then compare task6 `KilnPattern0003.py`/`0009.py`, task24 `0000.py`/`0001.py`, and task185 `0002.py`/`0003.py`. Read `generate_pass.py` and `dispatch.py` before proposing a fallback.
+
+### Technical details
+The result is an analysis of sixteen already failed graph variants; accepted counts remain32 complete tasks and479 graphs for this frozen ordinary band. The output-order relation is visible in the paired pattern return expressions; it is not a proof that a proposed repair would pass numerical checks.
+
+## Step 237: Independent architecture review, takeover direction and intern system guide
+
+A new reviewer took over from the step-234 handoff. I read the end-to-end path against the handoff guide (reference 43) at `73bc1fc`, checked the upstream PassBench replacement semantics, ran both test suites and two small compiler probes. The output is an expert review with a direction plan (reference 45) and a self-contained intern guide (design 22). No code or frozen experiment was changed.
+
+### Prompt Context
+**User prompt:** Analyze the codebase using reference 43, write the review doc, then a vault deep-dive article and an intern guide stored in the ticket and uploaded to reMarkable. "The goal is to pass the torch to you to continue in order to avoid being lost in the weeds, and make some decent project."
+**Assistant interpretation:** Perform the requested resident-expert review, classify the findings as defect, structural or optional, and turn them into a focused plan the next work can follow.
+**Inferred user intent:** Leave a clear project direction and onboarding material, not another isolated coverage increment.
+
+### What I did
+- Read `corpus.py`, `fx_trace.py`, `fx_export.py`, `fx_import.py` and the `fx_*` helpers, `generate_pass.py`, `dispatch.py`, `runtime.py`, `kiln-export.mjs`, `export.js`, `emmy.js`, `tensor.js`, `loop.js`, `fusion.js`, `emit.js`, `transformation_program.mjs` and `fusion_policy.mjs`, plus upstream `pass_bench/torch/custom_replacement.py` and `backend/pass_mgr_direct.py`.
+- Ran `node scripts/run-node-tests.mjs packages/kiln/test`: all 41 passed (Node 26.13.0).
+- Ran `python3 -m unittest discover -s integrations/passnet -p 'test_*.py'`: 155 run, 1 failure (`test_fx_trace...test_input_mutation_and_alias_observer_rejected`; the `Input` case is now intentionally accepted).
+- Probed `a*b+c` with three f16[64] inputs: with `--contraction allow` the internal check FAILED, and with `--no-check` the emitted code is `fmaf` plus a single f16 rounding. With `separate` the intermediate rounding is preserved.
+- Probed `x_f16[2,3] * s_f32[]`: PyTorch gives f16, the Kiln artifact gives an f32 output, and no diagnostic is raised.
+- Sampled bling: the three qualification tmux sessions exist, the GPU was at 0 % when sampled, and 15 stale `passnet-*` sessions from 2026-10-30 remain.
+
+### Why
+The handoff asked for (a) defects, (b) structural problems and (c) cleanups, each with an owning module and migration boundary. The user asked for a direction that stops the project drifting into per-operator increments.
+
+### What worked
+The upstream code settles the step-236 question. `SubgraphMatcher(match_output=False)` maps replacement outputs to the applied pattern's `returning_nodes`, so the repair is one pattern class per body-modulo-output-order plus a per-variant output permutation (review A1). A bare metadata fallback would swap outputs.
+
+### What didn't work
+Running the Python suite on the local machine works (torch 2.11.0+cu130), but the remote tmux panes captured empty, so the band status could not be read from the panes. Terminal `run.json` files remain the authority.
+
+### What I learned
+The importer validates output metadata in only some branches, and nothing checks Kiln's inferred dtype against FX `tensor_meta` per node. The internal check compares Kiln against Kiln and cannot catch that drift. The fusion-policy features are all derived from `workOf`, which explains the fixed-policy transfer loss.
+
+### What was tricky to build
+Line references: several files were read in concatenated listings. Every cited line was re-verified with `grep -n` before the review was finalized.
+
+### What warrants a second pair of eyes
+Whether `nn.expect` (review A4) should be a frontend op or a check performed in the export CLI against a sidecar metadata table. Both avoid code-generation changes.
+
+### What should be done in the future
+Execute review §7. P0: A1–A3, A6 and A7 fixes plus replays of tasks 6, 24 and 185. P1: diagnose tasks 79 and 128 and the 43 numerical failures. P2: importer registry with a byte-identical census gate. P3a/P3b: typed wave and cost-model calibration in parallel.
+
+### Code review instructions
+Read reference 45 sections 3 and 7 first, then check A1 against `custom_replacement.py:81-86,132-162` and `generate_pass.py:57-109`.
+
+### Technical details
+Review revision `73bc1fc29bf3e0a76609ae215fbbf25e2bd5108b`. The probe scripts are reproduced inline in reference 45 §2. No GPU work was launched.
+
+## Step 238: Deliver the review, vault article and reMarkable bundle
+
+This step records delivery of the Step 237 outputs and the commits that carry them.
+
+### Prompt Context
+**User prompt:** "Commit and push the obsidian vault when done"; "Store in the ticket and then upload to remarkable"; later "commit at appropriate intervals and keep a detailed diary as you work".
+**Assistant interpretation:** Publish the textbook-style article to the go-go-parc vault, upload the guide and review bundle, commit the ticket documents, and continue the diary for each later work unit.
+**Inferred user intent:** Durable, findable outputs, plus a commit trail and diary that the next session can resume from.
+
+### What I did
+- Wrote `Projects/2026/10/31/ARTICLE - Kiln - Architecture Review of the PassNet Integration and the Contracts That Make Results Compound.md` in the vault. Committed only that file as `ae21b98` and pushed `main` (`d4b7cc3..ae21b98`). The unrelated `dropcut-studio` changes in the vault were left unstaged.
+- Ran `remarquee upload bundle design-doc/22… reference/45… --name "KILN-005 Intern System Guide and Architecture Review" --remote-dir /ai/2026/10/31/KILN-005 --toc-depth 2 --non-interactive`. Result: `OK: uploaded KILN-005 Intern System Guide and Architecture Review.pdf -> /ai/2026/10/31/KILN-005`.
+- Added index links and P0–P3 tasks. Committed the ticket documents as `b517650`.
+
+### What worked
+Uploading and pushing the vault worked on the first attempt.
+
+### What didn't work
+`docmgr doc relate` on the intern guide and `docmgr doctor --ticket KILN-005 --stale-after 30` each exceeded 120–320 s on this large ticket and were moved to the background. Relate completed (`added 1`). The doctor result is recorded when it finishes.
+
+### What should be done in the future
+Start P0 from reference 45 §7: A2, A3, A6 and A7 as small focused commits, then A1 with tasks 6, 24 and 185 replays once the GPU queue is free.
+
+## Step 239: Fix the four small P0 review defects (A2, A3, A6, A7)
+
+This step starts implementing the reference 45 plan. It covers the four single-file defects first, because each has a precise test and none touches a frozen experiment. The stale mutation test now reflects the intended guarded-mutation semantics. FMA contraction no longer removes low-precision rounding. Every artifact records whether Kiln's internal check ran. The exporter refuses artifacts whose index arithmetic could exceed 32-bit CUDA `int`.
+
+From this step on, every entry uses the diary skill's investigation format, which the user made mandatory for the main agent and for subagents. The rule is recorded in the ticket index under "Working conventions (mandatory)" (commit `05e5b74`).
+
+### Prompt Context
+**User prompt (verbatim):** "Ok, go ahead and implement then. commit at appropriate intervals and keep a detailed diary as you work (using the diary format from the skill). The diary format from the diary skill is MANDATORY, subagents should also follow it MANDATORY. Write that down somewhere to not forget it."
+**Assistant interpretation:** Execute the reference 45 phases starting with P0, with focused commits and a full investigation-format diary entry per work unit. Persist the diary rule.
+**Inferred user intent:** Move from review to measurable progress without losing the evidence trail.
+**Commit (code):** 6cd1218 — "Fix P0 review defects: stale mutation test, low-precision FMA, check record, index guard"
+
+### What I did
+- `integrations/passnet/test_fx_trace.py`: split the old combined test into `test_single_use_input_mutation_is_functionalized` (asserts `output_structure == {'input_alias': 0}` and `input_mutations == [{'input_index': 0, 'output': '__mut0'}]`) and `test_alias_observer_and_read_before_mutation_rejected` (keeps `Alias`, adds `ReadAfter`).
+- `packages/kiln/src/std/tensor.js`: `contractFma` now requires FP32 for both the `add` and the contracted `mul` (helpers `fp32`, `contractibleMul`).
+- `packages/kiln/test/contraction.mjs`: f16 and bf16 multiply-add under the default policy must emit no `fmaf(`. A loop-reference-versus-frontend check uses `x = y = 1+2^-6`.
+- `scripts/kiln-export.mjs`: `program.source.internal_check` is `ok at <level>`, `skipped: <reason>` or `bypassed (--no-check)`.
+- `packages/kiln/src/std/export.js`: `INT32_INDEX_LIMIT = 2**31-1`. Any buffer whose `elements` exceeds it, or any kernel whose `grid*block` exceeds it, raises `ExportError`. `packages/kiln/test/export.mjs` adds a `[65536, 32769]` case.
+- Memory file `diary-format-mandatory.md` and the ticket index section record the diary rule.
+
+### Why
+- A2: a permanently red test hides the next real regression.
+- A3: the default `allow` mode silently changed PassBench-visible f16 arithmetic whenever the internal check was bypassed.
+- A6: artifacts travel into task directories and evidence tarballs, but run manifests do not, so the artifact itself must say how it was checked.
+- A7: the alternative (64-bit indices everywhere) would change every kernel's identity and performance. A refusal is the minimal safe step until a large tensor actually needs 64-bit indexing.
+
+### What worked
+- `node packages/kiln/test/contraction.mjs` passes with the fix. With the fix reverted (`git apply -R` of the tensor.js diff), it fails with `AssertionError [ERR_ASSERTION]: f16 multiply-add must not contract`, so the test discriminates.
+- Artifact check: `kiln-export.mjs --script example.kiln.js --target a100` gives `internal_check: 'ok at loop'`, and with `--no-check` it gives `'bypassed (--no-check)'`.
+- `node packages/kiln/test/export.mjs`: `ok a 2^31-element buffer is refused: buffer 0 has 2147549184 elements: CUDA index arithmetic is 32-bit (limit 2147483647)`.
+- Full gates: `node scripts/run-node-tests.mjs packages/kiln/test` → `all 41 passed`. `python3 -m unittest discover -s integrations/passnet -p 'test_*.py'` → `Ran 156 tests ... OK`.
+
+### What didn't work
+- My first f16 probe values (`1+2^-10`) do not distinguish fused from unfused rounding, because `2^-9(1+2^-11)` rounds to `2^-9` in f16 either way. I switched to `1+2^-6`, where `2^-5(1+2^-7)` is representable. The CUDA no-`fmaf(` assertion is the primary discriminator in any case.
+- My first corpus scan for maximum tensor size found 0 shapes, because `rglob` does not follow the `graphs/` symlinks. Re-running with `os.walk(..., followlinks=True)` found 539,564 shape records.
+
+### What I learned
+- The largest corpus input or weight tensor has 1,644,167,168 elements (`dla102x2.in1k_start14_end20_1`, `coatnet_1_rw_224_start11_end13_0`), which is 77 % of `INT32_MAX`. No input exceeds the limit. Intermediates such as unfold, expand or matmul outputs can be larger, so the guard can fire on real large-band graphs. If it does, that becomes a named export failure instead of a numerical mismatch.
+- `compile_policy.mjs:61` excludes `source` from its artifact fingerprint, so the new field does not change policy identities. `qualify_policies.py` and `compiler_confirmation.py` read only `source.sha256` and `source.contraction`.
+
+### What was tricky to build
+- `contractFma`'s `where` and `rewrite` must agree on which argument is the contractible multiply. I factored the predicate into `contractibleMul` so that both use one definition; otherwise the rewrite could pick a non-FP32 multiply that the match did not check.
+
+### What warrants a second pair of eyes
+- Whether `fp32()` should treat an absent dtype as f32. It matches `elementwiseDtype` and `T_` defaults, but a future typed frontend may want absence to be an error.
+- Changed artifacts: for FP32 graphs, kernels are byte-identical (the existing `contraction.mjs` identity assertions still pass). f16/bf16 multiply-add graphs compiled with `allow` change. The qualification bands used `separate`, which is unaffected.
+
+### What should be done in the future
+- A1 (pattern classes with output permutation), then replays of tasks 6, 24 and 185 on fresh copies when the GPU queue is free.
+
+### Code review instructions
+- Start at `packages/kiln/src/std/tensor.js` (`contractFma`), `packages/kiln/src/std/export.js` (`INT32_INDEX_LIMIT`), `scripts/kiln-export.mjs` (`internalCheck`).
+- Validate with `node packages/kiln/test/contraction.mjs`, `node packages/kiln/test/export.mjs` and `python3 -m unittest test_fx_trace` (from `integrations/passnet`).
+
+### Technical details
+- Rounding example: f16 with `x = y = 1+2^-6` and `z = -1`. Unfused: `round16(x*y) = 1+2^-5`, result `2^-5`. Fused: `2^-5 + 2^-12`.
+- Guard messages: `buffer <id> has <n> elements: CUDA index arithmetic is 32-bit (limit 2147483647)` and `kernel <name> launches <n> threads: CUDA thread ids are 32-bit (limit 2147483647)`.
+
+## Step 240: Make pattern identity output-order invariant (A1) and audit the large band
+
+This step implements review finding A1. `generate_pass.py` now keys PassBench rules on the traced computation plus the multiset of returned nodes. Return order and the singleton container are no longer part of identity. Each variant records an `output_permutation` and stores its `output_structure` in the matched rule's return convention. A new CPU simulation (script 658) reruns PassBench's rule selection with the upstream `SubgraphMatcher` settings. With the previous generator it reproduces exactly the 16 GPU dispatch failures of the ordinary band. With the new generator all 75 graphs of tasks 6, 24 and 185 select their own compiled rule exactly once.
+
+While the regression band holds the GPU, I also collected the terminal large band (2 tasks, 522 graphs): task 130 is complete, and task 73 fails nominal tolerance on 41 of 43 bf16 variants.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 239. Additional instruction during this step: "btw any way you want to refactor or clean up, no backwards compatibility or so is needed, this is still science and we are building forward"
+**Assistant interpretation:** Fix A1 at the identity boundary with a clean design (no compatibility shims), validate as far as possible without the busy GPU, and keep advancing evidence collection.
+**Inferred user intent:** Unlock the failing families through a correct shared repair, not a dispatch fallback.
+**Commit (code):** 9de3901 — "Make PassBench pattern identity invariant under output order"; evidence 00faf19 — "Audit uniform large band: 1/2 families, 481/522 graphs"
+
+### What I did
+- `integrations/passnet/generate_pass.py`:
+  - `extract_pattern` returns a frozen `Pattern(text, args, singleton, key, order, returns)` dataclass. The key is `{'body': rows without the output node, 'returns': sorted(returned node indices)}`.
+  - `freeze()` encodes bools as `{'bool': v}`, so `True` and `1` no longer collide.
+  - New `output_permutation(rule_returns, variant_returns)` assigns duplicate returned nodes to distinct positions. New `reorder_outputs(structure, permutation)` returns a bare child for one output and `{'tuple': [...]}` otherwise.
+  - `generate` writes one rule per class and records `output_permutation` in both the manifest and `pattern-provenance.json`. The generated `_kiln_generated_runtime.py` returns `DISPATCH(...)` directly; the `SINGLETONS` special case is removed.
+- `integrations/passnet/dispatch.py`: `count_outputs`. Classed records (those with `output_permutation`) that share a dispatch key may differ in script text, but must agree in output and mutation counts. Unclassed manifests keep the strict source/structure equality check.
+- `integrations/passnet/test_pass_generation.py`: migrated to `Pattern` attributes. Added `test_output_order_and_container_are_not_identity`, `test_output_permutation_assigns_duplicate_returns` and an end-to-end `test_permuted_variants_share_one_rule_and_return_rule_order` (`ab`, `ba`, `single`, `bare` sources through `CorpusDispatch` with a fake program factory). `test_canonical_roles_preserve_nonassociative_operand_order` now expects a bare tensor from a one-output rule.
+- Added script 658 (`658-simulate-pattern-dispatch-identity.py`): it re-exports the plan tasks into a fresh directory, generates passes, symbolically traces each source graph, normalizes it with `fx_normalize`, and finds the first sorted rule that matches with `match_output=False, match_placeholder=False, remove_overlapping_matches=True`.
+- Ran 658 with the new generator and, as a control, with `git show HEAD:integrations/passnet/generate_pass.py` temporarily in place (restored from a scratch copy afterwards; the `git diff --stat` of 65+/19− confirmed the new file was back). Stored both results in `sources/pattern-identity-simulation-v1/`.
+- Checked bling: `pending-large/run.json` was `complete` (2 tasks) and `regression/run.json` was `running` (5 tasks). Ran `655-collect-uniform-band.py pending-large`, and added script 659 (a band-generic version of 656), run as `659 ... pending-large`.
+
+### Why
+- Upstream `custom_replacement.py:81-86, 132-162` binds outputs to the applied rule's returning nodes, so identity must be computed under the matcher's equivalence (review §3 A1). A dispatch fallback by metadata would silently swap outputs.
+- The singleton container had the same flaw. `(v,)` and bare `v` sources trace to identical patterns. Before this change they raised `incompatible output containers` or would have collided. The replacement must return what the rule's traced pattern returns, so the source container cannot matter.
+
+### What worked
+- `python3 -m unittest test_pass_generation test_dispatch`: `Ran 14 tests ... OK`. Full suite: `Ran 159 tests ... OK`.
+- Script 658 with the new generator: task 6 `66/66 identity ok; 10 rules; 13 permuted`, task 24 `4/4; 1 rule; 2 permuted`, task 185 `5/5; 3 rules; 1 permuted`. The 16 permuted graphs are exactly the 16 GPU failures.
+- Control with the previous generator: task 6 `53/66` (12 rules), task 24 `2/4` (2 rules), task 185 `4/5` (4 rules). The failing pairs are `(3,9), (4,10)`, `(0,1)` and `(2,3)`, identical to reference 44's GPU observation. The CPU simulation therefore predicts this failure class exactly.
+- Large band: `tasks_nominal_accepted: 1`, `graphs_nominal_accepted: 481` of 522, `unexecuted_graphs: 0`. Archive SHA256 `db441a78859a44efbeeb95f2a27af9f9398ec80c8adb47fe1e1f6c3e6faa6250`.
+
+### What didn't work
+- My first end-to-end test raised `KeyError: 'out1'`. The fake program factory used `Path(artifact).stem`, which is `ab.kiln` for `ab.kiln.json`. Fixed with `name.split('.')[0]`.
+- `test_canonical_roles_preserve_nonassociative_operand_order` failed with `torch.Size([1, 1, 1]) != torch.Size([1, 1, 1, 1])`. This is an intended behavior change: one-output rules now return a bare tensor, so the old `[0]` indexed the first dimension. I updated the test.
+- `test_dispatch.test_conflicting_programs_rejected_before_loading` failed with `ValueError not raised` after my first relaxation. Unclassed manifests (no `output_permutation`) have no class guarantee, so the strict check was restored for them.
+- The GPU replay of tasks 6, 24 and 185 was not run. The `regression` band owns the GPU (5 of 53 tasks recorded), and the input-mutation and breadth queues follow it.
+
+### What I learned
+- The large band's only failing family, task 73 (`timm/repvit_m2_3.dist_300e_in1k`), computes `conv2d(groups=160, bias) + in_6 + in_7 → batch_norm → mean((2,3))`. Every f32 and f16 variant passes; 41 of 43 bf16 variants fail at `t=-5`, 37 pass at `t=-3`, all pass at `t=1`.
+- A candidate mechanism, not yet tested: `N.conv2d` for low precision (`tensor.js`) computes the f32 convolution, rounds it to bf16, and then adds the bias as a separate bf16 operation (two roundings). cuDNN adds bias before a single rounding. bf16's 8-bit significand would make that difference visible where f16 hides it.
+
+### What was tricky to build
+- The permutation must map *rule return position → variant return position*, and `output_structure` must be rewritten into rule order **before** dispatch. `restore_outputs` then needs no permutation logic, and the copyback and `input_alias` paths keep working unchanged, because alias children are moved like any other child.
+- Duplicate returns (`return (v, v)`) make `list.index` ambiguous. `output_permutation` consumes positions from an `unused` list, so the result is always a bijection.
+
+### What warrants a second pair of eyes
+- Script 658 traces with `torch.fx.symbolic_trace`, not TorchDynamo. It matches GPU evidence for this failure class, but a Dynamo-specific graph shape (for example `getitem` nodes) could differ elsewhere.
+- Classed duplicate keys: keeping the first program is correct only if equal body plus equal canonical inputs implies an equal function. That holds because the compiled script is translated from the same source graph that defines the pattern.
+
+### What should be done in the future
+- GPU replay of tasks 6, 24 and 185 on fresh copies after the bling queues finish (task P0 a1).
+- Run 658 on tasks 79 and 128 (matcher failures, task P1).
+- Test the bf16 conv-bias double-rounding hypothesis for task 73 and the ordinary-band numerical cluster.
+
+### Code review instructions
+- Start at `generate_pass.py` (`Pattern`, `output_permutation`, `reorder_outputs`, `generate`), then `dispatch.py` (`count_outputs`, the classed-key branch).
+- Validate with `python3 -m unittest test_pass_generation test_dispatch` from `integrations/passnet`, and `python3 ttmp/.../scripts/658-simulate-pattern-dispatch-identity.py --plan .../pending-ordinary-plan.json --upstream .../sources/upstream --output <fresh dir> --task 6 --task 24 --task 185`.
+
+### Technical details
+- Evidence files: `sources/pattern-identity-simulation-v1/fixed-generator.json` (SHA256 `e0810f56…51f9`) and `control-previous-generator.json` (`4b7158b6…84b6`).
+- Large-band files: `pending-large-{audit,collection,failure-summary}.json` and `pending-large-raw.tar.gz`. The raw directory is left untracked, as for the ordinary band.
+
+## Step 241: Name and fix the ordinary-band matcher failures (tasks 79 and 128)
+
+This step takes P1's matcher half. I extended the CPU rule-selection simulation (script 658) to capture target graphs with TorchDynamo on meta tensors, which is what the evaluator's `torch.compile` backend receives. With that, both matcher failures in the ordinary band have exact causes.
+
+Task 79 (21 graphs, "No passes modified the graph") is a spelling mismatch. TorchDynamo records `torch.nn.functional.sigmoid` as a `call_function`, while symbolic tracing of the generated pattern records `Tensor.sigmoid` as a `call_method`. `fx_normalize` now canonicalizes the sigmoid and tanh spellings on both sides, and the simulation goes from 0/21 to 21/21.
+
+Task 128 (2 graphs, "pattern with dead code") has a source graph that computes a dead `conv2d → interpolate` branch. I made dead source code leave both the pattern and the compiled program. TorchDynamo, however, keeps that dead branch, which is structurally identical to the live pattern, so the rule now matches twice. Task 128 is therefore diagnosed but not yet fixed.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 239 (and Step 240 for the no-backwards-compatibility instruction).
+**Assistant interpretation:** Continue the reference 45 plan into P1 while the GPU is busy, with focused commits and full diary entries.
+**Inferred user intent:** Turn the remaining ordinary-band failures into named causes and shared fixes.
+**Commit (code):** 8ee076e — "Canonicalize sigmoid/tanh spellings and drop dead source code from passes"
+
+### What I did
+- Script 658:
+  - `rule_errors` per rule (catches matcher-construction exceptions).
+  - `--trace dynamo|symbolic`, defaulting to `dynamo`. `dynamo_graph()` loads metadata, creates `device='meta'` tensors and runs `torch.compile(model, backend=capture, dynamic=False, fullgraph=True)` after `torch._dynamo.reset()`.
+  - The symbolic mode now applies `eliminate_dead_code`.
+- Read `pending-ordinary/task-079/benchmark.log`. Every graph block shows `[PassMgrBackend] Pass KilnPatternNNNN failed to match.` for all 17 rules, and `target normalization []`.
+- Captured the Dynamo graph for `APCNet_R101_start396_end400_6`: `call_function[target=torch.nn.functional.sigmoid]`. The symbolic trace of the same source gives `call_method[target=sigmoid]`.
+- `integrations/passnet/fx_normalize.py`: `ALIASES` and `FUNCTION_ALIASES`, plus `canonicalize_spellings()`, called first in `normalize_arguments`. One-argument, no-kwargs `sigmoid`/`tanh` methods and functional calls become `call_function torch.sigmoid/torch.tanh`, and the receipt lists each changed node.
+- `integrations/passnet/generate_pass.py`: `inplace_call()` and `drop_dead_statements()`, which remove statements not reaching the return as well as `x = None` cleanups. A source argument without a live use is no longer an error; it is excluded from the pattern, and `order` selects the live source arguments. Records gain `source_arity`.
+- `integrations/passnet/corpus.py`:
+  - `eliminate_dead_code(graph)` runs after tracing in `translate_graph`, which now accepts a selection `input_order` and refuses to omit a live argument.
+  - `read_manifest` validates selections.
+  - `source_order_inputs` is removed (no compatibility shim, per the user's instruction).
+  - `check_corpus_cuda.py` now calls the source model with its full source inputs.
+- Tests: `SpellingAliasTests` (unmatched before normalization, one match after, value equal to `torch.sigmoid`), `test_dead_source_code_is_not_part_of_the_pattern` (including a dead `y += x` refused as observable), and `test_dead_source_code_and_arguments_leave_the_program` (selection `[0, 2]`; `[0]` is refused as omitting a live argument).
+
+### Why
+- `fx_normalize` is already the declared modified-protocol boundary, and it is applied to both patterns and targets. Canonicalizing spellings there keeps the computation unchanged and does not touch PassBench's matcher.
+- Dead source computation is not part of a graph's semantics, and compiling it wastes GPU work. Dead code inside a pattern is categorically refused by `SubgraphMatcher`, so the pattern must be the live computation.
+
+### What worked
+- Dynamo simulation with the fix: task 79 `21/21`, 6 `66/66`, 24 `4/4`, 185 `5/5`. Control with `git show HEAD:integrations/passnet/fx_normalize.py` in place: task 79 `0/21`, which reproduces the GPU result exactly. The new file was restored and checked with `git diff --stat` (21+/1−).
+- Full suite: `Ran 162 tests ... OK`.
+
+### What didn't work
+- Task 128 with dead-code elimination: `applied: 0, matches: 2` for both variants. The Dynamo graph keeps `%tmp_16 : [num_users=0] = call_function[target=torch.nn.functional.interpolate]`. The live pattern `conv2d → interpolate` matches both the live branch (`in_10, in_8, in_7`) and the dead one (`to, in_1, in_0`). The second replacement would call dispatch with metadata that has no compiled program.
+- A pattern returning the dead value as well would trip PassBench's `assert user_nodes, "The returning_nodes should have at least one user node"` (`custom_replacement.py:132-134`). A filter on matches would modify the original matcher.
+
+### What I learned
+- TorchDynamo does not eliminate a dead `interpolate` call (it is not known to be pure), so "Dynamo captures only live nodes" is false in general. My first symbolic-mode comment said otherwise. The Dynamo mode is the authority, and the symbolic-mode DCE remains an approximation.
+- Both ordinary matcher clusters were integration-boundary issues, not compiler defects. That confirms reference 44's caution that they say nothing about CUDA quality.
+
+### What was tricky to build
+- The pattern AST and the traced graph must agree. I remove dead statements at the AST level before tracing, so the emitted pattern text, its traced graph and its argument list describe the same live computation. `order` is then derived from first use, as before.
+- Selection input orders change an invariant several helpers assumed (full permutations). `canonical_order_inputs` still works by indexing source inputs. The inverse mapping cannot exist when arguments are dropped, which is why `source_order_inputs` was removed rather than patched.
+
+### What warrants a second pair of eyes
+- Task 128 options: (1) compile a program for every match instance of a rule in a graph (the second match is the dead branch's own shapes), accepting two replacements per graph, which needs an auditor rule change declared as protocol; (2) leave the family unsupported with this named cause. I prefer (2) until a second family shows the same structure.
+- Whether `canonicalize_spellings` should cover more Python-wrapper functionals. Only sigmoid and tanh are observed; others should be added only when a census shows them.
+
+### What should be done in the future
+- Run the Dynamo simulation as a CPU **matcher census** over every import-eligible family before the next GPU queue, so matcher and dispatch failures never consume GPU time.
+- GPU replay of tasks 6, 24, 185 and 79 after the bling queues finish.
+- The P1 numerical half: the task 73 bf16 conv-bias hypothesis and the 43 ordinary-band numerical failures.
+
+### Code review instructions
+- `fx_normalize.py` (`canonicalize_spellings`), `generate_pass.py` (`drop_dead_statements`), `corpus.py` (`eliminate_dead_code`, the `translate_graph` selection checks).
+- Validate with `python3 -m unittest test_fx_normalize test_pass_generation` from `integrations/passnet`, and `658-... --task 79 --task 128 --trace dynamo` against the ordinary plan.
+
+### Technical details
+- Evidence: `sources/pattern-identity-simulation-v1/dynamo-ordinary-matcher-tasks.json` (tasks 79, 128, 6, 24, 185 with the fixes) and `dynamo-control-task79-previous-normalization.json`.
+- The Dynamo capture uses `fullgraph=True`. A graph break raises `expected one captured graph`, which is itself a useful census category.
+
+## Step 242: CPU matcher census over all 111 uniform families, and the task 73 bf16 mechanism
+
+This step turns script 658 into a census and runs it over every task in the three frozen uniform plans (ordinary, large, regression; 111 families, 1,514 graphs) with TorchDynamo capture. With the A1 and spelling/dead-code fixes, 1,500 of 1,514 graphs select their own compiled rule exactly once. The 14 that do not have named causes: task 128 is the known dead-branch double match, and tasks 52 and 164 are a census limitation (their source models create CUDA tensors, and this machine has no NVIDIA driver). Matcher and dispatch failures can now be predicted before GPU time is spent.
+
+I also analyzed the large band's task 73 failures against PassBench's tolerance table. The disagreement is a few bf16 ulps on near-zero batch-norm outputs. That is consistent with a 1-ulp convolution accumulation difference amplified by `x - mean` cancellation, not with a lowering bug. It is recorded as a hypothesis.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 239. During this step the user asked "how are things going?" and "also have you been running things on bling, the dgx spark?"
+**Assistant interpretation:** Continue P1. Answer that only read-only inspection and evidence collection have touched bling, and that no jobs were launched, because the frozen regression band owns the GPU.
+**Inferred user intent:** Status visibility, and making sure GPU ownership is respected.
+**Commit (code):** 9365e5a — "CPU matcher census over all 111 uniform families"
+
+### What I did
+- Script 658: `--task` is optional (default: all plan tasks). Generation errors are recorded per task, Dynamo capture errors per graph (truncated to 500 characters), and `simulation.json` is rewritten after each task.
+- Ran three background processes, one per plan (`pending-ordinary-plan.json`, `pending-large-plan.json`, `regression-plan.json`), writing to scratch `census-<band>/`. Copied the results to `sources/matcher-census-v1/<band>.json`.
+- Bling: `regression/run.json` status was `running` at the end of this step. No commands other than reads and the Step 240 rsync were run there.
+- Task 73: read `pending-large/task-073/benchmark.log` for the first failing graph. `max_diff` is `0.0009765625` for output 0 (batch norm) and `6.103515625e-05` for output 1 (spatial mean); `mean_diff` is `6.9e-08` and `1.4e-08`. Read `pass_bench/config/datatype_tolerance_config.py`: `bfloat16: (1.796/5, 1)` gives `rtol = 10^(-1.796) ≈ 0.016` and `atol = 1e-5` at `t = -5`.
+
+### Why
+- GPU time is the scarce resource and is currently owned by the frozen regression band. A CPU predictor that reproduced the GPU's dispatch (Step 240) and matcher (Step 241) failures exactly can screen every family in advance.
+
+### What worked
+- Census results: ordinary `547/561` (16 permuted), large `522/522`, regression `431/431`. No generation errors in any band.
+- Every ordinary-band integration failure named in reference 44 is now resolved in simulation (tasks 6, 24, 185, 79), except task 128.
+
+### What didn't work
+- Tasks 52 (9 graphs) and 164 (3 graphs): `capture_error: RuntimeError: Found no NVIDIA driver on your system...`. Their `model.py` creates CUDA tensors during `forward`, so meta-tensor capture on this host cannot run them. This is not a matcher result. Both families executed on GPU in the ordinary band, so their matcher behavior there is already known.
+- The `while pgrep ...` wait loop was manually backgrounded by the user (task `bdrv6ud7t`). The census had already finished by then.
+
+### What I learned
+- For task 73, a 2⁻¹⁰ absolute difference fails only where `|expected| < (2⁻¹⁰ − 1e-5)/0.016 ≈ 0.06`. bf16's ulp below 0.06 is at most 2⁻¹², so the failing elements differ by at least 4 ulps. Batch norm subtracts the running mean from `tmp_8 = (in_6 + conv) + in_7`. A 1-ulp difference in `tmp_8` at magnitude O(1) (ulp 2⁻⁷) becomes a large *relative* error after cancellation. The mean diff (`6.9e-08`) shows that almost all elements agree exactly.
+- So the remaining "numerical" failures may be dominated by rounding-order effects that no lowering can match bit for bit unless it reproduces cuDNN's accumulation order. This needs measurement before any precision policy changes (review B4: tolerance belongs only to the external checker).
+
+### What was tricky to build
+- Keeping a census robust: per-graph capture failures must not abort a task, and per-task generation failures must not abort a band, but both must be recorded with their exact message. Writing the report incrementally means a killed run keeps its completed tasks.
+
+### What warrants a second pair of eyes
+- The task 73 mechanism is inferred from tolerance arithmetic and one graph's max/mean diff. A direct test needs CUDA: compare Kiln's conv output, before the residual adds, against cuDNN's for the same inputs, and count differing ulps.
+
+### What should be done in the future
+- Once bling's queues finish: one GPU replay band with tasks 6, 24, 185 and 79 (the census predicts all 96 graphs match correctly), plus an instrumented task 73 run that records per-stage differences.
+- Cluster the 43 ordinary nominal numerical failures with the same max_diff/|value| analysis to separate rounding-order cases from real semantic gaps.
+- P2: importer registry plus the A4 type postcondition.
+
+### Code review instructions
+- `scripts/658-simulate-pattern-dispatch-identity.py` (`dynamo_graph`, error capture). Run it as `--plan <band-plan> --upstream sources/upstream --output <fresh dir>` with `--task` omitted.
+- Evidence: `sources/matcher-census-v1/{pending-ordinary,pending-large,regression}.json`.
+
+### Technical details
+- Census timing: all three bands finished in under 40 minutes of CPU wall time running in parallel (export plus pattern generation dominate).
+- Tolerance formula: `get_precision(t, dtype) = (10**(t*exp1), 10**(t*exp2))` → `(rtol, atol)`. For bf16, `exp1 = 0.3592` and `exp2 = 1`.
+
+## Step 243: The FP32 numerical cluster is a TF32 reference; add `matmulPrecision: "tf32"`
+
+This step takes P1's numerical half. Clustering the 43 ordinary-band nominal numerical failures by dtype, operations and max/mean diff separated two populations.
+
+Most low-precision failures have mean diffs of 1e-8 to 1e-10 and pass at `t=-4`. These are isolated rounding-boundary elements. The FP32 failures are different. Every FP32 failure except task 160 involves `linear` or an ungrouped `conv2d`, and the f16/bf16 variants of the same family pass.
+
+Inspecting the evaluator image showed that PyTorch there runs with `float32_matmul_precision='high'`, `matmul.allow_tf32=True` and `cudnn.allow_tf32=True`, which are NGC defaults. PassBench's FP32 reference therefore rounds contraction operands to TF32, while Kiln computed true FP32. A CPU emulation reproduces task 157's GPU disagreement to three digits. Kiln now has a declared `matmulPrecision: "tf32"` policy that matches that reference.
+
+### Prompt Context
+**User prompt (verbatim):** "ok, continue, commit at appropriate intervals and keep a detailed diary as you work (using the diary format from the skill)". Earlier in this step the user asked "ok, so i guess you are waiting on the background process?", and I answered that the census was finished and only the GPU replay was waiting on bling.
+**Assistant interpretation:** Keep executing the plan autonomously with focused commits and investigation-format entries.
+**Inferred user intent:** Steady measurable progress without idle waiting on the GPU queue.
+**Commit (code):** f89f76c — "Add matmulPrecision tf32 to match a TF32 eager reference"
+
+### What I did
+- Parsed `[Correctness][max_diff]` and `[mean_diff]` for all 43 ordinary nominal numerical failures from `pending-ordinary/task-*/benchmark.log`, and listed source operations and conv `groups` per task.
+- Task 157 (ConViT `linear(in_3[1,196,196,3], w[16,3], b) → permute`): f16 and bf16 pass, f32 fails with max `0.1014`, mean `0.01222`.
+- On bling, inspected the image environment (`docker image inspect localhost:5000/playback-redaction:base-26.05`: no TF32 override variable). Ran a CPU-only `docker run --rm <image> python -c ...` without `--gpus`, which printed `matmul.allow_tf32 True`, `cudnn.allow_tf32 True`, `precision high`, `tf32 tf32`. PassBench sets none of these (`grep tf32|float32_matmul_precision pass_bench/` → nothing).
+- CPU emulation with `get_input_dict(... device='cpu')` inputs for the failing graph: FP32 against RNA-TF32 operands gives max `0.0994`/mean `0.01217`; against truncated operands, max `0.2052`/mean `0.0242`.
+- Implementation:
+  - `fns.js` `roundTf32` and `FNS.round_tf32`. CUDA calls `kiln_round_tf32`, a `__device__` helper using `asm("cvt.rna.tf32.f32 %0, %1;")` and emitted by `toCuda` when needed; WGSL gets an equivalent bit-arithmetic helper.
+  - `tensor.js` `tf32Pass` (`tf32_linear`, `tf32_matmul`, `tf32_conv2d` for `groups === 1`) wraps FP32 operands in `nn.ew round_tf32` and leaves bias alone.
+  - `emmy.pipeline({ matmulPrecision })`, plus plumbing through `compileScript`, `kiln-export.mjs --matmul-precision` (recorded as `source.matmul_precision`) and `corpus.py compile --matmul-precision`.
+  - `evaluate_tasks.py` honors a plan field `matmul_precision`, records `reference_backend_numerics` probed from the container, and refuses a `tf32` plan against an FP32 reference.
+- Test `packages/kiln/test/tf32.mjs`.
+
+### Why
+- PassBench's reference is whatever eager computes in the pinned container. Matching it is the faithful semantic, and it must be **declared**, not hidden. Exact FP32 is more accurate but measurably disagrees with the benchmark's definition of correct.
+- Grouped convolutions are excluded because cuDNN's depthwise/grouped kernels generally do not use tensor cores. No failing family exercises them, so the rule follows the conservative contract.
+
+### What worked
+- The emulation matches the GPU observation (mean 0.01217 vs 0.01222). Truncation is off by 2×. So TF32 with round-to-nearest operand conversion explains task 157 completely.
+- FP32 failures that fit the TF32 explanation (linear or groups=1 conv): tasks 27, 52 (f32 part), 72, 88, 93, 118 (f32), 133 (f32) and 157.
+- `node packages/kiln/test/tf32.mjs`: `tf32 matmul precision rounds FP32 contraction operands and nothing else`. `node scripts/run-node-tests.mjs packages/kiln/test`: `all 42 passed`. Python: `Ran 162 tests ... OK`.
+- `kiln-export.mjs` on a `[256,512]×[512,512]` linear with `--matmul-precision tf32` keeps the same tiled matmul kernel (`k_linear_ew_reduce__1tqw2i9cxp0 MAP=tiled,BM=16,BN=16,BK=8`).
+
+### What didn't work
+- `roundTf32(3.4e38)` is not an overflow case: that float32 value rounds to `3.3995e38` without reaching infinity. I changed the test to `3.4028234663852886e38` (FLT_MAX).
+- The WGSL assertion failed under `contraction: "separate"`, because WGSL is deliberately unavailable for separate rounding. The WGSL check now uses the default contraction.
+- Workbench tests (`apps/workbench`, needed because `compile.js` changed) could not run: `Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'esbuild' imported from .../apps/workbench/build.mjs`. The package's dependencies are not installed in this worktree. `compileScript` is exercised by every `kiln-export.mjs` invocation in this step.
+- The rounding is not fused into the matmul. The tf32 export adds two elementwise kernels (`k_ew__… TPB=64,COARSEN=2; k_ew_2__… TPB=64`) that materialize the rounded operands. This is correct, but costs two launches and one extra read/write of each operand.
+
+### What I learned
+- The remaining low-precision failures fall into two groups:
+  - **Rounding-boundary group:** mean diff 1e-8 or smaller, passes at `t=-4`. Tasks 82, 95, 110, 118, 141, 148, 178, 186, 188 and similar.
+  - **Larger mean diff (around 1e-4):** tasks 14 (bf16, depthwise 3×3 conv with groups=768 + residual + layer norm) and 185/121 (bf16/f16 linear). Low-precision matmul in eager may use cuBLAS reduced-precision reductions (`allow_fp16_reduced_precision_reduction`, `allow_bf16_reduced_precision_reduction`, both True by default). That is a separate hypothesis, not tested here.
+- Task 160 (f32, `view` only plus arithmetic operators) is not explained by TF32 and needs its own look.
+
+### What was tricky to build
+- The TF32 rounding must apply to contraction *operands only*. Bias stays FP32 (cuBLAS epilogue / cuDNN bias add), so the rule rewrites `nn.linear(x, w)` while `N.linear` adds bias outside it. A `where` guard (`!vs.every(isTf32)`) prevents the rule from re-matching its own output.
+- PTX `cvt.rna.tf32.f32` returns a `.b32` holding a TF32 bit pattern in an FP32 container, so `__uint_as_float` reinterprets the bits. The JS reference mirrors the same bits with `(bits + 0x1000) & 0xffffe000`, passing inf and NaN through unchanged.
+
+### What warrants a second pair of eyes
+- Whether cuBLAS converts with RNA or RNE for every kernel it selects (the emulation distinguishes it from truncation, not from RNE). The ties-away/ties-even difference affects about one element in 2¹³.
+- Whether some ungrouped cuDNN conv algorithms on GB10 still run in FP32 for small shapes. The GPU replay is the test.
+
+### What should be done in the future
+- GPU replay band: tasks 6, 24, 185, 79 (matcher/identity fixes) plus the TF32-explained FP32 families 27, 52, 72, 88, 93, 133 and 157 (118 also has low-precision failures), with `matmul_precision: "tf32"` declared in the plan.
+- Fuse `round_tf32` into tiled matmul loads (performance).
+- Test the reduced-precision-reduction hypothesis for f16/bf16 linear, and look at task 160.
+
+### Code review instructions
+- `packages/kiln/src/std/tensor.js` (`tf32Pass`), `std/fns.js` (`roundTf32`), `std/emit.js` (helper emission), `std/emmy.js` (`matmulPrecision`), `scripts/kiln-export.mjs`, `integrations/passnet/evaluate_tasks.py` (`reference_backend_numerics`).
+- Validate with `node packages/kiln/test/tf32.mjs`, then `kiln-export.mjs --script <graph> --target a100 --matmul-precision tf32` and grep the CUDA for `cvt.rna.tf32.f32`.
+
+### Technical details
+- PassBench FP32 tolerance at `t=-5`: `rtol = 10^(-5·1.1772) ≈ 1.3e-6`, `atol = 1e-5`. A TF32 operand error (relative 2⁻¹¹ ≈ 4.9e-4) fails it for any output larger than about 0.02.
+- Reference numerics recorded per run: `{"float32_matmul_precision": ..., "matmul_allow_tf32": ..., "cudnn_allow_tf32": ...}`.
+
+## Step 244: Freeze, stage and queue the P0/P1 GPU replay behind the existing chain
+
+This step prepares the measurement for Steps 239–243. The new plan contains 15 complete families (181 graphs) from the frozen ordinary band:
+- identity repairs 6, 24, 185;
+- matcher repair 79;
+- the eight TF32-explained FP32 families 27, 52, 72, 88, 93, 133, 157, 118;
+- three fully accepted FP32 conv/matmul controls 20, 42, 164, which must stay accepted under `matmul_precision: "tf32"`.
+
+The plan is staged on bling and queued in a new tmux session. That session waits for the existing chain (uniform regression band → breadth replays → input-mutation wave) to finish, so it never overlaps a running GPU experiment.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 243.
+**Assistant interpretation:** Make the GPU validation of the implemented repairs ready to run, without disturbing in-flight frozen experiments.
+**Inferred user intent:** Turn CPU-validated fixes into PassBench evidence as soon as the GPU is free.
+**Commit (code):** b796952 — "Freeze P0/P1 replay plan (15 families)"; staging receipt in the following commit, "Stage P0/P1 replay on bling, queued after the input-mutation wave".
+
+### What I did
+- Script 660 (`660-freeze-p0-replay-plan.py`) copies the 15 task records (sample, graph count, graph-list SHA256) unchanged from `pending-ordinary-plan.json` and adds `matmul_precision: "tf32"`, `groups`, `band: "p0-replay"` and `derived_from`. It refuses to overwrite. Output: `sources/p0-replay-v1/plan.json` (`15 tasks; 181 graphs`).
+- Chose controls by scanning fully accepted ordinary tasks for f32 graphs whose source has `linear(`, `conv2d(` or `matmul(`: 20 (conv, 6 graphs), 42 (conv, 3) and 164 (matmul, 3).
+- `641-stage-task-plan-gpu.py --name p0-replay-gpu-v1 --plan sources/p0-replay-v1/plan.json` gave source revision `b796952ad905652f3b327e9765e3ee39e00d59f7`, snapshot SHA256 `ccef175d65d8bedace642575a6143554353171bc20488e275236caf36eefa43d` and plan SHA256 `53ae04fa…7ab`, status `staged; not launched`.
+- Inspected the bling chain with `ps` and `pstree`. `kiln-uniform-importable-v1` runs `evaluate_tasks.py` on `regression-plan.json`. `kiln-breadth-replays-v1` runs `queue.sh` (sleep loop). `kiln-input-mutation-wave-v1` runs `queue.py --wait-session kiln-breadth-replays-v1 --require ...`.
+- Copied script 651 to the study as `queue.py` and started `tmux new-session -d -s kiln-p0-replay-v1 'python3 .../queue.py --wait-session kiln-input-mutation-wave-v1 --study .../p0-replay-gpu-v1'`.
+
+### Why
+- One replay band measures every implemented repair under the original checker. The controls detect any regression the global TF32 policy might cause on families that already pass.
+- Queuing behind the chain respects the rule that GPU work never overlaps a frozen run. `642-run-task-plan-gpu.sh` also refuses to start if `nvidia-smi` shows compute apps.
+
+### What worked
+- Staging verified the remote source snapshot against the local one (`remote_state == state`). `tmux ls` shows `kiln-p0-replay-v1`, and the remote plan's `matmul_precision` is `tf32`.
+
+### What didn't work
+- No failures. I could not name the study directory `sources/p0-replay-v1`, because 641 refuses existing study directories and the plan already lives there. Staging therefore uses `p0-replay-gpu-v1`, following the existing `*-gpu-v1` convention.
+
+### What I learned
+- The waiting order is uniform → breadth → input mutation → this replay. The replay compiles with commit `b796952` regardless of when it starts, because the staged snapshot is fixed.
+
+### What was tricky to build
+- `evaluate_tasks.py` now probes the container's reference numerics before the first task, and refuses a `tf32` plan if the reference computes FP32 contractions. That makes the TF32 assumption checkable at run time, rather than relying on my one-off probe.
+
+### What warrants a second pair of eyes
+- If the input-mutation wave's prerequisites fail, its session ends early and this replay starts. That is safe (no overlap), but the mutation wave would then need a manual re-queue.
+
+### What should be done in the future
+- When `kiln-p0-replay-v1` finishes: collect with a 655-style collector, audit with `summarize_task_run.py`, and report per group. Success criteria: identity and matcher families complete, TF32 families at least improved, controls unchanged.
+
+### Code review instructions
+- `scripts/660-freeze-p0-replay-plan.py`, `sources/p0-replay-v1/plan.json`, `sources/p0-replay-gpu-v1/staging.json`.
+- Monitor with `ssh -o HostKeyAlias=bling.local manuel@bling 'tmux ls; cat /home/manuel/passnet-kiln/KILN-005/sources/p0-replay-gpu-v1/queue.log'`.
+
+### Technical details
+- Remote study: `/home/manuel/passnet-kiln/KILN-005/sources/p0-replay-gpu-v1/` (plan.json, run.sh = 642, queue.py = 651, kiln/, upstream/).
+
+## Step 245: P2 — one declaration per operation, and per-node type bindings (A4)
+
+This step implements reference 45's P2 in two gated commits. First, `fx_import.py` is restructured around a registry (`fx_ops.py`): every FX spelling belongs to exactly one `Op` that declares its lowering and whether its result owns fresh storage. `import_graph` now only walks the graph, looks operations up and applies shared postconditions.
+
+Second, review finding A4. Every imported value is bound to PyTorch's recorded type through a new Kiln identity op, `nn.expect`, which fails tracing when Kiln's inferred type disagrees. Kiln's elementwise promotion now follows PyTorch's 0-dim rule. Byte-identity censuses over all 2,060 graphs and a 200-graph compiled-artifact comparison show that neither change alters any generated computation or kernel.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 243 (and the no-backwards-compatibility instruction in Step 240).
+**Assistant interpretation:** Continue the plan with the importer consolidation and the type postcondition, using a census gate so in-flight evidence stays comparable.
+**Inferred user intent:** Stop the importer from accumulating fragile ad hoc branches and catch silent semantic drift.
+**Commit (code):** 4141da1 — "Restructure the FX importer around one declaration per operation"; ed6eaab — "Bind every imported value to its FX type and follow PyTorch 0-dim promotion"
+
+### What I did
+- Script 661 (`661-import-script-census.py`): for all 2,060 graphs in `evaluation-inventory.json`, it records the generated script SHA256, a metadata SHA256 or the exact first import error. `--compare` reports differences, and compares the script *core* (script with `N.expect` bindings stripped) when present. Baseline at `7d76dbd`: `2060 graphs; 1668 imported`. A rerun gave `0 changed of 2060`, so it is deterministic. Stored as `sources/import-script-census-v1/baseline-7d76dbd.json`.
+- `fx_ops.py`: `Call`, `Lowered(expr, mutates)`, `Op(name, lower, functions, methods, fresh)`, `Registry` (duplicate spelling → `ValueError`), `bind(node, what, args, kwargs, fields)` and `DTYPES`.
+- `fx_import.py` rewrite:
+  - About 45 registered ops (inline lowerings plus `helper(...)` wrappers for the `fx_*` modules). `Context` holds `values`, `by_var` (replacing seven O(n) reverse lookups), `inputs`, `fresh`, `uses`, `decode`, `literal`, `resolve`, `source_of` and `require_mutation_source`.
+  - Unknown spellings keep their exact previous messages (`unsupported tensor method X` / `unsupported target X; implement semantic lowering`).
+  - `fx_scalar_ops`, `fx_linalg` and `fx_norm_ops` import `DTYPES` from `fx_ops`.
+- `test_fx_ops.py`: duplicate-spelling refusal, per-kind namespaces, registry load and bind diagnostics.
+- `tensor.js`:
+  - `nn.expect` (infer throws `expected (shape) dtype from the source graph, Kiln inferred (...)`), `N.expect` and `decompose("nn.expect", ({x}) => x)`.
+  - `elementwiseDtype` uses only dimensioned non-splat operands when any exist.
+  - The `nn.ew` decomposition re-creates `tensor.ew` with the nn-level dtype when broadcasting changed the inferred one.
+- `fx_import.expect()` wraps every `const` (multi-output elements too, with metadata validated per element).
+- Script 662 (`.py` + `.mjs`) writes every importable script and traces them all with the Kiln frontend. Script 663 compiles a seeded 200-graph sample under three modes: old tree `git archive 4141da1` with stripped scripts, new tree with stripped scripts, new tree with bindings.
+- Tests: `packages/kiln/test/expect-types.mjs`, and `test_fx_import.ExpectBindingTests`.
+
+### Why
+- One authority per operation removes the duplicated routing condition, whose unsafe failure mode would accept a mutation through an alias. It also makes each new operation a single declaration (review B1).
+- The internal check compares Kiln with Kiln, so only a comparison with the *source* types can catch frontend drift (A4). Doing it at trace time costs nothing in generated kernels.
+
+### What worked
+- Refactor gate: `0 changed of 2060` against the baseline. Every script hash, every metadata hash, and every blocked graph's error text was identical, on the first comparison.
+- A4 gates: core census `0 changed of 2060`. Trace check `{"ok":1668}`: no corpus node currently has a Kiln/PyTorch type disagreement. Artifact comparison `{'sample': 200, 'same_new': 200, 'same_expect': 200}`.
+- Probe `x_f16[2,3] * s_f32[]`: the artifact output is now `f16` (`v0 = (in0 * in1); v1 = __half2float(__float2half_rn(v0)); dst[...] = __float2half_rn(v1)`), matching PyTorch's FP32 opmath with one rounding.
+- `node scripts/run-node-tests.mjs packages/kiln/test`: `all 43 passed`. Python: `Ran 166 tests ... OK`.
+
+### What didn't work
+- `test_fx_import.ImportTests.test_transpose_argument_and_metadata_errors` failed with `"duplicate transpose" does not match "transpose: transpose: duplicate argument"`. My first `bind(name, ...)` prefixed the node name twice. Fixed by `bind(node, what, ...)`, which restores `'<node>: duplicate <op> argument'`. I then missed the activation call site, which raised 8 `TypeError`s (positional mismatch) until it was fixed too.
+- Script 661 first failed with `ModuleNotFoundError: No module named 'corpus'`: `TICKET.parents[3]` is `ttmp/`, not the repository. Fixed to `parents[4]`.
+- My first A4 negative probe "passed" unexpectedly. My string replacement had also changed the *input* declaration `k.tensor([2, 3], "f16")` to f32, so the binding was genuinely satisfied. A direct `k.trace` probe confirmed the check throws.
+- After the promotion fix, the nn-level type was f16 but the artifact output was still f32, because `T.ew` broadcasts the 0-dim operand into a dimensioned `tensor.view` before re-inferring. Fixed in the `nn.ew` decomposition.
+- The first 663 run gave `base` errors `Cannot find package '@kiln/evidence'`: the archived old tree lacked `packages/evidence`. I added it and linked `node_modules/@kiln/evidence`.
+
+### What I learned
+- The import census is fast (about 10 s for 2,060 graphs on 8 workers). Gating every importer change on it is practically free.
+- A type rule can be right at one IR level and wrong at the next. Here the broadcast view erased the 0-dim distinction between `nn` and `tensor`. The postcondition is valuable precisely because it compares against the source rather than against Kiln's own previous level.
+
+### What was tricky to build
+- Preserving per-operation `fresh` semantics exactly. The old boolean did not include in-place *methods* (`add_`, `relu_`) or any view/cast/dropout, but did include `iadd` and all allocating operations. Each `Op` now declares `fresh` explicitly, and the census proved the transcription.
+- Stripping bindings for the core hash: the regex anchors on the trailing `, [shape], "dtype");` at end of line, so nested expression text inside `N.expect(...)` is never parsed.
+
+### What warrants a second pair of eyes
+- `fresh=False` for `add_`/`sub_`/`mul_`/`div_` methods (inherited behavior) is conservative. A chained in-place method on a fresh value is rejected even though it is legal.
+- `nn.expect` makes a frontend/source disagreement a hard compile error. That is the intended behavior, but a future family whose PyTorch type rule Kiln does not implement will now fail at compile time instead of producing a mistyped artifact.
+
+### What should be done in the future
+- Port `fx_layout.bind` callers to `fx_ops.bind` (messages would change, so it needs an intended-difference census).
+- Next capability work (P3a) can add typed ops as registry entries with their own `Op` declarations.
+- Collect the P0 replay when bling's queue reaches it (Step 244).
+
+### Code review instructions
+- `integrations/passnet/fx_ops.py`, `fx_import.py` (`REGISTRY`, `Context`, `import_graph`, `expect`), `packages/kiln/src/std/tensor.js` (`nn.expect`, `elementwiseDtype`, `decompose("nn.ew")`).
+- Validate with `python3 ttmp/.../scripts/661-import-script-census.py --output /tmp/x.json` followed by `--compare sources/import-script-census-v1/baseline-7d76dbd.json /tmp/x.json`. Also run `662-trace-type-check.py --output <dir>`, and `663-compare-compiled-artifacts.py --scripts <662 dir> --old <tree at 4141da1> --new . --output <file>`.
+
+### Technical details
+- Evidence: `sources/import-script-census-v1/{baseline-7d76dbd.json, expect-bindings.json, expect-trace-check.json, artifact-comparison-sample200.json}`.
+- The 663 sample is `random.Random(663).shuffle(sorted(graphs))[:200]`, compiled with `--target a100 --contraction separate --no-check`.
+
+## Step 246: Collect the regression band and report the uniform 111-family result
+
+This step collects the last terminal band of the frozen uniform qualification. The regression band is 53 of 53 families and 431 of 431 graphs accepted. With the ordinary (32/56) and large (1/2) bands, that gives the project's first breadth result on one frozen compiler snapshot: **86 of 111 importable families and 1,391 of 1,514 graphs**, i.e. 86 of the 200 PassBench tasks. Reference 46 reports it, with every one of the 123 failing graphs assigned to a named class from Steps 240–243.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 243.
+**Assistant interpretation:** Keep collecting terminal GPU evidence as it appears, and report it without mixing snapshots.
+**Inferred user intent:** A reliable current breadth number plus a clear next-repair list.
+**Commit (code):** a2a005a — "Audit uniform regression band: 53/53 families, 431/431 graphs"; c94b061 — "Report uniform 111-family qualification: 86 complete families on one snapshot"
+
+### What I did
+- Checked `regression/run.json` on bling: `complete 53 of 53`.
+- Ran `655-collect-uniform-band.py regression` (rsync, plan and snapshot identity checks, `summarize_task_run.py` audit, tarball) and `659-summarize-uniform-band-failures.py regression`.
+- Wrote reference 46 (created with `docmgr doc add`) and linked it from the ticket index.
+- Updated `tasks.md`: P0 small fixes, P1 and P2 done. P0 a1 implemented, with the GPU replay pending. New tasks for collecting the replay, the task 128 decision and TF32 fusion.
+
+### Why
+- Only terminal, audited bands may enter a reported number (reference 43's evidence rule). With all three bands terminal on one snapshot, the uniform total is now valid.
+
+### What worked
+- Regression collection: `tasks_nominal_accepted: 53`, `graphs_nominal_accepted: 431`, `unexecuted_graphs: 0`. Archive SHA256 `888a7fc3…7c23`. The failure summary has no failing tasks.
+
+### What didn't work
+- My first draft of reference 46 claimed all 89 remaining tasks were non-importable. The latest census has 131 import-eligible families, so 20 of those are queued under a newer snapshot. I corrected the text before committing.
+
+### What I learned
+- The regression band is the families that were accepted historically on earlier snapshots. All 53 still pass on the uniform snapshot, which is evidence that the intervening compiler changes did not regress them.
+
+### What was tricky to build
+- Keeping the accounting honest across snapshots. The 20 newer import-eligible families and the historical ledger stay out of the 86, and the P0 replay will be reported as a delta on its own snapshot (`b796952`).
+
+### What warrants a second pair of eyes
+- The failure-class row counts in reference 46 for the low-precision classes are approximate ("most remaining", "few"). The exact per-graph classification is in `pending-ordinary-failure-summary.json`, plus the Step 243 table.
+
+### What should be done in the future
+- After the breadth, input-mutation and P0 replays finish: one combined current-snapshot re-qualification of every import-eligible family under the newest compiler, to replace the 86 with a single up-to-date number.
+
+### Code review instructions
+- Read `reference/46-uniform-111-family-passbench-qualification-result.md`, then `sources/uniform-importable-qualification-v1/regression-collection.json`.
+
+### Technical details
+- Snapshot `7557de52462180c4f7ab5dd246b7ee554fcc55480e880ae0a82f189a9772a740` (revision `0c17cee`) for all three bands.
+
+## Step 247: Calibrate the cost model (P3b go/no-go) and find a cost-gated strategy
+
+This step runs the research track's go/no-go check from reference 45 §B5: does Kiln's analytic cost model rank measured PassBench GPU times? Across 1,391 accepted graphs it does (Spearman 0.93 with the a100 model, 0.90 with the measured gb10 spec). It also largely predicts the *paired* effect of the fixed transformation program on the same graphs. It predicted the task 101/83 wins and the task 25 regression, and missed task 106.
+
+The fixed program's transfer loss therefore came from its `workOf` thresholds (consumer work allowed to double), not from the cost model. A retrospective, parameter-free gate ("apply only where predicted cost decreases") would have turned the transfer families' GPU-time ratio from 1.041 into 0.863. Reference 47 reports this, with its limits stated.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 243.
+**Assistant interpretation:** Advance P3b while the GPU queue runs: measure whether the cost model can drive policy decisions.
+**Inferred user intent:** Move the research question forward with evidence rather than more agent search over a blind grammar.
+**Commit (code):** aa5c18d — "Calibrate the cost model against PassBench timings; analyze a cost-gated policy"
+
+### What I did
+- Script 664:
+  - `664-predict-program-cost.mjs` compiles a job list through `compileScript` (a100, separate contraction, optionally applying a transformation program like `kiln-export.mjs`). For every `tile.kernel` in `run.at("tile")` it reports `estimate(analyze(...), map, a100).us`, the same under `SPECS.gb10`, `workOf(schedule(...))` and the mapping.
+  - `664-calibrate-cost-model.py` joins this with `[Performance][compiled|eager]` medians parsed from each band's `benchmark.log`. Graph order is asserted against the manifest. It computes Spearman correlations overall and within families.
+- Script 665 does the same for `fixed-policy-passbench-v1/{baseline,candidate}` on graphs whose artifact kernel identities and rows differ, applying `fixed-program.json` to the candidate scripts.
+- Computed the cost-gated counterfactual from the two measured arms (family-balanced geometric means).
+
+### Why
+- Reference 45 made calibration a precondition for further policy search. The paired test is the decisive one, because a policy chooses between alternatives for the *same* graph.
+
+### What worked
+- Absolute: `spearman_a100_model_vs_measured 0.931`, `gb10 0.898`, `work 0.912`, `median_within_family_spearman_gb10 0.916` (66 families), `median_ratio_measured_over_gb10_model 1.073`, `median_e2e_minus_gpu_us 12.9`. All 1,391 graphs predicted without errors.
+- Paired, 49 changed graphs: ρ = 0.57 (a100), 0.61 (gb10), 0.53 (work); sign agreement 15 of 20 on measured changes beyond ±2 %. Task 25: measured 2.25–3.71, a100-predicted 2.71–3.06. Task 106: measured 1.00–1.88, predicted 0.07–0.26.
+- Counterfactual on transfer families: always-apply 1.0414 against cost-gated 0.8634 (a100 and gb10 identical) and work-gated 0.8648.
+
+### What didn't work
+- 665 crashed once on reporting (`TypeError: object of type 'int' has no len()`). The predictor returns kernel *counts*, not lists; I fixed the print.
+- The review's B5 recommendation "add a GB10 target spec" was wrong. `targets.js` already contains a measured `gb10` spec (2026-10-20 DGX Spark probe). The gap is only that the qualification runs schedule with `--target a100`. The review text is left as written; this entry is the correction.
+
+### What I learned
+- The analytic model is much better than the policy grammar that consumed it. The fusion policies' features are `workOf`-derived, while the schedule model, which predicts measured effects, was never consulted by any transformation decision.
+- Dispatch overhead (about 13 µs median) is a first-order term for small graphs, independent of kernel quality.
+
+### What was tricky to build
+- Paired prediction must recompile the candidate with the same transformation program and the same staged script. Otherwise predicted and measured differences come from different programs. The predictor reuses `prepareOptimizationProgram` and `applyOptimizationProgram`, so it follows exactly the kiln-export path.
+
+### What warrants a second pair of eyes
+- The counterfactual is retrospective and in GPU time only. It needs a held-out three-arm run (baseline, always, gated) scored with the official scorer before it can be claimed.
+- Task 106's misprediction (1 → 2 kernels, predicted 4–14× faster) is the model's clearest error and should be explained before the gate is trusted on similar structures.
+
+### What should be done in the future
+- Implement the gate as a compiler strategy (compile with and without a transformation, keep the cheaper predicted program, and record the decision in the artifact). Then freeze a held-out three-arm study on fresh accepted families with changed executables.
+- Investigate task 106's kernels against the model.
+- Consider scheduling with `--target gb10` (the hardware that runs), measured as its own experiment.
+
+### Code review instructions
+- `scripts/664-predict-program-cost.mjs`, `664-calibrate-cost-model.py`, `665-paired-cost-model-check.py`; results in `sources/cost-model-calibration-v1/`; summary in reference 47.
+
+### Technical details
+- Sign threshold ±2 %. Family-balanced GM = geometric mean over families of each family's geometric mean over changed graphs. Unchanged graphs are excluded from the paired analysis.
+
+## Step 248: Implement the cost gate as a compiler strategy
+
+Reference 47 showed, retrospectively, that keeping a transformation only when the schedule cost model predicts a cheaper program would have turned the fixed program's transfer loss (1.041) into a gain (0.863). This step makes that rule an executable transformation program kind, `cost-gated`, so that it can be frozen and measured on held-out families rather than argued from old logs.
+
+The exporter now compiles every graph twice when given a gated program, once untransformed and once with the inner program. It keeps the transformed executable only if the sum of Tile IR kernel estimates on the scheduling target is lower, and records the choice and both predictions in the artifact. On the staged scripts it makes the expected choice for tasks 25 (baseline) and 101 (transformed), and the known wrong choice for 106.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 243. Mid-step the user also wrote: "how far are we? btw don't forget to us ethe diary skill to know the diary format"
+**Assistant interpretation:** Continue the P3b plan from reference 47; keep the diary in the skill's investigation format.
+**Inferred user intent:** Turn the most promising finding into a measurable compiler capability without drifting.
+**Commit (code):** fd1abaf — "Add a cost-gated transformation program kind"
+
+### What I did
+- `packages/kiln/src/std/tile.js`: `predictedCost(tileGraph, target)` sums `estimate(analyze(expr, shape, inShapes), map, target).us` over `tile.kernel` nodes (the same quantity script 664 calibrated).
+- `integrations/passnet/transformation_program.mjs`: kind `cost-gated` with fields exactly `{format, id, kind, program}`; returns `{apply:false, nodeCount, gate:'predicted-cost', inner}`; nested gates rejected; `applyOptimizationProgram` refuses a gate (the gate selects between compilations, it is not a pipeline edit).
+- `scripts/kiln-export.mjs`: `compileWith(pins, prepared)`; `compileOne` compiles baseline and inner arms for a gate, chooses by predicted µs, writes `program.compiler_policy_decision = {gate, chosen, predicted_us:{baseline, transformed}}`; if only one arm compiles, it takes that arm and records `reason`.
+- `integrations/passnet/optimization_artifact.mjs`: anonymization factored into `anonymize()` and applied recursively to the gated inner program; action contract `kiln-predicted-cost-gate/1+<inner contract>`; `input_ir` follows the inner program.
+- `test_optimization_artifact.mjs`: gate contract, identity independent of names, distinct from the ungated identity, nesting and unknown-field rejection.
+
+### Why
+- The gate has no tuned parameter (strict `<`), so it cannot be overfitted to the retrospective population. A margin would be a second experiment.
+- Selecting at whole-graph granularity in the exporter reuses two unmodified pipelines. A per-decision gate inside fusion would need the schedule model at Loop IR time, before tiling exists.
+
+### What worked
+- Manual check with `fixed-program.json` wrapped as a gate (`--target a100 --contraction separate --no-check`):
+  - task-025 → baseline (132.4 vs 386.2 µs predicted);
+  - task-101 → transformed (127,824 vs 2,878 µs);
+  - task-106 → transformed (26,695 vs 2,072 µs), which is the known misprediction.
+- `packages/kiln` 43/43, all `integrations/passnet/test_*.mjs`, pytest 166 passed.
+
+### What didn't work
+- My first version of the one-sided case only handled "baseline failed, transformed compiled". The reverse case (the inner program fails, the baseline compiles) left `decision` null, so the artifact looked like an ungated compilation. I found it by reading the exporter before committing and fixed it before the commit.
+
+### What I learned
+- The artifact identity code enumerates program kinds in two places, the contract choice and the anonymization. Any new wrapper kind must update both, or renamed inner stages change the hash.
+
+### What was tricky to build
+- `compileWith(pins, null)` must mean "standard pipeline", not "gate". So the gate's untransformed arm passes `null` explicitly, and only the inner program reaches `applyOptimizationProgram`.
+
+### What warrants a second pair of eyes
+- Compile time doubles for gated programs. That is acceptable for the study, but it is a cost if the gate becomes the default.
+- The prediction uses the scheduling target (`a100`) while the hardware is GB10. Reference 47 found both models give the same counterfactual, but on fresh graphs they may disagree.
+
+### What should be done in the future
+- Freeze a held-out three-arm study (baseline, always-apply, gated) on complete families outside reference 35's 12 tasks whose executables change under the program.
+
+### Code review instructions
+- Start at `compileOne` in `scripts/kiln-export.mjs`, then `prepareOptimizationProgram` (cost-gated branch), then `predictedCost`.
+- Validate: `node integrations/passnet/test_optimization_artifact.mjs`; `cd packages/kiln && npm test`.
+
+### Technical details
+- Gate file shape: `{"format":"kiln-transformation-program/1","id":"…","kind":"cost-gated","program":<any non-gated program>}`.
+- The artifact `source.optimization_program_sha256` hashes the gate file text, so gated and ungated runs are distinguishable by source identity as well as by artifact contract.
+
+## Step 249: Freeze and launch the held-out cost-gate study; measure the P0 replay
+
+This step turns reference 47's retrospective finding into a frozen experiment, and collects the GPU replay of the P0/P1 repairs. Selecting the held-out population exposed a regression I had introduced in P0. The 32-bit launch guard rejected nine row-mapped graphs that were correct, in families 32, 75, 107 and 160. I fixed the guard before freezing, so the study's snapshot can compile its own population.
+
+The replay confirms the identity and matcher repairs: families 6, 24 and 79 are complete, and 79 went from 0 to 21 graphs. It splits the TF32 repair by operation. Operand rounding matches cuBLAS linear layers (8 fixed, 0 broken) but not cuDNN convolutions (1 fixed, 4 broken), so convolutions no longer get TF32 rounding.
+
+### Prompt Context
+**User prompt (verbatim):** "conyinure" (continue). Earlier in this step the user asked "are far are we overall?", which I answered with a progress summary.
+**Assistant interpretation:** Proceed with the plan: freeze and queue the three-arm study, then collect the replay when it ends.
+**Inferred user intent:** Keep moving toward a measured, reusable result.
+**Commit (code):**
+- 88c2ad1 — "Limit the 32-bit thread-id guard to thread-mapped kernels"
+- 06f60fc — freeze
+- e0d76a5 — staging scripts
+- 7f97678 — launch receipt
+- 3040427 — replay collection
+- 7e40d54 — "Keep convolution operands FP32 under matmulPrecision tf32"
+- 461eb66 / e99595d — reference 48
+
+### What I did
+- Script 666 (`666-compare-program-arms.mjs` + `666-select-held-out-gate-population.py`): a compile-only census of the 73 complete uniform families outside reference 35. For each graph it compiles both arms, hashes the exported kernels, computes the predicted cost of each arm, and records the gate's choice. Result: 20 families and 237 graphs; 191 graphs change, and the gate disagrees with always-apply on 92.
+- Script 667 froze `sources/cost-gate-held-out-v1/`:
+  - `{baseline,always,gated}-plan.json`, identical except for `optimization_program`;
+  - `always-program.json` (= `fixed-program.json`) and `gated-program.json`;
+  - `declaration.json`, with the primary endpoint, secondary endpoints, decision rule and limitations.
+- Script 668 staged it on bling, verified the remote snapshot, and launched tmux `kiln-cost-gate-held-out-v1`. The runner checks for an idle GPU before each arm and runs the arms in the declared order: baseline, always, gated.
+- Script 669 is a generic collector (staging, plan and snapshot identity, then audit, archive and receipt). I used it for `p0-replay-gpu-v1/results`.
+- `export.js`: the grid × block limit now applies only to thread-mapped kernels, and every kernel's grid is capped at 2^31 − 1. New regression test in `test/export.mjs`: a 1×1 convolution reshaped to `[64,256,4096]` schedules as `MAP=row,TPB=32` with 2^26 blocks.
+- `tensor.js`: removed `tf32Conv2d` from `tf32Pass`; `test/tf32.mjs` now asserts that convolutions are not rounded.
+- Reference 48 records the replay result.
+
+### Why
+- The census uses compile-only information (kernel hashes and predictions), so selecting on it does not peek at measured outcomes. Excluding reference 35's tasks keeps the population disjoint from the one the rule was derived on.
+- The decision rule was declared before the run. It requires gated < always, gated ≤ 1.0, and no loss of accepted graphs, so a favorable reading cannot be chosen after the fact.
+
+### What worked
+- The census completed in 19 s with 0 errors once the guard was fixed.
+- Staging receipt: revision `e0d76a5`, snapshot `c0d8027c…`, and the six frozen file hashes. The study was running at the end of the step.
+- Replay: 8/15 families complete and 160/181 graphs accepted, with 0 unexecuted graphs. Per family:
+
+  | Family | Before → after |
+  |---|---|
+  | 6 | 53 → 66 |
+  | 24 | 2 → 4 |
+  | 79 | 0 → 21 |
+  | 27 | 11 → 14 |
+  | 93 | 7 → 9 |
+  | 52 | 5 → 8 |
+  | 133 | 16 → 13 |
+  | 72, 88, 157, 118, controls | unchanged |
+
+- Kiln suite 43/43 after both code changes.
+
+### What didn't work
+- The first census reported 4 errors. Two were `kernel k_out1__1h1ro1nrd7n launches 2147483648 threads: CUDA thread ids are 32-bit (limit 2147483647)` (task 32), and two were similar `k_cast_matmul_reshape_reduce` errors on task 75 (5,368,709,120 and 2,684,354,560 threads). A scan of all 1,514 uniform scripts found 9 such graphs, in families 32, 75, 107 and 160, all of them `MAP=row` and all of them accepted on the GPU. The P0 guard (6cd1218) was wrong for row and tiled kernels. The running P0 replay did not include these families, so it was unaffected.
+- I first wrote the regression test without the reshape. That graph schedules differently and has no oversized launch, so the test failed for the wrong reason (`undefined`). Adding the reshape reproduced task 32's kernel. Restoring the old guard makes the test fail with the original message.
+- My first draft of reference 48 stated as fact that family 133 returns to 16/20. That is a prediction, and I corrected the wording (e99595d).
+- The harness blocked `sleep 45; ssh …`. I checked the launch with a direct ssh call instead.
+
+### What I learned
+- The emitter defines only `tid` and `bid`. A global thread id exists only in thread-mapped index expressions. Row and tiled kernels build their offsets from `bid` and loop variables, and those offsets are bounded by the buffer extents.
+- "The FP32 reference is TF32" holds for cuBLAS products and fails for cuDNN convolutions. The CPU emulation in Step 241 covered linear layers only, which is why it agreed.
+
+### What was tricky to build
+- `canonRow` omits `MAP=thread` because it is the default. So the thread-mapped test is "row does not name `MAP=row` or `MAP=tiled`" rather than a positive match on `MAP=thread`.
+- The census hashed the old uniform-snapshot scripts, while the study regenerates scripts at its own snapshot. The declaration records this. Each gate decision is also written into the run's artifacts, so the actual changed-graph set will come from the run itself, not from the census.
+
+### What warrants a second pair of eyes
+- The arms run sequentially, so drift is not randomized. The declaration lists this as a limitation.
+- The study snapshot (`e0d76a5`) predates 7e40d54. All arms use the default `highest` precision, so the TF32 change does not affect it.
+
+### What should be done in the future
+- Collect the three arms with 669 when the run ends, then analyze against the declaration.
+- Run a GPU probe of cuDNN's TF32 convolution rounding, scheduled after the study.
+- Get error magnitudes for the remaining TF32 linear failures (88, 118, 157).
+- Re-qualify families 32, 75 and 107 on a later snapshot as part of the next uniform re-qualification.
+
+### Code review instructions
+- `packages/kiln/src/std/export.js` (the launch guard loop) with `test/export.mjs` (last block).
+- `packages/kiln/src/std/tensor.js` (`tf32Pass`).
+- `scripts/666-*`, `667-*`, `668-*`, `669-*`; `sources/cost-gate-held-out-v1/declaration.json`.
+- Validate with `cd packages/kiln && npm test`.
+
+### Technical details
+- Gate-program SHA256 `7666ca3f…`; always-program `de482bd2…`; declaration `213f7ee0…`.
+- Held-out families: 4, 10, 20, 31, 32, 41, 46, 75, 76, 113, 115, 116, 120, 146, 168, 173, 174, 177, 184, 189.
+
+## Step 250: Explain task 106's misprediction: a range-constant quotient read as uncoalesced
+
+Reference 47 named task 106 as the cost model's clearest error. The model predicted the fixed program would make it 4–14× faster; the measured effect was neutral or a loss. While the held-out study runs, I traced the prediction kernel by kernel. The baseline is a single thread-mapped kernel that fuses a 1×1 convolution (24-deep reduction) with a ReLU6-gated multiply over `[128,96,96,96]` f16. The model charged it 90.7 GB of traffic (26.7 ms on a100, 210 ms on gb10). The measured time is 6.03 ms.
+
+The cause is the input's flat index, `221184 * (a1 / 96) + 221184 * a0 + 96 * a2 + a3 + …`. The conv lowering's group term `a1 / 96` is always 0 for `a1 ∈ [0, 96)`, but the index algebra has no ranges. It therefore leaves the quotient in place, `IX.affine` reports the access as non-affine, and `coefOf` falls back to stride 8: one 32-byte sector per lane, i.e. an uncoalesced load. A range-aware simplification removes the false term. It brings the baseline prediction down to 4.3 ms and moves the paired a100 correlation from 0.57 to 0.64.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 249 ("conyinure").
+**Assistant interpretation:** Use the GPU wait productively on the listed follow-ups; task 106 is the first model-repair target.
+**Inferred user intent:** Improve the compiler's decision quality on evidence, not on fitted constants.
+**Commit (code):** 7ea5b10 — "Cost model: read access strides from range-simplified flat indices"
+
+### What I did
+- Scratch probes (`k106.mjs`, `idx106.mjs` in the session scratchpad) printed per-kernel `estimate` parts and every input's flat index together with its `IX.affine` reading.
+- `packages/kiln/src/core/ix.js`: `interval(e, extent)` computes interval bounds of an index expression. `bounded(e, extent)` rewrites bottom-up: a quotient whose dividend stays within one multiple of the divisor becomes a constant, and a remainder becomes `dividend − k·divisor`.
+- `packages/kiln/src/std/tile.js`: `analyze` exposes `extent(v)` (from reductions and dims) and `an.boundedFlat`. `estimate` reads strides from `boundedFlat` for thread/row accesses and tiled tile loads. `an.flat`, which codegen uses, is unchanged, so emitted source is identical for every unchanged schedule.
+- `packages/kiln/test/ix-bounded.mjs`: task 106's index becomes affine after bounding. Quotients that span two multiples are kept, unknown ranges change nothing, and evaluation agrees over the ranges.
+- Recalibration into `sources/cost-model-calibration-v2/` (v1 untouched) with scripts 664 and 665.
+
+### Why
+- This is an algebra defect, not a constant to tune. The fix uses only facts the compiler already has (loop extents). Codegen stays untouched so the change can be judged on the model alone, apart from the schedules the model then chooses.
+
+### What worked
+- Task 106 baseline: 26,695 → 4,301 µs (a100); paired a100 ratios moved from 0.07–0.26 to 0.45–1.23. The measured ratios are 1.00–1.88.
+- Paired 49: a100 ρ 0.571 → 0.644, sign agreement 15 → 16 of 20. gb10 and work are unchanged.
+- Absolute 1,391:
+  - a100 ρ 0.931 → 0.937;
+  - gb10 ρ 0.898 → 0.902;
+  - median within-family gb10 ρ 0.916 → 0.913;
+  - measured/gb10 median ratio 1.07 → 1.10.
+- 185 predictions changed, all of them downward. On the 162 with unchanged schedules, the gb10 median |log(measured/predicted)| fell from 2.95 to 1.71: 120 improved, 42 got worse.
+- `packages/kiln` 44/44 and all passnet `.mjs` tests pass.
+
+### What didn't work
+- The fix does not reverse task 106's predicted sign. With 1→2 kernels the model still says 4.3 ms against 2.07 ms, while the measurement is a tie. The remaining error is the DRAM factor: `dram = 0.6 × traffic` once the whole-input footprint (566 MB) exceeds L2, although the reuse working set per batch slice is about 4 MB. A second effect is the L2 bandwidth: gb10 uses 3× DRAM, and GB10's on-die L2 is likely much faster relative to its LPDDR5x.
+- 23 graphs now choose different schedules, so their new predictions describe executables that were never measured. They are excluded from the 162-graph accuracy comparison and need re-qualification.
+
+### What I learned
+- The conv lowering keeps a group-index term even for `groups = 1`. Codegen emits the dead division as well (`(bid / 4096) % 256` chains in Step 249's kernel are related). Simplifying indices in codegen is a separate change, because it alters executables.
+- A coalescing model built on `affine()` is only as good as the simplifier in front of it. Any non-affine leftover is treated as the worst case.
+
+### What was tricky to build
+- `bounded` must recurse before testing the interval, so that inner quotients are folded before outer ones are bounded, and must rebuild through `add/mul/div/mod` to keep linear normal form. Otherwise `affine()` still sees a nested `+` it cannot read.
+- For a remainder, `a − k·b` is exact only when the whole interval lies in one multiple. The same single-multiple condition guards both rewrites.
+
+### What warrants a second pair of eyes
+- `interval` for `*` with an unbounded operand returns null, so the rewrite is conservative. Check that no case returns a too-narrow interval. Comparison and boolean ops return `[0, 1]`.
+- The running held-out study uses the old model (snapshot `e0d76a5`). Its gate result measures the pre-fix gate.
+
+### What should be done in the future
+- A reuse-distance working-set rule for the DRAM factor, evaluated the same way: v3 calibration, then paired and absolute checks.
+- Apply `bounded` in codegen as its own experiment, measured for executable change and speed.
+- Re-qualify the 23 schedule-changed graphs (covered by the re-qualification task).
+
+### Code review instructions
+- `IX.interval` and `IX.bounded` in `packages/kiln/src/core/ix.js`; `extent` and `boundedFlat` in `analyze` and the two `boundedFlat` call sites in `estimate`.
+- Validate with `node packages/kiln/test/ix-bounded.mjs`. Recompute calibration with `python3 scripts/665-paired-cost-model-check.py --output …` and `664-calibrate-cost-model.py --output …`.
+
+### Technical details
+- Task 106 measured compiled GPU medians (baseline / candidate, ms): 6.03 / 6.36, 2.61 / 3.99, 1.26 / 2.37, and 0.12 / 0.12 for the three small variants.
+
+**Addendum to Step 250: a working-set DRAM rule, tried and reverted.** I tested a per-outermost-slice reuse working set, with `dram = uniq + out` whenever the slice fits in L2 (scratch only; the evidence is in the session scratchpad `cal-v3/`). It moved paired a100 ρ from 0.6438 to 0.6441, gb10 from 0.607 to 0.608, and absolute a100 from 0.937 to 0.939 and gb10 from 0.902 to 0.907. Task 106 did not change, because its binding term becomes `l2 = traffic / (3 × bwGBs)`, at 18.8 ms on gb10 against the measured 6.03 ms. I reverted the rule (the file was restored from the index) because the gain does not justify the schedule churn. The binding unknown is GB10's L2 bandwidth: matching the measurement would need about 2.4 TB/s. That will be measured on bling once the study releases the GPU (task added).
+
+## Step 251: Queue the GPU probes, decide task 128, and plan P3a in slices
+
+While the held-out study's baseline arm finished, I prepared the two GPU questions it was blocking and queued them behind it: which TF32 rounding cuDNN convolutions and cuBLAS products actually use, and GB10's L2 bandwidth. I closed the task-128 decision and turned P3a into a sliced plan grounded in the code (design doc 23).
+
+The P3a reading changed the plan's first step. The 119 typed-frontier graphs do not need gathers first. Several only pass an int64 tensor through a view or an identity cast, and some only compute dead integer arithmetic. Integer storage cannot start in the importer, though, because every Loop IR value is an untyped double and every kernel temporary a `float`. An int64 index above 2^24 would be corrupted silently.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 249 ("conyinure").
+**Assistant interpretation:** Keep advancing the plan while the GPU is busy; do not start GPU work that overlaps the study.
+**Inferred user intent:** Steady progress without collisions on bling.
+**Commit (code):**
+- 68ca548 — probe script
+- 08aa9b9 — design doc 23
+- task 128 decision recorded in tasks.md
+
+### What I did
+- Script 671 (`671-gpu-numerics-and-bandwidth-probes.py`):
+  - For linear, 1×1, 3×3 and wide 3×3 convolutions under `allow_tf32`, it compares against float64 references computed from operands rounded four ways: FP32, RNA, RNE and RZ.
+  - A Triton streaming kernel measures read bandwidth from 1 MB to 1 GB buffers.
+  - I checked the RNA, RNE and RZ bit helpers on the CPU at TF32 tie points (`1+2^-11`, `1+3·2^-11`, negative ties, below-half values).
+- Copied it to bling as `sources/gpu-probes-v1/probe.py`. Tmux `kiln-gpu-probes-v1` waits for `kiln-cost-gate-held-out-v1` to end, checks the GPU is idle, then runs the evaluator image.
+- Task 128 decided: unsupported, with its named cause. The 1,514-graph census showed no second family with the dead-branch duplicate.
+- Read the typed-frontier audit (`sources/typed-frontier-source-ops-v1.json`) and samples, then wrote design doc 23.
+
+### Why
+- Queuing the probes behind the study session uses the GPU the moment it is free, without risking overlap.
+- Slicing P3a by what the integer value is used for gives each slice a measurable census yield and keeps semantics small.
+
+### What worked
+- Probe queued: `tmux ls` shows `kiln-gpu-probes-v1` alongside the study session.
+- Study progress: baseline arm complete (20/20 tasks) at the end of this step.
+
+### What didn't work
+- One survey command printed a sample's full `weight_meta.py`, including thousands of embedded data values. No harm was done beyond log size. Later surveys print only shapes and dtypes.
+- A `docmgr task add` whose text contained `^` and `>` spun at full CPU for more than two minutes. I killed it (pid 1651441) and re-ran it with plain wording; it completed at once. Task texts for docmgr should avoid shell-like metacharacters.
+
+### What I learned
+- The typed frontier is three capabilities, not one: pass-through, gathers, and integer arithmetic/masks. At least two families (0d135bc0, 2f622ee9) are likely complete after slice 1 alone, if no later blocker appears. That is a hypothesis for the slice-1 census.
+
+### What was tricky to build
+- The probe's references must round the operands and then compute in float64. Rounding the result instead would measure a different thing. Each emulation is a full reference product, not a perturbation estimate.
+
+### What warrants a second pair of eyes
+- The `rne` helper uses `b + 0xFFF + ((b >> 13) & 1)` on a signed int32 view. For negative floats the sign bit is outside the rounding bits, so magnitude rounding is symmetric. A reviewer should confirm this for NaN and Inf payloads (they are not present in the probe's data).
+
+### What should be done in the future
+- After the study: collect the probes and update the gb10 spec and `tf32Pass` from the evidence. Then implement P3a slice 1 per design doc 23.
+
+### Code review instructions
+- `scripts/671-gpu-numerics-and-bandwidth-probes.py`; `design-doc/23-p3a-typed-values-and-data-dependent-indexing-implementation-plan.md`.
+
+### Technical details
+- Probe output: `/home/manuel/passnet-kiln/KILN-005/sources/gpu-probes-v1/result.json` on bling, collected into the ticket after it runs.
+
+## Step 252: P3a slice 1, integer storage through Kiln, with one dtype table
+
+Slice 1 of design doc 23 lets `int64` and `bool` tensors flow through Kiln as storage. They can be loaded, viewed, copied, stored and converted to float, but not computed with. A probe showed that integer dtypes already survive the tensor, loop and tile IRs; only CUDA emission refused them. The work was therefore narrower than the plan assumed. The kernel IR now records each integer temporary's storage type once, the emitters declare what it records, and any integer arithmetic is refused by name.
+
+Following the user's mid-step instruction to refactor and tighten as I go, I moved the typing out of `toCuda`, where I first wrote it, into `materialize`, so all emitters share one record. I also replaced three Python dtype tables with one module. Measured result:
+
+- import census: 1,668 → 1,707 graphs import, with 0 regressions; complete-import families 131 → 137;
+- local compile: 5 of the 6 newly importable families compile completely (tasks 54, 92, 134, 169, 181; 37 graphs);
+- a frozen GPU replay of those 5 is queued.
+
+### Prompt Context
+**User prompt (verbatim):** "Be sure t refactor and tighten and clean up things as you go, especially if it makes sense to switch to a different approach that would simplify things overall. we don't hvave backwards compatibility to support so can do sweeping changes if needed."
+**Assistant interpretation:** Prefer the structurally simpler design over local patches, and remove duplication while implementing.
+**Inferred user intent:** Leave the codebase simpler after each feature, not just larger.
+**Commit (code):**
+- 5faacca — "P3a slice 1: integer storage passes through Kiln exactly"
+- b8f9972 — "P3a slice 1: admit integer-to-float conversion"
+- bda0718 — freeze and census
+- 7099287 — queue receipt
+
+### What I did
+- `kernel.js`:
+  - `INTEGER_DTYPES` and `integerValues(body, params, name)` walk the kernel body in program order. A load from an `i64`/`bool` parameter defines an integer temporary, and a `let` of an integer var propagates the type.
+  - Any `op` with an integer operand is refused, except the conversion `copy(intvar)`. A store must match the output's integer dtype, and shared-memory staging of an integer is refused.
+  - `materialize` returns `values: {name: dtype}`, and `floats` excludes those names.
+- `emit.js`: storage `i64 → long long`, `bool → bool`. Integer temporaries are declared from `K.values` (defaulting to `{}` for hand-built kernels in tests). WGSL already reports `WGSL storage dtype unsupported: i64`.
+- `tensor.js`: `N.cast(x, d)` returns `x` when `d` is already x's dtype.
+- `integrations/passnet/dtypes.py`: `FLOATING`, `IMPORTED` (= floating + int64 + bool), `STORAGE` (+ uint8) and `KILN_TO_TORCH`.
+  - `fx_ops.DTYPES` is removed. The fx_* modules use `FLOATING`.
+  - `runtime.DTYPES` is derived from the table, and `dispatch.py` names input dtypes through `STORAGE`.
+  - `check_corpus_cuda.py` reuses `runtime.DTYPES`.
+- `fx_import.py`:
+  - Placeholders, result metadata, `expect()`, `.to`, `type_as` and concat use `IMPORTED`.
+  - `CONVERSION_METHODS` adds `.long()`/`.bool()` to the float conversions.
+  - `floating_dtype(c, what)` refuses integer values at float-only ops (activations, reductions, batch norm) by name.
+- Tests: `packages/kiln/test/integer-storage.mjs`; `test_fx_import.py` gains `test_integer_storage_passes_through`, and its rejection test now expects the int64 relu to import (the compiler refuses it).
+- Census: `corpus.py inspect` over all 200 tasks writes `sources/typed-slice1-import-v1.json`. A local `corpus.py export/compile` of the 6 newly importable families went to the session scratchpad.
+- Scripts 672 (freeze), 641 (stage) and 651 (queue) set up `typed-slice1-replay-gpu-v1`.
+
+### Why
+- Typing in `materialize` instead of `toCuda`: the CUDA, WGSL and simulator emitters, the printer and the cost model all read `K`. Deriving types inside one emitter would have to be repeated in each, and they could disagree.
+- The importer stays faithful and the compiler decides legality. Integer `relu` imports as `N.relu(v0)` and fails at compile with `integer arithmetic is not lowered (P3a slice 3): relu`. A single refusal point keeps the census honest: the import census measures import, and the compile measures compile.
+- Conversion is the only integer operation admitted, because its C++ semantics equal PyTorch's for every admitted pair (int64 → float rounds to nearest; bool → 0/1).
+
+### What worked
+- `packages/kiln` 45/45; pytest 167 passed; the passnet `.mjs` tests pass.
+- CUDA for an int64 view: `const long long* __restrict__ src0`, `long long in0 = 0;`, `in0 = src0[e]; dst[e] = in0;`, with no float temporary.
+- Census: +39 graphs, 0 regressions; newly complete-import families: 5502b068, 6744e9b4, 2f622ee9, 2b842c6d, 66e7239d, 0d135bc0.
+- Local compile:
+  - 6744e9b4 (15/15), 2f622ee9 (15/15) and 0d135bc0 (3/3) compiled with pass-through alone;
+  - 5502b068 and 66e7239d compiled after the conversion change;
+  - 2b842c6d stays refused: `integer arithmetic is not lowered (P3a slice 3): mul_rn in k_out0`.
+
+### What didn't work
+- The first emitter-only version reported refusals well. After the move into `materialize`, a refusal surfaced at export as `output out is tile.kernel: an exported output must be a kernel's or an input's buffer`, because the rule error is recorded on `run.error` rather than thrown. The diagnostics path (`run.error.message` = `lowering/kernel/materialize at n2: integer arithmetic is not lowered (P3a slice 3): add in k_ew`) is what `kiln-export` prints. The test helper reads `run.error` first.
+- `cuda-dtypes.mjs` and `rounding-expressions.mjs` failed with `TypeError: Cannot convert undefined or null to object` (hand-built `K` without `values`). Fixed with `K.values ?? {}`.
+- Two `sed` edits used line numbers that had shifted by one, so `type_as` was left unchanged. I redid them as exact-text replacements.
+- `test_dtype_and_layout_rejected` failed (`ValueError not raised`) after admitting int64. That was the intended behavior change, so I updated the test to assert the import and point to the compiler-side refusal.
+
+### What I learned
+- The only float-only assumption on the integer path was in emission and at the importer's guard. The tensor IR's `elementwiseDtype` already carried `i64` through `relu` (which slice 3 must decide on: PyTorch keeps int64 for relu).
+
+### What was tricky to build
+- A conversion nested inside float arithmetic (`mul(copy(in0), y)`) must be admitted while `add(copy(in0), in0)` is refused. The checker therefore returns early at an admitted `copy(intvar)` and otherwise refuses any op with a direct integer operand while recursing.
+
+### What warrants a second pair of eyes
+- `long long → float` relies on C++ implicit conversion (round to nearest under CUDA's default mode). PyTorch's `.float()` on int64 is `static_cast<float>`, the same conversion. The slice-1 GPU replay is the check.
+- The `INTEGER_DTYPES` check covers `i64` and `bool`. `u8` keeps its existing widening load into float, which is correct for its arithmetic use.
+
+### What should be done in the future
+- Collect the slice-1 replay.
+- Slice 2 (embedding: 56 graphs are the top remaining typed blocker; index_select: 2).
+- Slice 3 (integer mul/ne/masked_fill/cumsum).
+- Look at the 4 `JSONDecodeError` import failures in the census.
+
+### Code review instructions
+- `integerValues` and `materialize` in `packages/kiln/src/std/kernel.js`; declarations in `toCuda`; `integrations/passnet/dtypes.py`; `floating_dtype` and `CONVERSION_METHODS` in `fx_import.py`.
+- Validate with `node packages/kiln/test/integer-storage.mjs`, `cd integrations/passnet && python3 -m pytest -q`, and the census command in script 646 with a new output path.
+
+### Technical details
+- Slice-1 replay plan SHA256 `ea555f12…`; staged revision `bda0718`, snapshot `83b4129f…`; tasks 54, 92, 134, 169, 181 with `matmul_precision: "tf32"`.
+
+## Step 253: P3a slice 2, gathers as views with data-dependent index terms
+
+Slice 2 adds `embedding`, `index_select` and `x[ids]` to Kiln. Reading `inlineInto` changed the representation in design doc 23. Fusion substitutes a producer's coordinates with the consumer's `IX` index expressions, so a data-dependent index must live in `IX`, not in `E`. The new `IX` leaf `ld(i, idx)` means "the integer in kernel input `i` at `idx`". A gather is then a view whose map contains `ld` terms, and it reuses lifting, fusion, scheduling and emission almost unchanged.
+
+The test suite caught two real bugs before they reached the GPU. One was a double renumbering of `ld` inputs during fusion. The other was C's truncating `%` diverging from the algebra's floor semantics once an index can be negative. Measured result:
+
+- import census: 1,707 → 1,769 graphs import, with 0 regressions; complete-import families 137 → 143;
+- local compile: 5 of the 6 newly importable families compile completely (52 graphs);
+- a frozen GPU replay is queued.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 252 (refactor and tighten as you go) and Step 249 ("conyinure").
+**Assistant interpretation:** Implement slice 2 with the simplest representation the code admits, and refactor shared pieces instead of duplicating them.
+**Inferred user intent:** Broader coverage without growing a second compiler.
+**Commit (code):**
+- a739546 — design amendment
+- 56af6b2 — IX ld
+- 3170d09 — Kiln gathers
+- c4b5562 — importer
+- 4824693 — freeze and census
+- 9e3eee6 — queue
+- 22902c8 — named tensor-index refusal (before gathers)
+
+### What I did
+- `core/ix.js`:
+  - `LD(i, idx)`, with `keyOf`, `vars`, `subst`, `print`, `interval` (null), `bounded` and `evalIx` (via `env.__ld`).
+  - `emit(e, lang, name, load)` takes a spelling callback and refuses targets without one.
+  - `loadsOf`, and `mapLoads(e, f)` built on a new simplifying `op2(t, a, b)` that `subst` and `bounded` now share. `remapLoads` is one line over `mapLoads`.
+  - Floor-semantics `%` and `/` for C/JS when the dividend contains an `ld`.
+- `std/tensor.js`: `gatherSpec`, `gatherMap` (with `wrap` as `id + n·(id < 0)`), `gatherRef` (an out-of-range index is an `EvalError`); ops `nn.gather` and `tensor.gather`; decomposition; `N.gather`, `N.embedding`, `N.indexSelect`.
+- `std/loop.js`:
+  - `liftGather`.
+  - `substE` renumbers an expression's own `ld` inputs *before* substituting the caller's values.
+  - In `inlineInto`, `remapIdx` renumbers consumer `ld`s and turns an `ld` that reads the producer into the producer's load. `FusionIllegal` is raised when the producer is not a pure load, and the fusion rule converts it to `skip`.
+  - Shared `jsIndex` for `compileSerial`/`compilePoint`, with `Number()` for BigInt ids.
+- `std/emit.js`: `ld` → `(int)src_i[row-major flat]`.
+- `std/tile.js`: `coefOf` treats an `ld` that does not vary with the lane variable as constant.
+- `fx_import.py`: `tensor_index` (one int64 tensor after full slices → `N.gather(…, true)`; bool masks refused); `embedding` (`max_norm` refused, since it renormalizes the weight in place); `index_select`.
+- Tests: `test/ix-load.mjs`, `test/gather.mjs` (fused Loop IR reference equals the frontend reference for embedding+bias, index_select of a transpose, and `x[ids]` through two views with negative ids), and `test_fx_import.py::test_gathers`.
+- Census `sources/typed-slice2-import-v1.json`. Generic freeze script 673 (replaces per-slice freeze scripts). Replay `typed-slice2-replay-gpu-v1` queued behind the slice-1 replay.
+
+### Why
+- An `IX` leaf instead of an `E` index entry: inlining substitutes producer coordinates in `IX`, so an `E` entry would force `E` values into `IX` positions. The `IX` leaf keeps substitution in one algebra.
+- A separate `tensor.gather` instead of generalizing `tensor.view`: the view-composition and splat-folding rules stay unchanged and cannot mishandle `ld` terms.
+
+### What worked
+- `packages/kiln` 47/47; pytest 168 passed; the passnet `.mjs` tests pass.
+- CUDA for embedding+bias: `in1 = src1[((e % 4) + (4 * (int)src2[…]))]`, one fused kernel.
+- Census: +62 graphs, 0 regressions; newly complete-import tasks 3, 21, 61, 100, 140, 152.
+- Local compile: 21 (10/10), 61 (6/6), 100 (4/4), 140 (2/2), 152 (30/30). Task 3 is refused at `expected (1, 256) i64 from the source graph, Kiln inferred (1, 256) f32` (integer `sub` of bounding-box coordinates, slice 3).
+
+### What didn't work
+- First compile of `x[ids]` through two views read the table instead of the ids (`(int)src1[…]` where `src1` was the f32 table). Cause: `substE` applied the producer's renumbering to the whole substituted index, including the consumer's `ld`, which had already been renumbered. Fix: renumber the producer's own index first, then substitute.
+- The `wrap` term vanished from the emitted index. `mod(3·id + 24·[id<0], 24)` drops the multiple of 24, which is correct under floor modulo, but C's `%` truncates (`-3 % 24 = -3`). Fix: floor spellings in C/JS when the dividend contains an `ld`. Coordinates keep the plain `%`.
+- My first `remapIdx` rebuilt nodes with the raw `Ix` constructor and re-normalized through `subst(…, {})`. I replaced it with `IX.mapLoads` on the shared `op2`.
+- `fused.eval` on the final graph failed with `gpu.kernel (n7) has no eval`. The test evaluates `r.at("loop")` instead.
+- A wait loop `until … ! pgrep -f "typed-slice2-import"` matched its own command line and never ended. I stopped it (`TaskStop b10kqvzxw`) and ran the comparison directly.
+
+### What I learned
+- The algebra's floor semantics were safe only because coordinates are nonnegative. Data-dependent terms are the first source of negative dividends.
+- Integer arithmetic currently infers `f32` (`elementwiseDtype`), and the importer's `expect` catches it loudly. Slice 3 must give integer ops their PyTorch result types.
+
+### What was tricky to build
+- Renumbering order inside fusion. The consumer's index (consumer numbering → merged numbering via `mapC`) and the producer's expression (producer numbering → merged via `mapP`) meet in one substitution. Each must be renumbered exactly once, in its own numbering, before they are combined.
+
+### What warrants a second pair of eyes
+- `(int)src_i[...]` narrows int64 ids to int. Indices index tensors of fewer than 2^31 elements (export guard), so in-range ids fit. Out-of-range ids are undefined behavior, matching release CUDA.
+- `FusionIllegal` makes the whole producer unfusable if any consumer indexes by it through a non-view, even when other consumers could take it.
+
+### What should be done in the future
+- Collect the slice-1 and slice-2 replays.
+- Slice 3, typed integer arithmetic (tasks 3, 139, and the `ne`/`masked_fill`/`cumsum` families).
+
+### Code review instructions
+- `inlineInto`/`remapIdx`/`substE` in `loop.js`; `LD`, `mapLoads`, `op2` and the floor spellings in `ix.js`; `gatherMap` in `tensor.js`.
+- Validate with `node packages/kiln/test/gather.mjs` and `node packages/kiln/test/ix-load.mjs`.
+
+### Technical details
+- Slice-2 plan: tasks 21, 61, 100, 140, 152 (52 graphs); staged revision `4824693`, snapshot `94acbbc2…`; queued as tmux `kiln-typed-slice2-replay-v1`.
+
+## Step 254: The held-out cost-gate study, and what the GPU probes measured
+
+The three arms of `cost-gate-held-out-v1` completed: 20 families, 237 graphs, 60 task runs. On every speed endpoint and on the official score, the gate beat always-applying the fixed program. On the 91 graphs where it kept the baseline, always-applying was measured 11.8% slower. The pre-registered decision rule is nevertheless **not met**. The gated arm accepted 236 of 237 graphs, and the one failure is PassBench's timing-fluctuation guard rejecting an executable byte-identical to the baseline arm's accepted one. Reference 49 records this without reinterpreting the rule.
+
+The probes that ran right after the study gave two concrete corrections:
+
+- cuBLAS linear layers and cuDNN 1×1 convolutions round TF32 operands to nearest *even*, while Kiln uses nearest-away;
+- GB10's L2 delivers about 10.5 TB/s against about 240 GB/s from DRAM, roughly 40× where the cost model assumes 3×.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 249.
+**Assistant interpretation:** Collect and analyze against the frozen declaration as soon as the arms finish.
+**Inferred user intent:** A trustworthy measured answer on whether the gate is reusable.
+**Commit (code):**
+- be97047 — collection
+- 41a0d23 — reference 49
+
+### What I did
+- Script 669 collected each arm (plan and snapshot identity checks passed, 0 unexecuted graphs).
+- Script 670 ran unchanged (pre-registered in 489d1f2).
+- Traced the single gated failure through the audits and the benchmark log.
+- Collected `gpu-probes-v1/result.json` and wrote reference 49.
+
+### Why
+- The rule says what it says. A failure that is plausibly noise is resolved by replication, not by redefining the endpoint after the fact.
+
+### What worked
+- Every check in 670 passed: equal snapshots, image, node version and tasks; program hashes as declared; 0 gate inconsistencies.
+- Primary endpoint: gated 0.644 against always 0.679. Where the gate kept baseline: always 1.118, gated 0.999. Official score mean: 0.893 / 1.001 / 1.034.
+
+### What didn't work
+- Condition (3) of the rule failed. Task 31 `bfloat16/5/…coat_lite_medium_384_start189_end198_23` failed with `Compiled model execution failed: Environment fluctuation detected. IQR/median = 22.8% (threshold: 20%)` in the gated arm (`execution_status: eager_fail` in the parsed log), while baseline and always accepted it. `gated_matches_baseline: true`.
+
+### What I learned
+- The gate's value is concentrated in a few families where the program hurts (10, 31, 146, 174, 189). Its only remaining measured loss is task 120 (1.15, gate applied), the same kind of misprediction as task 106.
+- The probes measured more than what reference 48 assumed. RNA rounding was a guess. RNE is closer for products and 1×1 convolutions, so the P0 convolution regressions may come from the rounding mode rather than from cuDNN algorithm choice.
+
+### What was tricky to build
+- Telling noise from the gate's effect required the per-graph executable hashes. Without `gated_matches_baseline`, the failure would have looked like a gate-caused regression.
+
+### What warrants a second pair of eyes
+- Arms ran sequentially. The 0.999 ratio where the gate kept baseline bounds cross-arm drift at about 0.1% for identical executables, but drift was not randomized.
+
+### What should be done in the future
+- Replicate task 31 (or the gated arm).
+- Add a measured `l2GBs` to targets and recalibrate.
+- Implement RNE TF32 rounding and re-run the TF32 families.
+
+### Code review instructions
+- `sources/cost-gate-held-out-v1/comparison.json` (summary, families, graphs); reference 49.
+- Re-run with `python3 scripts/670-analyze-cost-gate-held-out-study.py`.
+
+### Technical details
+- Probe rounding mean abs errors (fp32 / rna / rne / rz):
+  - linear 7.5e-3 / 1.1e-4 / 6.1e-5 / 2.2e-2;
+  - conv1x1 3.7e-3 / 1.7e-5 / 8.0e-6 / 1.1e-2;
+  - conv3x3 5.4e-3 / 2.4e-5 / 4.3e-5 / 1.6e-2.
+- Bandwidth: 1 MB 8.4, 2 MB 10.3, 4 MB 10.8, 8 MB 5.3, 16 MB 2.0, 64 MB 0.30, 1 GB 0.236 TB/s.
+
+## Step 255: Put the measured GB10 L2 bandwidth into the cost model
+
+Probe 671 measured GB10's L2 at about 10.5 TB/s, where the cost model assumed 3× DRAM (777 GB/s). I added a per-target `l2GBs` used by the `l2` time term. Only gb10 has a measured value; every other target keeps the 3× prior, so a100-scheduled executables are unchanged. The gb10 model's paired correlation with measured effects rose from 0.61 to 0.71.
+
+I then re-tested Step 250's reverted working-set DRAM rule on top of it. The L2 term no longer masks it, and the gb10 paired ρ reached 0.82. The rule is still not adopted, because it changes a100 estimates and therefore schedules without improving the a100 paired ranking.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 249.
+**Assistant interpretation:** Apply the probe's measurement where it is evidence, and leave behavior changes for declared experiments.
+**Inferred user intent:** Better predictions without unmeasured churn.
+**Commit (code):** 7468794 — "Cost model: measured GB10 L2 bandwidth (l2GBs); tasks updated"
+
+### What I did
+- `targets.js`: `gb10.l2GBs = 10500`, with a header note naming probe 671. `tile.js`: `l2: c.traffic / perUs(t.l2GBs ?? 3 * t.bwGBs)`.
+- Recalibrated with scripts 665 and 664 into scratch (`cal-l2`), then again with the working-set rule (`cal-l2ws`).
+
+### Why
+- The L2 bandwidth is a property of the hardware that has now been measured. The DRAM-factor rule is a modeling heuristic whose adoption changes executables, so it belongs in an experiment.
+
+### What worked
+- L2 only, gb10: paired ρ 0.607 → 0.711 (sign 15 → 16/20); absolute 0.902 → 0.914; within-family 0.913 → 0.931. a100: unchanged (paired 0.644, absolute 0.937).
+- With the working-set rule: gb10 paired 0.823 (sign 17/20); task 106 is predicted at 1.89–2.06 (measured 1.00–1.88), the correct direction for the first time. Absolute gb10 is 0.910 and within-family 0.936.
+
+### What didn't work
+- The absolute scale got worse: median measured/predicted on gb10 went 1.10 → 1.49 (L2 only) → 2.77 (with the working-set rule). The model now over-credits reuse and fast L2, which matters for absolute estimates but not for ranking or gating.
+- The background command that added tasks ended with `git commit -qam`. It ran after I had edited `tile.js` and `targets.js`, so it committed the L2 change under a "Tasks" message. The content was the intended L2-only version (the working-set experiment had been reverted from a saved copy first). I amended that local HEAD's message to describe its content. Lesson: never end a backgroundable command with `commit -a`.
+
+### What I learned
+- Task 106's error was two compounding model defects: a non-affine index (Step 250) and an L2 assumed about 13× too slow (this step). Either alone left the predicted sign wrong.
+
+### What was tricky to build
+- Keeping a100 identical. `l2GBs` is consulted only when present, and only gb10 has it.
+
+### What warrants a second pair of eyes
+- The gate in reference 49 uses the a100 model (the scheduling target). A gate on the gb10 model (the hardware that runs) with the working-set rule is the natural next declared experiment.
+
+### What should be done in the future
+- Declare and run "gate on gb10 model + working-set rule" against reference 49's always/gated arms on the same population.
+
+### Code review instructions
+- `targets.js` (gb10 and header) and the `l2` line in `timeModel` (`tile.js`).
+
+### Technical details
+- Working-set rule (not committed): `sliceBytes` = Σ inputs (numel·4 / extent(v0) if indexed by the outermost output variable, else numel·4) + out/extent(v0); `dram = uniq + out` when `sliceBytes ≤ l2MB`.
+
+## Step 256: First typed families accepted on the GPU; two named causes for the rest
+
+The slice-1 and slice-2 replays finished. **Five typed families are complete under the original checker**: 54, 169 and 181 (integer pass-through and conversion) and 100 and 140 (gathers). These are the first families with integer inputs the project has ever accepted. The other five families failed every graph, for two causes, each named by a log line and reproduced locally:
+
+- **Mutation write-back is outside the protocol** (92, 134). Both graphs apply an activation in place to an input. Kiln's dispatcher writes the result back with `destination.copy_(value)`, and PassBench's poison dispatch rejects it: `Unauthorized Operator (aten.copy_.default) Detected: … Only basic creation and factory methods (empty, zeros, ones, full, as_tensor) are supported`. The earlier input-mutation wave on bling shows the same message in 78 graphs (tasks 17, 94, 161, …).
+- **The embedding pattern never matched** (21, 61, 152). `symbolic_trace` records the pattern call as `embedding(in_1, in_2)`, dropping the explicit defaults, while TorchDynamo records all seven arguments. Adding `F.embedding` to `fx_normalize.TARGETS` fixes it in simulation (658: 21 → 10/10, 61 → 6/6, 152 → 30/30). A frozen re-replay is running.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 249.
+**Assistant interpretation:** Collect, audit and explain every failure before claiming coverage.
+**Inferred user intent:** Typed coverage that holds up under the original checker.
+**Commit (code):**
+- c9093dc — collection and embedding normalization
+- 5d492b0 — re-replay freeze
+
+### What I did
+- Script 669 collected both replays. The audits gave per-family results, and the benchmark logs gave the failure messages.
+- Script 658 reproduced the embedding miss on CPU (task 61: 0/6). A direct `SubgraphMatcher` run between the traced pattern and the captured Dynamo graph exposed the argument-count difference.
+- `fx_normalize.py`: `TARGETS` gains `torch.nn.functional.embedding`. `test_fx_normalize.py::test_embedding_defaults_match_dynamo_spelling`.
+- Froze (673), staged (641) and launched `typed-slice2-embedding-replay-gpu-v1` (tasks 21, 61, 152; 46 graphs) on an idle GPU.
+
+### Why
+- The normalization whitelist is the existing mechanism for call-form differences between pattern and target tracing (GELU, pad, max_pool2d, softmax). Embedding belongs in it, not in a special case.
+- Mutation write-back cannot be fixed inside dispatch: any aten op on the input is refused. It needs Kiln kernels that write the input's storage directly, with alias-aware launch order, so it is recorded as a design task.
+
+### What worked
+- Slice 1: 54 (2/2, score 1.020), 169 (2/2, 0.805), 181 (3/3, 0.746).
+- Slice 2: 100 (4/4, 0.968), 140 (2/2, 0.791).
+- Simulation after the fix: all five slice-2 families select their own rule exactly once (52/52).
+- pytest 169 passed.
+
+### What didn't work
+- Slice-1 replay: 92 and 134 failed 0/15 each (copy_ refusal, as quoted above).
+- Slice-2 replay: 21 (0/10), 61 (0/6) and 152 (0/30) with `RuntimeError: [PassMgrBackend] No passes modified the graph.`
+- My first hypothesis for the embedding miss, that symbolic tracing inlines `F.embedding` into `torch.embedding`, was wrong. Both traces keep `F.embedding`; only the argument lists differ.
+- A loop using `set -- $x` did not split in zsh, which produced paths like `typed-slice1 092-…`. I re-ran it with explicit paths.
+
+### What I learned
+- The local Dynamo simulation predicted the slice-1/2 matcher outcome exactly, but I ran it only after the GPU run. It belongs in the freeze gate for every new operation family, before staging.
+- PassBench's poison dispatch constrains replacements to pure computation plus factories. Any compiler feature that touches caller-visible storage has to happen inside the compiled kernels.
+
+### What was tricky to build
+- Seeing the cause required running the exact matcher on the exact pattern and capture. The structural printouts (op, target) were identical on both sides; only `n.args` differed.
+
+### What warrants a second pair of eyes
+- Whether in-place kernel writes are compatible with PassBench's output aliasing checks (`restore_outputs`, input-alias outputs) needs reading `posion_dispatch_tensor.py` before designing.
+
+### What should be done in the future
+- Collect the embedding re-replay.
+- Make script 658 part of every freeze gate.
+- Design in-place mutation through kernel-level aliasing (read `posion_dispatch_tensor.py` first).
+- Collect the input-mutation wave on bling with 669 and record its 78 copy_ failures.
+
+### Code review instructions
+- `fx_normalize.TARGETS`; `sources/typed-slice{1,2}-replay-gpu-v1/results-audit.json`.
+- Validate with `python3 scripts/658-simulate-pattern-dispatch-identity.py --plan sources/typed-slice2-replay-v1/plan.json --upstream sources/upstream --output /tmp/x`.
+
+### Technical details
+- Re-replay staged at revision `5d492b0`, snapshot `47880f3c…`.
+
+## Step 257: In-place mutation written by the compiled program; embedding families accepted
+
+The user asked to continue P3a slice 3 and in-place mutation, then run the gates and qualifications. I started with mutation because its design turned on a protocol fact. PassBench wraps a replacement's tensors in `PosionDispatchTensor`, whose `__torch_dispatch__` admits only factories (`empty`, `zeros`, `ones`, `full`, `as_tensor`, aliasing and `_to_copy`) plus metadata queries. Kiln's kernels write through raw device pointers and are invisible to it. So the write-back moved from the dispatcher (`destination.copy_`) into the compiled program: a final Kiln copy kernel writes the computed value into the input's own buffer.
+
+In the same step the embedding re-replay passed completely: tasks 21, 61 and 152, 46 of 46 graphs. Eight typed families are now accepted on the GPU.
+
+### Prompt Context
+**User prompt (verbatim):** "ok, let's continue P3a slice 3 and in -place mutation, then we can do all the gates and qualifications and all."
+**Assistant interpretation:** Implement integer arithmetic (slice 3) and protocol-legal input mutation; defer re-qualification until both are done.
+**Inferred user intent:** Close the two largest remaining coverage blocks, then measure everything uniformly.
+**Commit (code):**
+- 2be8918 — write-back
+- b1a7ce4 — old wave collected; replay frozen
+- this step's commit — replay launch and embedding collection
+
+### What I did
+- Read `pass_bench/torch/posion_dispatch_tensor.py` (144 lines), `runtime.TorchProgram.__call__` and `kiln_launch.launch`. An output spec whose buffer is an input buffer is not allocated: `TorchProgram` returns the caller's input tensor.
+- `export.js`: `writebackKernel(from, to)` (CUDA copy, 256 threads, int index under the existing 32-bit guard). `exportProgram(…, {mutations})` appends one per mutation, checks shape and dtype, and re-points the output to the input buffer. `CUDA_STORAGE` moved to `emit.js` and is shared.
+- `kiln-export.mjs --mutation OUT=IN`. `corpus.compile_task` passes one flag per `input_mutations` record (index → the input's program variable). `dispatch.py` only asserts `outputs[out] is inputs[i]`.
+- Tests: an `export.mjs` block (the write-back is last, it targets the input buffer, no earlier kernel writes the input, a type mismatch is refused). `test_dispatch` now models an in-place program, plus a rejection case for a program that does not write in place.
+- Collected the old input-mutation wave: 0 of 12 families, 9 of 96 graphs; 11 families show the copy_ refusal.
+- Gates for the new replay: the 658 Dynamo simulation passed 126/126, and a local compile with `--mutation` and tf32 passed 126/126. Froze `mutation-writeback-replay-v1` (14 families) and launched it.
+- Collected `typed-slice2-embedding-replay-gpu-v1`: 21 (10/10, score 1.066), 61 (6/6, 0.835), 152 (30/30, 0.953).
+
+### Why
+- A final copy kernel is correct for any graph, because every read of the original value precedes it in launch order. Writing the producer's output directly into the input is faster but needs a launch-order proof. That is a later optimization; here SiLU's kernel could already target the input.
+
+### What worked
+- Task 92's artifact: kernels `k___mut1` (reads 1, writes 2), `k_out0` (reads 2, writes 3), `k_writeback` (reads 2, writes 1); output `__mut1` points at buffer 1 (input `v1`).
+- `packages/kiln` 47/47; pytest 169.
+
+### What didn't work
+- `test_dispatch::test_mutated_input_storage_and_return_alias` failed after the change, because its fake program returned `x+1` (the old copy contract). I rewrote it for the new contract.
+
+### What I learned
+- The gate order "simulate, then compile, then freeze" caught nothing new this time. It still turns a 30-minute GPU replay into a confirmation step instead of a discovery step.
+
+### What was tricky to build
+- The mutated output name `__mut<k>` refers to the source input *index*. The exporter needs the input's program *name*. `corpus` maps it through the manifest's `inputs` order, which is the placeholder order.
+
+### What warrants a second pair of eyes
+- If a graph both mutates an input and returns the original (pre-mutation) value, the earlier output buffer is untouched by the write-back, which is correct. The `input_alias` structure handles outputs that alias the mutated input.
+
+### What should be done in the future
+- Collect the mutation replay. Then direct in-place writes when no later kernel reads the input. Then slice 3.
+
+### Code review instructions
+- `writebackKernel` and the mutation loop in `exportProgram`; `corpus.compile_task`; `CorpusDispatch.__call__`.
+
+### Technical details
+- Replay staged at `b1a7ce4`, snapshot `77300073…`; tmux `kiln-mutation-writeback-v1`.
+
+## Step 258: The write-back replay: 8 of 14 families, and a benchmark limit on accumulating mutations
+
+The mutation write-back replay (`mutation-writeback-replay-gpu-v1`) accepted 8 of 14 families and 90 of 126 graphs, against 0 of 12 and 9 of 96 for the old `copy_` wave. Every graph executed without error. All 36 rejections are numerical, and they split into two causes.
+
+Four families (94, 111, 172, 176) cannot pass under any faithful replacement. Their source graph accumulates into an input (`x += y`) and returns a value computed from it. PassBench's `test_single_model` builds one `input_dict` and passes it to the compiled run (20 warmups plus 100 trials) and then to the eager run. The eager reference is therefore computed after twice as many updates as the compiled output.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 257 ("ok, let's continue P3a slice 3 and in -place mutation, then we can do all the gates and qualifications and all."). Mid-step: "how much is left?" and "how much can we do on CPU (i might need bling for some other work)".
+**Assistant interpretation:** Collect and explain the mutation replay; keep later GPU work queued rather than launched.
+**Inferred user intent:** Know whether the write-back design works, and keep the GPU free.
+**Commit (code):** d2f3f97 — collection (audit, receipt, raw archive)
+
+### What I did
+- Collected with `669-collect-task-plan-run.py --study sources/mutation-writeback-replay-gpu-v1 --plan sources/mutation-writeback-replay-v1/plan.json --run results --name results`. The run was complete, the plan identical and the snapshot `77300073…` matched.
+- Per family (accepted/graphs): 17 14/18, 45 10/10, 49 6/6, 92 15/15, 94 0/2, 96 8/8, 111 0/12, 131 9/9, 134 15/15, 147 1/6, 161 6/6, 172 0/7, 176 0/6, 196 6/6.
+- For each family, read the mutated value in its Kiln script (`__mutN: vK`) and the exported program for 111. The kernels are `conv2d`, `__mut2` (reads 2, 1, 4), `out0`, then `k_writeback` (reads 5, writes 2). The output `__mut2` is buffer 2, the input itself.
+- Read `pass_bench/torch/test_compiler.py::test_single_model` (lines 240–330) and `make_model_call`.
+
+### Why
+- I needed to know whether the failures were a Kiln write-back defect (the write landing in a copy) or a property of the harness. `runtime.TorchProgram.__call__` binds input pointers to the caller's tensors (`tensor.data_ptr()`), so the write does reach the input.
+
+### What worked
+- The write-back design. Every family whose mutation is idempotent (`relu_`, the clamp in 45) or converges under repetition (`silu_` in 92, 96 and 131) passed completely.
+
+### What didn't work
+- 94, 111, 172 and 176 fail at every tolerance up to atol 1e-3 / rtol 8.4e-2. In 111 (`v4 = v2 + conv`, `out0 = reshape(transpose(v4))`), `out0` after N updates is compared with eager's after 2N.
+- 17 and 147 fail t=-5 only on f16/bf16 variants (tightest passing tolerance -4 or -3). This is a separate rounding question, not yet investigated.
+
+### What I learned
+- A replacement for an accumulating input mutation is judged against a history-dependent reference. A replacement that skipped the write-back would fail too: eager would then see N updates where compiled saw none.
+- Repeated `silu_` drives values toward 0, so the doubled history is invisible at t=-5. Those passes rest on that convergence, not on matching histories.
+
+### What was tricky to build
+- Nothing was built. The difficulty was attribution: "correct execution, wrong numbers" first pointed at the runtime's buffer binding.
+
+### What warrants a second pair of eyes
+- My reading that `exec()` returns the last trial's output and that no input reset happens between the two phases. `PerformanceMeasurer.exec` was not read line by line.
+
+### What should be done in the future
+- Report 94, 111, 172 and 176 as a benchmark limitation with this reason, and keep them out of acceptance denominators (task `shin`).
+- Diagnose the f16/bf16 near-misses in 17 and 147.
+
+### Code review instructions
+- `sources/mutation-writeback-replay-gpu-v1/results-audit.json`; upstream `pass_bench/torch/test_compiler.py:240-330`.
+
+### Technical details
+- The audit has `graphs_nominal_accepted` 90 and `unexecuted_graphs` 0; the audit sha256 is `9cf0d51d…`.
+
+## Step 259: P3a slice 3: typed integer arithmetic, from promotion to CUDA
+
+Integer arithmetic now flows through every IR. PyTorch's type promotion resolves each frontend elementwise op into one typed function (`add_i64`, `ne_i32`, `to_f32` and so on), with a conversion per operand where one is needed. Kernels give every value one static type. The reference computes int64 exactly in BigInt, wrapping as CUDA does.
+
+The import census rose from 1,769 to 1,802 graphs, and complete families from 143 to 151, with no regressions. A frozen replay (`typed-slice3-replay-v1`, 10 families, 45 graphs) passed both CPU gates. It is not launched, because bling may be needed for other work.
+
+### Prompt Context
+**User prompt (verbatim):** see Step 257 and Step 258.
+**Assistant interpretation:** Implement slice 3 end to end, gate it on CPU, freeze it, and do not occupy the GPU.
+**Inferred user intent:** The integer families become compilable, with GPU time spent only when the user frees it.
+**Commit (code):**
+- 07fb998 — Kiln typed arithmetic
+- 681fe04 — importer
+- (fx_import max/min narrowing, script 674, census) — committed with message "Narrow floating max/min…"
+- 8167642 — plan freeze and generator fix
+
+### What I did
+- `fns.js`:
+  - Typed functions generated per dtype. `{add,sub,mul,neg,max,min}_{i32,i64}`; comparisons `{eq,ne,lt,le,gt,ge}_{f32,i32,i64,bool}` returning bool; conversions `to_{f32,i32,i64,bool}`. Each declares `args` (operand dtype, or `*`) and `type`.
+  - Typed reducers `{add,max,min}_{i32,i64}`, with exact C identities (`(-9223372036854775807LL - 1)`).
+  - `select` and `copy` marked polymorphic. `FLOAT32_FUNCTIONS` leaves typed and polymorphic results unrounded. Added `jsInit` and `typedReducer`.
+- `tensor.js`:
+  - `promoteDtypes`, PyTorch's rule. Categories bool < integer < float; dimensioned tensors dominate 0-dim tensors, which dominate scalars; a lower group changes the result only by raising the category.
+  - `resolveEw(fn, xs)` gives `{fn, casts}`. `nn.ew` stores the resolution, so its reference, inference and decomposition all read one decision.
+  - `nn.cast` accepts integer and bool targets (`castRef`: truncation toward zero, nonzero is true).
+  - `nn.reduce`: integer sums widen to int64; max/min keep their dtype.
+  - `nn.cumsum` decomposes to a reduction over a new last axis, masked by a view of the table `[1, 0]` at `(i - j < 0)`. No constant scales with the axis.
+  - `tensor.const` gained `dtype`. `N.int` and `N.bool` spell Python scalars; added `N.eq/ne/le/ge`, `N.maskedFill`, `N.cumsum`, `N.amin`.
+- `kernel.js`: `valueTypes` replaces `integerValues`. Loads take their buffer's dtype and shared arrays the dtype stored into them. Typed functions check their operands, and an untyped function refuses an integer operand. A literal-initialized accumulator is typed by its later use. `smem` entries carry `dtype`, and `smemBytes` uses `dtypeBytes`. An int64 literal past 2^53 keeps an exact decimal `exact` beside its number, so the IR stays JSON-safe.
+- `emit.js`: `fx(e, ctx)` spells a literal in its context's dtype (`0LL`, `1`, `true`). Shared arrays are declared with their storage type, and `CUDA_STORAGE` gained `i32: int`.
+- `loop.js`: typed constant folding; `runSerial` and `loop.kernel` evaluate into the output dtype; int64 writes go through `BigInt`; the splat-constant kernel keeps its dtype.
+- `ix.js`: comparisons spell `+(a < b)` in JS.
+- Importer:
+  - `operand()` spells Python int and bool scalars as `N.int`/`N.bool`.
+  - New lowerings: comparisons (functions, methods, dunders), `masked_fill` and `masked_fill_`, `cumsum`, `max/min` (over a dim: values, with argmax refused where used; over two tensors: elementwise; with neither: a full reduction), `.int()`, `neg`, `detach`, `t`, and the binary methods.
+  - An in-place call on a fresh, unaliased value rebinds every name of that storage. A per-chain storage root tracks freshness and aliasing.
+  - `int32` was added to `IMPORTED`.
+  - `corpus.eliminate_dead_code` and `generate_pass.drop_dead_statements` keep a dead in-place call whose target is an argument or is read later.
+  - Device-only `.to` compares shape and dtype.
+  - Floating `max/min` over a dim narrows back to the source dtype.
+- Tests:
+  - `test/integer-arithmetic.mjs`: promotion table, refusals, wrap at 2^63, conversions, and a position-id graph. That graph has five outputs; the loop IR equals the frontend reference exactly, and the CUDA is typed (`!= (0LL)`, `__shared__ long long s_red`).
+  - `test_fx_import::test_integer_arithmetic`, including rebinding and the aliasing refusal; `test_pass_generation` updated.
+  - Updated `casts.mjs` and `integer-storage.mjs`.
+- Script `674-local-compile-gate.py`: export plus compile with the replay settings and the internal check on.
+
+### Why
+- I resolved typed function names at the tensor level, rather than inferring types from generic names in the kernel. The frontend knows PyTorch's rules, and once names carry types the kernel check is a local consistency check that catches a missed conversion loudly. Mixed-type spellings in the emitter would need the same rules a second time.
+- The cumsum table view instead of an `E` index-value node: it reuses views, fusion and the cost model unchanged. The quadratic reduction is acceptable at these sequence lengths (≤ 512).
+- BigInt for int64 in the reference: `typed-reference-storage.mjs` already pins exactness past 2^53.
+
+### What worked
+- `packages/kiln` 48/48; pytest 170 passed.
+- Local compile gate 51/51 graphs over tasks 28, 38, 64, 91, 104, 126, 175, 199, 3, 139 and 162.
+- 658 Dynamo simulation 45/45 for the frozen 10 tasks.
+- The census found no regressions.
+
+### What didn't work
+- `add_i64 applied to a f32 value in k_out`, twice:
+  - first, `liftConst` dropped the splat's dtype (`mkKernel([], E.num(v), shape, "constant")`);
+  - then, the reduction accumulator `acc0 = 0` was typed f32 before its typed update.
+  The fixes: pass `n.type.dtype`, and type literal-only names by their later use.
+- `Do not know how to serialize a BigInt` in `toCuda`, from `JSON.stringify(K.body)`. Kernel literals now carry `exact` strings instead of BigInts.
+- `Cannot convert a BigInt value to a number`: `FLOAT32_FUNCTIONS.select` frounded an int64 operand. Polymorphic functions are now unwrapped.
+- `Cannot convert -9 to a BigInt`: a numeric literal written into int64 storage. Writes now go through `W = BigInt`.
+- Loop evaluation returned all ones for the cumsum positions: `I1[((r13 - r14) < 0)]` indexes a typed array with a boolean. IX JS comparisons now spell numbers.
+- Census regression on 6 graphs (`relu_` after `tmp += x`): my first rebinding branch stopped in-place results from inheriting freshness. Storage roots fixed it.
+- Task 38: `expected (32, 512, 1) bf16, Kiln inferred f32` for `max(dim)` on bf16. The importer now narrows back.
+- 658 on task 162: first `Dead in-place source statement has an observable effect` (the generator had its own copy of the old rule), then `Found no NVIDIA driver`, because the graph's `.to(cuda)` cannot be captured on this host.
+
+### What I learned
+- The existing float comparison functions (`gt`, `lt` returning 1.0f) were masks. Typed comparisons return bool, and `select` accepts any condition, so the clamp lowering kept working unchanged.
+- Integer literals are the subtle part of mixed typing: `x + 1.0f` with a `long long` x silently becomes float in C. Context-typed spelling closes that.
+
+### What was tricky to build
+- Literal typing across three representations: E nodes (numbers), kernel IR (numbers plus `exact`), and CUDA (context spelling). The accumulator case shows why the type must come from the use, not from the definition.
+- Rebinding semantics for in-place updates of intermediates. Earlier uses must read the old value and later uses the new one, and any alias created before the update makes the rewrite unsound, hence the refusal.
+
+### What warrants a second pair of eyes
+- `promoteDtypes` for 0-dim tensors of a higher category: I return their joined dtype, not a category default. That matches my reading of PyTorch but was not differentially tested against torch.
+- i32 overflow wraps in the reference (`| 0`, `Math.imul`), while C signed overflow is undefined. They agree on two's-complement hardware in practice.
+- `fx_import` `t()` on rank < 2 returns the value.
+- Floor division and modulo on integers are refused (`div over i64 values is not lowered`). Only true division is mapped.
+
+### What should be done in the future
+- Launch `typed-slice3-replay-v1` when bling is free, then collect it (task `s3gp`). Gate 162 on a CUDA host (task `s162`).
+- An `E` index-value node (arange, triangular masks) if attention-mask families need it; cumsum would then read it instead of the table view.
+- Integer floor division and modulo when a family needs them.
+
+### Code review instructions
+- Start at `packages/kiln/src/std/fns.js` (typed table), then `tensor.js` (`promoteDtypes`, `resolveEw`, `convert`, `nn.cumsum`), `kernel.js` (`valueTypes`) and `emit.js` (`fx`, `ilit`).
+- Validate:
+  - `cd packages/kiln && npm test`
+  - `cd integrations/passnet && python3 -m pytest -q`
+  - `python3 ttmp/…/scripts/674-local-compile-gate.py --output /tmp/g 28 3`
+
+### Technical details
+- The census is `sources/typed-slice3-import-v1.json`. The newly complete families are tasks 28, 38, 64, 91, 104, 126, 175 and 199.
+- The plan is `sources/typed-slice3-replay-v1/plan.json`, with `local-compile-gate.json` and `dynamo-simulation.json` beside it.
+
+## Step 260: CPU-only wrap-up: RNE TF32, two near-miss diagnoses, six composed lowerings and a second frozen replay
+
+The user may need bling for other work, so this step did everything that runs on the CPU and queued the rest. TF32 operand rounding now ties to even, as probe 671 measured for products. The input-mutation result and both of its limits are written up in reference 50. Six new frontend lowerings (`norm`, `normalize`, `prelu`, two-operand `einsum`, masked SDPA, eval-mode dropout variants) raised the census to 1,912 graphs and 163 complete families. A second replay (`composed-ops-replay-v1`, 10 families, 101 graphs) passed both CPU gates and is frozen, not launched.
+
+### Prompt Context
+**User prompt (verbatim):** "what's left?" then "wrap up the CPU only stuff."
+**Assistant interpretation:** Finish every item that does not need the GPU: the TF32 rounding change, the near-miss diagnosis, the benchmark-limit write-up, and the next import blockers through both CPU gates.
+**Inferred user intent:** The GPU queue is ready to run in one batch whenever bling is free.
+**Commit (code):**
+- 44f030c — RNE TF32, codegen 4
+- aacccfd — reference 50
+- 527088e — composed lowerings and the numeric harness
+- 45cb29a — target normalization, end-to-end tolerance, freeze
+
+### What I did
+- **TF32:**
+  - `fns.roundTf32`, the CUDA helper and the WGSL helper now add `0xfff + ((b >> 13) & 1)` before masking (ties to even), replacing `cvt.rna`.
+  - `test/tf32.mjs` checks both tie directions.
+  - `CODEGEN_VERSION` is `kiln-codegen/4`, which also covers slice 3's typed emission.
+- **Near-misses 17 and 147:**
+  - Read `max_diff`/`mean_diff` from each failing graph's validation log. They are one or two f16/bf16 ulps, on a handful of elements in 17 and more in 147.
+  - Kiln already rounds once after f32 accumulation. Reduction order and PyTorch's `allow_*_reduced_precision_reduction` remain as explanations, and a GPU probe is queued (task `rprr`).
+- **Reference 50:** the replay result, the shared-input argument for 94, 111, 172 and 176 with the arithmetic, and the near-miss analysis.
+- **`fx_compose.py`:**
+  - `lower_norm` (the 2-norm over dims; function and method) and `lower_normalize` (x / max(norm rounded to the dtype, eps));
+  - `lower_prelu` (a channel or scalar weight);
+  - `lower_einsum` (two operands, no ellipsis; permute to batch/free/contracted, one batched matmul, permute back);
+  - `lower_sdpa` (a bool mask selects −∞, a float mask adds; dropout 0, non-causal, no GQA).
+  - Eval-mode dropout of every variant is the identity, in place or not.
+- **`kiln_eval.mjs` and `test_fx_compose.py`:** torch on CPU compared with Kiln's frontend reference and its compiled Loop IR. Five tests, including the slice-3 position graph at zero tolerance. I checked by hand that a 1e-3 perturbation is detected.
+- **Census:** `composed-ops-import-v1`.
+- **Gates:** 674 local compile, then the 658 simulation, then the freeze.
+
+### Why
+- I switched RNE everywhere rather than making it per operation, because `tf32Pass` applies TF32 to matrix products only since Step 248. The 3×3 convolutions that measure closer to RNA are not rounded at all.
+- The gate compiles FP32 products because its internal check compares against the untransformed f32 reference. Under tf32 the check fails on any long contraction (task 5's attention: 478 of 3,072 values differ at rtol 1e-3) without saying anything about the lowering.
+
+### What worked
+- `packages/kiln` 48/48; pytest 175 passed; workbench `compile`-path tests (2 of 6 runnable).
+- Census: +104 graphs, +11 complete families (5, 23, 37, 55, 57, 63, 78, 80, 99, 119, 156), 0 regressions.
+- Gate 104/104 graphs. Simulation 101/101 for the frozen tasks.
+
+### What didn't work
+- 658 first matched 0 graphs for 23, 63, 80, 119 and 156 (`matches 0`, no rule error). The new functions were missing from `fx_normalize.TARGETS`, so the pattern and the Dynamo capture spelled defaults differently. After adding them, 39 of 39 matched.
+- The end-to-end check failed on low-precision outputs:
+  - task 80: one f16 value, 2 ulps (0.30566 vs 0.30518), after a one-ulp flip in the f16 norm was amplified by the division;
+  - task 5: one bf16 value of 0.062, 0.0027 off, from one bf16 ulp in operands of magnitude about 4.
+  The check now uses rtol of 4 ulps and atol of one ulp at the output's largest magnitude for f16/bf16 outputs; f32 is unchanged.
+- Task 55, like 162, cannot be captured on this host (`Found no NVIDIA driver`, from `.to(cuda)`).
+- Workbench tests `notes`, `presets`, `sandbox` and `server-sync` need `src/presets.gen.js`, which is generated by `build.mjs`, which imports `esbuild`, which is not installed in this worktree. This is environmental, and recorded as task `esbd`.
+
+### What I learned
+- TorchDynamo keeps `normalize`, `torch.functional.norm` and the dropout variants as calls; it does not inline them. Matching depends only on argument normalization.
+- A tolerance relative to an element cannot judge low-precision outputs that are differences of large rounded values. The error scale belongs to the operands, so the absolute term must scale with the output's magnitude.
+
+### What was tricky to build
+- `einsum` letter classes: batch (both operands and the output), contracted (both, not the output), and free (one operand, in the output). A letter that appears in one operand only and not in the output needs a reduction, so it is refused rather than lowered.
+
+### What warrants a second pair of eyes
+- The loosened end-to-end tolerance for f16/bf16. It is a self-check of Kiln's lowering; a systematic error of a few ulps would now pass it, and only PassBench would catch it.
+- SDPA under `--matmul-precision tf32`: the replay compiles attention products with TF32 rounding. Whether PyTorch's f32 SDPA kernels on GB10 use TF32 is unverified (task `sdtf`).
+- Normalize narrows the norm to the input dtype before `max(·, eps)`, following PyTorch's decomposition. For f16, eps = 1e-12 rounds to 0 in both.
+
+### What should be done in the future
+- GPU queue, in order:
+  1. `typed-slice3-replay-v1` (45 graphs) and `composed-ops-replay-v1` (101 graphs);
+  2. the 658 gate for 55 and 162 on a CUDA host;
+  3. the reduced-precision probe for 17 and 147;
+  4. the TF32 family re-run;
+  5. the cost-gated replicate;
+  6. re-qualifying 32, 75 and 107.
+- Remaining import blockers: `get_attr` constants (17 graphs), `F.unfold` (10), strided slices (9), bilinear `align_corners` (8), `conv1d` (5).
+
+### Code review instructions
+- `integrations/passnet/fx_compose.py`, then `test_fx_compose.py`; `apps/workbench/src/compile.js::endToEnd` (the `tolerance` function); `packages/kiln/src/std/fns.js::roundTf32`.
+- Validate:
+  - `cd integrations/passnet && python3 -m pytest -q test_fx_compose.py`
+  - `node packages/kiln/test/tf32.mjs`
+
+### Technical details
+- The plan is `sources/composed-ops-replay-v1/plan.json`, with `local-compile-gate.json` and `dynamo-simulation.json` beside it. The census is `sources/composed-ops-import-v1.json`.
+
+## Step 261: Six GPU runs on a freed bling: slice 3 complete, TF32 settled, the cost-gate condition met
+
+With bling freed (two vLLM containers stopped by the user's instruction), the queued work ran back to back on the GPU, never overlapping. Six results came out of it:
+- Slice 3 is complete on the GPU: 10 of 10 families and 45 of 45 graphs.
+- Composed ops passed 7 of 10 families.
+- Probe 675 settled three numerics questions: f32 attention is pure FP32, low-precision cuBLAS products use reduced-precision reductions, and 1×1 convolutions round TF32 operands to nearest-even.
+- The TF32 re-qualification on top of that passed 8 of 15 families and fixed every f32 failure it targeted.
+- The replicate of the held-out gated arm accepted 237 of 237 graphs, meeting reference 49's unmet condition.
+- A views-ops replay passed 4 of 5 families, including a measured 42.6× speedup.
+
+### Prompt Context
+**User prompt (verbatim):** "ok, bling is free", then "ok kill the vllms". Also: "what else can we d o in the meantime, anything?" and "what other design sized pieces of work are there?"
+**Assistant interpretation:** Run the frozen GPU queue serially; use the GPU time to settle open numerics questions; keep CPU work going in parallel.
+**Inferred user intent:** Turn the CPU-gated backlog into GPU evidence in one sitting.
+**Commit (code):**
+- 6634f0c — collections and probe 675
+- fe45148 — TF32 1×1 conv and FP32 attention
+- 67678fd — re-qualification
+- 4762824, a001c3c — view operations
+- cbf6866 — replicate and views-ops
+
+### What I did
+- **Stopped the containers.** `docker stop bookocr-olmocr bookocr-dots` on bling (restart policy `unless-stopped`, so they stay stopped; `docker start` restores them). The GPU then showed no compute processes.
+- **Staged and ran the queued replays.** Staged `typed-slice3-replay-gpu-v1` and `composed-ops-replay-gpu-v1` with script 641 at 53a56b0, then ran them through tmux and the 651 queue.
+- **Wrote and ran probe 675** (`scripts/675-attention-and-low-precision-probes.py`, in the evaluator image).
+- **Changed Kiln from the probe results.** 1×1-convolution TF32 rounding (`tf32Conv1x1`), and `nn.matmul` `precision: "highest"` used by `lower_sdpa` to pin attention products to FP32.
+- **Ran the re-qualification.** Froze, gated (674: 174/174; 658: 165/174, with the 9 graphs of 52 failing only at CUDA capture) and ran `tf32-rne-requal-v1` (15 families).
+- **Ran the gated replicate.** It reruns the frozen gated arm of `cost-gate-held-out-v1` from the original staged snapshot on bling into `gated-replicate/`, via an inline `replicate.sh`.
+- **Added view operations.** Strided slices, `conv1d`, nearest resize and `F.unfold` raised the census to 1,931 graphs and 168 complete families. Froze `views-ops-replay-v1` (5 families, 19 graphs; gates 19/19 and 19/19) and ran it.
+
+### Why
+- Probe 675 decided the TF32 boundary by measurement instead of by guessing; Step 248's RNA guess was the cause of the conv regressions.
+- I ran the replicate on the original staged directory so that its code snapshot (`c0d8027c…`) is identical to the arm being replicated. The collector checks that.
+
+### What worked
+| Run | Families | Graphs | Notes |
+|---|---|---|---|
+| typed-slice3 | 10/10 | 45/45 | 3 scores 1.51, 28 scores 1.05 |
+| composed-ops | 7/10 | 75/101 | 57 is the shared-input limit (`einsum` result `+=` into an input); 5 and 119 were TF32 |
+| tf32-rne-requal | 8/15 | 155/183 | 72 6→9/9; 88 and 157 now 3/3; 5 8→15/23 (all f32 pass); 119 1→3/6; 32 6/6; 107 18/18; 75 47/48; 55 3/3 |
+| gated replicate | 20/20 | 237/237 | score mean 1.037 vs 1.034; largest per-family difference 0.067 |
+| views-ops | 4/5 | 17/19 | 35: 22.2 ms eager vs 0.52 ms (42.6×); 125 1/3 |
+
+- Probe 675 results:
+  - f32 SDPA picks the efficient backend, with max error 1.2e-6 against FP32 and 7.4e-4 against TF32-RNE.
+  - f16/bf16 linear differs from round-once in 29% of elements with the reduced-precision flag on and 0.08% with it off; 1×1 conv differs in 0.15%, independent of the flag.
+  - f32 1×1 conv: RNE 9e-6, RNA 3.3e-4, FP32 1.5e-3.
+
+### What didn't work
+- My first slice-3 launch called `run.sh` without its argument (`run.sh: line 3: 1: Provide the staged study directory`). The session exited at once, which released the queue, so composed-ops ran first. Nothing ran incorrectly; the log was kept as `owner.false-start.log`, and slice 3 was requeued behind composed-ops.
+- Family 162 is 0/6 with `SubgraphMatcher cannot be initialized with an pattern with dead code`. Step 259's kept dead `masked_fill_` statement is a pattern node without users. The fix is designed in KILN-009.
+- I committed 4762824 with one failing Python test, because `tail` in the command chain hid pytest's exit code. That test asserted the old refusal of strided slices; fixed in a001c3c.
+- `get_attr` (17 graphs) turned out to be BEiT's in-place relative-position index construction, not constants. It is designed in KILN-010.
+
+### What I learned
+- Matching PyTorch's numerics is per kernel, not per operation type. The same `allow_tf32` setting gives FP32 attention, RNE products and RNE 1×1 convolutions, while 3×3 convolutions are closer to RNA.
+- Speed is now the binding constraint. Accepted families often score 0.01–0.3: 32 at 0.01, 52 at 0.026, 72 at 0.059. The remaining work is the design-sized items, now ticketed as KILN-006 to KILN-011.
+
+### What was tricky to build
+- Serializing GPU work across tmux sessions. Each queue waits on the previous session name; a session that exits early releases the queue immediately, which is what reordered slice 3 and composed-ops.
+
+### What warrants a second pair of eyes
+- Family 35's 42.6× is eager `F.unfold` with 384×384 windows against a fused view copy. It is real in this harness but not representative.
+- The replicate supports reference 49's conclusion but is a second run of the same design, not a new population.
+
+### What should be done in the future
+- Restart the OCR containers when bling is next free for other work.
+- Implement KILN-006 to KILN-011 in parallel worktrees (guides in progress); fix family 162 via KILN-009.
+- Update reference 49 with the replicate result.
+
+### Code review instructions
+- Audits: `sources/{typed-slice3,composed-ops,tf32-rne-requal,views-ops}-replay-gpu-v1/results-audit.json` and `sources/cost-gate-held-out-v1/gated-replicate-audit.json`; probe `sources/gpu-probes-v2/result.json`.
+- Code: `packages/kiln/src/std/tensor.js` (`tf32Conv1x1`, `nn.matmul` precision, `nn.nearest`, `nn.slice` step) and `integrations/passnet/fx_compose.py`.
+
+### Technical details
+- Snapshots:
+  - 53a56b0 → `51274e3f…` (slice 3, composed-ops);
+  - requal `69e4d20d…`;
+  - views-ops `580d5e3e…`;
+  - replicate `c0d8027c…` (original).

@@ -1,0 +1,337 @@
+{
+ "format": "kiln-coverage-numerics/1",
+ "torch": "2.11.0+cu130",
+ "dist": "randn",
+ "records": [
+  {
+   "task": 40,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/7e/23/7e239f09d33d09349e638749346c9e943c78a48910917c0efc365199f657302e",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/4/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+   "dist": "randn",
+   "max_dim": 256,
+   "verdict": "within",
+   "seconds": 5.2,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 2.9802322387695312e-08,
+     "max_ref": 0.3972756564617157,
+     "exact": false
+    },
+    "loop.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 1.6391277313232422e-07,
+     "max_ref": 0.3972756564617157,
+     "exact": false
+    },
+    "frontend.__mut0": {
+     "dtype": "torch.float32",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 5.8227972984313965,
+     "exact": true
+    },
+    "loop.__mut0": {
+     "dtype": "torch.float32",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 5.8227972984313965,
+     "exact": true
+    }
+   }
+  },
+  {
+   "task": 40,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/7e/23/7e239f09d33d09349e638749346c9e943c78a48910917c0efc365199f657302e",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/4/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+   "dist": "randn",
+   "max_dim": 256,
+   "verdict": "within",
+   "seconds": 4.2,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 1.52587890625e-05,
+     "max_ref": 0.39453125,
+     "exact": false
+    },
+    "loop.out0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 6.103515625e-05,
+     "max_ref": 0.39453125,
+     "exact": false
+    },
+    "frontend.__mut0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 5.8125,
+     "exact": true
+    },
+    "loop.__mut0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 5.8125,
+     "exact": true
+    }
+   }
+  },
+  {
+   "task": 40,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/7e/23/7e239f09d33d09349e638749346c9e943c78a48910917c0efc365199f657302e",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/1/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+   "dist": "randn",
+   "max_dim": 256,
+   "verdict": "within",
+   "seconds": 2.4,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      2,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 0.35546875,
+     "exact": true
+    },
+    "loop.out0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      2,
+      256,
+      256
+     ],
+     "max_abs_diff": 1.52587890625e-05,
+     "max_ref": 0.35546875,
+     "exact": false
+    },
+    "frontend.__mut0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      2,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 5.6875,
+     "exact": true
+    },
+    "loop.__mut0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      2,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 5.6875,
+     "exact": true
+    }
+   }
+  },
+  {
+   "task": 40,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/7e/23/7e239f09d33d09349e638749346c9e943c78a48910917c0efc365199f657302e",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/4/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+   "dist": "randn",
+   "max_dim": 256,
+   "verdict": "within",
+   "seconds": 5.1,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.float16",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 1.52587890625e-05,
+     "max_ref": 0.397705078125,
+     "exact": false
+    },
+    "loop.out0": {
+     "dtype": "torch.float16",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 1.52587890625e-05,
+     "max_ref": 0.397705078125,
+     "exact": false
+    },
+    "frontend.__mut0": {
+     "dtype": "torch.float16",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 5.82421875,
+     "exact": true
+    },
+    "loop.__mut0": {
+     "dtype": "torch.float16",
+     "shape": [
+      12,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 5.82421875,
+     "exact": true
+    }
+   }
+  },
+  {
+   "task": 40,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/7e/23/7e239f09d33d09349e638749346c9e943c78a48910917c0efc365199f657302e",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/5/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+   "dist": "randn",
+   "max_dim": 256,
+   "verdict": "within",
+   "seconds": 5.7,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.float16",
+     "shape": [
+      16,
+      256,
+      256
+     ],
+     "max_abs_diff": 1.52587890625e-05,
+     "max_ref": 0.397705078125,
+     "exact": false
+    },
+    "loop.out0": {
+     "dtype": "torch.float16",
+     "shape": [
+      16,
+      256,
+      256
+     ],
+     "max_abs_diff": 1.52587890625e-05,
+     "max_ref": 0.397705078125,
+     "exact": false
+    },
+    "frontend.__mut0": {
+     "dtype": "torch.float16",
+     "shape": [
+      16,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 5.953125,
+     "exact": true
+    },
+    "loop.__mut0": {
+     "dtype": "torch.float16",
+     "shape": [
+      16,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 5.953125,
+     "exact": true
+    }
+   }
+  },
+  {
+   "task": 40,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/7e/23/7e239f09d33d09349e638749346c9e943c78a48910917c0efc365199f657302e",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/mmseg/DNLNet_R101/_decomposed/DNLNet_R101_start364_end371_4",
+   "dist": "randn",
+   "max_dim": 256,
+   "verdict": "within",
+   "seconds": 19.4,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      64,
+      256,
+      256
+     ],
+     "max_abs_diff": 5.960464477539063e-08,
+     "max_ref": 0.46934348344802856,
+     "exact": false
+    },
+    "loop.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      64,
+      256,
+      256
+     ],
+     "max_abs_diff": 3.5762786865234375e-07,
+     "max_ref": 0.46934348344802856,
+     "exact": false
+    },
+    "frontend.__mut0": {
+     "dtype": "torch.float32",
+     "shape": [
+      64,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 6.345392227172852,
+     "exact": true
+    },
+    "loop.__mut0": {
+     "dtype": "torch.float32",
+     "shape": [
+      64,
+      256,
+      256
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 6.345392227172852,
+     "exact": true
+    }
+   }
+  }
+ ]
+}

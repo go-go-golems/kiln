@@ -1,0 +1,181 @@
+{
+ "format": "kiln-coverage-numerics/1",
+ "torch": "2.11.0+cu130",
+ "dist": "rand",
+ "records": [
+  {
+   "task": 8,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a1/97/a197e09cf465b6cf27c9d52f3f115a6655d9aba6925d3b6b736d5c268833015f",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float32/9/samples/timm/convit_base/_decomposed/convit_base_start106_end110_16",
+   "dist": "rand",
+   "verdict": "within",
+   "seconds": 12.3,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 1.862645149230957e-09,
+     "max_ref": 0.012000452727079391,
+     "exact": false
+    },
+    "loop.out0": {
+     "dtype": "torch.float32",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 8.381903171539307e-09,
+     "max_ref": 0.012000452727079391,
+     "exact": false
+    },
+    "frontend.__mut0": {
+     "dtype": "torch.float32",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 1.862645149230957e-09,
+     "max_ref": 0.012000452727079391,
+     "exact": false
+    },
+    "loop.__mut0": {
+     "dtype": "torch.float32",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 8.381903171539307e-09,
+     "max_ref": 0.012000452727079391,
+     "exact": false
+    }
+   }
+  },
+  {
+   "task": 8,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a1/97/a197e09cf465b6cf27c9d52f3f115a6655d9aba6925d3b6b736d5c268833015f",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/float16/2/samples/timm/convit_base/_decomposed/convit_base_start106_end110_16",
+   "dist": "rand",
+   "verdict": "exact",
+   "seconds": 11.9,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.float16",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 0.01200103759765625,
+     "exact": true
+    },
+    "loop.out0": {
+     "dtype": "torch.float16",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 0.01200103759765625,
+     "exact": true
+    },
+    "frontend.__mut0": {
+     "dtype": "torch.float16",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 0.01200103759765625,
+     "exact": true
+    },
+    "loop.__mut0": {
+     "dtype": "torch.float16",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 0.01200103759765625,
+     "exact": true
+    }
+   }
+  },
+  {
+   "task": 8,
+   "sample": "samples/hf_subgraphs_v2/fusible_subgraphs/a1/97/a197e09cf465b6cf27c9d52f3f115a6655d9aba6925d3b6b736d5c268833015f",
+   "graph": "graphs/hf_subgraphs_v2/fusible_subgraphs/bfloat16/9/samples/timm/convit_base/_decomposed/convit_base_start106_end110_16",
+   "dist": "rand",
+   "verdict": "exact",
+   "seconds": 9.2,
+   "rows": {
+    "frontend.out0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 0.011962890625,
+     "exact": true
+    },
+    "loop.out0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 0.011962890625,
+     "exact": true
+    },
+    "frontend.__mut0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 0.011962890625,
+     "exact": true
+    },
+    "loop.__mut0": {
+     "dtype": "torch.bfloat16",
+     "shape": [
+      1,
+      16,
+      196,
+      196
+     ],
+     "max_abs_diff": 0.0,
+     "max_ref": 0.011962890625,
+     "exact": true
+    }
+   }
+  }
+ ]
+}

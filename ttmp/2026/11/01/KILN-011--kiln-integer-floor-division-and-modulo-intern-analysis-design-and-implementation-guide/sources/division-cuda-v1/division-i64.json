@@ -1,0 +1,571 @@
+{
+ "format": "kiln-program/1",
+ "name": "division-i64",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/11/01/KILN-011--kiln-integer-floor-division-and-modulo-intern-analysis-design-and-implementation-guide/sources/division-cuda-v1/division-i64.kiln.js",
+  "sha256": "10a9017e38ef7abc9f4b19cb679d2fb23a18a7af4d45c4f44554cc77ad3a3d6b",
+  "internal_check": "ok at loop"
+ },
+ "inputs": [
+  {
+   "name": "a",
+   "buffer": 0,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "b",
+   "buffer": 1,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "floordiv",
+   "buffer": 2,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "remainder",
+   "buffer": 3,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "truncdiv",
+   "buffer": 4,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "fmod",
+   "buffer": 5,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "floor_lit",
+   "buffer": 6,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "rem_lit",
+   "buffer": 7,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "floor_neg",
+   "buffer": 8,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "rem_neg",
+   "buffer": 9,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "trunc_lit",
+   "buffer": 10,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "fmod_lit",
+   "buffer": 11,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  },
+  {
+   "name": "truediv",
+   "buffer": 12,
+   "shape": [
+    4096
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 1,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 2,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 3,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 4,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 5,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 6,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 7,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 8,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 9,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 10,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 11,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 12,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_floordiv__8z663m71o",
+   "identity": "8z663m71o",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 2,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64",
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ long long kiln_floordiv_i64(long long a, long long b) { if (b == -1) return (long long)(0u - (unsigned long long)a); long long q = a / b, r = a % b; return q - (long long)((r != 0) & ((r ^ b) < 0)); }\nextern \"C\" __global__ void __launch_bounds__(64) k_floordiv__8z663m71o(const long long* __restrict__ src0, const long long* __restrict__ src1, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, in1 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = kiln_floordiv_i64(in0, in1);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_remainder__exqp62yego",
+   "identity": "exqp62yego",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 3,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64",
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ long long kiln_remainder_i64(long long a, long long b) { if (b == -1) return 0; long long r = a % b; return r + (((r != 0) & ((r ^ b) < 0)) ? b : 0); }\nextern \"C\" __global__ void __launch_bounds__(64) k_remainder__exqp62yego(const long long* __restrict__ src0, const long long* __restrict__ src1, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, in1 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = kiln_remainder_i64(in0, in1);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_truncdiv__y8xg636bme",
+   "identity": "y8xg636bme",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 4,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64",
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ long long kiln_truncdiv_i64(long long a, long long b) { return b == -1 ? (long long)(0u - (unsigned long long)a) : a / b; }\nextern \"C\" __global__ void __launch_bounds__(64) k_truncdiv__y8xg636bme(const long long* __restrict__ src0, const long long* __restrict__ src1, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, in1 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = kiln_truncdiv_i64(in0, in1);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_fmod__t4eew24iae",
+   "identity": "t4eew24iae",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 5,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64",
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ long long kiln_fmod_i64(long long a, long long b) { return b == -1 ? 0 : a % b; }\nextern \"C\" __global__ void __launch_bounds__(64) k_fmod__t4eew24iae(const long long* __restrict__ src0, const long long* __restrict__ src1, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, in1 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = kiln_fmod_i64(in0, in1);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_floor_lit__pd7oe8l9o2",
+   "identity": "pd7oe8l9o2",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 6,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ long long kiln_floordiv_i64(long long a, long long b) { if (b == -1) return (long long)(0u - (unsigned long long)a); long long q = a / b, r = a % b; return q - (long long)((r != 0) & ((r ^ b) < 0)); }\nextern \"C\" __global__ void __launch_bounds__(64) k_floor_lit__pd7oe8l9o2(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_floordiv_i64(in0, 80LL);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_rem_lit__16qga4b9pfm",
+   "identity": "16qga4b9pfm",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 7,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ long long kiln_remainder_i64(long long a, long long b) { if (b == -1) return 0; long long r = a % b; return r + (((r != 0) & ((r ^ b) < 0)) ? b : 0); }\nextern \"C\" __global__ void __launch_bounds__(64) k_rem_lit__16qga4b9pfm(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_remainder_i64(in0, 80LL);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_floor_neg__1mp3mzsmnci",
+   "identity": "1mp3mzsmnci",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 8,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ long long kiln_floordiv_i64(long long a, long long b) { if (b == -1) return (long long)(0u - (unsigned long long)a); long long q = a / b, r = a % b; return q - (long long)((r != 0) & ((r ^ b) < 0)); }\nextern \"C\" __global__ void __launch_bounds__(64) k_floor_neg__1mp3mzsmnci(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_floordiv_i64(in0, -3LL);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_rem_neg__vqe0jeawuc",
+   "identity": "vqe0jeawuc",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 9,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ long long kiln_remainder_i64(long long a, long long b) { if (b == -1) return 0; long long r = a % b; return r + (((r != 0) & ((r ^ b) < 0)) ? b : 0); }\nextern \"C\" __global__ void __launch_bounds__(64) k_rem_neg__vqe0jeawuc(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_remainder_i64(in0, -3LL);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_trunc_lit__2gcmnyjpp6z",
+   "identity": "2gcmnyjpp6z",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 10,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ long long kiln_truncdiv_i64(long long a, long long b) { return b == -1 ? (long long)(0u - (unsigned long long)a) : a / b; }\nextern \"C\" __global__ void __launch_bounds__(64) k_trunc_lit__2gcmnyjpp6z(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_truncdiv_i64(in0, 14LL);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_fmod_lit__11ua8so37ty",
+   "identity": "11ua8so37ty",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 11,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ long long kiln_fmod_i64(long long a, long long b) { return b == -1 ? 0 : a % b; }\nextern \"C\" __global__ void __launch_bounds__(64) k_fmod_lit__11ua8so37ty(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_fmod_i64(in0, 16LL);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_truediv__24iu6ty0n6k",
+   "identity": "24iu6ty0n6k",
+   "row": "TPB=64",
+   "reads": [
+    1,
+    0
+   ],
+   "writes": 12,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64",
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_truediv__24iu6ty0n6k(const long long* __restrict__ src0, const long long* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float v0 = 0.0f, v1 = 0.0f, v2 = 0.0f;\n    long long in0 = 0, in1 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src1[e];\n        v0 = ((float)(in0));\n        in1 = src0[e];\n        v1 = ((float)(in1));\n        v2 = (v0 / v1);\n        dst[e] = v2;\n    }\n}"
+  }
+ ]
+}
