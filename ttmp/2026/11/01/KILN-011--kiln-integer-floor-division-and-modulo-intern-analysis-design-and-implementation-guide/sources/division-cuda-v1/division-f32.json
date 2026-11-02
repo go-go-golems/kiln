@@ -1,0 +1,445 @@
+{
+ "format": "kiln-program/1",
+ "name": "division-f32",
+ "codegen": "kiln-codegen/4",
+ "target": {
+  "id": "a100",
+  "name": "A100 80GB"
+ },
+ "params": {},
+ "source": {
+  "path": "ttmp/2026/11/01/KILN-011--kiln-integer-floor-division-and-modulo-intern-analysis-design-and-implementation-guide/sources/division-cuda-v1/division-f32.kiln.js",
+  "sha256": "2296a2ca85693aaa6ac98193e62ef4d42dda1561e1b4ca6a2c8cd50a06acf4a0",
+  "internal_check": "ok at loop"
+ },
+ "inputs": [
+  {
+   "name": "x",
+   "buffer": 0,
+   "shape": [
+    4096
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "y",
+   "buffer": 1,
+   "shape": [
+    4096
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "i",
+   "buffer": 2,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "outputs": [
+  {
+   "name": "floordiv",
+   "buffer": 3,
+   "shape": [
+    4096
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "remainder",
+   "buffer": 4,
+   "shape": [
+    4096
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "fmod",
+   "buffer": 5,
+   "shape": [
+    4096
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "truncdiv",
+   "buffer": 6,
+   "shape": [
+    4096
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "floor_lit",
+   "buffer": 7,
+   "shape": [
+    4096
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "mixed",
+   "buffer": 8,
+   "shape": [
+    4096
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "mixed_rem",
+   "buffer": 9,
+   "shape": [
+    4096
+   ],
+   "dtype": "f32"
+  },
+  {
+   "name": "floored",
+   "buffer": 10,
+   "shape": [
+    4096
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "buffers": [
+  {
+   "id": 0,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 1,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 2,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  },
+  {
+   "id": 3,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 4,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 5,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 6,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 7,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 8,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 9,
+   "dtype": "f32",
+   "elements": 4096,
+   "bytes": 16384
+  },
+  {
+   "id": 10,
+   "dtype": "i64",
+   "elements": 4096,
+   "bytes": 32768
+  }
+ ],
+ "kernels": [
+  {
+   "name": "k_floordiv__11n0zlrfgbm",
+   "identity": "11n0zlrfgbm",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 3,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: floordiv",
+   "cuda": "__device__ __forceinline__ float kiln_floordiv_f32(float a, float b) { if (b == 0.0f) return a / b; float mod = fmodf(a, b); float div = (a - mod) / b; if ((mod != 0.0f) && ((b < 0.0f) != (mod < 0.0f))) div -= 1.0f; if (div == 0.0f) return copysignf(0.0f, a / b); float fl = floorf(div); if (div - fl > 0.5f) fl += 1.0f; return fl; }\nextern \"C\" __global__ void __launch_bounds__(64) k_floordiv__11n0zlrfgbm(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = kiln_floordiv_f32(in0, in1);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_remainder__2ckcwh1g4q4",
+   "identity": "2ckcwh1g4q4",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 4,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: remainder",
+   "cuda": "__device__ __forceinline__ float kiln_remainder_f32(float a, float b) { float mod = fmodf(a, b); if ((mod != 0.0f) && ((b < 0.0f) != (mod < 0.0f))) mod += b; return mod; }\nextern \"C\" __global__ void __launch_bounds__(64) k_remainder__2ckcwh1g4q4(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = kiln_remainder_f32(in0, in1);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_fmod__12w8ph08z5r",
+   "identity": "12w8ph08z5r",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 5,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: fmod",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_fmod__12w8ph08z5r(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = fmodf(in0, in1);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_truncdiv__19xx4os6ht2",
+   "identity": "19xx4os6ht2",
+   "row": "TPB=64",
+   "reads": [
+    0,
+    1
+   ],
+   "writes": 6,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ],
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "f32",
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: truncdiv",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_truncdiv__19xx4os6ht2(const float* __restrict__ src0, const float* __restrict__ src1, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, in1 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        in1 = src1[e];\n        v0 = truncf((in0) / (in1));\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_floor_lit__td0nebknt0",
+   "identity": "td0nebknt0",
+   "row": "TPB=64",
+   "reads": [
+    0
+   ],
+   "writes": 7,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "f32"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL scalar guarantee not implemented: floordiv",
+   "cuda": "__device__ __forceinline__ float kiln_floordiv_f32(float a, float b) { if (b == 0.0f) return a / b; float mod = fmodf(a, b); float div = (a - mod) / b; if ((mod != 0.0f) && ((b < 0.0f) != (mod < 0.0f))) div -= 1.0f; if (div == 0.0f) return copysignf(0.0f, a / b); float fl = floorf(div); if (div - fl > 0.5f) fl += 1.0f; return fl; }\nextern \"C\" __global__ void __launch_bounds__(64) k_floor_lit__td0nebknt0(const float* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float in0 = 0.0f, v0 = 0.0f;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = kiln_floordiv_f32(in0, 2.0f);\n        dst[e] = v0;\n    }\n}"
+  },
+  {
+   "name": "k_mixed__15zgwmhdd1n",
+   "identity": "15zgwmhdd1n",
+   "row": "TPB=64",
+   "reads": [
+    2
+   ],
+   "writes": 8,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ float kiln_floordiv_f32(float a, float b) { if (b == 0.0f) return a / b; float mod = fmodf(a, b); float div = (a - mod) / b; if ((mod != 0.0f) && ((b < 0.0f) != (mod < 0.0f))) div -= 1.0f; if (div == 0.0f) return copysignf(0.0f, a / b); float fl = floorf(div); if (div - fl > 0.5f) fl += 1.0f; return fl; }\nextern \"C\" __global__ void __launch_bounds__(64) k_mixed__15zgwmhdd1n(const long long* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float v0 = 0.0f, v1 = 0.0f;\n    long long in0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = ((float)(in0));\n        v1 = kiln_floordiv_f32(v0, 2.5f);\n        dst[e] = v1;\n    }\n}"
+  },
+  {
+   "name": "k_mixed_rem__qp94gxh7cg",
+   "identity": "qp94gxh7cg",
+   "row": "TPB=64",
+   "reads": [
+    2
+   ],
+   "writes": 9,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "__device__ __forceinline__ float kiln_remainder_f32(float a, float b) { float mod = fmodf(a, b); if ((mod != 0.0f) && ((b < 0.0f) != (mod < 0.0f))) mod += b; return mod; }\nextern \"C\" __global__ void __launch_bounds__(64) k_mixed_rem__qp94gxh7cg(const long long* __restrict__ src0, float* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    float v0 = 0.0f, v1 = 0.0f;\n    long long in0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = ((float)(in0));\n        v1 = kiln_remainder_f32(v0, 0.75f);\n        dst[e] = v1;\n    }\n}"
+  },
+  {
+   "name": "k_floored__gkmt6vc8mp",
+   "identity": "gkmt6vc8mp",
+   "row": "TPB=64",
+   "reads": [
+    2
+   ],
+   "writes": 10,
+   "grid": 64,
+   "block": 64,
+   "smemBytes": 0,
+   "dispatch": [
+    64,
+    1,
+    1
+   ],
+   "shape": [
+    4096
+   ],
+   "inShapes": [
+    [
+     4096
+    ]
+   ],
+   "inDtypes": [
+    "i64"
+   ],
+   "wgsl": null,
+   "wgslUnavailable": "WGSL storage dtype unsupported: i64 (in)",
+   "cuda": "extern \"C\" __global__ void __launch_bounds__(64) k_floored__gkmt6vc8mp(const long long* __restrict__ src0, long long* __restrict__ dst) {\n    const int tid = threadIdx.x;\n    const int bid = blockIdx.x;\n    long long in0 = 0, v0 = 0;\n    int e = 0;\n    e = ((64 * bid) + tid);\n    if ((e < 4096)) {\n        in0 = src0[e];\n        v0 = in0;\n        dst[e] = v0;\n    }\n}"
+  }
+ ]
+}

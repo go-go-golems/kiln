@@ -1,0 +1,489 @@
+---
+Title: PassNet reproduction and Kiln integration intern guide
+Ticket: KILN-005
+Status: active
+Topics:
+    - kiln
+DocType: design-doc
+Intent: long-term
+Owners: []
+RelatedFiles: []
+ExternalSources: []
+Summary: ""
+LastUpdated: 2026-10-30T20:23:37.305848897-04:00
+WhatFor: ""
+WhenToUse: ""
+---
+
+# PassNet reproduction and Kiln integration: intern implementation guide
+
+## 1. Scope and evidence status
+
+This project has two independent experimental tracks. The reference track runs the pinned PassNet implementation without Kiln changes. The integration track lowers the same workloads through Kiln and submits their results to PassBench. Keeping the reference evaluator unchanged makes the effects of compiler and runtime changes identifiable.
+
+The checked-in paper is arXiv:2605.29357v1. Reference source revision is `61c64709f6d324216ae8252cec3cdc35b2dd5da5`; dataset revision is `4f7dd9211178327c2718f1b828d83ea126186f9e`. Sources and acquisition receipts are under `../sources/`. Current cumulative replay accepts31/200 complete tasks and358/2060 individual graphs (289 inside complete tasks) at nominal t=-5, under declared modified integration protocols. This is not a uniform current-release full-corpus rerun. Import eligibility is1251 graphs/76 complete families. Reference21 and the roadmap are the current evidence entrypoints.
+
+The original agent now has a completed50-step local smoke trajectory, with seven no-match evaluations and no accepted candidate. Its top-level reward1.0 is a documented placeholder; the actual evaluator score is0.1. The original source tracer mismatch is confirmed on the exact DGX image. Design18/reference21 distinguish the original run from the normalized Kiln integration. The owned serving process is stopped.
+
+Sections11–40 preserve implementation checkpoints and their then-current results; read their status statements as historical. Sections2–10 define the core architecture/contracts, and Section41 describes the latest source-view extension and terminal evidence. Direct reusable-policy studies and a fixed compiler rewrite have already received held-out measurements; the latter's fresh exact-model FP32 confirmation measures1.053746x e2e under its declared research protocol. That result is independent of native PassBench support and does not close broader LLM-generated transformation synthesis.
+
+
+The requested end state includes baseline reproduction, an end-to-end Kiln round-trip, reusable pass experiments with held-out evaluation, documented compiler extensions, reMarkable delivery, and milestone reports in the Obsidian vault. A small FP32 example is an integration gate, not completion of corpus support.
+
+## 2. What a task asks the compiler to do
+
+A graph describes tensor operations and their data dependencies. A pass consists of a pattern matcher and a replacement. PassNet groups graph variants with related operation structure into one task; variants can differ in shape and dtype. A replacement that works for only one shape does not establish task-level correctness.
+
+PassBench's pinned README describes each graph directory as containing `model.py`, `input_meta.py`, `weight_meta.py`, `input_tensor_constraints.py`, and `graph_net.json`. Metadata provides the shape/dtype/device contract; input constraints determine which values can be sampled legally. Read these before importing a graph. A JSON graph alone may omit behavior expressed by executable Python and constraints.
+
+The evaluator loads Python pass modules from `pass_dir/` according to `sorted_output_pass_rule_names.json`. Each module exposes:
+
+```python
+def pattern(*args): ...
+def replacement_args(*args): ...
+def replacement_func(): ...
+```
+
+The first function expresses the computation to match. The second maps captured operands to replacement arguments. The third returns a stable module-level callable. The pinned README explicitly rejects nested definitions and lambdas for that callable. `PassMgrBackend` traces with `torch.compile`, applies `SubgraphMatcher`, substitutes the callable, and recompiles the FX graph. A pass that matches nothing causes an early exit and receives the documented minimum score rather than an eager fallback.
+
+## 3. System boundaries
+
+```mermaid
+flowchart TD
+  D[Pinned dataset and task list] --> F[PyTorch FX and metadata]
+  F --> R[Untouched PassNet reference execution]
+  F --> X[Typed FX interchange: kiln-fx/1]
+  X --> T[Kiln tensor IR]
+  T --> L[Loop IR and fusion]
+  L --> S[Scheduling and tile/kernel lowering]
+  S --> G[GPU IR and CUDA emission]
+  G --> A[kiln-program/1 artifact]
+  A --> P[PyTorch-owned storage and stream]
+  P --> E[PassBench checker and profiler]
+  R --> E
+  E --> V[Official score plus provenance-tagged evidence]
+```
+
+The bridge must preserve graph semantics across each boundary. Compilation success alone is insufficient: a program can compile while using the wrong reduction axis, scalar promotion, output dtype, or alias behavior. Separate serialization validation, import legality, compiler reference checking, and original evaluator correctness.
+
+Kiln's current source map begins with `packages/kiln/src/std/tensor.js` for tensor operators, `std/loop.js` for loop transformations, `std/tile.js` and `std/kernel.js` for lower-level representations, `std/emit.js` for emission, `std/export.js` for artifacts, and `core/kiln.js` for rule/pass machinery. Inspect concrete definitions before adding an operation; matching frontend names does not prove equivalent semantics.
+
+`scripts/kiln-export.mjs` calls `compileScript` and `endToEnd` from `apps/workbench/src/compile.js`. It records source SHA256, target, parameters and exported kernels, and rejects unknown CLI arguments. It defaults to WebGPU; CUDA target selection must be explicit. Its end-to-end result can be skipped: record a skip as unverified, not passed.
+
+## 4. Acquire and materialize the corpus
+
+Run `scripts/01-download-dataset.py` from this ticket. It resolves downloads using the stored dataset revision, checks file size and SHA256 against published LFS metadata, and writes a receipt after each verified shard. Large binary corpus files remain under `sources/dataset/` and are intentionally excluded from Git; the script and inventories are committed. A partial file is not valid evidence of a downloaded shard.
+
+Materialization must be implemented after inspecting the Parquet schema. Do not assume that a row is one complete graph: the preliminary research describes file-content records. A safe materializer should reject absolute paths, parent traversal, duplicate conflicting paths, and symlink escape. Preserve record bytes and record the selected corpus revision and output manifest.
+
+```text
+for shard in verified_shards:
+    inspect schema and required fields
+    for record in shard:
+        path, content = decode documented record format
+        reject path escaping corpus root
+        reject conflicting duplicate path
+        write content and record SHA256
+verify all paths in pinned evaluation list exist
+record task count, graph count, dtypes, operations and missing files
+```
+
+Do not execute arbitrary downloaded graph code during materialization. Execution belongs in the designated isolated evaluation environment after source inspection.
+
+## 5. Reference environment and numerical protocol
+
+Paper Table 3 specifies A30 24 GB SM80, Ubuntu 24.04.1, CUDA 12.8/cuDNN 9.10.2, PyTorch 2.9.1+cu128 and Triton 3.5.1. It specifies 20 warmups, 100 trials, and rerunning if IQR exceeds 20% of median. The pinned README instead describes 25 warmups. Reconcile executable defaults and paper settings explicitly before comparisons.
+
+The available host `bling.local` is ARM64 with NVIDIA GB10. Host inspection found driver 580.178.04, Docker 29.6.2, Python 3.12.3 and Node 26.8.1. NVIDIA-SMI reports driver CUDA capability 13.0; this is not a toolkit version. Local Node 24 does not satisfy Kiln's package.json Node >=26 requirement, so use the verified remote Node or install a supported local runtime. ARM64/Blackwell compatibility may require a distinct software environment. Report this as a hardware-port reproduction with a full environment manifest.
+
+The pinned README gives baseline tolerances:
+
+| dtype | rtol | atol |
+|---|---:|---:|
+| FP32 | 1.3e-6 | 1e-5 |
+| FP16 | 1e-3 | 1e-5 |
+| BF16 | 1.6e-2 | 1e-5 |
+
+The checker also verifies output dtype; numerically close FP32 output is not an acceptable replacement for required BF16 output. It sweeps tolerance levels, so retain the complete per-level result instead of one Boolean.
+
+Timing records both end-to-end and GPU-only latency. Preserve raw trial values, warmup count, synchronization policy, compile time, and stability decisions. Allocation and Python dispatch can dominate small computations; report these costs separately rather than attributing all changes to kernel code.
+
+## 6. Typed FX interchange and importer contract
+
+The implemented kiln-fx/1 interchange uses explicit node identities, operator targets, typed tensor specifications, scalar constants and complete output structure. fx_export.py owns serialization; fx_import.py and fx_indexing.py own supported semantic lowering. Current inputs are positive static contiguous FP32/FP16/BF16 tensors. The pseudocode below states the complete importer contract; individual operations still require expanded promotion/layout/alias coverage or explicit rejection. Consult the coverage and import-audit ledgers for measured capability rather than assuming every contract obligation is complete.
+
+```text
+import_graph(graph):
+    validate version, node references and acyclic ordering
+    validate input metadata: dtype, shape, strides, device semantics
+    for node in topological order:
+        resolve exact ATen overload
+        validate promotion, broadcasting, axes and alias behavior
+        lower using a documented Kiln operator implementation
+        verify inferred shape and dtype against source metadata
+    reconstruct complete output structure
+    return Kiln graph and mapping/provenance manifest
+```
+
+Resolve tensor-scalar addition separately from tensor-tensor broadcasting. Preserve reduction axis lists, keepdim and accumulation dtype. A reshape of noncontiguous storage may require a copy; transpose changes layout. Do not replace either with an indexing assumption without proving it against the source semantics. Track constants and weights distinctly from runtime inputs. Unsupported overload errors should name the source node, overload, dtype and missing capability.
+
+## 7. CUDA/PyTorch ownership contract
+
+`runtime/python/kiln_launch.py` exposes `open_program` and `CudaProgram.launch(stream=0, scratch=None, **pointers)`. Opening with `allocate=False` leaves input, output and intermediate storage to the caller; constant buffers remain launcher-owned. The launcher compiles CUDA with NVRTC for the detected device architecture, retains its CUDA context, and launches without copying or synchronizing.
+
+The PyTorch bridge must allocate each declared output with the correct shape and dtype on the selected CUDA device, allocate scratch per invocation, and pass data pointers plus the current PyTorch stream. Validate dtype, device, shape, strides and supported layouts before launch. Keep tensor storage alive through asynchronous execution and use PyTorch stream ownership mechanisms where necessary. Never reuse mutable scratch concurrently across streams. Cache compiled programs by artifact content identity and device, not merely by filename.
+
+The launcher uses a live non-primary CUDA context if one is already current. Therefore context consistency with PyTorch must be verified, not assumed. Add real tests for non-default streams, repeated program lifetimes, multi-kernel scratch, and error paths before relying on this runtime in benchmark measurements.
+
+## 8. Reusable fusion experiment
+
+`packages/kiln/src/std/loop.js` defines createFusionRule({maxWorkGrowth=1.02, decide=null, selectConsumers=null, onDecision=null}); mergeLoopOps is its unchanged default instance. pipeline.replaceRule installs a policy variant while preserving the existing matcher and inlining mutation. WorkOf uses weighted memory traffic and arithmetic, not elapsed time. A first study selected threshold 1.25 on training graphs and measured 1.0186x family-balanced held-out e2e speedup; see Section 22 and design document 06 for exact scope and limitations.
+
+The optional selectConsumers callback chooses a consumer subset through the same legality/lifetime boundary; the whole-region planner is in std/fusion.js. Bounded declarative policies are compiled by integrations/passnet/fusion_policy.mjs. These interfaces reuse the compiler rule rather than introduce another fusion engine.
+
+Split workloads by graph family before policy selection. Shape variants of the same pattern must not leak across training and held-out sets. Compare the unchanged compiler, manual policy, agent-selected parameters, agent-composed passes, and new agent-generated passes under the same measurement budget. Report compiler time and failures as well as latency.
+
+An exploratory selection objective is mean log baseline/candidate latency minus a compile-cost penalty. This does not replace the official PassBench score. The pinned README describes squared slowdowns while executable scoring defaults to p=0. Original task scores record p=0 and fpdb=0.1. The direct policy study uses its own family-balanced latency objective and does not replace that official metric.
+
+## 9. Provenance for compiler extensions
+
+For each borrowed implementation, record repository URL, immutable revision, path, symbol, license and whether code was copied or independently implemented from behavior. Explain semantic differences and cite the tests that cover them. For research-derived transformations, cite the paper section and preconditions. Put this information in the design document and corresponding chronological diary entry; preserve applicable license notices with copied code.
+
+User authorization includes implementing missing Kiln capabilities, consulting PyTorch/PassNet/research, and using bling.local. The corpus coverage audit determines which dtype/layout/operator and lowering extensions are necessary. Do not add compatibility layers merely to preserve an obsolete interface.
+
+## 10. Validation and delivery gates
+
+1. Verify pinned sources, corpus materialization and complete evaluation membership.
+2. Run untouched eager and Inductor evaluation, recording all failures and software/hardware differences.
+3. Lower one genuine task through Kiln; pass the original numerical and dtype checker.
+4. Exercise original pass matching, integrity defenses and score aggregation. If a sanctioned integration requires evaluator changes, label the protocol modified and preserve the untouched reference.
+5. Evaluate reusable policies on fixed held-out families and preserve raw evidence and compiler identities; this is the immediate critical path.
+6. Expand full operation/dtype/layout coverage in parallel and retain every unsupported case in the declared denominator.
+7. Finish and visually validate intern documentation, upload to reMarkable, write milestone textbook-style vault reports, and commit/push the vault.
+
+Source acquisition and selected round-trips are verified. Complete benchmark coverage, exact reference reproduction, PassAgent runs and richer generated transformations remain unfinished. The first small FP32 scalar-policy study has passed its declared gates, with all source evidence retained.
+
+## 11. Historical checkpoint: First verified reference task and importer target
+
+The first pinned evaluation task is hash `6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8`. Its six variants completed with six success statuses and no failed statuses in the original evaluator. Archived raw output is in `sources/reference-smoke/000-inductor.log`, with exact command and process duration in `execution-receipt.json`. This establishes one task on DGX Spark, not full reproduction.
+
+Its GraphModule.forward accepts running mean, running variance, bias, weight, and activation. It computes functional ReLU, functional batch_norm with training=False and eps=1e-5, followed by dropout with p=0 and training=False, returning a singleton tuple. The FP32 batch-eight source is under `sources/upstream/graphs/hf_subgraphs_v2/fusible_subgraphs/float32/8/samples/torchgeometric/LINKX/_decomposed/LINKX_start17_end20_5/model.py`.
+
+Inference batch normalization requires channel-aware broadcasting: output = (relu(input)-running_mean)/sqrt(running_variance+eps)*weight+bias. Confirm channel axis, precision and intermediate rounding against PyTorch before lowering. Disabled dropout is an identity in this graph, but general training dropout requires random-number semantics and must not be silently removed. Preserve the tuple output and FP16/BF16 rounding behavior. These requirements motivate extending the importer beyond a synthetic add/ReLU demonstration.
+
+## 12. Historical checkpoint: Implemented serialization and first importer
+
+`integrations/passnet/fx_export.py` uses FX ShapeProp to serialize trusted graph execution metadata into kiln-fx/1. It preserves argument/container structure and exact ATen overload strings. `fx_import.py` resolves references, validates static contiguous FP32 inputs, and emits a Kiln project script for a currently limited elementwise operation set. It returns an output-structure manifest so tuple/list/dictionary structure can be restored after flat program execution.
+
+Run CPU boundary tests with `python3 -m unittest discover -s integrations/passnet -p 'test_*.py'`. These tests establish structure and explicit rejection behavior, not Kiln compilation or GPU equivalence. Next validation must compile the emitted script and compare its output against the source graph before integrating it into the original evaluator. Remaining operators and dtype/layout support must be implemented rather than omitted from the full benchmark denominator.
+
+## 13. Historical checkpoint: Verified GPU milestone and integrity boundary
+
+The integration now compiles an actual first-task FP32 graph into two CUDA kernels and executes it with PyTorch-owned inputs/outputs and per-invocation scratch. A CUDA test with nontrivial running mean, positive variance, weight and bias passed rtol 1.3e-6 and atol 1e-5, with maximum absolute error 9.5367431640625e-07. Reproduce its generation with scripts/04-export-first-task.py, compile the emitted project with the existing export CLI, and run integrations/passnet/smoke_batch_norm.py against the artifact. This verifies a genuine task's operation structure and shape under independent inputs; it does not establish PassBench acceptance or full task coverage.
+
+The initial compiler check failed because imported source-domain constraints were not represented by generic project test data. Explicit running-statistics data made the reference check pass without disabling it. Preserve example inputs and domain constraints separately from graph semantics: a positive example variance must not become a compiler constant when variance remains a runtime operand.
+
+The first pass module used the documented pattern/replacement_args/replacement_func interface. Original pass_mgr reported no match. scripts/08-inspect-fx-pattern.py explains why: symbolic_trace canonicalizes functional batch_norm arguments into keyword arguments and inserts dropout inplace=False, whereas Dynamo's graph retains eight positional batch_norm arguments and omits the dropout default keyword. Exact structural matching fails even though the operations agree mathematically.
+
+Explicit Graph/GraphModule construction can express that structure, but the original AST validator rejects these calls. sources/kiln-match-v2.log preserves its exact diagnostics. Do not hide constructor calls in another module or alter validation to present this as original-protocol success. There are two legitimate research directions: find a pattern form accepted by the original interface, or add a separately labeled trusted integration protocol that admits compiler-produced pattern artifacts with a documented integrity contract. Either direction must retain numerical and dtype checks, reverse-order evaluation and replacement restrictions. The untouched reference environment remains authoritative for paper reproduction.
+
+## 14. Historical checkpoint: Corpus completion and remaining work
+
+All 14 Parquet shards were size/SHA256 verified and materialized into 2,067,810 file-content records, with zero duplicate records. sources/materialization-summary.json gives the compact receipt; the full manifest is under sources/materialized. The pinned repository independently contains all 200 evaluation tasks and 2,060 graph directories.
+
+The full reference run is exploratory: synthetic GPU checks and integration tests overlapped it. Preserve its logs for correctness/failure diagnosis, but obtain isolated measurements before reporting comparative speedups. Capture exact GPU/software/image identity and active workload state with final measurements. Model-agent runs, reusable policy learning and held-out evaluation have not yet been executed.
+
+This edition documents an ongoing implementation. It does not claim completion of FP16/BF16 support, full corpus operation/layout coverage, original pass matching/scoring, fine-tuning reproduction, compiler meta-optimization or final performance comparisons. Those remain explicit project requirements. The delivered progress edition is useful for an intern to inspect the current boundaries and continue from reproducible scripts; a later edition must replace this status with verified results.
+
+## 15. Historical checkpoint: Measured static corpus requirements
+
+scripts/09-inventory-operators.py parses all 2,060 source graphs without importing or executing them. It normalizes tensor method receiver names and counts Python arithmetic/subscript syntax as well as calls. Full per-graph records are in sources/operator-inventory.json. This is a static occurrence census; it does not measure dynamic invocation counts or prove compiler coverage.
+
+Input/weight metadata mentions FP16 in 728 graphs, BF16 in 733 and FP32 in 569; 170 graphs mention int64 and three mention bool. Counts are nonexclusive because one graph can have several dtypes. A compiler supporting only floating arithmetic still needs integer indexing and Boolean masking semantics for complete coverage.
+
+Static counts include 686 conv2d calls, 666 cat calls, 455 view calls, 346 mean calls, 340 batch_norm calls, 263 reshape calls, 243 transpose calls, 231 embedding calls and 200 dtype conversions. Python subscript and arithmetic syntax are counted separately; slice constructors and negative dimension literals are not GPU kernels. Prioritize capability work by complete task dependencies, not raw frequency alone: adding one operation does not unlock a task if its other operations remain unsupported.
+
+A full implementation needs typed storage and arithmetic conversion rules, channel/spatial indexing, integer gather/embedding, layout views/copies, concatenation, convolution and reductions. Each extension must define reference evaluation, shape/type inference, lowering, emission/runtime representation and numerical tests. Preserve rejected tasks in the declared benchmark denominator while these capabilities are developed.
+
+## 16. Historical checkpoint: Integration protocol: functional argument normalization
+
+`integrations/passnet/fx_normalize.py` provides a narrowly scoped graph transformation for ReLU, batch_norm and dropout. It binds each public Python signature, fills defaults and emits ordered positional arguments. Both target and pattern graphs must undergo the same normalization before structural matching. This is explicitly a modified integration protocol; it is not a result under unchanged PassBench matching.
+
+The transformation changes call syntax rather than tensor arithmetic. It neither evaluates function bodies nor relaxes dtype/shape predicates. It validates every call before mutation, rejects unsupported signatures, records changed node identities and is idempotent. Tests reproduce the actual positional/keyword mismatch, demonstrate one match after normalization, and check exact output preservation for the tested graph.
+
+Original AST source validation remains applicable to generated pass modules. They should contain ordinary functional patterns, not explicit graph construction. Integration setup owns normalization outside generated code and must record module identity and changed-node receipts. Numerical, dtype, dispatch and reverse-order checks must remain active. A successful unit test of normalization does not establish that the rest of PassBench accepts the CUDA launcher; that still requires execution evidence.
+
+## 17. Historical checkpoint: First complete task result
+
+All six variants of task 6291d774daf9c8b62c3f7d79f1fc55ec2d82adcd69425bfb0bb4e00b14724de8 now pass numerical, dtype and stability checks under the declared normalized/record-stream integration protocol. The original scorer parsed six results and reported aggregate 0.8495327431059172. This is slower than eager in this run and is not a full-benchmark result. Earlier overlapping run failed BF16 stability; both attempts are retained.
+
+Reproduce using scripts 16–20 and review sources/first-task-isolated.log plus first-task-score.json. Script 21 generates complete denominator accounting: one of 200 tasks, six of 2,060 graphs verified; the remaining 199 tasks are not yet verified. The task uses dtype-dispatched artifacts and runtime metadata validation. This is execution support for one fixed task family, not demonstrated generalization of a learned compiler policy.
+
+## 18. Historical checkpoint: Convolution task acceptance and limitations
+
+The first three tasks now have original checker acceptance under the declared modified protocol: 19 graphs across three of 200 tasks. Exact per-graph evidence is maintained in sources/kiln-coverage.json. The third task's FP16 convolution/in-place-ReLU/residual/identity-resize chain passes on original replay inputs after correcting low-precision bias addition order. Official aggregate is 0.043470409529710305, a severe slowdown versus eager.
+
+A separate unit-scale random stress test still fails 67/73728 elements after the bias fix. Keep that limitation distinct from benchmark acceptance; the source's smaller replay distributions are not proof that larger values are invalid. The initial convolution uses safe clamped reads and explicit padding masks, nested indexed reductions and FP32 internal arithmetic. These are correctness foundations, not a high-performance convolution design. Profiling, precision robustness and reusable pass/schedule improvement remain required work.
+
+## 19. Historical checkpoint: Static layout and cast import
+
+The importer now accepts tensor methods reshape/view, flatten, permute, contiguous, and explicit floating conversions. Reshape uses the static output shape recorded by FX propagation after verifying literal shape operands. Permutation composes pairwise Kiln transposes. Contiguous materializes the logical tensor value through reshape. Casts use N.cast so FP16/BF16 rounding remains explicit through fusion.
+
+This is value-semantic graph import. External noncontiguous inputs and mutation-dependent alias behavior remain unsupported. Device transfers and dynamic shape operands fail explicitly. Scripts 44/45 export and run a four-output chain; all outputs matched PyTorch CUDA exactly on GB10. These probes do not increase the verified PassBench task count.
+
+## 20. Historical checkpoint: Shared corpus execution and explicit pattern support
+
+Use `integrations/passnet/corpus.py` for task export and compilation, and `check_corpus_cuda.py` for source-model comparisons. The manifest records ordered inputs, graph identity and complete output structure. The recursive checker validates every output, including tuple/list/dict structure, shape and dtype. Design document 04 explains the ownership boundaries and commands. The original numbered scripts remain historical evidence rather than separate production implementations.
+
+Two additional integration protocol components address patterns with explicit in-place operators and multiple outputs. `kiln-pattern-autowrap/1` preserves directly imported operator.iadd during pattern tracing. `kiln-pattern-multi-output/1` reuses the pinned upstream direct backend's tuple-destructuring helper with the standard backend's guarded callable. Neither changes graph arithmetic or removes source/dispatch/numerical checks. These changes must be reported alongside the existing argument-normalization and record_stream policies whenever presenting integration results.
+
+## 21. Historical checkpoint: Corpus audit and basic indexing checkpoint
+
+Verified benchmark coverage is 4/200 tasks and 49/2,060 graphs under explicitly recorded integration protocols. The 30-variant residual-plus-mean task scored 1.0032945157872568 with the original aggregate scorer, approximately eager parity on GB10. This is not evidence of a robust speedup or a reproduction on the paper's A30 environment.
+
+The shared corpus runner now supports FakeTensorMode metadata propagation with fallback kernels disabled. It interprets trusted graph Python without materializing the large input tensors merely to derive metadata. Real and fake exports were identical for all 30 reduction-task variants. The complete audit verifies exact membership of all 200 tasks and 2,060 graph variants. After static indexing import, 381 graphs and 21 complete tasks translate successfully. Translation is not compilation or benchmark acceptance.
+
+Basic indexing lives in `fx_indexing.py`: normalize ellipsis, None axes, negative integers and unit-step slices; lower selections to N.slice; then reshape away selected unit axes and insert requested dimensions. Computed result shape must agree with FX metadata. Strided and empty slices require additional compiler work and fail explicitly. Independent three-output probes passed CUDA comparisons for FP32, FP16 and BF16.
+
+Concatenation is now the first blocker in 531 graphs. Other first blockers include integer inputs, linear/matmul, softmax and activation functions. Counts refer only to each graph's first encountered blocker; implementing one feature can reveal another. Local CUDA availability also prevents tracing some trusted source graphs and is recorded separately. Use sources/import-audit-summary.json for prioritization and sources/kiln-coverage.json for verified execution evidence.
+
+## 22. Historical checkpoint: Current compiler-policy API and first measured transfer result
+
+The first direct compiler-policy experiment is implemented by compile_policy.mjs, measure_policy.py, select_policy.py, summarize_policy.py and stress_policy.py under integrations/passnet. The frozen corpus and plan are in sources/policy-corpus-v2; compilation artifacts are in sources/policy-artifacts-v2; complete training, selection, held-out and stress evidence is in sources/policy-measurements-v1. Scripts 69–79 reproduce construction, qualification, GPU isolation, selection and verification.
+
+Given a fixed target, create an explicit policy variant:
+
+```javascript
+const baseline = std.emmy.pipeline({ target });
+const selected = baseline.replaceRule(
+  "loop/fusion", "merge_loop_ops",
+  std.loop.createFusionRule({ maxWorkGrowth: 1.25 })
+);
+```
+
+The factory also accepts decide(features) and onDecision(event), using immutable weighted-work, consumer-count and producer-size features. Profitability is replaceable; the original matcher and transformation remain intact. The default mergeLoopOps still uses 1.02. A decision callback must return a Boolean or rejection reason.
+
+Training used three FP32 graphs from two task families; held-out evaluation used seven graphs from four distinct families. The six candidate controls were compiled across all ten graphs. Actual default executable bodies matched unchanged Kiln. Source-model identities are disjoint between training and held-out membership. The corpus is a curated development set drawn from evaluation tasks, not an untouched paper benchmark. Version 2 was frozen after structural preflight and before any candidate timing.
+
+Training selected 1.25 with family-balanced synchronized e2e score 1.1174679569686872 relative to unchanged Kiln. Selection commit 575effd precedes held-out timing. The selected policy qualified on all seven held-out graphs and scored 1.0186065904267643. Only one held-out RepViT graph changes: three kernels become two, e2e median 0.0362335 ms becomes 0.031265 ms, ratio 1.158915720454182. The other six executables are identical and share baseline measurement evidence.
+
+The fixed plan uses 20 warmups, 100 trials and three repeats, seeded order, IQR <=20% and at most two retries. End-to-end includes allocation/launch/final synchronization; CUDA stream elapsed includes dispatch gaps. Neither is a pure device-kernel-only claim. Post-selection numerical stress passed 60/60 comparisons across both compilers, ten graphs and three seeds, max error 3.814697265625e-06. These tests use nontrivial random values and source-derived positive variance domains without retuning the policy.
+
+This is a completed scalar-policy tuning pilot. Generated feature-dependent programs, new rewrite algorithms, independent broader confirmation and PassAgent comparisons remain future work. It does not add complete PassBench tasks: that ledger remains five tasks / 73 variants. Read reference report 07 and design document 06 before extending the study or changing the global default.
+
+## 23. Historical checkpoint: bounded policies and fresh negative confirmation
+
+The compiler now accepts validated feature-dependent profitability programs through `prepareFusionPolicy` in integrations/passnet/fusion_policy.mjs. Programs branch on originalWork, fusedWork, consumerCount and producerElements; thresholds and Boolean leaves compile to immutable callbacks for the existing createFusionRule factory. The matcher and mutation remain unchanged. Design 07 explains the bounded language, source selection and protocol.
+
+A fresh official-training-source corpus contains 12 training and eight held-out FP32 programs from distinct exact models. Eight declared candidates compiled on all 20 graphs. All training executables equal baseline for every candidate, so training-only selection chose baseline under the registered tie rule. All 20 source replay comparisons and stable timing runs passed. The selected-policy ratio is exactly 1.0; this experiment produced no compiler improvement. The previous pilot's 1.0186x aggregate result remains a separate, narrower historical study.
+
+The original Inductor reference completed 200 tasks / 2,060 attempted variants. Exact-membership audit with the upstream tolerance-one checker accepts 2,039 graphs and 191 complete tasks. Execution-success labels alone count 2,041 and are insufficient numerical evidence. Historical timings overlapped development and are exploratory; hardware/software still differ from the paper. Script 85 and reference-full-audit.json preserve the audit, raw phase messages and log hashes.
+
+Current coverage remains 24 complete tasks / 804 graphs imported and five complete tasks / 73 graphs accepted under the declared modified PassBench protocols. The fresh direct compiler study does not add accepted complete benchmark tasks. Next synthesis work should use training transformation traces to ensure proposed policies actually alter executables before claiming optimization or transfer.
+
+## 24. Current checkpoint: training-sensitive synthesis and activation coverage
+
+The adaptive v4 study generated 12 bounded policy programs from training-only feature quantiles, compiled all 240 candidate/graph pairs, measured actual training interventions, and selected baseline. Stricter fusion restrictions did not improve its objective; all eight fresh exact-model confirmation graphs passed with unchanged selection. Design 07 and policy-measurements-v3 own the complete protocol and evidence. This is deterministic template synthesis, not external LLM or original PassAgent evaluation.
+
+The importer now supports SiLU and sigmoid using FP32 operation arithmetic and narrowing at source operation boundaries. Conservative freshness/use-count checks also functionalize supported in-place activations on exclusively consumed fresh results; inputs, shared values and views remain rejected. Design 02 explains the numerical and aliasing contracts, with primary PyTorch references archived under sources/pytorch/activations. All 47 Python integration tests and 18 CUDA dtype/seed fixture comparisons passed.
+
+Full-denominator import audit now succeeds for 912 of 2,060 graphs across 36 complete tasks. This extends the earlier 804/24 and intermediate 853/32 checkpoints; the audit is not execution acceptance. Real evaluation task 143 (SiLU -> multiply -> disabled dropout) additionally compiled, matched once per variant and passed numerical evaluation for FP32, FP16 and BF16. Original scorer p=0, fpdb=0.1 gives score 0.8399177755920565 under the declared modified protocol. It is slower than eager in aggregate for this task; no speed improvement is claimed.
+
+The accepted coverage ledger now checks upstream tolerance-one numerical decisions in addition to exact membership, execution status and matching. Current verified Kiln coverage is six complete tasks / 76 variants. The original Inductor reference remains a separate 191-task / 2,039-variant numerical audit with exploratory timing. Next work should broaden compiler/runtime support and test interventions beyond the unsuccessful strict-fusion grammar.
+
+
+## 25. Matrix lowering, canonical bindings and corrected numerical acceptance
+
+The shared matrix implementation is `packages/kiln/src/std/matmul.js`. It defines positive static shape validation, vector promotion, right-aligned batch broadcasting, vector-axis removal, independent CPU references and tensor-IR decompositions. `fx_linalg.py` binds PyTorch linear, matmul, mm and bmm, widens FP16/BF16 operands to FP32 arithmetic, applies bias before the final storage cast and validates output metadata. Unsupported mutation and output-buffer arguments fail explicitly.
+
+The independent fixture gate passed 126/126 CUDA comparisons across 14 forms, three dtypes and three seeds. All 26 Node test files passed at the matrix boundary; after canonical binding and specialization fixes, the full Python integration suite passed 62 tests. These fixtures establish the declared forms, not full task acceptance or optimized matrix scheduling.
+
+`fx_trace.py` preserves Python in-place operator identities that ordinary FX Proxy can erase. This retracts 22 optimistic import successes from the intermediate matrix audit, yielding 984 translatable graphs and 43 complete task families. The retracted families were not among the six already verified tasks. General placeholder mutation and alias/writeback semantics remain open.
+
+`generate_pass.py` extracts trusted source AST patterns and canonicalizes placeholder roles by first use in normalized FX. The same argument permutation is applied before compiler import. The manifest stores `source_input_order`; replay and random-input checking use this binding explicitly. Equivalent residual patterns with different original argument positions therefore execute the same arithmetic association. Concrete patterns with fewer tensor placeholders precede generic patterns, preventing a literal zero from being captured as a tensor. The completed canonical residual rerun verifies all 30 task variants at t=-5.
+
+The coverage ledger now requires the original checker at t=-5, successful execution and exactly one replacement. The previous t=1 criterion is relaxed and was incorrectly used for the nominal coverage audit. The correction is recorded in diary Steps 88–90 and design 08, with earlier logs and reports preserved. Six complete tasks contain 76 passing graphs; an incomplete four-variant linear task contributes two more passing graphs. The current individually passing graph count is 78/2060 and complete-task count remains 6/200.
+
+The linear task's other two variants pass only at relaxed points of the original curve. A separate BF16 diagnostic shows default native PyTorch reduced-precision reduction accounts for substantial disagreement in that case: Kiln agrees within the diagnostic tolerance with FP32/FP64 accumulation and with the native option disabled. Original evaluation retains the original flags, and these variants remain nominal failures. Greater agreement with a mathematical oracle does not imply benchmark agreement.
+
+The same correction applies to interpretation of the completed Inductor baseline logs. Their t=-5 audit accepts 1748 graphs and 140 complete tasks; t=-4 accepts 1855/157; t=-3 accepts 1962/172; t=1 accepts 2039/191. These are numerical audits of the same exploratory run on different hardware/software from the paper. Timing overlap and other recorded limitations still prevent a controlled reproduction claim.
+
+`evaluate_tasks.py` consolidates export, generation, compilation, original evaluator and original scoring into one sequential host runner. It checks frozen graph-list hashes and hashes compiler/runtime/integration sources before and after each phase. `summarize_task_run.py` independently audits membership, execution, replacements and the tolerance curve. All newly complete families relative to the activation audit form `matrix-cohort-plan.json`: 14 tasks / 151 graphs, selected without timing or correctness filtering. This cohort is running; no acceptance result is implied by plan membership.
+
+To reproduce the next audit after that run completes:
+
+```bash
+python integrations/passnet/summarize_task_run.py \
+  --directory /path/to/matrix-cohort-v1 \
+  --upstream /path/to/PassNet \
+  --output /path/to/matrix-cohort-v1-audit.json
+```
+
+The next optimization experiment should broaden the transformation intervention after numerical qualification. The three fusion-policy studies have already demonstrated training/confirmation execution and narrow positive or negative results. Repeating threshold searches without evidence of new reachable implementations offers limited value. Matrix lowering creates additional opportunities, but scheduling, precision contracts and common compiler infrastructure must be measured before claiming compiler improvement.
+
+
+## 26. Complete first matrix cohort and diagnose compiler input domains
+
+The fixed 14-task / 151-graph cohort is terminal. Ten task families reached original evaluation; four stopped during compilation. Original scoring was recovered from exact log copies named validation.log, with p=0 and fpdb=0.1 unchanged. The independent audit reports two complete nominally accepted tasks and 68 individually accepted variants within the cohort; 20 evaluated variants do not qualify and 63 are unexecuted due to task-level compilation stops. Task 121 overlaps earlier evidence. The cumulative ledger is therefore eight complete tasks containing 84 graphs and 144 individually passing graphs, not 78+68 without overlap correction.
+
+All observed membership remains visible in matrix-cohort-v1-audit.json. Compilation failures occur in tasks 51,60,82,182. They share batch-normalization computations and failed synthetic end-to-end checks. The existing Project.inputsFor default samples uniform values, which can make running variance negative. A new shared reference-domain helper follows direct source variance inputs through sign-preserving views/casts, maps them through canonical argument roles, and configures existing Project.data with abs(value)+0.1 for compiler checks. It changes no runtime constants or benchmark inputs. Unknown domains retain a diagnostic and the normal enabled compiler check. This reuses the same inference helper as policy reference-domain export.
+
+The Python integration boundary passes 65 tests. The four compile-blocked families, comprising all 63 unexecuted variants, form a separate frozen rerun plan. Its results are pending; the original failed run and source snapshot remain intact. A successful rerun is needed before attributing those failures to invalid synthetic domains or increasing verified coverage.
+
+
+## 27. Separate remaining numerical checks from reference allocation
+
+The four-family reference-domain rerun is complete. Task 82 reaches original evaluation and scoring, with five of six variants passing nominally; the complete task remains unaccepted. The other 57 declared variants remain unexecuted after compiler stops. Cumulative coverage is eight complete tasks containing 84 graphs and 149 individually passing graphs.
+
+Focused diagnostics show finite, sparse BF16 differences in the remaining checks: task 51 differs beyond the compiler check at 1/65536 values, maximum absolute difference 0.0001220703125; task 60 differs at 3/228096 values on its large output, maximum 0.000244140625, while its reduced output agrees exactly. The compiler's fixed comparison policy and fused arithmetic/storage boundaries need investigation. No tolerance is changed to make these pass.
+
+Task 182 aborts on its sixth variant while constructing reference data for shape [512,256,56,56]. The initial source-domain setup called Project.inputsFor for every input before the ordinary endToEnd work estimate could skip expensive validation. This eagerly allocates over 400 million elements. Project.inputsFor now accepts an optional {names:[...]} selection and validates distinct known input names. Source-domain setup selects only established variance inputs, preserving their deterministic dtype-rounded samples. Remaining inputs are generated by the ordinary check only when it runs. This fixes the allocation order without increasing memory limits or disabling correctness gates.
+
+A focused test requests only a 256-element variance from a graph with the same huge unrelated input. The full Node boundary and exact previously aborting compiler program validate the change; the full nine-variant original task is retained in a new frozen rerun plan, whose GPU acceptance result remains pending.
+
+
+## 28. Model FP32 loop evaluation and isolate contraction semantics
+
+The selective-input full task rerun is terminal. Seven variants compile, including the formerly heap-aborting one; variant 007 fails a numerical reference check. No variant reaches original GPU evaluation because compilation is task-atomic. All nine unexecuted members remain in selective-reference-cohort-v1-audit.json. Cumulative acceptance remains 8 complete tasks /149 individually passing graphs.
+
+A one-element oracle proves a shared JavaScript loop-reference defect. The frontend evaluates FP32 (100000000+1)-100000000 as zero, while the fused loop evaluator previously used double intermediates and returned one. The actual CUDA executable returns zero. Both full serial and sampled point references now round scalar results and reduction accumulator updates to FP32. Literals are rounded at evaluation and before constant folding, while their stored spelling remains unchanged to preserve emitted-kernel identities. The full core boundary passes 27 test files, including the new cancellation/literal/reduction regression. The exact CUDA oracle passes with zero tolerance.
+
+The same fix makes the preserved task 51 and task 60 compiler checks pass without changing their inputs or tolerances. The remaining CoAtNet BF16 check still has eight bad values out of 802816. A controlled diagnostic removes only frontend/optimization's contract_fma rule: all eight discrepancies disappear and the frontend/loop results agree exactly. This is evidence of contraction rounding, not benchmark acceptance or proof that every FMA should be removed.
+
+The next architectural task is an explicit numerical contract covering elementary FP32 operations, compound source operators, low-precision cast boundaries and FMA contraction in both Kiln IR and CUDA compilation. Merely removing the explicit FMA rewrite may be insufficient because the CUDA compiler can contract ordinary multiply/add expressions too. Global defaults and original benchmark acceptance remain unchanged. No numerical threshold is relaxed to admit these programs.
+
+
+## 29. Explicit contraction policy qualifies three additional complete tasks
+
+The standard pipeline now accepts contraction allow (the existing default) or separate. Separate mode inserts a pass after decomposition and before optimization, rewriting elementary add/subtract/multiply to protected scalar functions. Their CUDA uses __fadd_rn, __fsub_rn and __fmul_rn, retaining individual FP32 rounding under unchanged NVRTC defaults. The scalar names participate in existing code identities. Explicit source FMA remains explicit, and opaque PyTorch operator equivalence is not implied. WGSL export rejects protected operations because that guarantee has no implementation there. Design 09 explains the full contract and API.
+
+The complete core boundary passes 28 test files and the Python integration boundary passes 65 tests. The exact CUDA oracle uses a=1+2^-23, b=1-2^-23, c=-1: allow returns -2^-46 while separate returns zero, matching their respective expectations with zero tolerance. Explicit/default allow identities agree. The previously failing CoAtNet compiler source passes ordinary end-to-end checking in separate mode.
+
+All four previously compile-blocked task families (indices 51,60,82,182) now compile, match, execute and score across their complete 63-variant membership. The nominal audit accepts 62 graphs and three complete tasks. Task 51 accepts 4/4, task 60 44/44, task 182 9/9; task 82 remains 5/6 because one BF16 variant fails t=-5 and passes only relaxed points. Its failure is retained. The original aggregate scores are respectively 0.8761321161670029, 0.8872184055108473, 1.9642242385057964 and 0.7079148131970212. Those scores use the complete original numerical curve; they are separate from nominal counts and do not measure an improvement relative to unchanged Kiln.
+
+After overlap accounting, cumulative development coverage is 11/200 complete tasks containing 141 graphs, and 206/2060 individually passing graphs. The ledger records actual active protocol markers and each cohort's numerical policy/source snapshot. This is cumulative evidence across compiler versions, not a uniform release evaluation or exact reproduction of the paper environment. Import eligibility remains 984 graphs /43 complete families.
+
+A stronger source audit compares the measured snapshot with commit a620e6e. Eighty-five of 89 source files match; four differences are archived byte-for-byte. Two are inactive old diagnostic scripts; the runtime differences are a WebGPU availability guard and documentation. AST comparison verifies that executed CUDA and shared runtime helper code matches the commit after excluding that WebGPU class and docstrings. The measured snapshot is reconstructed using the commit plus archived overrides, rather than described as a clean checkout. Future remote runs are aligned to the committed runtime and the old diagnostic files are reversibly archived outside active integration sources.
+
+Training-only structural analysis of the preceding 12 development graphs finds 14 default-fused kernels, zero reductions, zero multi-consumer kernels and zero exact internal duplicate kernels. Even without fusion the 90 kernels have no reductions, fanout or internal exact duplicates. This is direct evidence that the old workload set cannot exercise selective fusion, duplicate elimination or reduction scheduling. The next self-optimization corpus must deliberately contain reductions and matrix operations, with frozen semantic eligibility and fresh exact-model confirmation before new timing is observed. Script 160 and training-loop-opportunities.json preserve the evidence.
+
+
+## 30. Layer normalization enables a richer self-optimization population
+
+fx_norm_ops.py now imports functional LayerNorm using existing N.layer_norm after flattening the normalized trailing dimensions. It validates static shape/affine/epsilon contracts, supplies optional affine identities, widens low-precision arithmetic and restores output shape/dtype. No native normalization implementation is copied. All 21 fixture artifacts compile and all 126 CUDA comparisons pass across three dtypes, seven forms, three seeds and random/constant inputs. This is independent fixture evidence, not new original task acceptance.
+
+The complete import audit now finds 1029 eligible graphs and 51 complete families. Cumulative accepted original replay remains eleven complete tasks and 206 passing graphs. Mixed affine precision, native tuple-statistic outputs, broader alias/writeback and remaining unsupported operations are still explicit gaps.
+
+A failed attempt to select a richer optimization population is retained: the predeclared 4096-task scan could fill ten matrix slots but only two reduction slots. The last saved checkpoint had 115 missing LayerNorm attempts. After adding that source binding, the same declared salt, exclusions, quotas and resource envelope produce a successful twenty-source corpus in a new directory. Six reduction and six matrix graphs form training; four of each form confirmation. All exact evaluation/prior-study models are excluded. Confirmation IR remains uncompiled through the training-structure/control stage.
+
+The new training IR has eighteen reduction-containing kernels and eleven multi-consumer kernels, with 34 kernels total after default fusion. Unchanged and explicit-default training controls are identical. A balanced twelve-program grammar is now frozen from training-only traces, including both restricted and relaxed fusion thresholds and conditional policies. Design 10 and policy-corpus-v5-r1 describe exact membership and procedure. No GPU optimization result is claimed yet.
+
+The compiler harness fixes contraction separate across every candidate, uses explicit phase/numerical receipts (v2), and preserves earlier artifacts. It will compile/qualify the complete declared candidate set before measuring training and committing one selection for unchanged confirmation evaluation. Original source replay tolerances are retained.
+
+
+## 31. Completed rich policy study and reference-precision distinction
+
+All 240 programs compile and structurally qualify at b4a4102. Native training completes but two matrix baselines fail comparison. The selection gate refuses this run. Diagnostic replay establishes that Kiln agrees with FP64 and highest-precision PyTorch within 4e-8, while the default TF32-enabled reference differs by up to 7.25e-5. The native failure remains archived in policy-measurements-v5-r1; neither tolerances nor benchmark acceptance are changed.
+
+A separate, explicitly modified FP32 research declaration retains every graph, candidate, split and binary, and sets the native reference matrix precision to highest through a frozen wrapper. All twelve training graphs qualify. The original objective chooses scalar105 at 1.0013193438356627 relative to unchanged Kiln. Selection is committed in 2a4162c before confirmation timing.
+
+All eight confirmation graphs qualify. End-to-end family-balanced speedup is 1.0005681560422044; CUDA-stream elapsed ratio is 0.9995845291040679. This is effectively no demonstrated improvement. Three repeats on a single GB10 do not establish confidence in such a tiny difference. Original cumulative benchmark acceptance stays eleven complete tasks/206 passing graphs; import eligibility stays 1029 graphs/51 complete families.
+
+Review reference 12 and script 183 for the complete provenance and numerical distinction. The rich-corpus selection/confirmation task is complete; original PassAgent, full support, native reference compatibility and broader transformation synthesis remain open. The next proposed compiler intervention is selective producer fusion, subject to a concrete legality/lifetime design and a newly declared evaluation. Existing fusion remains unchanged.
+
+
+## 32. Selective consumer fusion: implemented capability and negative confirmation
+
+The existing createFusionRule now accepts an optional selectConsumer callback. It plans edge substitutions before editing, reuses inlineInto, leaves unselected consumers unchanged, and lets normal graph liveness retain or remove the producer. The aggregate work guard includes the producer whenever it remains live; a discriminating regression proves that omitting this term would incorrectly accept a partial fusion. The default pipeline still selects all consumers. The bounded policy grammar exposes separate consumer and aggregate trees with one shared budget.
+
+Core revision 51b45eb passes all 29 compiler test files, bounded policy tests and 108 independent CUDA comparisons across three structures, three dtypes, four selection modes and three seeds. The fresh v6 source corpus excludes exact models from every prior study and the 200-task evaluation set; it contains twelve training/eight confirmation graphs. Twelve frozen programs produce 240 qualified artifacts at d324850.
+
+Training chooses select-edge100-total125 at 1.0145415112270293 relative to unchanged Kiln; selection is committed in 731e834 before confirmation timing. All eight confirmation graphs qualify, but end-to-end ratio is 0.9720486952136568 and stream elapsed ratio is 0.975410682956454. This candidate regresses and is not adopted. It accepts no partial fusions on either split, while more permissive candidates do accept partial training mutations and are slower.
+
+The strongest individual regression is an ALBERT LayerNorm graph: ratio 0.5411338834176205, with three kernels in both programs but a first materialized shape changing from [2048,1] to [2048,312] and a different schedule. Script 200 records this post-confirmation diagnosis without changing selection or timing. Future hypotheses derived from it need a new evaluation population.
+
+Design 11 and reference 13 explain semantics, accounting, programs and results. Script 199 verifies declarations, artifacts, reference settings and pre-confirmation selection. This is explicitly highest-precision FP32 compiler research, not native PassBench acceptance; original cumulative coverage stays eleven tasks/206 passing graphs and import eligibility 1029 graphs/51 complete families. Original PassAgent, remaining corpus support and broader synthesis remain open. Updated reMarkable guide delivery is still awaiting fresh authorization after automatic-review rejection; no new upload is claimed.
+
+
+## 33. Whole-region planning and generated-name evidence
+
+The current fusion factory uses a single selectConsumers(region) callback returning consumer indices. The former singular callback fails explicitly; historical scripts using it require their recorded compiler revisions. The standard pipeline still selects all consumers. The new pure chooseFusionSubset compares the original graph, complete fusion and the negative-consumer-delta subset under an additive work/launch/materialization objective. All proper subsets retain the same producer, consumers and materialized output volume, making the local optimum computable in O(m) after proposal scheduling. This is local model optimality, not a latency guarantee.
+
+Core 4523355 passes thirty compiler test files, an exhaustive 280-case subset oracle and 108 independent CUDA comparisons. Shared preparation, freeze, compilation and verification CLIs consolidate repeated experiment mechanisms. The fresh v7 study excludes exact models/programs from all prior studies and the evaluation set, freezes twelve candidates over twenty graphs, and qualifies all 240 artifacts at 114d90b.
+
+Training chooses region-work at 1.0086653425198444, committed in cff6a69 before confirmation timing. All eight confirmation graphs qualify; ratios are 0.9900990594274756 end-to-end and 0.9865479028062627 stream elapsed. This is negative and the default remains unchanged. The selected program accepts no partial fusions on either split.
+
+A training-only diagnostic finds eight selected artifact changes equal baseline after renaming only entry symbols and generated reduction indices while retaining CUDA ABI/buffers/dispatch/source structure. The frozen alias rules and selection are not changed. This nuisance-contrast issue limits small timing claims. Generated-name canonicalization and aligned evidence identity are the next priority before another study; diagnostic regex normalization is not a production equivalence mechanism.
+
+Design12/reference 14 and scripts203–214 preserve proof, implementation and evaluation. Script213 with commit cff6a69 verifies the study. This remains explicitly highest-precision FP32 research; original coverage stays eleven tasks/206 graphs and import eligibility 1029/51. Original PassAgent, remaining full support, native numerical compatibility and synthesis remain open. Updated-guide device delivery is still pending the earlier approval request, with no new export attempted.
+
+
+## 34. Canonical emission, reliable gates and the completed /3 study
+
+Kernel materialization now binds canonical per-schedule reduction names through the existing structural mapping while retaining fresh Loop IR variables for substitution. CUDA/WGSL/simulator source, Kernel IR and evidence content are invariant across tested fresh-process counter histories. Code generation advances to kiln-codegen/3 and /2 evidence is stale. All eight observed name-only v7 training contrasts become exact artifact aliases without normalization; all24 replayed mathematical identities remain unchanged. Ten of twelve pairs now alias, with two still distinct.
+
+A test-runner defect was also corrected: status0 with spawn error EPERM could previously be reported as success. The runner and fresh-process tests now check the error field. Actual subprocess-enabled execution passes all32 compiler test files, including status-zero error fault injection and changed-computation separation. Canonical code passes108 CUDA comparisons.
+
+Transpose is unified across function/method/ATen forms with shape/dtype/axis and view-ownership checks. Input-only programs now export when no-op views eliminate every kernel. Twenty-five importer tests, focused scalar/vector alias tests and117 CUDA comparisons pass. Full evaluation import eligibility remains1029 graphs/51 families; original accepted replay remains eleven tasks/206 graphs.
+
+Two fresh-source attempts fail their matrix quota and remain archived. An explicit broader declaration allows the complete4476-task list and64M matrix products, keeping other limits, quotas and exclusions. The twenty-source v8-r2 population has membership c40f81bf05839042fd845dc797a6ddb3b8665d1f3d7b27f83cc5fb4d9cc27ca5; all240 /3 artifacts qualify. Training selects baseline at1.0 in commit58133d1, with every changed candidate slower and exact aliases tied. All eight confirmation graphs qualify; ratios1.0 are identity comparisons with zero changed artifacts, not optimization evidence.
+
+Design13/reference15 and scripts217–238 preserve implementation, real test execution and complete study evidence. The original PassAgent model/endpoint question is pending because documented settings are absent locally/on bling. No external-model result is claimed. Updated reMarkable delivery still awaits the earlier explicit approval request; no new export is attempted.
+
+## 35. Source softmax and the next complete-family qualification
+
+The source binder now connects functional, torch, Tensor and ATen softmax to Kiln's existing stable reduction primitive. It preserves explicit input dtype conversion, FP32 low-precision accumulation, negative/interior/scalar axes, and fresh-storage ownership. Design 14 explains the signatures, conversion order and provenance.
+
+All 45 FX tests and 99 CUDA fixture comparisons pass. The full import audit now reports 1,122/2,060 graphs and 61/200 complete families. Script 249 freezes every newly complete family: ten tasks and 93 graphs, with no shape/dtype filtering. Their original-evaluator qualification remains a separate gate; accepted coverage is not inferred from import success.
+
+The first original-evaluator cohort is now terminal: four of its ten complete families pass, adding 21 graphs and bringing cumulative acceptance to 15 tasks/227 individual graphs. Its other 72 variants fail structural matching because symbolic FX inserts functional softmax defaults that Dynamo omits. The existing signature normalizer repairs this mismatch in d71eccd, with 46 FX tests passing. A separate v2 run retains all 93 variants and is pending; no additional acceptance is inferred from the local matcher test.
+
+## 36. Complete softmax qualification and measured performance limits
+
+All ten families and 93 variants now qualify through the original-evaluator integration under d71eccd. The shared audit verifies exact membership, one replacement, successful execution and nominal t=-5 correctness for every variant. Both the failed initial run and repaired run remain archived. The current cumulative ledger reaches 21 complete tasks and 299 individual graphs; 234 graphs belong to complete tasks. Import eligibility remains 1,122 graphs/61 families and still requires further execution qualification.
+
+The report's performance analysis is descriptive rather than a compiler-policy experiment: five of the 93 accepted variants are faster than eager and 88 are slower. One large attention variant measures 703.734 ms versus 15.431 ms eager. Exported programs contain 254 kernels and up to 1.5 GiB of scratch storage. Inspect the actual schedules and source program before attributing the cost to a particular compiler decision. Reference 16 and scripts 259/260 provide exact artifacts and timing records.
+
+No source operator implementation was duplicated. The importer reuses stable N.softmax, while the existing functional argument normalizer handles FX/Dynamo defaults. The next performance work can investigate large reduction/contraction lowerings while coverage work follows the remaining operator audit. New optimization hypotheses still require frozen training/confirmation protocols; these benchmark replay timings alone do not establish generalization.
+
+## 37. Direct singleton reshape coordinates expose tiled contraction
+
+When input/output shapes have the same ordered sequence of non-unit extents, reshape can map each varying coordinate directly and set singleton coordinates to zero. The existing reshapeMap now implements this rule while retaining flatten/unflatten elsewhere. The legality proof in design 15 establishes equal row-major flattened indices, including scalar, repeated-extent and all-unit cases.
+
+The inspected attention epilogue previously gave both loads syntactic dependence on both matrix dimensions. Direct maps restore independent operand dependencies, permitting the existing tiled materializer. Under fed37d1 its targeted median changes from 703.734 to 20.4884 ms, with every one of the 93 original comparison variants still accepted. The observed family-balanced ratio is 1.06444x; this is development evidence rather than unseen-family confirmation. See reference 17 for exact schedules and limitations.
+
+All 33 compiler test files and 49 FX tests pass. Native CUDA fixtures remain 60/63, and separate precision diagnostics preserve the old/new FP32 tail mismatch instead of relaxing tolerances. Original benchmark numerical validation remains a separate unchanged gate.
+
+Shared public/ATen/method reshape binding raises import eligibility to 1,136/64. Its separate three-family/14-variant original run fully qualifies, increasing cumulative acceptance to 24 tasks/313 graphs. No new evaluator is introduced: explicit plan/run arguments reuse the existing orchestration and acceptance implementation.
+
+## 38. Fresh exact-model confirmation of the fixed reshape compiler change
+
+After the candidate was fixed, a separate all-heldout population selected ten matrix and ten reduction graphs from twenty exact models, excluding290 previously exposed/evaluation model identities. The initial memory envelope selected only19 families and remains archived. An explicit broader metadata declaration filled20 before any selected source was compiled or timed. Design16 explains this amendment and isolated production/dependency controls.
+
+Both compiler versions receive identical programs and unchanged fusion settings. All40 artifacts qualify. Original source inputs and a declared highest-precision FP32 reference validate all20 graphs; all117 timing blocks are stable. Script296 independently recomputes every median/IQR from23400 samples and verifies frozen source/artifact identity. The aggregate is1.053746x end-to-end and1.059878x stream elapsed. Reduction-group gains drive the result:1.115219x versus0.995662x for matrix graphs. Nine graph ratios are faster,ten slower,one an exact artifact alias.
+
+Read reference18 before using this as compiler-improvement evidence. It is fresh exact-model confirmation under a bounded FP32 research protocol, not architecture-disjoint evaluation or native benchmark scoring. Later tuning needs new confirmation data. Cumulative official replay remains24/200 complete tasks and313/2060 graphs, while1136/64 are import eligibility. Original PassAgent and full native/support coverage remain open.
+
+## 39. Exact GELU, source argument kinds and complete qualification
+
+The source GELU default is erf-based, while Kiln historically selected a tanh approximation. The compiler now exposes both selectors. The importer explicitly chooses the source mode, widens FP16/BF16 operation math to FP32 and narrows at the source result boundary. A shared scalar gelu_erf expression emits CUDA erff. Its independent JavaScript quadrature reference is tested against Python math.erf; no upstream implementation was copied. Exact WGSL remains explicitly unavailable. Design17 records formulas, provenance and backend scope.
+
+All34 core test files and53 FX tests pass. Twelve fixture programs under three seeds pass36 CUDA records/108 output comparisons. The complete200-task import audit yields1196 graphs/69 complete families. The five newly complete families retain all60 variants in original qualification: two families/18 graphs pass initially, seven variants fail matching and35 remain unexecuted after two compile-check failures. A functional LayerNorm argument-form normalization repairs the complete seven-variant task, which then fully qualifies under f1e5518. Cumulative original replay reaches27/200 tasks and338/2060 graphs, with273 in complete tasks.
+
+The failed compile compositions remain unresolved: sparse reference discrepancies require predecessor/rounding investigation, and no tolerance was changed. Reference19 explains complete accounting and the distinction between native fixtures, original replay, import eligibility and cumulative evidence across compiler versions. Original PassAgent still needs a configured provider; official local-runtime feasibility references are archived, with no serving/inference result claimed.
+
+
+## 40. Running original PassAgent with the pinned local provider
+
+The model endpoint is now operational, and the original framework has completed actual editor/evaluator steps. Design18 owns its checkpoint, serving and image identities. Reference20 explains the complete data flow and first genuine rejection. The endpoint milestone does not increase Kiln coverage or establish a successful kernel optimization.
+
+For continuation, inspect the existing passnet-original-agent-smoke-v5 tmux session and original-agent-smoke-v5.json before launching anything. Script378 preserves bounded observations; script379 freezes receipts/log bytes in a new tagged sources directory through one SSH request. Script375 invokes original source with explicit local provider settings, both required Python import roots and documented pass_agent working directory. Do not change this active experiment's source or membership. Terminal trajectory collection and isolated best-pass measurements are the next gates.
+
+
+## 41. Singleton views and the distinction between qualification gates
+
+The source binder supports static unsqueeze/squeeze in method, public and ATen forms by computing the required shape and reusing N.reshape. Negative axes, scalar conventions, selected non-unit dimensions, empty axis lists, duplicate axes, dtype agreement and metadata consistency are checked explicitly. Views never grant new fresh-storage ownership. Design15 gives the coordinate proof and primary-source provenance; no upstream implementation was copied.
+
+All57 FX tests and all72 finite CUDA output comparisons pass. Full seven-family qualification preserves55 variants:20 nominally pass, two fail numerical acceptance and33 are unexecuted after an export check. Four tasks are completely accepted, adding16 graphs inside complete tasks and four more accepted graphs inside incomplete tasks. Read reference21 and singleton-view-source-cohort-v1-verified-facts.json before using31/358 cumulative support counts. No performance/generalization claim follows from importing an operator.
+
+The original reference-agent trajectory must be interpreted through actual pass_evaluator observations, not its stub reward. Script394 preserves all seven real scores and saved pass files. Script398 shows ordinary/forced/both-normalized match counts1/0/1 for CPU and CUDA with original task shapes on the exact image. This diagnostic control does not modify original evaluation or make the saved empty kernel correct. Paper-version runtime confirmation and any separately declared repaired reference remain open.

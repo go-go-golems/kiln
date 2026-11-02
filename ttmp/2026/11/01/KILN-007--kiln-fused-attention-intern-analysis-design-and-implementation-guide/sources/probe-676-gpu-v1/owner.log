@@ -1,0 +1,1477 @@
+/work/676-low-precision-attention-probe.py:78: UserWarning: Memory efficient kernel not used because: (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:999.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:78: UserWarning: Memory Efficient attention has been runtime disabled. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:552.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:78: UserWarning: Flash attention kernel not used because: (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:1001.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:78: UserWarning: Flash Attention does not support non-null attn_mask. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:262.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:78: UserWarning: cuDNN attention kernel not used because: (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:1003.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:78: UserWarning: cuDNN attention has been runtime disabled. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:718.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:100: UserWarning: Memory efficient kernel not used because: (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:999.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:100: UserWarning: Memory Efficient attention has been runtime disabled. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:552.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:100: UserWarning: Flash attention kernel not used because: (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:1001.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:100: UserWarning: Flash Attention does not support non-null attn_mask. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:262.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:100: UserWarning: cuDNN attention kernel not used because: (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:1003.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:100: UserWarning: cuDNN attention has been runtime disabled. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:718.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:100: UserWarning: Flash attention has been runtime disabled. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:540.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+/work/676-low-precision-attention-probe.py:100: UserWarning: Expected query, key and value to all be of dtype: {Half, BFloat16}. Got Query dtype: float, Key dtype: float, and Value dtype: float instead. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:91.)
+  with sdpa_kernel(be): return F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+{
+ "torch": "2.12.0a0+5aff3928d8.nv26.05",
+ "device": "NVIDIA GB10",
+ "flags": {
+  "matmul_allow_tf32": true,
+  "allow_fp16_reduced_precision_reduction": true,
+  "allow_bf16_reduced_precision_reduction": true
+ },
+ "cases": {
+  "float16/L128/add": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0004514564111655073,
+     "mean_abs": 3.7895856836090695e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00045631498524034697,
+     "mean_abs": 3.266931895909069e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00045898470816552184,
+     "mean_abs": 3.27622235112097e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.000456314985240569,
+     "mean_abs": 3.2669318959090844e-05
+    },
+    "s_q": {
+     "max_abs": 0.001927677957359375,
+     "mean_abs": 0.00011661944464737327
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.0004514564111655073,
+     "mean_abs": 3.7895856836090695e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00045631498524034697,
+     "mean_abs": 3.266931895909069e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00045898470816552184,
+     "mean_abs": 3.27622235112097e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.000456314985240569,
+     "mean_abs": 3.2669318959090844e-05
+    },
+    "s_q": {
+     "max_abs": 0.001927677957359375,
+     "mean_abs": 0.00011661944464737327
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0006878962053522009,
+     "mean_abs": 6.00822977058204e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0006812959310205646,
+     "mean_abs": 6.494149655135727e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.000693981148120415,
+     "mean_abs": 6.47541264298417e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0006812959310205646,
+     "mean_abs": 6.494149655135751e-05
+    },
+    "s_q": {
+     "max_abs": 0.001927677957359375,
+     "mean_abs": 0.0001245915469495041
+    },
+    "closest": "pq_l32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.0004514564111655073,
+     "mean_abs": 3.788994187005029e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00045631498524034697,
+     "mean_abs": 3.259712570868373e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00045898470816552184,
+     "mean_abs": 3.2692708157752265e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.000456314985240569,
+     "mean_abs": 3.2597125708683886e-05
+    },
+    "s_q": {
+     "max_abs": 0.001927677957359375,
+     "mean_abs": 0.0001167333654885476
+    },
+    "closest": "p32",
+    "equals_default": false
+   }
+  },
+  "float16/L128/bool": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0002450121691275342,
+     "mean_abs": 3.3391030109644005e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0002692199799453343,
+     "mean_abs": 2.869236577699101e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0002662901472867407,
+     "mean_abs": 2.8815192151576017e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0002692199799453343,
+     "mean_abs": 2.8692365776990926e-05
+    },
+    "s_q": {
+     "max_abs": 0.0007611262692677201,
+     "mean_abs": 6.003515506069142e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.0002450121691275342,
+     "mean_abs": 3.3391030109644005e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0002692199799453343,
+     "mean_abs": 2.869236577699101e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0002662901472867407,
+     "mean_abs": 2.8815192151576017e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0002692199799453343,
+     "mean_abs": 2.8692365776990926e-05
+    },
+    "s_q": {
+     "max_abs": 0.0007611262692677201,
+     "mean_abs": 6.003515506069142e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.00046750670561834795,
+     "mean_abs": 5.314002299979791e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0005122367945132877,
+     "mean_abs": 5.788851660303819e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0005255480943501811,
+     "mean_abs": 5.780444010195851e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0005122367945133433,
+     "mean_abs": 5.788851660303795e-05
+    },
+    "s_q": {
+     "max_abs": 0.000678550948769896,
+     "mean_abs": 7.212784233219187e-05
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.0002450121691275342,
+     "mean_abs": 3.336520732716217e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0002692199799453343,
+     "mean_abs": 2.8676711158341828e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0002662901472867407,
+     "mean_abs": 2.880515382068337e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0002692199799453343,
+     "mean_abs": 2.867671115834173e-05
+    },
+    "s_q": {
+     "max_abs": 0.0007611262692677201,
+     "mean_abs": 6.0012852653683126e-05
+    },
+    "closest": "p32",
+    "equals_default": false
+   }
+  },
+  "float16/L128/none": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0002715054759825364,
+     "mean_abs": 2.961450583788683e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00024358400459767449,
+     "mean_abs": 1.9951666460787913e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00024582486529778347,
+     "mean_abs": 2.0092064150581186e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00024358400459745244,
+     "mean_abs": 1.995166646078797e-05
+    },
+    "s_q": {
+     "max_abs": 0.000773648203473698,
+     "mean_abs": 5.320487717812049e-05
+    },
+    "closest": "pq_exp2",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.0002715054759825364,
+     "mean_abs": 2.961450583788683e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00024358400459767449,
+     "mean_abs": 1.9951666460787913e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00024582486529778347,
+     "mean_abs": 2.0092064150581186e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00024358400459745244,
+     "mean_abs": 1.995166646078797e-05
+    },
+    "s_q": {
+     "max_abs": 0.000773648203473698,
+     "mean_abs": 5.320487717812049e-05
+    },
+    "closest": "pq_exp2",
+    "equals_default": true
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.0002715054759825364,
+     "mean_abs": 2.907380711946964e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00024358400459767449,
+     "mean_abs": 2.436838548991812e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00024582486529778347,
+     "mean_abs": 2.445226286671814e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00024358400459745244,
+     "mean_abs": 2.4368385489918355e-05
+    },
+    "s_q": {
+     "max_abs": 0.000773648203473698,
+     "mean_abs": 5.291006799154155e-05
+    },
+    "closest": "pq_exp2",
+    "equals_default": false
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0004283177963024798,
+     "mean_abs": 4.553898631411974e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00045564879183035423,
+     "mean_abs": 4.941514442810785e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00045233943488742767,
+     "mean_abs": 4.938130083376978e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00045564879183035423,
+     "mean_abs": 4.9415144428108064e-05
+    },
+    "s_q": {
+     "max_abs": 0.0005370624499398957,
+     "mean_abs": 6.147154475351027e-05
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.0002715054759825364,
+     "mean_abs": 2.906400043951789e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00024358400459767449,
+     "mean_abs": 2.4358319191757064e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00024582486529778347,
+     "mean_abs": 2.44431919414607e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00024358400459745244,
+     "mean_abs": 2.4358319191757325e-05
+    },
+    "s_q": {
+     "max_abs": 0.000773648203473698,
+     "mean_abs": 5.289294694116962e-05
+    },
+    "closest": "pq_exp2",
+    "equals_default": false
+   }
+  },
+  "float16/L512/add": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0002576092201996838,
+     "mean_abs": 2.136057531138438e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00024004475402872316,
+     "mean_abs": 2.043523516869487e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00023961133960714864,
+     "mean_abs": 2.0413650055345055e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00024004475402872316,
+     "mean_abs": 2.0435235168694844e-05
+    },
+    "s_q": {
+     "max_abs": 0.00130530048023636,
+     "mean_abs": 7.821056615976409e-05
+    },
+    "closest": "pq_lq",
+    "equals_default": true
+   },
+   "flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.0002576092201996838,
+     "mean_abs": 2.136057531138438e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00024004475402872316,
+     "mean_abs": 2.043523516869487e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00023961133960714864,
+     "mean_abs": 2.0413650055345055e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00024004475402872316,
+     "mean_abs": 2.0435235168694844e-05
+    },
+    "s_q": {
+     "max_abs": 0.00130530048023636,
+     "mean_abs": 7.821056615976409e-05
+    },
+    "closest": "pq_lq",
+    "equals_default": true
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0006178725557296483,
+     "mean_abs": 3.464487635873492e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0006291008028539435,
+     "mean_abs": 3.7653944865359876e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0006294172473847448,
+     "mean_abs": 3.75832880340788e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0006291008028539435,
+     "mean_abs": 3.7653944865359795e-05
+    },
+    "s_q": {
+     "max_abs": 0.001226523628312215,
+     "mean_abs": 8.242683874062849e-05
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.0002576092201996838,
+     "mean_abs": 2.1353602983437145e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00024004475402872316,
+     "mean_abs": 2.0430326537106835e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00023961133960714864,
+     "mean_abs": 2.0408873041705605e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00024004475402872316,
+     "mean_abs": 2.04303265371068e-05
+    },
+    "s_q": {
+     "max_abs": 0.00130530048023636,
+     "mean_abs": 7.821564125183277e-05
+    },
+    "closest": "pq_lq",
+    "equals_default": false
+   }
+  },
+  "float16/L512/bool": {
+   "default": {
+    "p32": {
+     "max_abs": 0.00015942429483883913,
+     "mean_abs": 1.7847869839755224e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00020432125989272576,
+     "mean_abs": 1.7086468217918368e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00020117516395817825,
+     "mean_abs": 1.7076445920691144e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00020432125989272576,
+     "mean_abs": 1.7086468217918327e-05
+    },
+    "s_q": {
+     "max_abs": 0.0005847896483327508,
+     "mean_abs": 3.3359627963505404e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.00015942429483883913,
+     "mean_abs": 1.7847869839755224e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00020432125989272576,
+     "mean_abs": 1.7086468217918368e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00020117516395817825,
+     "mean_abs": 1.7076445920691144e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00020432125989272576,
+     "mean_abs": 1.7086468217918327e-05
+    },
+    "s_q": {
+     "max_abs": 0.0005847896483327508,
+     "mean_abs": 3.3359627963505404e-05
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.00032385864416628607,
+     "mean_abs": 2.7968050236215203e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00028364024252525155,
+     "mean_abs": 3.085057544456673e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00028129770982843194,
+     "mean_abs": 3.0796204387559253e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00028364024252519604,
+     "mean_abs": 3.085057544456667e-05
+    },
+    "s_q": {
+     "max_abs": 0.000680361769497484,
+     "mean_abs": 3.986358725704911e-05
+    },
+    "closest": "pq_lq",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.00015942429483883913,
+     "mean_abs": 1.7856354496114517e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00020432125989272576,
+     "mean_abs": 1.7090343756378737e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00020117516395817825,
+     "mean_abs": 1.7080284427709106e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00020432125989272576,
+     "mean_abs": 1.7090343756378693e-05
+    },
+    "s_q": {
+     "max_abs": 0.0005847896483327508,
+     "mean_abs": 3.336531726914419e-05
+    },
+    "closest": "p32",
+    "equals_default": false
+   }
+  },
+  "float16/L512/none": {
+   "default": {
+    "p32": {
+     "max_abs": 0.00014163923980436977,
+     "mean_abs": 1.5300373050450024e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0001367488541493822,
+     "mean_abs": 1.5350315050356805e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00013383307962072655,
+     "mean_abs": 1.5331783323551442e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0001367488541493267,
+     "mean_abs": 1.5350315050356877e-05
+    },
+    "s_q": {
+     "max_abs": 0.00042104455542796293,
+     "mean_abs": 2.866302250103239e-05
+    },
+    "closest": "pq_lq",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.00014163923980436977,
+     "mean_abs": 1.5300373050450024e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0001367488541493822,
+     "mean_abs": 1.5350315050356805e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.00013383307962072655,
+     "mean_abs": 1.5331783323551442e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0001367488541493267,
+     "mean_abs": 1.5350315050356877e-05
+    },
+    "s_q": {
+     "max_abs": 0.00042104455542796293,
+     "mean_abs": 2.866302250103239e-05
+    },
+    "closest": "pq_lq",
+    "equals_default": true
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.0001622687349515095,
+     "mean_abs": 1.5206347697504069e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00015424882970199727,
+     "mean_abs": 1.4445433999207369e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0001590707340681785,
+     "mean_abs": 1.4437559581676217e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00015424882970199727,
+     "mean_abs": 1.4445433999207394e-05
+    },
+    "s_q": {
+     "max_abs": 0.00042104455542796293,
+     "mean_abs": 2.846142492379841e-05
+    },
+    "closest": "pq_l32",
+    "equals_default": false
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.00022419441012777597,
+     "mean_abs": 2.360135638047855e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0002260721751630168,
+     "mean_abs": 2.5981930313525293e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0002221489091289719,
+     "mean_abs": 2.5949740322911907e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.0002260721751629613,
+     "mean_abs": 2.5981930313525273e-05
+    },
+    "s_q": {
+     "max_abs": 0.0006236753278658913,
+     "mean_abs": 3.347633369612178e-05
+    },
+    "closest": "pq_lq",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.0001622687349515095,
+     "mean_abs": 1.5203696760175484e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.00015424882970199727,
+     "mean_abs": 1.443772953143862e-05
+    },
+    "pq_lq": {
+     "max_abs": 0.0001590707340681785,
+     "mean_abs": 1.4429776843925115e-05
+    },
+    "pq_exp2": {
+     "max_abs": 0.00015424882970199727,
+     "mean_abs": 1.4437729531438658e-05
+    },
+    "s_q": {
+     "max_abs": 0.00042104455542796293,
+     "mean_abs": 2.84469960681782e-05
+    },
+    "closest": "pq_l32",
+    "equals_default": false
+   }
+  },
+  "bfloat16/L128/add": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0028805169377825735,
+     "mean_abs": 0.00030210425415884055
+    },
+    "pq_l32": {
+     "max_abs": 0.0029496814917993053,
+     "mean_abs": 0.00026005630021650535
+    },
+    "pq_lq": {
+     "max_abs": 0.0028724434038389646,
+     "mean_abs": 0.0002609175786955111
+    },
+    "pq_exp2": {
+     "max_abs": 0.0029496814917993053,
+     "mean_abs": 0.0002600563002165047
+    },
+    "s_q": {
+     "max_abs": 0.013318028466427378,
+     "mean_abs": 0.0009498315670275661
+    },
+    "closest": "pq_lq",
+    "equals_default": true
+   },
+   "flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.0028805169377825735,
+     "mean_abs": 0.00030210425415884055
+    },
+    "pq_l32": {
+     "max_abs": 0.0029496814917993053,
+     "mean_abs": 0.00026005630021650535
+    },
+    "pq_lq": {
+     "max_abs": 0.0028724434038389646,
+     "mean_abs": 0.0002609175786955111
+    },
+    "pq_exp2": {
+     "max_abs": 0.0029496814917993053,
+     "mean_abs": 0.0002600563002165047
+    },
+    "s_q": {
+     "max_abs": 0.013318028466427378,
+     "mean_abs": 0.0009498315670275661
+    },
+    "closest": "pq_lq",
+    "equals_default": true
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0028805169377825735,
+     "mean_abs": 0.00023871220888717435
+    },
+    "pq_l32": {
+     "max_abs": 0.0029496814917993053,
+     "mean_abs": 0.00031374611211168837
+    },
+    "pq_lq": {
+     "max_abs": 0.0028724434038389646,
+     "mean_abs": 0.0003118559846781874
+    },
+    "pq_exp2": {
+     "max_abs": 0.0029496814917993053,
+     "mean_abs": 0.0003137461121116881
+    },
+    "s_q": {
+     "max_abs": 0.014724714879188028,
+     "mean_abs": 0.0009401651645923172
+    },
+    "closest": "pq_lq",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.0028805169377825735,
+     "mean_abs": 0.00030210425415884055
+    },
+    "pq_l32": {
+     "max_abs": 0.0029496814917993053,
+     "mean_abs": 0.00026005630021650535
+    },
+    "pq_lq": {
+     "max_abs": 0.0028724434038389646,
+     "mean_abs": 0.0002609175786955111
+    },
+    "pq_exp2": {
+     "max_abs": 0.0029496814917993053,
+     "mean_abs": 0.0002600563002165047
+    },
+    "s_q": {
+     "max_abs": 0.013318028466427378,
+     "mean_abs": 0.0009498315670275661
+    },
+    "closest": "pq_lq",
+    "equals_default": true
+   }
+  },
+  "bfloat16/L128/bool": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0022713580298514557,
+     "mean_abs": 0.00026843326957704113
+    },
+    "pq_l32": {
+     "max_abs": 0.0026053135017338747,
+     "mean_abs": 0.0002296760060576393
+    },
+    "pq_lq": {
+     "max_abs": 0.0027388784273482125,
+     "mean_abs": 0.00023079528778034258
+    },
+    "pq_exp2": {
+     "max_abs": 0.0026053135017338747,
+     "mean_abs": 0.00022967600605763947
+    },
+    "s_q": {
+     "max_abs": 0.0055992558351007915,
+     "mean_abs": 0.0004783068414212575
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.0022713580298514557,
+     "mean_abs": 0.00026843326957704113
+    },
+    "pq_l32": {
+     "max_abs": 0.0026053135017338747,
+     "mean_abs": 0.0002296760060576393
+    },
+    "pq_lq": {
+     "max_abs": 0.0027388784273482125,
+     "mean_abs": 0.00023079528778034258
+    },
+    "pq_exp2": {
+     "max_abs": 0.0026053135017338747,
+     "mean_abs": 0.00022967600605763947
+    },
+    "s_q": {
+     "max_abs": 0.0055992558351007915,
+     "mean_abs": 0.0004783068414212575
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.001988904672998615,
+     "mean_abs": 0.00019682739884648633
+    },
+    "pq_l32": {
+     "max_abs": 0.0022712401313431663,
+     "mean_abs": 0.00027828323635695895
+    },
+    "pq_lq": {
+     "max_abs": 0.002159168255269739,
+     "mean_abs": 0.00027697263429068855
+    },
+    "pq_exp2": {
+     "max_abs": 0.0022712401313431663,
+     "mean_abs": 0.000278283236356959
+    },
+    "s_q": {
+     "max_abs": 0.0056085777003218595,
+     "mean_abs": 0.0004425792785255494
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.0022713580298514557,
+     "mean_abs": 0.00026843978883506344
+    },
+    "pq_l32": {
+     "max_abs": 0.0026053135017338747,
+     "mean_abs": 0.000229671557392503
+    },
+    "pq_lq": {
+     "max_abs": 0.0027388784273482125,
+     "mean_abs": 0.00023079101890696862
+    },
+    "pq_exp2": {
+     "max_abs": 0.0026053135017338747,
+     "mean_abs": 0.00022967155739250317
+    },
+    "s_q": {
+     "max_abs": 0.0055992558351007915,
+     "mean_abs": 0.00047829845951808596
+    },
+    "closest": "p32",
+    "equals_default": false
+   }
+  },
+  "bfloat16/L128/none": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0021782935116316793,
+     "mean_abs": 0.00023544884690072378
+    },
+    "pq_l32": {
+     "max_abs": 0.0019298755741409268,
+     "mean_abs": 0.00015901805771761115
+    },
+    "pq_lq": {
+     "max_abs": 0.0018754200561214018,
+     "mean_abs": 0.00016006135562927548
+    },
+    "pq_exp2": {
+     "max_abs": 0.0019298755741408158,
+     "mean_abs": 0.00015901805771761115
+    },
+    "s_q": {
+     "max_abs": 0.0059560259040551955,
+     "mean_abs": 0.0004148186411693001
+    },
+    "closest": "pq_lq",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.0021782935116316793,
+     "mean_abs": 0.00023544884690072378
+    },
+    "pq_l32": {
+     "max_abs": 0.0019298755741409268,
+     "mean_abs": 0.00015901805771761115
+    },
+    "pq_lq": {
+     "max_abs": 0.0018754200561214018,
+     "mean_abs": 0.00016006135562927548
+    },
+    "pq_exp2": {
+     "max_abs": 0.0019298755741408158,
+     "mean_abs": 0.00015901805771761115
+    },
+    "s_q": {
+     "max_abs": 0.0059560259040551955,
+     "mean_abs": 0.0004148186411693001
+    },
+    "closest": "pq_lq",
+    "equals_default": true
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.0021782935116316793,
+     "mean_abs": 0.00023147411345144611
+    },
+    "pq_l32": {
+     "max_abs": 0.001976374425859073,
+     "mean_abs": 0.00019392460321835634
+    },
+    "pq_lq": {
+     "max_abs": 0.002030829943878598,
+     "mean_abs": 0.0001943800474119471
+    },
+    "pq_exp2": {
+     "max_abs": 0.001976374425859184,
+     "mean_abs": 0.00019392460321835642
+    },
+    "s_q": {
+     "max_abs": 0.0059560259040551955,
+     "mean_abs": 0.000412210692326873
+    },
+    "closest": "pq_l32",
+    "equals_default": false
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0019431374021223746,
+     "mean_abs": 0.00016760170955861385
+    },
+    "pq_l32": {
+     "max_abs": 0.002193900321457054,
+     "mean_abs": 0.00023959864990063333
+    },
+    "pq_lq": {
+     "max_abs": 0.002077927512639688,
+     "mean_abs": 0.00023898295139585538
+    },
+    "pq_exp2": {
+     "max_abs": 0.002193900321456943,
+     "mean_abs": 0.00023959864990063327
+    },
+    "s_q": {
+     "max_abs": 0.0048424096320829335,
+     "mean_abs": 0.0003842547768098967
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.0021782935116316793,
+     "mean_abs": 0.00023144751232740822
+    },
+    "pq_l32": {
+     "max_abs": 0.001976374425859073,
+     "mean_abs": 0.0001939248601780902
+    },
+    "pq_lq": {
+     "max_abs": 0.002030829943878598,
+     "mean_abs": 0.00019437040036533298
+    },
+    "pq_exp2": {
+     "max_abs": 0.001976374425859184,
+     "mean_abs": 0.00019392486017809026
+    },
+    "s_q": {
+     "max_abs": 0.0059560259040551955,
+     "mean_abs": 0.00041213176664501314
+    },
+    "closest": "pq_l32",
+    "equals_default": false
+   }
+  },
+  "bfloat16/L512/add": {
+   "default": {
+    "p32": {
+     "max_abs": 0.002413828155708342,
+     "mean_abs": 0.00017121039629145894
+    },
+    "pq_l32": {
+     "max_abs": 0.0019521211913660075,
+     "mean_abs": 0.00016288499393715263
+    },
+    "pq_lq": {
+     "max_abs": 0.0020523615266186956,
+     "mean_abs": 0.00016285693928025163
+    },
+    "pq_exp2": {
+     "max_abs": 0.0019521211913660075,
+     "mean_abs": 0.0001628849939371527
+    },
+    "s_q": {
+     "max_abs": 0.012254355378873427,
+     "mean_abs": 0.0006291305666469759
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.002413828155708342,
+     "mean_abs": 0.00017121039629145894
+    },
+    "pq_l32": {
+     "max_abs": 0.0019521211913660075,
+     "mean_abs": 0.00016288499393715263
+    },
+    "pq_lq": {
+     "max_abs": 0.0020523615266186956,
+     "mean_abs": 0.00016285693928025163
+    },
+    "pq_exp2": {
+     "max_abs": 0.0019521211913660075,
+     "mean_abs": 0.0001628849939371527
+    },
+    "s_q": {
+     "max_abs": 0.012254355378873427,
+     "mean_abs": 0.0006291305666469759
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.001975380921874881,
+     "mean_abs": 0.00013021540757713522
+    },
+    "pq_l32": {
+     "max_abs": 0.0021897962185655206,
+     "mean_abs": 0.00017930784252580224
+    },
+    "pq_lq": {
+     "max_abs": 0.001998428633807947,
+     "mean_abs": 0.00017874285759761187
+    },
+    "pq_exp2": {
+     "max_abs": 0.0021897962185654096,
+     "mean_abs": 0.00017930784252580224
+    },
+    "s_q": {
+     "max_abs": 0.012254355378873427,
+     "mean_abs": 0.0006196143218451056
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.002413828155708342,
+     "mean_abs": 0.00017120518946148392
+    },
+    "pq_l32": {
+     "max_abs": 0.0019521211913660075,
+     "mean_abs": 0.0001628727390702348
+    },
+    "pq_lq": {
+     "max_abs": 0.0020523615266186956,
+     "mean_abs": 0.00016284415690509665
+    },
+    "pq_exp2": {
+     "max_abs": 0.0019521211913660075,
+     "mean_abs": 0.00016287273907023488
+    },
+    "s_q": {
+     "max_abs": 0.012254355378873427,
+     "mean_abs": 0.0006291472558747534
+    },
+    "closest": "pq_l32",
+    "equals_default": false
+   }
+  },
+  "bfloat16/L512/bool": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0015303033735243332,
+     "mean_abs": 0.00014351944628854292
+    },
+    "pq_l32": {
+     "max_abs": 0.0015602621008742323,
+     "mean_abs": 0.00013667620570267458
+    },
+    "pq_lq": {
+     "max_abs": 0.0016056542231497328,
+     "mean_abs": 0.0001366740682133367
+    },
+    "pq_exp2": {
+     "max_abs": 0.0015602621008740103,
+     "mean_abs": 0.00013667620570267458
+    },
+    "s_q": {
+     "max_abs": 0.006484655650989879,
+     "mean_abs": 0.0002712303974740889
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.0015303033735243332,
+     "mean_abs": 0.00014351944628854292
+    },
+    "pq_l32": {
+     "max_abs": 0.0015602621008742323,
+     "mean_abs": 0.00013667620570267458
+    },
+    "pq_lq": {
+     "max_abs": 0.0016056542231497328,
+     "mean_abs": 0.0001366740682133367
+    },
+    "pq_exp2": {
+     "max_abs": 0.0015602621008740103,
+     "mean_abs": 0.00013667620570267458
+    },
+    "s_q": {
+     "max_abs": 0.006484655650989879,
+     "mean_abs": 0.0002712303974740889
+    },
+    "closest": "p32",
+    "equals_default": true
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0015303033735243332,
+     "mean_abs": 0.00010300492954012208
+    },
+    "pq_l32": {
+     "max_abs": 0.0015602621008742323,
+     "mean_abs": 0.00014918819347412173
+    },
+    "pq_lq": {
+     "max_abs": 0.0016056542231497328,
+     "mean_abs": 0.00014886917967711944
+    },
+    "pq_exp2": {
+     "max_abs": 0.0015602621008740103,
+     "mean_abs": 0.00014918819347412167
+    },
+    "s_q": {
+     "max_abs": 0.006484655650989879,
+     "mean_abs": 0.0002552972474568648
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.0015303033735243332,
+     "mean_abs": 0.00014351888039896305
+    },
+    "pq_l32": {
+     "max_abs": 0.0015602621008742323,
+     "mean_abs": 0.00013667520450269413
+    },
+    "pq_lq": {
+     "max_abs": 0.0016056542231497328,
+     "mean_abs": 0.0001366729763414658
+    },
+    "pq_exp2": {
+     "max_abs": 0.0015602621008740103,
+     "mean_abs": 0.00013667520450269416
+    },
+    "s_q": {
+     "max_abs": 0.006484655650989879,
+     "mean_abs": 0.00027123203069919963
+    },
+    "closest": "p32",
+    "equals_default": false
+   }
+  },
+  "bfloat16/L512/none": {
+   "default": {
+    "p32": {
+     "max_abs": 0.0011296430374621025,
+     "mean_abs": 0.00012264474139052277
+    },
+    "pq_l32": {
+     "max_abs": 0.0011292214311773852,
+     "mean_abs": 0.00012283002729601402
+    },
+    "pq_lq": {
+     "max_abs": 0.0011558799426154565,
+     "mean_abs": 0.00012273708979404428
+    },
+    "pq_exp2": {
+     "max_abs": 0.0011292214311773852,
+     "mean_abs": 0.00012283002729601402
+    },
+    "s_q": {
+     "max_abs": 0.005469290819657857,
+     "mean_abs": 0.00023013324321158982
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "flash": {
+    "p32": {
+     "max_abs": 0.0011296430374621025,
+     "mean_abs": 0.00012264474139052277
+    },
+    "pq_l32": {
+     "max_abs": 0.0011292214311773852,
+     "mean_abs": 0.00012283002729601402
+    },
+    "pq_lq": {
+     "max_abs": 0.0011558799426154565,
+     "mean_abs": 0.00012273708979404428
+    },
+    "pq_exp2": {
+     "max_abs": 0.0011292214311773852,
+     "mean_abs": 0.00012283002729601402
+    },
+    "s_q": {
+     "max_abs": 0.005469290819657857,
+     "mean_abs": 0.00023013324321158982
+    },
+    "closest": "pq_l32",
+    "equals_default": true
+   },
+   "efficient": {
+    "p32": {
+     "max_abs": 0.0011296430374621025,
+     "mean_abs": 0.00012200974670438694
+    },
+    "pq_l32": {
+     "max_abs": 0.0011138938608322713,
+     "mean_abs": 0.00011598565187043648
+    },
+    "pq_lq": {
+     "max_abs": 0.0010903898848431681,
+     "mean_abs": 0.00011594044877357958
+    },
+    "pq_exp2": {
+     "max_abs": 0.0011138938608322713,
+     "mean_abs": 0.00011598565187043645
+    },
+    "s_q": {
+     "max_abs": 0.005469290819657857,
+     "mean_abs": 0.00022977006239731663
+    },
+    "closest": "pq_lq",
+    "equals_default": false
+   },
+   "math": {
+    "p32": {
+     "max_abs": 0.0010248570128998935,
+     "mean_abs": 8.667905966054792e-05
+    },
+    "pq_l32": {
+     "max_abs": 0.0011836520878946155,
+     "mean_abs": 0.00012662100667115936
+    },
+    "pq_lq": {
+     "max_abs": 0.0011349899548179776,
+     "mean_abs": 0.00012639493428830291
+    },
+    "pq_exp2": {
+     "max_abs": 0.001183652087894671,
+     "mean_abs": 0.00012662100667115939
+    },
+    "s_q": {
+     "max_abs": 0.005469290819657857,
+     "mean_abs": 0.00021559973335504896
+    },
+    "closest": "p32",
+    "equals_default": false
+   },
+   "cudnn": {
+    "p32": {
+     "max_abs": 0.0011296430374621025,
+     "mean_abs": 0.00012200682613119688
+    },
+    "pq_l32": {
+     "max_abs": 0.0011138938608322713,
+     "mean_abs": 0.00011597531469293355
+    },
+    "pq_lq": {
+     "max_abs": 0.0010903898848431681,
+     "mean_abs": 0.00011593079699080488
+    },
+    "pq_exp2": {
+     "max_abs": 0.0011138938608322713,
+     "mean_abs": 0.00011597531469293351
+    },
+    "s_q": {
+     "max_abs": 0.005469290819657857,
+     "mean_abs": 0.00022977540655354527
+    },
+    "closest": "pq_lq",
+    "equals_default": false
+   }
+  }
+ },
+ "fully_masked": {
+  "float32": {
+   "bool/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "bool/efficient": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/cudnn": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "add/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "add/efficient": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/cudnn": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   }
+  },
+  "float16": {
+   "bool/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "bool/efficient": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/cudnn": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "add/efficient": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/cudnn": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   }
+  },
+  "bfloat16": {
+   "bool/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "bool/efficient": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "bool/cudnn": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/default": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/flash": {
+    "error": "RuntimeError('No available kernel. Aborting execution.')"
+   },
+   "add/efficient": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/math": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   },
+   "add/cudnn": {
+    "nan": false,
+    "zero": true,
+    "other_rows_finite": true
+   }
+  }
+ }
+}

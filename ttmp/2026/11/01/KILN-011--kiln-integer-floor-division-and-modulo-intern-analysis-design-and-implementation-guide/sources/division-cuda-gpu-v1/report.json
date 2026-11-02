@@ -1,0 +1,593 @@
+{
+  "format": "kiln-011-division-cuda/1",
+  "device": "NVIDIA GB10",
+  "torch": "2.12.0a0+5aff3928d8.nv26.05",
+  "checks": {
+    "i32": {
+      "floordiv": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "remainder": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "truncdiv": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "fmod": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "floor_lit": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "rem_lit": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "floor_neg": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "rem_neg": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "trunc_lit": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "fmod_lit": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "truediv": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      }
+    },
+    "i64": {
+      "floordiv": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "remainder": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "truncdiv": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "fmod": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "floor_lit": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "rem_lit": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "floor_neg": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "rem_neg": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "trunc_lit": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "fmod_lit": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "truediv": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      }
+    },
+    "f32": {
+      "floordiv": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "remainder": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "fmod": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "truncdiv": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "floor_lit": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "mixed": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "mixed_rem": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      },
+      "floored": {
+        "elements": 4096,
+        "mismatches": 0,
+        "zero_sign_differences": 0
+      }
+    }
+  },
+  "edges": {
+    "i32": {
+      "floordiv": {
+        "inputs": [
+          [
+            -2147483648,
+            -1
+          ],
+          [
+            -2147483648,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            -7,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            2147483647,
+            -1
+          ]
+        ],
+        "kiln": [
+          -2147483648,
+          -2,
+          -1,
+          -2,
+          -1,
+          -2147483647
+        ],
+        "torch_cuda": [
+          -2147483648,
+          0,
+          0,
+          0,
+          0,
+          -2147483647
+        ]
+      },
+      "remainder": {
+        "inputs": [
+          [
+            -2147483648,
+            -1
+          ],
+          [
+            -2147483648,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            -7,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            2147483647,
+            -1
+          ]
+        ],
+        "kiln": [
+          0,
+          -1,
+          -1,
+          -1,
+          -1,
+          0
+        ],
+        "torch_cuda": [
+          0,
+          -1,
+          -1,
+          -1,
+          -1,
+          0
+        ]
+      },
+      "truncdiv": {
+        "inputs": [
+          [
+            -2147483648,
+            -1
+          ],
+          [
+            -2147483648,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            -7,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            2147483647,
+            -1
+          ]
+        ],
+        "kiln": [
+          -2147483648,
+          -1,
+          -1,
+          -1,
+          -1,
+          -2147483647
+        ],
+        "torch_cuda": [
+          -2147483648,
+          -1,
+          -1,
+          -1,
+          -1,
+          -2147483647
+        ]
+      },
+      "fmod": {
+        "inputs": [
+          [
+            -2147483648,
+            -1
+          ],
+          [
+            -2147483648,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            -7,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            2147483647,
+            -1
+          ]
+        ],
+        "kiln": [
+          0,
+          -1,
+          -1,
+          -1,
+          -1,
+          0
+        ],
+        "torch_cuda": [
+          0,
+          -1,
+          -1,
+          -1,
+          -1,
+          0
+        ]
+      }
+    },
+    "i64": {
+      "floordiv": {
+        "inputs": [
+          [
+            -9223372036854775808,
+            -1
+          ],
+          [
+            -9223372036854775808,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            -7,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            9223372036854775807,
+            -1
+          ]
+        ],
+        "kiln": [
+          -9223372036854775808,
+          -2,
+          4294967295,
+          -2,
+          4294967295,
+          -9223372036854775807
+        ],
+        "torch_cuda": [
+          -9223372036854775808,
+          0,
+          0,
+          0,
+          0,
+          -9223372036854775807
+        ]
+      },
+      "remainder": {
+        "inputs": [
+          [
+            -9223372036854775808,
+            -1
+          ],
+          [
+            -9223372036854775808,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            -7,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            9223372036854775807,
+            -1
+          ]
+        ],
+        "kiln": [
+          0,
+          -1,
+          4294967295,
+          -1,
+          4294967295,
+          0
+        ],
+        "torch_cuda": [
+          0,
+          -1,
+          4294967295,
+          -1,
+          4294967295,
+          0
+        ]
+      },
+      "truncdiv": {
+        "inputs": [
+          [
+            -9223372036854775808,
+            -1
+          ],
+          [
+            -9223372036854775808,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            -7,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            9223372036854775807,
+            -1
+          ]
+        ],
+        "kiln": [
+          -9223372036854775808,
+          -1,
+          4294967295,
+          -1,
+          4294967295,
+          -9223372036854775807
+        ],
+        "torch_cuda": [
+          -9223372036854775808,
+          -1,
+          4294967295,
+          -1,
+          4294967295,
+          -9223372036854775807
+        ]
+      },
+      "fmod": {
+        "inputs": [
+          [
+            -9223372036854775808,
+            -1
+          ],
+          [
+            -9223372036854775808,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            -7,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            9223372036854775807,
+            -1
+          ]
+        ],
+        "kiln": [
+          0,
+          -1,
+          4294967295,
+          -1,
+          4294967295,
+          0
+        ],
+        "torch_cuda": [
+          0,
+          -1,
+          4294967295,
+          -1,
+          4294967295,
+          0
+        ]
+      }
+    }
+  },
+  "ptx": {
+    "i32/k_floordiv__1nh6g9021n2": {
+      "div.s32": 1
+    },
+    "i32/k_remainder__5sl2hrp1mq": {
+      "rem.s32": 1
+    },
+    "i32/k_truncdiv__ujwbgz6jj7": {
+      "div.s32": 1
+    },
+    "i32/k_fmod__15b7ynir462": {
+      "rem.s32": 1
+    },
+    "i32/k_floor_lit__v4oihqrgxf": {
+      "mul.hi.s32": 1
+    },
+    "i32/k_rem_lit__1hjz4mjkoz6": {
+      "mul.hi.s32": 1
+    },
+    "i32/k_floor_neg__1pk8l5ho43x": {
+      "mul.hi.s32": 2
+    },
+    "i32/k_rem_neg__1mnoz3j0xy8": {
+      "mul.hi.s32": 1
+    },
+    "i32/k_trunc_lit__umsa367vvv": {
+      "mul.hi.s32": 1
+    },
+    "i32/k_fmod_lit__l12fql7vrl": {},
+    "i32/k_truediv__6xnmbot0ks": {},
+    "i64/k_floordiv__8z663m71o": {
+      "div.s64": 1,
+      "div.u32": 1
+    },
+    "i64/k_remainder__exqp62yego": {
+      "rem.s64": 1,
+      "rem.u32": 1
+    },
+    "i64/k_truncdiv__y8xg636bme": {
+      "div.s64": 1,
+      "div.u32": 1
+    },
+    "i64/k_fmod__t4eew24iae": {
+      "rem.s64": 1,
+      "rem.u32": 1
+    },
+    "i64/k_floor_lit__pd7oe8l9o2": {
+      "mul.hi.s64": 1
+    },
+    "i64/k_rem_lit__16qga4b9pfm": {
+      "mul.hi.s64": 1
+    },
+    "i64/k_floor_neg__1mp3mzsmnci": {
+      "mul.hi.s64": 2
+    },
+    "i64/k_rem_neg__vqe0jeawuc": {
+      "mul.hi.s64": 1
+    },
+    "i64/k_trunc_lit__2gcmnyjpp6z": {
+      "mul.hi.s64": 1
+    },
+    "i64/k_fmod_lit__11ua8so37ty": {},
+    "i64/k_truediv__24iu6ty0n6k": {},
+    "f32/k_floordiv__11n0zlrfgbm": {},
+    "f32/k_remainder__2ckcwh1g4q4": {},
+    "f32/k_fmod__12w8ph08z5r": {},
+    "f32/k_truncdiv__19xx4os6ht2": {},
+    "f32/k_floor_lit__td0nebknt0": {},
+    "f32/k_mixed__15zgwmhdd1n": {},
+    "f32/k_mixed_rem__qp94gxh7cg": {},
+    "f32/k_floored__gkmt6vc8mp": {}
+  }
+}
