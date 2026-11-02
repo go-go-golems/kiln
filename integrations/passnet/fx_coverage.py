@@ -17,7 +17,7 @@ Arithmetic follows fx_import/fx_compose: f32 compute, narrow to the source dtype
 import json
 import math
 from dtypes import FLOATING, IMPORTED
-from fx_ops import bind
+from fx_ops import bind, fill_literal
 from fx_compose import permute
 
 
@@ -61,7 +61,7 @@ def fill_value(c, value, dtype):
     """A Python number as a Kiln operand converting to dtype (PyTorch's fill converts the Scalar to the tensor dtype)."""
     literal = c.ctx.literal(value)
     if type(literal) not in (int, float, bool): raise ValueError(f'{c.name}: fill_ value must be a static number')
-    return f'N.full({json.dumps(c.meta["shape"])}, {json.dumps(literal)}, {json.dumps(IMPORTED[dtype])})'
+    return f'N.full({json.dumps(c.meta["shape"])}, {fill_literal(c, literal)}, {json.dumps(IMPORTED[dtype])})'
 
 
 def triangle(c, upper):

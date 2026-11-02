@@ -4,6 +4,7 @@ The importer looks an FX node up by (kind, target), binds nothing itself and app
 shared postconditions (metadata, storage, mutation legality) after the operation's lowering.
 A spelling may belong to exactly one operation; registering it twice is an error.
 """
+import json
 from dataclasses import dataclass, field
 from typing import Callable
 
@@ -68,3 +69,9 @@ def bind(node, what, args, kwargs, fields, *, require_first=True):
     if require_first and fields[0] not in bound:
         raise ValueError(f'{node}: {what} input required')
     return bound
+
+
+def fill_literal(c, value):
+    """A static fill value as JSON for N.full, which takes a JS number: refuse an int that would round."""
+    if type(value) is int and abs(value) > 2 ** 53 - 1: raise ValueError(f'{c.name}: fill value {value} is not exact as a JS number')
+    return json.dumps(value)

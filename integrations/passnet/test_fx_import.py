@@ -285,6 +285,15 @@ class ImportTests(unittest.TestCase):
         self.assertIn('N.cumsum(', script)
         self.assertIn('N.mul(v0, 1000000.0)', script)
 
+        class Wide(torch.nn.Module):
+            def forward(self, x): return x + 9007199254740993
+        # past 2^53 an integer operand is spelled as a BigInt, which a JS number would round
+        self.assertIn('N.int(9007199254740993n)', import_graph(export_graph(symbolic_trace(Wide()), (torch.zeros(2, dtype=torch.int64),)))['script'])
+        class WideFill(torch.nn.Module):
+            def forward(self, x): return x + torch.full_like(x, 9007199254740993)
+        with self.assertRaisesRegex(ValueError, 'not exact as a JS number'):
+            import_graph(export_graph(symbolic_trace(WideFill()), (torch.zeros(2, dtype=torch.int64),)))
+
         class Rerank(torch.nn.Module):
             def forward(self, ids, ones):
                 t = ones.cumsum(-1) - 1
