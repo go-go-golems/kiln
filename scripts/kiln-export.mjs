@@ -10,6 +10,14 @@
 //     --name NAME         program name (default: the project's)
 //     --out PATH          write here (default: stdout)
 //     --no-check          skip the end-to-end check of the compiled program against the frontend graph
+//     --contraction MODE  allow (default) or separate add/subtract/multiply rounding in CUDA
+//     --matmul-precision P  highest (default) or tf32: round FP32 matmul/linear/conv operands to TF32,
+//                         matching a reference backend with PyTorch allow_tf32 enabled
+//     --attention MODE    composed (default) or fused: one MAP=flash kernel per recognized attention (KILN-007)
+//     --optimization-program PATH  apply a validated Kiln transformation program to the standard pipeline
+//     --mutation OUT=IN    the source graph mutates input IN to output OUT's value: the program writes it in place
+//     --mutation-strategy S  auto (default): the producing kernel stores into the input when inplace.js proves it
+//                         safe, else a final write-back kernel copies it there; writeback: always the copy kernel
 //
 // Exits non-zero when the script does not compile, the check fails, or a kernel argument cannot be exported.
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
@@ -19,7 +27,9 @@ import { fileURLToPath } from "node:url";
 import { params as paramSet } from "../packages/kiln/src/core/kiln.js";
 import { SPECS, WEBGPU_DEFAULT, target as mkTarget } from "../packages/kiln/src/std/targets.js";
 import { exportProgram } from "../packages/kiln/src/std/export.js";
+import { predictedCost } from "../packages/kiln/src/std/tile.js";
 import { compileScript, endToEnd } from "../apps/workbench/src/compile.js";
+import { prepareOptimizationProgram, applyOptimizationProgram } from "../integrations/passnet/transformation_program.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PRESETS = join(ROOT, "apps/workbench/presets");
@@ -31,7 +41,7 @@ function usage(code) {
 }
 
 function parseArgs(argv) {
-  const o = { params: {}, target: "webgpu", check: true };
+  const o = { params: {}, target: "webgpu", check: true, mutations: {} };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i], next = () => { if (i + 1 >= argv.length) usage(2); return argv[++i]; };
     if (a === "--help" || a === "-h") usage(0);
@@ -42,6 +52,12 @@ function parseArgs(argv) {
     else if (a === "--name") o.name = next();
     else if (a === "--out") o.out = next();
     else if (a === "--no-check") o.check = false;
+    else if (a === "--contraction") { o.contraction = next(); if (!["allow", "separate"].includes(o.contraction)) usage(2); }
+    else if (a === "--matmul-precision") { o.matmulPrecision = next(); if (!["highest", "tf32"].includes(o.matmulPrecision)) usage(2); }
+    else if (a === "--attention") { o.attention = next(); if (!["composed", "fused"].includes(o.attention)) usage(2); }
+    else if (a === "--optimization-program") o.optimizationProgram = next();
+    else if (a === "--mutation-strategy") { o.mutationStrategy = next(); if (!["auto", "writeback"].includes(o.mutationStrategy)) usage(2); }
+    else if (a === "--mutation") { const [out, input, ...rest] = next().split("="); if (!out || !input || rest.length) usage(2); o.mutations[out] = input; }
     else { process.stderr.write(`unknown argument ${a}\n`); usage(2); }
   }
   if (!!o.preset === !!o.script) usage(2);
@@ -55,19 +71,46 @@ function scriptPath(o) {
   return join(PRESETS, f);
 }
 
+function compileWith(pins, prepared) {
+  return compileScript(text, { params: paramSet([]), target, pins, contraction: o.contraction, matmulPrecision: o.matmulPrecision, attention: o.attention,
+    transformPipeline: prepared ? (pipe, { project, target }) => {
+      if (project._pipe) throw new TypeError("optimization programs require the standard pipeline");
+      return applyOptimizationProgram(pipe, target, prepared);
+    } : null });
+}
+
 function compileOne(pins) {
-  const c = compileScript(text, { params: paramSet([]), target, pins });
+  let c = compileWith(pins, preparedProgram?.gate ? null : preparedProgram), decision = null;
+  if (preparedProgram?.gate) {
+    // cost-gated: keep the transformed program only if the model predicts it is cheaper
+    const transformed = compileWith(pins, preparedProgram.inner);
+    if (c.ok && transformed.ok) {
+      const baseline_us = predictedCost(c.run.at("tile"), target), transformed_us = predictedCost(transformed.run.at("tile"), target);
+      const chosen = transformed_us < baseline_us ? "transformed" : "baseline";
+      decision = { gate: preparedProgram.gate, chosen, predicted_us: { baseline: baseline_us, transformed: transformed_us } };
+      if (chosen === "transformed") c = transformed;
+    } else if (c.ok !== transformed.ok) {
+      // only one side compiled: the gate has nothing to compare, and records why
+      if (transformed.ok) c = transformed;
+      decision = { gate: preparedProgram.gate, chosen: c === transformed ? "transformed" : "baseline", reason: `${c === transformed ? "untransformed" : "transformed"} compilation failed` };
+    }
+  }
   const at = Object.entries(pins).map(([k, v]) => `${k}=${v}`).join(" ");
   for (const d of c.diags || []) process.stderr.write(`${at}: ${d.level}${d.line ? ` line ${d.line}` : ""}: ${d.message}\n`);
   if (!c.ok || !c.prog) { process.stderr.write(`${at}: compile failed\n`); process.exit(1); }
+  // recorded in the artifact: a bypassed or skipped check must be visible wherever the artifact travels
+  let internalCheck = "bypassed (--no-check)";
   if (o.check) {
     const { e2e } = endToEnd(c.run, c.graph, c.project);
     const status = e2e.error ? `error: ${e2e.error}` : e2e.skipped ? `skipped: ${e2e.skipped}` : e2e.ok ? `ok at ${e2e.level}` : "FAILED";
     process.stderr.write(`${at}: end-to-end check ${status}\n`);
     if (e2e.error || (!e2e.skipped && !e2e.ok)) process.exit(1);
+    internalCheck = status;
   }
   const values = Object.fromEntries([...c.project._params].map((p) => [p.name, c.params.get(p)]));
-  const program = exportProgram(c.run, c.prog, { name: o.name || c.project.name, params: values, target, source });
+  const program = exportProgram(c.run, c.prog, { name: o.name || c.project.name, params: values, target, source: { ...source, internal_check: internalCheck }, mutations: o.mutations, mutationStrategy: o.mutationStrategy });
+  if (optimizationProgram) program.compiler_policy = optimizationProgram;
+  if (decision) program.compiler_policy_decision = decision;
   process.stderr.write(`${at}: ${program.kernels.map((k) => `${k.name} ${k.row}`).join("; ")}\n`);
   return program;
 }
@@ -77,7 +120,14 @@ const spec = o.target === "webgpu" ? WEBGPU_DEFAULT : SPECS[o.target];
 if (!spec) { process.stderr.write(`unknown target ${o.target}; one of webgpu ${Object.keys(SPECS).join(" ")}\n`); process.exit(2); }
 const target = mkTarget(spec);
 const file = scriptPath(o), text = readFileSync(file, "utf8");
-const source = { path: relative(ROOT, file), sha256: createHash("sha256").update(text).digest("hex") };
+const optimizationText = o.optimizationProgram ? readFileSync(resolve(o.optimizationProgram), "utf8") : null;
+const optimizationProgram = optimizationText ? JSON.parse(optimizationText) : null;
+const preparedProgram = optimizationProgram ? prepareOptimizationProgram(optimizationProgram) : null;
+const source = { path: relative(ROOT, file), sha256: createHash("sha256").update(text).digest("hex"),
+  ...(o.contraction ? { contraction: o.contraction } : {}),
+  ...(o.matmulPrecision ? { matmul_precision: o.matmulPrecision } : {}),
+  ...(o.attention ? { attention: o.attention } : {}),
+  ...(optimizationText ? { optimization_program_sha256: createHash("sha256").update(optimizationText).digest("hex") } : {}) };
 // every combination of the listed values, first parameter slowest
 const combos = Object.entries(o.params).reduce((acc, [k, v]) => acc.flatMap((c) => v.split(",").map((x) => ({ ...c, [k]: x }))), [{}]);
 const programs = combos.map(compileOne);

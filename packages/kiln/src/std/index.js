@@ -1,9 +1,10 @@
 // std: the standard library the workbench scripts and the agent see.
 import { k, P } from "../core/kiln.js";
 import { Tensor } from "../core/util.js";
+import { roundToDtype } from "../core/dtypes.js";
 import * as IX from "../core/ix.js";
 import { nn, tensor, N, T, weight, decompose, decomposition, optimization, composeViews } from "./tensor.js";
-import { loop, E, schedule, printNest, lift, fuse, stamp, mergeLoopOps, inlineInto, workOf, runSerial, freshR, printE, liftEw, liftReduce, liftView } from "./loop.js";
+import { loop, E, schedule, printNest, lift, fuse, stamp, mergeLoopOps, createFusionRule, chooseFusionSubset, inlineInto, workOf, runSerial, freshR, printE, liftEw, liftReduce, liftView } from "./loop.js";
 import { tile, tilePass, scheduleRule, costPrior, analyze, estimate, timeModel, launch, KNOBS, MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, canonRow, forkTree, legalMaps } from "./tile.js";
 import { kern, kernelPass, materialize, materializeRule, dropRedundantSyncs, KB, kx, printKernelBody } from "./kernel.js";
 import { gpu, emitPass, emitRule, programOf, simulateKernel, kernelInputs, referenceAt } from "./program.js";
@@ -20,7 +21,7 @@ export const std = {
   N, T, nn, tensor, weight, decompose, Tensor,
   emmy: { pipeline, defaultDecide, IRS, passes, dialects },
   frontend: { decomposition, optimization, composeViews },
-  loop: { dialect: loop, E, schedule, printNest, lift, fuse, stamp, mergeLoopOps, inlineInto, workOf, runSerial, freshR, printE, liftEw, liftReduce, liftView },
+  loop: { dialect: loop, E, schedule, printNest, lift, fuse, stamp, mergeLoopOps, createFusionRule, chooseFusionSubset, inlineInto, workOf, runSerial, freshR, printE, liftEw, liftReduce, liftView },
   tile: { dialect: tile, pass: tilePass, rule: scheduleRule, costPrior, analyze, estimate, timeModel, launch, KNOBS, MAP, TPB, COARSEN, STAGE, BM, BN, BK, TM, TN, canonRow, forkTree, legalMaps },
   kernel: { dialect: kern, pass: kernelPass, materialize, rule: materializeRule, dropRedundantSyncs, KB, kx, print: printKernelBody },
   gpu: { dialect: gpu, pass: emitPass, rule: emitRule, programOf, simulateKernel, kernelInputs, referenceAt, toCuda, toWgsl, toSim },
@@ -61,12 +62,31 @@ export class Project {
     const fn = this._prog;
     return k.trace(this.name, (vals) => fn(vals, { param: paramGet }), spec);
   }
-  inputsFor(g) {
+  inputsFor(g, { names = null } = {}) {
+    const selected = names === null ? null : new Set(names);
+    if (selected && (!Array.isArray(names) || selected.size !== names.length || names.some(name => !g.inputs.some(i => i.name === name)))) {
+      throw new k.KilnError("ProjectError", "reference input names must be distinct graph inputs");
+    }
     const out = {};
     for (const i of g.inputs) {
+      if (selected && !selected.has(i.name)) continue;
       const t = g.nodes.get(i.id).type;
       const d = this._data?.[i.name];
-      out[i.name] = d !== undefined ? d : t?.kind === "tensor" ? Tensor.random(t.shape || [], { seed: 11 + i.name.length, dist: "uniform" }) : 0;
+      const exact = { i64: BigInt64Array, i32: Int32Array, bool: Uint8Array, u8: Uint8Array };
+      const value = d !== undefined ? d : t?.kind === "tensor" && exact[t.dtype]
+        ? new Tensor(t.shape || [], null, t.dtype)
+        : t?.kind === "tensor" ? Tensor.random(t.shape || [], { seed: 11 + i.name.length, dist: "uniform" }) : 0;
+      if (t?.kind === "tensor" && ["f16", "bf16"].includes(t.dtype)) {
+        if (!(value instanceof Tensor)) throw new k.KilnError("TypeError", `reference input ${i.name} requires Tensor data`);
+        out[i.name] = new Tensor(value.shape, Float32Array.from(value.data, x => roundToDtype(x, t.dtype)));
+      } else if (t?.kind === "tensor" && exact[t.dtype] && !t.shape?.length && (typeof value === "bigint" || Number.isInteger(value) || typeof value === "boolean")) {
+        out[i.name] = value; // a rank-0 dialect input given as a plain number
+      } else if (t?.kind === "tensor" && exact[t.dtype]) {
+        if (!(value instanceof Tensor) || !(value.data instanceof exact[t.dtype]) || value.shape.join() !== t.shape.join()) {
+          throw new k.KilnError("TypeError", `reference input ${i.name} requires exact ${t.dtype} Tensor data`);
+        }
+        out[i.name] = new Tensor(value.shape, value.data.slice(), t.dtype);
+      } else out[i.name] = value;
     }
     return out;
   }

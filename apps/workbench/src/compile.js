@@ -10,8 +10,9 @@ import { schedule } from "@kiln/kiln/std/loop.js";
 import { compare } from "@kiln/kiln/core/util.js";
 
 /** The project's pipeline (or the default one) for a target, with per-kernel pins ahead of its own policy. */
-export function pipelineFor(project, target, kernelPins = {}) {
-  const base = project?._pipe || std.emmy.pipeline();
+export function pipelineFor(project, target, kernelPins = {}, contraction, matmulPrecision, attention) {
+  if ((contraction !== undefined || matmulPrecision !== undefined || attention !== undefined) && project?._pipe) throw new TypeError("explicit numerical options require the standard pipeline");
+  const base = project?._pipe || std.emmy.pipeline({ contraction, matmulPrecision, attention });
   return base.with({ target, decide: k.decide.chain(kernelPinPolicy(kernelPins), base._decide) });
 }
 
@@ -19,10 +20,13 @@ export function pipelineFor(project, target, kernelPins = {}) {
  * Compile `text` without touching any workbench: `params` is cloned (the script's params are declared on the clone),
  * `store` is the evidence store forks may read for `deviceId`. → { ok, diags, project, graph, run, prog, pipe }
  */
-export function compileScript(text, { params, kernelPins = {}, target, deviceId, store = null, pins = null }) {
+export function compileScript(text, { params, kernelPins = {}, target, deviceId, store = null, pins = null, contraction, matmulPrecision, attention, transformPipeline = null }) {
   const res = runScript(text);
   if (!res.ok) return { ok: false, diags: res.diags };
-  const project = res.project, pipe = pipelineFor(project, target, kernelPins);
+  if (transformPipeline !== null && typeof transformPipeline !== "function") throw new TypeError("transformPipeline must be a function");
+  const project = res.project;
+  let pipe = pipelineFor(project, target, kernelPins, contraction, matmulPrecision, attention);
+  if (transformPipeline) pipe = transformPipeline(pipe, { project, target });
   const ps = params.clone();
   for (const p of [...project._params, ...pipe.allParams()]) ps.declare(p);
   if (pins) ps.pin(pins);
@@ -30,7 +34,13 @@ export function compileScript(text, { params, kernelPins = {}, target, deviceId,
   try { g = project.graph((p) => ps.get(p)); }
   catch (e) { return { ok: false, diags: [...res.diags, { level: "error", line: lineOf(e), message: "tracing the program: " + e.message }] }; }
   const run = pipe.run(g, { params: ps, target, ctx: { deviceId, store } });
-  const prog = hasKernels(run) ? programOf(run.graph) : null;
+  // Identity views can optimize to an input alias with no GPU kernel. This is
+  // still a complete exportable program, distinct from a failed/incomplete run.
+  const inputs = new Set(run.graph.inputs.map((input) => input.id));
+  const inputOnly = run.ok && run.graph.outputs.length > 0
+    && [...run.graph.nodes.keys()].every((id) => inputs.has(id))
+    && run.graph.outputs.every((output) => inputs.has(output.id));
+  const prog = hasKernels(run) || inputOnly ? programOf(run.graph) : null;
   const diags = [...res.diags, ...(run.ok ? [] : [{ level: "error", line: lineOf(run.error.cause || run.error), message: `${run.error.kind}: ${run.error.message}` }]), ...run.warnings.map((w) => ({ level: "warn", message: w }))];
   return { ok: run.ok, diags, project, graph: g, run, prog, pipe, params: ps };
 }
@@ -53,7 +63,16 @@ export function endToEnd(run, g, project) {
     const want = g.eval(inputs);
     const level = ["loop", "gpu", ...[...run.irOrder].reverse()].find((n) => run.at(n) && canEval(run.at(n)));
     const got = level ? run.at(level).eval(inputs) : run.graph.eval(inputs);
-    const checks = Object.keys(want).map((name) => ({ name, ...compare(got[name], want[name], { rtol: 1e-3, atol: 1e-4 }) }));
+    // a low-precision output may differ by a few ulps of its dtype when the two levels sum in different
+    // orders: an f32 result near a rounding boundary flips one ulp, and later operations amplify it
+    // (4 ulps: 2^-8 relative for f16, 2^-5 for bf16). A small output computed from large rounded
+    // operands carries their absolute error: atol is one ulp at the output's largest magnitude.
+    // PassBench's own tolerance judges acceptance.
+    const ulp = { f16: 2 ** -10, bf16: 2 ** -7 };
+    const dtypeOf = (name) => g.nodes.get(g.outputs.find((o) => o.name === name)?.id)?.type.dtype;
+    const scale = (t) => { let m = 0; for (const v of t.data) { const a = Math.abs(Number(v)); if (a > m && a < Infinity) m = a; } return m; };
+    const tolerance = (name) => { const u = ulp[dtypeOf(name)]; return u ? { rtol: 4 * u, atol: Math.max(1e-4, u * scale(want[name])) } : { rtol: 1e-3, atol: 1e-4 }; };
+    const checks = Object.keys(want).map((name) => ({ name, ...compare(got[name], want[name], tolerance(name)) }));
     const custom = project._checks.map((c) => { try { return checkResult(c, c.fn({ outputs: got, reference: want, inputs, run, graph: g, compare })); } catch (e) { return { name: c.name, ok: false, message: e.message }; } });
     return { e2e: { level, checks, custom, ok: checks.every((c) => c.ok) && custom.every((c) => c.ok) }, outputs: { inputs, got, want, level } };
   } catch (e) { return { e2e: { error: e.message }, outputs: null }; }

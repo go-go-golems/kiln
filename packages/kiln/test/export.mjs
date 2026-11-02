@@ -16,7 +16,7 @@ const exp = (g, opts) => { const r = pipe.run(g); return exportProgram(r, progra
 {
   const g = k.trace("attention", ({ q, kk, v }) => N.matmul(N.softmax(N.mul(N.matmul(q, N.transpose(kk)), 0.125)), v), { q: k.tensor([2, 32, 16]), kk: k.tensor([2, 32, 16]), v: k.tensor([2, 32, 16]) });
   const r = pipe.run(g), prog = programOf(r.graph), p = exportProgram(r, prog, { params: { seq: 32 } });
-  check(p.format === PROGRAM_FORMAT && p.codegen === "kiln-codegen/2", `format ${p.format}, codegen ${p.codegen}`);
+  check(p.format === PROGRAM_FORMAT && p.codegen === "kiln-codegen/4", `format ${p.format}, codegen ${p.codegen}`);
   check(p.inputs.map((t) => `${t.name}:${t.buffer}`).join(" ") === "q:0 kk:1 v:2", `inputs take the first buffers: ${p.inputs.map((t) => `${t.name}:${t.buffer}`).join(" ")}`);
   check(p.kernels.length === 3 && p.buffers.length === 6, `${p.kernels.length} kernels, ${p.buffers.length} buffers`);
   const written = new Set(p.inputs.map((t) => t.buffer));
@@ -59,6 +59,42 @@ const exp = (g, opts) => { const r = pipe.run(g); return exportProgram(r, progra
   let msg = null;
   try { exportProgram(broken, prog); } catch (e) { msg = e.message; }
   check(/output y is missing/.test(msg || ""), `a dangling output is refused: ${msg}`);
+}
+
+// buffers past 32-bit CUDA index range are refused rather than emitted with overflowing int offsets
+{
+  const g = k.trace("huge", ({ x }) => N.relu(x), { x: k.tensor([65536, 32769]) });
+  let msg = null;
+  try { exp(g); } catch (e) { msg = e.message; }
+  check(/32-bit/.test(msg || ""), `a 2^31-element buffer is refused: ${msg}`);
+}
+
+// a row-mapped kernel derives offsets from blockIdx only: more than 2^31 launched threads is legal
+// (PassBench task 32's 1x1 convolution: 2^26 output rows x 32 lanes ran correctly on the GPU)
+{
+  const a100 = pipeline({ target: target(SPECS.a100) });
+  const g = k.trace("rows", ({ x, w, b }) => N.reshape(N.conv2d(x, w, b, { stride: [1, 1], padding: [0, 0], dilation: [1, 1], groups: 1 }), [64, 256, 4096]),
+    { x: k.tensor([64, 512, 64, 64], "bf16"), w: k.tensor([256, 512, 1, 1], "bf16"), b: k.tensor([256], "bf16") });
+  const r = a100.run(g);
+  let p = null, msg = null;
+  try { p = exportProgram(r, programOf(r.graph)); } catch (e) { msg = e.message; }
+  const wide = p?.kernels.find((kn) => kn.grid * kn.block > 2 ** 31 - 1);
+  check(!!wide && /MAP=(row|tiled)/.test(wide.row), `a row-mapped launch past 2^31 threads is exported: ${msg || wide?.row}`);
+}
+
+// an input the source mutates is written by the program itself, into the input's own buffer
+{
+  const g = k.trace("mut", ({ x }) => ({ y: N.mean(N.relu(x), -1), __mut0: N.relu(x) }), { x: k.tensor([4, 8]) });
+  const r = pipe.run(g), p = exportProgram(r, programOf(r.graph), { mutations: { __mut0: "x" } });
+  const last = p.kernels.at(-1), x = p.inputs[0], mut = p.outputs.find((o) => o.name === "__mut0");
+  check(mut.buffer === x.buffer, "the mutated output is the input's buffer");
+  check(last.writes === x.buffer && last.inPlace?.input === "x" && p.mutations[0].strategy === "direct", "the producer stores into the input directly (inplace.mjs covers the strategies)");
+  const wb = exportProgram(r, programOf(r.graph), { mutations: { __mut0: "x" }, mutationStrategy: "writeback" }).kernels.at(-1);
+  check(wb.writes === x.buffer && /k_writeback__/.test(wb.name) && /dst\[e\] = src0\[e\]/.test(wb.cuda), "the write-back strategy appends a final copy kernel into the input");
+  check(p.kernels.slice(0, -1).every((kn) => kn.writes !== x.buffer), "no earlier kernel writes the input");
+  let msg = null;
+  try { exportProgram(r, programOf(r.graph), { mutations: { y: "x" } }); } catch (e) { msg = e.message; }
+  check(/does not match the input/.test(msg || ""), `a mutation must match the input's type: ${msg}`);
 }
 
 if (failed) { console.log(`${failed} failed`); process.exitCode = 1; }

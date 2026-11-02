@@ -5,14 +5,21 @@
 // statements:  let {n, e} · iset {n, e:Ix} · load {n, buf, idx} · store {buf, idx, e}
 //              sload {n, arr, idx} · sstore {arr, idx, e} · sync · for {v, from, to, step, body}
 //              if {c:Ix, body} · note {text}
-// float expressions: {k:"num", v} · {k:"var", n} · {k:"op", fn, a:[…]}
+//              mma {op, acc:[4 names], a:[aElems names], b:[bElems names]}   acc ← A·B + acc, warp-collective
+//                  (KILN-006; op is a key of mma.js MMA_OPS; every name is an f32 temporary holding one element)
+// float expressions: {k:"num", v} · {k:"var", n} · {k:"op", fn, a:[…]} · {k:"ix", e:Ix, dtype}
+//   (an index value: the integer expression e over kernel index variables, as an i64/i32/bool scalar)
 import { k, P, KilnError } from "../core/kiln.js";
-import { numel, strides, hash, inKey } from "../core/util.js";
+import { numel, strides, hash, inKey, dtypeBytes } from "../core/util.js";
 import * as IX from "../core/ix.js";
-import { reducer, FNS } from "./fns.js";
-import { analyze, launch, stagedOf, canonRow } from "./tile.js";
+import { reducer, FNS, INTEGER_DTYPES } from "./fns.js";
+import { analyze, launch, stagedOf, canonRow, mmaPlan } from "./tile.js";
+import { MMA_OPS, ACC_ELEMS, fragmentIx, mmaSmemLayout } from "./mma.js";
+import { displayNames } from "./loop.js";
+import { matFlash } from "./flash-kernel.js";
 
-export const kx = { num: (v) => ({ k: "num", v: +v }), v: (n) => ({ k: "var", n }), op: (fn, ...a) => ({ k: "op", fn, a }) };
+// an int64 literal past 2^53 keeps its exact decimal spelling beside the (JSON-safe) number
+export const kx = { num: (v) => (typeof v === "bigint" ? { k: "num", v: Number(v), exact: String(v) } : { k: "num", v: +v }), v: (n) => ({ k: "var", n }), op: (fn, ...a) => ({ k: "op", fn, a }), ix: (e, dtype) => ({ k: "ix", e: IX.lift(e), dtype }) };
 const V = IX.V, C = IX.C;
 
 export class KB {
@@ -28,6 +35,8 @@ export class KB {
   sstore(arr, idx, e) { this.push({ s: "sstore", arr, idx: IX.lift(idx), e }); }
   sync() { const last = this.cur[this.cur.length - 1]; if (last?.s !== "sync") this.push({ s: "sync" }); }
   note(text) { this.push({ s: "note", text }); }
+  // warp-collective: all 32 lanes of every warp that reaches it must be active (the simulator checks)
+  mma(op, acc, a, b) { for (const n of acc) this.floats.add(n); this.push({ s: "mma", op, acc: [...acc], a: [...a], b: [...b] }); }
   for(v, from, to, step, fn) {
     const st = this.push({ s: "for", v, from: IX.lift(from), to: IX.lift(to), step: IX.lift(step), body: [] });
     const prev = this.cur; this.cur = st.body; fn(V(v)); this.cur = prev;
@@ -48,13 +57,23 @@ function emitNest(kb, stmts, ctx) {
   for (let i = 0; i < stmts.length; i++) {
     const st = stmts[i];
     if (st.s === "let" && st.e.k === "in") ctx.vals.set(st.name, kx.v(ctx.load(st, ctx)));
+    // an index value: its expression in the kernel's spelling of the coordinates (the substitution
+    // load addresses get); data-dependent terms keep the kernel's input numbering
+    else if (st.s === "let" && st.e.k === "ix") ctx.vals.set(st.name, kx.v(kb.let(kx.ix(IX.subst(st.e.e, ctx.env), st.e.dtype), ctx.nm(st.name))));
     else if (st.s === "let") ctx.vals.set(st.name, kx.v(kb.let(kx.op(st.e.fn, ...st.e.a.map((o) => opnd(o, ctx))), ctx.nm(st.name))));
     else if (st.s === "init") {
       const next = stmts[i + 1];
-      if (ctx.onReduce && ctx.onReduce(st, next, ctx)) { i++; continue; }
+      if (!st.scan && ctx.onReduce && ctx.onReduce(st, next, ctx)) { i++; continue; }
       ctx.vals.set(st.name, kx.v(kb.let(kx.num(reducer(st.fn).init), ctx.nm(st.name))));
+    } else if (st.s === "for" && st.kind === "scan") {
+      // an ordered loop: a materializer that does not implement it must not parallelize it as a free loop
+      if (!ctx.onScan) throw new KilnError("MaterializeError", `this mapping does not materialize the scan loop over ${st.v}`);
+      ctx.onScan(st, ctx);
+    } else if (st.s === "step") {
+      const acc = ctx.vals.get(st.name);
+      kb.let(kx.op(reducer(st.fn).op, acc, opnd(st.val, ctx)), acc.n);
     } else if (st.s === "for" && st.kind === "reduce") {
-      const v = ctx.nm(st.v);
+      const v = ctx.nm(ctx.redName(st.v));
       kb.for(v, 0, st.n, 1, (rv) => emitNest(kb, st.body, { ...ctx, env: { ...ctx.env, [st.v]: rv } }));
     } else if (st.s === "acc") {
       const acc = ctx.vals.get(st.name);
@@ -63,11 +82,16 @@ function emitNest(kb, stmts, ctx) {
     else if (st.s === "write") ctx.write(st, ctx);
   }
 }
-const opnd = (o, ctx) => (o.ref != null ? ctx.vals.get(o.ref) ?? (() => { throw new KilnError("MaterializeError", `value ${o.ref} used before it is computed`); })() : kx.num(o.num));
+const opnd = (o, ctx) => (o.ref != null ? ctx.vals.get(o.ref) ?? (() => { throw new KilnError("MaterializeError", `value ${o.ref} used before it is computed`); })() : kx.num(o.exact != null ? BigInt(o.exact) : o.num));
 
 function baseCtx(an, kb, P) {
   const ctx = {
     env: {}, vals: new Map(), nm: (n) => n,
+    redName: (n) => {
+      const name=an.reductionNames[n];
+      if(!name)throw new KilnError("MaterializeError", `reduction ${n} has no canonical binder`);
+      return name.v;
+    },
     flat: (c, i, idx) => an.flat(i, idx.map((e) => IX.subst(e, c.env))),
     load: null, onFree: null, onReduce: null, write: null,
   };
@@ -96,8 +120,11 @@ function matThread(an, kn) {
 }
 
 // ----------------------------------------------------------------------------- MAP=row
+// one combine array per accumulator dtype: an f32 and an i64 row reduction (argmax's two passes)
+// cannot share storage. The f32 array keeps the historical name s_red.
 function treeCombine(kb, T, fnName, accName) {
-  const red = "s_red";
+  const dtype = reducer(fnName).type ?? "f32";
+  const red = dtype === "f32" ? "s_red" : `s_red_${dtype}`;
   if (!kb.smem.find((s) => s.name === red)) kb.shared(red, T);
   kb.sync();
   kb.sstore(red, V("tid"), kx.v(accName));
@@ -157,7 +184,7 @@ function matRow(an, kn) {
     if (!loopSt || loopSt.s !== "for") return false;
     const acc = kb.let(kx.num(reducer(init.fn).init), init.name);
     c.vals.set(init.name, kx.v(acc));
-    kb.for(loopSt.v, V("tid"), loopSt.n, T, (rv) => emitNest(kb, loopSt.body, { ...c, env: { ...c.env, [loopSt.v]: rv }, onReduce: null }));
+    kb.for(c.nm(c.redName(loopSt.v)), V("tid"), loopSt.n, T, (rv) => emitNest(kb, loopSt.body, { ...c, env: { ...c.env, [loopSt.v]: rv }, onReduce: null }));
     treeCombine(kb, T, init.fn, acc);
     return true;
   };
@@ -195,7 +222,9 @@ function matTiled(an, kn) {
     kb.for(isA ? "la" : "lb", V("tid"), rows * BK, T, (l) => {
       const rr = kb.int(kFast ? l.div(BK) : l.mod(rows), "rr"), kk = kb.int(kFast ? l.mod(BK) : l.div(rows), "kq");
       const gRow = rowBase.add(rr), gK = k0.add(kk);
-      const v = kb.let(kx.num(0), "tv");
+      // one staging temporary per operand: operands may differ in dtype (an f32 mask beside i64 data), and a
+      // Kernel IR value has one static type
+      const v = kb.let(kx.num(0), kb.fresh("tv"));
       kb.if(gRow.lt(lim).and(gK.lt(ct.K)), () => {
         const env = { ...benv, [rowVar]: gRow, [ct.C.r]: gK };
         const g = kb.load(ld.i, an.flat(ld.i, ld.idx.map((e) => IX.subst(e, env))));
@@ -240,29 +269,278 @@ function matTiled(an, kn) {
   return kb;
 }
 
+// ----------------------------------------------------------------------------- scans
+// MAP=thread for a scan: one thread per row (every output coordinate but the scanned one); the scan loop is
+// a serial for with the carried value in a register
+function matScanThread(an, kn) {
+  const kb = new KB();
+  const T = kn.TPB, Cn = kn.COARSEN, sc = an.scan;
+  const body = (eIx) => {
+    const e = kb.int(eIx, "e");
+    kb.if(e.lt(sc.rows), () => {
+      const ctx = baseCtx(an, kb);
+      ctx.env = decode(e, sc.rowDims);
+      ctx.load = (st, c) => kb.load(st.e.i, c.flat(c, st.e.i, st.e.idx), st.name);
+      ctx.onFree = (st, c) => emitNest(kb, st.body, c);
+      ctx.onScan = (st, c) => kb.for(st.v, 0, st.n, 1, (iv) => emitNest(kb, st.body, { ...c, env: { ...c.env, [st.v]: iv } }));
+      ctx.write = (st, c) => kb.store("out", outFlat(an, st.idx, c.env), opnd(st.val, c));
+      emitNest(kb, an.sched.stmts, ctx);
+    });
+  };
+  if (Cn === 1) body(V("bid").mul(T).add(V("tid")));
+  else kb.for("j", 0, Cn, 1, (j) => body(V("bid").mul(T * Cn).add(j.mul(T)).add(V("tid"))));
+  return kb;
+}
+// MAP=row for a scan: one block per row. The scan loop becomes a uniform loop over chunks of T positions;
+// thread tid owns position c0 + tid. Statements between steps run under the guard c0 + tid < n. Each step
+// is an inclusive Hillis-Steele scan of the chunk in shared memory (out-of-range positions hold the
+// identity), combined with the block-wide carry of the chunks before it. Every barrier is in uniform code.
+function matScanRow(an, kn) {
+  const kb = new KB();
+  const T = kn.TPB, sc = an.scan, tid = V("tid");
+  const ctx = baseCtx(an, kb);
+  ctx.env = sc.rowDims.length ? decode(V("bid"), sc.rowDims) : {};
+  const arr = new Map(sc.carries.map((c, q) => [c.name, kb.shared(`s_scan${q}`, T)]));
+  ctx.load = (st, c) => kb.load(st.e.i, c.flat(c, st.e.i, st.e.idx), st.name);
+  ctx.onFree = (st, c) => emitNest(kb, st.body, c);
+  ctx.write = (st, c) => kb.store("out", outFlat(an, st.idx, c.env), opnd(st.val, c));
+  ctx.onScan = (st, c) => {
+    kb.for("c0", 0, st.n, T, (c0) => {
+      const pos = kb.int(c0.add(tid), "p"), inside = pos.lt(st.n);
+      const cc = { ...c, env: { ...c.env, [st.v]: pos }, vals: new Map(c.vals) };
+      let seg = [];
+      const flush = (then) => { const run = seg; seg = []; if (run.length || then) kb.if(inside, () => { emitNest(kb, run, cc); then?.(); }); };
+      for (const s2 of st.body) {
+        if (s2.s !== "step") { seg.push(s2); continue; }
+        const R = reducer(s2.fn), id = kx.num(R.init), a = arr.get(s2.name), carry = c.vals.get(s2.name);
+        // x: this thread's term, the identity past the end of the row
+        const x = kb.let(id, `${s2.name}_x`);
+        flush(() => kb.let(opnd(s2.val, cc), x));
+        kb.sstore(a, tid, kx.v(x));
+        kb.sync();
+        for (let d = 1; d < T; d *= 2) {
+          const y = kb.let(id, `${s2.name}_y`);
+          kb.if(tid.ge(d), () => kb.sload(a, tid.sub(d), y));
+          kb.sync();
+          kb.if(tid.ge(d), () => { kb.let(kx.op(R.op, kx.v(y), kx.v(x)), x); kb.sstore(a, tid, kx.v(x)); });
+          kb.sync();
+        }
+        // the prefix through this position, then the carry past the whole chunk (its last slot)
+        const p = kb.let(kx.op(R.op, carry, kx.v(x)), `${s2.name}_p`);
+        cc.vals.set(s2.name, kx.v(p));
+        const tot = kb.sload(a, C(T - 1), `${s2.name}_t`);
+        kb.let(kx.op(R.op, carry, kx.v(tot)), carry.n);
+      }
+      flush();
+      kb.sync();
+    });
+  };
+  emitNest(kb, an.sched.stmts, ctx);
+  return kb;
+}
+
+// ----------------------------------------------------------------------------- warp-level tensor-core tiles (KILN-006)
+// Building blocks for any kernel that multiplies shared-memory tiles on tensor cores (matMma below; KILN-007's fused
+// attention). A warp tile is MI×NI atoms of op (mma.js MMA_OPS): rows 16·mi … of A, columns 8·ni … of B. All
+// addressing is Ix over `lane` (0…31), derived from the one layout table; no layout formula is restated here.
+// Contract: every warp of the block executes each mma statement with all 32 lanes active (never inside a guard).
+
+/** MI×NI×4 accumulator temporaries, initialized to 0: acc[mi][ni] = [4 names]. */
+export function mmaAccumulators(kb, MI, NI, prefix = "acc") {
+  return Array.from({ length: MI }, (_, mi) => Array.from({ length: NI }, (_, ni) => Array.from({ length: ACC_ELEMS }, (_, i) => kb.let(kx.num(0), `${prefix}_${mi}_${ni}_${i}`))));
+}
+/**
+ * One k-step of a warp tile: fragment loads from shared tiles, then MI·NI atoms, acc ← A·B + acc.
+ *   a: { arr, ld, row0, k0 }  A tile row-major [row][k] in shared array arr with row stride ld; this warp's rows start
+ *      at Ix row0 and this step's k at Ix k0 (A element (r, q) is at (row0 + r)·ld + k0 + q).
+ *   b: { arr, ld, col0, k0 }  B tile row-major [k][col]: element (q, c) is at (k0 + q)·ld + col0 + c.
+ * Fragment temporaries are named `${prefix}a_${mi}_${e}` / `${prefix}b_${ni}_${e}` (reassigned each step).
+ */
+export function mmaWarpStep(kb, opName, lane, acc, a, b, { prefix = "f" } = {}) {
+  const op = MMA_OPS[opName], MI = acc.length, NI = acc[0].length;
+  const fa = Array.from({ length: MI }, (_, mi) => Array.from({ length: op.aElems }, (_, e) => {
+    const [r, q] = fragmentIx(opName, "a", e, lane);
+    return kb.sload(a.arr, IX.lift(a.row0).add(mi * op.m).add(r).mul(a.ld).add(IX.lift(a.k0)).add(q), `${prefix}a_${mi}_${e}`);
+  }));
+  const fb = Array.from({ length: NI }, (_, ni) => Array.from({ length: op.bElems }, (_, e) => {
+    const [q, c] = fragmentIx(opName, "b", e, lane);
+    return kb.sload(b.arr, IX.lift(b.k0).add(q).mul(b.ld).add(IX.lift(b.col0)).add(ni * op.n).add(c), `${prefix}b_${ni}_${e}`);
+  }));
+  for (let mi = 0; mi < MI; mi++) for (let ni = 0; ni < NI; ni++) kb.mma(opName, acc[mi][ni], fa[mi], fb[ni]);
+}
+/** The accumulator elements a lane holds in an MI×NI warp tile: { mi, ni, i, name, row, col } with row/col Ix within the tile. */
+export function mmaAccElements(opName, acc, lane) {
+  const op = MMA_OPS[opName], out = [];
+  acc.forEach((rowAcc, mi) => rowAcc.forEach((names, ni) => names.forEach((name, i) => {
+    const [r, c] = fragmentIx(opName, "c", i, lane);
+    out.push({ mi, ni, i, name, row: r.add(mi * op.m), col: c.add(ni * op.n) });
+  })));
+  return out;
+}
+
+// ----------------------------------------------------------------------------- MAP=mma
+// The tensor-core GEMM (guide §8.1). Block = (BM/WM)·(BN/WN) warps; warp (wm, wn) owns a WM×WN output tile of
+// (WM/16)·(WN/8) atoms. Per BK slab: cooperative, guarded, zero-filled loads of the A and B tiles into padded f32
+// shared tiles (the padding minimizes fragment-read bank conflicts, mma.js mmaSmemLayout), a barrier, BK/k unrolled
+// warp steps, a barrier. The atoms run unguarded (zero fill makes the tails exact); the epilogue (every Loop IR
+// statement outside the contraction) runs once per held accumulator element, guarded by m < M and n < N.
+function matMma(an, kn, plan) {
+  const kb = new KB();
+  const ct = an.contraction, op = MMA_OPS[plan.op];
+  const { BM, BN, BK, WM, WN } = kn;
+  const MI = WM / 16, NI = WN / 8, WX = BN / WN;
+  const T = (BM / WM) * WX * 32;
+  const lay = mmaSmemLayout(plan.op, kn);
+  const gm = Math.ceil(ct.M / BM), gn = Math.ceil(ct.N / BN);
+  const bz = kb.int(V("bid").div(gm * gn), "bz"), bm = kb.int(V("bid").div(gn).mod(gm), "bm"), bn = kb.int(V("bid").mod(gn), "bn");
+  const warp = kb.int(V("tid").div(32), "warp"), lane = kb.int(V("tid").mod(32), "lane");
+  const wm = kb.int(warp.div(WX), "wm"), wn = kb.int(warp.mod(WX), "wn");
+  const benv = ct.batch.length ? decode(bz, ct.batch) : {};
+  const s = an.sched;
+  const accName = s.names.get(ct.C);
+  const acc = mmaAccumulators(kb, MI, NI);
+  const sA = kb.shared("sA", lay.sizeA), sB = kb.shared("sB", lay.sizeB);
+  const A = ct.A[0], B = ct.B[0];
+  if (A.i !== plan.a || B.i !== plan.b) throw new KilnError("MaterializeError", "the tensor-core plan does not match the contraction's operands");
+  const coef = (f, v) => { const a = IX.affine(f, [...IX.vars(f)]); return a ? Math.abs(a.k[v] || 0) : 1; };
+  // fns: the operand's format chain (copy, round_tf32, …: mmaPlan aFns/bFns), applied once per staged element
+  const tileLoad = (ld, arr, rows, rowVar, rowBase, lim, isA, k0, fns) => {
+    const f0 = an.flat(ld.i, ld.idx);
+    const sK = coef(f0, ct.C.r), sR = coef(f0, rowVar);
+    const kFast = sK !== 0 && (sR === 0 || sK <= sR);
+    kb.for(isA ? "la" : "lb", V("tid"), rows * BK, T, (l) => {
+      const rr = kb.int(kFast ? l.div(BK) : l.mod(rows), "rr"), kk = kb.int(kFast ? l.mod(BK) : l.div(rows), "kq");
+      const gRow = rowBase.add(rr), gK = k0.add(kk);
+      const v = kb.let(kx.num(0), "mv");
+      kb.if(gRow.lt(lim).and(gK.lt(ct.K)), () => {
+        const env = { ...benv, [rowVar]: gRow, [ct.C.r]: gK };
+        const x = fns.filter((fn) => fn !== "copy").reduce((e, fn) => kx.op(fn, e), kx.v(kb.load(ld.i, an.flat(ld.i, ld.idx.map((e) => IX.subst(e, env))))));
+        kb.let(x, v);
+      });
+      kb.sstore(arr, isA ? rr.mul(lay.ldA).add(kk) : kk.mul(lay.ldB).add(rr), kx.v(v));
+    });
+  };
+  kb.for("k0", 0, ct.K, BK, (k0) => {
+    tileLoad(A, sA, BM, ct.mVar, bm.mul(BM), ct.M, true, k0, plan.aFns);
+    tileLoad(B, sB, BN, ct.nVar, bn.mul(BN), ct.N, false, k0, plan.bFns);
+    kb.sync();
+    for (let ks = 0; ks < BK / op.k; ks++) mmaWarpStep(kb, plan.op, lane, acc, { arr: sA, ld: lay.ldA, row0: wm.mul(WM), k0: ks * op.k }, { arr: sB, ld: lay.ldB, col0: wn.mul(WN), k0: ks * op.k });
+    kb.sync();
+  });
+  for (const el of mmaAccElements(plan.op, acc, lane)) {
+    const m = bm.mul(BM).add(wm.mul(WM)).add(el.row), n = bn.mul(BN).add(wn.mul(WN)).add(el.col);
+    kb.if(m.lt(ct.M).and(n.lt(ct.N)), () => {
+      const sfx = `_${el.mi}_${el.ni}_${el.i}`;
+      const ctx = baseCtx(an, kb);
+      ctx.nm = (nn) => nn + sfx;
+      ctx.env = { ...benv, [ct.mVar]: m, [ct.nVar]: n };
+      ctx.load = (st, c) => kb.load(st.e.i, c.flat(c, st.e.i, st.e.idx), c.nm(st.name));
+      ctx.onFree = (st, c) => emitNest(kb, st.body, c);
+      ctx.onReduce = (init, loopSt, c) => { if (loopSt?.red === accName) { c.vals.set(accName, kx.v(el.name)); return true; } return false; };
+      ctx.write = (st, c) => kb.store("out", outFlat(an, st.idx, c.env), opnd(st.val, c));
+      emitNest(kb, s.stmts, ctx);
+    });
+  }
+  return kb;
+}
+
 // ----------------------------------------------------------------------------- materialize
+// Integer storage (P3a slice 1): an integer value may only be copied from a load to a store of the
+// same dtype, or converted to float. Arithmetic, comparisons, conversions and shared-memory staging of integers are refused
+// by name, here, rather than computed in float temporaries, which would corrupt int64 values above 2^24.
+// Static value types (P3a slice 3). A load takes its buffer's dtype (floating storage loads as f32), a
+// shared array the dtype stored into it, a typed function (fns.js) declares its operand and result
+// dtypes, and an untyped function computes in f32: an integer operand there is a missing conversion.
+// A literal takes the dtype its context requires. → { values: integer-typed names → dtype, smem: array → dtype }
+function valueTypes(body, params, name) {
+  // literal: names holding only literals so far (a reduction's initial value), typed by their later use
+  const types = new Map(), literal = new Set(), smem = new Map(), ins = params.filter((p) => p.role === "in"), out = params.find((p) => p.role === "out");
+  const value = (d) => (INTEGER_DTYPES.has(d) ? d : "f32");
+  const refuse = (what) => { throw new TypeError(`${what} in ${name}`); };
+  const typeOf = (e) => {
+    if (e.k === "num") return null;
+    if (e.k === "var") return types.get(e.n) ?? (literal.has(e.n) ? null : "f32");
+    if (e.k === "ix") return e.dtype;
+    const spec = FNS[e.fn], ts = e.a.map(typeOf);
+    if (spec.args) {
+      ts.forEach((t) => { if (spec.args !== "*" && t !== null && t !== spec.args) refuse(`${e.fn} applied to a ${t} value`); });
+      return spec.type;
+    }
+    if (e.fn === "select" || e.fn === "copy") {
+      const vs = [...new Set((e.fn === "select" ? ts.slice(1) : ts).filter((t) => t !== null))];
+      if (vs.length > 1) refuse(`${e.fn} over ${vs.join(" and ")} values`);
+      return vs[0] ?? null;
+    }
+    ts.forEach((t) => { if (t !== null && t !== "f32") refuse(`${e.fn} applied to a ${t} value (integer arithmetic needs a typed function)`); });
+    return "f32";
+  };
+  const assign = (n, t) => {
+    if (t === null) { if (!types.has(n)) literal.add(n); return; }
+    const prev = types.get(n);
+    if (prev && prev !== t) refuse(`${n} holds both ${prev} and ${t} values`);
+    types.set(n, t);
+  };
+  const walk = (ss) => {
+    for (const s of ss) {
+      if (s.s === "load") assign(s.n, value(ins[s.buf]?.dtype));
+      else if (s.s === "let") assign(s.n, typeOf(s.e));
+      else if (s.s === "sload") assign(s.n, smem.get(s.arr) ?? "f32");
+      else if (s.s === "sstore") {
+        const t = typeOf(s.e) ?? "f32", prev = smem.get(s.arr);
+        if (prev && prev !== t) refuse(`shared array ${s.arr} holds both ${prev} and ${t} values`);
+        smem.set(s.arr, t);
+      } else if (s.s === "mma") {
+        // fragments and accumulators are f32 temporaries: an integer value in an mma is a materializer bug
+        for (const n of [...s.a, ...s.b]) { const t = types.get(n); if (t && t !== "f32") refuse(`mma operand ${n} is a ${t} value`); }
+        for (const n of s.acc) assign(n, "f32");
+      } else if (s.s === "store") {
+        const t = typeOf(s.e), o = value(out.dtype || "f32");
+        if (t !== null && t !== o) refuse(`store of a ${t} value into ${out.dtype || "f32"} storage`);
+      }
+      if (s.body) walk(s.body);
+    }
+  };
+  walk(body);
+  return { values: new Map([...types].filter(([, t]) => t !== "f32")), smem };
+}
+
 export function materialize(node) {
   const a = node.attrs;
-  const an = analyze(a.expr, a.shape, a.inShapes);
+  const analysis = analyze(a.expr, a.shape, a.inShapes);
+  // Keep globally fresh Loop IR symbols for substitution/analysis, but bind
+  // deterministic per-kernel names before any source/evidence is emitted.
+  // Do not modify the cached analysis or schedule shared with other materializers.
+  const an = {...analysis,reductionNames:displayNames(analysis.sched)};
   const kn = a.map;
-  const L = launch(an, kn);
-  const kb = kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : matThread(an, kn);
-  const smemBytes = kb.smem.reduce((s, x) => s + x.size * 4, 0);
+  const plan = kn.MAP === "mma" ? mmaPlan(an, a.inPrecisions) : null;
+  if (plan && !plan.op) throw new KilnError("MaterializeError", `MAP=mma is not legal for ${a.name || "kernel"}: ${plan.reason}`);
+  const L = launch(an, kn, plan);
+  const kb = an.scan ? (kn.MAP === "row" ? matScanRow(an, kn) : matScanThread(an, kn))
+    : kn.MAP === "row" ? matRow(an, kn) : kn.MAP === "tiled" ? matTiled(an, kn) : kn.MAP === "mma" ? matMma(an, kn, plan) : kn.MAP === "flash" ? matFlash(an, kn) : matThread(an, kn);
+  const params = [...a.inShapes.map((s, i) => ({ name: "in" + i, size: numel(s), shape: s, role: "in", dtype: a.inDtypes?.[i] || "f32" })), { name: "out", size: numel(a.shape), shape: a.shape, role: "out", dtype: a.outDtype || "f32" }];
+  const { values, smem: smemTypes } = valueTypes(kb.body, params, a.name || "kernel");
+  const smem = kb.smem.map((x) => ({ ...x, dtype: smemTypes.get(x.name) ?? "f32" }));
+  const smemBytes = smem.reduce((s, x) => s + x.size * dtypeBytes(x.dtype), 0);
   return {
-    name: a.name || "kernel", grid: L.grid, block: L.block, smem: kb.smem, smemBytes, body: kb.body,
-    floats: [...kb.floats], ints: [...kb.ints].filter((v) => v !== "tid" && v !== "bid"),
-    params: [...a.inShapes.map((s, i) => ({ name: "in" + i, size: numel(s), shape: s, role: "in", dtype: a.inDtypes?.[i] || "f32" })), { name: "out", size: numel(a.shape), shape: a.shape, role: "out" }],
+    name: a.name || "kernel", grid: L.grid, block: L.block, smem, smemBytes, body: kb.body,
+    // temporaries by storage type: integer values (P3a slice 1) are never float temporaries
+    floats: [...kb.floats].filter((f) => !values.has(f)), values: Object.fromEntries(values),
+    ints: [...kb.ints].filter((v) => v !== "tid" && v !== "bid"),
+    params,
     map: kn, row: canonRow(kn),
+    // tensor-core kernels: the atom and which inputs are its A and B operands (program.js operandInputs, metricsOf)
+    // (a/b null: that operand is rounded to the format inside the kernel, so its input may hold any FP32 value)
+    ...(plan ? { mma: { op: plan.op, operand: plan.operand, a: plan.roundsA ? null : plan.a, b: plan.roundsB ? null : plan.b } } : {}),
   };
 }
 
 // ----------------------------------------------------------------------------- printing
 export function printKernelBody(K, args = []) {
   const bn = (b) => (b === "out" ? "out" : args[b] ?? "in" + b);
-  const fx = (e) => (e.k === "num" ? String(+e.v.toPrecision(7)) : e.k === "var" ? e.n : `${e.fn}(${e.a.map(fx).join(", ")})`);
+  const fx = (e) => (e.k === "num" ? (e.exact ?? String(+e.v.toPrecision(7))) : e.k === "var" ? e.n : e.k === "ix" ? `ix(${IX.print(e.e)}):${e.dtype}` : `${e.fn}(${e.a.map(fx).join(", ")})`);
   const ix = (e) => IX.print(e);
   const lines = [`grid=${K.grid} block=${K.block}${K.smemBytes ? ` smem=${K.smemBytes} B` : ""}  [${K.row}]`];
-  for (const s of K.smem) lines.push(`Smem ${s.name}[${s.size}] (float)`);
+  for (const s of K.smem) lines.push(`Smem ${s.name}[${s.size}] (${s.dtype ?? "f32"})`);
   const walk = (ss, pad) => {
     for (const s of ss) {
       switch (s.s) {
@@ -276,6 +554,7 @@ export function printKernelBody(K, args = []) {
         case "note": lines.push(`${pad}# ${s.text}`); break;
         case "for": lines.push(`${pad}for ${s.v} = ${ix(s.from)}; ${s.v} < ${ix(s.to)}; ${s.v} += ${ix(s.step)}:`); walk(s.body, pad + "    "); break;
         case "if": lines.push(`${pad}if ${ix(s.c)}:`); walk(s.body, pad + "    "); break;
+        case "mma": lines.push(`${pad}mma.${s.op} {${s.acc.join(", ")}} += {${s.a.join(", ")}}·{${s.b.join(", ")}}`); break;
       }
     }
   };
@@ -287,15 +566,15 @@ export function printKernelBody(K, args = []) {
 export const kern = k.dialect("kernel").describe("Kernel IR: threads, shared memory, syncs and flat addresses")
   .op("kernel", {
     args: { variadic: "ins" },
-    attrs: { K: null, name: null, expr: null, shape: [], inShapes: [], inDtypes: [], map: null },
-    infer: ({ shape }) => k.tensor(shape),
+    attrs: { K: null, name: null, expr: null, shape: [], outDtype: "f32", inShapes: [], inDtypes: [], map: null },
+    infer: ({ shape, outDtype }) => k.tensor(shape, outDtype),
     print: ({ name, ins }) => `kernel ${name || "·"}(${ins})`,
     body: ({ K, args }) => printKernelBody(K, args),
-    identity: ({ expr, shape, args }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}`),
+    identity: ({ expr, shape, args, outDtype }) => hash(`loop|${expr.__key}|${shape.join("x")}|${args.map((a) => inKey(a.type.shape, a.type.dtype)).join(",")}${outDtype && outDtype !== "f32" ? "|out:" + outDtype : ""}`),
     keyIgnore: ["name"],
   });
 export const materializeRule = k.rule("materialize").match(P.op("tile.kernel").as("t"))
-  .rewrite(({ t }) => t.lower(kern.kernel, { K: materialize(t.node), name: t.attrs.name, expr: t.attrs.expr, shape: t.attrs.shape, inShapes: t.attrs.inShapes, inDtypes: t.attrs.inDtypes, map: t.attrs.map }))
+  .rewrite(({ t }) => t.lower(kern.kernel, { K: materialize(t.node), name: t.attrs.name, expr: t.attrs.expr, shape: t.attrs.shape, inShapes: t.attrs.inShapes, inDtypes: t.attrs.inDtypes, outDtype: t.attrs.outDtype, map: t.attrs.map }))
   .describe("spell the chosen mapping out as threads, shared memory and syncs");
 
 // peephole: two syncs in a row, or a sync that ends the kernel, do nothing

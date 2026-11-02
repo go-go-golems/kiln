@@ -1,42 +1,128 @@
 // Emitters over Kernel IR: CUDA C++, WGSL, and a lockstep SIMT simulator in JavaScript.
 import * as IX from "../core/ix.js";
-import { FNS, fill } from "./fns.js";
+import { FNS, CUDA_HELPERS, fill } from "./fns.js";
+import { MMA_OPS, runAtom, ORDERS } from "./mma.js";
 
 const cname = (s) => String(s || "kernel").replace(/[^\w]/g, "_");
 const flit = (v, lang) => {
-  if (!isFinite(v)) v = v > 0 ? 3.4028234663852886e38 : -3.4028234663852886e38;
+  if (Number.isNaN(v)) return lang === "c" ? "__int_as_float(0x7fc00000)" : "bitcast<f32>(0x7fc00000u)";
+  if (v === Infinity) return lang === "c" ? "__int_as_float(0x7f800000)" : "bitcast<f32>(0x7f800000u)";
+  if (v === -Infinity) return lang === "c" ? "__int_as_float(0xff800000)" : "bitcast<f32>(0xff800000u)";
   let s = String(+v);
   if (!/[.e]/.test(s)) s += ".0";
   return lang === "c" ? s + "f" : s;
 };
 
+// a literal in an integer context (a typed function's operand, an integer variable): exact, never a float
+const ilit = ({ v, exact }, dtype) => {
+  if (dtype === "bool") return v != 0 ? "true" : "false";
+  const b = exact != null ? BigInt(exact) : Number.isInteger(v) ? BigInt(v) : null;
+  if (b === null) throw new TypeError(`non-integral literal ${v} in a ${dtype} context`);
+  if (dtype === "i32") return String(b);
+  return b === -(2n ** 63n) ? "(-9223372036854775807LL - 1)" : `${b}LL`;
+};
+
+// the mma ops a Kernel IR body uses (KILN-006)
+export function mmaOpsOf(body) {
+  const ops = new Set();
+  const walk = (ss) => { for (const s of ss) { if (s.s === "mma") ops.add(s.op); if (s.body) walk(s.body); } };
+  walk(body);
+  return ops;
+}
+// CUDA for one warp-collective mma statement: inline PTX mma.sync with FP32 accumulators read and written in
+// place ("+f"), operands passed as 32-bit registers. A TF32 element is its FP32 bit pattern (the legality rule and
+// the simulator guarantee its low 13 mantissa bits are zero, so no cvt is needed); two f16/bf16 elements pack
+// into one register, element 2j in bits 0-15 (kiln_pack_*: exact, the values are representable).
+export function cudaMma(s) {
+  const op = MMA_OPS[s.op];
+  if (!op) throw new TypeError(`unknown mma op ${s.op}`);
+  const reg = (names) => op.perReg === 1 ? names.map((n) => `"r"(__float_as_uint(${n}))`) : Array.from({ length: names.length / 2 }, (_, j) => `"r"(kiln_pack_${op.operand}(${names[2 * j]}, ${names[2 * j + 1]}))`);
+  const a = reg(s.a), b = reg(s.b);
+  const list = (from, n) => `{${Array.from({ length: n }, (_, i) => `%${from + i}`).join(",")}}`;
+  const text = `${op.ptx} ${list(0, 4)}, ${list(4, a.length)}, ${list(4 + a.length, b.length)}, ${list(0, 4)};\\n`;
+  return `asm volatile("${text}" : ${s.acc.map((n) => `"+f"(${n})`).join(", ")} : ${[...a, ...b].join(", ")});`;
+}
+const CUDA_PACK = {
+  f16: "__device__ __forceinline__ unsigned kiln_pack_f16(float lo, float hi) { __half2 h = __floats2half2_rn(lo, hi); return *reinterpret_cast<unsigned*>(&h); }",
+  bf16: "__device__ __forceinline__ unsigned kiln_pack_bf16(float lo, float hi) { __nv_bfloat162 h = __floats2bfloat162_rn(lo, hi); return *reinterpret_cast<unsigned*>(&h); }",
+};
+
 // ----------------------------------------------------------------------------- CUDA
-export function toCuda(K) {
+// CUDA spelling of each storage dtype
+export const CUDA_STORAGE = Object.freeze({ f32: "float", u8: "unsigned char", f16: "__half", bf16: "__nv_bfloat16", i32: "int", i64: "long long", bool: "bool" });
+
+// the device helpers a kernel body uses, each once: functions applied anywhere in it name their helper
+const cudaHelpers = (body) => {
+  const used = new Set();
+  JSON.stringify(body, (key, v) => { if (key === "fn" && FNS[v]?.helper) used.add(FNS[v].helper); return v; });
+  return [...used].sort();
+};
+// `alias` lists the source parameters bound to the same storage as dst (an in-place input write, inplace.js): those
+// parameters and dst are declared without __restrict__, and the aliased sources without const, because both
+// qualifiers promise the compiler that no other pointer reaches the object.
+export function toCuda(K, { alias = [] } = {}) {
   // buffers are src0…srcN and dst: kernel temporaries are named in0, in1… after the Loop IR's loads
   const bufName = (b) => (b === "out" ? "dst" : "src" + b);
-  const ix = (e) => IX.emit(e, "c");
-  const fx = (e) => (e.k === "num" ? flit(e.v, "c") : e.k === "var" ? e.n : fill(FNS[e.fn].c, e.a.map(fx)));
+  // a data-dependent index term reads an integer input at its row-major offset
+  const ldSpell = (i, idx, r) => {
+    const shape = K.params.filter((p) => p.role === "in")[i].shape;
+    let stride = 1, flat = IX.C(0);
+    for (let j = shape.length - 1; j >= 0; j--) { flat = flat.add(IX.lift(idx[j]).mul(stride)); stride *= shape[j]; }
+    return `(int)${bufName(i)}[${r(flat)}]`;
+  };
+  const ix = (e) => IX.emit(e, "c", (v) => v, ldSpell);
+  // an index value is signed: floor division and modulo where a dividend may be negative
+  const ixValue = (e) => { const v = IX.emit(e.e, "c", (n) => n, ldSpell, true); return e.dtype === "i64" ? `((long long)(${v}))` : e.dtype === "i32" ? `((int)(${v}))` : `((${v}) != 0)`; };
+  const values = K.values ?? {};
+  // ctx: the dtype a literal here must have (a typed function's operand dtype, or the target's)
+  const fx = (e, ctx = "f32") => {
+    if (e.k === "num") return ctx === "f32" ? flit(e.v, "c") : ilit(e, ctx);
+    if (e.k === "var") return e.n;
+    if (e.k === "ix") return ixValue(e);
+    const spec = FNS[e.fn];
+    const argCtx = (i) => (spec.args && spec.args !== "*" ? spec.args : !spec.args && (e.fn === "copy" || (e.fn === "select" && i > 0)) ? ctx : "f32");
+    return fill(spec.c, e.a.map((a, i) => fx(a, argCtx(i))));
+  };
+  const typeOf = (n) => values[n] ?? "f32";
   const ins = K.params.filter((p) => p.role === "in");
   const lines = [];
-  const ctype = (p) => (p.dtype === "u8" ? "unsigned char" : "float");
-  lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `const ${ctype(p)}* __restrict__ src${i}`), "float* __restrict__ dst"].join(", ")}) {`);
+  const storage = CUDA_STORAGE;
+  const ctype = (p) => {
+    const dtype = p.dtype || "f32";
+    if (!Object.hasOwn(storage, dtype)) throw new TypeError(`CUDA storage dtype unsupported: ${dtype}`);
+    return storage[dtype];
+  };
+  const out = K.params.find((p) => p.role === "out") || {};
+  const types = [...ins, out].map((p) => p.dtype || "f32");
+  const mmaOperands = new Set([...mmaOpsOf(K.body)].map((o) => MMA_OPS[o].operand));
+  if (types.includes("f16") || JSON.stringify(K.body).includes('"round_f16"') || mmaOperands.has("f16")) lines.push("#include <cuda_fp16.h>");
+  if (types.includes("bf16") || JSON.stringify(K.body).includes('"round_bf16"') || mmaOperands.has("bf16")) lines.push("#include <cuda_bf16.h>");
+  for (const operand of ["f16", "bf16"]) if (mmaOperands.has(operand)) lines.push(CUDA_PACK[operand]);
+  for (const h of cudaHelpers(K.body)) lines.push(CUDA_HELPERS[h]);
+  const load = (dtype, expr) => dtype === "f16" ? `__half2float(${expr})` : dtype === "bf16" ? `__bfloat162float(${expr})` : dtype === "u8" ? `(float)${expr}` : expr;
+  const store = (expr) => out.dtype === "f16" ? `__float2half_rn(${expr})` : out.dtype === "bf16" ? `__float2bfloat16_rn(${expr})` : expr;
+  const shared = new Set(alias), restrict = (q) => (q ? "* " : "* __restrict__ ");
+  lines.push(`extern "C" __global__ void __launch_bounds__(${K.block}) ${cname(K.name)}(${[...ins.map((p, i) => `${shared.has(i) ? "" : "const "}${ctype(p)}${restrict(shared.has(i))}src${i}`), `${ctype(out)}${restrict(shared.size > 0)}dst`].join(", ")}) {`);
   lines.push(`    const int tid = threadIdx.x;`, `    const int bid = blockIdx.x;`);
-  for (const s of K.smem) lines.push(`    __shared__ float ${s.name}[${s.size}];`);
+  for (const s of K.smem) lines.push(`    __shared__ ${storage[s.dtype ?? "f32"]} ${s.name}[${s.size}];`);
   if (K.floats.length) lines.push(`    float ${K.floats.map((f) => `${f} = 0.0f`).join(", ")};`);
+  const smemType = Object.fromEntries(K.smem.map((s) => [s.name, s.dtype ?? "f32"]));
+  for (const dtype of new Set(Object.values(values))) lines.push(`    ${storage[dtype]} ${Object.keys(values).filter((n) => values[n] === dtype).map((n) => `${n} = 0`).join(", ")};`);
   if (K.ints.length) lines.push(`    int ${K.ints.map((v) => `${v} = 0`).join(", ")};`);
   const walk = (ss, pad) => {
     for (const s of ss) {
       switch (s.s) {
-        case "let": lines.push(`${pad}${s.n} = ${fx(s.e)};`); break;
+        case "let": lines.push(`${pad}${s.n} = ${fx(s.e, typeOf(s.n))};`); break;
         case "iset": lines.push(`${pad}${s.n} = ${ix(s.e)};`); break;
-        case "load": lines.push(`${pad}${s.n} = ${ins[s.buf]?.dtype === "u8" ? "(float)" : ""}${bufName(s.buf)}[${ix(s.idx)}];`); break;
-        case "store": lines.push(`${pad}${bufName(s.buf)}[${ix(s.idx)}] = ${fx(s.e)};`); break;
+        case "load": lines.push(`${pad}${s.n} = ${load(ins[s.buf]?.dtype, `${bufName(s.buf)}[${ix(s.idx)}]`)};`); break;
+        case "store": lines.push(`${pad}${bufName(s.buf)}[${ix(s.idx)}] = ${store(fx(s.e, ["i32", "i64", "bool"].includes(out.dtype) ? out.dtype : "f32"))};`); break;
         case "sload": lines.push(`${pad}${s.n} = ${s.arr}[${ix(s.idx)}];`); break;
-        case "sstore": lines.push(`${pad}${s.arr}[${ix(s.idx)}] = ${fx(s.e)};`); break;
+        case "sstore": lines.push(`${pad}${s.arr}[${ix(s.idx)}] = ${fx(s.e, smemType[s.arr])};`); break;
         case "sync": lines.push(`${pad}__syncthreads();`); break;
         case "note": lines.push(`${pad}// ${s.text}`); break;
         case "for": lines.push(`${pad}for (int ${s.v} = ${ix(s.from)}; ${s.v} < ${ix(s.to)}; ${s.v} += ${ix(s.step)}) {`); walk(s.body, pad + "    "); lines.push(`${pad}}`); break;
         case "if": lines.push(`${pad}if (${ix(s.c)}) {`); walk(s.body, pad + "    "); lines.push(`${pad}}`); break;
+        case "mma": lines.push(`${pad}${cudaMma(s)}`); break;
       }
     }
   };
@@ -47,13 +133,50 @@ export function toCuda(K) {
 
 // ----------------------------------------------------------------------------- WGSL
 // one dispatch per kernel; grids past 65535 workgroups fold into two dimensions
+export function wgslUnavailableReason(K) {
+  for (const parameter of K.params) {
+    const dtype = parameter.dtype || "f32";
+    const allowed = parameter.role === "in" ? ["f32", "u8"] : ["f32"];
+    if (!allowed.includes(dtype)) return `WGSL storage dtype unsupported: ${dtype} (${parameter.role})`;
+  }
+  const expression = e => {
+    if (e?.k === "ix") return "WGSL index values not implemented";
+    if (!e || e.k !== "op") return null;
+    if (!FNS[e.fn].w) return `WGSL scalar guarantee not implemented: ${e.fn}`;
+    for (const a of e.a) { const why = expression(a); if (why) return why; }
+    return null;
+  };
+  const statements = ss => {
+    for (const s of ss) {
+      if (s.s === "mma") return `tensor-core mma (${s.op}) has no WGSL lowering`;
+      const why = expression(s.e) || (s.body && statements(s.body));
+      if (why) return why;
+    }
+    return null;
+  };
+  const unsupported = statements(K.body);
+  if (unsupported) return unsupported;
+  return null;
+}
 export function toWgsl(K) {
+  const unavailable = wgslUnavailableReason(K);
+  if (unavailable) throw new TypeError(unavailable);
   const ins = K.params.filter((p) => p.role === "in");
   const fv = (n) => "v_" + n, iv = (n) => (n === "tid" || n === "bid" ? n : "n_" + n);
   const bufName = (b) => (b === "out" ? "bout" : "b" + b);
   const ix = (e) => IX.emit(e, "wgsl", iv);
   const fx = (e) => (e.k === "num" ? flit(e.v, "w") : e.k === "var" ? fv(e.n) : fill(FNS[e.fn].w, e.a.map(fx)));
   const lines = [];
+  if (JSON.stringify(K.body).includes('"round_tf32"')) lines.push(`fn kiln_round_tf32(x: f32) -> f32 {
+  let bits = bitcast<u32>(x);
+  if ((bits & 0x7f800000u) == 0x7f800000u) { return x; }
+  return bitcast<f32>((bits + 0xfffu + ((bits >> 13u) & 1u)) & 0xffffe000u);
+}`);
+  if (JSON.stringify(K.body).includes('"round_bf16"')) lines.push(`fn kiln_round_bf16(x: f32) -> f32 {
+    let bits = bitcast<u32>(x);
+    if ((bits & 0x7fffffffu) > 0x7f800000u) { return bitcast<f32>((bits & 0xffff0000u) | 0x00400000u); }
+    return bitcast<f32>((bits + 0x7fffu + ((bits >> 16u) & 1u)) & 0xffff0000u);
+  }`);
   // WGSL has no 8-bit storage type: a u8 input binds as packed u32 words and is read through an unpack function
   ins.forEach((p, i) => lines.push(`@group(0) @binding(${i}) var<storage, read> b${i}: array<${p.dtype === "u8" ? "u32" : "f32"}>;`));
   lines.push(`@group(0) @binding(${ins.length}) var<storage, read_write> bout: array<f32>;`);
@@ -92,20 +215,38 @@ export function toWgsl(K) {
 // Runs one block at a time in lockstep: every statement executes for all active threads before the
 // next one, with a mask for divergent branches and loops. That is exactly the semantics of a
 // race-free, barrier-correct CUDA kernel. With `instrument`, it records what each warp did.
-export function toSim(K, { instrument = false } = {}) {
+// Integer values (P3a, KILN-010): every temporary lives in a per-thread array of its static type
+// (K.values: BigInt64Array for i64, Int32Array for i32, Uint8Array for bool), as do shared arrays
+// (K.smem dtype) and the output buffer the caller passes. An assignment into int64 storage converts a
+// number operand (a literal, an i32 select branch) to BigInt; reference values are BigInt there too.
+const SIM_STORAGE = { f32: "Float32Array", i64: "BigInt64Array", i32: "Int32Array", bool: "Uint8Array" };
+export function toSim(K, { instrument = false, mmaOrder = "sequential" } = {}) {
+  if (!ORDERS.includes(mmaOrder)) throw new TypeError(`unknown mma accumulation order ${mmaOrder}`);
   const T = K.block;
-  const floats = K.floats, ints = K.ints;
+  const floats = K.floats, ints = K.ints, values = K.values ?? {};
+  const outDtype = K.params.find((p) => p.role === "out")?.dtype || "f32";
+  const smemType = Object.fromEntries(K.smem.map((s) => [s.name, s.dtype ?? "f32"]));
+  const into = (dtype, x) => (dtype === "i64" ? `B64(${x})` : x);
+  const inShapes = K.params.filter((p) => p.role === "in").map((p) => p.shape);
   const uniform = new Set(["bid"]);
   const perThreadInts = new Set(ints);
   let id = 0;
   const out = [];
   const L = (s) => out.push(s);
   const INLINE = { add: "+", sub: "-", mul: "*", div: "/" };
-  const fexpr = (e) => (e.k === "num" ? `(${+e.v})` : e.k === "var" ? `F_${e.n}[t]` : INLINE[e.fn] && e.a.length === 2 ? `(${fexpr(e.a[0])} ${INLINE[e.fn]} ${fexpr(e.a[1])})` : `FN.${e.fn}(${e.a.map(fexpr).join(", ")})`);
+  const fexpr = (e) => (e.k === "num" ? (e.exact != null ? `(${e.exact}n)` : `(${+e.v})`) : e.k === "var" ? `F_${e.n}[t]` : e.k === "ix" ? ixValue(e) : INLINE[e.fn] && e.a.length === 2 ? `(${fexpr(e.a[0])} ${INLINE[e.fn]} ${fexpr(e.a[1])})` : `FN.${e.fn}(${e.a.map(fexpr).join(", ")})`);
   // active warps and lanes per mask, recounted only when a mask changes (instrumented runs)
   const recount = (md) => (instrument ? ` aw${md} = 0; al${md} = 0; for (let w = 0; w < T; w += 32) { let c = 0; const e = w + 32 < T ? w + 32 : T; for (let t = w; t < e; t++) c += ${md}[t]; al${md} += c; if (c) aw${md}++; }` : "");
   const iname = (v) => (v === "tid" ? "t" : v === "bid" ? "bid" : uniform.has(v) ? "u_" + v : `I_${v}[t]`);
-  const ix = (e) => IX.emit(e, "js", iname);
+  // a data-dependent index term reads an integer input at its row-major offset
+  const ldSim = (i, idx, r) => {
+    const shape = inShapes[i];
+    let stride = 1, flat = IX.C(0);
+    for (let j = shape.length - 1; j >= 0; j--) { flat = flat.add(IX.lift(idx[j]).mul(stride)); stride *= shape[j]; }
+    return `Number(B[${i}][${r(flat)}])`;
+  };
+  const ix = (e) => IX.emit(e, "js", iname, ldSim);
+  const ixValue = (e) => { const v = IX.emit(e.e, "js", iname, ldSim, true); return e.dtype === "i64" ? `BigInt(${v})` : `(${v})`; };
   const isUniform = (e) => [...IX.vars(e)].every((v) => uniform.has(v));
   const opFlops = (e) => (e.k === "op" ? (FNS[e.fn]?.flops ?? 1) + e.a.reduce((a, x) => a + opFlops(x), 0) : 0);
   let depth = 0;
@@ -123,25 +264,38 @@ export function toSim(K, { instrument = false } = {}) {
     for (const s of ss) {
       const sid = id++;
       switch (s.s) {
-        case "let": call(`for (let t = 0; t < T; t++) if (${m}[t]) F_${s.n}[t] = ${fexpr(s.e)};${instrument ? ` M.insC(aw${m}, al${m}, ${opFlops(s.e)});` : ""}`); break;
+        case "let": call(`for (let t = 0; t < T; t++) if (${m}[t]) F_${s.n}[t] = ${into(values[s.n], fexpr(s.e))};${instrument ? ` M.insC(aw${m}, al${m}, ${opFlops(s.e)});` : ""}`); break;
         case "iset": call(`for (let t = 0; t < T; t++) if (${m}[t]) I_${s.n}[t] = ${ix(s.e)};${instrument ? ` M.insC(aw${m}, al${m}, 0);` : ""}`); break;
         case "load":
-          if (instrument) call(`const buf = B[${s.buf === "out" ? "OUT" : s.buf}]; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= buf.length) M.oob(${sid}, a, "load"); F_${s.n}[t] = buf[a]; } else A[t] = -1; } M.gmem(A, "ld");`);
+          if (instrument) call(`const buf = B[${s.buf === "out" ? "OUT" : s.buf}]; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= buf.length) M.oob(${sid}, a, "load"); F_${s.n}[t] = buf[a]; } else A[t] = -1; } M.gmem(A, "ld", ${JSON.stringify(s.buf)});`);
           else call(`const buf = B[${s.buf === "out" ? "OUT" : s.buf}]; for (let t = 0; t < T; t++) if (${m}[t]) F_${s.n}[t] = buf[${ix(s.idx)}];`);
           break;
         case "store":
-          if (instrument) call(`const o = B[OUT]; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= o.length) M.oob(${sid}, a, "store"); else { o[a] = ${fexpr(s.e)}; M.cov[a] = 1; } } else A[t] = -1; } M.gmem(A, "st");`);
-          else call(`const o = B[OUT]; for (let t = 0; t < T; t++) if (${m}[t]) o[${ix(s.idx)}] = ${fexpr(s.e)};`);
+          if (instrument) call(`const o = B[OUT]; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= o.length) M.oob(${sid}, a, "store"); else { o[a] = ${into(outDtype, fexpr(s.e))}; M.cov[a] = 1; } } else A[t] = -1; } M.gmem(A, "st", "out");`);
+          else call(`const o = B[OUT]; for (let t = 0; t < T; t++) if (${m}[t]) o[${ix(s.idx)}] = ${into(outDtype, fexpr(s.e))};`);
           break;
         case "sload":
           if (instrument) call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= sa.length) M.oob(${sid}, a, "shared load"); F_${s.n}[t] = sa[a]; } else A[t] = -1; } M.smem(A);`);
           else call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) if (${m}[t]) F_${s.n}[t] = sa[${ix(s.idx)}];`);
           break;
         case "sstore":
-          if (instrument) call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= sa.length) M.oob(${sid}, a, "shared store"); else sa[a] = ${fexpr(s.e)}; } else A[t] = -1; } M.smem(A);`);
-          else call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) if (${m}[t]) sa[${ix(s.idx)}] = ${fexpr(s.e)};`);
+          if (instrument) call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) { if (${m}[t]) { const a = ${ix(s.idx)}; A[t] = a; if (a < 0 || a >= sa.length) M.oob(${sid}, a, "shared store"); else sa[a] = ${into(smemType[s.arr], fexpr(s.e))}; } else A[t] = -1; } M.smem(A);`);
+          else call(`const sa = S.${s.arr}; for (let t = 0; t < T; t++) if (${m}[t]) sa[${ix(s.idx)}] = ${into(smemType[s.arr], fexpr(s.e))};`);
           break;
         case "sync": if (instrument) L(`M.sync(${m}, ${sid});`); break;
+        case "mma": {
+          // warp-collective (KILN-006): every warp with any active lane must have all 32 active; then one emulated atom
+          // per warp over the per-thread fragment arrays (mma.js runAtom: layout table, operand check, FP32 accumulation)
+          const op = MMA_OPS[s.op];
+          if (!op) throw new TypeError(`unknown mma op ${s.op}`);
+          const arr = (ns) => `[${ns.map((n) => "F_" + n).join(", ")}]`;
+          call(`for (let w = 0; w < T; w += 32) { let c = 0; const e = w + 32 < T ? w + 32 : T; for (let t = w; t < e; t++) c += ${m}[t]; if (!c) continue;` +
+            ` if (c !== 32) { MMAFAIL(M, ${sid}, "a warp-collective mma runs with " + c + " of 32 lanes active (warp " + (w >> 5) + ")"); continue; }` +
+            ` const bad = MMA(${JSON.stringify(s.op)}, w, ${arr(s.acc)}, ${arr(s.a)}, ${arr(s.b)}, ORDER);` +
+            ` if (bad) MMAFAIL(M, ${sid}, "mma ${s.op} operand " + bad.operand + " slot " + bad.slot + " of lane " + bad.lane + " (warp " + (w >> 5) + ") is " + bad.value + ", not representable in ${op.operand}");` +
+            `${instrument ? ` M.mma(${2 * op.m * op.n * op.k});` : ""} }`);
+          break;
+        }
         case "note": break;
         case "for": {
           const uni = isUniform(s.from) && isUniform(s.to) && isUniform(s.step);
@@ -184,11 +338,14 @@ export function toSim(K, { instrument = false } = {}) {
   const nIn = K.params.filter((p) => p.role === "in").length;
   const head = [
     `const T = ${T}; const OUT = ${nIn};`,
+    `const B64 = (v) => (typeof v === "bigint" ? v : BigInt(v));`,
     ...floats.map((f) => `const F_${f} = new Float32Array(T);`),
+    ...Object.entries(values).map(([n, d]) => `const F_${n} = new ${SIM_STORAGE[d]}(T);`),
     ...[...perThreadInts].map((v) => `const I_${v} = new Int32Array(T);`),
     ...Array.from({ length: nMasks }, (_, i) => `const M${i} = new Uint8Array(T); let awM${i} = 0, alM${i} = 0;`),
     `const A = new Float64Array(T);`,
-    `const S = { ${K.smem.map((s) => `${s.name}: new Float32Array(${s.size})`).join(", ")} };`,
+    `const MMAFAIL = (M, sid, msg) => { if (M) M.badMma(sid, msg); else throw new Error(msg); };`,
+    `const S = { ${K.smem.map((s) => `${s.name}: new ${SIM_STORAGE[s.dtype ?? "f32"]}(${s.size})`).join(", ")} };`,
     ...defs,
     `return function run(B, blocks, M) {`,
     `  for (const bid of blocks) {`,
@@ -197,8 +354,8 @@ export function toSim(K, { instrument = false } = {}) {
   ];
   const src = [...head, ...out.map((l) => "    " + l), "  }", "};"].join("\n");
   const FN = Object.fromEntries(Object.entries(FNS).map(([k, v]) => [k, v.js]));
-  const make = new Function("FN", src);
-  const fnc = make(FN);
+  const make = new Function("FN", "MMA", "ORDER", src);
+  const fnc = make(FN, runAtom, mmaOrder);
   fnc.source = src;
   return fnc;
 }
@@ -207,7 +364,7 @@ export function toSim(K, { instrument = false } = {}) {
 export class SimMetrics {
   constructor(T, outSize) {
     this.T = T; this.cov = new Uint8Array(outSize);
-    Object.assign(this, { ldReq: 0, ldSect: 0, stReq: 0, stSect: 0, shReq: 0, shWave: 0, flops: 0, warpInstr: 0, syncs: 0, divWarps: 0, branchWarps: 0, blocks: 0, oobs: [], badSyncs: [] });
+    Object.assign(this, { ldReq: 0, ldSect: 0, stReq: 0, stSect: 0, shReq: 0, shWave: 0, flops: 0, tensorFlops: 0, warpInstr: 0, syncs: 0, divWarps: 0, branchWarps: 0, blocks: 0, oobs: [], badSyncs: [], badMmas: [] });
   }
   block() { this.blocks++; }
   insC(aw, al, fl) { this.warpInstr += aw; this.flops += al * fl; }
@@ -251,4 +408,7 @@ export class SimMetrics {
   div(m, md) { const T = this.T; for (let w = 0; w < T; w += 32) { let a = 0, b = 0; for (let t = w; t < w + 32 && t < T; t++) { a += m[t]; b += md[t]; } if (a) { this.branchWarps++; if (b && b < a) this.divWarps++; } } }
   sync(m, sid) { this.syncs++; for (let t = 0; t < this.T; t++) if (!m[t]) { if (this.badSyncs.length < 5) this.badSyncs.push(sid); return; } }
   oob(sid, a, what) { if (this.oobs.length < 5) this.oobs.push({ sid, a, what }); }
+  // one warp-collective tensor-core atom (KILN-006): one warp instruction, 2·m·n·k tensor flops
+  mma(flops) { this.warpInstr++; this.tensorFlops += flops; }
+  badMma(sid, message) { if (this.badMmas.length < 5) this.badMmas.push({ sid, message }); }
 }
