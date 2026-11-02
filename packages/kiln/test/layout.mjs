@@ -44,4 +44,14 @@ for(const dtype of ['f16','bf16']){
  assert.deepEqual(g.eval({x}).out.data,padReference(x,[1,2]).data);
  const run=pipeline({target:hardware}).run(g,{params:{MAP:'thread'}});assert.ok(run.ok,run.error?.message);
 }
+// integer storage survives the layout references exactly (i64 past 2^53, i32 at its limit), padding literals included
+for(const [dtype,Arr,vals] of [['i64',BigInt64Array,[9007199254740993n,-2n,3n]],['i32',Int32Array,[2147483647,-2,3]]]){
+ const g=k.trace('int-layout',({x})=>({p:N.pad(x,[1,2],'constant',7),r:N.roll(x,1)}),{x:k.tensor([3],dtype)});
+ const x=new Tensor([3],Arr.from(vals),dtype),seven=dtype==='i64'?7n:7;
+ for(const out of [g.eval({x}),pipeline({target:target(SPECS.a100)}).run(g).at('loop').eval({x})]){
+  assert.ok(out.p.data instanceof Arr&&out.r.data instanceof Arr,`${dtype} layout storage`);
+  assert.deepEqual([...out.p.data],[seven,...vals,seven,seven]);
+  assert.deepEqual([...out.r.data],[vals[2],vals[0],vals[1]]);
+ }
+}
 console.log('Typed padding reference and compiler cases passed.');
