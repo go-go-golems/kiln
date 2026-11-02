@@ -24,11 +24,11 @@ function coordinate(q,n,left,right,mode){
  return start+((q-Math.max(0,left))%size+size)%size;
 }
 function reference(input,shape,map){
- const out=new Tensor(shape);
+ const out=new Tensor(shape,null,input.dtype),wide=out.data instanceof BigInt64Array;
  for(let i=0;i<out.data.length;i++){
   let rest=i;const coords=shape.map(()=>0);
   for(let j=shape.length-1;j>=0;j--){coords[j]=rest%shape[j];rest=Math.floor(rest/shape[j]);}
-  const result=map(coords);if(typeof result==='number'){out.data[i]=result;continue;}
+  const result=map(coords);if(typeof result==='number'){out.data[i]=wide?BigInt(Math.trunc(result)):result;continue;}
   let offset=0;for(let j=0;j<result.length;j++)offset=offset*input.shape[j]+result[j];out.data[i]=input.data[offset];
  }return out;
 }
@@ -71,9 +71,9 @@ export function rollSpec(shape,shifts,dims=null){
  return {shape:shape.slice(),sizes,offsets,flatten};
 }
 export function rollReference(input,shifts,dims=null){
- const spec=rollSpec(input.shape,shifts,dims),x=spec.flatten?new Tensor(spec.sizes,input.data):input;
+ const spec=rollSpec(input.shape,shifts,dims),x=spec.flatten?new Tensor(spec.sizes,input.data,input.dtype):input;
  const result=reference(x,spec.sizes,c=>c.map((v,i)=>(v-spec.offsets[i]+spec.sizes[i])%spec.sizes[i]));
- return new Tensor(input.shape,result.data);
+ return new Tensor(input.shape,result.data,input.dtype);
 }
 export function lowerRoll(T,input,shifts,dims=null){
  const spec=rollSpec(input.type.shape,shifts,dims),x=spec.flatten?T.reshape(input,spec.sizes):input;
